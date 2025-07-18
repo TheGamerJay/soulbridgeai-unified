@@ -94,11 +94,17 @@ def after_request(response):
 
 # Initialize OpenAI client
 openai_api_key = os.environ.get("OPENAI_API_KEY")
+openai_client = None
+
 if openai_api_key:
-    openai_client = OpenAI(api_key=openai_api_key)
-    logging.info("OpenAI client initialized successfully")
+    try:
+        openai_client = OpenAI(api_key=openai_api_key)
+        logging.info("OpenAI client initialized successfully")
+    except Exception as e:
+        logging.error(f"Failed to initialize OpenAI client: {e}")
+        openai_client = None
+        logging.warning("OpenAI client initialization failed - AI features will be disabled")
 else:
-    openai_client = None
     logging.warning("OPENAI_API_KEY not found - AI features will be disabled")
 
 # Initialize SoulBridge Database
@@ -2794,9 +2800,13 @@ def refresh_openai():
         openai_api_key = os.environ.get("OPENAI_API_KEY")
         
         if openai_api_key:
-            openai_client = OpenAI(api_key=openai_api_key)
-            # Test the connection
-            response = openai_client.models.list()
+            try:
+                openai_client = OpenAI(api_key=openai_api_key)
+                # Test the connection
+                response = openai_client.models.list()
+            except Exception as e:
+                logging.error(f"Failed to refresh OpenAI client: {e}")
+                return jsonify(success=False, error=f"OpenAI refresh failed: {str(e)}"), 500
             logging.info("OpenAI connection refreshed successfully")
             return jsonify(success=True, message="OpenAI connection refreshed", models_count=len(response.data))
         else:
