@@ -29,4 +29,4 @@ COPY --from=frontend-build /app/frontend/build ./frontend/build
 EXPOSE $PORT
 
 # Start command
-CMD gunicorn backend.app:app --host 0.0.0.0 --port $PORT
+CMD gunicorn backend.app:app --bind 0.0.0.0:$PORT
