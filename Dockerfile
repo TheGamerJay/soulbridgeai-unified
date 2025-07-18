@@ -28,5 +28,9 @@ COPY --from=frontend-build /app/frontend/build ./frontend/build
 # Expose port
 EXPOSE $PORT
 
+# Copy and set up start script
+COPY start.sh .
+RUN chmod +x start.sh
+
 # Start command
-CMD gunicorn backend.app:app --bind 0.0.0.0:$PORT
+CMD ["./start.sh"]
