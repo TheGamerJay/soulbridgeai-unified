@@ -1,0 +1,157 @@
+/* Base Styles - Core layout and typography */
+
+/* Reset and base styles */
+* {
+    box-sizing: border-box;
+}
+
+body { 
+    margin: 0; 
+    font-family: system-ui, -apple-system, sans-serif; 
+    background: linear-gradient(135deg, #000000 0%, #0f172a 50%, #1e293b 100%);
+    color: #22d3ee;
+    min-height: 100vh;
+    position: relative;
+    transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+
+.content-overlay {
+    position: relative;
+    z-index: 2;
+}
+
+.hidden { 
+    display: none !important; 
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+    margin: 0 0 1rem 0;
+    font-weight: bold;
+    line-height: 1.2;
+}
+
+p {
+    margin: 0 0 1rem 0;
+    line-height: 1.5;
+}
+
+/* Utility classes */
+.text-white {
+    color: #ffffff !important;
+}
+
+.text-black {
+    color: #000000 !important;
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Layout containers */
+.max-w-4xl, .max-w-6xl {
+    margin: 0 auto;
+}
+
+.flex {
+    display: flex;
+}
+
+.flex-col {
+    flex-direction: column;
+}
+
+.items-center {
+    align-items: center;
+}
+
+.justify-center {
+    justify-content: center;
+}
+
+.justify-between {
+    justify-content: space-between;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.min-h-screen {
+    min-height: 100vh;
+}
+
+.grid {
+    display: grid;
+}
+
+.gap-2 { gap: 0.5rem; }
+.gap-4 { gap: 1rem; }
+.gap-6 { gap: 1.5rem; }
+.gap-12 { gap: 3rem; }
+
+.mb-4 { margin-bottom: 1rem; }
+.mb-6 { margin-bottom: 1.5rem; }
+.mb-8 { margin-bottom: 2rem; }
+.mb-12 { margin-bottom: 3rem; }
+
+.p-4 { padding: 1rem; }
+.p-6 { padding: 1.5rem; }
+.p-10 { padding: 2.5rem; }
+
+.px-4 { padding-left: 1rem; padding-right: 1rem; }
+.px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
+.px-8 { padding-left: 2rem; padding-right: 2rem; }
+.px-12 { padding-left: 3rem; padding-right: 3rem; }
+
+.py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+.py-4 { padding-top: 1rem; padding-bottom: 1rem; }
+
+.mr-2 { margin-right: 0.5rem; }
+
+.w-full { width: 100%; }
+
+.relative { position: relative; }
+.absolute { position: absolute; }
+.fixed { position: fixed; }
+
+.z-50 { z-index: 50; }
+.z-100 { z-index: 100; }
+
+.inset-0 {
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+}
+
+.cursor-pointer { cursor: pointer; }
+
+.font-bold { font-weight: bold; }
+.font-semibold { font-weight: 600; }
+
+.opacity-70 { opacity: 0.7; }
+.opacity-80 { opacity: 0.8; }
+
+.rounded-xl { border-radius: 0.75rem; }
+.rounded-3xl { border-radius: 1.5rem; }
+
+.border-2 { border-width: 2px; }
+.border-3 { border-width: 3px; }
+
+.overflow-hidden { overflow: hidden; }
+.overflow-y-auto { overflow-y: auto; }
+
+.drop-shadow-2xl {
+    filter: drop-shadow(0 25px 25px rgb(0 0 0 / 0.15));
+}

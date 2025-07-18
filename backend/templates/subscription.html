@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SoulBridgeAI Plus Subscription</title>
+  <script src="https://js.stripe.com/v3/"></script>
+  <style>
+    body {
+      background-color: #000;
+      color: cyan;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: auto;
+      border: 2px solid cyan;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 15px cyan;
+    }
+
+    h1, h2, h3 {
+      color: cyan;
+      text-align: center;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    ul li::before {
+      content: "✅ ";
+    }
+
+    .plan-button {
+      display: block;
+      width: 100%;
+      padding: 15px;
+      margin: 10px 0;
+      background: linear-gradient(to right, #0ff, #00f);
+      color: black;
+      font-size: 18px;
+      text-align: center;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .plan-button:hover {
+      background: linear-gradient(to right, #00f, #0ff);
+    }
+
+    .plan-button.selected {
+      background: gold;
+      color: black;
+      border: 3px solid #ffd700;
+      box-shadow: 0 0 20px gold;
+    }
+
+    .recommended {
+      background: gold;
+      color: black;
+      font-weight: bold;
+      padding: 4px 8px;
+      border-radius: 8px;
+      display: inline-block;
+      margin-top: 10px;
+    }
+
+    label {
+      display: block;
+      margin-top: 20px;
+    }
+
+    .confirm-button {
+      background: cyan;
+      color: black;
+      padding: 15px;
+      width: 100%;
+      font-size: 18px;
+      margin-top: 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .confirm-button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .back-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: rgba(34, 211, 238, 0.8);
+      color: #000;
+      padding: 10px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      z-index: 100;
+    }
+
+    .back-btn:hover {
+      background: rgba(34, 211, 238, 1);
+      transform: translateY(-2px);
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(34, 211, 238, 0.7); }
+      50% { transform: scale(1.05); box-shadow: 0 0 0 20px rgba(34, 211, 238, 0); }
+      100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(34, 211, 238, 0); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Back Button -->
+<a href="javascript:history.back()" class="back-btn">← Back</a>
+
+<div class="container">
+  <h1>SoulBridgeAI Plus</h1>
+  <h2>Unlock Full Access</h2>
+  <p>Choose your plan below to enjoy unlimited chat, premium companions, and customization.</p>
+
+  <button class="plan-button" id="monthlyPlan" onclick="selectPlan('monthly')">SoulBridgeAI Plus – $10/month</button>
+
+  <button class="plan-button" id="yearlyPlan" onclick="selectPlan('yearly')">
+    SoulBridgeAI Plus – $100/year <span class="recommended">⭐ Save 2 Months</span>
+  </button>
+
+  <h3>What's Included:</h3>
+  <ul>
+    <li>Unlimited messages</li>
+    <li>No ads</li>
+    <li>🎨 Custom color themes & personalization</li>
+    <li>Unlock premium companions ($5 each after subscribing)</li>
+    <li>Permanent switch unlock ($3 one-time payment after subscribing)</li>
+  </ul>
+
+  <!-- Color Customization Preview -->
+  <div style="
+    background: linear-gradient(135deg, rgba(34, 211, 238, 0.1), rgba(255, 215, 0, 0.1));
+    border: 2px solid rgba(34, 211, 238, 0.3);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 20px 0;
+    text-align: center;
+  ">
+    <h4 style="color: #22d3ee; margin-bottom: 1rem;">🎨 Exclusive Color Customization</h4>
+    <p style="color: rgba(255, 255, 255, 0.8); margin-bottom: 1rem;">
+      Personalize your SoulBridge experience with unlimited color themes!
+    </p>
+    <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 1rem;">
+      <div style="width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(45deg, #22d3ee, #0891b2); border: 2px solid #fff;"></div>
+      <div style="width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(45deg, #f59e0b, #fbbf24); border: 2px solid #fff;"></div>
+      <div style="width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(45deg, #8b5cf6, #a78bfa); border: 2px solid #fff;"></div>
+      <div style="width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(45deg, #ef4444, #f87171); border: 2px solid #fff;"></div>
+      <div style="width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(45deg, #10b981, #34d399); border: 2px solid #fff;"></div>
+    </div>
+    <button onclick="
+      alert('Preview button clicked!');
+      const modal = document.getElementById('colorCustomizationModal');
+      const premiumGate = document.getElementById('premiumGate');
+      const premiumUnlocked = document.getElementById('premiumUnlocked');
+      
+      alert('Modal found: ' + (modal ? 'YES' : 'NO'));
+      
+      if (modal) {
+        if (premiumGate) premiumGate.style.display = 'block';
+        if (premiumUnlocked) premiumUnlocked.style.display = 'none';
+        modal.style.display = 'flex';
+        alert('Modal should now be visible');
+      } else {
+        alert('Modal not found - will redirect to payment');
+        window.location.href = '/payment';
+      }
+    " style="
+      background: linear-gradient(135deg, #ffd700, #ffed4e);
+      color: #000;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+    ">🎨 Preview Color Studio</button>
+  </div>
+
+  <!-- Referral Section -->
+  <div style="
+    background: linear-gradient(135deg, rgba(147, 51, 234, 0.1), rgba(34, 211, 238, 0.1));
+    border: 2px solid rgba(147, 51, 234, 0.3);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 20px 0;
+    text-align: center;
+  ">
+    <h4 style="color: #9333ea; margin-bottom: 1rem;">🚀 Refer Friends & Unlock Exclusive Companions</h4>
+    <p style="color: rgba(255, 255, 255, 0.8); margin-bottom: 1rem;">
+      Share SoulBridge AI with friends and earn exclusive companions unavailable anywhere else!
+    </p>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin: 1rem 0;">
+      <div style="background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 8px; padding: 1rem;">
+        <div style="color: #8b5cf6; font-weight: 600; margin-bottom: 0.5rem;">🌟 2 Referrals</div>
+        <div style="color: rgba(255, 255, 255, 0.8); font-size: 0.9rem;">Unlock Blayzike</div>
+      </div>
+      <div style="background: rgba(6, 182, 212, 0.1); border: 1px solid rgba(6, 182, 212, 0.3); border-radius: 8px; padding: 1rem;">
+        <div style="color: #06b6d4; font-weight: 600; margin-bottom: 0.5rem;">✨ 4 Referrals</div>
+        <div style="color: rgba(255, 255, 255, 0.8); font-size: 0.9rem;">Unlock Blazelian</div>
+      </div>
+      <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 8px; padding: 1rem;">
+        <div style="color: #f59e0b; font-weight: 600; margin-bottom: 0.5rem;">🎉 6 Referrals</div>
+        <div style="color: rgba(255, 255, 255, 0.8); font-size: 0.9rem;">Blayzo Special Skin</div>
+      </div>
+    </div>
+    
+    <div style="background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(34, 211, 238, 0.3); border-radius: 8px; padding: 1rem; margin: 1rem 0;">
+      <div style="color: #22d3ee; font-weight: 600; margin-bottom: 0.5rem;">Your Referral Link</div>
+      <div id="referralLinkDisplay" style="color: rgba(255, 255, 255, 0.8); font-family: monospace; font-size: 0.8rem; word-break: break-all; margin-bottom: 1rem;">
+        Loading...
+      </div>
+      <button onclick="copyReferralLink()" style="
+        background: linear-gradient(135deg, #22d3ee, #0891b2);
+        color: #000;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-right: 10px;
+        font-size: 0.9rem;
+      ">📋 Copy Link</button>
+      <button onclick="window.open('/referrals', '_blank')" style="
+        background: linear-gradient(135deg, #9333ea, #7c3aed);
+        color: #fff;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        font-size: 0.9rem;
+      ">🌟 View Full Dashboard</button>
+    </div>
+  </div>
+
+  <label>
+    <input type="checkbox" id="agreeTerms"> I agree to the <a href="/terms" style="color: gold;">Terms of Service</a> and <a href="/terms" style="color: gold;">Privacy Policy</a>
+  </label>
+
+  <button class="confirm-button" id="confirmButton" disabled>Confirm Subscription</button>
+
+  <div id="premiumActivated" style="display: none; margin-top: 20px; text-align: center;">
+    <h3>🎉 Premium Activated!</h3>
+    <p>Your SoulBridge Plus subscription is now active.</p>
+    <div style="margin-top: 20px;">
+      <div style="background: rgba(34, 211, 238, 0.1); border: 1px solid rgba(34, 211, 238, 0.3); border-radius: 12px; padding: 1rem; margin-bottom: 1rem;">
+        <h4 style="color: #22d3ee; margin-bottom: 0.5rem;">🎨 Theme Settings</h4>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <span style="color: rgba(255, 255, 255, 0.8);">Color Palette</span>
+          <span id="currentColorPalette" style="color: #22d3ee;">Cyan</span>
+        </div>
+        <button onclick="openColorCustomization()" style="
+          width: 100%;
+          background: linear-gradient(135deg, #22d3ee, #0891b2);
+          color: #000;
+          border: none;
+          padding: 12px 24px;
+          border-radius: 8px;
+          font-weight: 600;
+          cursor: pointer;
+        ">🎨 Customize Colors</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const agreeTerms = document.getElementById("agreeTerms");
+  const confirmButton = document.getElementById("confirmButton");
+  const colorCustomization = document.getElementById("colorCustomization");
+  const bgColorPicker = document.getElementById("bgColor");
+  const textColorPicker = document.getElementById("textColor");
+  const applyColorsBtn = document.getElementById("applyColors");
+  const resetColorsBtn = document.getElementById("resetColors");
+  const monthlyPlan = document.getElementById("monthlyPlan");
+  const yearlyPlan = document.getElementById("yearlyPlan");
+  
+  let selectedPlan = null;
+
+  // Plan selection functionality
+  function selectPlan(planType) {
+    // Remove previous selections
+    monthlyPlan.classList.remove('selected');
+    yearlyPlan.classList.remove('selected');
+    
+    // Add selection to clicked plan
+    if (planType === 'monthly') {
+      monthlyPlan.classList.add('selected');
+      selectedPlan = 'monthly';
+    } else if (planType === 'yearly') {
+      yearlyPlan.classList.add('selected');
+      selectedPlan = 'yearly';
+    }
+    
+    // Enable confirm button if terms are agreed and plan is selected
+    updateConfirmButton();
+  }
+
+  // Update confirm button state
+  function updateConfirmButton() {
+    confirmButton.disabled = !(agreeTerms.checked && selectedPlan);
+  }
+
+  // Load saved colors on page load
+  function loadSavedColors() {
+    const savedBgColor = localStorage.getItem('customBgColor');
+    const savedTextColor = localStorage.getItem('customTextColor');
+    
+    if (savedBgColor) {
+      bgColorPicker.value = savedBgColor;
+      document.body.style.backgroundColor = savedBgColor;
+    }
+    if (savedTextColor) {
+      textColorPicker.value = savedTextColor;
+      document.body.style.color = savedTextColor;
+    }
+  }
+
+  // Handle payment success/cancel on page load
+  function handlePaymentResult() {
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    if (urlParams.get('success') === 'true') {
+      const sessionId = urlParams.get('session_id');
+      
+      // Show success message
+      alert('🎉 Payment successful! Welcome to SoulBridgeAI Plus!\n\nYour premium features are now unlocked!');
+      
+      // Update UI and set premium access flags
+      localStorage.setItem('isPremium', 'true');
+      localStorage.setItem('soulbridge_payment_confirmed', 'true');
+      localStorage.setItem('soulbridge_subscription', 'plus');
+      
+      // Show premium section
+      document.getElementById('premiumActivated').style.display = 'block';
+      colorCustomization.style.display = "block";
+      confirmButton.textContent = "Subscription Active ✅";
+      confirmButton.style.background = "#22c55e";
+      confirmButton.disabled = true;
+      
+      // Clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+      
+    } else if (urlParams.get('canceled') === 'true') {
+      alert('❌ Payment was canceled. You can try again anytime!');
+      
+      // Clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }
+
+  agreeTerms.addEventListener("change", () => {
+    updateConfirmButton();
+  });
+
+  confirmButton.addEventListener("click", async () => {
+    if (!selectedPlan) {
+      alert("⚠️ Please select a subscription plan first!");
+      return;
+    }
+    
+    if (!agreeTerms.checked) {
+      alert("⚠️ Please agree to the Terms of Service and Privacy Policy!");
+      return;
+    }
+    
+    // Store selected plan
+    localStorage.setItem('selectedPlan', selectedPlan);
+    
+    // Show processing
+    confirmButton.textContent = "Processing...";
+    confirmButton.disabled = true;
+    
+    try {
+      // Create Stripe checkout session
+      const response = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          plan: selectedPlan,
+          user_id: localStorage.getItem('userId') || 'anonymous'
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        // Redirect to Stripe checkout
+        window.location.href = data.checkout_url;
+      } else {
+        throw new Error(data.error || 'Failed to create checkout session');
+      }
+    } catch (error) {
+      console.error('Payment error:', error);
+      alert('❌ Payment processing failed: ' + error.message);
+      
+      // Reset button
+      confirmButton.textContent = "Confirm Subscription";
+      confirmButton.disabled = false;
+    }
+  });
+
+  // Live preview while picking colors
+  bgColorPicker.addEventListener("input", () => {
+    document.body.style.backgroundColor = bgColorPicker.value;
+  });
+
+  textColorPicker.addEventListener("input", () => {
+    document.body.style.color = textColorPicker.value;
+  });
+
+  // Apply colors to all pages
+  applyColorsBtn.addEventListener("click", () => {
+    const bgColor = bgColorPicker.value;
+    const textColor = textColorPicker.value;
+    
+    // Save to localStorage
+    localStorage.setItem('customBgColor', bgColor);
+    localStorage.setItem('customTextColor', textColor);
+    
+    alert("🎨 Colors applied to all pages! Your custom theme is now active across the entire app.");
+  });
+
+  // Reset to default colors
+  resetColorsBtn.addEventListener("click", () => {
+    localStorage.removeItem('customBgColor');
+    localStorage.removeItem('customTextColor');
+    
+    bgColorPicker.value = "#000000";
+    textColorPicker.value = "#00ffff";
+    document.body.style.backgroundColor = "#000000";
+    document.body.style.color = "#00ffff";
+    
+    alert("🔄 Colors reset to default theme!");
+  });
+
+  // Load referral link
+  async function loadReferralLink() {
+    // First, check if we have a stored permanent referral link
+    let storedReferralLink = localStorage.getItem('permanentReferralLink');
+    let storedReferralCode = localStorage.getItem('permanentReferralCode');
+    
+    if (storedReferralLink && storedReferralCode) {
+      // Use the stored permanent link
+      document.getElementById('referralLinkDisplay').textContent = storedReferralLink;
+      console.log('Using stored permanent referral link:', storedReferralLink);
+      return;
+    }
+    
+    // Generate a permanent referral code for this user/device
+    let userEmail = localStorage.getItem('userEmail') || 
+                   localStorage.getItem('user_email') ||
+                   sessionStorage.getItem('userEmail') ||
+                   'demo@example.com';
+    
+    // Create a deterministic but unique code based on user info and device
+    let deviceFingerprint = navigator.userAgent + navigator.language + screen.width + screen.height;
+    let combinedString = userEmail + deviceFingerprint + 'SoulBridge2024';
+    
+    // Generate hash for consistent referral code
+    let hash = 0;
+    for (let i = 0; i < combinedString.length; i++) {
+      const char = combinedString.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32-bit integer
+    }
+    
+    // Convert to base36 and create referral code
+    const permanentCode = 'SB' + Math.abs(hash).toString(36).slice(0, 8).toUpperCase();
+    const permanentLink = `https://soulbridgeai.com?ref=${permanentCode}`;
+    
+    // Store the permanent link
+    localStorage.setItem('permanentReferralCode', permanentCode);
+    localStorage.setItem('permanentReferralLink', permanentLink);
+    
+    // Display the permanent link
+    document.getElementById('referralLinkDisplay').textContent = permanentLink;
+    console.log('Generated permanent referral link:', permanentLink);
+    
+    // Try to get the proper API link in background (but don't replace the permanent one)
+    try {
+      console.log('Loading referral link for:', userEmail); // Debug log
+      
+      const response = await fetch(`/api/referrals/dashboard?userEmail=${encodeURIComponent(userEmail)}`);
+      const data = await response.json();
+      
+      console.log('Referral API response:', data); // Debug log
+      
+      if (data.success && data.referral_link) {
+        // If API provides a link, use it and store as permanent
+        document.getElementById('referralLinkDisplay').textContent = data.referral_link;
+        localStorage.setItem('permanentReferralLink', data.referral_link);
+        localStorage.setItem('permanentReferralCode', data.referral_code);
+        console.log('Updated to API referral link and stored as permanent:', data.referral_link);
+      } else {
+        console.log('API Error, keeping generated permanent link:', data);
+      }
+    } catch (error) {
+      console.log('Error loading API referral link, keeping generated permanent link:', error);
+    }
+  }
+
+  // Copy referral link function
+  function copyReferralLink() {
+    const linkElement = document.getElementById('referralLinkDisplay');
+    const link = linkElement.textContent;
+    
+    if (link && link !== 'Loading...' && link !== 'Error loading referral link') {
+      navigator.clipboard.writeText(link).then(() => {
+        showMessage('📋 Referral link copied to clipboard!', 'success');
+      }).catch(() => {
+        showMessage('❌ Failed to copy link', 'error');
+      });
+    }
+  }
+
+  // Message display function
+  function showMessage(message, type = 'info') {
+    const messageDiv = document.createElement('div');
+    messageDiv.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 1rem;
+      border-radius: 8px;
+      max-width: 300px;
+      z-index: 1001;
+      font-size: 0.9rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      ${type === 'success' ? 'background: rgba(34, 197, 94, 0.9); color: white;' : ''}
+      ${type === 'error' ? 'background: rgba(239, 68, 68, 0.9); color: white;' : ''}
+      ${type === 'info' ? 'background: rgba(34, 211, 238, 0.9); color: #000;' : ''}
+    `;
+    messageDiv.textContent = message;
+    
+    document.body.appendChild(messageDiv);
+    
+    setTimeout(() => {
+      if (messageDiv.parentNode) {
+        messageDiv.parentNode.removeChild(messageDiv);
+      }
+    }, 3000);
+  }
+
+  // Check if user is already premium
+  window.addEventListener('load', () => {
+    loadSavedColors();
+    handlePaymentResult();
+    loadReferralLink();
+    if (localStorage.getItem('isPremium') === 'true') {
+      colorCustomization.style.display = "block";
+    }
+  });
+
+  // Immediate referral link loading on page load
+  document.addEventListener('DOMContentLoaded', () => {
+    loadReferralLink();
+    
+    // Also set immediate fallback
+    setTimeout(() => {
+      const linkElement = document.getElementById('referralLinkDisplay');
+      if (linkElement && (linkElement.textContent === 'Loading...' || linkElement.textContent.trim() === '')) {
+        let storedLink = localStorage.getItem('permanentReferralLink');
+        if (storedLink) {
+          linkElement.textContent = storedLink;
+        } else {
+          // Generate immediate fallback
+          const fallbackCode = 'SB' + Math.random().toString(36).substr(2, 8).toUpperCase();
+          const fallbackLink = `https://soulbridgeai.com?ref=${fallbackCode}`;
+          localStorage.setItem('permanentReferralCode', fallbackCode);
+          localStorage.setItem('permanentReferralLink', fallbackLink);
+          linkElement.textContent = fallbackLink;
+        }
+      }
+    }, 100);
+  });
+
+  // Immediate fallback - set a permanent link right away
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+      const linkElement = document.getElementById('referralLinkDisplay');
+      if (linkElement && linkElement.textContent === 'Loading...') {
+        // Use or generate permanent fallback
+        let storedLink = localStorage.getItem('permanentReferralLink');
+        if (storedLink) {
+          linkElement.textContent = storedLink;
+          console.log('Used stored permanent referral link as fallback');
+        } else {
+          // Generate and store permanent fallback
+          let deviceFingerprint = navigator.userAgent + navigator.language + screen.width + screen.height;
+          let combinedString = 'fallback@demo.com' + deviceFingerprint + 'SoulBridge2024';
+          let hash = 0;
+          for (let i = 0; i < combinedString.length; i++) {
+            const char = combinedString.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash;
+          }
+          const permanentCode = 'SB' + Math.abs(hash).toString(36).slice(0, 8).toUpperCase();
+          const permanentLink = `https://soulbridgeai.com?ref=${permanentCode}`;
+          
+          localStorage.setItem('permanentReferralCode', permanentCode);
+          localStorage.setItem('permanentReferralLink', permanentLink);
+          linkElement.textContent = permanentLink;
+          console.log('Generated permanent fallback referral link');
+        }
+      }
+    }, 2000); // Wait 2 seconds, then fallback if still loading
+  });
+
+  // Color customization functions
+  window.openColorCustomization = () => {
+    const modal = document.getElementById('colorCustomizationModal');
+    const premiumGate = document.getElementById('premiumGate');
+    const premiumUnlocked = document.getElementById('premiumUnlocked');
+    
+    // Check if user has paid/premium access
+    const hasPremium = checkPremiumAccess();
+    
+    if (hasPremium) {
+      premiumGate.style.display = 'none';
+      premiumUnlocked.style.display = 'block';
+    } else {
+      premiumGate.style.display = 'block';
+      premiumUnlocked.style.display = 'none';
+    }
+    
+    modal.style.display = 'flex';
+  };
+
+  window.closeColorCustomization = () => {
+    document.getElementById('colorCustomizationModal').style.display = 'none';
+  };
+
+  window.upgradeToPlus = () => {
+    // Already on subscription page, just scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Preview color customization - leads to purchase flow
+  window.previewColorCustomization = () => {
+    console.log('Preview button clicked!'); // Debug
+    
+    // Show preview modal with purchase prompt
+    const modal = document.getElementById('colorCustomizationModal');
+    const premiumGate = document.getElementById('premiumGate');
+    const premiumUnlocked = document.getElementById('premiumUnlocked');
+    
+    console.log('Modal element:', modal); // Debug
+    console.log('Premium gate element:', premiumGate); // Debug
+    
+    if (!modal) {
+      alert('Error: Modal not found!');
+      return;
+    }
+    
+    // Always show the premium gate (purchase prompt) for preview
+    if (premiumGate) premiumGate.style.display = 'block';
+    if (premiumUnlocked) premiumUnlocked.style.display = 'none';
+    
+    modal.style.display = 'flex';
+    console.log('Modal should be visible now'); // Debug
+  };
+
+  // Start purchase flow - leads to payment then color studio
+  window.startPurchaseFlow = () => {
+    // Close the modal first
+    closeColorCustomization();
+    
+    // Scroll to subscription options
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    // Flash the subscription options to draw attention
+    const monthlyBtn = document.getElementById('monthlyPlan');
+    const yearlyBtn = document.getElementById('yearlyPlan');
+    
+    // Highlight effect
+    monthlyBtn.style.animation = 'pulse 2s ease-in-out 3';
+    yearlyBtn.style.animation = 'pulse 2s ease-in-out 3';
+    
+    // Show message
+    alert('💎 Choose your subscription plan above to unlock Color Customization and all premium features!');
+  };
+
+  // Admin testing function - hidden shortcut
+  window.enableAdminTesting = () => {
+    localStorage.setItem('soulbridge_payment_confirmed', 'true');
+    localStorage.setItem('soulbridge_subscription', 'plus');
+    localStorage.setItem('adminMode', 'true');
+    document.getElementById('premiumActivated').style.display = 'block';
+    alert('Admin testing mode enabled! Premium features unlocked.');
+  };
+
+  // Check if user has premium access
+  function checkPremiumAccess() {
+    // Check localStorage for payment confirmation
+    const paymentConfirmed = localStorage.getItem('soulbridge_payment_confirmed');
+    const subscriptionStatus = localStorage.getItem('soulbridge_subscription');
+    
+    // Check if user has Plus or Galaxy subscription
+    return paymentConfirmed === 'true' && (subscriptionStatus === 'plus' || subscriptionStatus === 'galaxy');
+  }
+</script>
+
+<!-- Premium Color Customization Modal -->
+<div id="colorCustomizationModal" style="
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+">
+  <div style="
+    background: linear-gradient(145deg, rgba(0,0,0,0.9), rgba(15,23,42,0.9));
+    border: 2px solid #22d3ee;
+    border-radius: 20px;
+    padding: 2rem;
+    max-width: 500px;
+    width: 90%;
+    text-align: center;
+  ">
+    <h2 style="color: #22d3ee; margin-bottom: 1rem;">🎨 Color Customization</h2>
+    
+    <div id="premiumGate" style="display: block;">
+      <p style="color: rgba(255, 255, 255, 0.8); margin-bottom: 1.5rem;">
+        Unlock unlimited color customization with SoulBridge Plus!
+      </p>
+      <div style="background: rgba(255, 215, 0, 0.1); border: 1px solid rgba(255, 215, 0, 0.3); border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem;">
+        <h3 style="color: #ffd700; margin-bottom: 0.5rem;">✨ Premium Features:</h3>
+        <ul style="color: rgba(255, 255, 255, 0.9); text-align: left; margin-left: 1rem;">
+          <li>6 beautiful preset color palettes</li>
+          <li>Custom color picker for any color</li>
+          <li>Background & text color control</li>
+          <li>Real-time preview</li>
+          <li>Persistent settings across devices</li>
+        </ul>
+      </div>
+      <div style="display: flex; gap: 1rem; justify-content: center;">
+        <button onclick="
+          // Close the modal
+          document.getElementById('colorCustomizationModal').style.display = 'none';
+          
+          // Redirect to payment page for immediate purchase
+          window.location.href = '/payment';
+        " style="
+          background: linear-gradient(135deg, #ffd700, #ffed4e);
+          color: #000;
+          border: none;
+          padding: 12px 24px;
+          border-radius: 8px;
+          font-weight: 600;
+          cursor: pointer;
+        ">🚀 Subscribe & Unlock Colors</button>
+        <button onclick="document.getElementById('colorCustomizationModal').style.display = 'none';" style="
+          background: rgba(107, 114, 128, 0.5);
+          color: white;
+          border: none;
+          padding: 12px 24px;
+          border-radius: 8px;
+          cursor: pointer;
+        ">Cancel</button>
+      </div>
+    </div>
+
+    <div id="premiumUnlocked" style="display: none;">
+      <p style="color: rgba(255, 255, 255, 0.8); margin-bottom: 1.5rem;">
+        Welcome to premium color customization!
+      </p>
+      <div style="display: flex; gap: 1rem; justify-content: center;">
+        <button onclick="window.location.href='/customization'" style="
+          background: linear-gradient(135deg, #22d3ee, #0891b2);
+          color: #000;
+          border: none;
+          padding: 12px 24px;
+          border-radius: 8px;
+          font-weight: 600;
+          cursor: pointer;
+        ">🎨 Open Color Studio</button>
+        <button onclick="closeColorCustomization()" style="
+          background: rgba(107, 114, 128, 0.5);
+          color: white;
+          border: none;
+          padding: 12px 24px;
+          border-radius: 8px;
+          cursor: pointer;
+        ">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

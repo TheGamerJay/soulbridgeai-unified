@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SoulBridgeAI Payment</title>
+    <script src="https://js.stripe.com/v3/"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: #0d1117;
+            color: #fff;
+        }
+        .payment-container {
+            max-width: 400px;
+            width: 100%;
+        }
+        button {
+            margin-top: 20px;
+            width: 100%;
+            padding: 12px;
+            background: #635bff;
+            border: none;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        button:disabled {
+            opacity: 0.5;
+        }
+        #payment-message {
+            margin-top: 20px;
+            color: lime;
+        }
+        
+        #card-element {
+            padding: 15px;
+            border: 2px solid #635bff;
+            border-radius: 8px;
+            background: white;
+            margin: 20px 0;
+            min-height: 40px;
+        }
+        
+        .StripeElement {
+            background: white;
+            padding: 10px 12px;
+            border-radius: 4px;
+        }
+        
+        .StripeElement--focus {
+            border-color: #80bdff;
+            box-shadow: 0 0 0 0.2rem rgba(99, 91, 255, 0.25);
+        }
+        
+        .StripeElement--invalid {
+            border-color: #fa755a;
+        }
+        
+        .card-errors {
+            color: #fa755a;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="payment-container">
+        <h2>SoulBridgeAI Premium</h2>
+        <form id="payment-form">
+            <div id="card-element"></div>
+            <button id="submit">Pay Now</button>
+            <div id="payment-message"></div>
+        </form>
+    </div>
+
+    <script>
+        const stripe = Stripe("{{ stripe_publishable_key }}");
+        const elements = stripe.elements();
+        
+        // Create card element with proper styling for dark theme
+        const card = elements.create("card", {
+            style: {
+                base: {
+                    fontSize: '16px',
+                    color: '#000000',  // Black text for visibility on white background
+                    '::placeholder': {
+                        color: '#666666',  // Gray placeholder text
+                    },
+                    fontFamily: 'Arial, sans-serif',
+                    fontSmoothing: 'antialiased',
+                },
+                invalid: {
+                    color: '#fa755a',
+                    iconColor: '#fa755a'
+                }
+            },
+            hidePostalCode: true
+        });
+        
+        card.mount("#card-element");
+        
+        // Add event listener for real-time validation
+        card.on('change', function(event) {
+            const displayError = document.getElementById('payment-message');
+            if (event.error) {
+                displayError.textContent = event.error.message;
+            } else {
+                displayError.textContent = '';
+            }
+        });
+
+        document.getElementById("payment-form").addEventListener("submit", async (event) => {
+            event.preventDefault();
+            
+            // Show loading message
+            document.getElementById("payment-message").textContent = "Processing payment...";
+            document.getElementById("submit").disabled = true;
+
+            try {
+                const response = await fetch("/create-payment-intent", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ amount: 1000 }) // $10 in cents
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                if (!data.clientSecret) {
+                    throw new Error("No client secret received");
+                }
+
+                const result = await stripe.confirmCardPayment(data.clientSecret, {
+                    payment_method: { card: card }
+                });
+
+                if (result.error) {
+                    document.getElementById("payment-message").textContent = result.error.message;
+                    document.getElementById("submit").disabled = false;
+                } else {
+                    if (result.paymentIntent.status === "succeeded") {
+                        document.getElementById("payment-message").textContent = "Payment successful! Redirecting...";
+                        // Redirect to subscription page with success
+                        setTimeout(() => {
+                            window.location.href = "/subscription?success=true&session_id=" + result.paymentIntent.id;
+                        }, 2000);
+                    }
+                }
+            } catch (error) {
+                console.log("Payment error:", error);
+                document.getElementById("payment-message").innerHTML = 
+                    `<div style="color: #fa755a;">Error: ${error.message}</div>
+                     <div style="margin-top: 10px;">
+                         <button onclick="window.location.href='/test-payment-success'" 
+                                 style="background: #22c55e; color: white; border: none; 
+                                        padding: 10px 20px; border-radius: 5px; cursor: pointer;">
+                             Use Test Payment Instead
+                         </button>
+                     </div>`;
+                document.getElementById("submit").disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color Studio - SoulBridge AI</title>
+    <style>
+        body {
+            background: linear-gradient(135deg, #000000 0%, #0f172a 50%, #1e293b 100%);
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            padding: 2rem;
+            margin: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(15, 23, 42, 0.8);
+            border: 2px solid #22d3ee;
+            border-radius: 16px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+        }
+        h1 {
+            color: #22d3ee;
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            text-shadow: 0 0 20px rgba(34, 211, 238, 0.5);
+        }
+        .color-section {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(34, 211, 238, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        .color-option {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid #fff;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            margin: 0 auto;
+        }
+        .color-option:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+        }
+        .back-btn {
+            background: linear-gradient(135deg, #22d3ee, #0891b2);
+            color: #000;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Color Studio</h1>
+        
+        <div class="color-section">
+            <h3 style="color: #22d3ee;">✨ Premium Color Palettes</h3>
+            <p>Choose from beautiful preset color themes:</p>
+            
+            <div class="color-grid">
+                <div class="color-option" style="background: linear-gradient(45deg, #22d3ee, #0891b2);" title="Ocean Cyan"></div>
+                <div class="color-option" style="background: linear-gradient(45deg, #f59e0b, #fbbf24);" title="Sunset Gold"></div>
+                <div class="color-option" style="background: linear-gradient(45deg, #8b5cf6, #a78bfa);" title="Royal Purple"></div>
+                <div class="color-option" style="background: linear-gradient(45deg, #ef4444, #f87171);" title="Crimson Red"></div>
+                <div class="color-option" style="background: linear-gradient(45deg, #10b981, #34d399);" title="Emerald Green"></div>
+                <div class="color-option" style="background: linear-gradient(45deg, #ec4899, #f472b6);" title="Pink Rose"></div>
+            </div>
+        </div>
+        
+        <div class="color-section">
+            <h3 style="color: #22d3ee;">🎯 Custom Colors</h3>
+            <p>Create your perfect color combination:</p>
+            <div style="display: flex; gap: 1rem; align-items: center; margin: 1rem 0;">
+                <label style="color: #22d3ee;">Primary Color:</label>
+                <input type="color" value="#22d3ee" style="width: 60px; height: 40px; border: none; border-radius: 8px;">
+                <label style="color: #22d3ee; margin-left: 1rem;">Background:</label>
+                <input type="color" value="#000000" style="width: 60px; height: 40px; border: none; border-radius: 8px;">
+            </div>
+        </div>
+        
+        <div class="color-section">
+            <h3 style="color: #22d3ee;">⚡ Quick Actions</h3>
+            <button class="back-btn" onclick="alert('Color saved! Your theme will be applied across SoulBridge.')">💾 Save Theme</button>
+            <button class="back-btn" onclick="alert('Theme reset to default cyan.')">🔄 Reset to Default</button>
+        </div>
+        
+        <a href="/subscription" class="back-btn">← Back to Subscription</a>
+        <a href="/" class="back-btn" style="margin-left: 1rem;">🏠 Home</a>
+    </div>
+    
+    <script>
+        // Add click handlers for color options
+        document.querySelectorAll('.color-option').forEach(option => {
+            option.addEventListener('click', function() {
+                const title = this.getAttribute('title');
+                alert(`✨ ${title} theme selected! This would apply across your SoulBridge experience.`);
+            });
+        });
+    </script>
+</body>
+</html>

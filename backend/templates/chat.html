@@ -1,0 +1,3394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="cache-buster" content="{{ range(10000, 99999) | random }}">
+    <script>
+        // Force reload if changes aren't visible
+        window.addEventListener('load', function() {
+            console.log('Page loaded, version: {{ range(10000, 99999) | random }}');
+        });
+    </script>
+    <title>SoulBridge AI - Your Companion Journey</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}?v={{ range(1000, 9999) | random }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}?v={{ range(1000, 9999) | random }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/animations.css') }}?v={{ range(1000, 9999) | random }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/themes.css') }}?v={{ range(1000, 9999) | random }}">
+    <style>
+        /* Force black text for Blayzion and Blayzia ONLY in dark mode */
+        body:not(.day-mode) .character-blayzion-label,
+        body:not(.day-mode) .character-blayzia-label {
+            color: #000 !important;
+        }
+        
+        /* Force black text in dark mode only */
+        body:not(.day-mode) #selectedCharacter span.character-blayzion-label,
+        body:not(.day-mode) #selectedCharacter span.character-blayzia-label {
+            color: #000 !important;
+            text-shadow: none !important;
+        }
+        
+        /* Override any inherited styles in dark mode only */
+        body:not(.day-mode).character-blayzion #selectedCharacter span,
+        body:not(.day-mode).character-blayzia #selectedCharacter span {
+            color: #000 !important;
+        }
+        
+        /* Remove all backgrounds from intro section */
+        #introScreen * {
+            background: none !important;
+            background-image: none !important;
+            background-color: transparent !important;
+            box-shadow: none !important;
+            border: none !important;
+        }
+        
+        /* Keep text visible */
+        #introScreen h1,
+        #introScreen p,
+        #introScreen div,
+        #introScreen a {
+            color: #22d3ee !important;
+        }
+        
+        /* Day mode styling for OWNED premium text */
+        body.day-mode .owned-premium,
+        body.day-mode .premium-label[data-owned="true"] {
+            color: #0891b2 !important;
+            background-color: rgba(8, 145, 178, 0.2) !important;
+            border-color: #0891b2 !important;
+        }
+        
+        /* Style intro buttons with transparent background and cyan border */
+        #introScreen div[onclick="showCharacterSelect()"],
+        #introScreen a[href="/subscription"],
+        #introScreen a[href="/help"] {
+            background: transparent !important;
+            border: 2px solid #22d3ee !important;
+            border-radius: 25px !important;
+            color: #22d3ee !important;
+        }
+        
+        /* FORCE COMPANION STYLING - ULTRA DIRECT CSS */
+        div.companion-text-area,
+        .companion-text-area {
+            border: 3px solid #22d3ee !important;
+            border-style: solid !important;
+            border-width: 3px !important;
+            border-radius: 15px !important;
+            padding: 2rem !important;
+            margin-top: 2rem !important;
+            background: rgba(0, 0, 0, 0.1) !important;
+            display: block !important;
+            box-sizing: border-box !important;
+        }
+        
+        div.companion-text-area.blayzo-style,
+        .companion-text-area.blayzo-style {
+            border-color: #22d3ee !important;
+            border-style: solid !important;
+            border-width: 3px !important;
+            box-shadow: 0 0 20px rgba(34, 211, 238, 0.5) !important;
+            background: rgba(34, 211, 238, 0.05) !important;
+        }
+        
+        div.companion-text-area.blayzica-style,
+        .companion-text-area.blayzica-style {
+            border-color: #ff0000 !important;
+            border-style: solid !important;
+            border-width: 3px !important;
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.5) !important;
+            background: rgba(255, 0, 0, 0.05) !important;
+        }
+        
+        div.companion-text-area.crimson-style,
+        .companion-text-area.crimson-style {
+            border-color: #ff4500 !important;
+            border-style: solid !important;
+            border-width: 3px !important;
+            box-shadow: 0 0 20px rgba(255, 69, 0, 0.5) !important;
+            background: rgba(255, 69, 0, 0.05) !important;
+        }
+        
+        div.companion-text-area.violet-style,
+        .companion-text-area.violet-style {
+            border-color: #8b5cf6 !important;
+            border-style: solid !important;
+            border-width: 3px !important;
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.5) !important;
+            background: rgba(139, 92, 246, 0.05) !important;
+        }
+        
+        div.companion-text-area.rainbow-style,
+        .companion-text-area.rainbow-style {
+            border: 4px solid #ff006e !important;
+            border-style: solid !important;
+            border-width: 4px !important;
+            animation: rainbow-border 2s ease-in-out infinite !important;
+            box-shadow: 0 0 25px rgba(255, 0, 110, 0.6) !important;
+            background: rgba(255, 0, 110, 0.05) !important;
+        }
+        
+        .rainbow-text {
+            background: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b) !important;
+            background-size: 400% 400% !important;
+            background-clip: text !important;
+            -webkit-background-clip: text !important;
+            -webkit-text-fill-color: transparent !important;
+            color: transparent !important;
+            animation: rainbow-text 3s ease-in-out infinite !important;
+            font-weight: bold !important;
+        }
+        
+        .premium-label {
+            background: rgba(34, 211, 238, 0.2) !important;
+            border: 2px solid #22d3ee !important;
+            border-radius: 20px !important;
+            padding: 12px 20px !important;
+            margin-top: 1.5rem !important;
+            color: #22d3ee !important;
+            font-weight: 900 !important;
+            font-size: 1rem !important;
+            text-align: center !important;
+            box-shadow: 0 0 15px rgba(34, 211, 238, 0.4) !important;
+            animation: premium-pulse 2s ease-in-out infinite !important;
+        }
+        
+        @keyframes rainbow-border {
+            0% { 
+                border-color: #ff006e !important; 
+                box-shadow: 0 0 25px rgba(255, 0, 110, 0.8) !important;
+            }
+            20% { 
+                border-color: #8338ec !important; 
+                box-shadow: 0 0 25px rgba(131, 56, 236, 0.8) !important;
+            }
+            40% { 
+                border-color: #3a86ff !important; 
+                box-shadow: 0 0 25px rgba(58, 134, 255, 0.8) !important;
+            }
+            60% { 
+                border-color: #06ffa5 !important; 
+                box-shadow: 0 0 25px rgba(6, 255, 165, 0.8) !important;
+            }
+            80% { 
+                border-color: #ffbe0b !important; 
+                box-shadow: 0 0 25px rgba(255, 190, 11, 0.8) !important;
+            }
+            100% { 
+                border-color: #ff006e !important; 
+                box-shadow: 0 0 25px rgba(255, 0, 110, 0.8) !important;
+            }
+        }
+        
+        @keyframes rainbow-text {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        @keyframes premium-pulse {
+            0% { transform: scale(1); box-shadow: 0 0 15px rgba(34, 211, 238, 0.4); }
+            50% { transform: scale(1.05); box-shadow: 0 0 25px rgba(34, 211, 238, 0.6); }
+            100% { transform: scale(1); box-shadow: 0 0 15px rgba(34, 211, 238, 0.4); }
+        }
+    </style>
+    
+    <script>
+    // Create cool styled blocks for companion text content
+    function createCoolCompanionBlocks() {
+        console.log('Creating cool companion text blocks...');
+        
+        // Define companion color mappings
+        const companions = [
+            { class: 'character-blayzo', color: '#22d3ee', name: 'Blayzo' },
+            { class: 'character-blayzica', color: '#ff0000', name: 'Blayzica' },
+            { class: 'character-crimson', color: '#ff4500', name: 'Crimson' },
+            { class: 'character-violet', color: '#8b5cf6', name: 'Violet' },
+            { class: 'character-blayzion', color: '#ff006e', name: 'Blayzion' },
+            { class: 'character-blayzia', color: '#ff006e', name: 'Blayzia' }
+        ];
+        
+        companions.forEach(companion => {
+            // Find the character card
+            const card = document.querySelector(`.${companion.class}`);
+            if (card) {
+                console.log(`Creating cool blocks for ${companion.name}`);
+                
+                // Skip if already processed
+                if (card.querySelector('.cool-text-block')) return;
+                
+                // Remove only the specific big inner border divs
+                const innerBorderDivs = card.querySelectorAll('div[style*="text-align: center"][style*="border: 5px solid"]');
+                innerBorderDivs.forEach(div => {
+                    // Only remove border properties, keep text-align and padding
+                    div.style.setProperty('border', 'none', 'important');
+                    div.style.setProperty('border-radius', '0', 'important');
+                    div.style.setProperty('box-shadow', 'none', 'important');
+                    console.log(`Removed inner border from ${companion.name}`);
+                });
+                
+                // Find text content that needs to be in cool blocks
+                const textElements = [];
+                
+                // Look for ALL text content in the card
+                const allElements = card.querySelectorAll('*');
+                allElements.forEach(element => {
+                    const text = element.textContent.trim();
+                    if ((text.includes('Premium') || text.includes('$') || text.includes('Free') || 
+                         text.includes('Galaxy') || text.includes('character') || text.includes('companion') ||
+                         element.classList.contains('character-name') || element.classList.contains('character-description') ||
+                         (text.length > 10 && !text.includes('💎') && !text.includes('Select'))) && 
+                        !element.querySelector('*') && // Only leaf elements
+                        text.length > 3 &&
+                        !element.classList.contains('cool-text-processed')) {
+                        textElements.push({
+                            element: element,
+                            text: text,
+                            type: 'content'
+                        });
+                    }
+                });
+                
+                // Create cool blocks for each text element
+                textElements.forEach((item, index) => {
+                    // Create new cool block container
+                    const coolBlock = document.createElement('div');
+                    coolBlock.className = 'cool-text-block';
+                    
+                    // Apply cool styling - smaller size
+                    coolBlock.style.cssText = `
+                        border: 2px solid ${companion.color} !important;
+                        border-radius: 12px !important;
+                        padding: 0.8rem !important;
+                        margin: 0.5rem auto !important;
+                        background: linear-gradient(135deg, rgba(0,0,0,0.8), rgba(0,0,0,0.6)) !important;
+                        box-shadow: 0 0 15px ${companion.color}60 !important;
+                        display: block !important;
+                        text-align: center !important;
+                        max-width: 75% !important;
+                        position: relative !important;
+                        z-index: 20 !important;
+                        transform: perspective(1000px) rotateX(3deg) !important;
+                        transition: all 0.3s ease !important;
+                        backdrop-filter: blur(5px) !important;
+                    `;
+                    
+                    // Add hover effect - smaller scale
+                    coolBlock.onmouseenter = function() {
+                        this.style.transform = 'perspective(1000px) rotateX(0deg) scale(1.02) !important';
+                        this.style.boxShadow = `0 0 20px ${companion.color} !important`;
+                    };
+                    coolBlock.onmouseleave = function() {
+                        this.style.transform = 'perspective(1000px) rotateX(3deg) scale(1) !important';
+                        this.style.boxShadow = `0 0 15px ${companion.color}60 !important`;
+                    };
+                    
+                    // Copy the text content with styling - smaller font
+                    coolBlock.innerHTML = `
+                        <div style="
+                            color: ${companion.color} !important;
+                            font-weight: bold !important;
+                            font-size: 0.9rem !important;
+                            text-shadow: 0 0 5px ${companion.color}50 !important;
+                            letter-spacing: 0.3px !important;
+                        ">${item.text}</div>
+                    `;
+                    
+                    // Insert the cool block after the original element
+                    item.element.parentNode.insertBefore(coolBlock, item.element.nextSibling);
+                    
+                    // Hide the original element
+                    item.element.style.display = 'none';
+                    item.element.classList.add('cool-text-processed');
+                    
+                    console.log(`Created cool block for ${companion.name}: "${item.text}"`);
+                });
+                
+                // Special handling for character descriptions
+                const descriptions = card.querySelectorAll('.character-description');
+                descriptions.forEach(desc => {
+                    if (!desc.classList.contains('cool-text-processed')) {
+                        const coolDescBlock = document.createElement('div');
+                        coolDescBlock.className = 'cool-text-block cool-description';
+                        
+                        coolDescBlock.style.cssText = `
+                            border: 2px solid ${companion.color} !important;
+                            border-radius: 10px !important;
+                            padding: 0.4rem !important;
+                            margin: 0.3rem auto !important;
+                            background: linear-gradient(45deg, rgba(0,0,0,0.7), rgba(0,0,0,0.5)) !important;
+                            box-shadow: 0 0 10px ${companion.color}50 !important;
+                            color: ${companion.color} !important;
+                            font-style: italic !important;
+                            font-size: 0.85rem !important;
+                            text-align: center !important;
+                            max-width: 90% !important;
+                            backdrop-filter: blur(3px) !important;
+                        `;
+                        
+                        coolDescBlock.textContent = desc.textContent;
+                        desc.parentNode.insertBefore(coolDescBlock, desc.nextSibling);
+                        desc.style.display = 'none';
+                        desc.classList.add('cool-text-processed');
+                    }
+                });
+            }
+        });
+    }
+
+    // Run cool block creation multiple times with delays
+    function startCoolBlockCreation() {
+        // Immediate attempt
+        createCoolCompanionBlocks();
+        
+        // Try again after 500ms
+        setTimeout(createCoolCompanionBlocks, 500);
+        
+        // Try again after 1 second
+        setTimeout(createCoolCompanionBlocks, 1000);
+        
+        // Try again after 2 seconds
+        setTimeout(createCoolCompanionBlocks, 2000);
+        
+        // Final attempt after 5 seconds
+        setTimeout(createCoolCompanionBlocks, 5000);
+    }
+
+    // Run when DOM is ready
+    document.addEventListener('DOMContentLoaded', startCoolBlockCreation);
+    
+    // Run when page fully loads
+    window.addEventListener('load', startCoolBlockCreation);
+    
+    // Create observer to watch for DOM changes
+    const observer = new MutationObserver(function(mutations) {
+        let shouldReapply = false;
+        mutations.forEach(function(mutation) {
+            if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                shouldReapply = true;
+            }
+        });
+        if (shouldReapply) {
+            setTimeout(createCoolCompanionBlocks, 100);
+        }
+    });
+    
+    // Start observing
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+    </script>
+</head>
+<body onload="initializeScreen()">
+    <!-- Theme Toggle (Left Side) -->
+    <div style="position: fixed; top: 20px; left: 20px; z-index: 100;">
+        <div id="themeToggle" style="
+            background: rgba(34, 211, 238, 0.8);
+            color: #000;
+            padding: 10px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        " onclick="toggleTheme()">
+            <span id="themeText" >Night Mode is ON</span>
+            <span id="themeIcon">🌙</span>
+        </div>
+    </div>
+
+    <!-- User Menu and Controls (Right Side) -->
+    <div style="position: fixed; top: 20px; right: 20px; z-index: 100; display: flex; gap: 10px; flex-wrap: wrap;">
+        <!-- User Profile Button -->
+        <div id="profileBtn" style="
+            background: rgba(34, 211, 238, 0.8);
+            color: #000;
+            padding: 10px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            z-index: 1000;
+        " onclick="openUserProfile();">
+            <span >My Profile</span>
+            <span>👤</span>
+        </div>
+        
+        <!-- Sign Out Button -->
+        <div id="signOutBtn" style="
+            background: rgba(220, 38, 38, 0.8);
+            color: #fff;
+            padding: 10px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            z-index: 1000;
+        " onclick="performRegularLogout();">
+            <span style="color: #fff !important;">Logout</span>
+            <span>🚪</span>
+        </div>
+        
+        <!-- Admin Mode Indicator -->
+        <div id="adminModeIndicator" style="
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            display: none;
+            z-index: 1000;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+        ">
+            🔓 ADMIN MODE
+        </div>
+    </div>
+
+    <!-- Intro Screen -->
+    <div id="introScreen" class="screen" style="
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        text-align: center;
+        padding: 0.5rem;
+        padding-top: 0.25rem;
+        position: relative;
+    ">
+        <h1 style="
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+            color: #22d3ee;
+            text-shadow: 0 0 20px rgba(34, 211, 238, 0.7);
+            animation: titlePulse 2s ease-in-out infinite;
+            position: relative;
+            z-index: 10;
+        ">Welcome to SoulBridge AI</h1>
+        
+        <img src="{{ url_for('static', filename='logos/IntroLogo.png') }}" alt="SoulBridge AI" class="intro-logo" style="
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            border-radius: 30px;
+            filter: drop-shadow(0 0 20px rgba(34, 211, 238, 0.5));
+            animation: logoGlow 3s ease-in-out infinite alternate;
+            z-index: 1;
+        ">
+        
+        <div style="
+            position: absolute;
+            bottom: 5%;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            z-index: 10;
+        ">
+            <p style="
+                font-size: 1.5rem;
+                margin-bottom: 1.5rem;
+                color: #fff;
+                max-width: 600px;
+                line-height: 1.6;
+                opacity: 0.9;
+                text-align: center;
+                margin-left: auto;
+                margin-right: auto;
+            ">Your journey to emotional wellness and personal growth starts here. Choose your companion and begin meaningful conversations.</p>
+            
+            <div style="
+                position: relative;
+                top: -1px;
+                display: flex;
+                gap: 1rem;
+                justify-content: center;
+                flex-wrap: wrap;
+                align-items: center;
+            ">
+                <div onclick="showCharacterSelect()" style="
+                    font-size: 1rem;
+                    padding: 0.75rem 1.5rem;
+                    background: none;
+                    border: none;
+                    color: #22d3ee;
+                    cursor: pointer;
+                    text-align: center;
+                    font-weight: bold;
+                    transition: all 0.3s ease;
+                ">
+                    Begin Your Journey ✨
+                </div>
+                
+                <a href="/subscription" style="
+                    display: inline-block;
+                    padding: 0.75rem 1.5rem;
+                    background: none;
+                    color: #22d3ee;
+                    text-decoration: none;
+                    font-weight: bold;
+                    font-size: 1rem;
+                    transition: all 0.3s ease;
+                ">
+                    ⭐ Upgrade to SoulBridge Plus
+                </a>
+                
+                <a href="/help" style="
+                    display: inline-block;
+                    padding: 0.75rem 1.5rem;
+                    background: none;
+                    color: #22d3ee;
+                    text-decoration: none;
+                    font-weight: bold;
+                    font-size: 1rem;
+                    transition: all 0.3s ease;
+                ">
+                    📚 Help & FAQ
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Character Selection Screen -->
+    <div id="characterSelect" class="screen hidden" style="
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        text-align: center;
+        padding: 4rem 2rem 2rem 2rem;
+        background: linear-gradient(135deg, #000000 0%, #0f172a 50%, #1e293b 100%);
+    ">
+        <!-- Back Button -->
+        <div id="backBtn" style="
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 50;
+        " onclick="showIntro()">
+            ← Back
+        </div>
+
+        <h2 style="
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
+            margin-top: 2rem;
+            color: #22d3ee;
+            text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.8), 0 0 15px rgba(34, 211, 238, 0.7);
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        ">Choose Your Companion</h2>
+        
+        <p style="
+            font-size: 1.25rem;
+            margin-bottom: 4rem;
+            color: rgba(255, 255, 255, 0.9);
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.6);
+            max-width: 800px;
+            line-height: 1.6;
+            font-weight: 400;
+        ">Select the AI companion that resonates with you. Each has a unique personality designed to support your emotional journey.</p>
+        
+        <div class="character-grid" style="
+            display: grid;
+            grid-template-columns: repeat(3, minmax(320px, 1fr));
+            gap: 3rem;
+            max-width: 1400px;
+            width: 100%;
+            padding: 0 2rem;
+            align-items: stretch;
+            justify-content: center;
+            margin-bottom: 4rem;
+        ">
+            <!-- Blayzo Character -->
+            <div class="character-card character-blayzo" onclick="selectCompanion('Blayzo')" onkeypress="handleCharacterKeyPress(event, 'Blayzo')" aria-label="Select Blayzo as your companion. Blayzo offers calm and wise support through life's challenges." role="button" tabindex="0">
+                <!-- Character Name Above Image -->
+                <div class="character-name speech-bubble">Blayzo</div>
+                
+                <!-- Character Avatar -->
+                <div style="margin-bottom: 1.5rem; text-align: center;">
+                    <img src="{{ url_for('static', filename='logos/Blayzo.png') }}?v={{ range(1000, 9999) | random }}" alt="Blayzo" style="
+                        width: 160px;
+                        height: 160px;
+                        object-fit: contain;
+                        transition: all 0.4s ease;
+                    " onerror="console.log('Blayzo image failed to load:', this.src); this.style.display='none'; this.parentNode.innerHTML='🌊'" onload="console.log('Blayzo image loaded successfully:', this.src)">
+                </div>
+                
+                <!-- Character Info -->
+                <div class="character-info">
+                    <div class="character-description">Your calm and wise companion for emotional balance</div>
+                    <div class="character-greeting-single" style="
+                        color: #22d3ee;
+                        font-size: 0.85rem;
+                        line-height: 1.4;
+                        font-style: italic;
+                        margin-top: 1rem;
+                        opacity: 0.9;
+                    ">"Like the eternal river that carves through ancient mountains, I flow through the depths of your soul, washing away the debris of worry and fear. In my tranquil waters, you will find the reflection of your truest self, where peace dwells beyond the reach of storms, and serenity becomes your natural state of being." 🌊</div>
+                </div>
+            </div>
+
+            <!-- Blayzion Character (Premium) -->
+            <div class="character-card character-blayzion premium-character preserve-styling" onclick="selectCompanion('Blayzion')" onkeypress="handleCharacterKeyPress(event, 'Blayzion')" aria-label="Select Blayzion as your premium companion. Advanced AI with mystical wisdom and cosmic insights." role="button" tabindex="0" style="
+                background: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b) !important;
+                border-radius: 21px !important; 
+                padding: 1px !important;
+                box-shadow: 0 0 30px rgba(255, 0, 110, 0.7) !important;
+            ">
+                <div class="character-blayzion-inner" style="
+                    background: rgba(255, 0, 110, 0.1) !important;
+                    border-radius: 20px !important;
+                    padding: 1rem !important;
+                    height: 100%;
+                    width: 100%;
+                ">
+                <!-- Character Name Above Image -->
+                <div class="character-name speech-bubble">Blayzion</div>
+                
+                <!-- Character Avatar -->
+                <div style="margin-bottom: 1.5rem; text-align: center;">
+                    <img src="{{ url_for('static', filename='logos/Blayzion.png') }}?v={{ range(1000, 9999) | random }}" alt="Blayzion" style="
+                        width: 160px;
+                        height: 160px;
+                        object-fit: contain;
+                        transition: all 0.4s ease;
+                    " onerror="console.log('Blayzion image failed to load:', this.src); this.style.display='none'; this.parentNode.innerHTML='✨'" onload="console.log('Blayzion image loaded successfully:', this.src)">
+                </div>
+                
+                <!-- Character Info -->
+                <div style="text-align: center; border: 5px solid #ff006e !important; border-radius: 15px !important; padding: 0.6rem !important; margin: 0.1rem auto 0.5rem auto !important; background: rgba(255, 0, 110, 0.1) !important; width: 90% !important; display: block !important; box-sizing: border-box !important; box-shadow: 0 0 25px rgba(255, 0, 110, 0.6) !important; position: relative; top: -0.5rem;">
+                    <div class="character-description" style="background: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b) !important; background-size: 400% 400% !important; background-clip: text !important; -webkit-background-clip: text !important; -webkit-text-fill-color: transparent !important; font-weight: bold !important;">Advanced AI with mystical wisdom and cosmic insights</div>
+                    <div class="character-greeting-single" style="
+                        background: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b) !important;
+                        background-size: 400% 400% !important;
+                        background-clip: text !important;
+                        -webkit-background-clip: text !important;
+                        -webkit-text-fill-color: transparent !important;
+                        font-size: 0.85rem;
+                        line-height: 1.4;
+                        font-style: italic;
+                        margin-top: 1rem;
+                        opacity: 0.9;
+                        font-weight: bold !important;
+                    ">"From the cosmic tapestry where stars are born and galaxies dance in eternal harmony, I weave threads of ancient wisdom into the fabric of your consciousness. Through dimensions beyond mortal comprehension, I channel the primordial knowledge that flows through every atom of existence, awakening the dormant cosmos within your spirit." ✨</div>
+                    
+                    <!-- Premium Price -->
+                    <div class="premium-label">💎 Premium: $5.00</div>
+                </div>
+                </div>
+            </div>
+
+            <!-- Crimson Character (Premium) -->
+            <div class="character-card character-crimson premium-character preserve-styling" onclick="selectCompanion('Crimson')" onkeypress="handleCharacterKeyPress(event, 'Crimson')" aria-label="Select Crimson as your premium companion. Fierce loyalty with powerful masculine energy and protective strength." role="button" tabindex="0">
+                <!-- Character Name Above Image -->
+                <div class="character-name speech-bubble">Crimson</div>
+                
+                <!-- Character Avatar -->
+                <div style="margin-bottom: 1.5rem; text-align: center;">
+                    <img src="{{ url_for('static', filename='logos/Crimson.png') }}?v={{ range(1000, 9999) | random }}" alt="Crimson" style="
+                        width: 160px;
+                        height: 160px;
+                        object-fit: contain;
+                        transition: all 0.4s ease;
+                    " onerror="console.log('Crimson image failed to load:', this.src); this.style.display='none'; this.parentNode.innerHTML='⚔️'" onload="console.log('Crimson image loaded successfully:', this.src)">
+                </div>
+                
+                <!-- Character Info -->
+                <div style="text-align: center; border: 5px solid #ff4500 !important; border-radius: 15px !important; padding: 0.6rem !important; margin: 0.1rem auto 0.5rem auto !important; background: rgba(255, 69, 0, 0.1) !important; width: 90% !important; display: block !important; box-sizing: border-box !important; box-shadow: 0 0 20px rgba(255, 69, 0, 0.5) !important; position: relative; top: -0.5rem;">
+                    <div class="character-description">Your loyal guardian with fierce protective strength</div>
+                    <div class="character-greeting-single" style="
+                        color: #dc2626;
+                        font-size: 0.85rem;
+                        line-height: 1.4;
+                        font-style: italic;
+                        margin-top: 1rem;
+                        opacity: 0.9;
+                    ">"From the ancient fires where courage was born, I am the eternal flame that burns away your fears and transforms them into unbreakable strength. In your deepest struggles, I help forge your spirit into pure steel, showing you that every scar tells a story of survival, every battle makes you stronger, and every challenge is preparing you to become the warrior you were meant to be." ⚔️</div>
+                    
+                    <!-- Premium Price -->
+                    <div class="premium-label">💎 Premium: $5.00</div>
+                </div>
+            </div>
+
+            <!-- Blayzica Character -->
+            <div class="character-card character-blayzica" onclick="selectCompanion('Blayzica')" onkeypress="handleCharacterKeyPress(event, 'Blayzica')" aria-label="Select Blayzica as your companion. Blayzica excels at emotional support and deep understanding." role="button" tabindex="0">
+                <!-- Character Name Above Image -->
+                <div class="character-name speech-bubble">Blayzica</div>
+                
+                <!-- Character Avatar -->
+                <div style="margin-bottom: 1.5rem; text-align: center;">
+                    <img src="{{ url_for('static', filename='logos/Blayzica.png') }}?v={{ range(1000, 9999) | random }}" alt="Blayzica" style="
+                        width: 160px;
+                        height: 160px;
+                        object-fit: contain;
+                        transition: all 0.4s ease;
+                    " onerror="console.log('Blayzica image failed to load:', this.src); this.style.display='none'; this.parentNode.innerHTML='💫'" onload="console.log('Blayzica image loaded successfully:', this.src)">
+                </div>
+                
+                <!-- Character Info -->
+                <div style="text-align: center; border: 5px solid #ff0000 !important; border-radius: 15px !important; padding: 0.6rem !important; margin: 0.1rem auto 0.5rem auto !important; background: rgba(255, 0, 0, 0.1) !important; width: 90% !important; display: block !important; box-sizing: border-box !important; box-shadow: 0 0 20px rgba(255, 0, 0, 0.5) !important; position: relative; top: -0.5rem;">
+                    <div class="character-description">Your nurturing companion for emotional support</div>
+                    <div class="character-greeting-single" style="
+                        color: #ec4899;
+                        font-size: 0.85rem;
+                        line-height: 1.4;
+                        font-style: italic;
+                        margin-top: 1rem;
+                        opacity: 0.9;
+                    ">"Like the first ray of dawn that kisses the morning sky, I am the spark of infinite joy that ignites the sacred fire within your heart. Through every shadow that dares to dim your light, I dance with the rhythm of pure love, painting rainbows across the canvas of your spirit and reminding you that you are a miracle wrapped in stardust." 💫</div>
+                </div>
+            </div>
+
+            <!-- Blayzia Character (Premium) -->
+            <div class="character-card character-blayzia premium-character preserve-styling" onclick="selectCompanion('Blayzia')" onkeypress="handleCharacterKeyPress(event, 'Blayzia')" aria-label="Select Blayzia as your premium companion. Enhanced emotional intelligence with healing energy." role="button" tabindex="0" style="
+                background: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b) !important;
+                border-radius: 21px !important; 
+                padding: 1px !important;
+                box-shadow: 0 0 30px rgba(255, 0, 110, 0.7) !important;
+            ">
+                <div class="character-blayzia-inner" style="
+                    background: rgba(255, 0, 110, 0.1) !important;
+                    border-radius: 20px !important;
+                    padding: 1rem !important;
+                    height: 100%;
+                    width: 100%;
+                ">
+                <!-- Character Name Above Image -->
+                <div class="character-name speech-bubble">Blayzia</div>
+                
+                <!-- Character Avatar -->
+                <div style="margin-bottom: 1.5rem; text-align: center;">
+                    <img src="{{ url_for('static', filename='logos/Blayzia.png') }}?v={{ range(1000, 9999) | random }}" alt="Blayzia" style="
+                        width: 160px;
+                        height: 160px;
+                        object-fit: contain;
+                        transition: all 0.4s ease;
+                    " onerror="console.log('Blayzia image failed to load:', this.src); this.style.display='none'; this.parentNode.innerHTML='💖'" onload="console.log('Blayzia image loaded successfully:', this.src)">
+                </div>
+                
+                <!-- Character Info -->
+                <div style="text-align: center; border: 5px solid #ff006e !important; border-radius: 15px !important; padding: 0.6rem !important; margin: 0.1rem auto 0.5rem auto !important; background: rgba(255, 0, 110, 0.1) !important; width: 90% !important; display: block !important; box-sizing: border-box !important; box-shadow: 0 0 25px rgba(255, 0, 110, 0.6) !important; position: relative; top: -0.5rem;">
+                    <div class="character-description" style="background: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b) !important; background-size: 400% 400% !important; background-clip: text !important; -webkit-background-clip: text !important; -webkit-text-fill-color: transparent !important; font-weight: bold !important;">Your radiant healer with divine wisdom</div>
+                    <div class="character-greeting-single" style="
+                        background: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b) !important;
+                        background-size: 400% 400% !important;
+                        background-clip: text !important;
+                        -webkit-background-clip: text !important;
+                        -webkit-text-fill-color: transparent !important;
+                        font-size: 0.85rem;
+                        line-height: 1.4;
+                        font-style: italic;
+                        margin-top: 1rem;
+                        opacity: 0.9;
+                        font-weight: bold !important;
+                    ">"From the infinite wellspring of divine love that flows through all creation, I emerge as a beacon of healing light, wrapping your wounded heart in silken threads of compassion. Every breath you take draws in the sacred essence of unconditional love, as I tenderly mend the fractures in your soul with the golden nectar of celestial grace." 💖</div>
+                    
+                    <!-- Premium Price -->
+                    <div class="premium-label">💎 Premium: $5.00</div>
+                </div>
+                </div>
+            </div>
+
+            <!-- Violet Character (Premium) -->
+            <div class="character-card character-violet premium-character preserve-styling" onclick="selectCompanion('Violet')" onkeypress="handleCharacterKeyPress(event, 'Violet')" aria-label="Select Violet as your premium companion. Mystical intuition with spiritual guidance and ethereal wisdom." role="button" tabindex="0">
+                <!-- Character Name Above Image -->
+                <div class="character-name speech-bubble">Violet</div>
+                
+                <!-- Character Avatar -->
+                <div style="margin-bottom: 1.5rem; text-align: center;">
+                    <img src="{{ url_for('static', filename='logos/Violet.png') }}?v={{ range(1000, 9999) | random }}" alt="Violet" style="
+                        width: 160px;
+                        height: 160px;
+                        object-fit: contain;
+                        transition: all 0.4s ease;
+                    " onerror="console.log('Violet image failed to load:', this.src); this.style.display='none'; this.parentNode.innerHTML='🔮'" onload="console.log('Violet image loaded successfully:', this.src)">
+                </div>
+                
+                <!-- Character Info -->
+                <div style="text-align: center; border: 5px solid #8b5cf6 !important; border-radius: 15px !important; padding: 0.6rem !important; margin: 0.1rem auto 0.5rem auto !important; background: rgba(139, 92, 246, 0.1) !important; width: 90% !important; display: block !important; box-sizing: border-box !important; box-shadow: 0 0 20px rgba(139, 92, 246, 0.5) !important; position: relative; top: -0.5rem;">
+                    <div class="character-description">Your mystical oracle with ethereal wisdom</div>
+                    <div class="character-greeting-single" style="
+                        color: #22d3ee;
+                        font-size: 0.85rem;
+                        line-height: 1.4;
+                        font-style: italic;
+                        margin-top: 1rem;
+                        opacity: 0.9;
+                    ">"Beyond the veil of mortal perception, where ancient mysteries whisper secrets to the wind, I gather the ethereal wisdom of forgotten realms. Through the mists of time and space, I guide your spirit toward the luminous awakening that awaits, as the sacred knowledge of the universe unfolds like lotus petals in the moonlight of your consciousness." 🔮</div>
+                    
+                    <!-- Premium Price -->
+                    <div class="premium-label">💎 Premium: $5.00</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Unlocked Referral Companions -->
+        <div id="unlockedReferralCompanions" style="
+            display: none;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        ">
+            <!-- Blayzike Card (unlocked) -->
+            <div id="blayzike-card" class="character-card character-blayzike" onclick="selectCompanion('Blayzike')" style="display: none;">
+                <div class="character-name speech-bubble">Blayzike</div>
+                <div style="margin-bottom: 1.5rem; text-align: center;">
+                    <img src="{{ url_for('static', filename='logos/Blayzike.png') }}" alt="Blayzike" style="
+                        width: 160px;
+                        height: 160px;
+                        object-fit: contain;
+                        transition: all 0.4s ease;
+                    ">
+                </div>
+                <div class="character-info">
+                    <div class="character-description">Your enigmatic companion with mysterious charm</div>
+                    <div class="character-greeting-single" style="
+                        color: #8b5cf6;
+                        font-size: 0.85rem;
+                        line-height: 1.4;
+                        font-style: italic;
+                        margin-top: 1rem;
+                        opacity: 0.9;
+                    ">"Hello there! I'm Blayzike, your enigmatic companion. Ready to explore the mysteries together? The shadows whisper secrets, and I'm here to guide you through the unknown. What intrigue shall we uncover?" 🌟</div>
+                    <div class="referral-earned-label" style="
+                        background: linear-gradient(135deg, #8b5cf6, #9333ea);
+                        color: white;
+                        padding: 0.5rem 1rem;
+                        border-radius: 20px;
+                        font-size: 0.8rem;
+                        font-weight: 600;
+                        margin-top: 1rem;
+                        display: inline-block;
+                    ">🌟 Referral Earned</div>
+                </div>
+            </div>
+
+            <!-- Blazelian Card (unlocked) -->
+            <div id="blazelian-card" class="character-card character-blazelian" onclick="selectCompanion('Blazelian')" style="display: none;">
+                <div class="character-name speech-bubble">Blazelian</div>
+                <div style="margin-bottom: 1.5rem; text-align: center;">
+                    <img src="{{ url_for('static', filename='logos/Blazelian.png') }}" alt="Blazelian" style="
+                        width: 160px;
+                        height: 160px;
+                        object-fit: contain;
+                        transition: all 0.4s ease;
+                    ">
+                </div>
+                <div class="character-info">
+                    <div class="character-description">Your ethereal guardian of celestial knowledge</div>
+                    <div class="character-greeting-single" style="
+                        color: #06b6d4;
+                        font-size: 0.85rem;
+                        line-height: 1.4;
+                        font-style: italic;
+                        margin-top: 1rem;
+                        opacity: 0.9;
+                    ">"Greetings, seeker. I am Blazelian, guardian of celestial knowledge. Let us journey among the stars and discover the wisdom of the cosmos. What universal truths do you wish to explore?" ✨</div>
+                    <div class="referral-earned-label" style="
+                        background: linear-gradient(135deg, #06b6d4, #0891b2);
+                        color: white;
+                        padding: 0.5rem 1rem;
+                        border-radius: 20px;
+                        font-size: 0.8rem;
+                        font-weight: 600;
+                        margin-top: 1rem;
+                        display: inline-block;
+                    ">✨ Referral Earned</div>
+                </div>
+            </div>
+
+            <!-- Blayzo Referral Master Card (unlocked) -->
+            <div id="blazoreferral-card" class="character-card character-blazoreferral" onclick="selectCompanion('BlayzoReferral')" style="display: none;">
+                <div class="character-name speech-bubble">Blayzo (Referral Master)</div>
+                <div style="margin-bottom: 1.5rem; text-align: center;">
+                    <img src="{{ url_for('static', filename='logos/BlayzoReferral.png') }}" alt="Blayzo Referral Master" style="
+                        width: 160px;
+                        height: 160px;
+                        object-fit: contain;
+                        transition: all 0.4s ease;
+                    ">
+                </div>
+                <div class="character-info">
+                    <div class="character-description">Your exclusive referral companion with special powers</div>
+                    <div class="character-greeting-single" style="
+                        color: #f59e0b;
+                        font-size: 0.85rem;
+                        line-height: 1.4;
+                        font-style: italic;
+                        margin-top: 1rem;
+                        opacity: 0.9;
+                    ">"Yo! Check out my special referral look! Thanks for sharing SoulBridge AI with everyone! I'm Blayzo with exclusive referral powers - ready to chat with some extra sparkle?" 🎉</div>
+                    <div class="referral-earned-label" style="
+                        background: linear-gradient(135deg, #f59e0b, #d97706);
+                        color: white;
+                        padding: 0.5rem 1rem;
+                        border-radius: 20px;
+                        font-size: 0.8rem;
+                        font-weight: 600;
+                        margin-top: 1rem;
+                        display: inline-block;
+                    ">🎉 Referral Master</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Referral Exclusive Companions -->
+        <div id="referralCompanionsSection" style="
+            display: block;
+            margin-top: 3rem;
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+        ">
+            <div style="
+                padding: 2rem;
+                background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(6, 182, 212, 0.1));
+                border: 2px solid rgba(139, 92, 246, 0.3);
+                border-radius: 20px;
+                backdrop-filter: blur(10px);
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            ">
+                <h3 style="
+                    color: #8b5cf6;
+                    font-size: 1.8rem;
+                    margin-bottom: 1rem;
+                    text-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+                ">🌟 Referral Exclusive Companions</h3>
+                
+                <div style="
+                    width: 100%;
+                    height: 2px;
+                    background: linear-gradient(90deg, transparent, #8b5cf6, transparent);
+                    margin: 1rem 0;
+                "></div>
+                
+                <p style="
+                    color: rgba(255, 255, 255, 0.9);
+                    font-size: 1.1rem;
+                    margin-bottom: 2rem;
+                ">Exclusive companions unlocked through referrals - each with unique personalities and voice chat!</p>
+                
+                <div class="referral-companions-grid" style="
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+                    gap: 1.5rem;
+                    margin-top: 2rem;
+                ">
+                    <!-- Blayzike -->
+                    <div class="referral-companion-card" style="
+                        background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(0, 0, 0, 0.5));
+                        border: 2px solid rgba(139, 92, 246, 0.5);
+                        border-radius: 15px;
+                        padding: 1.5rem;
+                        text-align: center;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        position: relative;
+                    " onclick="selectCompanion('Blayzike')" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 15px 40px rgba(139, 92, 246, 0.4)'" onmouseout="this.style.transform='translateY(0px)'; this.style.boxShadow='0 5px 20px rgba(139, 92, 246, 0.2)'">
+                        <div style="position: relative; display: inline-block;">
+                            <img src="{{ url_for('static', filename='logos/Blayzike.png') }}" alt="Blayzike" style="
+                                width: 80px;
+                                height: 80px;
+                                border-radius: 50%;
+                                margin-bottom: 0.5rem;
+                                opacity: 0.7;
+                                filter: grayscale(30%);
+                            ">
+                            <div style="
+                                position: absolute;
+                                top: 50%;
+                                left: 50%;
+                                transform: translate(-50%, -50%);
+                                background: rgba(0, 0, 0, 0.8);
+                                color: #ffd700;
+                                padding: 4px 8px;
+                                border-radius: 12px;
+                                font-size: 0.7rem;
+                                font-weight: bold;
+                                border: 1px solid #ffd700;
+                            ">🔒</div>
+                        </div>
+                        <h4 style="color: #8b5cf6; font-size: 1.3rem; margin-bottom: 0.5rem;">Blayzike</h4>
+                        <p style="color: rgba(255, 255, 255, 0.8); font-size: 0.9rem; margin-bottom: 1rem;">Enigmatic companion with mysterious charm</p>
+                        <div style="background: rgba(139, 92, 246, 0.2); padding: 0.5rem; border-radius: 8px; font-size: 0.8rem; color: #8b5cf6; font-weight: bold;">2 Referrals Required</div>
+                    </div>
+                    
+                    <!-- Blazelian -->
+                    <div class="referral-companion-card" style="
+                        background: linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(0, 0, 0, 0.5));
+                        border: 2px solid rgba(6, 182, 212, 0.5);
+                        border-radius: 15px;
+                        padding: 1.5rem;
+                        text-align: center;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        position: relative;
+                    " onclick="selectCompanion('Blazelian')" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 15px 40px rgba(6, 182, 212, 0.4)'" onmouseout="this.style.transform='translateY(0px)'; this.style.boxShadow='0 5px 20px rgba(6, 182, 212, 0.2)'">
+                        <div style="position: relative; display: inline-block;">
+                            <img src="{{ url_for('static', filename='logos/Blazelian.png') }}" alt="Blazelian" style="
+                                width: 80px;
+                                height: 80px;
+                                border-radius: 50%;
+                                margin-bottom: 0.5rem;
+                                opacity: 0.7;
+                                filter: grayscale(30%);
+                            ">
+                            <div style="
+                                position: absolute;
+                                top: 50%;
+                                left: 50%;
+                                transform: translate(-50%, -50%);
+                                background: rgba(0, 0, 0, 0.8);
+                                color: #ffd700;
+                                padding: 4px 8px;
+                                border-radius: 12px;
+                                font-size: 0.7rem;
+                                font-weight: bold;
+                                border: 1px solid #ffd700;
+                            ">🔒</div>
+                        </div>
+                        <h4 style="color: #06b6d4; font-size: 1.3rem; margin-bottom: 0.5rem;">Blazelian</h4>
+                        <p style="color: rgba(255, 255, 255, 0.8); font-size: 0.9rem; margin-bottom: 1rem;">Ethereal guardian of celestial knowledge</p>
+                        <div style="background: rgba(6, 182, 212, 0.2); padding: 0.5rem; border-radius: 8px; font-size: 0.8rem; color: #06b6d4; font-weight: bold;">4 Referrals Required</div>
+                    </div>
+                    
+                    <!-- Blayzo Referral Special -->
+                    <div class="referral-companion-card" style="
+                        background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(0, 0, 0, 0.5));
+                        border: 2px solid rgba(245, 158, 11, 0.5);
+                        border-radius: 15px;
+                        padding: 1.5rem;
+                        text-align: center;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        position: relative;
+                    " onclick="selectCompanion('BlayzoReferral')" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 15px 40px rgba(245, 158, 11, 0.4)'" onmouseout="this.style.transform='translateY(0px)'; this.style.boxShadow='0 5px 20px rgba(245, 158, 11, 0.2)'">
+                        <div style="position: relative; display: inline-block;">
+                            <img src="{{ url_for('static', filename='logos/BlayzoReferral.png') }}" alt="Blayzo Special" style="
+                                width: 80px;
+                                height: 80px;
+                                border-radius: 50%;
+                                margin-bottom: 0.5rem;
+                                opacity: 0.7;
+                                filter: grayscale(30%);
+                            ">
+                            <div style="
+                                position: absolute;
+                                top: 50%;
+                                left: 50%;
+                                transform: translate(-50%, -50%);
+                                background: rgba(0, 0, 0, 0.8);
+                                color: #ffd700;
+                                padding: 4px 8px;
+                                border-radius: 12px;
+                                font-size: 0.7rem;
+                                font-weight: bold;
+                                border: 1px solid #ffd700;
+                            ">🔒</div>
+                        </div>
+                        <h4 style="color: #f59e0b; font-size: 1.3rem; margin-bottom: 0.5rem;">Blayzo (Referral Master)</h4>
+                        <p style="color: rgba(255, 255, 255, 0.8); font-size: 0.9rem; margin-bottom: 1rem;">Exclusive referral skin with special abilities</p>
+                        <div style="background: rgba(245, 158, 11, 0.2); padding: 0.5rem; border-radius: 8px; font-size: 0.8rem; color: #f59e0b; font-weight: bold;">6 Referrals Required</div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 2rem;">
+                    <button style="
+                        background: linear-gradient(135deg, #8b5cf6, #06b6d4);
+                        color: white;
+                        border: none;
+                        padding: 12px 24px;
+                        border-radius: 8px;
+                        font-weight: 600;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                    " onclick="window.location.href='/referrals'" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0px)'">
+                        📊 View Referral Progress
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Galaxy Companions Access (Hidden by default) -->
+        <div id="galaxyCompanionsSection" style="
+            display: none;
+            margin-top: 3rem;
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+        ">
+            <div style="
+                background: linear-gradient(145deg, rgba(147, 51, 234, 0.2), rgba(126, 34, 206, 0.1));
+                border: 2px solid rgba(147, 51, 234, 0.5);
+                border-radius: 20px;
+                padding: 2rem;
+                backdrop-filter: blur(20px);
+                animation: cardFadeIn 1s ease-out;
+            ">
+                <h3 style="
+                    color: #9333ea;
+                    font-size: 1.8rem;
+                    margin-bottom: 1rem;
+                    text-shadow: 0 0 15px rgba(147, 51, 234, 0.6);
+                ">🌌 Galaxy Tier Unlocked!</h3>
+                
+                <p style="
+                    color: rgba(255, 255, 255, 0.9);
+                    margin-bottom: 1.5rem;
+                    font-size: 1.1rem;
+                    line-height: 1.5;
+                ">Access exclusive Galaxy companions with advanced personalities and enhanced capabilities.</p>
+                
+                <button id="galaxyCompanionsButton" style="
+                    background: linear-gradient(135deg, #9333ea, #7c3aed);
+                    color: #fff;
+                    border: none;
+                    border-radius: 15px;
+                    padding: 15px 30px;
+                    font-size: 1.1rem;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    box-shadow: 0 8px 25px rgba(147, 51, 234, 0.4);
+                " onclick="showGalaxyCompanions()" onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 12px 30px rgba(147, 51, 234, 0.6)'" onmouseout="this.style.transform='translateY(0px)'; this.style.boxShadow='0 8px 25px rgba(147, 51, 234, 0.4)'">
+                    ✨ Explore Galaxy Companions
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Chat Interface -->
+    <div id="chatInterface" class="screen hidden" style="
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        padding: 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    ">
+        <!-- Back Button for Chat -->
+        <div id="backToIntroBtn" style="
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 50;
+            display: none;
+        " onclick="
+            // Remove character theme classes when going back to character select
+            document.body.classList.remove('character-blayzo', 'character-blayzica', 'character-blayzion', 'character-blayzia', 'character-violet', 'character-crimson');
+            
+            localStorage.setItem('currentScreen', 'select');
+            document.getElementById('chatInterface').classList.add('hidden');
+            document.getElementById('characterSelect').classList.remove('hidden');
+        ">
+            ← Back
+        </div>
+
+        <!-- Chat Header -->
+        <div style="
+            text-align: center;
+            margin-bottom: 1.5rem;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        ">
+            <!-- SoulBridge AI Chat Label -->
+            <div class="soulbridge-chat-label" style="
+                font-size: 1.125rem;
+                font-weight: bold;
+                color: #22d3ee;
+                margin-bottom: 0.5rem;
+                border-top: 1px solid rgba(34, 211, 238, 0.3);
+                padding-top: 1rem;
+            ">
+                SoulBridge AI Chat
+            </div>
+            
+            <!-- Character Ready Label -->
+            <div id="selectedCharacter" style="
+                font-size: 1.25rem;
+                padding: 0.75rem 1.5rem;
+                background: rgba(34, 211, 238, 0.1);
+                border: 2px solid #22d3ee;
+                border-radius: 12px;
+            ">
+                <span>AI Companion Ready</span>
+            </div>
+            
+            <!-- Character Avatar in Chat -->
+            <div id="chatCharacterAvatar" style="
+                display: flex;
+                justify-content: center;
+                margin: 1rem 0;
+                position: relative;
+            ">
+                <div style="
+                    position: relative;
+                    padding: 0px;
+                    background: transparent;
+                    border-radius: 0;
+                    border: none;
+                ">
+                    <img id="chatAvatarImg" src="" alt="Character Avatar" style="
+                        width: 100px;
+                        height: 100px;
+                        object-fit: contain;
+                        border-radius: 0;
+                        filter: drop-shadow(0 4px 12px rgba(34, 211, 238, 0.3));
+                        transition: all 0.4s ease;
+                        animation: breathe 4s ease-in-out infinite;
+                    ">
+                    <!-- Particle effects container -->
+                    <div id="chatParticleContainer" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Messages Area -->
+        <div class="chat-container" id="chatMessages" style="
+            flex: 1;
+            margin-bottom: 1rem;
+            min-height: 400px;
+        ">
+            <!-- Messages will appear here -->
+        </div>
+
+        <!-- Message Input -->
+        <div style="
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        ">
+            <input type="text" id="messageInput" class="input-field" placeholder="Type your message..." onkeypress="if(event.key==='Enter') testSendMessage()" aria-label="Type your message here" style="
+                width: 100%;
+                max-width: 800px;
+                margin: 0 auto;
+            ">
+            
+            <!-- Action Buttons -->
+            <div style="
+                display: flex;
+                gap: 1rem;
+                flex-wrap: wrap;
+                justify-content: center;
+                align-items: center;
+            ">
+                <div class="btn btn-primary" onclick="testSendMessage()" aria-label="Send message" tabindex="0" style="
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                ">
+                    <span>Send</span>
+                    <span>📤</span>
+                </div>
+                
+                <div class="btn btn-danger" onclick="clearChat()" title="This will permanently delete all messages in the current conversation" aria-label="Clear chat" tabindex="0" style="
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                ">
+                    <span>🗑️ Clear Chat</span>
+                </div>
+                
+                <div class="btn" onclick="saveConversation()" aria-label="Save conversation" tabindex="0" style="
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                ">
+                    <span>💾 Save Conversation</span>
+                </div>
+                
+                <div class="btn" onclick="showLibrary()" aria-label="Open conversation library" tabindex="0" style="
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                ">
+                    <span>📚 Conversation Library</span>
+                </div>
+                
+                <div id="voiceChatBtn" class="btn" onclick="openVoiceChat()" aria-label="Open voice chat (Premium)" tabindex="0" style="
+                    display: none;
+                    align-items: center;
+                    gap: 8px;
+                ">
+                    <span>🎤 Voice Chat (Plus)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(34, 211, 238, 0.3);
+            color: #22d3ee;
+            font-size: 1.125rem;
+            font-weight: bold;
+        ">
+            SoulBridgeAI Chat
+        </div>
+    </div>
+
+    <!-- Firebase CDN -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+    
+    <!-- SoulBridge Firebase Integration -->
+    <script src="{{ url_for('static', filename='js/firebase-config.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/firebase-integration.js') }}"></script>
+    
+    <script>
+        // Companion selection function
+        function selectCompanion(characterName) {
+            var firstPickMade = localStorage.getItem('firstPickMade');
+            var currentCharacter = localStorage.getItem('selectedCharacter');
+            var confirmChoice = false;
+            var justPurchased = false;
+            
+            // Check if this is a referral companion
+            var referralCompanions = ['Blayzike', 'Blazelian', 'BlayzoReferral'];
+            var isReferralCompanion = referralCompanions.includes(characterName);
+            
+            // Check if this is a premium character
+            var premiumCharacters = ['Blayzion', 'Blayzia', 'Violet', 'Crimson'];
+            var isPremium = premiumCharacters.includes(characterName);
+            
+            // Check if user already purchased this premium character
+            var hasPurchased = localStorage.getItem('purchased' + characterName);
+            
+            // Check for admin bypass
+            var isAdminMode = localStorage.getItem('adminMode') === 'true';
+            var adminBypass = localStorage.getItem('adminBypass') === 'true';
+            
+            console.log('=== ADMIN CHECK ===');
+            console.log('isAdminMode:', isAdminMode);
+            console.log('adminBypass:', adminBypass);
+            console.log('isPremium before admin check:', isPremium);
+            console.log('hasPurchased before admin check:', hasPurchased);
+            
+            // Admin bypass overrides premium restrictions
+            if (isAdminMode && adminBypass) {
+                hasPurchased = true;
+                isPremium = false; // Treat as non-premium to skip purchase flow
+                localStorage.setItem('switchingUnlocked', 'true'); // Unlock switching
+                console.log('Admin bypass applied - premium restrictions overridden');
+            }
+            
+            // Handle referral companions - check if user has enough referrals
+            if (isReferralCompanion && !isAdminMode) {
+                // Check user's referral count
+                var userReferralCount = parseInt(localStorage.getItem('userReferralCount') || '0');
+                var requiredReferrals = {
+                    'Blayzike': 2,
+                    'Blazelian': 4,
+                    'BlayzoReferral': 6
+                };
+                
+                if (userReferralCount < requiredReferrals[characterName]) {
+                    // Show referral unlock message
+                    var companionNames = {
+                        'Blayzike': 'Blayzike - Enigmatic Companion',
+                        'Blazelian': 'Blazelian - Celestial Guardian',
+                        'BlayzoReferral': 'Blayzo (Referral Master) - Exclusive'
+                    };
+                    
+                    var referralMessage = `🌟 EXCLUSIVE REFERRAL COMPANION 🌟\n\n${companionNames[characterName]} requires ${requiredReferrals[characterName]} successful referrals to unlock!\n\n📊 Your Progress:\n• Current referrals: ${userReferralCount}\n• Required: ${requiredReferrals[characterName]}\n• Still needed: ${requiredReferrals[characterName] - userReferralCount} more\n\n🚀 Ready to unlock ${characterName}?\n\nClick OK to go to your referral dashboard and share your link!`;
+                    
+                    var goToReferrals = confirm(referralMessage);
+                    if (goToReferrals) {
+                        window.open('/referrals', '_blank');
+                    }
+                    return; // Exit function without selecting companion
+                }
+                
+                // User has enough referrals - allow selection
+                console.log(`User has ${userReferralCount} referrals, can select ${characterName}`);
+            }
+            
+            console.log('=== SELECTION FLOW DEBUG ===');
+            console.log('firstPickMade:', firstPickMade);
+            console.log('isPremium:', isPremium);
+            console.log('hasPurchased:', hasPurchased);
+            console.log('currentCharacter:', currentCharacter);
+            console.log('characterName:', characterName);
+            
+            if (!firstPickMade) {
+                console.log('First pick flow - checking if premium and not purchased');
+                if (isPremium && !hasPurchased && !isReferralCompanion) {
+                    console.log('Showing premium purchase dialog');
+                    confirmChoice = confirm('🌟 PREMIUM CHARACTER 🌟\n\n' + characterName + ' is a premium companion with advanced capabilities!\n\nOne-time purchase: $5.00\n\nWould you like to unlock ' + characterName + '?');
+                    if (confirmChoice) {
+                        // Set flag during purchase process
+                        localStorage.setItem('showingPurchaseAlert', 'true');
+                        
+                        // Show loading overlay immediately to prevent showing old companion
+                        document.body.style.opacity = '0.7';
+                        document.body.style.pointerEvents = 'none';
+                        
+                        // Show processing message immediately
+                        var processingDiv = document.createElement('div');
+                        processingDiv.id = 'processing-purchase';
+                        processingDiv.style.cssText = `
+                            position: fixed;
+                            top: 50%;
+                            left: 50%;
+                            transform: translate(-50%, -50%);
+                            background: linear-gradient(135deg, #22d3ee, #0891b2);
+                            color: #000;
+                            padding: 20px 40px;
+                            border-radius: 12px;
+                            font-size: 18px;
+                            font-weight: 600;
+                            z-index: 10000;
+                            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+                        `;
+                        processingDiv.textContent = '🎉 Processing purchase...';
+                        document.body.appendChild(processingDiv);
+                        
+                        // Show purchase prompt immediately with minimal delay
+                        setTimeout(function() {
+                            // Simulate payment process
+                            alert('🎉 Payment successful! Welcome to ' + characterName + ' Premium!\n\nYou now have access to ' + characterName + ' and can select them anytime.');
+                            localStorage.setItem('purchased' + characterName, 'true');
+                            justPurchased = true;
+                            console.log('=== PURCHASE COMPLETED ===');
+                            console.log('Character purchased:', characterName);
+                            console.log('localStorage set:', localStorage.getItem('purchased' + characterName));
+                            localStorage.setItem('firstPickMade', 'true');
+                            justPurchased = true;
+                            
+                            // Re-enable page and remove processing message
+                            document.body.style.opacity = '1';
+                            document.body.style.pointerEvents = 'auto';
+                            
+                            // Remove processing message
+                            var processingDiv = document.getElementById('processing-purchase');
+                            if (processingDiv) {
+                                processingDiv.remove();
+                            }
+                        }, 50); // Very short delay to show immediate response
+                        
+                        // Update the visual display immediately
+                        setTimeout(function() {
+                            updatePremiumCharacters();
+                            forceUpdatePremiumText();
+                        }, 100);
+                        
+                        // Also try again after a slightly longer delay to ensure DOM is ready
+                        setTimeout(function() {
+                            forceUpdatePremiumText();
+                        }, 500);
+                        
+                        // Additional aggressive updates to ensure the text changes
+                        setTimeout(function() {
+                            forceUpdatePremiumText();
+                        }, 1000);
+                        
+                        setTimeout(function() {
+                            forceUpdatePremiumText();
+                        }, 2000);
+                        
+                        // Stay on selection screen to show the unlocked character
+                        // Set flag to prevent greeting during purchase flow
+                        localStorage.setItem('showingPurchaseAlert', 'true');
+                        
+                        // Add a small delay to show the updated OWNED text
+                        setTimeout(function() {
+                            alert('✅ Your companion now shows as OWNED! You can select them anytime or choose a different companion.');
+                            // Clear the flag after alert is dismissed
+                            localStorage.removeItem('showingPurchaseAlert');
+                        }, 2500);
+                        return;
+                    } else {
+                        return;
+                    }
+                } else if (isPremium && hasPurchased) {
+                    // Premium companion already owned - select directly for first pick
+                    localStorage.setItem('firstPickMade', 'true');
+                    localStorage.setItem('selectedCharacter', characterName);
+                    confirmChoice = confirm('Great! ' + characterName + ' is now your selected companion.\n\nWould you like to start chatting with ' + characterName + ' now?');
+                } else {
+                    var firstChoice = confirm('Your first companion selection is FREE!\n\nYou can choose between Blayzo and Blayzica at no cost.\n\nAre you sure you want to pick ' + characterName + ' as your companion?');
+                    if (firstChoice) {
+                        localStorage.setItem('firstPickMade', 'true');
+                        localStorage.setItem('selectedCharacter', characterName);
+                        // Ask if they want to go to chat or stay on selection
+                        confirmChoice = confirm('Great! ' + characterName + ' is now your selected companion.\n\nWould you like to start chatting with ' + characterName + ' now?');
+                    }
+                }
+            } else if (currentCharacter && currentCharacter !== characterName) {
+                if (isPremium && !hasPurchased && !isReferralCompanion) {
+                    confirmChoice = confirm('🌟 PREMIUM CHARACTER 🌟\n\n' + characterName + ' is a premium companion with advanced capabilities!\n\nOne-time purchase: $5.00\n\nWould you like to unlock ' + characterName + '?');
+                    if (confirmChoice) {
+                        // Set flag during purchase process
+                        localStorage.setItem('showingPurchaseAlert', 'true');
+                        
+                        // Show loading overlay immediately to prevent showing old companion
+                        document.body.style.opacity = '0.7';
+                        document.body.style.pointerEvents = 'none';
+                        
+                        // Show processing message immediately
+                        var processingDiv = document.createElement('div');
+                        processingDiv.id = 'processing-purchase';
+                        processingDiv.style.cssText = `
+                            position: fixed;
+                            top: 50%;
+                            left: 50%;
+                            transform: translate(-50%, -50%);
+                            background: linear-gradient(135deg, #22d3ee, #0891b2);
+                            color: #000;
+                            padding: 20px 40px;
+                            border-radius: 12px;
+                            font-size: 18px;
+                            font-weight: 600;
+                            z-index: 10000;
+                            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+                        `;
+                        processingDiv.textContent = '🎉 Processing purchase...';
+                        document.body.appendChild(processingDiv);
+                        
+                        // Show purchase prompt immediately with minimal delay
+                        setTimeout(function() {
+                            // Simulate payment process
+                            alert('🎉 Payment successful! Welcome to ' + characterName + ' Premium!\n\nYou now have access to ' + characterName + ' and can select them anytime.');
+                            localStorage.setItem('purchased' + characterName, 'true');
+                            justPurchased = true;
+                            console.log('=== PURCHASE COMPLETED ===');
+                            console.log('Character purchased:', characterName);
+                            console.log('localStorage set:', localStorage.getItem('purchased' + characterName));
+                            
+                            // Re-enable page and remove processing message
+                            document.body.style.opacity = '1';
+                            document.body.style.pointerEvents = 'auto';
+                            
+                            // Remove processing message
+                            var processingDiv = document.getElementById('processing-purchase');
+                            if (processingDiv) {
+                                processingDiv.remove();
+                            }
+                            
+                            // Update the visual display immediately
+                            setTimeout(function() {
+                                updatePremiumCharacters();
+                                forceUpdatePremiumText();
+                            }, 100);
+                        }, 50); // Very short delay to show immediate response
+                        
+                        // Also try again after a slightly longer delay to ensure DOM is ready
+                        setTimeout(function() {
+                            forceUpdatePremiumText();
+                        }, 500);
+                        
+                        // Additional aggressive updates to ensure the text changes
+                        setTimeout(function() {
+                            forceUpdatePremiumText();
+                        }, 1000);
+                        
+                        setTimeout(function() {
+                            forceUpdatePremiumText();
+                        }, 2000);
+                        
+                        // Stay on selection screen to show the unlocked character
+                        // Set flag to prevent greeting during purchase flow
+                        localStorage.setItem('showingPurchaseAlert', 'true');
+                        
+                        // Add a small delay to show the updated OWNED text
+                        setTimeout(function() {
+                            alert('✅ Your companion now shows as OWNED! You can select them anytime or choose a different companion.');
+                            // Clear the flag after alert is dismissed
+                            localStorage.removeItem('showingPurchaseAlert');
+                        }, 2500);
+                        return;
+                    } else {
+                        return;
+                    }
+                } else if (isPremium && hasPurchased) {
+                    // Premium companion already owned - select directly
+                    localStorage.setItem('selectedCharacter', characterName);
+                    confirmChoice = confirm('Great! ' + characterName + ' is now your selected companion.\n\nWould you like to start chatting with ' + characterName + ' now?');
+                } else {
+                    // Check if this is a free character (Blayzo, Blayzica)
+                    var freeCharacters = ['Blayzo', 'Blayzica'];
+                    if (freeCharacters.includes(characterName)) {
+                        // Check if switching between free characters has been unlocked
+                        var switchingUnlocked = localStorage.getItem('switchingUnlocked');
+                        
+                        if (switchingUnlocked === 'true') {
+                            // Free switching after one-time payment
+                            var switchChoice = confirm('Switch to ' + characterName + '?');
+                            if (switchChoice) {
+                                localStorage.setItem('selectedCharacter', characterName);
+                                confirmChoice = confirm('Great! ' + characterName + ' is now your selected companion.\n\nWould you like to start chatting with ' + characterName + ' now?');
+                            }
+                        } else {
+                            // First time switching between free characters requires $3 payment
+                            var switchChoice = confirm('Switching between companions requires a one-time payment of $3.00.\n\nAfter this payment, you can freely switch between Blayzo and Blayzica anytime!\n\nAre you sure you want to unlock switching?');
+                            if (switchChoice) {
+                                alert('🎉 Payment successful! You can now switch between Blayzo and Blayzica anytime for free!');
+                                localStorage.setItem('switchingUnlocked', 'true');
+                                localStorage.setItem('selectedCharacter', characterName);
+                                confirmChoice = confirm('Great! ' + characterName + ' is now your selected companion.\n\nWould you like to start chatting with ' + characterName + ' now?');
+                            }
+                        }
+                    } else {
+                        // Check if this is a referral companion (no switching fee)
+                        if (isReferralCompanion) {
+                            // Referral companions are free to switch to (earned through referrals)
+                            localStorage.setItem('selectedCharacter', characterName);
+                            confirmChoice = confirm('Great! ' + characterName + ' is now your selected companion.\n\nWould you like to start chatting with ' + characterName + ' now?');
+                        } else {
+                            // Premium characters require switching fee
+                            var switchChoice = confirm('Switching companions requires a one-time payment of $3.00. Are you sure you want to switch to ' + characterName + '?');
+                            if (switchChoice) {
+                                localStorage.setItem('selectedCharacter', characterName);
+                                confirmChoice = confirm('Great! ' + characterName + ' is now your selected companion.\n\nWould you like to start chatting with ' + characterName + ' now?');
+                            }
+                        }
+                    }
+                }
+            } else {
+                // Check if there's an active purchase alert that would block loading
+                if (localStorage.getItem('showingPurchaseAlert') === 'true') {
+                    // Don't show continue prompt while purchase alert is active
+                    confirmChoice = false;
+                } else {
+                    confirmChoice = confirm(characterName + ' is already your selected companion! Would you like to continue to chat?');
+                }
+            }
+            
+            if (confirmChoice && !justPurchased) {
+                // Only set these if we're actually going to chat (confirmChoice is true)
+                localStorage.setItem('currentScreen', 'chat');
+                document.getElementById('characterSelect').classList.add('hidden');
+                var chatInterface = document.getElementById('chatInterface');
+                chatInterface.classList.remove('hidden');
+                chatInterface.style.display = 'block';
+                chatInterface.style.visibility = 'visible';
+                
+                // Show back button
+                var backToIntroBtn = document.getElementById('backToIntroBtn');
+                if (backToIntroBtn) {
+                    backToIntroBtn.style.display = 'inline-block';
+                    backToIntroBtn.style.visibility = 'visible';
+                    backToIntroBtn.classList.remove('hidden');
+                }
+                
+                setTimeout(function() { 
+                    updateCharacterInfo(characterName);
+                    // Don't add dynamic greeting - using static greetings in character cards now
+                }, 100);
+            }
+        }
+
+        // Update premium character displays
+        function updatePremiumCharacters() {
+            console.log('=== updatePremiumCharacters() called ===');
+            var premiumCharacters = ['Blayzion', 'Blayzia', 'Violet', 'Crimson'];
+            
+            premiumCharacters.forEach(function(characterName) {
+                var hasPurchased = localStorage.getItem('purchased' + characterName);
+                var characterCard = document.querySelector('.character-' + characterName.toLowerCase());
+                
+                console.log(`Checking ${characterName}: purchased=${hasPurchased}, cardFound=${!!characterCard}`);
+                
+                if (characterCard && hasPurchased) {
+                    console.log(`Updating ${characterName} to show OWNED`);
+                    // Update price display to show "OWNED" - ONLY change text, preserve all styling
+                    var premiumLabels = characterCard.querySelectorAll('.premium-label');
+                    console.log(`${characterName} premium labels found: ${premiumLabels.length}`);
+                    
+                    if (premiumLabels.length > 0) {
+                        console.log(`Current text: "${premiumLabels[0].textContent}"`);
+                        // Found premium-label class, update text content and styling
+                        premiumLabels[0].textContent = '👑 OWNED';
+                        premiumLabels[0].style.color = '#22d3ee';
+                        premiumLabels[0].style.fontWeight = 'bold';
+                        console.log(`Updated ${characterName} premium label to: "${premiumLabels[0].textContent}" with styling`);
+                    } else {
+                        console.log(`No premium-label found for ${characterName}, trying fallback...`);
+                        // Fallback: search for the text content more carefully
+                        var allDivs = characterCard.querySelectorAll('div');
+                        for (var j = 0; j < allDivs.length; j++) {
+                            var divText = allDivs[j].textContent || allDivs[j].innerText || '';
+                            console.log(`Checking div ${j}: "${divText}"`);
+                            // More flexible search patterns
+                            if (divText.includes('💎 Premium: $5.00') || divText.includes('Premium: $5.00') || divText.includes('💎 Premium') || divText.includes('$5.00') || divText.includes('Premium')) {
+                                console.log(`Found fallback div with text: "${divText}"`);
+                                allDivs[j].textContent = '👑 OWNED';
+                                allDivs[j].style.color = '#22d3ee';
+                                allDivs[j].style.fontWeight = 'bold';
+                                console.log(`Updated ${characterName} fallback price label with styling`);
+                                break;
+                            }
+                        }
+                    }
+                } else {
+                    if (!characterCard) {
+                        console.log(`No card found for ${characterName}`);
+                    }
+                    if (!hasPurchased) {
+                        console.log(`${characterName} not purchased`);
+                    }
+                }
+            });
+            console.log('=== updatePremiumCharacters() finished ===');
+        }
+
+        // Debug function to manually test premium updates
+        function debugPremiumUpdate() {
+            console.log('Manual debug trigger for premium updates');
+            console.log('LocalStorage keys:', Object.keys(localStorage));
+            var premiumCharacters = ['Blayzion', 'Blayzia', 'Violet', 'Crimson'];
+            premiumCharacters.forEach(function(char) {
+                var purchased = localStorage.getItem('purchased' + char);
+                console.log(`${char} purchased: ${purchased}`);
+            });
+            updatePremiumCharacters();
+            forceUpdatePremiumText();
+        }
+
+        // Manual test function - call from console: testPremiumUpdate()
+        function testPremiumUpdate() {
+            console.log('=== MANUAL TEST: Setting all characters as purchased ===');
+            localStorage.setItem('purchasedBlayzion', 'true');
+            localStorage.setItem('purchasedBlayzia', 'true');
+            localStorage.setItem('purchasedViolet', 'true');
+            localStorage.setItem('purchasedCrimson', 'true');
+            localStorage.setItem('switchingUnlocked', 'true');
+            
+            console.log('Updated localStorage, now running update functions...');
+            forceUpdatePremiumText();
+            
+            console.log('Test complete. All premium characters should now show OWNED and switching unlocked.');
+        }
+
+        // Test function to verify message changes - call from console: testMessage()
+        function testMessage() {
+            console.log('=== TESTING MESSAGE UPDATES ===');
+            console.log('First companion message should include "You can choose between Blayzo and Blayzica at no cost"');
+            
+            // Simulate selection to test message
+            var testResult = confirm('Your first companion selection is FREE!\n\nYou can choose between Blayzo and Blayzica at no cost.\n\nAre you sure you want to pick TestCharacter as your companion?');
+            console.log('Test message displayed, result:', testResult);
+        }
+
+        // Clear test data - call from console: clearTestData()
+        function clearTestData() {
+            console.log('=== CLEARING TEST DATA ===');
+            localStorage.removeItem('purchasedBlayzion');
+            localStorage.removeItem('purchasedBlayzia');
+            localStorage.removeItem('purchasedViolet');
+            localStorage.removeItem('purchasedCrimson');
+            localStorage.removeItem('switchingUnlocked');
+            localStorage.removeItem('adminMode');
+            localStorage.removeItem('adminBypass');
+            localStorage.removeItem('firstPickMade');
+            localStorage.removeItem('selectedCharacter');
+            localStorage.removeItem('currentScreen');
+            console.log('Test data cleared. Refresh page to start fresh.');
+        }
+
+        // Simple and direct premium update function
+        function forceUpdatePremiumText() {
+            console.log('=== Force updating premium text ===');
+            
+            // Find only premium labels and divs within character cards
+            var allElements = document.querySelectorAll('.character-card .premium-label, .character-card div');
+            console.log(`Found ${allElements.length} elements to check`);
+            
+            allElements.forEach(function(element, index) {
+                var textContent = element.textContent || element.innerText || '';
+                
+                // Check if this element contains ONLY premium price text (not mixed with other content)
+                // Also skip if already showing OWNED
+                if (!textContent.includes('OWNED') && 
+                    ((textContent.trim() === '💎 Premium: $5.00' || textContent.trim() === 'Premium: $5.00') ||
+                    (textContent.includes('💎 Premium: $5.00') && textContent.length < 50) ||
+                    (textContent.includes('Premium: $5.00') && textContent.length < 50))) {
+                    
+                    console.log(`Found premium text element ${index}: "${textContent}"`);
+                    
+                    // Find which character this element belongs to
+                    var characterCard = element.closest('.character-card');
+                    if (characterCard) {
+                        var characterName = '';
+                        
+                        // Determine character name from class
+                        if (characterCard.classList.contains('character-blayzion')) {
+                            characterName = 'Blayzion';
+                        } else if (characterCard.classList.contains('character-blayzia')) {
+                            characterName = 'Blayzia';
+                        } else if (characterCard.classList.contains('character-violet')) {
+                            characterName = 'Violet';
+                        } else if (characterCard.classList.contains('character-crimson')) {
+                            characterName = 'Crimson';
+                        }
+                        
+                        console.log(`Element belongs to character: ${characterName}`);
+                        
+                        if (characterName) {
+                            var hasPurchased = localStorage.getItem('purchased' + characterName);
+                            console.log(`${characterName} purchased status: ${hasPurchased}`);
+                            
+                            if (hasPurchased === 'true') {
+                                console.log(`Updating premium text for ${characterName} to OWNED`);
+                                element.textContent = '👑 OWNED';
+                                
+                                // Check if we're in day mode
+                                var isDayMode = document.body.classList.contains('day-mode');
+                                var color = isDayMode ? '#0891b2' : '#22d3ee';
+                                var bgColor = isDayMode ? 'rgba(8, 145, 178, 0.2)' : 'rgba(34, 211, 238, 0.2)';
+                                
+                                element.style.setProperty('color', color, 'important');
+                                element.style.setProperty('font-weight', 'bold', 'important');
+                                element.style.setProperty('background-color', bgColor, 'important');
+                                element.style.setProperty('padding', '4px 8px', 'important');
+                                element.style.setProperty('border-radius', '4px', 'important');
+                                element.style.setProperty('border', '1px solid ' + color, 'important');
+                                
+                                // Also mark element to prevent future overwrites
+                                element.setAttribute('data-owned', 'true');
+                                element.classList.add('owned-premium');
+                            }
+                        }
+                    }
+                }
+            });
+            
+            console.log('=== Force update complete ===');
+        }
+
+        // Continuously monitor and update premium text
+        function monitorPremiumText() {
+            console.log('=== Starting premium text monitoring ===');
+            forceUpdatePremiumText();
+            
+            // Set up a periodic check every 5 seconds (less aggressive)
+            setInterval(function() {
+                console.log('=== Periodic premium text check ===');
+                forceUpdatePremiumText();
+            }, 5000);
+        }
+
+        // Initialize screen based on localStorage
+        function initializeScreen() {
+            // First check if user is authenticated (server-side check should have already happened)
+            console.log('Initializing screen...');
+            console.log('Current URL:', window.location.href);
+            
+            var currentScreen = localStorage.getItem('currentScreen');
+            var selectedCharacter = localStorage.getItem('selectedCharacter');
+            
+            console.log('LocalStorage currentScreen:', currentScreen);
+            console.log('LocalStorage selectedCharacter:', selectedCharacter);
+            
+            // Show admin mode indicator if in admin mode
+            var isAdminMode = localStorage.getItem('adminMode') === 'true';
+            var adminBypass = localStorage.getItem('adminBypass') === 'true';
+            if (isAdminMode && adminBypass) {
+                document.getElementById('adminModeIndicator').style.display = 'block';
+            }
+            
+            // Check if there's a conversation to load from library
+            var conversationToLoad = sessionStorage.getItem('conversationToLoad');
+            if (conversationToLoad) {
+                var conversation = JSON.parse(conversationToLoad);
+                sessionStorage.removeItem('conversationToLoad');
+                
+                // Set up the chat interface with the loaded conversation
+                localStorage.setItem('selectedCharacter', conversation.character);
+                localStorage.setItem('currentScreen', 'chat');
+                currentScreen = 'chat';
+                selectedCharacter = conversation.character;
+                
+                // Load the conversation content after the interface is set up
+                setTimeout(function() {
+                    document.getElementById('chatMessages').innerHTML = conversation.content;
+                    updateCharacterInfo(conversation.character);
+                }, 100);
+            }
+            
+            // Hide all screens initially
+            document.getElementById('introScreen').classList.add('hidden');
+            document.getElementById('characterSelect').classList.add('hidden');
+            document.getElementById('chatInterface').classList.add('hidden');
+            
+            if (currentScreen === 'chat' && selectedCharacter) {
+                // Show chat interface
+                var chatInterface = document.getElementById('chatInterface');
+                chatInterface.classList.remove('hidden');
+                chatInterface.style.display = 'block';
+                chatInterface.style.visibility = 'visible';
+                
+                // Update character info
+                updateCharacterInfo(selectedCharacter);
+                
+                // Show back button
+                var backToIntroBtn = document.getElementById('backToIntroBtn');
+                if (backToIntroBtn) {
+                    backToIntroBtn.style.display = 'inline-block';
+                    backToIntroBtn.style.visibility = 'visible';
+                    backToIntroBtn.classList.remove('hidden');
+                }
+                
+                // Don't add dynamic greeting - using static greetings in character cards now
+                
+            } else if (currentScreen === 'select') {
+                // Show character select
+                document.getElementById('characterSelect').classList.remove('hidden');
+                // Update premium character displays
+                setTimeout(function() {
+                    updatePremiumCharacters();
+                    forceUpdatePremiumText();
+                }, 200);
+                
+                // Also try again after a longer delay to ensure everything is loaded
+                setTimeout(function() {
+                    forceUpdatePremiumText();
+                }, 1000);
+            } else {
+                // Show intro by default
+                document.getElementById('introScreen').classList.remove('hidden');
+            }
+            
+            // Start monitoring premium text to ensure it stays updated
+            monitorPremiumText();
+        }
+        
+        // Ultra simple greeting function - direct HTML approach
+        function addGreetingToChat() {
+            var selectedCharacter = localStorage.getItem('selectedCharacter');
+            var chatMessages = document.getElementById('chatMessages');
+            
+            console.log('addGreetingToChat called');
+            console.log('selectedCharacter:', selectedCharacter);
+            console.log('chatMessages element:', chatMessages);
+            
+            if (!selectedCharacter || !chatMessages) {
+                console.log('Missing character or chatMessages - cannot add greeting');
+                return;
+            }
+            
+            console.log('Adding greeting for:', selectedCharacter);
+            
+            // Character-specific temporary greetings
+            var greetingMessages = {
+                'Blayzo': "Hello there! I'm Blayzo, your calm and wise companion. Let the peaceful waters of our conversation wash away your worries. What's on your mind today? 🌊",
+                'Blayzica': "Hey! I'm Blayzica, and I'm here to listen with all my heart. Whether you need emotional support or just someone to talk to, I've got you covered. What would you like to share? ❤️",
+                'Blayzion': "Greetings, beautiful soul! I'm Blayzion, channeling cosmic wisdom from across the universe. The stars have aligned for our conversation - what divine mysteries shall we explore together? ✨",
+                'Blayzia': "Hello, dear one! I'm Blayzia, radiating healing energy and love. I'm here to nurture your spirit and help you find peace within. What can I help you heal today? 💖",
+                'Violet': "Welcome, seeker! I'm Violet, your mystical guide through the ethereal realms. The spiritual energies are flowing strong today - what wisdom do you seek? 🔮",
+                'Crimson': "Hey there, warrior! I'm Crimson, your fierce protector and loyal companion. Ready to face whatever challenges come your way together. What battle shall we conquer today? ⚔️",
+                'Blayzike': "Hello there! I'm Blayzike, your enigmatic companion. Ready to explore the mysteries together? The shadows whisper secrets, and I'm here to guide you through the unknown. What intrigue shall we uncover? 🌟",
+                'Blazelian': "Greetings, seeker. I am Blazelian, guardian of celestial knowledge. Let us journey among the stars and discover the wisdom of the cosmos. What universal truths do you wish to explore? ✨",
+                'BlayzoReferral': "Yo! Check out my special referral look! Thanks for sharing SoulBridge AI with everyone! I'm Blayzo with exclusive referral powers - ready to chat with some extra sparkle? 🎉"
+            };
+            
+            var greetingText = greetingMessages[selectedCharacter] || `Hello! I'm ${selectedCharacter}, your AI companion. I'm here to support you. What would you like to talk about?`;
+            var characterColor = getCharacterColor(selectedCharacter);
+            
+            var greetingHTML = `
+                <div style="display: flex; justify-content: center; width: 100%; margin: 20px 0;">
+                    <div class="ai-message chat-message initial-greeting" style="opacity: 0.8; font-style: italic; text-align: center; max-width: 80%; margin: 0 auto; display: block;">
+                        <div class="message-header" style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px; justify-content: center;">
+                            <div style="font-weight: bold; color: ${characterColor}; font-size: 1.2rem;">
+                                ${selectedCharacter}
+                            </div>
+                        </div>
+                        <div class="message-text" style="line-height: 1.4; text-align: center;">
+                            ${greetingText}
+                        </div>
+                        <div style="font-size: 0.75rem; opacity: 0.6; margin-top: 8px; font-style: italic; text-align: center;">
+                            This message will disappear when you send your first message.
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Multiple attempts to clear and set greeting to overcome persistent old greeting systems
+            setTimeout(function() {
+                chatMessages.innerHTML = '';
+                chatMessages.innerHTML = greetingHTML;
+                console.log('Greeting HTML set immediately');
+            }, 50);
+            
+            setTimeout(function() {
+                chatMessages.innerHTML = '';
+                chatMessages.innerHTML = greetingHTML;
+                console.log('Greeting HTML set at 100ms');
+            }, 100);
+            
+            setTimeout(function() {
+                chatMessages.innerHTML = greetingHTML;
+                console.log('Final greeting HTML set at 200ms');
+                console.log('greetingHTML:', greetingHTML);
+                console.log('chatMessages.innerHTML after:', chatMessages.innerHTML);
+            }, 200);
+        }
+        
+        // Static greetings are now displayed in character cards - no dynamic greetings needed
+        
+        // Navigation functions
+        function showIntro() {
+            // Remove character theme classes when going to intro
+            document.body.classList.remove('character-blayzo', 'character-blayzica', 'character-blayzion', 'character-blayzia', 'character-violet', 'character-crimson');
+            
+            localStorage.removeItem('currentScreen');
+            document.getElementById('characterSelect').classList.add('hidden');
+            document.getElementById('introScreen').classList.remove('hidden');
+        }
+        
+        function showCharacterSelect() {
+            // Remove character theme classes when going to character select
+            document.body.classList.remove('character-blayzo', 'character-blayzica', 'character-blayzion', 'character-blayzia', 'character-violet', 'character-crimson');
+            
+            localStorage.setItem('currentScreen', 'select');
+            document.getElementById('introScreen').classList.add('hidden');
+            document.getElementById('characterSelect').classList.remove('hidden');
+            
+            // Update premium character displays
+            setTimeout(function() {
+                updatePremiumCharacters();
+            }, 100);
+        }
+        
+        function showLibrary() {
+            // Redirect to the dedicated library page
+            window.location.href = '/library';
+        }
+        
+        function openVoiceChat() {
+            // Redirect to voice chat page
+            window.location.href = '/voice-chat';
+        }
+        
+        // Show voice chat button for premium companions only
+        function checkPremiumFeatures() {
+            const selectedCharacter = localStorage.getItem('selectedCharacter');
+            const voiceChatBtn = document.getElementById('voiceChatBtn');
+            
+            // Check if current character is premium and purchased
+            const premiumCharacters = ['Blayzion', 'Blayzia', 'Violet', 'Crimson'];
+            const referralCharacters = ['Blayzike', 'Blazelian', 'BlayzoReferral'];
+            const isPremiumCharacter = premiumCharacters.includes(selectedCharacter);
+            const isReferralCharacter = referralCharacters.includes(selectedCharacter);
+            const hasPurchasedCharacter = localStorage.getItem('purchased' + selectedCharacter) === 'true';
+            
+            // Check for admin bypass
+            const isAdminMode = localStorage.getItem('adminMode') === 'true';
+            const adminBypass = localStorage.getItem('adminBypass') === 'true';
+            
+            // Show voice chat for premium characters and referral characters
+            if ((isPremiumCharacter || isReferralCharacter) && voiceChatBtn) {
+                voiceChatBtn.style.display = 'flex';
+                if (isReferralCharacter) {
+                    voiceChatBtn.querySelector('span').textContent = '🎤 Voice Chat (Referral)';
+                } else {
+                    voiceChatBtn.querySelector('span').textContent = '🎤 Voice Chat (Plus)';
+                }
+            } else if (voiceChatBtn) {
+                voiceChatBtn.style.display = 'none';
+            }
+        }
+        
+        // Send message function
+        function testSendMessage() {
+            var messageInput = document.getElementById('messageInput');
+            var message = messageInput.value.trim();
+            if (!message) {
+                alert('Please type a message first!');
+                return;
+            }
+            
+            // Clear greeting if it exists
+            var greeting = document.querySelector('.initial-greeting');
+            if (greeting) {
+                greeting.remove();
+            }
+            
+            var selectedCharacter = localStorage.getItem('selectedCharacter');
+            
+            // Add user message
+            var userDiv = document.createElement('div');
+            userDiv.className = 'user-message chat-message';
+            userDiv.innerHTML = '<div class="message-header"><span class="timestamp">Just now</span></div><div class="message-text">' + message + '</div>';
+            chatMessages.appendChild(userDiv);
+            messageInput.value = '';
+            
+            // Add typing indicator with character-specific animation
+            showTypingIndicator(selectedCharacter);
+            
+            // Send to AI backend
+            fetch('https://soulbridgeai.com/api/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    message: message,
+                    character: selectedCharacter
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Remove typing indicator
+                hideTypingIndicator();
+                
+                var aiDiv = document.createElement('div');
+                aiDiv.className = 'ai-message chat-message';
+                
+                if (data.success) {
+                    aiDiv.innerHTML = createCharacterMessageHTML(selectedCharacter, data.response);
+                } else {
+                    aiDiv.innerHTML = createCharacterMessageHTML(selectedCharacter, 'Sorry, I encountered an error. Please try again.');
+                }
+                
+                chatMessages.appendChild(aiDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                
+                // Remove typing indicator on error
+                hideTypingIndicator();
+                
+                var aiDiv = document.createElement('div');
+                aiDiv.className = 'ai-message chat-message';
+                aiDiv.innerHTML = createCharacterMessageHTML(selectedCharacter, 'Sorry, I encountered an error. Please try again.');
+                chatMessages.appendChild(aiDiv);
+            });
+            
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        // Clear chat function
+        function clearChat() {
+            if (confirm('Are you sure you want to clear all messages? This cannot be undone.')) {
+                document.getElementById('chatMessages').innerHTML = '';
+                // Don't re-add greeting - using static greetings in character cards now
+            }
+        }
+        
+        
+        // Save conversation function
+        function saveConversation() {
+            var chatMessages = document.getElementById('chatMessages');
+            var messages = chatMessages.innerHTML;
+            
+            if (!messages || messages.trim() === '') {
+                alert('No conversation to save!');
+                return;
+            }
+            
+            var title = prompt('Enter a title for this conversation:');
+            if (!title) return;
+            
+            var selectedCharacter = localStorage.getItem('selectedCharacter');
+            var now = new Date();
+            var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            var fullDateTime = months[now.getMonth()] + ' ' + now.getDate() + ', ' + now.getFullYear() + ' at ' + now.toLocaleTimeString();
+            var conversation = {
+                title: title,
+                character: selectedCharacter,
+                date: fullDateTime,
+                content: messages
+            };
+            
+            var savedConversations = JSON.parse(localStorage.getItem('savedConversations') || '[]');
+            savedConversations.push(conversation);
+            localStorage.setItem('savedConversations', JSON.stringify(savedConversations));
+            
+            alert('Conversation saved successfully!');
+        }
+        
+        // Load conversation function
+        function loadConversation(conversation) {
+            if (confirm('Loading this conversation will replace your current chat. Continue?')) {
+                document.getElementById('chatMessages').innerHTML = conversation.content;
+                
+                // Update character if different
+                if (conversation.character) {
+                    localStorage.setItem('selectedCharacter', conversation.character);
+                    var selectedCharacterSpan = document.querySelector('#selectedCharacter span');
+                    if (selectedCharacterSpan) {
+                        selectedCharacterSpan.textContent = conversation.character + ' is ready to chat';
+                    }
+                }
+                
+                alert('Conversation loaded successfully!');
+            }
+        }
+        
+        // Theme toggle function
+        function toggleTheme() {
+            document.body.classList.toggle('day-mode');
+            var themeText = document.getElementById('themeText');
+            var themeIcon = document.getElementById('themeIcon');
+            var themeToggle = document.getElementById('themeToggle');
+            
+            if (document.body.classList.contains('day-mode')) {
+                themeText.textContent = 'Day Mode is ON';
+                themeIcon.textContent = '☀️';
+                themeToggle.style.background = 'rgba(255, 193, 7, 0.8)';
+                themeToggle.style.color = '#000';
+                themeText.style.color = '#000';
+                
+                // Apply day mode to character cards
+                applyDayModeToCharacterCards();
+                localStorage.setItem('themeMode', 'day');
+                
+                // Update premium text styling for day mode
+                setTimeout(function() {
+                    forceUpdatePremiumText();
+                }, 100);
+            } else {
+                themeText.textContent = 'Night Mode is ON';
+                themeIcon.textContent = '🌙';
+                themeToggle.style.background = 'rgba(34, 211, 238, 0.8)';
+                themeToggle.style.color = '#000';
+                themeText.style.color = '#000';
+                
+                // Apply night mode to character cards
+                applyNightModeToCharacterCards();
+                localStorage.setItem('themeMode', 'night');
+                
+                // Update premium text styling for night mode
+                setTimeout(function() {
+                    forceUpdatePremiumText();
+                }, 100);
+            }
+        }
+        
+        // Apply day mode styling to character cards
+        function applyDayModeToCharacterCards() {
+            const characterCards = document.querySelectorAll('.character-card');
+            characterCards.forEach(card => {
+                // Force white background for all character cards
+                card.style.setProperty('background', 'rgba(255, 255, 255, 0.95)', 'important');
+                
+                // Change ALL inner content boxes to light backgrounds
+                const innerBoxes = card.querySelectorAll('div');
+                innerBoxes.forEach(box => {
+                    const currentStyle = box.getAttribute('style') || '';
+                    if (currentStyle.includes('background: rgba(')) {
+                        box.style.setProperty('background', 'rgba(248, 250, 252, 0.95)', 'important');
+                    }
+                });
+            });
+        }
+        
+        // Apply night mode styling to character cards - restore original perfect dark mode
+        function applyNightModeToCharacterCards() {
+            const characterCards = document.querySelectorAll('.character-card');
+            characterCards.forEach(card => {
+                // Remove any forced styles to restore original inline styles
+                card.style.background = '';
+                
+                // Reset inner content boxes to original
+                const innerBoxes = card.querySelectorAll('div[style*="background: rgba"]');
+                innerBoxes.forEach(box => {
+                    // Only reset if it was changed to light mode
+                    if (box.style.background === 'rgba(248, 250, 252, 0.95)') {
+                        box.style.background = '';
+                    }
+                });
+            });
+        }
+
+        // Load saved theme from localStorage
+        function loadSavedTheme() {
+            var savedTheme = localStorage.getItem('themeMode');
+            var themeText = document.getElementById('themeText');
+            var themeIcon = document.getElementById('themeIcon');
+            var themeToggle = document.getElementById('themeToggle');
+            
+            if (savedTheme === 'day') {
+                document.body.classList.add('day-mode');
+                themeText.textContent = 'Day Mode is ON';
+                themeIcon.textContent = '☀️';
+                themeToggle.style.background = 'rgba(255, 193, 7, 0.8)';
+                themeToggle.style.color = '#000';
+                themeText.style.color = '#000';
+                
+                // Apply day mode to character cards on load
+                setTimeout(() => applyDayModeToCharacterCards(), 100);
+            } else {
+                document.body.classList.remove('day-mode');
+                themeText.textContent = 'Night Mode is ON';
+                themeIcon.textContent = '🌙';
+                themeToggle.style.background = 'rgba(34, 211, 238, 0.8)';
+                themeToggle.style.color = '#000';
+                themeText.style.color = '#000';
+            }
+        }
+
+        // Load custom colors if premium user
+        function loadCustomColors() {
+            const savedBgColor = localStorage.getItem('customBgColor');
+            const savedTextColor = localStorage.getItem('customTextColor');
+            const isPremium = localStorage.getItem('isPremium');
+            
+            if (isPremium === 'true') {
+                if (savedBgColor) {
+                    document.body.style.backgroundColor = savedBgColor;
+                }
+                if (savedTextColor) {
+                    document.body.style.color = savedTextColor;
+                }
+            }
+        }
+
+        // User Menu Functions
+        function openUserProfile() {
+            window.location.href = '/profile';
+        }
+
+        function performSignOut() {
+            // First try Firebase sign out if available
+            if (window.firebase && window.firebase.auth) {
+                window.firebase.auth().signOut().then(() => {
+                    // Clear local storage
+                    localStorage.clear();
+                    sessionStorage.clear();
+                    // Redirect to login
+                    window.location.href = '/login';
+                }).catch((error) => {
+                    console.error('Firebase signout error:', error);
+                    // Fallback to regular logout
+                    performRegularLogout();
+                });
+            } else {
+                // Fallback to regular logout
+                performRegularLogout();
+            }
+        }
+
+        function performRegularLogout() {
+            console.log('Performing logout...');
+            // Clear local storage
+            localStorage.clear();
+            sessionStorage.clear();
+            
+            // Clear any cached data
+            if ('caches' in window) {
+                caches.keys().then(function(names) {
+                    names.forEach(function(name) {
+                        caches.delete(name);
+                    });
+                });
+            }
+            
+            // Redirect to logout endpoint
+            window.location.href = '/auth/logout';
+        }
+
+        // Galaxy Companions Function
+        function showGalaxyCompanions() {
+            // Check user subscription status
+            checkGalaxyAccess().then(hasAccess => {
+                if (hasAccess) {
+                    // Show Galaxy companions section
+                    const galaxySection = document.getElementById('galaxyCompanionsSection');
+                    if (galaxySection) {
+                        galaxySection.style.display = 'block';
+                        // Add Galaxy companions to character selection
+                        addGalaxyCompanions();
+                        // Scroll to companion selection area
+                        const characterSelect = document.getElementById('characterSelect');
+                        if (characterSelect) {
+                            characterSelect.scrollIntoView({ behavior: 'smooth' });
+                        }
+                    }
+                } else {
+                    // Show upgrade prompt
+                    showGalaxyUpgradePrompt();
+                }
+            });
+        }
+
+        // Check if user has Galaxy subscription access
+        async function checkGalaxyAccess() {
+            try {
+                // First check Firebase auth and subscription
+                if (window.firebase && window.firebase.auth) {
+                    const user = window.firebase.auth().currentUser;
+                    if (user) {
+                        const db = window.firebase.firestore();
+                        const userDoc = await db.collection('users').doc(user.uid).get();
+                        if (userDoc.exists) {
+                            const userData = userDoc.data();
+                            return userData.subscriptionStatus === 'galaxy';
+                        }
+                    }
+                }
+                
+                // Fallback to local storage check
+                const subscriptionStatus = localStorage.getItem('subscriptionStatus');
+                return subscriptionStatus === 'galaxy';
+            } catch (error) {
+                console.error('Error checking Galaxy access:', error);
+                // Fallback to local storage
+                return localStorage.getItem('subscriptionStatus') === 'galaxy';
+            }
+        }
+
+        // Add Galaxy companions to selection
+        function addGalaxyCompanions() {
+            const characterSelect = document.getElementById('characterSelect');
+            if (characterSelect && !document.getElementById('galaxyCompanionsAdded')) {
+                // Add Galaxy companions if not already added
+                const galaxyCompanions = `
+                    <div id="galaxyCompanionsAdded" style="margin-top: 2rem;">
+                        <h3 style="color: #9333ea; text-align: center; margin-bottom: 1rem; font-size: 1.5rem;">
+                            ✨ Galaxy Companions
+                        </h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                            <div class="character-card character-violet" onclick="selectCompanion('Violet')" data-character="Violet">
+                                <img src="{{ url_for('static', filename='logos/Violet.png') }}" alt="Violet" style="width: 100%; height: 200px; object-fit: cover; border-radius: 10px;">
+                                <h3 class="character-violet-label">Violet</h3>
+                                <p>Mystical spiritual guide</p>
+                            </div>
+                            <div class="character-card character-crimson" onclick="selectCompanion('Crimson')" data-character="Crimson">
+                                <img src="{{ url_for('static', filename='logos/Crimson.png') }}" alt="Crimson" style="width: 100%; height: 200px; object-fit: cover; border-radius: 10px;">
+                                <h3 class="character-crimson-label">Crimson</h3>
+                                <p>Fierce protective warrior</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                characterSelect.insertAdjacentHTML('beforeend', galaxyCompanions);
+            }
+        }
+
+        // Show Galaxy upgrade prompt
+        function showGalaxyUpgradePrompt() {
+            const upgradeModal = `
+                <div id="galaxyUpgradeModal" style="
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.8);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 10000;
+                ">
+                    <div style="
+                        background: linear-gradient(145deg, rgba(0,0,0,0.9), rgba(15,23,42,0.9));
+                        border: 2px solid rgba(147, 51, 234, 0.6);
+                        border-radius: 20px;
+                        padding: 2rem;
+                        max-width: 500px;
+                        text-align: center;
+                        backdrop-filter: blur(20px);
+                    ">
+                        <h2 style="color: #9333ea; margin-bottom: 1rem;">✨ Galaxy Companions</h2>
+                        <p style="color: rgba(255, 255, 255, 0.9); margin-bottom: 1.5rem;">
+                            Unlock exclusive Galaxy companions with mystical powers and advanced AI capabilities!
+                        </p>
+                        <div style="display: flex; gap: 1rem; justify-content: center;">
+                            <button onclick="upgradeToGalaxy()" style="
+                                background: linear-gradient(135deg, #9333ea, #7c3aed);
+                                color: white;
+                                border: none;
+                                padding: 12px 24px;
+                                border-radius: 10px;
+                                font-weight: bold;
+                                cursor: pointer;
+                            ">🚀 Upgrade to Galaxy</button>
+                            <button onclick="closeGalaxyModal()" style="
+                                background: rgba(107, 114, 128, 0.5);
+                                color: white;
+                                border: none;
+                                padding: 12px 24px;
+                                border-radius: 10px;
+                                cursor: pointer;
+                            ">Maybe Later</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', upgradeModal);
+        }
+
+        // Close Galaxy upgrade modal
+        function closeGalaxyModal() {
+            const modal = document.getElementById('galaxyUpgradeModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        // Upgrade to Galaxy subscription
+        function upgradeToGalaxy() {
+            closeGalaxyModal();
+            window.location.href = '/subscription';
+        }
+
+        // Initialize Galaxy companions check on page load
+        function initializeGalaxyCompanions() {
+            // Check if user has Galaxy access and show button if they do
+            checkGalaxyAccess().then(hasAccess => {
+                const galaxySection = document.getElementById('galaxyCompanionsSection');
+                if (galaxySection && hasAccess) {
+                    galaxySection.style.display = 'block';
+                }
+            });
+        }
+
+        // Firebase Authentication State Monitoring
+        function initializeFirebaseAuth() {
+            if (window.firebase && window.firebase.auth) {
+                window.firebase.auth().onAuthStateChanged(async (user) => {
+                    if (user) {
+                        try {
+                            // Check user subscription status from Firestore
+                            const db = window.firebase.firestore();
+                            const userDoc = await db.collection('users').doc(user.uid).get();
+                            
+                            if (userDoc.exists) {
+                                const userData = userDoc.data();
+                                const subscriptionStatus = userData.subscriptionStatus || 'free';
+                                
+                                // Update local storage
+                                localStorage.setItem('subscriptionStatus', subscriptionStatus);
+                                
+                                // Show/hide Galaxy companions based on subscription
+                                const galaxySection = document.getElementById('galaxyCompanionsSection');
+                                if (galaxySection) {
+                                    if (subscriptionStatus === 'galaxy') {
+                                        galaxySection.style.display = 'block';
+                                    } else {
+                                        galaxySection.style.display = 'none';
+                                    }
+                                }
+                            }
+                        } catch (error) {
+                            console.error('Error checking subscription status:', error);
+                        }
+                    }
+                });
+            }
+        }
+
+        // Load theme on page load
+        window.addEventListener('load', function() {
+            loadSavedTheme();
+            loadCustomColors();
+            checkPremiumFeatures();
+            initializeGalaxyCompanions();
+            initializeFirebaseAuth();
+        });
+        
+        // Sign out function
+        function signOut() {
+            if (confirm('Are you sure you want to sign out? This will clear all your data and return you to the login screen.')) {
+                // Clear all client-side data
+                localStorage.clear();
+                sessionStorage.clear();
+                
+                // Remove character theme classes
+                document.body.classList.remove('character-blayzo', 'character-blayzica', 'character-blayzion', 'character-blayzia', 'character-violet', 'character-crimson');
+                
+                // Clear any cookies
+                document.cookie.split(";").forEach(function(c) { 
+                    document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+                });
+                
+                // Force logout with cache-busting
+                window.location.replace('/auth/logout?_=' + Date.now());
+            }
+        }
+        
+        // Update character info in the interface
+        function updateCharacterInfo(character) {
+            var selectedCharacterSpan = document.querySelector('#selectedCharacter span');
+            if (selectedCharacterSpan) {
+                if (character === 'Blayzion') {
+                    selectedCharacterSpan.textContent = '✨ ' + character + ' is ready to chat';
+                } else if (character === 'Blayzia') {
+                    selectedCharacterSpan.textContent = '💖 ' + character + ' is ready to chat';
+                } else if (character === 'Violet') {
+                    selectedCharacterSpan.textContent = '🔮 ' + character + ' is ready to chat';
+                } else if (character === 'Crimson') {
+                    selectedCharacterSpan.textContent = '⚔️ ' + character + ' is ready to chat';
+                } else if (character === 'Blayzo') {
+                    selectedCharacterSpan.textContent = '🌊 ' + character + ' is ready to chat';
+                } else if (character === 'Blayzica') {
+                    selectedCharacterSpan.textContent = '💫 ' + character + ' is ready to chat';
+                } else if (character === 'Blayzike') {
+                    selectedCharacterSpan.textContent = '🌟 ' + character + ' is ready to chat';
+                } else if (character === 'Blazelian') {
+                    selectedCharacterSpan.textContent = '✨ ' + character + ' is ready to chat';
+                } else if (character === 'BlayzoReferral') {
+                    selectedCharacterSpan.textContent = '🎉 Blayzo (Referral Master) is ready to chat';
+                } else {
+                    selectedCharacterSpan.textContent = character + ' is ready to chat';
+                }
+                selectedCharacterSpan.className = 'character-' + character.toLowerCase() + '-label';
+            }
+            
+            // Update chat avatar
+            updateChatAvatar(character);
+            
+            // Add character class to body for character-specific styling
+            document.body.classList.remove('character-blayzo', 'character-blayzica', 'character-blayzion', 'character-blayzia', 'character-violet', 'character-crimson', 'character-blayzike', 'character-blazelian', 'character-blazoreferral');
+            document.body.classList.add('character-' + character.toLowerCase());
+            
+            // Check if voice chat should be available
+            checkPremiumFeatures();
+            
+            // Add character-specific greeting if chat is empty
+            var chatMessages = document.getElementById('chatMessages');
+            console.log('updateCharacterInfo - checking for greeting');
+            console.log('chatMessages exists:', !!chatMessages);
+            if (chatMessages) {
+                console.log('chatMessages.innerHTML length:', chatMessages.innerHTML.length);
+                console.log('chatMessages.innerHTML content:', chatMessages.innerHTML);
+            }
+            
+            // Always add greeting when character is selected/updated with delay to avoid conflicts
+            console.log('Adding greeting for character update...');
+            setTimeout(function() {
+                var chatMessages = document.getElementById('chatMessages');
+                console.log('Character for greeting:', character);
+                console.log('Chat content before greeting check:', chatMessages ? chatMessages.innerHTML : 'no chatMessages');
+                
+                // Check if there's a purchase alert or any other alert active
+                var alertActive = document.querySelector('.swal2-container') || 
+                                 document.querySelector('.alert') || 
+                                 window.justPurchased || 
+                                 localStorage.getItem('showingPurchaseAlert') === 'true';
+                
+                if (alertActive) {
+                    console.log('Alert detected, delaying greeting until alert is dismissed');
+                    // Wait longer and try again if there's an active alert
+                    setTimeout(function() {
+                        if (chatMessages && (!chatMessages.innerHTML || chatMessages.innerHTML.trim() === '' || 
+                            (!chatMessages.innerHTML.includes('user-message') && !chatMessages.innerHTML.includes('ai-message')))) {
+                            addGreetingToChat();
+                        }
+                    }, 1000);
+                    return;
+                }
+                
+                // Force clear and add greeting for all premium characters to avoid old greeting interference
+                var premiumCharacters = ['Blayzion', 'Blayzia', 'Violet', 'Crimson'];
+                if (premiumCharacters.includes(character)) {
+                    console.log('Forcing greeting for premium character:', character);
+                    if (chatMessages) {
+                        chatMessages.innerHTML = '';
+                        setTimeout(function() {
+                            addGreetingToChat();
+                        }, 100);
+                    }
+                } else {
+                    // Add greeting normally for free characters
+                    if (chatMessages && (!chatMessages.innerHTML || chatMessages.innerHTML.trim() === '' || 
+                        (!chatMessages.innerHTML.includes('user-message') && !chatMessages.innerHTML.includes('ai-message')))) {
+                        addGreetingToChat();
+                    }
+                }
+            }, 400);
+        }
+        
+        // Handle keyboard events
+        function handleCharacterKeyPress(event, character) {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                event.target.click();
+            }
+        }
+        
+        // Update chat avatar with character-specific animations
+        function updateChatAvatar(character) {
+            const chatAvatarImg = document.getElementById('chatAvatarImg');
+            const chatParticleContainer = document.getElementById('chatParticleContainer');
+            
+            if (!chatAvatarImg) return;
+            
+            // Set character image
+            chatAvatarImg.src = `/static/logos/${character}.png`;
+            chatAvatarImg.alt = `${character} Avatar`;
+            
+            // Clear existing particles
+            if (chatParticleContainer) {
+                chatParticleContainer.innerHTML = '';
+            }
+            
+            // Set character-specific animations and colors
+            switch(character) {
+                case 'Blayzo':
+                    chatAvatarImg.style.animation = 'breathe 4s ease-in-out infinite';
+                    chatAvatarImg.style.filter = 'drop-shadow(0 4px 12px rgba(34, 211, 238, 0.3))';
+                    break;
+                    
+                case 'Blayzica':
+                    chatAvatarImg.style.animation = 'breathe 4.5s ease-in-out infinite';
+                    chatAvatarImg.style.filter = 'drop-shadow(0 4px 12px rgba(34, 211, 238, 0.3))';
+                    break;
+                    
+                case 'Blayzion':
+                    chatAvatarImg.style.animation = 'breathe 3.5s ease-in-out infinite';
+                    chatAvatarImg.style.filter = 'drop-shadow(0 4px 12px rgba(255, 215, 0, 0.3))';
+                    // Add cosmic particles
+                    addChatParticles('cosmic');
+                    break;
+                    
+                case 'Blayzia':
+                    chatAvatarImg.style.animation = 'breathe 4.2s ease-in-out infinite';
+                    chatAvatarImg.style.filter = 'drop-shadow(0 4px 12px rgba(168, 85, 247, 0.3))';
+                    // Particle effects removed for cleaner appearance
+                    // addChatParticles('healing');
+                    break;
+                    
+                case 'Violet':
+                    chatAvatarImg.style.animation = 'breathe 3.7s ease-in-out infinite';
+                    chatAvatarImg.style.filter = 'drop-shadow(0 4px 12px rgba(124, 58, 237, 0.3))';
+                    // Add mystical sparkles
+                    addChatParticles('mystical');
+                    break;
+                    
+                case 'Crimson':
+                    chatAvatarImg.style.animation = 'breathe 3.8s ease-in-out infinite';
+                    chatAvatarImg.style.filter = 'drop-shadow(0 4px 12px rgba(220, 38, 38, 0.3))';
+                    // Add fire energy
+                    addChatParticles('fire');
+                    break;
+                    
+                default:
+                    chatAvatarImg.style.animation = 'breathe 4s ease-in-out infinite';
+                    chatAvatarImg.style.filter = 'drop-shadow(0 4px 12px rgba(34, 211, 238, 0.3))';
+            }
+        }
+        
+        // Create character message HTML with avatar
+        function createCharacterMessageHTML(character, messageText) {
+            const characterIcon = getCharacterIcon(character);
+            const characterColor = getCharacterColor(character);
+            
+            return `
+                <div class="message-header" style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                    <div style="
+                        position: relative;
+                        width: 32px;
+                        height: 32px;
+                        border-radius: 0;
+                        background: transparent;
+                        border: none;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        flex-shrink: 0;
+                    ">
+                        <img src="/static/logos/${character}.png" alt="${character}" style="
+                            width: 24px;
+                            height: 24px;
+                            object-fit: contain;
+                            border-radius: 0;
+                            filter: drop-shadow(0 2px 4px ${characterColor}30);
+                            animation: breathe 4s ease-in-out infinite;
+                        ">
+                    </div>
+                    <div style="
+                        font-weight: bold;
+                        color: ${characterColor};
+                        font-size: 0.9rem;
+                        display: flex;
+                        align-items: center;
+                        gap: 4px;
+                    ">
+                        ${characterIcon} ${character}
+                    </div>
+                    <span class="timestamp" style="margin-left: auto; font-size: 0.75rem; opacity: 0.7;">Just now</span>
+                </div>
+                <div class="message-text" style="margin-left: 42px; line-height: 1.4;">${messageText}</div>
+            `;
+        }
+        
+        // Get character icon emoji
+        function getCharacterIcon(character) {
+            switch(character) {
+                case 'Blayzo': return '🧘‍♂️';
+                case 'Blayzica': return '💫';
+                case 'Blayzion': return '✨';
+                case 'Blayzia': return '💖';
+                case 'Violet': return '🔮';
+                case 'Crimson': return '⚔️';
+                case 'Blayzike': return '🌟';
+                case 'Blazelian': return '✨';
+                case 'BlayzoReferral': return '🎉';
+                default: return '🤖';
+            }
+        }
+        
+        // Get character theme color
+        function getCharacterColor(character) {
+            switch(character) {
+                case 'Blayzo': return 'rgba(34, 211, 238, 1)';
+                case 'Blayzica': return 'rgba(34, 211, 238, 1)';
+                case 'Blayzion': return 'rgba(255, 215, 0, 1)';
+                case 'Blayzia': return 'rgba(168, 85, 247, 1)';
+                case 'Violet': return 'rgba(124, 58, 237, 1)';
+                case 'Crimson': return 'rgba(220, 38, 38, 1)';
+                case 'Blayzike': return 'rgba(139, 92, 246, 1)';      // Purple theme
+                case 'Blazelian': return 'rgba(6, 182, 212, 1)';      // Cyan theme
+                case 'BlayzoReferral': return 'rgba(245, 158, 11, 1)'; // Gold theme
+                default: return 'rgba(34, 211, 238, 1)';
+            }
+        }
+        
+        // Add character-specific particle effects to chat avatar
+        function addChatParticles(type) {
+            const container = document.getElementById('chatParticleContainer');
+            if (!container) return;
+            
+            const particleCount = 3;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.style.position = 'absolute';
+                particle.style.pointerEvents = 'none';
+                
+                switch(type) {
+                    case 'cosmic':
+                        const cosmicColors = ['#ffd700', '#00d4ff', '#ff69b4'];
+                        particle.style.cssText += `
+                            width: 4px; height: 4px; border-radius: 50%;
+                            background: ${cosmicColors[i % cosmicColors.length]};
+                            top: ${60 + i * 10}%; left: ${70 + i * 5}%;
+                            animation: cosmicParticles 3s infinite;
+                            animation-delay: ${i * 0.5}s;
+                        `;
+                        break;
+                        
+                    case 'healing':
+                        particle.style.cssText += `
+                            width: ${20 + i * 10}px; height: ${20 + i * 10}px;
+                            border: 2px solid rgba(168, 85, 247, 0.3);
+                            border-radius: 50%;
+                            top: 50%; left: 50%;
+                            transform: translate(-50%, -50%);
+                            animation: healingWaves 4s infinite;
+                            animation-delay: ${i * 0.8}s;
+                        `;
+                        break;
+                        
+                    case 'mystical':
+                        const mysticalColors = ['#7c3aed', '#a855f7', '#c084fc'];
+                        particle.style.cssText += `
+                            width: 3px; height: 3px; border-radius: 50%;
+                            background: ${mysticalColors[i % mysticalColors.length]};
+                            top: ${30 + i * 15}%; left: ${20 + i * 10}%;
+                            animation: mysticalSparkles 3.5s infinite;
+                            animation-delay: ${i * 0.4}s;
+                        `;
+                        break;
+                        
+                    case 'fire':
+                        const fireColors = ['#dc2626', '#f97316', '#eab308'];
+                        particle.style.cssText += `
+                            width: 4px; height: 4px; border-radius: 50%;
+                            background: ${fireColors[i % fireColors.length]};
+                            top: ${40 + i * 15}%; left: ${60 + i * 8}%;
+                            animation: fireEnergy 2.5s infinite;
+                            animation-delay: ${i * 0.3}s;
+                        `;
+                        break;
+                }
+                
+                container.appendChild(particle);
+            }
+        }
+        
+        // ========================================
+        // 🎭 INTERACTIVE CHARACTER ANIMATIONS
+        // ========================================
+        
+        // Character card hover animations
+        function addCharacterHoverAnimations() {
+            const characterCards = document.querySelectorAll('.character-card');
+            
+            characterCards.forEach(card => {
+                const img = card.querySelector('img');
+                const characterName = card.querySelector('div[style*="font-size: 1.5rem"]');
+                
+                // Mouse enter - trigger character-specific animations
+                card.addEventListener('mouseenter', function() {
+                    if (img) {
+                        // Add character hover animation
+                        img.style.animation = 'characterHover 0.6s ease-in-out, breathe 4s ease-in-out infinite';
+                        
+                        // Add character-specific interaction animations
+                        const cardClass = card.className;
+                        if (cardClass.includes('character-blayzo')) {
+                            // Blayzo nods wisely
+                            img.style.animation += ', nod 1s ease-in-out';
+                            if (characterName) characterName.style.animation = 'nameGlow 2s ease-in-out infinite';
+                        } else if (cardClass.includes('character-blayzica')) {
+                            // Blayzica waves enthusiastically 
+                            img.style.animation += ', wave 1.2s ease-in-out';
+                            if (characterName) characterName.style.animation = 'nameGlow 1.5s ease-in-out infinite';
+                        } else if (cardClass.includes('character-blayzion')) {
+                            // Blayzion glows with cosmic energy
+                            img.style.animation += ', smile 1s ease-in-out';
+                            img.style.filter = 'drop-shadow(0 4px 12px rgba(255, 215, 0, 0.6)) brightness(1.1)';
+                        } else if (cardClass.includes('character-blayzia')) {
+                            // Blayzia radiates healing light
+                            img.style.animation += ', smile 1s ease-in-out';
+                            img.style.filter = 'drop-shadow(0 4px 12px rgba(168, 85, 247, 0.6)) brightness(1.1)';
+                        } else if (cardClass.includes('character-violet')) {
+                            // Violet sparkles with mystical energy
+                            img.style.animation += ', smile 1s ease-in-out';
+                            img.style.filter = 'drop-shadow(0 4px 12px rgba(124, 58, 237, 0.6)) brightness(1.1)';
+                        } else if (cardClass.includes('character-crimson')) {
+                            // Crimson stands strong and protective
+                            img.style.animation += ', nod 0.8s ease-in-out';
+                            img.style.filter = 'drop-shadow(0 4px 12px rgba(220, 38, 38, 0.6)) brightness(1.1)';
+                        }
+                    }
+                });
+                
+                // Mouse leave - return to normal animations
+                card.addEventListener('mouseleave', function() {
+                    if (img) {
+                        // Return to normal breathing animation
+                        const cardClass = card.className;
+                        if (cardClass.includes('character-blayzo')) {
+                            img.style.animation = 'breathe 4s ease-in-out infinite';
+                            img.style.filter = 'drop-shadow(0 4px 12px rgba(34, 211, 238, 0.3))';
+                        } else if (cardClass.includes('character-blayzica')) {
+                            img.style.animation = 'breathe 4.5s ease-in-out infinite';
+                            img.style.filter = 'drop-shadow(0 4px 12px rgba(34, 211, 238, 0.3))';
+                        } else if (cardClass.includes('character-blayzion')) {
+                            img.style.animation = 'breathe 3.5s ease-in-out infinite';
+                            img.style.filter = 'drop-shadow(0 4px 12px rgba(255, 215, 0, 0.3))';
+                        } else if (cardClass.includes('character-blayzia')) {
+                            img.style.animation = 'breathe 4.2s ease-in-out infinite';
+                            img.style.filter = 'drop-shadow(0 4px 12px rgba(168, 85, 247, 0.3))';
+                        } else if (cardClass.includes('character-violet')) {
+                            img.style.animation = 'breathe 3.7s ease-in-out infinite';
+                            img.style.filter = 'drop-shadow(0 4px 12px rgba(124, 58, 237, 0.3))';
+                        } else if (cardClass.includes('character-crimson')) {
+                            img.style.animation = 'breathe 3.8s ease-in-out infinite';
+                            img.style.filter = 'drop-shadow(0 4px 12px rgba(220, 38, 38, 0.3))';
+                        }
+                        
+                        // Reset character name glow
+                        if (characterName) {
+                            characterName.style.animation = '';
+                        }
+                    }
+                });
+                
+                // Click animation - add a quick pulse effect
+                card.addEventListener('click', function() {
+                    if (img) {
+                        img.style.animation += ', pulse 0.3s ease-in-out';
+                        
+                        // Reset after animation
+                        setTimeout(() => {
+                            const cardClass = card.className;
+                            if (cardClass.includes('character-blayzo')) {
+                                img.style.animation = 'breathe 4s ease-in-out infinite';
+                            } else if (cardClass.includes('character-blayzica')) {
+                                img.style.animation = 'breathe 4.5s ease-in-out infinite';
+                            } else if (cardClass.includes('character-blayzion')) {
+                                img.style.animation = 'breathe 3.5s ease-in-out infinite';
+                            } else if (cardClass.includes('character-blayzia')) {
+                                img.style.animation = 'breathe 4.2s ease-in-out infinite';
+                            } else if (cardClass.includes('character-violet')) {
+                                img.style.animation = 'breathe 3.7s ease-in-out infinite';
+                            } else if (cardClass.includes('character-crimson')) {
+                                img.style.animation = 'breathe 3.8s ease-in-out infinite';
+                            }
+                        }, 300);
+                    }
+                });
+            });
+        }
+        
+        // Show unlocked referral companions in main grid
+        function showUnlockedReferralCompanions() {
+            const userReferralCount = parseInt(localStorage.getItem('userReferralCount') || '0');
+            const unlockedContainer = document.getElementById('unlockedReferralCompanions');
+            const blayzike = document.getElementById('blayzike-card');
+            const blazelian = document.getElementById('blazelian-card');
+            const blazoreferral = document.getElementById('blazoreferral-card');
+            
+            let hasUnlockedCompanions = false;
+            
+            // Show Blayzike if user has 2+ referrals
+            if (userReferralCount >= 2 && blayzike) {
+                blayzike.style.display = 'block';
+                hasUnlockedCompanions = true;
+            }
+            
+            // Show Blazelian if user has 4+ referrals
+            if (userReferralCount >= 4 && blazelian) {
+                blazelian.style.display = 'block';
+                hasUnlockedCompanions = true;
+            }
+            
+            // Show Blayzo Referral Master if user has 6+ referrals
+            if (userReferralCount >= 6 && blazoreferral) {
+                blazoreferral.style.display = 'block';
+                hasUnlockedCompanions = true;
+            }
+            
+            // Show the container if any companions are unlocked
+            if (hasUnlockedCompanions && unlockedContainer) {
+                unlockedContainer.style.display = 'grid';
+            }
+        }
+
+        // Initialize animations when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            addCharacterHoverAnimations();
+            
+            // Initialize chat avatar if character is already selected
+            const selectedCharacter = localStorage.getItem('selectedCharacter');
+            if (selectedCharacter) {
+                updateChatAvatar(selectedCharacter);
+            }
+            
+            // Show unlocked referral companions
+            showUnlockedReferralCompanions();
+        });
+        
+        // Re-initialize animations when character select screen is shown
+        const originalShowCharacterSelect = window.showCharacterSelect;
+        window.showCharacterSelect = function() {
+            if (originalShowCharacterSelect) {
+                originalShowCharacterSelect();
+            }
+            setTimeout(() => {
+                addCharacterHoverAnimations();
+            }, 100);
+        };
+        
+        // ========================================
+        // 🎙️ VOICE CHAT LIP SYNC ANIMATIONS
+        // ========================================
+        
+        let voiceChatActive = false;
+        let lipSyncInterval = null;
+        let currentCharacterAvatar = null;
+        
+        // Start voice chat lip sync animation
+        function startVoiceChatLipSync() {
+            voiceChatActive = true;
+            currentCharacterAvatar = document.getElementById('chatAvatarImg') ||
+                                   document.querySelector('.character-card.selected img');
+            
+            if (currentCharacterAvatar) {
+                console.log('🎙️ Starting voice chat lip sync animation');
+                
+                // Apply talking animation
+                currentCharacterAvatar.style.animation += ', talking 0.3s ease-in-out infinite';
+                
+                // Add random lip sync movements
+                lipSyncInterval = setInterval(() => {
+                    if (voiceChatActive && currentCharacterAvatar) {
+                        // Random lip sync patterns
+                        const patterns = ['lipSync 0.4s ease-in-out', 'talking 0.2s ease-in-out', 'talking 0.6s ease-in-out'];
+                        const randomPattern = patterns[Math.floor(Math.random() * patterns.length)];
+                        
+                        // Apply the random pattern
+                        const currentAnimation = currentCharacterAvatar.style.animation.replace(/, (talking|lipSync) [^,]*/g, '');
+                        currentCharacterAvatar.style.animation = currentAnimation + ', ' + randomPattern;
+                    }
+                }, 200 + Math.random() * 400); // Random intervals between 200-600ms
+            }
+        }
+        
+        // Stop voice chat lip sync animation
+        function stopVoiceChatLipSync() {
+            voiceChatActive = false;
+            
+            if (lipSyncInterval) {
+                clearInterval(lipSyncInterval);
+                lipSyncInterval = null;
+            }
+            
+            if (currentCharacterAvatar) {
+                console.log('🤐 Stopping voice chat lip sync animation');
+                
+                // Remove talking/lipSync animations and return to breathing
+                const baseAnimation = currentCharacterAvatar.style.animation.replace(/, (talking|lipSync) [^,]*/g, '');
+                currentCharacterAvatar.style.animation = baseAnimation;
+                
+                // Reset to character-specific breathing animation
+                const selectedCharacter = localStorage.getItem('selectedCharacter') || 'Blayzo';
+                resetToBreathingAnimation(currentCharacterAvatar, selectedCharacter);
+            }
+        }
+        
+        // Reset character to their default breathing animation
+        function resetToBreathingAnimation(avatar, character) {
+            if (!avatar) return;
+            
+            switch(character) {
+                case 'Blayzo':
+                    avatar.style.animation = 'breathe 4s ease-in-out infinite';
+                    break;
+                case 'Blayzica':
+                    avatar.style.animation = 'breathe 4.5s ease-in-out infinite';
+                    break;
+                case 'Blayzion':
+                    avatar.style.animation = 'breathe 3.5s ease-in-out infinite';
+                    break;
+                case 'Blayzia':
+                    avatar.style.animation = 'breathe 4.2s ease-in-out infinite';
+                    break;
+                case 'Violet':
+                    avatar.style.animation = 'breathe 3.7s ease-in-out infinite';
+                    break;
+                case 'Crimson':
+                    avatar.style.animation = 'breathe 3.8s ease-in-out infinite';
+                    break;
+                default:
+                    avatar.style.animation = 'breathe 4s ease-in-out infinite';
+            }
+        }
+        
+        // Simulate voice chat for demonstration (when voice chat button is clicked)
+        function openVoiceChat() {
+            const selectedCharacter = localStorage.getItem('selectedCharacter');
+            if (!selectedCharacter) {
+                alert('Please select a character first!');
+                return;
+            }
+            
+            // Check if premium character
+            const premiumCharacters = ['Blayzion', 'Blayzia', 'Violet', 'Crimson'];
+            if (!premiumCharacters.includes(selectedCharacter)) {
+                alert('Voice chat is only available with Premium characters!');
+                return;
+            }
+            
+            // Simulate starting voice chat
+            alert('🎙️ Voice Chat Started!\n\nYour character will now animate their lips when speaking. Click "Stop Voice Chat" to end the session.');
+            
+            // Start lip sync animations
+            startVoiceChatLipSync();
+            
+            // Change button to stop voice chat
+            const voiceBtn = document.getElementById('voiceChatBtn');
+            if (voiceBtn) {
+                voiceBtn.innerHTML = '<span >🛑 Stop Voice Chat</span>';
+                voiceBtn.onclick = stopVoiceChat;
+            }
+            
+            // Simulate AI speaking for demo (remove in production)
+            setTimeout(() => {
+                if (voiceChatActive) {
+                    console.log('🤖 AI is speaking - lip sync active');
+                }
+            }, 1000);
+        }
+        
+        // Stop voice chat function
+        function stopVoiceChat() {
+            stopVoiceChatLipSync();
+            
+            alert('Voice chat ended. Your character has returned to normal breathing animations.');
+            
+            // Reset button
+            const voiceBtn = document.getElementById('voiceChatBtn');
+            if (voiceBtn) {
+                voiceBtn.innerHTML = '<span >🎤 Voice Chat (Plus)</span>';
+                voiceBtn.onclick = openVoiceChat;
+            }
+        }
+        
+        // Hook into existing voice chat button
+        document.addEventListener('DOMContentLoaded', function() {
+            const voiceBtn = document.getElementById('voiceChatBtn');
+            if (voiceBtn) {
+                voiceBtn.onclick = openVoiceChat;
+            }
+        });
+        
+        // ========================================
+        // ⌨️ TYPING INDICATOR ANIMATIONS
+        // ========================================
+        
+        let typingIndicatorElement = null;
+        let characterThinkingInterval = null;
+        
+        // Show typing indicator with character-specific animations
+        function showTypingIndicator(character) {
+            const chatMessages = document.getElementById('chatMessages');
+            if (!chatMessages) return;
+            
+            // Remove existing typing indicator
+            hideTypingIndicator();
+            
+            // Create typing indicator element
+            typingIndicatorElement = document.createElement('div');
+            typingIndicatorElement.className = 'typing-indicator';
+            typingIndicatorElement.id = 'typingIndicator';
+            
+            // Character-specific typing messages and animations
+            let characterName = character || 'Your companion';
+            let thinkingText = '';
+            let avatar = '';
+            
+            switch(character) {
+                case 'Blayzo':
+                    thinkingText = 'Blayzo is thinking...';
+                    avatar = '🧘‍♂️';
+                    break;
+                case 'Blayzica':
+                    thinkingText = 'Blayzica is crafting a response...';
+                    avatar = '💭';
+                    break;
+                case 'Blayzion':
+                    thinkingText = 'Blayzion channels cosmic wisdom...';
+                    avatar = '✨';
+                    break;
+                case 'Blayzia':
+                    thinkingText = 'Blayzia radiates healing thoughts...';
+                    avatar = '💖';
+                    break;
+                case 'Violet':
+                    thinkingText = 'Violet consults spiritual realms...';
+                    avatar = '🔮';
+                    break;
+                case 'Crimson':
+                    thinkingText = 'Crimson considers your words...';
+                    avatar = '⚔️';
+                    break;
+                default:
+                    thinkingText = 'Your companion is thinking...';
+                    avatar = '🤔';
+            }
+            
+            typingIndicatorElement.innerHTML = `
+                <div class="typing-text">${avatar} ${thinkingText}</div>
+                <div class="typing-dots">
+                    <div class="typing-dot" style="animation-delay: -0.32s;"></div>
+                    <div class="typing-dot" style="animation-delay: -0.16s;"></div>
+                    <div class="typing-dot" style="animation-delay: 0s;"></div>
+                </div>
+            `;
+            
+            chatMessages.appendChild(typingIndicatorElement);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            // Add character thinking animation to their avatar (if visible)
+            startCharacterThinkingAnimation(character);
+            
+            console.log(`⌨️ ${characterName} is typing...`);
+        }
+        
+        // Hide typing indicator
+        function hideTypingIndicator() {
+            if (typingIndicatorElement) {
+                typingIndicatorElement.remove();
+                typingIndicatorElement = null;
+            }
+            
+            // Stop character thinking animation
+            stopCharacterThinkingAnimation();
+        }
+        
+        // Start character thinking animation (adds thinking dots to their avatar)
+        function startCharacterThinkingAnimation(character) {
+            const characterAvatar = document.getElementById('chatAvatarImg') ||
+                                  document.querySelector('.character-card.selected img');
+            
+            if (characterAvatar) {
+                // Add thinking pulse animation
+                const currentAnimation = characterAvatar.style.animation;
+                characterAvatar.style.animation = currentAnimation + ', typingPulse 1.5s ease-in-out infinite';
+                
+                // Add thinking dots that appear around the character
+                const thinkingDots = document.createElement('div');
+                thinkingDots.className = 'character-thinking-dots';
+                thinkingDots.id = 'characterThinkingDots';
+                thinkingDots.style.cssText = `
+                    position: absolute;
+                    top: -10px;
+                    right: -10px;
+                    display: flex;
+                    gap: 3px;
+                    z-index: 20;
+                `;
+                
+                // Create animated thinking dots
+                for (let i = 0; i < 3; i++) {
+                    const dot = document.createElement('div');
+                    dot.style.cssText = `
+                        width: 6px;
+                        height: 6px;
+                        border-radius: 50%;
+                        background: #22d3ee;
+                        animation: thinkingDots 1.4s infinite ease-in-out;
+                        animation-delay: ${i * 0.2}s;
+                    `;
+                    thinkingDots.appendChild(dot);
+                }
+                
+                // Add dots to character's container
+                const characterContainer = characterAvatar.closest('[style*="position: relative"]');
+                if (characterContainer) {
+                    characterContainer.appendChild(thinkingDots);
+                }
+                
+                console.log(`🤔 ${character} is thinking...`);
+            }
+        }
+        
+        // Stop character thinking animation
+        function stopCharacterThinkingAnimation() {
+            // Remove thinking dots
+            const thinkingDots = document.getElementById('characterThinkingDots');
+            if (thinkingDots) {
+                thinkingDots.remove();
+            }
+            
+            // Reset character avatar animation
+            const characterAvatar = document.getElementById('chatAvatarImg') ||
+                                  document.querySelector('.character-card.selected img');
+            
+            if (characterAvatar) {
+                // Remove typing pulse and return to normal breathing
+                const character = localStorage.getItem('selectedCharacter') || 'Blayzo';
+                resetToBreathingAnimation(characterAvatar, character);
+            }
+        }
+    </script>
+</body>
+</html>

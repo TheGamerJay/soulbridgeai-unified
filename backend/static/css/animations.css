@@ -1,0 +1,400 @@
+/* Animations - All keyframe animations and transitions */
+
+/* Keyframe animations */
+@keyframes selectedPulse {
+    0%, 100% {
+        box-shadow: 0 0 30px rgba(255, 215, 0, 0.6), 0 15px 40px rgba(34, 211, 238, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 40px rgba(255, 215, 0, 0.8), 0 20px 50px rgba(34, 211, 238, 0.5);
+    }
+}
+
+@keyframes checkmarkBounce {
+    0% {
+        transform: scale(0) rotate(-180deg);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.2) rotate(-90deg);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+    }
+}
+
+@keyframes iconFloat {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-5px);
+    }
+}
+
+@keyframes nameGlow {
+    0%, 100% {
+        text-shadow: 0 0 5px currentColor;
+    }
+    50% {
+        text-shadow: 0 0 20px currentColor, 0 0 30px currentColor;
+    }
+}
+
+
+@keyframes cardFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes typingBounce {
+    0%, 80%, 100% {
+        transform: scale(0.8);
+        opacity: 0.5;
+    }
+    40% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes errorSlideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes statusPulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+@keyframes logoGlow {
+    0%, 100% {
+        filter: drop-shadow(0 0 20px rgba(34, 211, 238, 0.5));
+    }
+    50% {
+        filter: drop-shadow(0 0 30px rgba(34, 211, 238, 0.8));
+    }
+}
+
+@keyframes titlePulse {
+    0%, 100% {
+        text-shadow: 0 0 20px rgba(34, 211, 238, 0.7);
+    }
+    50% {
+        text-shadow: 0 0 30px rgba(34, 211, 238, 1);
+    }
+}
+
+@keyframes buttonPulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 4px 15px rgba(34, 211, 238, 0.3);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 6px 20px rgba(34, 211, 238, 0.5);
+    }
+}
+
+/* Transition classes */
+.transition-all {
+    transition: all 0.3s ease;
+}
+
+.transition-colors {
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.transition-transform {
+    transition: transform 0.3s ease;
+}
+
+.transition-opacity {
+    transition: opacity 0.3s ease;
+}
+
+.mode-transition {
+    transition: background-color 0.5s ease !important;
+}
+
+/* Smooth transitions for mode elements */
+#modeText, #modeStatus {
+    transition: color 0.3s ease, font-weight 0.3s ease;
+}
+
+.btn, .character-card, .input-field, .chat-message {
+    transition: all 0.3s ease;
+}
+
+/* Day mode specific transitions */
+body.day-mode {
+    transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+/* ========================================
+   🎭 CHARACTER ANIMATIONS
+======================================== */
+
+/* Breathing/Idle Animations */
+@keyframes breathe {
+    0%, 100% {
+        transform: scale(1) translateY(0px);
+    }
+    50% {
+        transform: scale(1.02) translateY(-2px);
+    }
+}
+
+@keyframes gentleFloat {
+    0%, 100% {
+        transform: translateY(0px) rotate(0deg);
+    }
+    33% {
+        transform: translateY(-3px) rotate(0.5deg);
+    }
+    66% {
+        transform: translateY(2px) rotate(-0.5deg);
+    }
+}
+
+
+/* Character-Specific Magical Effects */
+@keyframes cosmicParticles {
+    0% {
+        transform: translateY(0px) rotate(0deg);
+        opacity: 0.3;
+    }
+    50% {
+        transform: translateY(-20px) rotate(180deg);
+        opacity: 0.7;
+    }
+    100% {
+        transform: translateY(-40px) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+@keyframes mysticalSparkles {
+    0% {
+        transform: scale(0) rotate(0deg);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1) rotate(180deg);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(0) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+@keyframes healingWaves {
+    0% {
+        transform: scale(0.8);
+        opacity: 0.8;
+    }
+    50% {
+        transform: scale(1.2);
+        opacity: 0.4;
+    }
+    100% {
+        transform: scale(1.5);
+        opacity: 0;
+    }
+}
+
+@keyframes fireEnergy {
+    0%, 100% {
+        transform: scale(1) rotate(0deg);
+        opacity: 0.6;
+    }
+    50% {
+        transform: scale(1.1) rotate(5deg);
+        opacity: 1;
+    }
+}
+
+@keyframes gentleGlow {
+    0%, 100% {
+        box-shadow: 0 0 10px rgba(34, 211, 238, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 20px rgba(34, 211, 238, 0.6);
+    }
+}
+
+/* Galaxy text animation for gradient text effects */
+@keyframes galaxyText {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+/* Interactive Animations */
+@keyframes nod {
+    0%, 100% {
+        transform: rotateX(0deg);
+    }
+    50% {
+        transform: rotateX(10deg);
+    }
+}
+
+@keyframes wave {
+    0%, 100% {
+        transform: rotate(0deg);
+    }
+    25% {
+        transform: rotate(15deg);
+    }
+    75% {
+        transform: rotate(-15deg);
+    }
+}
+
+@keyframes smile {
+    0%, 100% {
+        transform: scale(1);
+        filter: brightness(1);
+    }
+    50% {
+        transform: scale(1.05);
+        filter: brightness(1.2);
+    }
+}
+
+/* Voice Chat Lip Sync */
+@keyframes talking {
+    0%, 100% {
+        transform: scaleY(1);
+    }
+    50% {
+        transform: scaleY(1.1);
+    }
+}
+
+@keyframes lipSync {
+    0%, 40%, 100% {
+        transform: scaleY(1);
+    }
+    20%, 60% {
+        transform: scaleY(1.15);
+    }
+}
+
+/* Typing Indicator */
+@keyframes typingPulse {
+    0%, 100% {
+        opacity: 0.3;
+        transform: scale(0.8);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.1);
+    }
+}
+
+@keyframes thinkingDots {
+    0%, 20% {
+        color: rgba(34, 211, 238, 0.3);
+        transform: scale(0.8);
+    }
+    50% {
+        color: rgba(34, 211, 238, 1);
+        transform: scale(1.2);
+    }
+    80%, 100% {
+        color: rgba(34, 211, 238, 0.3);
+        transform: scale(0.8);
+    }
+}
+
+/* Spin Animation for Mystical Elements */
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Enhanced Pulse */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 0.6;
+        transform: scale(0.95);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.05);
+    }
+}
+
+/* Character Hover Effects */
+@keyframes characterHover {
+    0%, 100% {
+        transform: translateY(0px) scale(1);
+    }
+    50% {
+        transform: translateY(-5px) scale(1.02);
+    }
+}
+
+/* Magic Particle System */
+@keyframes particleFloat {
+    0% {
+        transform: translateY(0px) translateX(0px) rotate(0deg);
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+    }
+    90% {
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-50px) translateX(20px) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    
+    .character-card::before,
+    .btn::before {
+        display: none !important;
+    }
+}

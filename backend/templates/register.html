@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - SoulBridge AI</title>
+    
+    <!-- Modular CSS Files -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/animations.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/themes.css') }}">
+    
+    <style>
+        .auth-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            position: relative;
+        }
+        
+        .auth-card {
+            background: rgba(0,0,0,0.9);
+            border: 2px solid #22d3ee;
+            border-radius: 16px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            backdrop-filter: blur(15px);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .auth-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url('/static/logos/IntroLogo.png?v=540');
+            background-size: 550px 550px !important;
+            background-repeat: no-repeat;
+            background-position: center 40px;
+            opacity: 0.9;
+            z-index: 0;
+            border-radius: 16px;
+            pointer-events: none;
+        }
+        
+        /* Day mode logo - bigger and positioned higher up with contrast */
+        body.day-mode .auth-card::before {
+            background-image: url('/static/logos/BlackIntroLogo.png?v=535');
+            background-size: 550px 550px !important;
+            background-position: center 35px;
+            opacity: 1;
+            filter: contrast(2) brightness(0.5);
+        }
+        
+        /* Day mode header spacing */
+        body.day-mode .auth-header {
+            margin-bottom: 10rem;
+        }
+        
+        .auth-card > * {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .auth-header {
+            text-align: center;
+            margin-bottom: 9rem;
+        }
+        
+        .auth-logo {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #22d3ee;
+            margin-bottom: 0.5rem;
+        }
+        
+        .auth-title {
+            font-size: 1.5rem;
+            color: #fff;
+            margin-bottom: 0.5rem;
+        }
+        
+        .auth-subtitle {
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-label {
+            display: block;
+            color: #22d3ee;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #22d3ee;
+            border-radius: 8px;
+            background: rgba(0,0,0,0.8);
+            color: #fff;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #0891b2;
+            box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.2);
+        }
+        
+        .form-input::placeholder {
+            color: #9ca3af;
+        }
+        
+        .password-container {
+            position: relative;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            color: #22d3ee;
+            font-size: 16px;
+            z-index: 10;
+            transition: color 0.3s ease;
+        }
+        
+        .password-toggle:hover {
+            color: #0891b2;
+        }
+        
+        body.day-mode .password-toggle {
+            color: #000;
+        }
+        
+        body.day-mode .password-toggle:hover {
+            color: #22d3ee;
+        }
+        
+        .back-btn {
+            width: 100%;
+            padding: 12px 24px;
+            background: rgba(34, 211, 238, 0.1);
+            border: 2px solid #22d3ee;
+            color: #22d3ee;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .back-btn:hover {
+            background: rgba(34, 211, 238, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(34, 211, 238, 0.3);
+        }
+        
+        body.day-mode .back-btn {
+            background: rgba(34, 211, 238, 0.8);
+            border-color: #22d3ee;
+            color: #000;
+        }
+        
+        body.day-mode .back-btn:hover {
+            background: rgba(34, 211, 238, 1);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(34, 211, 238, 0.3);
+        }
+        
+        .form-input.error {
+            border-color: #dc2626;
+        }
+        
+        .form-input.valid {
+            border-color: #22c55e;
+        }
+        
+        .password-strength {
+            margin-top: 0.5rem;
+            font-size: 0.8rem;
+        }
+        
+        .strength-meter {
+            display: flex;
+            gap: 2px;
+            margin-top: 0.25rem;
+        }
+        
+        .strength-bar {
+            height: 4px;
+            flex: 1;
+            background: #374151;
+            border-radius: 2px;
+            transition: background-color 0.3s ease;
+        }
+        
+        .strength-bar.active {
+            background: #22c55e;
+        }
+        
+        .strength-bar.medium {
+            background: #f59e0b;
+        }
+        
+        .strength-bar.weak {
+            background: #dc2626;
+        }
+        
+        .password-requirements {
+            margin-top: 0.5rem;
+            font-size: 0.8rem;
+            color: #9ca3af;
+        }
+        
+        .requirement {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 0.25rem 0;
+        }
+        
+        .requirement.met {
+            color: #22c55e;
+        }
+        
+        .requirement-icon {
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .auth-btn {
+            width: 100%;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #22d3ee, #0891b2);
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 1rem;
+        }
+        
+        .auth-btn:hover {
+            background: linear-gradient(135deg, #0891b2, #0e7490);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(34, 211, 238, 0.5);
+        }
+        
+        .auth-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .oauth-section {
+            margin: 2rem 0;
+            text-align: center;
+        }
+        
+        .oauth-divider {
+            position: relative;
+            margin: 1.5rem 0;
+            text-align: center;
+        }
+        
+        .oauth-divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #374151;
+        }
+        
+        .oauth-divider span {
+            background: rgba(0,0,0,0.9);
+            color: #9ca3af;
+            padding: 0 1rem;
+            font-size: 0.9rem;
+        }
+        
+        .oauth-btn {
+            width: 100%;
+            padding: 12px 24px;
+            border: 2px solid #374151;
+            border-radius: 8px;
+            background: rgba(0,0,0,0.8);
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+        
+        .oauth-btn:hover {
+            border-color: #22d3ee;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        
+        .oauth-btn.google {
+            border-color: #4285f4;
+        }
+        
+        .oauth-btn.google:hover {
+            border-color: #4285f4;
+            background: rgba(66, 133, 244, 0.1);
+        }
+        
+        .oauth-btn.facebook {
+            border-color: #1877f2;
+        }
+        
+        .oauth-btn.facebook:hover {
+            border-color: #1877f2;
+            background: rgba(24, 119, 242, 0.1);
+        }
+        
+        .auth-footer {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #374151;
+        }
+        
+        .auth-link {
+            color: #22d3ee;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .auth-link:hover {
+            text-decoration: underline;
+        }
+        
+        .error-message {
+            background: rgba(220, 38, 38, 0.1);
+            border: 1px solid #dc2626;
+            color: #dc2626;
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+        
+        .success-message {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid #22c55e;
+            color: #22c55e;
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+        
+        .terms-checkbox {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .terms-checkbox input[type="checkbox"] {
+            margin-top: 0.25rem;
+            width: 18px;
+            height: 18px;
+            accent-color: #22d3ee;
+        }
+        
+        .terms-text {
+            font-size: 0.9rem;
+            color: #9ca3af;
+            line-height: 1.4;
+        }
+        
+        .terms-text a {
+            color: #22d3ee;
+            text-decoration: none;
+        }
+        
+        .terms-text a:hover {
+            text-decoration: underline;
+        }
+        
+        /* Day mode adjustments */
+        body.day-mode .auth-card {
+            background: rgba(248, 249, 250, 0.95);
+            border-color: #000;
+        }
+        
+        body.day-mode .auth-title {
+            color: #000;
+        }
+        
+        body.day-mode .form-input {
+            background: rgba(255, 255, 255, 0.9);
+            border-color: #000;
+            color: #000;
+        }
+        
+        body.day-mode .oauth-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border-color: #000;
+            color: #000;
+        }
+        
+        body.day-mode .oauth-divider span {
+            background: rgba(248, 249, 250, 0.95);
+        }
+        
+        /* Responsive design */
+        @media (max-width: 480px) {
+            .auth-container {
+                padding: 1rem;
+            }
+            
+            .auth-card {
+                padding: 1.5rem;
+            }
+            
+            .auth-logo {
+                font-size: 1.5rem;
+            }
+            
+            .auth-title {
+                font-size: 1.25rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Theme Toggle -->
+    <div style="position: fixed; top: 20px; right: 20px; z-index: 100;">
+        <div id="themeToggle" style="
+            background: rgba(34, 211, 238, 0.8);
+            color: #000;
+            padding: 10px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 10px;
+        " onclick="toggleTheme()">
+            <span id="themeText" style="color: #000 !important;">Night Mode is ON</span>
+            <span id="themeIcon">🌙</span>
+        </div>
+        
+        <!-- Back Button -->
+        <a href="/login" style="
+            display: block;
+            padding: 10px 16px;
+            background: rgba(34, 211, 238, 0.8);
+            color: #000;
+            border-radius: 20px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            text-align: center;
+        ">← Back</a>
+    </div>
+
+    <div class="auth-container content-overlay">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="auth-logo">SoulBridge AI</div>
+                <h1 class="auth-title">Create Account</h1>
+                <p class="auth-subtitle">Start your journey with AI companions</p>
+            </div>
+            
+            <!-- Error/Success Messages -->
+            {% if error %}
+            <div class="error-message" role="alert">
+                {{ error }}
+            </div>
+            {% endif %}
+            
+            {% if success %}
+            <div class="success-message" role="status">
+                {{ success }}
+            </div>
+            {% endif %}
+            
+            <!-- Registration Form -->
+            <form method="POST" action="/auth/register" id="registerForm">
+                <div class="form-group">
+                    <label for="display_name" class="form-label">Display Name</label>
+                    <input 
+                        type="text" 
+                        id="display_name" 
+                        name="display_name" 
+                        class="form-input" 
+                        placeholder="What should we call you?"
+                        required
+                        autocomplete="name"
+                        value="{{ request.form.display_name or '' }}"
+                    >
+                </div>
+                
+                <div class="form-group">
+                    <label for="email" class="form-label">Email</label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        class="form-input" 
+                        placeholder="Enter your email"
+                        required
+                        autocomplete="email"
+                        value="{{ request.form.email or '' }}"
+                    >
+                </div>
+                
+                <div class="form-group">
+                    <label for="password" class="form-label">Password</label>
+                    <div class="password-container">
+                        <input 
+                            type="password" 
+                            id="password" 
+                            name="password" 
+                            class="form-input" 
+                            placeholder="Create a secure password"
+                            required
+                            autocomplete="new-password"
+                            style="padding-right: 45px;"
+                        >
+                        <button type="button" class="password-toggle" id="toggleBtn" onclick="togglePassword()" aria-label="Toggle password visibility">
+                            👁️
+                        </button>
+                    </div>
+                    
+                    <div class="password-strength" id="passwordStrength" style="display: none;">
+                        <div class="strength-meter" id="strengthMeter">
+                            <div class="strength-bar"></div>
+                            <div class="strength-bar"></div>
+                            <div class="strength-bar"></div>
+                            <div class="strength-bar"></div>
+                        </div>
+                        <div id="strengthText" style="margin-top: 0.25rem;"></div>
+                    </div>
+                    
+                    <div class="password-requirements" id="passwordRequirements" style="display: none;">
+                        <div class="requirement" id="lengthReq">
+                            <span class="requirement-icon">⚪</span>
+                            At least 8 characters
+                        </div>
+                        <div class="requirement" id="upperReq">
+                            <span class="requirement-icon">⚪</span>
+                            One uppercase letter
+                        </div>
+                        <div class="requirement" id="lowerReq">
+                            <span class="requirement-icon">⚪</span>
+                            One lowercase letter
+                        </div>
+                        <div class="requirement" id="numberReq">
+                            <span class="requirement-icon">⚪</span>
+                            One number
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirm_password" class="form-label">Confirm Password</label>
+                    <div class="password-container">
+                        <input 
+                            type="password" 
+                            id="confirm_password" 
+                            name="confirm_password" 
+                            class="form-input" 
+                            placeholder="Confirm your password"
+                            required
+                            autocomplete="new-password"
+                            style="padding-right: 45px;"
+                        >
+                        <button type="button" class="password-toggle" onclick="togglePassword('confirm_password')" aria-label="Toggle confirm password visibility">
+                            👁️
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="terms-checkbox">
+                    <input type="checkbox" id="terms" name="terms" required>
+                    <label for="terms" class="terms-text">
+                        I agree to the <a href="/terms" target="_blank">Terms of Service</a> 
+                        and <a href="/terms" target="_blank">Privacy Policy</a>
+                    </label>
+                </div>
+                
+                <button type="submit" class="auth-btn" id="registerBtn">
+                    Create Account
+                </button>
+            </form>
+            
+            
+            <!-- OAuth Section -->
+            {% if oauth_providers %}
+            <div class="oauth-section">
+                <div class="oauth-divider">
+                    <span>or sign up with</span>
+                </div>
+                
+                {% if 'google' in oauth_providers %}
+                <a href="/auth/oauth/google" class="oauth-btn google">
+                    <svg width="20" height="20" viewBox="0 0 24 24">
+                        <path fill="#4285f4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#34a853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#fbbc05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                        <path fill="#ea4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    </svg>
+                    Continue with Google
+                </a>
+                {% endif %}
+                
+                {% if 'facebook' in oauth_providers %}
+                <a href="/auth/oauth/facebook" class="oauth-btn facebook">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="#1877f2">
+                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                    </svg>
+                    Continue with Facebook
+                </a>
+                {% endif %}
+            </div>
+            {% endif %}
+            
+            <!-- Footer -->
+            <div class="auth-footer">
+                <p style="color: #9ca3af; margin: 0;">
+                    Already have an account? 
+                    <a href="/login" class="auth-link">Sign in</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Password strength checker
+        function checkPasswordStrength(password) {
+            const requirements = {
+                length: password.length >= 8,
+                upper: /[A-Z]/.test(password),
+                lower: /[a-z]/.test(password),
+                number: /\d/.test(password)
+            };
+            
+            const metCount = Object.values(requirements).filter(Boolean).length;
+            
+            // Update requirement indicators
+            updateRequirement('lengthReq', requirements.length);
+            updateRequirement('upperReq', requirements.upper);
+            updateRequirement('lowerReq', requirements.lower);
+            updateRequirement('numberReq', requirements.number);
+            
+            // Update strength meter
+            updateStrengthMeter(metCount);
+            
+            return metCount === 4;
+        }
+        
+        function updateRequirement(id, met) {
+            const element = document.getElementById(id);
+            const icon = element.querySelector('.requirement-icon');
+            if (met) {
+                element.classList.add('met');
+                icon.textContent = '✅';
+            } else {
+                element.classList.remove('met');
+                icon.textContent = '⚪';
+            }
+        }
+        
+        function updateStrengthMeter(strength) {
+            const bars = document.querySelectorAll('.strength-bar');
+            const strengthText = document.getElementById('strengthText');
+            
+            bars.forEach((bar, index) => {
+                bar.classList.remove('active', 'weak', 'medium');
+                if (index < strength) {
+                    if (strength <= 2) {
+                        bar.classList.add('weak');
+                    } else if (strength === 3) {
+                        bar.classList.add('medium');
+                    } else {
+                        bar.classList.add('active');
+                    }
+                }
+            });
+            
+            const strengthLabels = ['Very Weak', 'Weak', 'Fair', 'Good', 'Strong'];
+            strengthText.textContent = strengthLabels[strength] || 'Very Weak';
+            strengthText.style.color = strength <= 2 ? '#dc2626' : strength === 3 ? '#f59e0b' : '#22c55e';
+        }
+        
+        // Password input handler
+        document.getElementById('password').addEventListener('input', function(e) {
+            const password = e.target.value;
+            const strengthSection = document.getElementById('passwordStrength');
+            const requirementsSection = document.getElementById('passwordRequirements');
+            
+            if (password.length > 0) {
+                strengthSection.style.display = 'block';
+                requirementsSection.style.display = 'block';
+                
+                const isStrong = checkPasswordStrength(password);
+                e.target.className = 'form-input ' + (isStrong ? 'valid' : 'error');
+            } else {
+                strengthSection.style.display = 'none';
+                requirementsSection.style.display = 'none';
+                e.target.className = 'form-input';
+            }
+        });
+        
+        // Confirm password validation
+        document.getElementById('confirm_password').addEventListener('input', function(e) {
+            const password = document.getElementById('password').value;
+            const confirmPassword = e.target.value;
+            
+            if (confirmPassword.length > 0) {
+                if (password === confirmPassword) {
+                    e.target.className = 'form-input valid';
+                } else {
+                    e.target.className = 'form-input error';
+                }
+            } else {
+                e.target.className = 'form-input';
+            }
+        });
+        
+        // Form submission handling
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm_password').value;
+            
+            if (password !== confirmPassword) {
+                e.preventDefault();
+                alert('Passwords do not match');
+                return;
+            }
+            
+            if (!checkPasswordStrength(password)) {
+                e.preventDefault();
+                alert('Please create a stronger password');
+                return;
+            }
+            
+            const submitBtn = document.getElementById('registerBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Creating Account...';
+        });
+        
+        // Auto-focus first input
+        document.getElementById('display_name').focus();
+        
+        // Theme toggle function
+        function toggleTheme() {
+            document.body.classList.toggle('day-mode');
+            var themeText = document.getElementById('themeText');
+            var themeIcon = document.getElementById('themeIcon');
+            var themeToggle = document.getElementById('themeToggle');
+            
+            if (document.body.classList.contains('day-mode')) {
+                themeText.textContent = 'Day Mode is ON';
+                themeIcon.textContent = '☀️';
+                themeToggle.style.background = 'rgba(255, 193, 7, 0.8)';
+                themeToggle.style.color = '#000';
+                themeText.style.color = '#000';
+                localStorage.setItem('themeMode', 'day');
+            } else {
+                themeText.textContent = 'Night Mode is ON';
+                themeIcon.textContent = '🌙';
+                themeToggle.style.background = 'rgba(34, 211, 238, 0.8)';
+                themeToggle.style.color = '#000';
+                themeText.style.color = '#000';
+                localStorage.setItem('themeMode', 'night');
+            }
+        }
+
+        // Load saved theme from localStorage
+        function loadSavedTheme() {
+            var savedTheme = localStorage.getItem('themeMode');
+            var themeText = document.getElementById('themeText');
+            var themeIcon = document.getElementById('themeIcon');
+            var themeToggle = document.getElementById('themeToggle');
+            
+            if (savedTheme === 'day') {
+                document.body.classList.add('day-mode');
+                themeText.textContent = 'Day Mode is ON';
+                themeIcon.textContent = '☀️';
+                themeToggle.style.background = 'rgba(255, 193, 7, 0.8)';
+                themeToggle.style.color = '#000';
+                themeText.style.color = '#000';
+            } else {
+                document.body.classList.remove('day-mode');
+                themeText.textContent = 'Night Mode is ON';
+                themeIcon.textContent = '🌙';
+                themeToggle.style.background = 'rgba(34, 211, 238, 0.8)';
+                themeToggle.style.color = '#000';
+                themeText.style.color = '#000';
+            }
+        }
+
+        // Load theme on page load
+        window.addEventListener('load', function() {
+            loadSavedTheme();
+        });
+    </script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

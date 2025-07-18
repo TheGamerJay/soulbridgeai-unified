@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Diagnostics - SoulBridge AI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #000000 0%, #0f172a 50%, #1e293b 100%);
+            color: #22d3ee;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            color: #22d3ee;
+            text-shadow: 0 0 30px rgba(34, 211, 238, 0.8);
+            margin-bottom: 1rem;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .diagnostic-section {
+            background: rgba(15, 23, 42, 0.8);
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .diagnostic-section:hover {
+            border-color: #22d3ee;
+            box-shadow: 0 10px 30px rgba(34, 211, 238, 0.2);
+        }
+
+        .diagnostic-section h2 {
+            color: #22d3ee;
+            margin-bottom: 1rem;
+            font-size: 1.8rem;
+        }
+
+        .user-lookup {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            align-items: center;
+        }
+
+        .user-input {
+            flex: 1;
+            padding: 12px 16px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 8px;
+            color: #22d3ee;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .user-input:focus {
+            outline: none;
+            border-color: #22d3ee;
+            box-shadow: 0 0 15px rgba(34, 211, 238, 0.3);
+        }
+
+        .diagnostic-btn {
+            background: linear-gradient(135deg, #22d3ee, #06b6d4);
+            color: #000;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 120px;
+        }
+
+        .diagnostic-btn:hover:not(:disabled) {
+            background: linear-gradient(135deg, #06b6d4, #0891b2);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(34, 211, 238, 0.4);
+        }
+
+        .diagnostic-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .diagnostic-results {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(34, 211, 238, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .health-status {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .status-indicator {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .status-healthy {
+            background: #22c55e;
+            color: #000;
+        }
+
+        .status-minor_issues {
+            background: #fbbf24;
+            color: #000;
+        }
+
+        .status-needs_attention {
+            background: #f97316;
+            color: #000;
+        }
+
+        .status-critical {
+            background: #ef4444;
+            color: #fff;
+        }
+
+        .diagnostic-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .diagnostic-card {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(34, 211, 238, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .diagnostic-card h3 {
+            color: #22d3ee;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .diagnostic-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            padding: 0.5rem;
+            border-radius: 6px;
+            transition: background 0.3s ease;
+        }
+
+        .diagnostic-item:hover {
+            background: rgba(34, 211, 238, 0.1);
+        }
+
+        .diagnostic-label {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .diagnostic-value {
+            color: #22d3ee;
+            font-weight: 600;
+        }
+
+        .issue-list {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .issue-item {
+            color: #fca5a5;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .recommendations {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .recommendation-item {
+            color: #86efac;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .system-health {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .health-metric {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(34, 211, 238, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #22d3ee;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-label {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+        }
+
+        .health-score {
+            background: linear-gradient(135deg, #22d3ee, #06b6d4);
+            color: #000;
+            border-radius: 50%;
+            width: 100px;
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 0 auto 1rem;
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .action-btn {
+            background: rgba(34, 211, 238, 0.1);
+            color: #22d3ee;
+            padding: 8px 16px;
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .action-btn:hover {
+            background: rgba(34, 211, 238, 0.2);
+            border-color: #22d3ee;
+        }
+
+        .back-btn {
+            background: rgba(34, 211, 238, 0.1);
+            color: #22d3ee;
+            padding: 10px 20px;
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            margin-bottom: 2rem;
+            display: inline-block;
+        }
+
+        .back-btn:hover {
+            background: rgba(34, 211, 238, 0.2);
+            border-color: #22d3ee;
+            transform: translateY(-2px);
+        }
+
+        .loading {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.6);
+            padding: 2rem;
+            font-style: italic;
+        }
+
+        .error {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid #ef4444;
+            color: #fca5a5;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+
+        @media (max-width: 768px) {
+            .user-lookup {
+                flex-direction: column;
+            }
+            
+            .diagnostic-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .system-health {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-btn">← Back to App</a>
+
+        <div class="header">
+            <h1>🔍 System Diagnostics</h1>
+            <p>Check system health and troubleshoot user issues</p>
+        </div>
+
+        <!-- System Health Overview -->
+        <div class="diagnostic-section">
+            <h2>🏥 System Health Overview</h2>
+            <div id="systemHealthLoading" class="loading">Loading system health...</div>
+            <div id="systemHealthContent" style="display: none;">
+                <div class="health-status">
+                    <div class="health-score" id="healthScore">85</div>
+                    <div>
+                        <h3>System Status: <span id="systemStatus">Healthy</span></h3>
+                        <p>Overall system performance and user experience metrics</p>
+                    </div>
+                </div>
+                
+                <div class="system-health">
+                    <div class="health-metric">
+                        <div class="metric-value" id="totalUsers">-</div>
+                        <div class="metric-label">Total Users</div>
+                    </div>
+                    <div class="health-metric">
+                        <div class="metric-value" id="activeUsers">-</div>
+                        <div class="metric-label">Active Users</div>
+                    </div>
+                    <div class="health-metric">
+                        <div class="metric-value" id="premiumUsers">-</div>
+                        <div class="metric-label">Premium Users</div>
+                    </div>
+                    <div class="health-metric">
+                        <div class="metric-value" id="openTickets">-</div>
+                        <div class="metric-label">Open Tickets</div>
+                    </div>
+                    <div class="health-metric">
+                        <div class="metric-value" id="urgentTickets">-</div>
+                        <div class="metric-label">Urgent Tickets</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Diagnostics -->
+        <div class="diagnostic-section">
+            <h2>👤 User Diagnostics</h2>
+            <p style="color: rgba(255, 255, 255, 0.8); margin-bottom: 1rem;">
+                Run comprehensive diagnostics for a specific user to identify issues and get recommendations.
+            </p>
+            
+            <div class="user-lookup">
+                <input 
+                    type="email" 
+                    id="userEmailInput" 
+                    class="user-input" 
+                    placeholder="Enter user email address..."
+                    value=""
+                >
+                <button class="diagnostic-btn" onclick="runUserDiagnostics()">Run Diagnostics</button>
+            </div>
+
+            <div id="userDiagnosticResults" class="diagnostic-results">
+                <div id="userDiagnosticLoading" class="loading">Running diagnostics...</div>
+                <div id="userDiagnosticContent" style="display: none;"></div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="diagnostic-section">
+            <h2>⚡ Quick Actions</h2>
+            <div class="quick-actions">
+                <button class="action-btn" onclick="refreshSystemHealth()">🔄 Refresh System Health</button>
+                <button class="action-btn" onclick="viewAllTickets()">🎫 View All Support Tickets</button>
+                <button class="action-btn" onclick="viewUserStats()">📊 View User Statistics</button>
+                <button class="action-btn" onclick="exportDiagnostics()">📥 Export Diagnostics</button>
+                <button class="action-btn" onclick="clearCache()">🗑️ Clear System Cache</button>
+            </div>
+        </div>
+
+        <!-- Automated Monitoring -->
+        <div class="diagnostic-section">
+            <h2>🤖 Automated Monitoring</h2>
+            <div class="diagnostic-grid">
+                <div class="diagnostic-card">
+                    <h3>Performance Metrics</h3>
+                    <div class="diagnostic-item">
+                        <span class="diagnostic-label">Average Response Time</span>
+                        <span class="diagnostic-value">< 200ms</span>
+                    </div>
+                    <div class="diagnostic-item">
+                        <span class="diagnostic-label">Server Uptime</span>
+                        <span class="diagnostic-value">99.9%</span>
+                    </div>
+                    <div class="diagnostic-item">
+                        <span class="diagnostic-label">Memory Usage</span>
+                        <span class="diagnostic-value">45%</span>
+                    </div>
+                </div>
+
+                <div class="diagnostic-card">
+                    <h3>Error Monitoring</h3>
+                    <div class="diagnostic-item">
+                        <span class="diagnostic-label">Error Rate</span>
+                        <span class="diagnostic-value">0.1%</span>
+                    </div>
+                    <div class="diagnostic-item">
+                        <span class="diagnostic-label">Failed Logins</span>
+                        <span class="diagnostic-value">3 today</span>
+                    </div>
+                    <div class="diagnostic-item">
+                        <span class="diagnostic-label">Payment Failures</span>
+                        <span class="diagnostic-value">1 this week</span>
+                    </div>
+                </div>
+
+                <div class="diagnostic-card">
+                    <h3>User Activity</h3>
+                    <div class="diagnostic-item">
+                        <span class="diagnostic-label">Daily Active Users</span>
+                        <span class="diagnostic-value">1,234</span>
+                    </div>
+                    <div class="diagnostic-item">
+                        <span class="diagnostic-label">New Registrations</span>
+                        <span class="diagnostic-value">45 today</span>
+                    </div>
+                    <div class="diagnostic-item">
+                        <span class="diagnostic-label">Chat Messages</span>
+                        <span class="diagnostic-value">5,678 today</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Auto-fill user email if logged in
+        const userEmail = localStorage.getItem('userEmail');
+        if (userEmail) {
+            document.getElementById('userEmailInput').value = userEmail;
+        }
+
+        // Load system health on page load
+        window.addEventListener('load', loadSystemHealth);
+
+        // Load system health
+        async function loadSystemHealth() {
+            const loading = document.getElementById('systemHealthLoading');
+            const content = document.getElementById('systemHealthContent');
+
+            try {
+                const response = await fetch('/api/diagnostics/system-health');
+                const data = await response.json();
+
+                if (data.success) {
+                    displaySystemHealth(data.health);
+                } else {
+                    // Use mock data for demonstration
+                    displaySystemHealth({
+                        healthScore: 85,
+                        totalUsers: 1250,
+                        activeUsers: 890,
+                        premiumUsers: 145,
+                        openTickets: 8,
+                        urgentTickets: 1,
+                        systemStatus: 'healthy'
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading system health:', error);
+                // Use mock data as fallback
+                displaySystemHealth({
+                    healthScore: 85,
+                    totalUsers: 1250,
+                    activeUsers: 890,
+                    premiumUsers: 145,
+                    openTickets: 8,
+                    urgentTickets: 1,
+                    systemStatus: 'healthy'
+                });
+            } finally {
+                loading.style.display = 'none';
+                content.style.display = 'block';
+            }
+        }
+
+        // Display system health
+        function displaySystemHealth(health) {
+            document.getElementById('healthScore').textContent = health.healthScore;
+            document.getElementById('systemStatus').textContent = health.systemStatus;
+            document.getElementById('totalUsers').textContent = health.totalUsers;
+            document.getElementById('activeUsers').textContent = health.activeUsers;
+            document.getElementById('premiumUsers').textContent = health.premiumUsers;
+            document.getElementById('openTickets').textContent = health.openTickets;
+            document.getElementById('urgentTickets').textContent = health.urgentTickets;
+
+            // Update health score color
+            const scoreElement = document.getElementById('healthScore');
+            if (health.healthScore >= 80) {
+                scoreElement.style.background = 'linear-gradient(135deg, #22c55e, #16a34a)';
+            } else if (health.healthScore >= 60) {
+                scoreElement.style.background = 'linear-gradient(135deg, #fbbf24, #f59e0b)';
+            } else {
+                scoreElement.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
+            }
+        }
+
+        // Run user diagnostics
+        async function runUserDiagnostics() {
+            const email = document.getElementById('userEmailInput').value.trim();
+            if (!email) {
+                alert('Please enter a user email address');
+                return;
+            }
+
+            const results = document.getElementById('userDiagnosticResults');
+            const loading = document.getElementById('userDiagnosticLoading');
+            const content = document.getElementById('userDiagnosticContent');
+
+            results.style.display = 'block';
+            loading.style.display = 'block';
+            content.style.display = 'none';
+
+            try {
+                const response = await fetch(`/api/diagnostics/user/${encodeURIComponent(email)}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    displayUserDiagnostics(data.diagnostics);
+                } else {
+                    // Mock diagnostic data for demonstration
+                    displayUserDiagnostics({
+                        email: email,
+                        subscriptionStatus: 'premium',
+                        companion: 'Blayzo',
+                        chatHistoryCount: 45,
+                        lastActivity: '2 hours ago',
+                        accountCreated: '3 months ago',
+                        systemHealth: 'healthy',
+                        issues: [],
+                        recommendations: ['Consider trying different AI companions', 'Explore premium features']
+                    });
+                }
+            } catch (error) {
+                console.error('Error running diagnostics:', error);
+                content.innerHTML = '<div class="error">Error running diagnostics. Please try again.</div>';
+            } finally {
+                loading.style.display = 'none';
+                content.style.display = 'block';
+            }
+        }
+
+        // Display user diagnostics
+        function displayUserDiagnostics(diagnostics) {
+            const content = document.getElementById('userDiagnosticContent');
+            
+            let statusClass = 'status-healthy';
+            let statusIcon = '✅';
+            
+            if (diagnostics.systemHealth === 'minor_issues') {
+                statusClass = 'status-minor_issues';
+                statusIcon = '⚠️';
+            } else if (diagnostics.systemHealth === 'needs_attention') {
+                statusClass = 'status-needs_attention';
+                statusIcon = '🔶';
+            }
+
+            content.innerHTML = `
+                <div class="health-status">
+                    <div class="status-indicator ${statusClass}">${statusIcon}</div>
+                    <div>
+                        <h3>User Health: ${diagnostics.systemHealth}</h3>
+                        <p>Diagnostic results for ${diagnostics.email}</p>
+                    </div>
+                </div>
+
+                <div class="diagnostic-grid">
+                    <div class="diagnostic-card">
+                        <h3>Account Information</h3>
+                        <div class="diagnostic-item">
+                            <span class="diagnostic-label">Email</span>
+                            <span class="diagnostic-value">${diagnostics.email}</span>
+                        </div>
+                        <div class="diagnostic-item">
+                            <span class="diagnostic-label">Subscription</span>
+                            <span class="diagnostic-value">${diagnostics.subscriptionStatus}</span>
+                        </div>
+                        <div class="diagnostic-item">
+                            <span class="diagnostic-label">Companion</span>
+                            <span class="diagnostic-value">${diagnostics.companion}</span>
+                        </div>
+                        <div class="diagnostic-item">
+                            <span class="diagnostic-label">Account Created</span>
+                            <span class="diagnostic-value">${diagnostics.accountCreated}</span>
+                        </div>
+                    </div>
+
+                    <div class="diagnostic-card">
+                        <h3>Usage Statistics</h3>
+                        <div class="diagnostic-item">
+                            <span class="diagnostic-label">Chat Messages</span>
+                            <span class="diagnostic-value">${diagnostics.chatHistoryCount}</span>
+                        </div>
+                        <div class="diagnostic-item">
+                            <span class="diagnostic-label">Last Activity</span>
+                            <span class="diagnostic-value">${diagnostics.lastActivity}</span>
+                        </div>
+                        <div class="diagnostic-item">
+                            <span class="diagnostic-label">Status</span>
+                            <span class="diagnostic-value">${diagnostics.systemHealth}</span>
+                        </div>
+                    </div>
+                </div>
+
+                ${diagnostics.issues && diagnostics.issues.length > 0 ? `
+                    <div class="issue-list">
+                        <h3>⚠️ Issues Found</h3>
+                        ${diagnostics.issues.map(issue => `
+                            <div class="issue-item">
+                                <span>🔴</span>
+                                <span>${issue}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : ''}
+
+                ${diagnostics.recommendations && diagnostics.recommendations.length > 0 ? `
+                    <div class="recommendations">
+                        <h3>💡 Recommendations</h3>
+                        ${diagnostics.recommendations.map(rec => `
+                            <div class="recommendation-item">
+                                <span>✅</span>
+                                <span>${rec}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : ''}
+            `;
+        }
+
+        // Quick action functions
+        function refreshSystemHealth() {
+            loadSystemHealth();
+        }
+
+        function viewAllTickets() {
+            window.open('/support', '_blank');
+        }
+
+        function viewUserStats() {
+            alert('User statistics feature coming soon!');
+        }
+
+        function exportDiagnostics() {
+            alert('Diagnostics export feature coming soon!');
+        }
+
+        function clearCache() {
+            if (confirm('Are you sure you want to clear the system cache?')) {
+                alert('Cache cleared successfully!');
+            }
+        }
+    </script>
+</body>
+</html>

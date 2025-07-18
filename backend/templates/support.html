@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Support - SoulBridge AI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #000000 0%, #0f172a 50%, #1e293b 100%);
+            color: #22d3ee;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            color: #22d3ee;
+            text-shadow: 0 0 30px rgba(34, 211, 238, 0.8);
+            margin-bottom: 1rem;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .support-sections {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .section-card {
+            background: rgba(15, 23, 42, 0.8);
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 16px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .section-card:hover {
+            border-color: #22d3ee;
+            box-shadow: 0 10px 30px rgba(34, 211, 238, 0.2);
+            transform: translateY(-5px);
+        }
+
+        .section-card h2 {
+            color: #22d3ee;
+            margin-bottom: 1rem;
+            font-size: 1.8rem;
+        }
+
+        .section-card p {
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .ticket-form {
+            background: rgba(15, 23, 42, 0.9);
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            color: #22d3ee;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 8px;
+            color: #22d3ee;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #22d3ee;
+            box-shadow: 0 0 15px rgba(34, 211, 238, 0.3);
+        }
+
+        .form-group textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #22d3ee, #06b6d4);
+            color: #000;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            width: 100%;
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            background: linear-gradient(135deg, #06b6d4, #0891b2);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(34, 211, 238, 0.4);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .faq-section {
+            background: rgba(15, 23, 42, 0.8);
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 16px;
+            padding: 2rem;
+        }
+
+        .faq-section h2 {
+            color: #22d3ee;
+            margin-bottom: 2rem;
+            font-size: 2rem;
+            text-align: center;
+        }
+
+        .faq-item {
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(34, 211, 238, 0.2);
+            padding-bottom: 1rem;
+        }
+
+        .faq-question {
+            color: #22d3ee;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .faq-question:hover {
+            color: #06b6d4;
+        }
+
+        .faq-answer {
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.6;
+            display: none;
+        }
+
+        .faq-answer.active {
+            display: block;
+        }
+
+        .status-message {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .success-message {
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid #22c55e;
+            color: #22c55e;
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid #ef4444;
+            color: #fca5a5;
+        }
+
+        .back-btn {
+            display: inline-block;
+            background: rgba(34, 211, 238, 0.1);
+            color: #22d3ee;
+            padding: 10px 20px;
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            margin-bottom: 2rem;
+        }
+
+        .back-btn:hover {
+            background: rgba(34, 211, 238, 0.2);
+            border-color: #22d3ee;
+            transform: translateY(-2px);
+        }
+
+        .user-tickets {
+            background: rgba(15, 23, 42, 0.8);
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .user-tickets h3 {
+            color: #22d3ee;
+            margin-bottom: 1rem;
+        }
+
+        .ticket-item {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(34, 211, 238, 0.2);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .ticket-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .ticket-id {
+            font-weight: 600;
+            color: #22d3ee;
+        }
+
+        .ticket-status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-open { background: rgba(59, 130, 246, 0.2); color: #93c5fd; }
+        .status-in_progress { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+        .status-resolved { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
+        .status-closed { background: rgba(107, 114, 128, 0.2); color: #9ca3af; }
+
+        @media (max-width: 768px) {
+            .support-sections {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/profile" class="back-btn">← Back to Profile</a>
+
+        <div class="header">
+            <h1>🛟 SoulBridge AI Support</h1>
+            <p>We're here to help you with any questions or issues you may have.</p>
+        </div>
+
+        <div class="support-sections">
+            <div class="section-card">
+                <h2>💬 Create Support Ticket</h2>
+                <p>Submit a detailed support request and our team will get back to you as soon as possible. We typically respond within 24 hours.</p>
+            </div>
+
+            <div class="section-card">
+                <h2>📚 Knowledge Base</h2>
+                <p>Browse our frequently asked questions and troubleshooting guides to find quick solutions to common issues.</p>
+            </div>
+        </div>
+
+        <!-- Support Ticket Form -->
+        <div class="ticket-form">
+            <h2>📝 Submit Support Ticket</h2>
+            <div id="statusMessage"></div>
+            
+            <form id="supportTicketForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="userEmail">Email Address *</label>
+                        <input type="email" id="userEmail" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="priority">Priority</label>
+                        <select id="priority">
+                            <option value="low">Low</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="high">High</option>
+                            <option value="urgent">Urgent</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="category">Category</label>
+                        <select id="category">
+                            <option value="general">General Support</option>
+                            <option value="billing">Billing & Payments</option>
+                            <option value="technical">Technical Issues</option>
+                            <option value="bug_report">Bug Report</option>
+                            <option value="feature_request">Feature Request</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="subject">Subject *</label>
+                        <input type="text" id="subject" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Description *</label>
+                    <textarea id="description" placeholder="Please provide as much detail as possible about your issue..." required></textarea>
+                </div>
+
+                <button type="submit" class="submit-btn" id="submitBtn">Submit Support Ticket</button>
+            </form>
+        </div>
+
+        <!-- User's Tickets -->
+        <div class="user-tickets" id="userTickets" style="display: none;">
+            <h3>Your Support Tickets</h3>
+            <div id="ticketsList"></div>
+        </div>
+
+        <!-- FAQ Section -->
+        <div class="faq-section">
+            <h2>❓ Frequently Asked Questions</h2>
+            
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">How do I upgrade to SoulBridge AI Plus?</div>
+                <div class="faq-answer">
+                    Visit the <a href="/subscription" style="color: #22d3ee;">subscription page</a> to choose between monthly ($10) or yearly ($100) plans. You'll be redirected to our secure payment processor to complete your purchase.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">I'm having trouble with payments. What should I do?</div>
+                <div class="faq-answer">
+                    If you're experiencing payment issues, please check that your payment method is valid and has sufficient funds. For persistent issues, create a support ticket with "billing" category and we'll help resolve it quickly.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">How do I change my AI companion?</div>
+                <div class="faq-answer">
+                    You can switch companions from the main chat interface. Click on your current companion's name and select a new one from the available options. Premium users have access to all companions.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">Can I customize the app's appearance?</div>
+                <div class="faq-answer">
+                    Yes! Premium subscribers can customize colors, themes, and UI elements. Visit your <a href="/profile" style="color: #22d3ee;">profile page</a> to access customization options.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">How do I cancel my subscription?</div>
+                <div class="faq-answer">
+                    You can manage your subscription through your <a href="/profile" style="color: #22d3ee;">profile page</a> or by creating a support ticket. We'll help you cancel and process any applicable refunds.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">Is my data secure and private?</div>
+                <div class="faq-answer">
+                    Absolutely. We use enterprise-grade encryption to protect your conversations and personal data. Your chats are private and never shared with third parties. Read our <a href="/privacy" style="color: #22d3ee;">privacy policy</a> for full details.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // FAQ Toggle functionality
+        function toggleFAQ(element) {
+            const answer = element.nextElementSibling;
+            const isActive = answer.classList.contains('active');
+            
+            // Close all FAQ answers
+            document.querySelectorAll('.faq-answer').forEach(ans => {
+                ans.classList.remove('active');
+            });
+            
+            // Toggle current answer
+            if (!isActive) {
+                answer.classList.add('active');
+            }
+        }
+
+        // Support ticket form submission
+        document.getElementById('supportTicketForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const statusMessage = document.getElementById('statusMessage');
+            
+            // Get form data
+            const formData = {
+                userEmail: document.getElementById('userEmail').value,
+                subject: document.getElementById('subject').value,
+                description: document.getElementById('description').value,
+                priority: document.getElementById('priority').value,
+                category: document.getElementById('category').value
+            };
+            
+            // Show loading
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+            statusMessage.innerHTML = '';
+            
+            try {
+                const response = await fetch('/api/support/tickets', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    statusMessage.innerHTML = `
+                        <div class="status-message success-message">
+                            ✅ Support ticket created successfully! Ticket ID: ${data.ticket.ticketID}
+                            <br>We'll respond to your email within 24 hours.
+                        </div>
+                    `;
+                    
+                    // Reset form
+                    document.getElementById('supportTicketForm').reset();
+                    
+                    // Load user tickets
+                    loadUserTickets(formData.userEmail);
+                    
+                } else {
+                    throw new Error(data.error || 'Failed to create support ticket');
+                }
+                
+            } catch (error) {
+                console.error('Support ticket error:', error);
+                statusMessage.innerHTML = `
+                    <div class="status-message error-message">
+                        ❌ Error: ${error.message}
+                    </div>
+                `;
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Support Ticket';
+            }
+        });
+
+        // Load user's existing tickets
+        async function loadUserTickets(email) {
+            try {
+                const response = await fetch(`/api/support/tickets/user/${encodeURIComponent(email)}`);
+                const data = await response.json();
+                
+                if (data.success && data.tickets.length > 0) {
+                    const userTickets = document.getElementById('userTickets');
+                    const ticketsList = document.getElementById('ticketsList');
+                    
+                    let ticketsHTML = '';
+                    data.tickets.forEach(ticket => {
+                        ticketsHTML += `
+                            <div class="ticket-item">
+                                <div class="ticket-header">
+                                    <span class="ticket-id">${ticket.ticketID}</span>
+                                    <span class="ticket-status status-${ticket.status}">${ticket.status}</span>
+                                </div>
+                                <div><strong>Subject:</strong> ${ticket.subject}</div>
+                                <div><strong>Category:</strong> ${ticket.category}</div>
+                                <div><strong>Priority:</strong> ${ticket.priority}</div>
+                                <div><strong>Created:</strong> ${new Date(ticket.createdAt).toLocaleString()}</div>
+                            </div>
+                        `;
+                    });
+                    
+                    ticketsList.innerHTML = ticketsHTML;
+                    userTickets.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error loading user tickets:', error);
+            }
+        }
+
+        // Auto-fill email if user is logged in
+        window.addEventListener('load', function() {
+            const userEmail = localStorage.getItem('userEmail');
+            if (userEmail) {
+                document.getElementById('userEmail').value = userEmail;
+                loadUserTickets(userEmail);
+            }
+        });
+    </script>
+</body>
+</html>

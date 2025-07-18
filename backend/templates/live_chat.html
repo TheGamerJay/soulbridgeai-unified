@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Chat Support - SoulBridge AI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #000000 0%, #0f172a 50%, #1e293b 100%);
+            color: #22d3ee;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .chat-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(15, 23, 42, 0.9);
+            border-left: 2px solid rgba(34, 211, 238, 0.3);
+            border-right: 2px solid rgba(34, 211, 238, 0.3);
+        }
+
+        .chat-header {
+            background: rgba(34, 211, 238, 0.1);
+            padding: 1rem;
+            border-bottom: 2px solid rgba(34, 211, 238, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-header h1 {
+            color: #22d3ee;
+            font-size: 1.5rem;
+            text-shadow: 0 0 20px rgba(34, 211, 238, 0.8);
+        }
+
+        .chat-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #22c55e;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .message {
+            margin-bottom: 1rem;
+            max-width: 70%;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .message.user {
+            margin-left: auto;
+        }
+
+        .message.agent {
+            margin-right: auto;
+        }
+
+        .message-content {
+            padding: 12px 16px;
+            border-radius: 18px;
+            word-wrap: break-word;
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, #22d3ee, #06b6d4);
+            color: #000;
+        }
+
+        .message.agent .message-content {
+            background: rgba(34, 211, 238, 0.2);
+            color: #22d3ee;
+        }
+
+        .message.system .message-content {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fbbf24;
+            text-align: center;
+            font-style: italic;
+        }
+
+        .message-info {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 0.25rem;
+        }
+
+        .message.user .message-info {
+            text-align: right;
+        }
+
+        .chat-input-container {
+            padding: 1rem;
+            background: rgba(15, 23, 42, 0.9);
+            border-top: 2px solid rgba(34, 211, 238, 0.3);
+        }
+
+        .chat-input-form {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px 16px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 25px;
+            color: #22d3ee;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: #22d3ee;
+            box-shadow: 0 0 15px rgba(34, 211, 238, 0.3);
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, #22d3ee, #06b6d4);
+            color: #000;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 80px;
+        }
+
+        .send-btn:hover:not(:disabled) {
+            background: linear-gradient(135deg, #06b6d4, #0891b2);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(34, 211, 238, 0.4);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .chat-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .action-btn {
+            background: rgba(34, 211, 238, 0.1);
+            color: #22d3ee;
+            padding: 8px 16px;
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .action-btn:hover {
+            background: rgba(34, 211, 238, 0.2);
+            border-color: #22d3ee;
+        }
+
+        .welcome-message {
+            text-align: center;
+            padding: 2rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .welcome-message h2 {
+            color: #22d3ee;
+            margin-bottom: 1rem;
+        }
+
+        .typing-indicator {
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+            color: rgba(255, 255, 255, 0.6);
+            font-style: italic;
+            padding: 0.5rem;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #22d3ee;
+            animation: typingDots 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typingDots {
+            0%, 60%, 100% { opacity: 0.3; }
+            30% { opacity: 1; }
+        }
+
+        .back-btn {
+            background: rgba(34, 211, 238, 0.1);
+            color: #22d3ee;
+            padding: 8px 16px;
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .back-btn:hover {
+            background: rgba(34, 211, 238, 0.2);
+            border-color: #22d3ee;
+        }
+
+        .rating-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .rating-content {
+            background: rgba(15, 23, 42, 0.9);
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .rating-stars {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+
+        .star {
+            font-size: 2rem;
+            color: rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .star:hover,
+        .star.active {
+            color: #fbbf24;
+        }
+
+        .feedback-textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 8px;
+            color: #22d3ee;
+            font-family: inherit;
+            resize: vertical;
+            margin: 1rem 0;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+            .chat-container {
+                height: 100vh;
+                max-width: 100%;
+            }
+            
+            .message {
+                max-width: 85%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h1>💬 Live Chat Support</h1>
+            <div class="chat-status">
+                <div class="status-dot"></div>
+                <span>Online</span>
+                <a href="/" class="back-btn">← Exit Chat</a>
+            </div>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+            <div class="welcome-message">
+                <h2>Welcome to SoulBridge AI Support!</h2>
+                <p>Hi there! I'm here to help you with any questions or issues you may have. How can I assist you today?</p>
+            </div>
+        </div>
+
+        <div class="typing-indicator" id="typingIndicator">
+            <span>Support agent is typing</span>
+            <div class="typing-dots">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            </div>
+        </div>
+
+        <div class="chat-input-container">
+            <form class="chat-input-form" id="chatForm">
+                <input 
+                    type="text" 
+                    id="chatInput" 
+                    class="chat-input" 
+                    placeholder="Type your message..."
+                    autocomplete="off"
+                    maxlength="500"
+                >
+                <button type="submit" class="send-btn" id="sendBtn">Send</button>
+            </form>
+            <div class="chat-actions">
+                <button class="action-btn" onclick="sendQuickMessage('I need help with billing')">💳 Billing Help</button>
+                <button class="action-btn" onclick="sendQuickMessage('I have a technical issue')">🔧 Technical Issue</button>
+                <button class="action-btn" onclick="sendQuickMessage('I want to cancel my subscription')">❌ Cancel Subscription</button>
+                <button class="action-btn" onclick="endChat()">🔴 End Chat</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rating Modal -->
+    <div class="rating-modal" id="ratingModal">
+        <div class="rating-content">
+            <h3>Rate Your Experience</h3>
+            <p>How would you rate our support?</p>
+            <div class="rating-stars" id="ratingStars">
+                <span class="star" data-rating="1">★</span>
+                <span class="star" data-rating="2">★</span>
+                <span class="star" data-rating="3">★</span>
+                <span class="star" data-rating="4">★</span>
+                <span class="star" data-rating="5">★</span>
+            </div>
+            <textarea class="feedback-textarea" placeholder="Optional feedback..." id="feedbackText"></textarea>
+            <div style="display: flex; gap: 1rem; justify-content: center;">
+                <button class="action-btn" onclick="submitRating()">Submit</button>
+                <button class="action-btn" onclick="skipRating()">Skip</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentSessionId = null;
+        let currentRating = 0;
+        const userEmail = localStorage.getItem('userEmail') || 'user@example.com';
+        const messagesContainer = document.getElementById('chatMessages');
+        const chatInput = document.getElementById('chatInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const typingIndicator = document.getElementById('typingIndicator');
+
+        // Initialize chat session
+        async function initializeChat() {
+            try {
+                const response = await fetch('/api/live-chat/sessions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        userEmail: userEmail
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentSessionId = data.session.sessionID;
+                    addMessage('system', 'Chat session started. You\'re now connected to our support team!');
+                    
+                    // Simulate agent greeting
+                    setTimeout(() => {
+                        showTypingIndicator();
+                        setTimeout(() => {
+                            hideTypingIndicator();
+                            addMessage('agent', 'Hello! I\'m here to help you with any questions about SoulBridge AI. What can I assist you with today?');
+                        }, 2000);
+                    }, 1000);
+                } else {
+                    addMessage('system', 'Error starting chat session. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error initializing chat:', error);
+                addMessage('system', 'Connection error. Please refresh the page and try again.');
+            }
+        }
+
+        // Add message to chat
+        function addMessage(type, content, senderEmail = '') {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            
+            const now = new Date().toLocaleTimeString();
+            const senderName = type === 'user' ? 'You' : type === 'agent' ? 'Support Agent' : 'System';
+            
+            messageDiv.innerHTML = `
+                <div class="message-content">${content}</div>
+                <div class="message-info">${senderName} • ${now}</div>
+            `;
+            
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // Send message
+        async function sendMessage(message) {
+            if (!message.trim() || !currentSessionId) return;
+
+            // Add user message to UI
+            addMessage('user', message);
+            
+            // Send to server
+            try {
+                const response = await fetch(`/api/live-chat/sessions/${currentSessionId}/messages`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        senderEmail: userEmail,
+                        message: message,
+                        senderType: 'user'
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Simulate agent response
+                    setTimeout(() => {
+                        showTypingIndicator();
+                        setTimeout(() => {
+                            hideTypingIndicator();
+                            simulateAgentResponse(message);
+                        }, 1500 + Math.random() * 2000);
+                    }, 500);
+                } else {
+                    addMessage('system', 'Error sending message. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error sending message:', error);
+                addMessage('system', 'Connection error. Please try again.');
+            }
+        }
+
+        // Simulate agent response
+        function simulateAgentResponse(userMessage) {
+            const lowerMessage = userMessage.toLowerCase();
+            let response = '';
+
+            if (lowerMessage.includes('billing') || lowerMessage.includes('payment') || lowerMessage.includes('invoice')) {
+                response = "I can help you with billing questions! You can manage your subscription and view invoices in your billing dashboard. Would you like me to guide you through accessing it?";
+            } else if (lowerMessage.includes('technical') || lowerMessage.includes('bug') || lowerMessage.includes('error')) {
+                response = "I'm sorry you're experiencing technical issues. Can you please describe the specific problem you're encountering? I'll do my best to help you resolve it.";
+            } else if (lowerMessage.includes('cancel') || lowerMessage.includes('subscription')) {
+                response = "I understand you're looking to make changes to your subscription. I can help you with that through our billing portal, or if you'd like to cancel, I can guide you through the process. What would you prefer?";
+            } else if (lowerMessage.includes('hello') || lowerMessage.includes('hi') || lowerMessage.includes('help')) {
+                response = "Hello! I'm here to help you with any questions about SoulBridge AI. I can assist with billing, technical issues, account management, or any other concerns you might have.";
+            } else {
+                response = "Thank you for your message! I'm reviewing your inquiry and will provide you with the best assistance possible. Is there any additional information you'd like to share that might help me assist you better?";
+            }
+
+            addMessage('agent', response);
+        }
+
+        // Show typing indicator
+        function showTypingIndicator() {
+            typingIndicator.style.display = 'flex';
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // Hide typing indicator
+        function hideTypingIndicator() {
+            typingIndicator.style.display = 'none';
+        }
+
+        // Send quick message
+        function sendQuickMessage(message) {
+            chatInput.value = message;
+            sendMessage(message);
+            chatInput.value = '';
+        }
+
+        // End chat
+        function endChat() {
+            if (currentSessionId) {
+                showRatingModal();
+            } else {
+                window.location.href = '/';
+            }
+        }
+
+        // Show rating modal
+        function showRatingModal() {
+            document.getElementById('ratingModal').style.display = 'flex';
+        }
+
+        // Submit rating
+        async function submitRating() {
+            const feedback = document.getElementById('feedbackText').value;
+            
+            try {
+                await fetch(`/api/live-chat/sessions/${currentSessionId}/close`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        rating: currentRating,
+                        feedback: feedback
+                    })
+                });
+            } catch (error) {
+                console.error('Error submitting rating:', error);
+            }
+            
+            alert('Thank you for your feedback! Have a great day!');
+            window.location.href = '/';
+        }
+
+        // Skip rating
+        function skipRating() {
+            if (currentSessionId) {
+                fetch(`/api/live-chat/sessions/${currentSessionId}/close`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+            }
+            window.location.href = '/';
+        }
+
+        // Rating stars functionality
+        document.getElementById('ratingStars').addEventListener('click', (e) => {
+            if (e.target.classList.contains('star')) {
+                const rating = parseInt(e.target.dataset.rating);
+                currentRating = rating;
+                
+                // Update star display
+                const stars = document.querySelectorAll('.star');
+                stars.forEach((star, index) => {
+                    if (index < rating) {
+                        star.classList.add('active');
+                    } else {
+                        star.classList.remove('active');
+                    }
+                });
+            }
+        });
+
+        // Form submission
+        document.getElementById('chatForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const message = chatInput.value.trim();
+            if (message) {
+                sendMessage(message);
+                chatInput.value = '';
+            }
+        });
+
+        // Initialize chat on page load
+        window.addEventListener('load', initializeChat);
+
+        // Auto-focus input
+        chatInput.focus();
+    </script>
+</body>
+</html>

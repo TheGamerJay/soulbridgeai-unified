@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Knowledge Base - SoulBridge AI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #000000 0%, #0f172a 50%, #1e293b 100%);
+            color: #22d3ee;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            color: #22d3ee;
+            text-shadow: 0 0 30px rgba(34, 211, 238, 0.8);
+            margin-bottom: 1rem;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .search-section {
+            background: rgba(15, 23, 42, 0.8);
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        .search-form {
+            display: flex;
+            gap: 1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 15px 20px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 25px;
+            color: #22d3ee;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #22d3ee;
+            box-shadow: 0 0 15px rgba(34, 211, 238, 0.3);
+        }
+
+        .search-btn {
+            background: linear-gradient(135deg, #22d3ee, #06b6d4);
+            color: #000;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 100px;
+        }
+
+        .search-btn:hover {
+            background: linear-gradient(135deg, #06b6d4, #0891b2);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(34, 211, 238, 0.4);
+        }
+
+        .categories {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .category-card {
+            background: rgba(15, 23, 42, 0.8);
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .category-card:hover {
+            border-color: #22d3ee;
+            box-shadow: 0 10px 30px rgba(34, 211, 238, 0.2);
+            transform: translateY(-5px);
+        }
+
+        .category-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .category-card h3 {
+            color: #22d3ee;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .category-card p {
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.6;
+        }
+
+        .article-count {
+            background: rgba(34, 211, 238, 0.2);
+            color: #22d3ee;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-top: 1rem;
+            display: inline-block;
+        }
+
+        .search-results {
+            background: rgba(15, 23, 42, 0.8);
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            display: none;
+        }
+
+        .search-results h2 {
+            color: #22d3ee;
+            margin-bottom: 1rem;
+        }
+
+        .article-list {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .article-item {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(34, 211, 238, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .article-item:hover {
+            border-color: rgba(34, 211, 238, 0.5);
+            background: rgba(0, 0, 0, 0.6);
+        }
+
+        .article-title {
+            color: #22d3ee;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .article-excerpt {
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .article-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .article-tags {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .tag {
+            background: rgba(34, 211, 238, 0.2);
+            color: #22d3ee;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+        }
+
+        .article-stats {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .article-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .article-content {
+            background: rgba(15, 23, 42, 0.95);
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(34, 211, 238, 0.1);
+            color: #22d3ee;
+            padding: 8px 12px;
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background: rgba(34, 211, 238, 0.2);
+            border-color: #22d3ee;
+        }
+
+        .article-body {
+            margin: 2rem 0;
+            line-height: 1.8;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .article-body h1,
+        .article-body h2,
+        .article-body h3 {
+            color: #22d3ee;
+            margin: 1.5rem 0 1rem 0;
+        }
+
+        .article-body p {
+            margin-bottom: 1rem;
+        }
+
+        .article-body code {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .article-body pre {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        .vote-section {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(34, 211, 238, 0.2);
+            text-align: center;
+        }
+
+        .vote-btn {
+            background: rgba(34, 211, 238, 0.1);
+            color: #22d3ee;
+            padding: 10px 20px;
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0 0.5rem;
+        }
+
+        .vote-btn:hover {
+            background: rgba(34, 211, 238, 0.2);
+            border-color: #22d3ee;
+        }
+
+        .vote-btn.voted {
+            background: rgba(34, 211, 238, 0.3);
+            border-color: #22d3ee;
+        }
+
+        .back-btn {
+            background: rgba(34, 211, 238, 0.1);
+            color: #22d3ee;
+            padding: 10px 20px;
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            margin-bottom: 2rem;
+            display: inline-block;
+        }
+
+        .back-btn:hover {
+            background: rgba(34, 211, 238, 0.2);
+            border-color: #22d3ee;
+            transform: translateY(-2px);
+        }
+
+        .loading {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.6);
+            padding: 2rem;
+            font-style: italic;
+        }
+
+        .no-results {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.6);
+            padding: 2rem;
+            font-style: italic;
+        }
+
+        @media (max-width: 768px) {
+            .search-form {
+                flex-direction: column;
+            }
+            
+            .categories {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .article-content {
+                margin: 0;
+                max-height: 100vh;
+                border-radius: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-btn">← Back to App</a>
+
+        <div class="header">
+            <h1>📚 Knowledge Base</h1>
+            <p>Find answers to your questions about SoulBridge AI</p>
+        </div>
+
+        <div class="search-section">
+            <h2 style="margin-bottom: 1rem;">Search for Help</h2>
+            <form class="search-form" id="searchForm">
+                <input 
+                    type="text" 
+                    class="search-input" 
+                    id="searchInput" 
+                    placeholder="Search articles, guides, and FAQ..."
+                    autocomplete="off"
+                >
+                <button type="submit" class="search-btn">Search</button>
+            </form>
+        </div>
+
+        <div class="search-results" id="searchResults">
+            <h2>Search Results</h2>
+            <div id="searchLoading" class="loading">Searching...</div>
+            <div id="searchContent"></div>
+        </div>
+
+        <div class="categories" id="categories">
+            <div class="category-card" onclick="searchCategory('getting_started')">
+                <div class="category-icon">🚀</div>
+                <h3>Getting Started</h3>
+                <p>Learn the basics of SoulBridge AI, setting up your account, and choosing your first companion.</p>
+                <div class="article-count">12 articles</div>
+            </div>
+
+            <div class="category-card" onclick="searchCategory('troubleshooting')">
+                <div class="category-icon">🔧</div>
+                <h3>Troubleshooting</h3>
+                <p>Common issues and solutions for technical problems, login issues, and performance optimization.</p>
+                <div class="article-count">8 articles</div>
+            </div>
+
+            <div class="category-card" onclick="searchCategory('billing')">
+                <div class="category-icon">💳</div>
+                <h3>Billing & Payments</h3>
+                <p>Subscription management, payment issues, refunds, and billing information.</p>
+                <div class="article-count">6 articles</div>
+            </div>
+
+            <div class="category-card" onclick="searchCategory('features')">
+                <div class="category-icon">⭐</div>
+                <h3>Features</h3>
+                <p>Detailed guides on using SoulBridge AI features, customization options, and premium benefits.</p>
+                <div class="article-count">15 articles</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Article Modal -->
+    <div class="article-modal" id="articleModal">
+        <div class="article-content">
+            <button class="close-btn" onclick="closeArticle()">✕</button>
+            <div id="articleModalContent"></div>
+        </div>
+    </div>
+
+    <script>
+        // Sample articles data (in real app, this would come from API)
+        const sampleArticles = [
+            {
+                articleID: 'kb_001',
+                title: 'Getting Started with SoulBridge AI',
+                content: 'Welcome to SoulBridge AI! This guide will help you get started with your AI companion experience...',
+                category: 'getting_started',
+                tags: ['basics', 'setup', 'beginner'],
+                views: 1250,
+                helpful_votes: 45,
+                unhelpful_votes: 3
+            },
+            {
+                articleID: 'kb_002',
+                title: 'How to Upgrade to Premium',
+                content: 'Learn how to upgrade your account to unlock premium features and unlimited conversations...',
+                category: 'billing',
+                tags: ['premium', 'subscription', 'upgrade'],
+                views: 890,
+                helpful_votes: 38,
+                unhelpful_votes: 2
+            },
+            {
+                articleID: 'kb_003',
+                title: 'Troubleshooting Connection Issues',
+                content: 'If you\'re experiencing connection problems, here are some common solutions...',
+                category: 'troubleshooting',
+                tags: ['connection', 'network', 'fix'],
+                views: 654,
+                helpful_votes: 28,
+                unhelpful_votes: 5
+            }
+        ];
+
+        // Search functionality
+        document.getElementById('searchForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const query = document.getElementById('searchInput').value.trim();
+            if (query) {
+                await searchArticles(query);
+            }
+        });
+
+        // Search articles
+        async function searchArticles(query, category = null) {
+            const searchResults = document.getElementById('searchResults');
+            const searchLoading = document.getElementById('searchLoading');
+            const searchContent = document.getElementById('searchContent');
+            
+            searchResults.style.display = 'block';
+            searchLoading.style.display = 'block';
+            searchContent.innerHTML = '';
+
+            try {
+                const response = await fetch(`/api/knowledge-base/articles/search?query=${encodeURIComponent(query)}${category ? `&category=${category}` : ''}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    displayArticles(data.articles);
+                } else {
+                    // Use sample data for demonstration
+                    const filteredArticles = sampleArticles.filter(article => 
+                        article.title.toLowerCase().includes(query.toLowerCase()) ||
+                        article.content.toLowerCase().includes(query.toLowerCase()) ||
+                        article.tags.some(tag => tag.toLowerCase().includes(query.toLowerCase()))
+                    );
+                    displayArticles(filteredArticles);
+                }
+            } catch (error) {
+                console.error('Error searching articles:', error);
+                // Use sample data as fallback
+                const filteredArticles = sampleArticles.filter(article => 
+                    article.title.toLowerCase().includes(query.toLowerCase()) ||
+                    article.content.toLowerCase().includes(query.toLowerCase()) ||
+                    article.tags.some(tag => tag.toLowerCase().includes(query.toLowerCase()))
+                );
+                displayArticles(filteredArticles);
+            } finally {
+                searchLoading.style.display = 'none';
+            }
+        }
+
+        // Search by category
+        function searchCategory(category) {
+            const categoryNames = {
+                'getting_started': 'Getting Started',
+                'troubleshooting': 'Troubleshooting',
+                'billing': 'Billing',
+                'features': 'Features'
+            };
+            
+            document.getElementById('searchInput').value = categoryNames[category] || category;
+            searchArticles(categoryNames[category] || category, category);
+        }
+
+        // Display articles
+        function displayArticles(articles) {
+            const searchContent = document.getElementById('searchContent');
+            
+            if (articles.length === 0) {
+                searchContent.innerHTML = '<div class="no-results">No articles found. Try different keywords or browse by category.</div>';
+                return;
+            }
+
+            searchContent.innerHTML = articles.map(article => `
+                <div class="article-item" onclick="openArticle('${article.articleID}')">
+                    <div class="article-title">${article.title}</div>
+                    <div class="article-excerpt">${article.content.substring(0, 150)}...</div>
+                    <div class="article-meta">
+                        <div class="article-tags">
+                            ${article.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                        </div>
+                        <div class="article-stats">
+                            <div class="stat">
+                                <span>👁️</span>
+                                <span>${article.views}</span>
+                            </div>
+                            <div class="stat">
+                                <span>👍</span>
+                                <span>${article.helpful_votes}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Open article
+        async function openArticle(articleId) {
+            const modal = document.getElementById('articleModal');
+            const content = document.getElementById('articleModalContent');
+            
+            // Find article in sample data
+            const article = sampleArticles.find(a => a.articleID === articleId);
+            
+            if (article) {
+                // Record view
+                try {
+                    await fetch(`/api/knowledge-base/articles/${articleId}/view`, {
+                        method: 'POST'
+                    });
+                } catch (error) {
+                    console.error('Error recording view:', error);
+                }
+
+                // Display article
+                content.innerHTML = `
+                    <div class="article-title" style="font-size: 2rem; margin-bottom: 1rem;">${article.title}</div>
+                    <div class="article-meta" style="margin-bottom: 2rem;">
+                        <div class="article-tags">
+                            ${article.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                        </div>
+                        <div class="article-stats">
+                            <div class="stat">
+                                <span>👁️</span>
+                                <span>${article.views}</span>
+                            </div>
+                            <div class="stat">
+                                <span>👍</span>
+                                <span>${article.helpful_votes}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="article-body">${article.content}</div>
+                    <div class="vote-section">
+                        <h3>Was this article helpful?</h3>
+                        <button class="vote-btn" onclick="voteArticle('${articleId}', true)">👍 Yes</button>
+                        <button class="vote-btn" onclick="voteArticle('${articleId}', false)">👎 No</button>
+                    </div>
+                `;
+                
+                modal.style.display = 'flex';
+            }
+        }
+
+        // Close article
+        function closeArticle() {
+            document.getElementById('articleModal').style.display = 'none';
+        }
+
+        // Vote on article
+        async function voteArticle(articleId, helpful) {
+            try {
+                const response = await fetch(`/api/knowledge-base/articles/${articleId}/vote`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ helpful })
+                });
+
+                if (response.ok) {
+                    // Update button appearance
+                    const buttons = document.querySelectorAll('.vote-btn');
+                    buttons.forEach(btn => btn.classList.remove('voted'));
+                    
+                    const clickedBtn = helpful ? buttons[0] : buttons[1];
+                    clickedBtn.classList.add('voted');
+                    
+                    // Show thank you message
+                    setTimeout(() => {
+                        alert('Thank you for your feedback!');
+                    }, 500);
+                }
+            } catch (error) {
+                console.error('Error voting:', error);
+                alert('Thank you for your feedback!');
+            }
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('articleModal').addEventListener('click', (e) => {
+            if (e.target.id === 'articleModal') {
+                closeArticle();
+            }
+        });
+
+        // ESC key to close modal
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeArticle();
+            }
+        });
+    </script>
+</body>
+</html>
