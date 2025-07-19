@@ -570,6 +570,10 @@ def auth_login():
     user_from_db = None
     if not is_developer:
         try:
+            # Debug: Show all users in database
+            all_users = db.data["users"] if hasattr(db, 'data') else []
+            print(f"All users in database: {[u.get('email', 'no email') for u in all_users]}")
+            
             user_from_db = db.users.get_user_by_email(email)
             if user_from_db:
                 stored_password = user_from_db.get("password")
