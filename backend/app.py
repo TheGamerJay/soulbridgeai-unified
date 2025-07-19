@@ -88,17 +88,34 @@ def after_request(response):
     
     return response
 
-# Initialize OpenAI client
-openai_api_key = os.environ.get("OPENAI_API_KEY")
-if openai_api_key:
-    openai_client = OpenAI(api_key=openai_api_key)
-    logging.info("OpenAI client initialized successfully")
-else:
-    openai_client = None
-    logging.warning("OPENAI_API_KEY not found - AI features will be disabled")
+# Initialize OpenAI client (deferred)
+openai_client = None
+def init_openai():
+    global openai_client
+    openai_api_key = os.environ.get("OPENAI_API_KEY")
+    if openai_api_key:
+        try:
+            openai_client = OpenAI(api_key=openai_api_key)
+            logging.info("OpenAI client initialized successfully")
+        except Exception as e:
+            logging.error(f"OpenAI initialization failed: {e}")
+            openai_client = None
+    else:
+        logging.warning("OPENAI_API_KEY not found - AI features will be disabled")
 
-# Initialize SoulBridge Database
-db = SoulBridgeDB("soulbridge_data.json")
+# Initialize SoulBridge Database (deferred)
+db = None
+def init_database():
+    global db
+    try:
+        db = SoulBridgeDB("soulbridge_data.json")
+        logging.info("Database initialized successfully")
+    except Exception as e:
+        logging.error(f"Database initialization failed: {e}")
+        # Create a minimal fallback
+        class FallbackDB:
+            def get_stats(self): return {"users": 0, "sessions": 0}
+        db = FallbackDB()
 
 # Initialize Stripe (for development, we'll add a fallback)
 stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
@@ -369,6 +386,12 @@ SYSTEM_PROMPT = CHARACTER_PROMPTS["Blayzo"]
 @app.route("/health")
 def health():
     """Health check for Railway"""
+    # Initialize services on first health check
+    if db is None:
+        init_database()
+    if openai_client is None and os.environ.get("OPENAI_API_KEY"):
+        init_openai()
+    
     return jsonify({
         "status": "healthy",
         "service": "SoulBridge AI",
@@ -3403,6 +3426,14 @@ def after_request(response):
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     logging.info(f"Starting SoulBridge AI server on port {port}")
-    logging.info(f"OpenAI client status: {'Initialized' if openai_client else 'Disabled'}")
     logging.info(f"Environment: {'Production' if os.environ.get('RAILWAY_ENVIRONMENT') or os.environ.get('PRODUCTION') else 'Development'}")
+    
+    # Initialize core services
+    try:
+        init_database()
+        init_openai()
+        logging.info("Core services initialized")
+    except Exception as e:
+        logging.warning(f"Service initialization warning: {e}")
+    
     app.run(host="0.0.0.0", port=port, debug=False)
