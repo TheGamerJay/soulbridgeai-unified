@@ -832,6 +832,14 @@
         document.getElementById('registerForm').addEventListener('submit', function(e) {
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirm_password').value;
+            const termsCheckbox = document.getElementById('terms');
+            
+            // Check terms checkbox first
+            if (!termsCheckbox.checked) {
+                e.preventDefault();
+                alert('Please accept the Terms of Service and Privacy Policy');
+                return;
+            }
             
             if (password !== confirmPassword) {
                 e.preventDefault();
