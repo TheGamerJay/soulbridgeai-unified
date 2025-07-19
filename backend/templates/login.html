@@ -409,45 +409,6 @@
 <body>
     <!-- Language Selector (moved below sign-in) -->
         
-        <!-- Language Dropdown -->
-        <div id="languageMenu" style="
-            display: none;
-            position: absolute;
-            top: 100%;
-            right: 0;
-            background: rgba(0, 0, 0, 0.9);
-            border: 2px solid #22d3ee;
-            border-radius: 12px;
-            padding: 8px;
-            margin-top: 5px;
-            min-width: 150px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
-        ">
-            <div class="language-option" onclick="changeLanguage('en')" style="padding: 8px 12px; cursor: pointer; border-radius: 8px; transition: all 0.3s ease; color: #22d3ee;" onmouseover="this.style.background='rgba(34, 211, 238, 0.2)'" onmouseout="this.style.background='transparent'">
-                🇺🇸 <span data-translate="lang_english">English</span>
-            </div>
-            <div class="language-option" onclick="changeLanguage('es')" style="padding: 8px 12px; cursor: pointer; border-radius: 8px; transition: all 0.3s ease; color: #22d3ee;" onmouseover="this.style.background='rgba(34, 211, 238, 0.2)'" onmouseout="this.style.background='transparent'">
-                🇪🇸 <span data-translate="lang_spanish">Español</span>
-            </div>
-            <div class="language-option" onclick="changeLanguage('fr')" style="padding: 8px 12px; cursor: pointer; border-radius: 8px; transition: all 0.3s ease; color: #22d3ee;" onmouseover="this.style.background='rgba(34, 211, 238, 0.2)'" onmouseout="this.style.background='transparent'">
-                🇫🇷 <span data-translate="lang_french">Français</span>
-            </div>
-            <div class="language-option" onclick="changeLanguage('de')" style="padding: 8px 12px; cursor: pointer; border-radius: 8px; transition: all 0.3s ease; color: #22d3ee;" onmouseover="this.style.background='rgba(34, 211, 238, 0.2)'" onmouseout="this.style.background='transparent'">
-                🇩🇪 <span data-translate="lang_german">Deutsch</span>
-            </div>
-            <div class="language-option" onclick="changeLanguage('pt')" style="padding: 8px 12px; cursor: pointer; border-radius: 8px; transition: all 0.3s ease; color: #22d3ee;" onmouseover="this.style.background='rgba(34, 211, 238, 0.2)'" onmouseout="this.style.background='transparent'">
-                🇧🇷 <span data-translate="lang_portuguese">Português</span>
-            </div>
-            <div class="language-option" onclick="changeLanguage('zh')" style="padding: 8px 12px; cursor: pointer; border-radius: 8px; transition: all 0.3s ease; color: #22d3ee;" onmouseover="this.style.background='rgba(34, 211, 238, 0.2)'" onmouseout="this.style.background='transparent'">
-                🇨🇳 <span data-translate="lang_chinese">中文</span>
-            </div>
-            <div class="language-option" onclick="changeLanguage('ja')" style="padding: 8px 12px; cursor: pointer; border-radius: 8px; transition: all 0.3s ease; color: #22d3ee;" onmouseover="this.style.background='rgba(34, 211, 238, 0.2)'" onmouseout="this.style.background='transparent'">
-                🇯🇵 <span data-translate="lang_japanese">日本語</span>
-            </div>
-            <div class="language-option" onclick="changeLanguage('ru')" style="padding: 8px 12px; cursor: pointer; border-radius: 8px; transition: all 0.3s ease; color: #22d3ee;" onmouseover="this.style.background='rgba(34, 211, 238, 0.2)'" onmouseout="this.style.background='transparent'">
-                🇷🇺 <span data-translate="lang_russian">Русский</span>
-            </div>
-        </div>
     </div>
 
     <!-- Theme Toggle -->
@@ -702,7 +663,11 @@
         // Language functions
         function toggleLanguageMenu() {
             const menu = document.getElementById('languageMenu');
-            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+            if (menu.style.display === 'none' || menu.style.display === '') {
+                menu.style.display = 'block';
+            } else {
+                menu.style.display = 'none';
+            }
         }
         
         function changeLanguage(lang) {
@@ -730,10 +695,13 @@
         
         // Close language menu when clicking outside
         document.addEventListener('click', function(event) {
-            const selector = document.getElementById('languageSelector');
-            const menu = document.getElementById('languageMenu');
-            if (!selector.contains(event.target) && !menu.contains(event.target)) {
-                menu.style.display = 'none';
+            const languageSelector = document.getElementById('languageSelector');
+            const languageMenu = document.getElementById('languageMenu');
+            
+            if (languageSelector && languageMenu && 
+                !languageSelector.contains(event.target) && 
+                !languageMenu.contains(event.target)) {
+                languageMenu.style.display = 'none';
             }
         });
         

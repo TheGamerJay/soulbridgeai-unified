@@ -904,7 +904,11 @@
         // Language functions
         function toggleLanguageMenu() {
             const menu = document.getElementById('languageMenu');
-            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+            if (menu.style.display === 'none' || menu.style.display === '') {
+                menu.style.display = 'block';
+            } else {
+                menu.style.display = 'none';
+            }
         }
         
         function changeLanguage(lang) {
