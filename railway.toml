@@ -3,3 +3,5 @@ builder = "dockerfile"
 
 [deploy]
 startCommand = "./start.sh"
+healthcheckPath = "/"
+healthcheckTimeout = 300
