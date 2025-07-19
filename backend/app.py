@@ -3415,9 +3415,12 @@ from flask import send_from_directory
 @app.route('/googlea4d68d68f81c1843.html')
 def google_site_verification():
     """Serve Google site verification file"""
-    response = make_response("google-site-verification: googlea4d68d68f81c1843.html")
-    response.headers['Content-Type'] = 'text/plain'
-    return response
+    return "google-site-verification: googlea4d68d68f81c1843.html"
+
+@app.route('/test-verification')
+def test_verification():
+    """Test route to verify routing works"""
+    return "Test route working - verification should work too"
 
 @app.route('/')
 def serve_react_app():
