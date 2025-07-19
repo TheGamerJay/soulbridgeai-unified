@@ -400,7 +400,7 @@
             align-items: center;
             gap: 6px;
         " onclick="toggleTheme()">
-            <span id="themeText" >Night Mode is ON</span>
+            <span id="themeText" data-translate="night_mode_on">Night Mode is ON</span>
             <span id="themeIcon">🌙</span>
         </div>
     </div>
@@ -482,7 +482,7 @@
             animation: titlePulse 2s ease-in-out infinite;
             position: relative;
             z-index: 10;
-        ">Welcome to SoulBridge AI</h1>
+        " data-translate="welcome_title">Welcome to SoulBridge AI</h1>
         
         <img src="{{ url_for('static', filename='logos/IntroLogo.png') }}" alt="SoulBridge AI" class="intro-logo" style="
             position: absolute;
@@ -537,7 +537,7 @@
                     text-align: center;
                     font-weight: bold;
                     transition: all 0.3s ease;
-                ">
+                " data-translate="begin_journey">
                     Begin Your Journey ✨
                 </div>
                 

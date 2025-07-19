@@ -466,8 +466,68 @@
     </style>
 </head>
 <body>
+    <!-- Language Selector (Right Top) -->
+    <div style="position: fixed; top: 20px; right: 240px; z-index: 100;">
+        <div id="languageSelector" style="
+            background: rgba(34, 211, 238, 0.8);
+            color: #000;
+            padding: 8px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            position: relative;
+        " onclick="toggleLanguageMenu()">
+            <span>🌐</span>
+            <span id="currentLanguage" data-translate="language_en">EN</span>
+        </div>
+        
+        <!-- Language Dropdown -->
+        <div id="languageMenu" style="
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid #22d3ee;
+            border-radius: 12px;
+            padding: 8px;
+            margin-top: 5px;
+            min-width: 150px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+        ">
+            <div class="language-option" onclick="changeLanguage('en')" style="padding: 8px 12px; cursor: pointer; border-radius: 8px; transition: all 0.3s ease; color: #22d3ee;" onmouseover="this.style.background='rgba(34, 211, 238, 0.2)'" onmouseout="this.style.background='transparent'">
+                🇺🇸 <span data-translate="lang_english">English</span>
+            </div>
+            <div class="language-option" onclick="changeLanguage('es')" style="padding: 8px 12px; cursor: pointer; border-radius: 8px; transition: all 0.3s ease; color: #22d3ee;" onmouseover="this.style.background='rgba(34, 211, 238, 0.2)'" onmouseout="this.style.background='transparent'">
+                🇪🇸 <span data-translate="lang_spanish">Español</span>
+            </div>
+            <div class="language-option" onclick="changeLanguage('fr')" style="padding: 8px 12px; cursor: pointer; border-radius: 8px; transition: all 0.3s ease; color: #22d3ee;" onmouseover="this.style.background='rgba(34, 211, 238, 0.2)'" onmouseout="this.style.background='transparent'">
+                🇫🇷 <span data-translate="lang_french">Français</span>
+            </div>
+            <div class="language-option" onclick="changeLanguage('de')" style="padding: 8px 12px; cursor: pointer; border-radius: 8px; transition: all 0.3s ease; color: #22d3ee;" onmouseover="this.style.background='rgba(34, 211, 238, 0.2)'" onmouseout="this.style.background='transparent'">
+                🇩🇪 <span data-translate="lang_german">Deutsch</span>
+            </div>
+            <div class="language-option" onclick="changeLanguage('pt')" style="padding: 8px 12px; cursor: pointer; border-radius: 8px; transition: all 0.3s ease; color: #22d3ee;" onmouseover="this.style.background='rgba(34, 211, 238, 0.2)'" onmouseout="this.style.background='transparent'">
+                🇧🇷 <span data-translate="lang_portuguese">Português</span>
+            </div>
+            <div class="language-option" onclick="changeLanguage('zh')" style="padding: 8px 12px; cursor: pointer; border-radius: 8px; transition: all 0.3s ease; color: #22d3ee;" onmouseover="this.style.background='rgba(34, 211, 238, 0.2)'" onmouseout="this.style.background='transparent'">
+                🇨🇳 <span data-translate="lang_chinese">中文</span>
+            </div>
+            <div class="language-option" onclick="changeLanguage('ja')" style="padding: 8px 12px; cursor: pointer; border-radius: 8px; transition: all 0.3s ease; color: #22d3ee;" onmouseover="this.style.background='rgba(34, 211, 238, 0.2)'" onmouseout="this.style.background='transparent'">
+                🇯🇵 <span data-translate="lang_japanese">日本語</span>
+            </div>
+            <div class="language-option" onclick="changeLanguage('ru')" style="padding: 8px 12px; cursor: pointer; border-radius: 8px; transition: all 0.3s ease; color: #22d3ee;" onmouseover="this.style.background='rgba(34, 211, 238, 0.2)'" onmouseout="this.style.background='transparent'">
+                🇷🇺 <span data-translate="lang_russian">Русский</span>
+            </div>
+        </div>
+    </div>
+
     <!-- Theme Toggle -->
-    <div style="position: fixed; top: 20px; right: 20px; z-index: 100;">
+    <div style="position: fixed; top: 20px; right: 110px; z-index: 100;">
         <div id="themeToggle" style="
             background: rgba(34, 211, 238, 0.8);
             color: #000;
@@ -481,7 +541,7 @@
             gap: 6px;
             margin-bottom: 10px;
         " onclick="toggleTheme()">
-            <span id="themeText" style="color: #000 !important;">Night Mode is ON</span>
+            <span id="themeText" style="color: #000 !important;" data-translate="night_mode_on">Night Mode is ON</span>
             <span id="themeIcon">🌙</span>
         </div>
         
@@ -496,15 +556,15 @@
             font-weight: bold;
             transition: all 0.3s ease;
             text-align: center;
-        ">← Back</a>
+        " data-translate="back">← Back</a>
     </div>
 
     <div class="auth-container content-overlay">
         <div class="auth-card">
             <div class="auth-header">
                 <div class="auth-logo">SoulBridge AI</div>
-                <h1 class="auth-title">Create Account</h1>
-                <p class="auth-subtitle">Start your journey with AI companions</p>
+                <h1 class="auth-title" data-translate="create_account">Create Account</h1>
+                <p class="auth-subtitle" data-translate="start_journey">Start your journey with AI companions</p>
             </div>
             
             <!-- Error/Success Messages -->
@@ -523,13 +583,13 @@
             <!-- Registration Form -->
             <form method="POST" action="/auth/register" id="registerForm">
                 <div class="form-group">
-                    <label for="display_name" class="form-label">Display Name</label>
+                    <label for="display_name" class="form-label" data-translate="display_name">Display Name</label>
                     <input 
                         type="text" 
                         id="display_name" 
                         name="display_name" 
                         class="form-input" 
-                        placeholder="What should we call you?"
+                        placeholder="What should we call you?" data-translate-placeholder="what_call_you"
                         required
                         autocomplete="name"
                         value="{{ request.form.display_name or '' }}"
@@ -537,13 +597,13 @@
                 </div>
                 
                 <div class="form-group">
-                    <label for="email" class="form-label">Email</label>
+                    <label for="email" class="form-label" data-translate="email">Email</label>
                     <input 
                         type="email" 
                         id="email" 
                         name="email" 
                         class="form-input" 
-                        placeholder="Enter your email"
+                        placeholder="Enter your email" data-translate-placeholder="enter_email"
                         required
                         autocomplete="email"
                         value="{{ request.form.email or '' }}"
@@ -551,14 +611,14 @@
                 </div>
                 
                 <div class="form-group">
-                    <label for="password" class="form-label">Password</label>
+                    <label for="password" class="form-label" data-translate="password">Password</label>
                     <div class="password-container">
                         <input 
                             type="password" 
                             id="password" 
                             name="password" 
                             class="form-input" 
-                            placeholder="Create a secure password"
+                            placeholder="Create a secure password" data-translate-placeholder="create_secure_password"
                             required
                             autocomplete="new-password"
                             style="padding-right: 45px;"
@@ -581,32 +641,32 @@
                     <div class="password-requirements" id="passwordRequirements" style="display: none;">
                         <div class="requirement" id="lengthReq">
                             <span class="requirement-icon">⚪</span>
-                            At least 8 characters
+                            <span data-translate="req_8_chars">At least 8 characters</span>
                         </div>
                         <div class="requirement" id="upperReq">
                             <span class="requirement-icon">⚪</span>
-                            One uppercase letter
+                            <span data-translate="req_uppercase">One uppercase letter</span>
                         </div>
                         <div class="requirement" id="lowerReq">
                             <span class="requirement-icon">⚪</span>
-                            One lowercase letter
+                            <span data-translate="req_lowercase">One lowercase letter</span>
                         </div>
                         <div class="requirement" id="numberReq">
                             <span class="requirement-icon">⚪</span>
-                            One number
+                            <span data-translate="req_number">One number</span>
                         </div>
                     </div>
                 </div>
                 
                 <div class="form-group">
-                    <label for="confirm_password" class="form-label">Confirm Password</label>
+                    <label for="confirm_password" class="form-label" data-translate="confirm_password">Confirm Password</label>
                     <div class="password-container">
                         <input 
                             type="password" 
                             id="confirm_password" 
                             name="confirm_password" 
                             class="form-input" 
-                            placeholder="Confirm your password"
+                            placeholder="Confirm your password" data-translate-placeholder="confirm_your_password"
                             required
                             autocomplete="new-password"
                             style="padding-right: 45px;"
@@ -620,12 +680,12 @@
                 <div class="terms-checkbox">
                     <input type="checkbox" id="terms" name="terms" required>
                     <label for="terms" class="terms-text">
-                        I agree to the <a href="/terms" target="_blank">Terms of Service</a> 
-                        and <a href="/terms" target="_blank">Privacy Policy</a>
+                        <span data-translate="agree_to">I agree to the</span> <a href="/terms" target="_blank" data-translate="terms_service">Terms of Service</a> 
+                        <span data-translate="and">and</span> <a href="/terms" target="_blank" data-translate="privacy_policy">Privacy Policy</a>
                     </label>
                 </div>
                 
-                <button type="submit" class="auth-btn" id="registerBtn">
+                <button type="submit" class="auth-btn" id="registerBtn" data-translate="create_account">
                     Create Account
                 </button>
             </form>
@@ -635,7 +695,7 @@
             {% if oauth_providers %}
             <div class="oauth-section">
                 <div class="oauth-divider">
-                    <span>or sign up with</span>
+                    <span data-translate="or_signup_with">or sign up with</span>
                 </div>
                 
                 {% if 'google' in oauth_providers %}
@@ -646,7 +706,7 @@
                         <path fill="#fbbc05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                         <path fill="#ea4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                     </svg>
-                    Continue with Google
+                    <span data-translate="continue_google">Continue with Google</span>
                 </a>
                 {% endif %}
                 
@@ -655,7 +715,7 @@
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="#1877f2">
                         <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
                     </svg>
-                    Continue with Facebook
+                    <span data-translate="continue_facebook">Continue with Facebook</span>
                 </a>
                 {% endif %}
             </div>
@@ -664,8 +724,8 @@
             <!-- Footer -->
             <div class="auth-footer">
                 <p style="color: #9ca3af; margin: 0;">
-                    Already have an account? 
-                    <a href="/login" class="auth-link">Sign in</a>
+                    <span data-translate="already_have_account">Already have an account?</span> 
+                    <a href="/login" class="auth-link" data-translate="sign_in">Sign in</a>
                 </p>
             </div>
         </div>
@@ -837,9 +897,54 @@
             }
         }
 
+        // Language functions
+        function toggleLanguageMenu() {
+            const menu = document.getElementById('languageMenu');
+            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+        }
+        
+        function changeLanguage(lang) {
+            localStorage.setItem('selectedLanguage', lang);
+            updateLanguageDisplay(lang);
+            toggleLanguageMenu();
+            // Here you would typically reload the page or update translations
+            window.location.reload();
+        }
+        
+        function updateLanguageDisplay(lang) {
+            const currentLanguage = document.getElementById('currentLanguage');
+            const langMap = {
+                'en': 'EN',
+                'es': 'ES', 
+                'fr': 'FR',
+                'de': 'DE',
+                'pt': 'PT',
+                'zh': 'ZH',
+                'ja': 'JP',
+                'ru': 'RU'
+            };
+            currentLanguage.textContent = langMap[lang] || 'EN';
+        }
+        
+        // Close language menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const selector = document.getElementById('languageSelector');
+            const menu = document.getElementById('languageMenu');
+            if (!selector.contains(event.target) && !menu.contains(event.target)) {
+                menu.style.display = 'none';
+            }
+        });
+        
+        // Load saved language on page load
+        function loadSavedLanguage() {
+            const savedLang = localStorage.getItem('selectedLanguage') || 'en';
+            updateLanguageDisplay(savedLang);
+        }
+
         // Load theme on page load
         window.addEventListener('load', function() {
             loadSavedTheme();
+            loadSavedLanguage();
         });
     </script>
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>

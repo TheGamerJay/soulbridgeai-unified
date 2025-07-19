@@ -1,5 +1,40 @@
 /* Theme Styles - Day and night mode theming */
 
+/* RAINBOW BACKGROUND FOR BLAYZION AND BLAYZIA CHARACTERS */
+body.character-blayzion,
+body.character-blayzia {
+    background: linear-gradient(45deg, 
+        #ff006e, 
+        #8338ec, 
+        #3a86ff, 
+        #06ffa5, 
+        #ffbe0b, 
+        #ff006e
+    ) !important;
+    background-size: 300% 300% !important;
+    animation: rainbowBackground 8s ease infinite !important;
+}
+
+body.character-blayzion.day-mode,
+body.character-blayzia.day-mode {
+    background: linear-gradient(45deg, 
+        #ff006e, 
+        #8338ec, 
+        #3a86ff, 
+        #06ffa5, 
+        #ffbe0b, 
+        #ff006e
+    ) !important;
+    background-size: 300% 300% !important;
+    animation: rainbowBackground 8s ease infinite !important;
+}
+
+@keyframes rainbowBackground {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
 /* DAY MODE CHARACTER CARDS - Force light backgrounds over inline styles */
 body.day-mode .character-card[style*="background: rgba(34, 211, 238, 0.1)"] {
     background: rgba(255, 255, 255, 0.95) !important;

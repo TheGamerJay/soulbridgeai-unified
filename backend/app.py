@@ -368,11 +368,13 @@ SYSTEM_PROMPT = CHARACTER_PROMPTS["Blayzo"]
 # Health check endpoint for Railway
 @app.route("/health")
 def health():
+    """Health check for Railway"""
     return jsonify({
         "status": "healthy",
-        "service": "SoulBridgeAI",
-        "version": "1.0.0"
-    }), 200
+        "service": "SoulBridge AI",
+        "version": "1.0.0",
+        "timestamp": "2025-01-19"
+    })
 
 # Debug route to check static files
 @app.route("/debug/static")
