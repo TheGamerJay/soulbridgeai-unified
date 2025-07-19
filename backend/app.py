@@ -487,19 +487,10 @@ def chat():
     user_email = session.get("user_email")
     login_timestamp = session.get("login_timestamp")
     
-    # Check session timeout (1 hour)
+    # Check session timeout - Only expire on browser close, not time-based
     session_expired = False
-    if login_timestamp:
-        try:
-            login_time = datetime.fromisoformat(login_timestamp)
-            current_time = datetime.now()
-            session_age = (current_time - login_time).total_seconds()
-            if session_age > 3600:  # 1 hour
-                session_expired = True
-                print(f"Session expired. Age: {session_age} seconds")
-        except Exception as e:
-            print(f"Error checking session timestamp: {e}")
-            session_expired = True
+    # Note: session.permanent = False ensures session dies when browser closes
+    # No time-based expiration during active use
     
     # SECURITY: Only force re-authentication if session is invalid or expired
     if not user_authenticated or session_expired or not user_email:
@@ -578,13 +569,14 @@ def auth_login():
             flash("Account verification failed. Please contact support.", "error")
             return redirect(url_for("login"))
         
-        # Set session with subscription info
+        # Set session with subscription info - Session expires ONLY when browser/tab closes
+        session.clear()  # Clear any existing session data first
         session["user_authenticated"] = True
         session["user_email"] = email
         session["login_timestamp"] = datetime.now().isoformat()
         session["subscription_status"] = subscription_data["status"]
         session["user_id"] = subscription_data.get("user_id")
-        session.permanent = False  # Ensure session expires when browser closes
+        session.permanent = False  # Session dies when browser closes - NO time expiration
         
         print(f"Login successful with subscription status: {subscription_data['status']}")
         print(f"Session set: {dict(session)}")
