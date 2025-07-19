@@ -2212,7 +2212,10 @@
         function clearChat() {
             if (confirm('Are you sure you want to clear all messages? This cannot be undone.')) {
                 document.getElementById('chatMessages').innerHTML = '';
-                // Don't re-add greeting - using static greetings in character cards now
+                // Re-add greeting after clearing
+                setTimeout(function() {
+                    addGreetingToChat();
+                }, 100);
             }
         }
         
@@ -3123,10 +3126,40 @@
         document.addEventListener('DOMContentLoaded', function() {
             addCharacterHoverAnimations();
             
-            // Initialize chat avatar if character is already selected
+            // Restore user's current state on page load/refresh
             const selectedCharacter = localStorage.getItem('selectedCharacter');
-            if (selectedCharacter) {
+            const firstPickMade = localStorage.getItem('firstPickMade');
+            const currentScreen = localStorage.getItem('currentScreen');
+            
+            console.log('Page load - selectedCharacter:', selectedCharacter);
+            console.log('Page load - firstPickMade:', firstPickMade);
+            console.log('Page load - currentScreen:', currentScreen);
+            
+            // If user has made a character selection, go directly to chat
+            if (selectedCharacter && firstPickMade === 'true') {
+                console.log('Restoring chat with character:', selectedCharacter);
+                
+                // Hide intro and character select screens
+                document.getElementById('introScreen').classList.add('hidden');
+                document.getElementById('characterSelect').classList.add('hidden');
+                
+                // Update character info and avatar
+                updateCharacterInfo(selectedCharacter);
                 updateChatAvatar(selectedCharacter);
+                
+                // Add greeting after a short delay to ensure DOM is ready
+                setTimeout(function() {
+                    addGreetingToChat();
+                }, 500);
+                
+            } else if (currentScreen === 'select') {
+                // User was on character select screen
+                console.log('Restoring character select screen');
+                showCharacterSelect();
+            } else {
+                // Default to intro screen
+                console.log('Showing intro screen (default)');
+                showIntro();
             }
             
             // Show unlocked referral companions
