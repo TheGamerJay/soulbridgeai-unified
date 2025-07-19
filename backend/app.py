@@ -90,19 +90,12 @@ def after_request(response):
 
 # Initialize OpenAI client
 openai_api_key = os.environ.get("OPENAI_API_KEY")
-openai_client = None
-
 if openai_api_key:
-    try:
-        openai_client = OpenAI(api_key=openai_api_key)
-        logging.info("OpenAI client initialized successfully")
-    except Exception as e:
-        logging.error(f"Failed to initialize OpenAI client: {e}")
-        openai_client = None
-        logging.warning("OpenAI client initialization failed - AI features will be disabled")
+    openai_client = OpenAI(api_key=openai_api_key)
+    logging.info("OpenAI client initialized successfully")
 else:
-    logging.warning("OPENAI_API_KEY not found - AI features will be disabled")
     openai_client = None
+    logging.warning("OPENAI_API_KEY not found - AI features will be disabled")
 
 # Initialize SoulBridge Database
 db = SoulBridgeDB("soulbridge_data.json")
@@ -379,17 +372,7 @@ def health():
         "status": "healthy",
         "service": "SoulBridgeAI",
         "version": "1.0.0"
-    })
-
-@app.route('/googlea4d68d68f81c1843.html')
-def google_site_verification():
-    """Serve Google site verification file"""
-    return "google-site-verification: googlea4d68d68f81c1843.html"
-
-@app.route('/test-verification')
-def test_verification():
-    """Test route to verify routing works"""
-    return "Test route working - verification should work too", 200
+    }), 200
 
 # Debug route to check static files
 @app.route("/debug/static")
@@ -492,7 +475,9 @@ def auth_login():
         session.permanent = False  # Ensure session expires when browser closes
         print(f"Login successful - Session set: {dict(session)}")
         flash("Login successful! Welcome to SoulBridge AI.", "success")
-        return redirect(url_for("chat"))
+        
+        # Redirect to chat with intro flag to ensure intro screen shows first
+        return redirect(url_for("chat", show_intro="true"))
     else:
         flash("Invalid email or password. Please try again.", "error")
         return redirect(url_for("login"))
@@ -2807,13 +2792,9 @@ def refresh_openai():
         openai_api_key = os.environ.get("OPENAI_API_KEY")
         
         if openai_api_key:
-            try:
-                openai_client = OpenAI(api_key=openai_api_key)
-                # Test the connection
-                response = openai_client.models.list()
-            except Exception as e:
-                logging.error(f"Failed to refresh OpenAI client: {e}")
-                return jsonify(success=False, error=f"OpenAI refresh failed: {str(e)}"), 500
+            openai_client = OpenAI(api_key=openai_api_key)
+            # Test the connection
+            response = openai_client.models.list()
             logging.info("OpenAI connection refreshed successfully")
             return jsonify(success=True, message="OpenAI connection refreshed", models_count=len(response.data))
         else:
@@ -3413,18 +3394,6 @@ def after_request(response):
     response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
     response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
     return response
-
-# -------------------------------------------------
-# Home Route
-# -------------------------------------------------
-@app.route('/')
-def home():
-    """Home page"""
-    return jsonify({
-        "message": "SoulBridge AI Backend is running!",
-        "version": "1.0.0",
-        "status": "healthy"
-    })
 
 # -------------------------------------------------
 # Run the server

@@ -1904,6 +1904,17 @@
             console.log('Initializing screen...');
             console.log('Current URL:', window.location.href);
             
+            // Check if URL has show_intro parameter (from fresh login)
+            var urlParams = new URLSearchParams(window.location.search);
+            var showIntro = urlParams.get('show_intro');
+            
+            if (showIntro === 'true') {
+                // Clear localStorage state to force intro screen on fresh login
+                localStorage.removeItem('currentScreen');
+                localStorage.removeItem('selectedCharacter');
+                console.log('Fresh login detected - cleared localStorage state');
+            }
+            
             var currentScreen = localStorage.getItem('currentScreen');
             var selectedCharacter = localStorage.getItem('selectedCharacter');
             
@@ -1964,15 +1975,17 @@
             } else if (currentScreen === 'select') {
                 // Show character select
                 document.getElementById('characterSelect').classList.remove('hidden');
-                // Update premium character displays
+                // Update premium character displays and force rainbow backgrounds
                 setTimeout(function() {
                     updatePremiumCharacters();
                     forceUpdatePremiumText();
+                    forceRainbowBackgrounds();
                 }, 200);
                 
                 // Also try again after a longer delay to ensure everything is loaded
                 setTimeout(function() {
                     forceUpdatePremiumText();
+                    forceRainbowBackgrounds();
                 }, 1000);
             } else {
                 // Show intro by default
@@ -2074,10 +2087,16 @@
             document.getElementById('introScreen').classList.add('hidden');
             document.getElementById('characterSelect').classList.remove('hidden');
             
-            // Update premium character displays
+            // Update premium character displays and force rainbow backgrounds
             setTimeout(function() {
                 updatePremiumCharacters();
+                forceRainbowBackgrounds();
             }, 100);
+            
+            // Additional delay to ensure everything is loaded
+            setTimeout(function() {
+                forceRainbowBackgrounds();
+            }, 500);
         }
         
         function showLibrary() {
@@ -2291,7 +2310,12 @@
         function applyDayModeToCharacterCards() {
             const characterCards = document.querySelectorAll('.character-card');
             characterCards.forEach(card => {
-                // Force white background for all character cards
+                // Preserve rainbow backgrounds for Blayzion and Blayzia
+                if (card.classList.contains('character-blayzion') || card.classList.contains('character-blayzia')) {
+                    // Don't override their rainbow gradient backgrounds
+                    return;
+                }
+                // Force white background for other character cards
                 card.style.setProperty('background', 'rgba(255, 255, 255, 0.95)', 'important');
                 
                 // Change ALL inner content boxes to light backgrounds
@@ -2321,6 +2345,29 @@
                     }
                 });
             });
+            
+            // Force rainbow backgrounds for Blayzion and Blayzia
+            forceRainbowBackgrounds();
+        }
+        
+        // Force rainbow backgrounds for Blayzion and Blayzia characters
+        function forceRainbowBackgrounds() {
+            console.log('Forcing rainbow backgrounds for premium characters');
+            
+            const blayzionCard = document.querySelector('.character-card.character-blayzion');
+            const blayziaCard = document.querySelector('.character-card.character-blayzia');
+            
+            if (blayzionCard) {
+                blayzionCard.style.setProperty('background', 'linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b)', 'important');
+                blayzionCard.style.setProperty('box-shadow', '0 0 30px rgba(255, 0, 110, 0.7)', 'important');
+                console.log('Applied rainbow background to Blayzion');
+            }
+            
+            if (blayziaCard) {
+                blayziaCard.style.setProperty('background', 'linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b)', 'important');
+                blayziaCard.style.setProperty('box-shadow', '0 0 30px rgba(255, 0, 110, 0.7)', 'important');
+                console.log('Applied rainbow background to Blayzia');
+            }
         }
 
         // Load saved theme from localStorage
