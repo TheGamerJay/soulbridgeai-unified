@@ -29,7 +29,7 @@ ENV PYTHONPATH=/app/backend:$PYTHONPATH
 COPY --from=frontend-build /app/frontend/build ./frontend/build
 
 # Expose port
-EXPOSE $PORT
+EXPOSE 8080
 
 # Copy and set up start script
 COPY start.sh .
