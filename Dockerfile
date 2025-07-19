@@ -7,20 +7,16 @@ COPY frontend/ ./
 RUN npm run build
 
 # Use Python for backend
-FROM python:3.9-slim
+FROM python:3.9-alpine
 WORKDIR /app
 
-# Install system dependencies with timeout settings
-RUN apt-get update --fix-missing && \
-    apt-get install -y --no-install-recommends \
-    gcc \
-    build-essential \
-    && apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+# Install minimal system dependencies for Python packages
+RUN apk add --no-cache gcc musl-dev linux-headers
 
 # Copy Python requirements and install with optimizations
 COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir --only-binary=all --timeout=1000 -r requirements.txt || \
     pip install --no-cache-dir --timeout=1000 -r requirements.txt
 
 # Copy backend code
