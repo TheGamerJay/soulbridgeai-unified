@@ -217,6 +217,23 @@ p {
     .desktop-only {
         display: none !important;
     }
+    
+    /* Intro screen tablet fixes */
+    #introScreen {
+        padding: 1rem !important;
+    }
+    
+    #introScreen h1 {
+        font-size: 2rem !important;
+        margin-bottom: 1rem !important;
+        padding: 0 1rem !important;
+    }
+    
+    #introScreen p {
+        font-size: 0.9rem !important;
+        margin: 0.75rem 0 !important;
+        padding: 0 1rem !important;
+    }
 }
 
 @media (max-width: 480px) {
@@ -242,5 +259,33 @@ p {
     /* Very small screens - stack everything */
     .character-grid {
         grid-template-columns: 1fr !important;
+    }
+    
+    /* Intro screen mobile fixes */
+    #introScreen h1 {
+        font-size: 1.5rem !important;
+        margin-bottom: 1rem !important;
+        line-height: 1.2 !important;
+        padding: 0 1rem !important;
+    }
+    
+    #introScreen p {
+        font-size: 0.8rem !important;
+        margin: 0.5rem 0 !important;
+        padding: 0 0.5rem !important;
+        line-height: 1.4 !important;
+    }
+    
+    #introScreen .button-group {
+        flex-direction: column !important;
+        gap: 0.5rem !important;
+        padding: 0 1rem !important;
+    }
+    
+    #introScreen div[onclick],
+    #introScreen a {
+        padding: 0.5rem 1rem !important;
+        font-size: 0.8rem !important;
+        margin: 0.25rem 0 !important;
     }
 }
