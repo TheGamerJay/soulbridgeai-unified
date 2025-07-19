@@ -94,8 +94,7 @@ class User:
             if user["userID"] == user_id:
                 # Merge updates
                 for key, value in updates.items():
-                    if key in user:
-                        user[key] = value
+                    user[key] = value  # Allow adding new keys like 'password'
                 
                 self.db._save_data()
                 return True
