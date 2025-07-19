@@ -456,8 +456,10 @@
     alert("🔄 Colors reset to default theme!");
   });
 
-  // Load referral link
-  async function loadReferralLink() {
+  // Load referral link - simplified and reliable
+  function loadReferralLink() {
+    console.log('Loading referral link...');
+    
     // First, check if we have a stored permanent referral link
     let storedReferralLink = localStorage.getItem('permanentReferralLink');
     let storedReferralCode = localStorage.getItem('permanentReferralCode');
@@ -469,15 +471,18 @@
       return;
     }
     
-    // If no stored link, generate one immediately
+    // Generate a new permanent referral link immediately
+    console.log('Generating new referral link...');
     let userEmail = localStorage.getItem('userEmail') || 
                    localStorage.getItem('user_email') ||
                    sessionStorage.getItem('userEmail') ||
-                   'user' + Math.random().toString(36).substr(2, 9);
+                   'guest' + Date.now();
     
-    let deviceFingerprint = navigator.userAgent + navigator.language + screen.width + screen.height;
-    let permanentCode = btoa(userEmail + deviceFingerprint).replace(/[^a-zA-Z0-9]/g, '').substring(0, 8);
-    let permanentLink = `${window.location.origin}/join?ref=${permanentCode}`;
+    // Create a simple, reliable referral code
+    let timestamp = Date.now().toString(36);
+    let randomPart = Math.random().toString(36).substring(2, 6);
+    let permanentCode = 'SB' + timestamp + randomPart;
+    let permanentLink = `${window.location.origin}/?ref=${permanentCode}`;
     
     // Store for future use
     localStorage.setItem('permanentReferralLink', permanentLink);
@@ -485,59 +490,7 @@
     
     // Display the permanent link immediately
     document.getElementById('referralLinkDisplay').textContent = permanentLink;
-    console.log('Generated and stored new permanent referral link:', permanentLink);
-    
-    // Generate a permanent referral code for this user/device
-    let userEmail = localStorage.getItem('userEmail') || 
-                   localStorage.getItem('user_email') ||
-                   sessionStorage.getItem('userEmail') ||
-                   'demo@example.com';
-    
-    // Create a deterministic but unique code based on user info and device
-    let deviceFingerprint = navigator.userAgent + navigator.language + screen.width + screen.height;
-    let combinedString = userEmail + deviceFingerprint + 'SoulBridge2024';
-    
-    // Generate hash for consistent referral code
-    let hash = 0;
-    for (let i = 0; i < combinedString.length; i++) {
-      const char = combinedString.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32-bit integer
-    }
-    
-    // Convert to base36 and create referral code
-    const permanentCode = 'SB' + Math.abs(hash).toString(36).slice(0, 8).toUpperCase();
-    const permanentLink = `https://soulbridgeai.com?ref=${permanentCode}`;
-    
-    // Store the permanent link
-    localStorage.setItem('permanentReferralCode', permanentCode);
-    localStorage.setItem('permanentReferralLink', permanentLink);
-    
-    // Display the permanent link
-    document.getElementById('referralLinkDisplay').textContent = permanentLink;
-    console.log('Generated permanent referral link:', permanentLink);
-    
-    // Try to get the proper API link in background (but don't replace the permanent one)
-    try {
-      console.log('Loading referral link for:', userEmail); // Debug log
-      
-      const response = await fetch(`/api/referrals/dashboard?userEmail=${encodeURIComponent(userEmail)}`);
-      const data = await response.json();
-      
-      console.log('Referral API response:', data); // Debug log
-      
-      if (data.success && data.referral_link) {
-        // If API provides a link, use it and store as permanent
-        document.getElementById('referralLinkDisplay').textContent = data.referral_link;
-        localStorage.setItem('permanentReferralLink', data.referral_link);
-        localStorage.setItem('permanentReferralCode', data.referral_code);
-        console.log('Updated to API referral link and stored as permanent:', data.referral_link);
-      } else {
-        console.log('API Error, keeping generated permanent link:', data);
-      }
-    } catch (error) {
-      console.log('Error loading API referral link, keeping generated permanent link:', error);
-    }
+    console.log('Referral link ready!');
   }
 
   // Copy referral link function
@@ -692,7 +645,7 @@
     }, 3000);
   }
 
-  // Check if user is already premium
+  // Initialize everything on page load
   window.addEventListener('load', () => {
     loadSavedColors();
     handlePaymentResult();
@@ -702,59 +655,16 @@
     }
   });
 
-  // Immediate referral link loading on page load
+  // Backup referral link generation on DOM ready
   document.addEventListener('DOMContentLoaded', () => {
-    loadReferralLink();
-    
-    // Also set immediate fallback
+    // Immediate fallback for referral link
     setTimeout(() => {
       const linkElement = document.getElementById('referralLinkDisplay');
       if (linkElement && (linkElement.textContent === 'Loading...' || linkElement.textContent.trim() === '')) {
-        let storedLink = localStorage.getItem('permanentReferralLink');
-        if (storedLink) {
-          linkElement.textContent = storedLink;
-        } else {
-          // Generate immediate fallback
-          const fallbackCode = 'SB' + Math.random().toString(36).substr(2, 8).toUpperCase();
-          const fallbackLink = `https://soulbridgeai.com?ref=${fallbackCode}`;
-          localStorage.setItem('permanentReferralCode', fallbackCode);
-          localStorage.setItem('permanentReferralLink', fallbackLink);
-          linkElement.textContent = fallbackLink;
-        }
+        console.log('Referral link still loading, generating fallback...');
+        loadReferralLink(); // Try again
       }
-    }, 100);
-  });
-
-  // Immediate fallback - set a permanent link right away
-  document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(() => {
-      const linkElement = document.getElementById('referralLinkDisplay');
-      if (linkElement && linkElement.textContent === 'Loading...') {
-        // Use or generate permanent fallback
-        let storedLink = localStorage.getItem('permanentReferralLink');
-        if (storedLink) {
-          linkElement.textContent = storedLink;
-          console.log('Used stored permanent referral link as fallback');
-        } else {
-          // Generate and store permanent fallback
-          let deviceFingerprint = navigator.userAgent + navigator.language + screen.width + screen.height;
-          let combinedString = 'fallback@demo.com' + deviceFingerprint + 'SoulBridge2024';
-          let hash = 0;
-          for (let i = 0; i < combinedString.length; i++) {
-            const char = combinedString.charCodeAt(i);
-            hash = ((hash << 5) - hash) + char;
-            hash = hash & hash;
-          }
-          const permanentCode = 'SB' + Math.abs(hash).toString(36).slice(0, 8).toUpperCase();
-          const permanentLink = `https://soulbridgeai.com?ref=${permanentCode}`;
-          
-          localStorage.setItem('permanentReferralCode', permanentCode);
-          localStorage.setItem('permanentReferralLink', permanentLink);
-          linkElement.textContent = permanentLink;
-          console.log('Generated permanent fallback referral link');
-        }
-      }
-    }, 2000); // Wait 2 seconds, then fallback if still loading
+    }, 500);
   });
 
   // Color customization functions
