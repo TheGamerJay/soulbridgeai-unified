@@ -559,10 +559,26 @@ def auth_login():
     DEV_EMAIL = "GamerJay@gmail.com"
     DEV_PASSWORD = "Yariel13"
     
-    print(f"Expected email: '{DEV_EMAIL}' | Received: '{email}' | Match: {email == DEV_EMAIL}")
-    print(f"Expected password: '{DEV_PASSWORD}' | Received: '{password}' | Match: {password == DEV_PASSWORD}")
+    print(f"Login attempt for email: '{email}'")
     
-    if email == DEV_EMAIL and password == DEV_PASSWORD:
+    # Check if this is the developer account
+    is_developer = (email == DEV_EMAIL and password == DEV_PASSWORD)
+    
+    # Check if this is a registered user
+    user_from_db = None
+    if not is_developer:
+        try:
+            user_from_db = db.users.get_user_by_email(email)
+            if user_from_db and user_from_db.get("password") == password:
+                print(f"Found registered user: {user_from_db['userID']}")
+            else:
+                print(f"User not found or password mismatch for: {email}")
+                user_from_db = None
+        except Exception as e:
+            print(f"Database lookup error: {e}")
+            user_from_db = None
+    
+    if is_developer or user_from_db:
         # Verify subscription status on every login
         subscription_data = verify_user_subscription(email)
         print(f"Subscription verification result: {subscription_data}")
@@ -597,9 +613,13 @@ def auth_login():
             flash("Welcome back, Galaxy member! You have access to exclusive companions.", "success")
         
         # DEVELOPER ACCESS: Enable admin mode for dev account
-        if email == DEV_EMAIL:
+        if is_developer:
             session["dev_mode"] = True
             flash("Developer mode enabled - All premium companions unlocked.", "success")
+        else:
+            # Regular user login
+            session["dev_mode"] = False
+            flash("Welcome to SoulBridge AI!", "success")
         
         # Redirect to chat with intro flag to ensure intro screen shows first
         print(f"Login successful, redirecting to chat")
@@ -925,9 +945,29 @@ def auth_register_post():
         flash("Password must be at least 6 characters long.", "error")
         return redirect(url_for("auth_register"))
     
-    # For development, just accept any new registration
-    flash("Registration successful! You can now log in with your credentials.", "success")
-    return redirect(url_for("login"))
+    try:
+        # Create user in database
+        user_data = db.users.create_user(email, companion="Blayzo")
+        print(f"User created successfully: {user_data}")
+        
+        # Store password in session temporarily for login (in production, use proper password hashing)
+        # For now, we'll store it in the user data 
+        db.users.update_user(user_data["userID"], {"password": password})
+        
+        flash("Registration successful! You can now log in with your credentials.", "success")
+        return redirect(url_for("login"))
+        
+    except ValueError as e:
+        if "already exists" in str(e):
+            flash("An account with this email already exists. Please try logging in.", "error")
+        else:
+            flash("Registration failed. Please try again.", "error")
+        return redirect(url_for("auth_register"))
+        
+    except Exception as e:
+        print(f"Registration error: {e}")
+        flash("Registration failed. Please try again.", "error")
+        return redirect(url_for("auth_register"))
 
 @app.route("/auth/forgot-password")
 def forgot_password_form():
