@@ -490,12 +490,18 @@ def chat():
     user_email = session.get("user_email")
     login_timestamp = session.get("login_timestamp")
     
-    # ULTRA-AGGRESSIVE SESSION CLEARING: Always clear sessions for maximum security
-    session_expired = True
-    print("ULTRA-SECURITY: Always clearing sessions to force fresh authentication every visit")
-    
-    # Clear all session data immediately
-    session.clear()
+    # Check if session is expired (allow 24 hours)
+    session_expired = False
+    if login_timestamp:
+        from datetime import datetime, timedelta
+        try:
+            login_time = datetime.fromisoformat(login_timestamp)
+            session_expired = datetime.now() - login_time > timedelta(hours=24)
+            if session_expired:
+                print("Session expired after 24 hours")
+        except:
+            session_expired = True
+            print("Invalid login timestamp, session expired")
     
     # SECURITY: Only force re-authentication if session is invalid or expired
     if not user_authenticated or session_expired or not user_email:
