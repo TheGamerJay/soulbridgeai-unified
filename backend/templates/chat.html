@@ -3210,6 +3210,31 @@
             const premiumCharacters = ['Blayzion', 'Blayzia', 'Violet', 'Crimson'];
             const selectedCharacter = localStorage.getItem('selectedCharacter');
             
+            // Check for admin/developer mode
+            const isAdminMode = localStorage.getItem('adminMode') === 'true';
+            const adminBypass = localStorage.getItem('adminBypass') === 'true';
+            const isDeveloper = {{ 'true' if session.get('dev_mode') else 'false' }};
+            
+            console.log('=== SUBSCRIPTION RESTRICTIONS CHECK ===');
+            console.log('subscriptionStatus:', subscriptionStatus);
+            console.log('isAdminMode:', isAdminMode);
+            console.log('adminBypass:', adminBypass);
+            console.log('isDeveloper:', isDeveloper);
+            
+            // Admin/Developer bypass - skip all restrictions
+            if ((isAdminMode && adminBypass) || isDeveloper) {
+                console.log('Admin/Developer mode detected - bypassing subscription restrictions');
+                
+                // Ensure all premium characters are unlocked and visible
+                const premiumCards = document.querySelectorAll('.premium-character');
+                premiumCards.forEach(card => {
+                    card.style.opacity = '1';
+                    card.style.pointerEvents = 'auto';
+                    card.style.filter = 'none';
+                });
+                return;
+            }
+            
             // If user has a premium character selected but no longer has premium access
             if (selectedCharacter && premiumCharacters.includes(selectedCharacter) && subscriptionStatus === 'free') {
                 console.warn('Premium character access revoked, switching to free character');
