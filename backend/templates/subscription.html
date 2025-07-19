@@ -469,6 +469,24 @@
       return;
     }
     
+    // If no stored link, generate one immediately
+    let userEmail = localStorage.getItem('userEmail') || 
+                   localStorage.getItem('user_email') ||
+                   sessionStorage.getItem('userEmail') ||
+                   'user' + Math.random().toString(36).substr(2, 9);
+    
+    let deviceFingerprint = navigator.userAgent + navigator.language + screen.width + screen.height;
+    let permanentCode = btoa(userEmail + deviceFingerprint).replace(/[^a-zA-Z0-9]/g, '').substring(0, 8);
+    let permanentLink = `${window.location.origin}/join?ref=${permanentCode}`;
+    
+    // Store for future use
+    localStorage.setItem('permanentReferralLink', permanentLink);
+    localStorage.setItem('permanentReferralCode', permanentCode);
+    
+    // Display the permanent link immediately
+    document.getElementById('referralLinkDisplay').textContent = permanentLink;
+    console.log('Generated and stored new permanent referral link:', permanentLink);
+    
     // Generate a permanent referral code for this user/device
     let userEmail = localStorage.getItem('userEmail') || 
                    localStorage.getItem('user_email') ||
@@ -533,26 +551,32 @@
       return;
     }
     
-    const link = linkElement.textContent.trim();
+    let link = linkElement.textContent.trim();
     console.log('Current link text:', link);
     
+    // If no proper link is loaded, generate a fallback link immediately
     if (!link || link === 'Loading...' || link === 'Error loading referral link') {
-      console.warn('Link not ready, trying to reload');
-      showMessage('⏳ Link loading, please try again in a moment...', 'warning');
+      console.warn('Link not ready, generating fallback');
       
-      // Try to force reload the link
-      loadReferralLink();
+      // Generate immediate fallback link
+      let userEmail = localStorage.getItem('userEmail') || 
+                     localStorage.getItem('user_email') ||
+                     sessionStorage.getItem('userEmail') ||
+                     'user' + Math.random().toString(36).substr(2, 9);
       
-      // Retry after 2 seconds
-      setTimeout(() => {
-        const retryLink = linkElement.textContent.trim();
-        if (retryLink && retryLink !== 'Loading...' && retryLink !== 'Error loading referral link') {
-          copyToClipboard(retryLink);
-        } else {
-          showMessage('❌ Unable to load referral link', 'error');
-        }
-      }, 2000);
-      return;
+      let deviceFingerprint = navigator.userAgent + navigator.language + screen.width + screen.height;
+      let permanentCode = btoa(userEmail + deviceFingerprint).replace(/[^a-zA-Z0-9]/g, '').substring(0, 8);
+      let permanentLink = `${window.location.origin}/join?ref=${permanentCode}`;
+      
+      // Update the display and use this link
+      linkElement.textContent = permanentLink;
+      link = permanentLink;
+      
+      // Store for future use
+      localStorage.setItem('permanentReferralLink', permanentLink);
+      localStorage.setItem('permanentReferralCode', permanentCode);
+      
+      showMessage('✅ Generated referral link!', 'success');
     }
     
     copyToClipboard(link);
@@ -610,27 +634,27 @@
   // Open referral dashboard with error handling
   function openReferralDashboard() {
     console.log('Opening referral dashboard');
+    showMessage('🌟 Opening referral dashboard...', 'info');
     
     try {
       // Try to open in new tab first
       const newWindow = window.open('/referrals', '_blank');
       
-      // Check if popup was blocked
-      if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
-        console.warn('Popup blocked, trying same window');
-        showMessage('⚠️ Popup blocked - opening in same window...', 'warning');
-        
-        // Fallback: open in same window
-        setTimeout(() => {
+      // Check if popup was blocked after a short delay
+      setTimeout(() => {
+        if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
+          console.warn('Popup blocked, redirecting in same window');
+          showMessage('⚠️ Popup blocked - redirecting...', 'warning');
           window.location.href = '/referrals';
-        }, 1000);
-      } else {
-        console.log('Dashboard opened in new tab');
-        showMessage('✅ Opening referral dashboard...', 'success');
-      }
+        } else {
+          console.log('Dashboard opened in new tab successfully');
+          showMessage('✅ Dashboard opened in new tab!', 'success');
+        }
+      }, 100);
+      
     } catch (error) {
       console.error('Error opening dashboard:', error);
-      showMessage('❌ Error opening dashboard - trying fallback...', 'error');
+      showMessage('❌ Error opening dashboard - redirecting...', 'error');
       
       // Final fallback
       setTimeout(() => {
