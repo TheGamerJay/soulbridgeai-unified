@@ -1,5 +1,6 @@
 import os
 import logging
+from typing import Dict
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash, make_response
 # Load environment variables from .env file (optional in production)
 try:
@@ -24,32 +25,8 @@ import stripe
 from referral_system import referral_manager
 
 # -------------------------------------------------
-# Security Functions
+# Security Functions (defined after db initialization)
 # -------------------------------------------------
-def verify_user_subscription(email: str) -> Dict:
-    """Verify user subscription status via database lookup"""
-    try:
-        user = db.users.get_user_by_email(email)
-        if not user:
-            return {"valid": False, "status": "free", "error": "User not found"}
-        
-        subscription_status = user.get("subscriptionStatus", "free")
-        
-        # For additional security, you could also verify with Stripe here
-        # stripe_customer_id = user.get("stripeCustomerID")
-        # if stripe_customer_id and subscription_status != "free":
-        #     # Verify with Stripe that subscription is still active
-        #     pass
-        
-        return {
-            "valid": True,
-            "status": subscription_status,
-            "user_id": user.get("id"),
-            "companion": user.get("companion", "Blayzo")
-        }
-    except Exception as e:
-        logging.error(f"Subscription verification error: {e}")
-        return {"valid": False, "status": "free", "error": str(e)}
 
 # -------------------------------------------------
 # Basic setup
@@ -146,6 +123,35 @@ def init_database():
         class FallbackDB:
             def get_stats(self): return {"users": 0, "sessions": 0}
         db = FallbackDB()
+
+def verify_user_subscription(email: str) -> Dict:
+    """Verify user subscription status via database lookup"""
+    try:
+        # Ensure database is initialized
+        if db is None:
+            init_database()
+            
+        user = db.users.get_user_by_email(email)
+        if not user:
+            return {"valid": False, "status": "free", "error": "User not found"}
+        
+        subscription_status = user.get("subscriptionStatus", "free")
+        
+        # For additional security, you could also verify with Stripe here
+        # stripe_customer_id = user.get("stripeCustomerID")
+        # if stripe_customer_id and subscription_status != "free":
+        #     # Verify with Stripe that subscription is still active
+        #     pass
+        
+        return {
+            "valid": True,
+            "status": subscription_status,
+            "user_id": user.get("id"),
+            "companion": user.get("companion", "Blayzo")
+        }
+    except Exception as e:
+        logging.error(f"Subscription verification error: {e}")
+        return {"valid": False, "status": "free", "error": str(e)}
 
 # Initialize Stripe (for development, we'll add a fallback)
 stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
