@@ -3,6 +3,7 @@ import logging
 import uuid
 from typing import Dict
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash, make_response
+from email_service import EmailService
 # Load environment variables from .env file (optional in production)
 try:
     from dotenv import load_dotenv
@@ -111,8 +112,9 @@ def init_openai():
     else:
         logging.warning("OPENAI_API_KEY not found - AI features will be disabled")
 
-# Initialize SoulBridge Database (deferred)
+# Initialize SoulBridge Database and Email Service
 db = None
+email_service = EmailService()
 def init_database():
     global db
     try:
@@ -954,7 +956,25 @@ def auth_register_post():
         # For now, we'll store it in the user data 
         db.users.update_user(user_data["userID"], {"password": password})
         
-        flash("Registration successful! You can now log in with your credentials.", "success")
+        # Send welcome email
+        try:
+            # Get the base URL for the email
+            base_url = request.url_root.rstrip('/')
+            
+            # Send welcome email
+            email_result = email_service.send_welcome_email(email, email.split('@')[0])
+            
+            if email_result.get('success'):
+                print(f"Welcome email sent successfully to {email}")
+                flash("Registration successful! Check your email for a welcome message, then log in with your credentials.", "success")
+            else:
+                print(f"Failed to send welcome email: {email_result.get('error')}")
+                flash("Registration successful! You can now log in with your credentials. (Note: Welcome email could not be sent)", "success")
+                
+        except Exception as e:
+            print(f"Email service error: {e}")
+            flash("Registration successful! You can now log in with your credentials. (Note: Welcome email could not be sent)", "success")
+        
         return redirect(url_for("login"))
         
     except ValueError as e:
