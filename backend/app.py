@@ -1,5 +1,6 @@
 import os
 import logging
+import uuid
 from typing import Dict
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash, make_response
 # Load environment variables from .env file (optional in production)
@@ -487,10 +488,30 @@ def chat():
     user_email = session.get("user_email")
     login_timestamp = session.get("login_timestamp")
     
-    # Check session timeout - Only expire on browser close, not time-based
+    # AGGRESSIVE SESSION VALIDATION: Check if session is fresh from login
     session_expired = False
-    # Note: session.permanent = False ensures session dies when browser closes
-    # No time-based expiration during active use
+    session_browser_id = session.get("browser_session_id")
+    last_activity = session.get("last_activity")
+    
+    # If no browser session ID or last activity, session is invalid
+    if not session_browser_id or not last_activity:
+        print("Session missing browser ID or activity - forcing re-auth")
+        session_expired = True
+    else:
+        # Check if session is stale (more than 5 minutes of inactivity)
+        try:
+            last_time = datetime.fromisoformat(last_activity)
+            current_time = datetime.now()
+            inactive_seconds = (current_time - last_time).total_seconds()
+            if inactive_seconds > 300:  # 5 minutes
+                print(f"Session stale after {inactive_seconds} seconds - forcing re-auth")
+                session_expired = True
+            else:
+                # Update last activity
+                session["last_activity"] = current_time.isoformat()
+        except Exception as e:
+            print(f"Error checking session activity: {e}")
+            session_expired = True
     
     # SECURITY: Only force re-authentication if session is invalid or expired
     if not user_authenticated or session_expired or not user_email:
@@ -569,14 +590,18 @@ def auth_login():
             flash("Account verification failed. Please contact support.", "error")
             return redirect(url_for("login"))
         
-        # Set session with subscription info - Session expires ONLY when browser/tab closes
+        # Set session with subscription info - AGGRESSIVE session tracking
         session.clear()  # Clear any existing session data first
+        current_time = datetime.now()
+        
         session["user_authenticated"] = True
         session["user_email"] = email
-        session["login_timestamp"] = datetime.now().isoformat()
+        session["login_timestamp"] = current_time.isoformat()
         session["subscription_status"] = subscription_data["status"]
         session["user_id"] = subscription_data.get("user_id")
-        session.permanent = False  # Session dies when browser closes - NO time expiration
+        session["browser_session_id"] = str(uuid.uuid4())  # Unique session identifier
+        session["last_activity"] = current_time.isoformat()  # Track activity
+        session.permanent = False  # Session dies when browser closes
         
         print(f"Login successful with subscription status: {subscription_data['status']}")
         print(f"Session set: {dict(session)}")
