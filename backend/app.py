@@ -488,30 +488,12 @@ def chat():
     user_email = session.get("user_email")
     login_timestamp = session.get("login_timestamp")
     
-    # AGGRESSIVE SESSION VALIDATION: Check if session is fresh from login
-    session_expired = False
-    session_browser_id = session.get("browser_session_id")
-    last_activity = session.get("last_activity")
+    # ULTRA-AGGRESSIVE SESSION CLEARING: Always clear sessions for maximum security
+    session_expired = True
+    print("ULTRA-SECURITY: Always clearing sessions to force fresh authentication every visit")
     
-    # If no browser session ID or last activity, session is invalid
-    if not session_browser_id or not last_activity:
-        print("Session missing browser ID or activity - forcing re-auth")
-        session_expired = True
-    else:
-        # Check if session is stale (more than 5 minutes of inactivity)
-        try:
-            last_time = datetime.fromisoformat(last_activity)
-            current_time = datetime.now()
-            inactive_seconds = (current_time - last_time).total_seconds()
-            if inactive_seconds > 300:  # 5 minutes
-                print(f"Session stale after {inactive_seconds} seconds - forcing re-auth")
-                session_expired = True
-            else:
-                # Update last activity
-                session["last_activity"] = current_time.isoformat()
-        except Exception as e:
-            print(f"Error checking session activity: {e}")
-            session_expired = True
+    # Clear all session data immediately
+    session.clear()
     
     # SECURITY: Only force re-authentication if session is invalid or expired
     if not user_authenticated or session_expired or not user_email:
