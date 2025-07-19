@@ -29,7 +29,7 @@ ENV PYTHONPATH=/app/backend:$PYTHONPATH
 COPY --from=frontend-build /app/frontend/build ./frontend/build
 
 # Copy Google verification file to build directory
-COPY googlea4d68d68f81c1843.html ./frontend/build/
+COPY frontend/public/googlea4d68d68f81c1843.html ./frontend/build/
 
 # Expose port
 EXPOSE 8080
