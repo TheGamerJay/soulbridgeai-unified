@@ -501,20 +501,29 @@ def chat():
             print(f"Error checking session timestamp: {e}")
             session_expired = True
     
-    # SECURITY: Always force re-authentication to verify subscription status
-    # This prevents users from accessing the app with expired subscriptions
-    # by staying logged in
-    print("Security check: Forcing re-authentication to verify subscription status")
-    print("This prevents bypassing subscription checks by staying logged in")
+    # SECURITY: Only force re-authentication if session is invalid or expired
+    if not user_authenticated or session_expired or not user_email:
+        print("Security check: Session invalid or expired, forcing re-authentication")
+        print("This prevents bypassing subscription checks by staying logged in")
+        
+        # Clear session and redirect to login for fresh authentication
+        session.clear()
+        
+        response = make_response(redirect(url_for("login")))
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+        return response
     
-    # Clear session and redirect to login for fresh authentication
-    session.clear()
+    # If session is valid, verify subscription status periodically
+    print("Session is valid, checking subscription status")
+    subscription_data = verify_user_subscription(user_email)
     
-    response = make_response(redirect(url_for("login")))
-    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
-    response.headers['Pragma'] = 'no-cache'
-    response.headers['Expires'] = '0'
-    return response
+    if not subscription_data["valid"]:
+        print("Subscription verification failed, forcing logout")
+        session.clear()
+        flash("Your account access has expired. Please contact support.", "error")
+        return redirect(url_for("login"))
     
     # Start a fresh message list if it doesn't exist
     if "messages" not in session:
