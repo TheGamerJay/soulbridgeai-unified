@@ -1384,9 +1384,25 @@
             // Check if user already purchased this premium character
             var hasPurchased = localStorage.getItem('purchased' + characterName);
             
-            // Check for admin bypass
+            // Check for admin bypass or developer mode
             var isAdminMode = localStorage.getItem('adminMode') === 'true';
             var adminBypass = localStorage.getItem('adminBypass') === 'true';
+            var isDeveloper = {{ 'true' if session.get('dev_mode') else 'false' }};
+            
+            // Auto-enable admin mode for developer
+            if (isDeveloper) {
+                console.log('Developer detected - enabling admin mode');
+                localStorage.setItem('adminMode', 'true');
+                localStorage.setItem('adminBypass', 'true');
+                isAdminMode = true;
+                adminBypass = true;
+                
+                // Unlock all premium characters for developer
+                var premiumChars = ['Blayzion', 'Blayzia', 'Violet', 'Crimson'];
+                premiumChars.forEach(char => {
+                    localStorage.setItem('purchased' + char, 'true');
+                });
+            }
             
             console.log('=== ADMIN CHECK ===');
             console.log('isAdminMode:', isAdminMode);
@@ -1443,8 +1459,18 @@
             if (!firstPickMade) {
                 console.log('First pick flow - checking if premium and not purchased');
                 if (isPremium && !hasPurchased && !isReferralCompanion) {
-                    console.log('Showing premium purchase dialog');
-                    confirmChoice = confirm('🌟 PREMIUM CHARACTER 🌟\n\n' + characterName + ' is a premium companion with advanced capabilities!\n\nOne-time purchase: $5.00\n\nWould you like to unlock ' + characterName + '?');
+                    console.log('Premium character selected - checking subscription requirements');
+                    
+                    // For non-admin users, redirect to subscription page
+                    if (!isAdminMode || !adminBypass) {
+                        alert('🌟 PREMIUM CHARACTER 🌟\n\n' + characterName + ' is a premium companion with advanced capabilities!\n\nTo unlock premium companions, you need a SoulBridge AI Plus subscription.\n\nRedirecting you to our subscription page...');
+                        window.location.href = '/subscription';
+                        return;
+                    }
+                    
+                    // Admin users can proceed with direct unlock
+                    console.log('Admin user - allowing direct premium access');
+                    confirmChoice = true;
                     if (confirmChoice) {
                         // Set flag during purchase process
                         localStorage.setItem('showingPurchaseAlert', 'true');
@@ -1546,7 +1572,18 @@
                 }
             } else if (currentCharacter && currentCharacter !== characterName) {
                 if (isPremium && !hasPurchased && !isReferralCompanion) {
-                    confirmChoice = confirm('🌟 PREMIUM CHARACTER 🌟\n\n' + characterName + ' is a premium companion with advanced capabilities!\n\nOne-time purchase: $5.00\n\nWould you like to unlock ' + characterName + '?');
+                    console.log('Premium character selected - checking subscription requirements (switching flow)');
+                    
+                    // For non-admin users, redirect to subscription page
+                    if (!isAdminMode || !adminBypass) {
+                        alert('🌟 PREMIUM CHARACTER 🌟\n\n' + characterName + ' is a premium companion with advanced capabilities!\n\nTo unlock premium companions, you need a SoulBridge AI Plus subscription.\n\nRedirecting you to our subscription page...');
+                        window.location.href = '/subscription';
+                        return;
+                    }
+                    
+                    // Admin users can proceed with direct unlock
+                    console.log('Admin user - allowing direct premium access (switching)');
+                    confirmChoice = true;
                     if (confirmChoice) {
                         // Set flag during purchase process
                         localStorage.setItem('showingPurchaseAlert', 'true');
@@ -1923,6 +1960,20 @@
             
             console.log('LocalStorage currentScreen:', currentScreen);
             console.log('LocalStorage selectedCharacter:', selectedCharacter);
+            
+            // Check for developer mode and auto-enable admin
+            var isDeveloper = {{ 'true' if session.get('dev_mode') else 'false' }};
+            if (isDeveloper) {
+                console.log('Developer detected on page load - enabling admin mode');
+                localStorage.setItem('adminMode', 'true');
+                localStorage.setItem('adminBypass', 'true');
+                
+                // Unlock all premium characters for developer
+                var premiumChars = ['Blayzion', 'Blayzia', 'Violet', 'Crimson'];
+                premiumChars.forEach(char => {
+                    localStorage.setItem('purchased' + char, 'true');
+                });
+            }
             
             // Show admin mode indicator if in admin mode
             var isAdminMode = localStorage.getItem('adminMode') === 'true';

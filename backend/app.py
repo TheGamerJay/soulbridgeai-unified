@@ -614,6 +614,11 @@ def auth_login():
         elif subscription_data["status"] == "galaxy":
             flash("Welcome back, Galaxy member! You have access to exclusive companions.", "success")
         
+        # DEVELOPER ACCESS: Enable admin mode for dev account
+        if email == DEV_EMAIL:
+            session["dev_mode"] = True
+            flash("Developer mode enabled - All premium companions unlocked.", "success")
+        
         # Redirect to chat with intro flag to ensure intro screen shows first
         print(f"Login successful, redirecting to chat")
         return redirect(url_for("chat", show_intro="true"))
