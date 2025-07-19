@@ -405,6 +405,18 @@
 
         <div id="loading" class="loading">
             <div>🔄 Loading your referral dashboard...</div>
+            <div style="margin-top: 2rem;">
+                <button onclick="showSimpleReferralInfo()" style="
+                    background: linear-gradient(135deg, #22d3ee, #0891b2);
+                    color: #000;
+                    border: none;
+                    padding: 1rem 2rem;
+                    border-radius: 8px;
+                    font-weight: bold;
+                    cursor: pointer;
+                    font-size: 1rem;
+                ">Show Simple Referral Info</button>
+            </div>
         </div>
 
         <div id="dashboard" style="display: none;">
@@ -699,8 +711,34 @@
             }, 5000);
         }
 
-        // Load dashboard on page load
-        document.addEventListener('DOMContentLoaded', loadReferralDashboard);
+        // Simple fallback function
+        function showSimpleReferralInfo() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
+            
+            // Set simple default values
+            document.getElementById('referralCount').textContent = '0';
+            document.getElementById('progressText').textContent = '0 / 5';
+            document.getElementById('progressFill').style.width = '0%';
+            document.getElementById('referralLink').textContent = window.location.origin + '/register?ref=' + btoa("{{ session.get('user_email', 'user') }}").substring(0, 8);
+            document.getElementById('nextRewardText').textContent = '2 referrals needed for Blayzike companion';
+            
+            // Show simple message
+            showMessage('Referral system temporarily simplified. Share your link to refer friends!', 'info');
+        }
+
+        // Load dashboard on page load, with fallback timeout
+        document.addEventListener('DOMContentLoaded', function() {
+            loadReferralDashboard();
+            
+            // Auto-fallback after 10 seconds if still loading
+            setTimeout(function() {
+                if (document.getElementById('loading').style.display !== 'none') {
+                    console.log('Referral dashboard loading timeout - showing fallback');
+                    showSimpleReferralInfo();
+                }
+            }, 10000);
+        });
     </script>
 </body>
 </html>
