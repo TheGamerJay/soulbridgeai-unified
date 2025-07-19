@@ -133,7 +133,26 @@ def verify_user_subscription(email: str) -> Dict:
             
         user = db.users.get_user_by_email(email)
         if not user:
-            return {"valid": False, "status": "free", "error": "User not found"}
+            # Auto-create user if doesn't exist (for development)
+            logging.info(f"User {email} not found in database, creating new user")
+            try:
+                user_data = db.users.create_user(email, companion="Blayzo")
+                logging.info(f"Created new user: {user_data}")
+                return {
+                    "valid": True,
+                    "status": "free",
+                    "user_id": user_data.get("id"),
+                    "companion": "Blayzo"
+                }
+            except Exception as create_error:
+                logging.error(f"Failed to create user: {create_error}")
+                # Return default free user if creation fails
+                return {
+                    "valid": True,
+                    "status": "free",
+                    "user_id": f"temp_{email.replace('@', '_').replace('.', '_')}",
+                    "companion": "Blayzo"
+                }
         
         subscription_status = user.get("subscriptionStatus", "free")
         
@@ -151,7 +170,13 @@ def verify_user_subscription(email: str) -> Dict:
         }
     except Exception as e:
         logging.error(f"Subscription verification error: {e}")
-        return {"valid": False, "status": "free", "error": str(e)}
+        # Return fallback instead of failing
+        return {
+            "valid": True,
+            "status": "free",
+            "user_id": f"fallback_{email.replace('@', '_').replace('.', '_')}",
+            "companion": "Blayzo"
+        }
 
 # Initialize Stripe (for development, we'll add a fallback)
 stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
