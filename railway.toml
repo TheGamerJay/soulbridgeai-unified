@@ -3,5 +3,10 @@ builder = "dockerfile"
 
 [deploy]
 startCommand = "./start.sh"
-healthcheckPath = "/health"
+healthcheckPath = "/"
 healthcheckTimeout = 300
+restartPolicyType = "on_failure"
+
+[env]
+PORT = "8080"
+PYTHONPATH = "/app/backend"

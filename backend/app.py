@@ -35,12 +35,9 @@ app = Flask(__name__,
     template_folder='templates')
 app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key")
 
-# Configure Stripe
-stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
-if stripe.api_key:
-    logging.info("Stripe configured successfully")
-else:
-    logging.warning("STRIPE_SECRET_KEY not found in environment variables")
+# Configure Stripe (DISABLED FOR DEVELOPMENT)
+stripe.api_key = None  # Disabled to prevent live payments
+logging.info("Stripe payments DISABLED for development/demo mode")
 
 # Session configuration
 app.config['SESSION_PERMANENT'] = False
