@@ -95,8 +95,33 @@ def init_openai():
     openai_api_key = os.environ.get("OPENAI_API_KEY")
     if openai_api_key:
         try:
-            openai_client = OpenAI(api_key=openai_api_key)
-            logging.info("OpenAI client initialized successfully")
+            # Try importing first to check for import issues
+            from openai import OpenAI as OpenAIClient
+            logging.info("OpenAI import successful, creating client...")
+            
+            # Create client with only required parameter
+            openai_client = OpenAIClient(api_key=openai_api_key)
+            logging.info("OpenAI client created, testing connection...")
+            
+            # Test the client with a simple call
+            models = openai_client.models.list()
+            logging.info(f"OpenAI client initialized successfully with {len(models.data)} models")
+            
+        except ImportError as e:
+            logging.error(f"OpenAI import failed: {e}")
+            openai_client = None
+        except TypeError as e:
+            logging.error(f"OpenAI initialization failed with TypeError: {e}")
+            logging.error("This usually indicates incompatible parameters being passed to OpenAI client")
+            # Try to show what parameters OpenAI.__init__ expects
+            try:
+                import inspect
+                from openai import OpenAI as OpenAIClient
+                sig = inspect.signature(OpenAIClient.__init__)
+                logging.error(f"OpenAI.__init__ signature: {sig}")
+            except:
+                pass
+            openai_client = None
         except Exception as e:
             logging.error(f"OpenAI initialization failed: {e}")
             openai_client = None
