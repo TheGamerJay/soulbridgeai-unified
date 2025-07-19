@@ -571,10 +571,18 @@ def auth_login():
     if not is_developer:
         try:
             user_from_db = db.users.get_user_by_email(email)
-            if user_from_db and user_from_db.get("password") == password:
-                print(f"Found registered user: {user_from_db['userID']}")
+            if user_from_db:
+                stored_password = user_from_db.get("password")
+                print(f"Found user {user_from_db['userID']} with stored password: '{stored_password}'")
+                print(f"Login attempt with password: '{password}'")
+                print(f"Passwords match: {stored_password == password}")
+                if stored_password == password:
+                    print(f"Login successful for registered user: {user_from_db['userID']}")
+                else:
+                    print(f"Password mismatch for: {email}")
+                    user_from_db = None
             else:
-                print(f"User not found or password mismatch for: {email}")
+                print(f"User not found for email: {email}")
                 user_from_db = None
         except Exception as e:
             print(f"Database lookup error: {e}")
@@ -955,6 +963,7 @@ def auth_register_post():
         # Store password in session temporarily for login (in production, use proper password hashing)
         # For now, we'll store it in the user data 
         db.users.update_user(user_data["userID"], {"password": password})
+        print(f"Password stored for user {user_data['userID']}: '{password}'")
         
         # Send welcome email
         try:
