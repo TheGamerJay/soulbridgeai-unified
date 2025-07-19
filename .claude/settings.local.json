@@ -32,7 +32,9 @@
       "Bash(do cp \"$file\" \"C:\\Users\\jaaye\\OneDrive\\Desktop\\soulbridgeai-unified\\frontend\\public\"\")",
       "Bash(done)",
       "Bash(tail:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(mv:*)",
+      "Bash(git rm:*)"
     ],
     "deny": []
   }
