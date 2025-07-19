@@ -1,0 +1,39 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(docker build:*)",
+      "Bash(where docker)",
+      "Bash(git add:*)",
+      "Bash(git push:*)",
+      "Bash(git commit:*)",
+      "Bash(del nul)",
+      "Bash(docker:*)",
+      "Bash(sc query:*)",
+      "Bash(sc start:*)",
+      "Bash(wsl.exe:*)",
+      "Bash(powershell:*)",
+      "Bash(timeout:*)",
+      "Bash(taskkill:*)",
+      "Bash(start \"\" \"C:\\Program Files\\Docker\\Docker\\Docker Desktop.exe\")",
+      "Bash(cmd //c \"start \"\"\"\" \"\"C:\\Program Files\\Docker\\Docker\\Docker Desktop.exe\"\"\")",
+      "Bash(wsl:*)",
+      "Bash(pip install:*)",
+      "Bash(npm install:*)",
+      "Bash(python:*)",
+      "Bash(npm start)",
+      "Bash(find:*)",
+      "Bash(copy:*)",
+      "Bash(cp:*)",
+      "Bash(mkdir:*)",
+      "Bash(pkill:*)",
+      "Bash(set PORT=3001)",
+      "Bash(curl:*)",
+      "Bash(for file in \"C:\\Users\\jaaye\\OneDrive\\Desktop\\soulbridgeai-unified\\backend\\static\\logos\"/*)",
+      "Bash(do cp \"$file\" \"C:\\Users\\jaaye\\OneDrive\\Desktop\\soulbridgeai-unified\\frontend\\public\"\")",
+      "Bash(done)",
+      "Bash(tail:*)",
+      "Bash(rm:*)"
+    ],
+    "deny": []
+  }
+}

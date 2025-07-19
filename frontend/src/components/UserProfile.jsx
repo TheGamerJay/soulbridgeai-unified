@@ -14,7 +14,7 @@ const UserProfile = () => {
 
   useEffect(() => {
     checkAuthentication();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const checkAuthentication = async () => {
     try {
