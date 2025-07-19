@@ -99,9 +99,28 @@ def init_openai():
             from openai import OpenAI as OpenAIClient
             logging.info("OpenAI import successful, creating client...")
             
-            # Create client with only required parameter
+            # Log environment variables that might affect OpenAI
+            proxy_vars = [var for var in os.environ.keys() if 'proxy' in var.lower()]
+            if proxy_vars:
+                logging.info(f"Found proxy environment variables: {proxy_vars}")
+                # Temporarily clear proxy environment variables for OpenAI client creation
+                original_env = {}
+                for var in proxy_vars:
+                    original_env[var] = os.environ.get(var)
+                    if var in os.environ:
+                        del os.environ[var]
+                        logging.info(f"Temporarily cleared {var}")
+            
+            # Create client with only the api_key parameter - no other parameters
+            logging.info("Creating OpenAI client with minimal parameters...")
             openai_client = OpenAIClient(api_key=openai_api_key)
-            logging.info("OpenAI client created, testing connection...")
+            logging.info("OpenAI client created successfully!")
+            
+            # Restore environment variables
+            if proxy_vars:
+                for var, value in original_env.items():
+                    if value is not None:
+                        os.environ[var] = value
             
             # Test the client with a simple call
             models = openai_client.models.list()
