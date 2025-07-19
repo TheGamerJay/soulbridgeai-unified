@@ -3543,6 +3543,32 @@
                 resetToBreathingAnimation(characterAvatar, character);
             }
         }
+        
+        // SECURITY: Clear session when user closes browser/tab
+        window.addEventListener('beforeunload', function(e) {
+            // Clear session data on browser close
+            fetch('/auth/logout', {
+                method: 'POST',
+                keepalive: true  // Ensure request completes even if browser is closing
+            }).catch(() => {
+                // Ignore errors - browser might be closing
+            });
+            
+            // Clear any local storage
+            localStorage.removeItem('selectedCharacter');
+            localStorage.removeItem('selectedLanguage');
+            localStorage.removeItem('themeMode');
+            
+            console.log('Browser closing - session cleared');
+        });
+        
+        // Also clear on page unload
+        window.addEventListener('unload', function(e) {
+            fetch('/auth/logout', {
+                method: 'POST',
+                keepalive: true
+            }).catch(() => {});
+        });
     </script>
 </body>
 </html>

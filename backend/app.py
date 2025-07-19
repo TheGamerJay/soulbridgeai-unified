@@ -487,11 +487,10 @@ def chat():
     user_email = session.get("user_email")
     login_timestamp = session.get("login_timestamp")
     
-    # AGGRESSIVE SESSION CLEARING: Always require fresh login
-    # This ensures maximum security by forcing re-authentication every time
-    print("SECURITY: Clearing all sessions to force fresh authentication")
-    session.clear()
-    session_expired = True
+    # Check session timeout - Only expire on browser close, not time-based
+    session_expired = False
+    # Note: session.permanent = False ensures session dies when browser closes
+    # No time-based expiration during active use
     
     # SECURITY: Only force re-authentication if session is invalid or expired
     if not user_authenticated or session_expired or not user_email:
