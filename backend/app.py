@@ -3415,7 +3415,9 @@ from flask import send_from_directory
 @app.route('/googlea4d68d68f81c1843.html')
 def google_site_verification():
     """Serve Google site verification file"""
-    return "google-site-verification: googlea4d68d68f81c1843.html", 200, {'Content-Type': 'text/plain'}
+    response = make_response("google-site-verification: googlea4d68d68f81c1843.html")
+    response.headers['Content-Type'] = 'text/plain'
+    return response
 
 @app.route('/')
 def serve_react_app():
@@ -3425,6 +3427,12 @@ def serve_react_app():
 @app.route('/<path:path>')
 def serve_react_static(path):
     """Serve React static files or fallback to index.html for client-side routing"""
+    # Handle Google verification file specifically
+    if path == 'googlea4d68d68f81c1843.html':
+        response = make_response("google-site-verification: googlea4d68d68f81c1843.html")
+        response.headers['Content-Type'] = 'text/plain'
+        return response
+    
     if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
         return send_from_directory(app.static_folder, path)
     else:
