@@ -82,9 +82,9 @@ class User:
         return None
     
     def get_user_by_email(self, email: str) -> Optional[Dict]:
-        """Get user by email"""
+        """Get user by email (case-insensitive)"""
         for user in self.db.data["users"]:
-            if user["email"] == email:
+            if user["email"].lower() == email.lower():
                 return user
         return None
     
