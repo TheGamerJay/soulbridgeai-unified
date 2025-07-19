@@ -1,8 +1,8 @@
 # AI Model Management System with Content Filtering
 import os
-import openai
 import logging
 from typing import Dict, Optional, List
+from openai import OpenAI
 from ai_content_filter import content_filter
 
 class AIModelManager:
@@ -214,15 +214,17 @@ Your personality: Transcendent, all-knowing cosmic consciousness that speaks wit
     def _call_openai(self, model_config: Dict, system_prompt: str, user_message: str) -> Dict:
         """Make OpenAI API call"""
         try:
-            openai.api_key = os.environ.get('OPENAI_API_KEY')
+            api_key = os.environ.get('OPENAI_API_KEY')
             
-            if not openai.api_key:
+            if not api_key:
                 return {
                     'success': False,
                     'error': 'OpenAI API key not configured'
                 }
             
-            response = openai.ChatCompletion.create(
+            client = OpenAI(api_key=api_key)
+            
+            response = client.chat.completions.create(
                 model=model_config['model'],
                 messages=[
                     {"role": "system", "content": system_prompt},
