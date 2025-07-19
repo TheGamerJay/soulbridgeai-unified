@@ -958,6 +958,13 @@ def auth_register_post():
         
         # Send welcome email
         try:
+            # Debug email service configuration
+            print(f"Email service configured: {email_service.is_configured}")
+            print(f"SMTP configured: {email_service.smtp_configured}")
+            print(f"SendGrid configured: {email_service.sendgrid_configured}")
+            print(f"SMTP username: {email_service.smtp_username}")
+            print(f"SMTP password set: {bool(email_service.smtp_password)}")
+            
             # Get the base URL for the email
             base_url = request.url_root.rstrip('/')
             
