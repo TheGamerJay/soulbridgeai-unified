@@ -1703,7 +1703,10 @@
                 
                 setTimeout(function() { 
                     updateCharacterInfo(characterName);
-                    // Don't add dynamic greeting - using static greetings in character cards now
+                    // Add greeting after character selection
+                    setTimeout(function() {
+                        addGreetingToChat();
+                    }, 200);
                 }, 100);
             }
         }
@@ -1970,7 +1973,10 @@
                     backToIntroBtn.classList.remove('hidden');
                 }
                 
-                // Don't add dynamic greeting - using static greetings in character cards now
+                // Add greeting for chat restoration
+                setTimeout(function() {
+                    addGreetingToChat();
+                }, 300);
                 
             } else if (currentScreen === 'select') {
                 // Show character select
@@ -3135,17 +3141,20 @@
             console.log('Page load - firstPickMade:', firstPickMade);
             console.log('Page load - currentScreen:', currentScreen);
             
-            // If user has made a character selection, go directly to chat
-            if (selectedCharacter && firstPickMade === 'true') {
+            // If user has made a character selection or was in chat, go directly to chat
+            if ((selectedCharacter && firstPickMade === 'true') || currentScreen === 'chat') {
                 console.log('Restoring chat with character:', selectedCharacter);
                 
-                // Hide intro and character select screens
+                // Hide intro and character select screens, show chat interface
                 document.getElementById('introScreen').classList.add('hidden');
                 document.getElementById('characterSelect').classList.add('hidden');
+                document.getElementById('chatInterface').classList.remove('hidden');
                 
                 // Update character info and avatar
-                updateCharacterInfo(selectedCharacter);
-                updateChatAvatar(selectedCharacter);
+                if (selectedCharacter) {
+                    updateCharacterInfo(selectedCharacter);
+                    updateChatAvatar(selectedCharacter);
+                }
                 
                 // Add greeting after a short delay to ensure DOM is ready
                 setTimeout(function() {
@@ -3157,9 +3166,10 @@
                 console.log('Restoring character select screen');
                 showCharacterSelect();
             } else {
-                // Default to intro screen
-                console.log('Showing intro screen (default)');
-                showIntro();
+                // If no character selected and no specific screen, redirect to login
+                // This ensures fresh visits always start with character selection
+                console.log('No character selected, redirecting to character select');
+                showCharacterSelect();
             }
             
             // Show unlocked referral companions
