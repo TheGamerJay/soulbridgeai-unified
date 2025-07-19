@@ -102,6 +102,7 @@ if openai_api_key:
         logging.warning("OpenAI client initialization failed - AI features will be disabled")
 else:
     logging.warning("OPENAI_API_KEY not found - AI features will be disabled")
+    openai_client = None
 
 # Initialize SoulBridge Database
 db = SoulBridgeDB("soulbridge_data.json")
