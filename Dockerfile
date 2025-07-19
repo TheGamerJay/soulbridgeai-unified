@@ -6,18 +6,21 @@ RUN npm ci --only=production
 COPY frontend/ ./
 RUN npm run build
 
-# Use Python for backend
-FROM python:3.9-alpine
+# Python build stage with compilation dependencies
+FROM python:3.9-alpine AS python-builder
 WORKDIR /app
-
-# Install minimal system dependencies for Python packages
 RUN apk add --no-cache gcc musl-dev linux-headers
-
-# Copy Python requirements and install with optimizations
 COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir --only-binary=all --timeout=1000 -r requirements.txt || \
     pip install --no-cache-dir --timeout=1000 -r requirements.txt
+
+# Runtime stage - clean Python without build dependencies
+FROM python:3.9-alpine
+WORKDIR /app
+# Copy installed packages from builder
+COPY --from=python-builder /usr/local/lib/python3.9/site-packages /usr/local/lib/python3.9/site-packages
+COPY --from=python-builder /usr/local/bin /usr/local/bin
 
 # Copy backend code
 COPY backend/ ./backend/
