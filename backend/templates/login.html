@@ -602,15 +602,50 @@
 
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
     <script>
-        // Form submission handling
+        // Form submission handling with debugging
         document.getElementById('loginForm').addEventListener('submit', function(e) {
+            console.log('Form submission started');
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            console.log('Email:', email);
+            console.log('Password length:', password.length);
+            
+            // Check if fields are filled
+            if (!email || !password) {
+                console.log('Empty fields detected');
+                alert('Please fill in both email and password');
+                e.preventDefault();
+                return false;
+            }
+            
+            console.log('Form validation passed, submitting...');
+            
             const submitBtn = document.getElementById('loginBtn');
             submitBtn.disabled = true;
             submitBtn.textContent = 'Signing In...';
+            
+            // Allow form to submit normally
+            console.log('Form should now submit to /auth/login');
         });
         
         // Auto-focus first input
         document.getElementById('email').focus();
+        
+        // Debug form setup
+        console.log('Login form setup complete');
+        const form = document.getElementById('loginForm');
+        console.log('Form action:', form.action);
+        console.log('Form method:', form.method);
+        
+        // Global error handler
+        window.addEventListener('error', function(e) {
+            console.error('JavaScript error:', e.error);
+            console.error('Error message:', e.message);
+            console.error('Error filename:', e.filename);
+            console.error('Error line:', e.lineno);
+        });
         
         // Theme toggle function
         function toggleTheme() {
