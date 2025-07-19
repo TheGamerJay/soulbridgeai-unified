@@ -915,8 +915,8 @@
             localStorage.setItem('selectedLanguage', lang);
             updateLanguageDisplay(lang);
             toggleLanguageMenu();
-            // Here you would typically reload the page or update translations
-            window.location.reload();
+            // Apply translations immediately
+            applyTranslations(lang);
         }
         
         function updateLanguageDisplay(lang) {
@@ -934,6 +934,122 @@
             currentLanguage.textContent = langMap[lang] || 'EN';
         }
         
+        // Translation data
+        const translations = {
+            en: {
+                create_account: "Create Account",
+                create_account_subtitle: "Join SoulBridge AI today",
+                email_address: "Email Address",
+                password: "Password", 
+                confirm_password: "Confirm Password",
+                or_signup_with: "or sign up with",
+                continue_google: "Continue with Google",
+                continue_facebook: "Continue with Facebook",
+                already_have_account: "Already have an account?",
+                sign_in: "Sign in",
+                language_en: "EN",
+                lang_english: "English",
+                lang_spanish: "Español",
+                lang_french: "Français", 
+                lang_german: "Deutsch",
+                lang_portuguese: "Português",
+                lang_chinese: "中文",
+                lang_japanese: "日本語",
+                lang_russian: "Русский"
+            },
+            es: {
+                create_account: "Crear Cuenta",
+                create_account_subtitle: "Únete a SoulBridge AI hoy",
+                email_address: "Dirección de Correo",
+                password: "Contraseña",
+                confirm_password: "Confirmar Contraseña", 
+                or_signup_with: "o regístrate con",
+                continue_google: "Continuar con Google",
+                continue_facebook: "Continuar con Facebook",
+                already_have_account: "¿Ya tienes una cuenta?",
+                sign_in: "Iniciar sesión",
+                language_en: "ES",
+                lang_english: "English",
+                lang_spanish: "Español",
+                lang_french: "Français",
+                lang_german: "Deutsch",
+                lang_portuguese: "Português", 
+                lang_chinese: "中文",
+                lang_japanese: "日本語",
+                lang_russian: "Русский"
+            },
+            fr: {
+                create_account: "Créer un Compte",
+                create_account_subtitle: "Rejoignez SoulBridge AI aujourd'hui",
+                email_address: "Adresse E-mail",
+                password: "Mot de Passe",
+                confirm_password: "Confirmer le Mot de Passe",
+                or_signup_with: "ou inscrivez-vous avec",
+                continue_google: "Continuer avec Google", 
+                continue_facebook: "Continuer avec Facebook",
+                already_have_account: "Vous avez déjà un compte?",
+                sign_in: "Se connecter",
+                language_en: "FR",
+                lang_english: "English",
+                lang_spanish: "Español",
+                lang_french: "Français",
+                lang_german: "Deutsch",
+                lang_portuguese: "Português",
+                lang_chinese: "中文",
+                lang_japanese: "日本語", 
+                lang_russian: "Русский"
+            },
+            de: {
+                create_account: "Konto Erstellen",
+                create_account_subtitle: "Treten Sie heute SoulBridge AI bei",
+                email_address: "E-Mail-Adresse",
+                password: "Passwort",
+                confirm_password: "Passwort Bestätigen",
+                or_signup_with: "oder registrieren Sie sich mit",
+                continue_google: "Mit Google fortfahren",
+                continue_facebook: "Mit Facebook fortfahren",
+                already_have_account: "Haben Sie bereits ein Konto?", 
+                sign_in: "Anmelden",
+                language_en: "DE",
+                lang_english: "English",
+                lang_spanish: "Español",
+                lang_french: "Français",
+                lang_german: "Deutsch",
+                lang_portuguese: "Português",
+                lang_chinese: "中文",
+                lang_japanese: "日本語",
+                lang_russian: "Русский"
+            }
+        };
+        
+        // Apply translations to the page
+        function applyTranslations(lang) {
+            const translation = translations[lang] || translations.en;
+            
+            // Find all elements with data-translate attribute
+            document.querySelectorAll('[data-translate]').forEach(element => {
+                const key = element.getAttribute('data-translate');
+                if (translation[key]) {
+                    element.textContent = translation[key];
+                }
+            });
+            
+            // Update placeholders
+            const emailInput = document.getElementById('email');
+            const passwordInput = document.getElementById('password');
+            const confirmPasswordInput = document.getElementById('confirmPassword');
+            
+            if (emailInput && translation.email_address) {
+                emailInput.placeholder = translation.email_address;
+            }
+            if (passwordInput && translation.password) {
+                passwordInput.placeholder = translation.password;
+            }
+            if (confirmPasswordInput && translation.confirm_password) {
+                confirmPasswordInput.placeholder = translation.confirm_password;
+            }
+        }
+        
         // Close language menu when clicking outside
         document.addEventListener('click', function(event) {
             const selector = document.getElementById('languageSelector');
@@ -947,6 +1063,7 @@
         function loadSavedLanguage() {
             const savedLang = localStorage.getItem('selectedLanguage') || 'en';
             updateLanguageDisplay(savedLang);
+            applyTranslations(savedLang);
         }
 
         // Load theme on page load

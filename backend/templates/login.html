@@ -674,8 +674,8 @@
             localStorage.setItem('selectedLanguage', lang);
             updateLanguageDisplay(lang);
             toggleLanguageMenu();
-            // Here you would typically reload the page or update translations
-            window.location.reload();
+            // Apply translations immediately
+            applyTranslations(lang);
         }
         
         function updateLanguageDisplay(lang) {
@@ -691,6 +691,118 @@
                 'ru': 'RU'
             };
             currentLanguage.textContent = langMap[lang] || 'EN';
+        }
+        
+        // Translation data
+        const translations = {
+            en: {
+                sign_in: "Sign In",
+                sign_in_subtitle: "Sign in to continue your journey",
+                email_address: "Email Address", 
+                password: "Password",
+                forgot_password: "Forgot password?",
+                or_continue_with: "or continue with",
+                continue_google: "Continue with Google",
+                continue_facebook: "Continue with Facebook", 
+                no_account: "Don't have an account?",
+                sign_up: "Sign up",
+                language_en: "EN",
+                lang_english: "English",
+                lang_spanish: "Español", 
+                lang_french: "Français",
+                lang_german: "Deutsch",
+                lang_portuguese: "Português",
+                lang_chinese: "中文",
+                lang_japanese: "日本語",
+                lang_russian: "Русский"
+            },
+            es: {
+                sign_in: "Iniciar Sesión",
+                sign_in_subtitle: "Inicia sesión para continuar tu viaje",
+                email_address: "Dirección de Correo",
+                password: "Contraseña", 
+                forgot_password: "¿Olvidaste tu contraseña?",
+                or_continue_with: "o continúa con",
+                continue_google: "Continuar con Google",
+                continue_facebook: "Continuar con Facebook",
+                no_account: "¿No tienes una cuenta?",
+                sign_up: "Registrarse",
+                language_en: "ES",
+                lang_english: "English",
+                lang_spanish: "Español",
+                lang_french: "Français", 
+                lang_german: "Deutsch",
+                lang_portuguese: "Português",
+                lang_chinese: "中文",
+                lang_japanese: "日本語",
+                lang_russian: "Русский"
+            },
+            fr: {
+                sign_in: "Se Connecter",
+                sign_in_subtitle: "Connectez-vous pour continuer votre voyage",
+                email_address: "Adresse E-mail",
+                password: "Mot de Passe",
+                forgot_password: "Mot de passe oublié?",
+                or_continue_with: "ou continuez avec", 
+                continue_google: "Continuer avec Google",
+                continue_facebook: "Continuer avec Facebook",
+                no_account: "Vous n'avez pas de compte?",
+                sign_up: "S'inscrire",
+                language_en: "FR",
+                lang_english: "English",
+                lang_spanish: "Español",
+                lang_french: "Français",
+                lang_german: "Deutsch", 
+                lang_portuguese: "Português",
+                lang_chinese: "中文",
+                lang_japanese: "日本語",
+                lang_russian: "Русский"
+            },
+            de: {
+                sign_in: "Anmelden",
+                sign_in_subtitle: "Melden Sie sich an, um Ihre Reise fortzusetzen",
+                email_address: "E-Mail-Adresse",
+                password: "Passwort",
+                forgot_password: "Passwort vergessen?",
+                or_continue_with: "oder weiter mit",
+                continue_google: "Mit Google fortfahren", 
+                continue_facebook: "Mit Facebook fortfahren",
+                no_account: "Haben Sie kein Konto?",
+                sign_up: "Registrieren",
+                language_en: "DE",
+                lang_english: "English",
+                lang_spanish: "Español", 
+                lang_french: "Français",
+                lang_german: "Deutsch",
+                lang_portuguese: "Português",
+                lang_chinese: "中文",
+                lang_japanese: "日本語",
+                lang_russian: "Русский"
+            }
+        };
+        
+        // Apply translations to the page
+        function applyTranslations(lang) {
+            const translation = translations[lang] || translations.en;
+            
+            // Find all elements with data-translate attribute
+            document.querySelectorAll('[data-translate]').forEach(element => {
+                const key = element.getAttribute('data-translate');
+                if (translation[key]) {
+                    element.textContent = translation[key];
+                }
+            });
+            
+            // Update placeholders
+            const emailInput = document.getElementById('email');
+            const passwordInput = document.getElementById('password');
+            
+            if (emailInput && translation.email_address) {
+                emailInput.placeholder = translation.email_address;
+            }
+            if (passwordInput && translation.password) {
+                passwordInput.placeholder = translation.password;
+            }
         }
         
         // Close language menu when clicking outside
@@ -709,6 +821,7 @@
         function loadSavedLanguage() {
             const savedLang = localStorage.getItem('selectedLanguage') || 'en';
             updateLanguageDisplay(savedLang);
+            applyTranslations(savedLang);
         }
 
         // Load theme on page load
