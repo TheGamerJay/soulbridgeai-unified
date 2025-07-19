@@ -548,12 +548,16 @@ def auth_login():
     email = request.form.get("email", "").strip()
     password = request.form.get("password", "").strip()
     
-    print(f"Auth login attempt - Email: {email}")
+    print(f"Auth login attempt - Email: '{email}'")
+    print(f"Auth login attempt - Password length: {len(password)}")
     print(f"Auth login attempt - Session before auth: {dict(session)}")
     
     # Development credentials (remove in production)
     DEV_EMAIL = "GamerJay@gmail.com"
     DEV_PASSWORD = "Yariel13"
+    
+    print(f"Expected email: '{DEV_EMAIL}' | Received: '{email}' | Match: {email == DEV_EMAIL}")
+    print(f"Expected password: '{DEV_PASSWORD}' | Received: '{password}' | Match: {password == DEV_PASSWORD}")
     
     if email == DEV_EMAIL and password == DEV_PASSWORD:
         # Verify subscription status on every login
@@ -561,6 +565,7 @@ def auth_login():
         print(f"Subscription verification result: {subscription_data}")
         
         if not subscription_data["valid"]:
+            print(f"Subscription verification failed: {subscription_data}")
             flash("Account verification failed. Please contact support.", "error")
             return redirect(url_for("login"))
         
@@ -584,8 +589,10 @@ def auth_login():
             flash("Welcome back, Galaxy member! You have access to exclusive companions.", "success")
         
         # Redirect to chat with intro flag to ensure intro screen shows first
+        print(f"Login successful, redirecting to chat")
         return redirect(url_for("chat", show_intro="true"))
     else:
+        print(f"Login failed - invalid credentials")
         flash("Invalid email or password. Please try again.", "error")
         return redirect(url_for("login"))
 
