@@ -24,6 +24,34 @@ import stripe
 from referral_system import referral_manager
 
 # -------------------------------------------------
+# Security Functions
+# -------------------------------------------------
+def verify_user_subscription(email: str) -> Dict:
+    """Verify user subscription status via database lookup"""
+    try:
+        user = db.users.get_user_by_email(email)
+        if not user:
+            return {"valid": False, "status": "free", "error": "User not found"}
+        
+        subscription_status = user.get("subscriptionStatus", "free")
+        
+        # For additional security, you could also verify with Stripe here
+        # stripe_customer_id = user.get("stripeCustomerID")
+        # if stripe_customer_id and subscription_status != "free":
+        #     # Verify with Stripe that subscription is still active
+        #     pass
+        
+        return {
+            "valid": True,
+            "status": subscription_status,
+            "user_id": user.get("id"),
+            "companion": user.get("companion", "Blayzo")
+        }
+    except Exception as e:
+        logging.error(f"Subscription verification error: {e}")
+        return {"valid": False, "status": "free", "error": str(e)}
+
+# -------------------------------------------------
 # Basic setup
 # -------------------------------------------------
 logging.basicConfig(level=logging.DEBUG)
@@ -442,19 +470,20 @@ def chat():
             print(f"Error checking session timestamp: {e}")
             session_expired = True
     
-    # Validate session - must have both authenticated flag and email, and not be expired
-    if not user_authenticated or not user_email or session_expired:
-        print(f"User not authenticated, missing email, or session expired. Auth: {user_authenticated}, Email: {user_email}, Expired: {session_expired}")
-        print("Redirecting to login")
-        
-        # Clear any partial session data
-        session.clear()
-        
-        response = make_response(redirect(url_for("login")))
-        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
-        response.headers['Pragma'] = 'no-cache'
-        response.headers['Expires'] = '0'
-        return response
+    # SECURITY: Always force re-authentication to verify subscription status
+    # This prevents users from accessing the app with expired subscriptions
+    # by staying logged in
+    print("Security check: Forcing re-authentication to verify subscription status")
+    print("This prevents bypassing subscription checks by staying logged in")
+    
+    # Clear session and redirect to login for fresh authentication
+    session.clear()
+    
+    response = make_response(redirect(url_for("login")))
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
     
     # Start a fresh message list if it doesn't exist
     if "messages" not in session:
@@ -496,12 +525,32 @@ def auth_login():
     DEV_PASSWORD = "Yariel13"
     
     if email == DEV_EMAIL and password == DEV_PASSWORD:
+        # Verify subscription status on every login
+        subscription_data = verify_user_subscription(email)
+        print(f"Subscription verification result: {subscription_data}")
+        
+        if not subscription_data["valid"]:
+            flash("Account verification failed. Please contact support.", "error")
+            return redirect(url_for("login"))
+        
+        # Set session with subscription info
         session["user_authenticated"] = True
         session["user_email"] = email
         session["login_timestamp"] = datetime.now().isoformat()
+        session["subscription_status"] = subscription_data["status"]
+        session["user_id"] = subscription_data.get("user_id")
         session.permanent = False  # Ensure session expires when browser closes
-        print(f"Login successful - Session set: {dict(session)}")
-        flash("Login successful! Welcome to SoulBridge AI.", "success")
+        
+        print(f"Login successful with subscription status: {subscription_data['status']}")
+        print(f"Session set: {dict(session)}")
+        
+        # Show different messages based on subscription
+        if subscription_data["status"] == "free":
+            flash("Welcome to SoulBridge AI! You have access to free companions.", "success")
+        elif subscription_data["status"] == "plus":
+            flash("Welcome back, SoulBridge Plus member! All premium features unlocked.", "success")
+        elif subscription_data["status"] == "galaxy":
+            flash("Welcome back, Galaxy member! You have access to exclusive companions.", "success")
         
         # Redirect to chat with intro flag to ensure intro screen shows first
         return redirect(url_for("chat", show_intro="true"))
@@ -1521,6 +1570,37 @@ def stripe_webhook():
     except Exception as e:
         logging.error(f"Stripe webhook error: {e}")
         return jsonify(success=False), 500
+
+@app.route("/api/subscription/verify", methods=["GET"])
+def verify_subscription_api():
+    """API endpoint to verify current user's subscription status"""
+    try:
+        # Check if user is authenticated
+        if not session.get("user_authenticated"):
+            return jsonify(success=False, error="Not authenticated"), 401
+        
+        user_email = session.get("user_email")
+        if not user_email:
+            return jsonify(success=False, error="No user email in session"), 401
+        
+        # Verify subscription from database
+        subscription_data = verify_user_subscription(user_email)
+        
+        if not subscription_data["valid"]:
+            # Force logout if subscription verification fails
+            session.clear()
+            return jsonify(success=False, error="Subscription verification failed", force_logout=True), 401
+        
+        return jsonify(
+            success=True,
+            subscription_status=subscription_data["status"],
+            user_id=subscription_data.get("user_id"),
+            companion=subscription_data.get("companion")
+        )
+        
+    except Exception as e:
+        logging.error(f"Subscription verification API error: {e}")
+        return jsonify(success=False, error="Verification failed"), 500
 
 @app.route("/api/users/<user_id>/subscription", methods=["PUT"])
 def update_subscription_api(user_id):

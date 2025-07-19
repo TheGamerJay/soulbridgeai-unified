@@ -3128,8 +3128,72 @@
             }
         }
 
+        // Security: Verify subscription status periodically
+        function verifySubscriptionStatus() {
+            fetch('/api/subscription/verify')
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.success) {
+                        console.warn('Subscription verification failed:', data.error);
+                        if (data.force_logout) {
+                            alert('Your session has expired or subscription status has changed. Please log in again.');
+                            window.location.href = '/auth/logout';
+                        }
+                    } else {
+                        console.log('Subscription verified:', data.subscription_status);
+                        // Store subscription status for frontend restrictions
+                        localStorage.setItem('subscriptionStatus', data.subscription_status);
+                        localStorage.setItem('userId', data.user_id);
+                        
+                        // Enforce subscription restrictions
+                        enforceSubscriptionRestrictions(data.subscription_status);
+                    }
+                })
+                .catch(error => {
+                    console.error('Subscription verification error:', error);
+                });
+        }
+        
+        // Enforce subscription-based restrictions
+        function enforceSubscriptionRestrictions(subscriptionStatus) {
+            const premiumCharacters = ['Blayzion', 'Blayzia', 'Violet', 'Crimson'];
+            const selectedCharacter = localStorage.getItem('selectedCharacter');
+            
+            // If user has a premium character selected but no longer has premium access
+            if (selectedCharacter && premiumCharacters.includes(selectedCharacter) && subscriptionStatus === 'free') {
+                console.warn('Premium character access revoked, switching to free character');
+                alert('Your premium subscription has expired. Switching you to a free companion.');
+                
+                // Clear premium character selection and force character select
+                localStorage.removeItem('selectedCharacter');
+                localStorage.removeItem('firstPickMade');
+                localStorage.setItem('currentScreen', 'select');
+                
+                // Redirect to character selection
+                showCharacterSelect();
+                return;
+            }
+            
+            // Hide/show premium character cards based on subscription
+            const premiumCards = document.querySelectorAll('.premium-character');
+            premiumCards.forEach(card => {
+                if (subscriptionStatus === 'free') {
+                    card.style.opacity = '0.5';
+                    card.style.pointerEvents = 'none';
+                } else {
+                    card.style.opacity = '1';
+                    card.style.pointerEvents = 'auto';
+                }
+            });
+        }
+        
         // Initialize animations when page loads
         document.addEventListener('DOMContentLoaded', function() {
+            // Verify subscription immediately on page load
+            verifySubscriptionStatus();
+            
+            // Set up periodic subscription verification (every 5 minutes)
+            setInterval(verifySubscriptionStatus, 5 * 60 * 1000);
             addCharacterHoverAnimations();
             
             // Restore user's current state on page load/refresh
