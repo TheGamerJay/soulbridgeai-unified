@@ -1389,9 +1389,12 @@
             var adminBypass = localStorage.getItem('adminBypass') === 'true';
             var isDeveloper = {{ 'true' if session.get('dev_mode') else 'false' }};
             
-            // Auto-enable admin mode for developer
-            if (isDeveloper) {
-                console.log('Developer detected - enabling admin mode');
+            // Auto-enable admin mode ONLY for the specific developer account
+            var userEmail = "{{ session.get('user_email', '') }}";
+            var isDeveloperAccount = userEmail === 'GamerJay@gmail.com';
+            
+            if (isDeveloper && isDeveloperAccount) {
+                console.log('Developer account detected - enabling admin mode');
                 localStorage.setItem('adminMode', 'true');
                 localStorage.setItem('adminBypass', 'true');
                 isAdminMode = true;
@@ -1402,6 +1405,16 @@
                 premiumChars.forEach(char => {
                     localStorage.setItem('purchased' + char, 'true');
                 });
+            } else {
+                // For all other users (including test accounts), clear any admin bypass
+                localStorage.removeItem('adminMode');
+                localStorage.removeItem('adminBypass');
+                var premiumChars = ['Blayzion', 'Blayzia', 'Violet', 'Crimson'];
+                premiumChars.forEach(char => {
+                    localStorage.removeItem('purchased' + char);
+                });
+                isAdminMode = false;
+                adminBypass = false;
             }
             
             console.log('=== ADMIN CHECK ===');
