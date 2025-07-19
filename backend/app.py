@@ -28,16 +28,15 @@ from referral_system import referral_manager
 # -------------------------------------------------
 logging.basicConfig(level=logging.DEBUG)
 
-# Configure Flask to serve React build files
-app = Flask(__name__, 
-    static_folder='../frontend/build',
-    static_url_path='',
-    template_folder='templates')
+app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key")
 
-# Configure Stripe (DISABLED FOR DEVELOPMENT)
-stripe.api_key = None  # Disabled to prevent live payments
-logging.info("Stripe payments DISABLED for development/demo mode")
+# Configure Stripe
+stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
+if stripe.api_key:
+    logging.info("Stripe configured successfully")
+else:
+    logging.warning("STRIPE_SECRET_KEY not found in environment variables")
 
 # Session configuration
 app.config['SESSION_PERMANENT'] = False
@@ -3415,29 +3414,16 @@ def after_request(response):
     return response
 
 # -------------------------------------------------
-# React Frontend Serving Routes
+# Home Route
 # -------------------------------------------------
-from flask import send_from_directory
-
 @app.route('/')
-def serve_react_app():
-    """Serve the React app's index.html"""
-    return send_from_directory(app.static_folder, 'index.html')
-
-@app.route('/<path:path>')
-def serve_react_static(path):
-    """Serve React static files or fallback to index.html for client-side routing"""
-    # Handle Google verification file specifically
-    if path == 'googlea4d68d68f81c1843.html':
-        response = make_response("google-site-verification: googlea4d68d68f81c1843.html")
-        response.headers['Content-Type'] = 'text/plain'
-        return response
-    
-    if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
-        return send_from_directory(app.static_folder, path)
-    else:
-        # For client-side routing, always return index.html
-        return send_from_directory(app.static_folder, 'index.html')
+def home():
+    """Home page"""
+    return jsonify({
+        "message": "SoulBridge AI Backend is running!",
+        "version": "1.0.0",
+        "status": "healthy"
+    })
 
 # -------------------------------------------------
 # Run the server
