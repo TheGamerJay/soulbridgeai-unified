@@ -522,7 +522,7 @@
 
         async function loadReferralDashboard() {
             try {
-                const userEmail = localStorage.getItem('userEmail') || 'user@example.com';
+                const userEmail = "{{ session.get('user_email', 'user@example.com') }}";
                 
                 const [dashboardResponse, templatesResponse] = await Promise.all([
                     fetch(`/api/referrals/dashboard?userEmail=${encodeURIComponent(userEmail)}`),
