@@ -7,26 +7,86 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from email import encoders
 
+# Try to import SendGrid (optional)
+try:
+    from sendgrid import SendGridAPIClient
+    from sendgrid.helpers.mail import Mail
+    SENDGRID_AVAILABLE = True
+except ImportError:
+    SENDGRID_AVAILABLE = False
+    logging.info("SendGrid not installed - using SMTP only")
+
 class EmailService:
     def __init__(self):
+        # SMTP Configuration (Gmail)
         self.smtp_server = os.environ.get('SMTP_SERVER', 'smtp.gmail.com')
         self.smtp_port = int(os.environ.get('SMTP_PORT', '587'))
         self.smtp_username = os.environ.get('SMTP_USERNAME')
         self.smtp_password = os.environ.get('SMTP_PASSWORD')
+        
+        # SendGrid Configuration
+        self.sendgrid_api_key = os.environ.get('SENDGRID_API_KEY')
+        
+        # Common Configuration
         self.from_email = os.environ.get('FROM_EMAIL', self.smtp_username)
         self.from_name = os.environ.get('FROM_NAME', 'SoulBridge AI')
         
-        self.is_configured = bool(self.smtp_username and self.smtp_password)
+        # Check what's available
+        self.smtp_configured = bool(self.smtp_username and self.smtp_password)
+        self.sendgrid_configured = bool(self.sendgrid_api_key and SENDGRID_AVAILABLE)
+        
+        self.is_configured = self.smtp_configured or self.sendgrid_configured
         
         if not self.is_configured:
-            logging.warning("⚠️  Email service not configured. Email features will not work.")
+            logging.warning("⚠️  No email service configured. Email features will not work.")
+        elif self.sendgrid_configured:
+            logging.info("✅ SendGrid email service configured")
+        elif self.smtp_configured:
+            logging.info("✅ SMTP email service configured")
     
     def send_email(self, to_email, subject, text_content, html_content=None):
-        """Send email using SMTP"""
+        """Send email using SendGrid or SMTP"""
         if not self.is_configured:
             logging.error("Email service not configured")
             return {'success': False, 'error': 'Email service not configured'}
         
+        # Try SendGrid first (more reliable)
+        if self.sendgrid_configured:
+            return self._send_via_sendgrid(to_email, subject, text_content, html_content)
+        
+        # Fallback to SMTP
+        elif self.smtp_configured:
+            return self._send_via_smtp(to_email, subject, text_content, html_content)
+        
+        return {'success': False, 'error': 'No email service available'}
+    
+    def _send_via_sendgrid(self, to_email, subject, text_content, html_content=None):
+        """Send email via SendGrid API"""
+        try:
+            message = Mail(
+                from_email=(self.from_email, self.from_name),
+                to_emails=to_email,
+                subject=subject,
+                plain_text_content=text_content,
+                html_content=html_content
+            )
+            
+            sg = SendGridAPIClient(api_key=self.sendgrid_api_key)
+            response = sg.send(message)
+            
+            logging.info(f"SendGrid email sent successfully to {to_email} (Status: {response.status_code})")
+            return {'success': True, 'provider': 'sendgrid'}
+            
+        except Exception as e:
+            logging.error(f"SendGrid failed to send email to {to_email}: {e}")
+            # Fallback to SMTP if available
+            if self.smtp_configured:
+                logging.info("Falling back to SMTP...")
+                return self._send_via_smtp(to_email, subject, text_content, html_content)
+            return {'success': False, 'error': str(e)}
+    
+    def _send_via_smtp(self, to_email, subject, text_content, html_content=None):
+        """Send email via SMTP (Gmail)"""
         try:
             # Create message
             msg = MIMEMultipart('alternative')
@@ -49,11 +109,11 @@ class EmailService:
                 server.login(self.smtp_username, self.smtp_password)
                 server.send_message(msg)
             
-            logging.info(f"Email sent successfully to {to_email}")
-            return {'success': True}
+            logging.info(f"SMTP email sent successfully to {to_email}")
+            return {'success': True, 'provider': 'smtp'}
             
         except Exception as e:
-            logging.error(f"Failed to send email to {to_email}: {e}")
+            logging.error(f"SMTP failed to send email to {to_email}: {e}")
             return {'success': False, 'error': str(e)}
     
     def send_verification_email(self, email, display_name, verification_token, base_url):
