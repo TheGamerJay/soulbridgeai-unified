@@ -382,7 +382,17 @@ def health():
         "status": "healthy",
         "service": "SoulBridgeAI",
         "version": "1.0.0"
-    }), 200
+    })
+
+@app.route('/googlea4d68d68f81c1843.html')
+def google_site_verification():
+    """Serve Google site verification file"""
+    return "google-site-verification: googlea4d68d68f81c1843.html"
+
+@app.route('/test-verification')
+def test_verification():
+    """Test route to verify routing works"""
+    return "Test route working - verification should work too", 200
 
 # Debug route to check static files
 @app.route("/debug/static")
@@ -3411,16 +3421,6 @@ def after_request(response):
 # React Frontend Serving Routes
 # -------------------------------------------------
 from flask import send_from_directory
-
-@app.route('/googlea4d68d68f81c1843.html')
-def google_site_verification():
-    """Serve Google site verification file"""
-    return "google-site-verification: googlea4d68d68f81c1843.html"
-
-@app.route('/test-verification')
-def test_verification():
-    """Test route to verify routing works"""
-    return "Test route working - verification should work too"
 
 @app.route('/')
 def serve_react_app():
