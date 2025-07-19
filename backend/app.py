@@ -97,30 +97,25 @@ def init_openai():
         try:
             # Try importing first to check for import issues
             from openai import OpenAI as OpenAIClient
+            import httpx
             logging.info("OpenAI import successful, creating client...")
             
-            # Log environment variables that might affect OpenAI
-            proxy_vars = [var for var in os.environ.keys() if 'proxy' in var.lower()]
-            if proxy_vars:
-                logging.info(f"Found proxy environment variables: {proxy_vars}")
-                # Temporarily clear proxy environment variables for OpenAI client creation
-                original_env = {}
-                for var in proxy_vars:
-                    original_env[var] = os.environ.get(var)
-                    if var in os.environ:
-                        del os.environ[var]
-                        logging.info(f"Temporarily cleared {var}")
+            # Create a custom httpx client that explicitly disables proxies
+            logging.info("Creating custom HTTP client without proxy support...")
+            custom_http_client = httpx.Client(
+                timeout=30.0,
+                follow_redirects=True,
+                # Explicitly set proxies to None to disable proxy usage
+                proxies=None
+            )
             
-            # Create client with only the api_key parameter - no other parameters
-            logging.info("Creating OpenAI client with minimal parameters...")
-            openai_client = OpenAIClient(api_key=openai_api_key)
+            # Create client with custom http_client that doesn't use proxies
+            logging.info("Creating OpenAI client with custom HTTP client...")
+            openai_client = OpenAIClient(
+                api_key=openai_api_key,
+                http_client=custom_http_client
+            )
             logging.info("OpenAI client created successfully!")
-            
-            # Restore environment variables
-            if proxy_vars:
-                for var, value in original_env.items():
-                    if value is not None:
-                        os.environ[var] = value
             
             # Test the client with a simple call
             models = openai_client.models.list()
