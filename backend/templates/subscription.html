@@ -240,7 +240,7 @@
         margin-right: 10px;
         font-size: 0.9rem;
       ">📋 Copy Link</button>
-      <button onclick="window.open('/referrals', '_blank')" style="
+      <button onclick="openReferralDashboard()" style="
         background: linear-gradient(135deg, #9333ea, #7c3aed);
         color: #fff;
         border: none;
@@ -524,15 +524,118 @@
 
   // Copy referral link function
   function copyReferralLink() {
+    console.log('Copy referral link clicked');
     const linkElement = document.getElementById('referralLinkDisplay');
-    const link = linkElement.textContent;
     
-    if (link && link !== 'Loading...' && link !== 'Error loading referral link') {
-      navigator.clipboard.writeText(link).then(() => {
+    if (!linkElement) {
+      console.error('Referral link element not found');
+      showMessage('❌ Referral link element not found', 'error');
+      return;
+    }
+    
+    const link = linkElement.textContent.trim();
+    console.log('Current link text:', link);
+    
+    if (!link || link === 'Loading...' || link === 'Error loading referral link') {
+      console.warn('Link not ready, trying to reload');
+      showMessage('⏳ Link loading, please try again in a moment...', 'warning');
+      
+      // Try to force reload the link
+      loadReferralLink();
+      
+      // Retry after 2 seconds
+      setTimeout(() => {
+        const retryLink = linkElement.textContent.trim();
+        if (retryLink && retryLink !== 'Loading...' && retryLink !== 'Error loading referral link') {
+          copyToClipboard(retryLink);
+        } else {
+          showMessage('❌ Unable to load referral link', 'error');
+        }
+      }, 2000);
+      return;
+    }
+    
+    copyToClipboard(link);
+  }
+  
+  // Helper function to copy to clipboard with fallback
+  function copyToClipboard(text) {
+    console.log('Attempting to copy:', text);
+    
+    // Modern clipboard API
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(() => {
+        console.log('Clipboard copy successful');
         showMessage('📋 Referral link copied to clipboard!', 'success');
-      }).catch(() => {
-        showMessage('❌ Failed to copy link', 'error');
+      }).catch(err => {
+        console.error('Clipboard API failed:', err);
+        fallbackCopyTextToClipboard(text);
       });
+    } else {
+      // Fallback for older browsers or non-secure contexts
+      fallbackCopyTextToClipboard(text);
+    }
+  }
+  
+  // Fallback copy method
+  function fallbackCopyTextToClipboard(text) {
+    console.log('Using fallback copy method');
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    textArea.style.top = '-999999px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+      const successful = document.execCommand('copy');
+      document.body.removeChild(textArea);
+      
+      if (successful) {
+        console.log('Fallback copy successful');
+        showMessage('📋 Referral link copied to clipboard!', 'success');
+      } else {
+        console.error('Fallback copy failed');
+        showMessage('❌ Failed to copy link - please select and copy manually', 'error');
+      }
+    } catch (err) {
+      console.error('Fallback copy error:', err);
+      document.body.removeChild(textArea);
+      showMessage('❌ Copy failed - please select and copy manually', 'error');
+    }
+  }
+  
+  // Open referral dashboard with error handling
+  function openReferralDashboard() {
+    console.log('Opening referral dashboard');
+    
+    try {
+      // Try to open in new tab first
+      const newWindow = window.open('/referrals', '_blank');
+      
+      // Check if popup was blocked
+      if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
+        console.warn('Popup blocked, trying same window');
+        showMessage('⚠️ Popup blocked - opening in same window...', 'warning');
+        
+        // Fallback: open in same window
+        setTimeout(() => {
+          window.location.href = '/referrals';
+        }, 1000);
+      } else {
+        console.log('Dashboard opened in new tab');
+        showMessage('✅ Opening referral dashboard...', 'success');
+      }
+    } catch (error) {
+      console.error('Error opening dashboard:', error);
+      showMessage('❌ Error opening dashboard - trying fallback...', 'error');
+      
+      // Final fallback
+      setTimeout(() => {
+        window.location.href = '/referrals';
+      }, 1000);
     }
   }
 
@@ -551,6 +654,7 @@
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
       ${type === 'success' ? 'background: rgba(34, 197, 94, 0.9); color: white;' : ''}
       ${type === 'error' ? 'background: rgba(239, 68, 68, 0.9); color: white;' : ''}
+      ${type === 'warning' ? 'background: rgba(245, 158, 11, 0.9); color: white;' : ''}
       ${type === 'info' ? 'background: rgba(34, 211, 238, 0.9); color: #000;' : ''}
     `;
     messageDiv.textContent = message;
