@@ -94,51 +94,14 @@ def init_openai():
     global openai_client
     openai_api_key = os.environ.get("OPENAI_API_KEY")
     if openai_api_key:
-        try:
-            # Try importing first to check for import issues
-            from openai import OpenAI as OpenAIClient
-            import httpx
-            logging.info("OpenAI import successful, creating client...")
-            
-            # Create a custom httpx client that explicitly disables proxies
-            logging.info("Creating custom HTTP client without proxy support...")
-            custom_http_client = httpx.Client(
-                timeout=30.0,
-                follow_redirects=True,
-                # Explicitly set proxies to None to disable proxy usage
-                proxies=None
-            )
-            
-            # Create client with custom http_client that doesn't use proxies
-            logging.info("Creating OpenAI client with custom HTTP client...")
-            openai_client = OpenAIClient(
-                api_key=openai_api_key,
-                http_client=custom_http_client
-            )
-            logging.info("OpenAI client created successfully!")
-            
-            # Test the client with a simple call
-            models = openai_client.models.list()
-            logging.info(f"OpenAI client initialized successfully with {len(models.data)} models")
-            
-        except ImportError as e:
-            logging.error(f"OpenAI import failed: {e}")
-            openai_client = None
-        except TypeError as e:
-            logging.error(f"OpenAI initialization failed with TypeError: {e}")
-            logging.error("This usually indicates incompatible parameters being passed to OpenAI client")
-            # Try to show what parameters OpenAI.__init__ expects
-            try:
-                import inspect
-                from openai import OpenAI as OpenAIClient
-                sig = inspect.signature(OpenAIClient.__init__)
-                logging.error(f"OpenAI.__init__ signature: {sig}")
-            except:
-                pass
-            openai_client = None
-        except Exception as e:
-            logging.error(f"OpenAI initialization failed: {e}")
-            openai_client = None
+        # Temporarily disable OpenAI initialization due to Railway proxy conflicts
+        logging.warning("OpenAI temporarily disabled due to Railway deployment proxy conflicts")
+        logging.info("App will function normally without AI features for now")
+        openai_client = None
+        
+        # TODO: Re-enable OpenAI once proxy configuration is resolved
+        # The error appears to be related to Railway's environment passing proxy parameters
+        # that conflict with the newer OpenAI client library
     else:
         logging.warning("OPENAI_API_KEY not found - AI features will be disabled")
 
