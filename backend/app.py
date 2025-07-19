@@ -3412,6 +3412,11 @@ def after_request(response):
 # -------------------------------------------------
 from flask import send_from_directory
 
+@app.route('/googlea4d68d68f81c1843.html')
+def google_site_verification():
+    """Serve Google site verification file"""
+    return "google-site-verification: googlea4d68d68f81c1843.html", 200, {'Content-Type': 'text/plain'}
+
 @app.route('/')
 def serve_react_app():
     """Serve the React app's index.html"""
