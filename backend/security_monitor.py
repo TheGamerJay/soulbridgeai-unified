@@ -25,14 +25,16 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
-# Import security alerts (will be available after file is created)
-try:
-    from security_alerts import send_security_alert, send_ip_blocked_alert, send_attack_pattern_alert
-except ImportError:
-    # Fallback if security_alerts not available
-    def send_security_alert(*args, **kwargs): pass
-    def send_ip_blocked_alert(*args, **kwargs): pass  
-    def send_attack_pattern_alert(*args, **kwargs): pass
+# Import security alerts with lazy loading to avoid circular imports
+def _get_alert_functions():
+    """Lazy load alert functions to avoid circular imports"""
+    try:
+        from security_alerts import send_security_alert, send_ip_blocked_alert, send_attack_pattern_alert
+        return send_security_alert, send_ip_blocked_alert, send_attack_pattern_alert
+    except ImportError:
+        # Fallback functions if security_alerts not available
+        def noop(*args, **kwargs): pass
+        return noop, noop, noop
 
 @dataclass
 class SecurityEvent:
@@ -265,6 +267,7 @@ class SecurityMonitor:
         
         # Send security alert
         threat_count = self.ip_threat_counts.get(ip, 0)
+        send_security_alert, send_ip_blocked_alert, send_attack_pattern_alert = _get_alert_functions()
         send_ip_blocked_alert(ip, reason, threat_count)
     
     def _send_security_alert(self, title: str, details: Dict):
@@ -346,6 +349,7 @@ class SecurityMonitor:
             
             # Send alert for high/critical threats
             if severity in ['high', 'critical']:
+                send_security_alert, send_ip_blocked_alert, send_attack_pattern_alert = _get_alert_functions()
                 if 'attack_pattern' in threats:
                     send_attack_pattern_alert(
                         ip, 
