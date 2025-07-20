@@ -1202,6 +1202,8 @@
             // Remove character theme classes when going back to character select
             document.body.classList.remove('character-blayzo', 'character-blayzica', 'character-blayzion', 'character-blayzia', 'character-violet', 'character-crimson');
             
+            // Clear active chat session flag when leaving chat
+            sessionStorage.removeItem('hasActiveChat');
             localStorage.setItem('currentScreen', 'select');
             document.getElementById('chatInterface').classList.add('hidden');
             document.getElementById('characterSelect').classList.remove('hidden');
@@ -1735,6 +1737,7 @@
             if (confirmChoice && !justPurchased) {
                 // Only set these if we're actually going to chat (confirmChoice is true)
                 localStorage.setItem('currentScreen', 'chat');
+                sessionStorage.setItem('hasActiveChat', 'true');  // Mark active chat session
                 document.getElementById('characterSelect').classList.add('hidden');
                 var chatInterface = document.getElementById('chatInterface');
                 chatInterface.classList.remove('hidden');
@@ -3283,13 +3286,43 @@
             setInterval(verifySubscriptionStatus, 5 * 60 * 1000);
             addCharacterHoverAnimations();
             
-            // Always start at intro screen on page load/refresh
-            console.log('Page load - Always starting at intro screen');
+            // Smart navigation - preserve chat state but fix mobile intro issues
+            const selectedCharacter = localStorage.getItem('selectedCharacter');
+            const firstPickMade = localStorage.getItem('firstPickMade');
+            const currentScreen = localStorage.getItem('currentScreen');
+            const hasActiveMessages = sessionStorage.getItem('hasActiveChat');
             
-            // Show intro screen by default (all others hidden by default)
-            document.getElementById('introScreen').classList.remove('hidden');
-            document.getElementById('characterSelect').classList.add('hidden');
-            document.getElementById('chatInterface').classList.add('hidden');
+            console.log('Page load navigation check:');
+            console.log('- selectedCharacter:', selectedCharacter);
+            console.log('- firstPickMade:', firstPickMade);
+            console.log('- currentScreen:', currentScreen);
+            console.log('- hasActiveMessages:', hasActiveMessages);
+            
+            // If user has active chat session, restore chat interface
+            if (selectedCharacter && firstPickMade === 'true' && hasActiveMessages === 'true') {
+                console.log('Restoring active chat session with:', selectedCharacter);
+                
+                // Show chat interface
+                document.getElementById('introScreen').classList.add('hidden');
+                document.getElementById('characterSelect').classList.add('hidden');
+                document.getElementById('chatInterface').classList.remove('hidden');
+                
+                // Update character info and avatar
+                updateCharacterInfo(selectedCharacter);
+                updateChatAvatar(selectedCharacter);
+                
+                // Add greeting after a short delay to ensure DOM is ready
+                setTimeout(function() {
+                    addGreetingToChat();
+                }, 500);
+                
+            } else {
+                // Default to intro screen for fresh visits or when no active chat
+                console.log('Starting at intro screen (fresh visit or no active chat)');
+                document.getElementById('introScreen').classList.remove('hidden');
+                document.getElementById('characterSelect').classList.add('hidden');
+                document.getElementById('chatInterface').classList.add('hidden');
+            }
             
             // Show unlocked referral companions
             showUnlockedReferralCompanions();

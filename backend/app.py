@@ -459,8 +459,15 @@ def health():
     return jsonify({
         "status": "healthy",
         "service": "SoulBridge AI",
-        "version": "1.0.0",
-        "timestamp": "2025-01-19"
+        "version": "1.1.0",
+        "timestamp": "2025-01-20",
+        "latest_fixes": [
+            "premium_upgrade_modal",
+            "color_studio_rebuild", 
+            "referral_fallback",
+            "mobile_navigation_fix",
+            "intro_logo_cache_bust"
+        ]
     })
 
 # Debug route to check static files
@@ -777,8 +784,12 @@ def color_customization():
     if not session.get("user_authenticated"):
         return redirect(url_for("login"))
     
-    # Use template file instead of inline HTML
-    return render_template("color_studio.html")
+    # Add cache-busting headers for latest fixes
+    response = make_response(render_template("color_studio.html"))
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
 
 @app.route("/customization-full") 
 def color_customization_full():
