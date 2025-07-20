@@ -18,6 +18,7 @@ from email_service import EmailService
 from rate_limiter import rate_limit, init_rate_limiting
 from env_validator import init_environment_validation
 from feature_flags import init_feature_flags, is_feature_enabled, feature_flag
+from security_monitor import init_security_monitoring
 # Load environment variables from .env file (optional in production)
 try:
     from dotenv import load_dotenv
@@ -63,6 +64,9 @@ init_environment_validation(app)
 
 # Initialize feature flags
 init_feature_flags(app)
+
+# Initialize security monitoring
+init_security_monitoring(app)
 
 # Configure Stripe
 stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
@@ -1168,6 +1172,11 @@ def admin_dashboard():
 def admin_feature_flags():
     """Feature flags management page"""
     return render_template("feature_flags.html")
+
+@app.route("/admin/security")
+def admin_security_dashboard():
+    """Security monitoring dashboard"""
+    return render_template("security_dashboard.html")
 
 @app.route("/admin/users")
 def admin_users():
