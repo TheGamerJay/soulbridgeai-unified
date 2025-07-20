@@ -949,6 +949,20 @@
             loadSavedLanguage();
         });
         
+        // Password toggle function
+        function togglePassword(fieldId) {
+            const passwordField = document.getElementById(fieldId);
+            const toggleBtn = document.getElementById('toggleBtn');
+            
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+                toggleBtn.textContent = '🙈';
+            } else {
+                passwordField.type = 'password';
+                toggleBtn.textContent = '👁️';
+            }
+        }
+        
         // SECURITY: Clear session when user closes browser/tab
         window.addEventListener('beforeunload', function(e) {
             // Clear session data on browser close
