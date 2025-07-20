@@ -588,11 +588,15 @@
   // Load referral link - server-first with client fallback
   function loadReferralLink() {
     console.log('Loading referral link...');
+    console.log('Server authentication status: {{ user_authenticated }}');
+    console.log('Server user email: {{ user_email }}');
     
     // First, check if server provided a referral link
     {% if referral_link %}
     const serverReferralLink = "{{ referral_link }}";
     const serverReferralCode = "{{ referral_code }}";
+    console.log('Server provided referral link:', serverReferralLink);
+    console.log('Server provided referral code:', serverReferralCode);
     
     if (serverReferralLink && serverReferralCode) {
       document.getElementById('referralLinkDisplay').textContent = serverReferralLink;
@@ -632,11 +636,12 @@
     })
     .then(response => response.json())
     .then(data => {
-      if (data.success && data.referralLink) {
-        document.getElementById('referralLinkDisplay').textContent = data.referralLink;
-        localStorage.setItem('permanentReferralLink', data.referralLink);
-        localStorage.setItem('permanentReferralCode', data.referralCode);
-        console.log('API referral generation successful:', data.referralLink);
+      console.log('API response received:', data);
+      if (data.success && data.referral_link) {
+        document.getElementById('referralLinkDisplay').textContent = data.referral_link;
+        localStorage.setItem('permanentReferralLink', data.referral_link);
+        localStorage.setItem('permanentReferralCode', data.referral_code);
+        console.log('API referral generation successful:', data.referral_link);
         return;
       } else {
         console.warn('API referral generation failed, falling back to client generation');

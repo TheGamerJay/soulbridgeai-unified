@@ -2050,10 +2050,14 @@ def subscription():
     if user_authenticated and user_email:
         try:
             from referral_system import referral_manager
-            result = referral_manager.create_referral_link(user_email, request.url_root.rstrip('/'))
+            base_url = request.url_root.rstrip('/')
+            logger.info(f"Generating referral link for {user_email} with base URL: {base_url}")
+            result = referral_manager.create_referral_link(user_email, base_url)
+            logger.info(f"Referral generation result: {result}")
             if result.get('success'):
-                referral_code = result.get('referralCode')
-                referral_link = result.get('referralLink')
+                referral_code = result.get('referral_code')
+                referral_link = result.get('referral_link')
+                logger.info(f"Successfully generated referral - Code: {referral_code}, Link: {referral_link}")
         except Exception as e:
             logger.error(f"Error generating referral code: {e}")
     
