@@ -1,0 +1,17 @@
+name: Basic CI
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Echo test
+      run: echo "CI pipeline is working"
+    - name: Python version
+      run: python3 --version
+    - name: List files
+      run: ls -la
