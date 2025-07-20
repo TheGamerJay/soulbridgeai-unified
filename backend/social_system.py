@@ -10,6 +10,14 @@ from dataclasses import dataclass, asdict
 from enum import Enum
 import uuid
 
+# Import content filter for message safety
+try:
+    from ai_content_filter import content_filter
+    CONTENT_FILTER_AVAILABLE = True
+except ImportError:
+    content_filter = None
+    CONTENT_FILTER_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
 
 class FriendshipStatus(Enum):
@@ -80,6 +88,22 @@ class Message:
     status: MessageStatus = MessageStatus.SENT
     created_at: datetime = None
     read_at: Optional[datetime] = None
+    is_flagged: bool = False
+    content_safe: bool = True
+    moderation_score: Optional[float] = None
+
+@dataclass
+class MessageReport:
+    id: str
+    message_id: str
+    reporter_id: str
+    reported_user_id: str
+    reason: str
+    description: Optional[str] = None
+    status: str = "pending"  # pending, reviewed, resolved, dismissed
+    created_at: datetime = None
+    reviewed_at: Optional[datetime] = None
+    reviewed_by: Optional[str] = None
 
 @dataclass
 class Conversation:
@@ -714,6 +738,23 @@ class SocialManager:
             if not privacy.get('allow_messages', True):
                 return {'success': False, 'error': 'User has disabled messages'}
             
+            # Content safety check
+            content_safe = True
+            moderation_score = None
+            if CONTENT_FILTER_AVAILABLE and content_filter:
+                is_safe, refusal_message = content_filter.check_content(content, "Blayzo", sender_id)
+                if not is_safe:
+                    logger.warning(f"Message blocked by content filter: {sender_id} -> {recipient_id}")
+                    return {'success': False, 'error': 'Message content violates community guidelines'}
+                
+                # Get content analysis for scoring
+                try:
+                    analysis = content_filter._analyze_content_advanced(content, "Blayzo", sender_id)
+                    moderation_score = analysis.confidence if analysis else None
+                    content_safe = analysis.is_safe if analysis else True
+                except Exception as e:
+                    logger.warning(f"Error getting content analysis: {e}")
+            
             # Create or get conversation
             conversation_id = self._get_or_create_conversation(sender_id, recipient_id)
             
@@ -727,21 +768,23 @@ class SocialManager:
                 content=content.strip(),
                 metadata=metadata,
                 status=MessageStatus.SENT,
-                created_at=datetime.now()
+                created_at=datetime.now(),
+                content_safe=content_safe,
+                moderation_score=moderation_score
             )
             
             # Insert message
             query = """
             INSERT INTO messages 
-            (id, conversation_id, sender_id, recipient_id, message_type, content, metadata, status, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (id, conversation_id, sender_id, recipient_id, message_type, content, metadata, status, created_at, is_flagged, content_safe, moderation_score)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """
             
             self.db.execute_query(query, (
                 message.id, conversation_id, message.sender_id, message.recipient_id,
                 message.message_type.value, message.content, 
                 json.dumps(message.metadata) if message.metadata else None,
-                message.status.value, message.created_at
+                message.status.value, message.created_at, False, content_safe, moderation_score
             ))
             
             # Update conversation
@@ -1013,6 +1056,198 @@ class SocialManager:
             
         except Exception as e:
             logger.error(f"Error updating unread count: {e}")
+    
+    def report_message(self, reporter_id: str, message_id: str, reason: str, description: str = "") -> Dict[str, Any]:
+        """Report a message for inappropriate content"""
+        try:
+            if not self.db:
+                return {'success': False, 'error': 'Database unavailable'}
+            
+            # Get message details
+            message_query = "SELECT sender_id, recipient_id, content FROM messages WHERE id = ?"
+            message_result = self.db.fetch_one(message_query, (message_id,))
+            
+            if not message_result:
+                return {'success': False, 'error': 'Message not found'}
+            
+            reported_user_id = message_result[0]  # sender_id
+            recipient_id = message_result[1]
+            
+            # Verify reporter has access to this message (is sender or recipient)
+            if reporter_id not in [reported_user_id, recipient_id]:
+                return {'success': False, 'error': 'You can only report messages you have access to'}
+            
+            # Check if already reported by this user
+            existing_query = "SELECT id FROM message_reports WHERE message_id = ? AND reporter_id = ?"
+            existing = self.db.fetch_one(existing_query, (message_id, reporter_id))
+            
+            if existing:
+                return {'success': False, 'error': 'You have already reported this message'}
+            
+            # Create report
+            report_id = str(uuid.uuid4())
+            report = MessageReport(
+                id=report_id,
+                message_id=message_id,
+                reporter_id=reporter_id,
+                reported_user_id=reported_user_id,
+                reason=reason,
+                description=description,
+                status="pending",
+                created_at=datetime.now()
+            )
+            
+            # Insert report
+            report_query = """
+            INSERT INTO message_reports 
+            (id, message_id, reporter_id, reported_user_id, reason, description, status, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """
+            
+            self.db.execute_query(report_query, (
+                report.id, report.message_id, report.reporter_id, report.reported_user_id,
+                report.reason, report.description, report.status, report.created_at
+            ))
+            
+            # Flag the message
+            flag_query = "UPDATE messages SET is_flagged = 1 WHERE id = ?"
+            self.db.execute_query(flag_query, (message_id,))
+            
+            # Send notification to admins/moderators
+            if self.notifications:
+                self.notifications.send_notification(
+                    user_id="admin",  # Special admin notification
+                    title="Message Reported",
+                    message=f"Message reported for: {reason}",
+                    notification_type="moderation",
+                    metadata={'report_id': report_id, 'message_id': message_id}
+                )
+            
+            logger.info(f"Message reported: {message_id} by {reporter_id} for {reason}")
+            return {'success': True, 'report_id': report_id}
+            
+        except Exception as e:
+            logger.error(f"Error reporting message: {e}")
+            return {'success': False, 'error': 'Failed to report message'}
+    
+    def get_message_reports(self, admin_user_id: str = None, status: str = None) -> List[Dict[str, Any]]:
+        """Get message reports (admin only)"""
+        try:
+            if not self.db:
+                return []
+            
+            # TODO: Add admin permission check
+            # if not self._is_admin(admin_user_id):
+            #     return []
+            
+            base_query = """
+            SELECT mr.id, mr.message_id, mr.reporter_id, mr.reported_user_id, mr.reason, 
+                   mr.description, mr.status, mr.created_at, mr.reviewed_at, mr.reviewed_by,
+                   m.content, m.created_at as message_date,
+                   up1.display_name as reporter_name,
+                   up2.display_name as reported_name
+            FROM message_reports mr
+            LEFT JOIN messages m ON mr.message_id = m.id
+            LEFT JOIN user_profiles up1 ON mr.reporter_id = up1.user_id
+            LEFT JOIN user_profiles up2 ON mr.reported_user_id = up2.user_id
+            """
+            
+            params = []
+            if status:
+                base_query += " WHERE mr.status = ?"
+                params.append(status)
+            
+            base_query += " ORDER BY mr.created_at DESC"
+            
+            results = self.db.fetch_all(base_query, params)
+            
+            reports = []
+            for row in results:
+                reports.append({
+                    'id': row[0],
+                    'message_id': row[1],
+                    'reporter_id': row[2],
+                    'reported_user_id': row[3],
+                    'reason': row[4],
+                    'description': row[5],
+                    'status': row[6],
+                    'created_at': row[7],
+                    'reviewed_at': row[8],
+                    'reviewed_by': row[9],
+                    'message_content': row[10],
+                    'message_date': row[11],
+                    'reporter_name': row[12] or 'Unknown User',
+                    'reported_name': row[13] or 'Unknown User'
+                })
+            
+            return reports
+            
+        except Exception as e:
+            logger.error(f"Error getting message reports: {e}")
+            return []
+    
+    def review_message_report(self, report_id: str, action: str, reviewer_id: str) -> Dict[str, Any]:
+        """Review a message report (admin only)"""
+        try:
+            if not self.db:
+                return {'success': False, 'error': 'Database unavailable'}
+            
+            # TODO: Add admin permission check
+            # if not self._is_admin(reviewer_id):
+            #     return {'success': False, 'error': 'Admin privileges required'}
+            
+            if action not in ['dismiss', 'warning', 'remove_message', 'suspend_user']:
+                return {'success': False, 'error': 'Invalid action'}
+            
+            # Get report details
+            report_query = "SELECT message_id, reported_user_id FROM message_reports WHERE id = ?"
+            report_result = self.db.fetch_one(report_query, (report_id,))
+            
+            if not report_result:
+                return {'success': False, 'error': 'Report not found'}
+            
+            message_id = report_result[0]
+            reported_user_id = report_result[1]
+            
+            # Update report status
+            status = "resolved" if action != "dismiss" else "dismissed"
+            review_query = """
+            UPDATE message_reports 
+            SET status = ?, reviewed_at = ?, reviewed_by = ?
+            WHERE id = ?
+            """
+            
+            self.db.execute_query(review_query, (
+                status, datetime.now(), reviewer_id, report_id
+            ))
+            
+            # Take action based on review
+            if action == "remove_message":
+                # Soft delete message (mark as removed)
+                delete_query = "UPDATE messages SET content = '[Message removed by moderator]', is_flagged = 1 WHERE id = ?"
+                self.db.execute_query(delete_query, (message_id,))
+            
+            elif action == "warning":
+                # Send warning notification
+                if self.notifications:
+                    self.notifications.send_notification(
+                        user_id=reported_user_id,
+                        title="Community Guidelines Warning",
+                        message="Your recent message was reported and found to violate community guidelines. Please review our guidelines.",
+                        notification_type="warning",
+                        metadata={'report_id': report_id}
+                    )
+            
+            elif action == "suspend_user":
+                # TODO: Implement user suspension logic
+                pass
+            
+            logger.info(f"Report {report_id} reviewed with action: {action}")
+            return {'success': True, 'action': action}
+            
+        except Exception as e:
+            logger.error(f"Error reviewing message report: {e}")
+            return {'success': False, 'error': 'Failed to review report'}
 
 def init_social_database(db_connection):
     """Initialize social system database tables"""
@@ -1123,11 +1358,36 @@ def init_social_database(db_connection):
                 status TEXT NOT NULL,
                 created_at DATETIME NOT NULL,
                 read_at DATETIME,
+                is_flagged BOOLEAN DEFAULT 0,
+                content_safe BOOLEAN DEFAULT 1,
+                moderation_score REAL,
                 INDEX(conversation_id),
                 INDEX(sender_id),
                 INDEX(recipient_id),
                 INDEX(created_at),
-                INDEX(status)
+                INDEX(status),
+                INDEX(is_flagged)
+            )
+        ''')
+        
+        # Message reports table
+        db_connection.execute('''
+            CREATE TABLE IF NOT EXISTS message_reports (
+                id TEXT PRIMARY KEY,
+                message_id TEXT NOT NULL,
+                reporter_id TEXT NOT NULL,
+                reported_user_id TEXT NOT NULL,
+                reason TEXT NOT NULL,
+                description TEXT,
+                status TEXT NOT NULL DEFAULT 'pending',
+                created_at DATETIME NOT NULL,
+                reviewed_at DATETIME,
+                reviewed_by TEXT,
+                INDEX(message_id),
+                INDEX(reporter_id),
+                INDEX(reported_user_id),
+                INDEX(status),
+                INDEX(created_at)
             )
         ''')
         

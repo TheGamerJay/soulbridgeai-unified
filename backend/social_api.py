@@ -531,6 +531,121 @@ def create_social_api(social_manager, rate_limiter, security_monitor):
             logger.error(f"Error marking message as read: {e}")
             return jsonify({'error': 'Internal server error'}), 500
     
+    @social_api.route('/messages/<message_id>/report', methods=['POST'])
+    @require_auth
+    def report_message(message_id):
+        """Report a message for inappropriate content"""
+        try:
+            user_id = session['user_id']
+            data = request.get_json()
+            
+            if not data or 'reason' not in data:
+                return jsonify({'error': 'Report reason required'}), 400
+            
+            reason = data['reason']
+            description = data.get('description', '')
+            
+            # Validate reason
+            valid_reasons = ['inappropriate_content', 'harassment', 'spam', 'hate_speech', 'threats', 'other']
+            if reason not in valid_reasons:
+                return jsonify({'error': 'Invalid report reason'}), 400
+            
+            if not social_manager:
+                return jsonify({'error': 'Social system unavailable'}), 503
+            
+            # Rate limiting (if available)
+            if rate_limiter and not rate_limiter.check_rate_limit(f"report_message_{user_id}", max_requests=10, window=3600):
+                return jsonify({'error': 'Too many reports. Please wait.'}), 429
+            
+            # Security monitoring (if available)
+            if security_monitor:
+                security_monitor.log_event(user_id, 'message_reported', {
+                    'message_id': message_id,
+                    'reason': reason
+                })
+            
+            result = social_manager.report_message(user_id, message_id, reason, description)
+            
+            if not result['success']:
+                return jsonify({'error': result['error']}), 400
+            
+            return jsonify({
+                'success': True,
+                'message': 'Message reported successfully. Our moderation team will review it.',
+                'report_id': result['report_id']
+            })
+            
+        except Exception as e:
+            logger.error(f"Error reporting message: {e}")
+            return jsonify({'error': 'Internal server error'}), 500
+    
+    @social_api.route('/admin/reports', methods=['GET'])
+    @require_auth
+    def get_message_reports():
+        """Get message reports (admin only)"""
+        try:
+            user_id = session['user_id']
+            status = request.args.get('status')
+            
+            # TODO: Add proper admin check
+            # For now, allow any authenticated user to test
+            
+            if not social_manager:
+                return jsonify({'error': 'Social system unavailable'}), 503
+            
+            reports = social_manager.get_message_reports(user_id, status)
+            
+            return jsonify({
+                'success': True,
+                'reports': reports,
+                'count': len(reports)
+            })
+            
+        except Exception as e:
+            logger.error(f"Error getting message reports: {e}")
+            return jsonify({'error': 'Internal server error'}), 500
+    
+    @social_api.route('/admin/reports/<report_id>/review', methods=['PUT'])
+    @require_auth
+    def review_message_report(report_id):
+        """Review a message report (admin only)"""
+        try:
+            user_id = session['user_id']
+            data = request.get_json()
+            
+            if not data or 'action' not in data:
+                return jsonify({'error': 'Review action required'}), 400
+            
+            action = data['action']
+            
+            # TODO: Add proper admin check
+            # For now, allow any authenticated user to test
+            
+            if not social_manager:
+                return jsonify({'error': 'Social system unavailable'}), 503
+            
+            # Security monitoring (if available)
+            if security_monitor:
+                security_monitor.log_event(user_id, 'report_reviewed', {
+                    'report_id': report_id,
+                    'action': action
+                })
+            
+            result = social_manager.review_message_report(report_id, action, user_id)
+            
+            if not result['success']:
+                return jsonify({'error': result['error']}), 400
+            
+            return jsonify({
+                'success': True,
+                'message': f'Report reviewed with action: {action}',
+                'action': result['action']
+            })
+            
+        except Exception as e:
+            logger.error(f"Error reviewing message report: {e}")
+            return jsonify({'error': 'Internal server error'}), 500
+    
     return social_api
 
 def init_social_api(social_manager, rate_limiter, security_monitor):
