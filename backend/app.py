@@ -43,6 +43,8 @@ from support_dashboard import init_support_dashboard
 from user_preferences import init_preferences_manager, init_preferences_database
 from preferences_api import init_preferences_api
 from preferences_dashboard import init_preferences_dashboard
+from social_system import init_social_manager, init_social_database
+from social_api import init_social_api
 
 # Load environment variables from .env file (optional in production)
 try:
@@ -114,6 +116,9 @@ support_dashboard_blueprint = None
 # Initialize preferences system blueprints (will be registered after initialization)
 preferences_api_blueprint = None
 preferences_dashboard_blueprint = None
+
+# Initialize social system blueprints (will be registered after initialization)
+social_api_blueprint = None
 
 # Initialize security features (will be initialized with database later)
 security_features = None
@@ -282,6 +287,10 @@ def init_database():
                 init_preferences_database(db_connection)
                 preferences_manager = init_preferences_manager(db)
                 
+                # Initialize social system
+                init_social_database(db_connection)
+                social_manager = init_social_manager(db, preferences_manager, notification_api.get_manager() if notification_api else None)
+                
                 # Initialize notification scheduler
                 if notification_api:
                     init_notification_scheduler(notification_api.get_manager(), db)
@@ -324,6 +333,19 @@ def init_database():
                         logger.info("Preferences dashboard registered successfully")
                 else:
                     logger.warning("User preferences initialization failed")
+                
+                if social_manager:
+                    logger.info("Social manager initialized successfully")
+                    
+                    # Initialize and register social API
+                    global social_api_blueprint
+                    social_api_blueprint = init_social_api(social_manager, None, None)  # Will handle gracefully
+                    
+                    if social_api_blueprint:
+                        app.register_blueprint(social_api_blueprint)
+                        logger.info("Social API registered successfully")
+                else:
+                    logger.warning("Social system initialization failed")
             else:
                 logger.warning("No database connection available, skipping notification system initialization")
         except Exception as e:
