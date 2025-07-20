@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feature Flags & A/B Testing - SoulBridge AI Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .feature-flag-card {
+            transition: all 0.3s ease;
+        }
+        .feature-flag-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .flag-enabled {
+            border-left: 4px solid #28a745;
+        }
+        .flag-disabled {
+            border-left: 4px solid #dc3545;
+        }
+        .flag-testing {
+            border-left: 4px solid #ffc107;
+        }
+        .percentage-bar {
+            background: linear-gradient(90deg, #28a745 0%, #ffc107 50%, #dc3545 100%);
+            height: 8px;
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+        }
+        .percentage-indicator {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+        .analytics-chart {
+            height: 200px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+        }
+        .quick-toggle {
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .quick-toggle:hover {
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <nav class="navbar navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/admin">
+                <i class="fas fa-flag"></i> Feature Flags & A/B Testing
+            </a>
+            <div class="navbar-nav flex-row">
+                <a class="nav-link me-3" href="/admin">
+                    <i class="fas fa-arrow-left"></i> Back to Admin
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <!-- Quick Stats Row -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4 id="total-flags">0</h4>
+                                <p class="mb-0">Total Flags</p>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-flag fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-success text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4 id="enabled-flags">0</h4>
+                                <p class="mb-0">Enabled</p>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-check-circle fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-warning text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4 id="testing-flags">0</h4>
+                                <p class="mb-0">Testing</p>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-flask fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-info text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4 id="ab-tests">0</h4>
+                                <p class="mb-0">A/B Tests</p>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-chart-line fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions Row -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0">Feature Flag Management</h5>
+                            <div>
+                                <button class="btn btn-primary me-2" onclick="showCreateFlagModal()">
+                                    <i class="fas fa-plus"></i> Create Flag
+                                </button>
+                                <button class="btn btn-success me-2" onclick="showCreateABTestModal()">
+                                    <i class="fas fa-chart-line"></i> Create A/B Test
+                                </button>
+                                <button class="btn btn-outline-secondary" onclick="refreshData()">
+                                    <i class="fas fa-sync-alt"></i> Refresh
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Feature Flags List -->
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Feature Flags</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="feature-flags-list">
+                            <!-- Feature flags will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">A/B Tests</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="ab-tests-list">
+                            <!-- A/B tests will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Section -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Feature Usage Analytics</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="analytics-section">
+                            <div class="analytics-chart">
+                                <p>Select a feature flag to view analytics</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Feature Flag Modal -->
+    <div class="modal fade" id="createFlagModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create Feature Flag</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="createFlagForm">
+                        <div class="mb-3">
+                            <label for="flagName" class="form-label">Flag Name</label>
+                            <input type="text" class="form-control" id="flagName" required>
+                            <div class="form-text">Use snake_case (e.g., new_chat_ui)</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="flagDescription" class="form-label">Description</label>
+                            <textarea class="form-control" id="flagDescription" rows="3" required></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label for="flagState" class="form-label">Initial State</label>
+                                <select class="form-select" id="flagState">
+                                    <option value="disabled">Disabled</option>
+                                    <option value="enabled">Enabled</option>
+                                    <option value="testing">Testing</option>
+                                    <option value="rollout">Rollout</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="rolloutStrategy" class="form-label">Rollout Strategy</label>
+                                <select class="form-select" id="rolloutStrategy">
+                                    <option value="all_users">All Users</option>
+                                    <option value="percentage">Percentage</option>
+                                    <option value="user_list">User List</option>
+                                    <option value="user_tier">User Tier</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <label for="rolloutPercentage" class="form-label">Rollout Percentage</label>
+                            <input type="range" class="form-range" id="rolloutPercentage" min="0" max="100" value="0" 
+                                   oninput="document.getElementById('percentageValue').textContent = this.value + '%'">
+                            <div class="text-center">
+                                <span id="percentageValue" class="badge bg-primary">0%</span>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <label for="targetUsers" class="form-label">Target Users (comma-separated)</label>
+                            <input type="text" class="form-control" id="targetUsers" 
+                                   placeholder="user1@example.com, user2@example.com">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="createFeatureFlag()">Create Flag</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create A/B Test Modal -->
+    <div class="modal fade" id="createABTestModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create A/B Test</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="createABTestForm">
+                        <div class="mb-3">
+                            <label for="testName" class="form-label">Test Name</label>
+                            <input type="text" class="form-control" id="testName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="testDescription" class="form-label">Description</label>
+                            <textarea class="form-control" id="testDescription" rows="3" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Variants</label>
+                            <div id="variants-container">
+                                <div class="row mb-2">
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control" placeholder="Variant name" value="control">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <input type="number" class="form-control" placeholder="Percentage" value="50" min="0" max="100">
+                                    </div>
+                                </div>
+                                <div class="row mb-2">
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control" placeholder="Variant name" value="variant_a">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <input type="number" class="form-control" placeholder="Percentage" value="50" min="0" max="100">
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="addVariant()">
+                                <i class="fas fa-plus"></i> Add Variant
+                            </button>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label for="testStartDate" class="form-label">Start Date</label>
+                                <input type="datetime-local" class="form-control" id="testStartDate">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="testEndDate" class="form-label">End Date</label>
+                                <input type="datetime-local" class="form-control" id="testEndDate">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-success" onclick="createABTest()">Create Test</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Global variables
+        let featureFlags = [];
+        let abTests = [];
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            refreshData();
+        });
+
+        // Refresh all data
+        async function refreshData() {
+            await Promise.all([
+                loadFeatureFlags(),
+                loadABTests()
+            ]);
+            updateStats();
+        }
+
+        // Load feature flags
+        async function loadFeatureFlags() {
+            try {
+                const response = await fetch('/api/admin/feature-flags');
+                const data = await response.json();
+                featureFlags = data.feature_flags || [];
+                renderFeatureFlags();
+            } catch (error) {
+                console.error('Error loading feature flags:', error);
+                showAlert('Error loading feature flags', 'danger');
+            }
+        }
+
+        // Load A/B tests
+        async function loadABTests() {
+            try {
+                const response = await fetch('/api/admin/ab-tests');
+                const data = await response.json();
+                abTests = data.ab_tests || [];
+                renderABTests();
+            } catch (error) {
+                console.error('Error loading A/B tests:', error);
+                showAlert('Error loading A/B tests', 'danger');
+            }
+        }
+
+        // Render feature flags
+        function renderFeatureFlags() {
+            const container = document.getElementById('feature-flags-list');
+            if (featureFlags.length === 0) {
+                container.innerHTML = '<p class="text-muted">No feature flags found. Create your first flag!</p>';
+                return;
+            }
+
+            container.innerHTML = featureFlags.map(flag => `
+                <div class="card mb-3 feature-flag-card flag-${flag.state}">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <h6 class="card-title">
+                                    ${flag.name}
+                                    <span class="badge bg-${getStateColor(flag.state)} ms-2">${flag.state}</span>
+                                </h6>
+                                <p class="card-text text-muted">${flag.description}</p>
+                                <div class="d-flex align-items-center">
+                                    <small class="text-muted me-3">
+                                        <i class="fas fa-percentage"></i> ${flag.rollout_percentage}%
+                                    </small>
+                                    <small class="text-muted me-3">
+                                        <i class="fas fa-users"></i> ${flag.rollout_strategy}
+                                    </small>
+                                    <small class="text-muted">
+                                        <i class="fas fa-clock"></i> ${new Date(flag.updated_at).toLocaleDateString()}
+                                    </small>
+                                </div>
+                                ${flag.rollout_percentage > 0 ? `
+                                    <div class="percentage-bar mt-2">
+                                        <div class="percentage-indicator" style="width: ${100 - flag.rollout_percentage}%"></div>
+                                    </div>
+                                ` : ''}
+                            </div>
+                            <div class="ms-3">
+                                <div class="btn-group-vertical" role="group">
+                                    <button class="btn btn-sm btn-outline-primary quick-toggle" 
+                                            onclick="toggleFlag('${flag.name}', ${flag.state === 'enabled'})"
+                                            title="Quick Toggle">
+                                        <i class="fas fa-power-off"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-info" 
+                                            onclick="showAnalytics('${flag.name}')"
+                                            title="View Analytics">
+                                        <i class="fas fa-chart-bar"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-warning" 
+                                            onclick="editFlag('${flag.name}')"
+                                            title="Edit Flag">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger" 
+                                            onclick="deleteFlag('${flag.name}')"
+                                            title="Delete Flag">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Render A/B tests
+        function renderABTests() {
+            const container = document.getElementById('ab-tests-list');
+            if (abTests.length === 0) {
+                container.innerHTML = '<p class="text-muted">No A/B tests found.</p>';
+                return;
+            }
+
+            container.innerHTML = abTests.map(test => `
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h6 class="card-title">
+                            ${test.name}
+                            <span class="badge bg-${test.is_active ? 'success' : 'secondary'} ms-2">
+                                ${test.is_active ? 'Active' : 'Inactive'}
+                            </span>
+                        </h6>
+                        <p class="card-text text-muted small">${test.description}</p>
+                        <div class="mt-2">
+                            ${Object.entries(test.variants).map(([variant, percentage]) => `
+                                <div class="d-flex justify-content-between">
+                                    <span class="small">${variant}</span>
+                                    <span class="small">${percentage}%</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="mt-2">
+                            <button class="btn btn-sm btn-outline-primary w-100" onclick="viewABTest('${test.name}')">
+                                View Details
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Update statistics
+        function updateStats() {
+            document.getElementById('total-flags').textContent = featureFlags.length;
+            document.getElementById('enabled-flags').textContent = featureFlags.filter(f => f.state === 'enabled').length;
+            document.getElementById('testing-flags').textContent = featureFlags.filter(f => f.state === 'testing').length;
+            document.getElementById('ab-tests').textContent = abTests.length;
+        }
+
+        // Get state color
+        function getStateColor(state) {
+            const colors = {
+                enabled: 'success',
+                disabled: 'danger',
+                testing: 'warning',
+                rollout: 'info'
+            };
+            return colors[state] || 'secondary';
+        }
+
+        // Show modals
+        function showCreateFlagModal() {
+            new bootstrap.Modal(document.getElementById('createFlagModal')).show();
+        }
+
+        function showCreateABTestModal() {
+            new bootstrap.Modal(document.getElementById('createABTestModal')).show();
+        }
+
+        // Create feature flag
+        async function createFeatureFlag() {
+            const form = document.getElementById('createFlagForm');
+            const formData = new FormData(form);
+            
+            const flagData = {
+                name: document.getElementById('flagName').value,
+                description: document.getElementById('flagDescription').value,
+                state: document.getElementById('flagState').value,
+                rollout_strategy: document.getElementById('rolloutStrategy').value,
+                rollout_percentage: parseFloat(document.getElementById('rolloutPercentage').value),
+                target_users: document.getElementById('targetUsers').value.split(',').map(u => u.trim()).filter(u => u)
+            };
+
+            try {
+                const response = await fetch('/api/admin/feature-flags', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(flagData)
+                });
+
+                if (response.ok) {
+                    bootstrap.Modal.getInstance(document.getElementById('createFlagModal')).hide();
+                    form.reset();
+                    refreshData();
+                    showAlert('Feature flag created successfully!', 'success');
+                } else {
+                    throw new Error('Failed to create feature flag');
+                }
+            } catch (error) {
+                console.error('Error creating feature flag:', error);
+                showAlert('Error creating feature flag', 'danger');
+            }
+        }
+
+        // Toggle feature flag
+        async function toggleFlag(flagName, currentlyEnabled) {
+            try {
+                const response = await fetch(`/api/admin/feature-flags/${flagName}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        state: currentlyEnabled ? 'disabled' : 'enabled'
+                    })
+                });
+
+                if (response.ok) {
+                    refreshData();
+                    showAlert(`Feature flag ${currentlyEnabled ? 'disabled' : 'enabled'}!`, 'success');
+                } else {
+                    throw new Error('Failed to toggle feature flag');
+                }
+            } catch (error) {
+                console.error('Error toggling feature flag:', error);
+                showAlert('Error toggling feature flag', 'danger');
+            }
+        }
+
+        // Show alert
+        function showAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+            alertDiv.style.top = '20px';
+            alertDiv.style.right = '20px';
+            alertDiv.style.zIndex = '9999';
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+
+        // Placeholder functions for other actions
+        function showAnalytics(flagName) {
+            showAlert(`Analytics for ${flagName} - Coming soon!`, 'info');
+        }
+
+        function editFlag(flagName) {
+            showAlert(`Edit ${flagName} - Coming soon!`, 'info');
+        }
+
+        function deleteFlag(flagName) {
+            if (confirm(`Are you sure you want to delete the feature flag "${flagName}"?`)) {
+                showAlert(`Delete ${flagName} - Coming soon!`, 'info');
+            }
+        }
+
+        function createABTest() {
+            showAlert('A/B Test creation - Coming soon!', 'info');
+        }
+
+        function viewABTest(testName) {
+            showAlert(`View A/B test ${testName} - Coming soon!`, 'info');
+        }
+
+        function addVariant() {
+            const container = document.getElementById('variants-container');
+            const newVariant = document.createElement('div');
+            newVariant.className = 'row mb-2';
+            newVariant.innerHTML = `
+                <div class="col-md-6">
+                    <input type="text" class="form-control" placeholder="Variant name">
+                </div>
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <input type="number" class="form-control" placeholder="Percentage" min="0" max="100">
+                        <button class="btn btn-outline-danger" type="button" onclick="this.parentElement.parentElement.parentElement.remove()">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            container.appendChild(newVariant);
+        }
+    </script>
+</body>
+</html>

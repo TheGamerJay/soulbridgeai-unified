@@ -101,7 +101,94 @@ class PostgreSQLManager:
             """
             )
 
-            print("✅ Database tables created/verified")
+            # Feature flags table
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS feature_flags (
+                    flag_id VARCHAR(50) PRIMARY KEY,
+                    flag_name VARCHAR(100) UNIQUE NOT NULL,
+                    description TEXT,
+                    is_enabled BOOLEAN DEFAULT FALSE,
+                    rollout_percentage DECIMAL(5,2) DEFAULT 0.0,
+                    target_groups JSONB DEFAULT '[]',
+                    conditions JSONB DEFAULT '{}',
+                    metadata JSONB DEFAULT '{}',
+                    created_by VARCHAR(50),
+                    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """
+            )
+
+            # A/B test experiments table
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS ab_experiments (
+                    experiment_id VARCHAR(50) PRIMARY KEY,
+                    experiment_name VARCHAR(100) UNIQUE NOT NULL,
+                    description TEXT,
+                    is_active BOOLEAN DEFAULT FALSE,
+                    variants JSONB NOT NULL,
+                    traffic_allocation JSONB DEFAULT '{}',
+                    target_criteria JSONB DEFAULT '{}',
+                    success_metrics JSONB DEFAULT '[]',
+                    start_date TIMESTAMP,
+                    end_date TIMESTAMP,
+                    created_by VARCHAR(50),
+                    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """
+            )
+
+            # User feature assignments table
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS user_feature_assignments (
+                    assignment_id VARCHAR(50) PRIMARY KEY,
+                    user_id VARCHAR(50) REFERENCES users(user_id) ON DELETE CASCADE,
+                    flag_name VARCHAR(100),
+                    experiment_id VARCHAR(50),
+                    variant_name VARCHAR(100),
+                    is_enabled BOOLEAN DEFAULT FALSE,
+                    assigned_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(user_id, flag_name)
+                )
+            """
+            )
+
+            # Feature usage analytics table
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS feature_usage_analytics (
+                    usage_id VARCHAR(50) PRIMARY KEY,
+                    user_id VARCHAR(50) REFERENCES users(user_id) ON DELETE CASCADE,
+                    flag_name VARCHAR(100),
+                    experiment_id VARCHAR(50),
+                    variant_name VARCHAR(100),
+                    event_type VARCHAR(50),
+                    event_data JSONB DEFAULT '{}',
+                    session_id VARCHAR(50),
+                    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """
+            )
+
+            # Create indexes for performance
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_feature_flags_name ON feature_flags(flag_name)"
+            )
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_user_assignments_user_flag ON user_feature_assignments(user_id, flag_name)"
+            )
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_usage_analytics_user_flag ON feature_usage_analytics(user_id, flag_name, timestamp)"
+            )
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_ab_experiments_active ON ab_experiments(is_active, start_date, end_date)"
+            )
+
+            print("✅ Database tables created/verified (including feature flags)")
 
         except Exception as e:
             print(f"❌ Failed to create tables: {e}")

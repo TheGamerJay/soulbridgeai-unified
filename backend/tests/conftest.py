@@ -2,6 +2,10 @@ import pytest
 import os
 import tempfile
 from unittest.mock import patch, MagicMock
+
+# Set test environment before importing app
+os.environ["TEST_MODE"] = "true"
+
 from app import app, init_database, init_openai
 
 

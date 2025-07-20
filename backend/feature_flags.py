@@ -8,6 +8,7 @@ import json
 import logging
 import time
 import hashlib
+import uuid
 from typing import Dict, List, Optional, Any, Tuple
 from datetime import datetime, timedelta
 from enum import Enum
@@ -366,39 +367,318 @@ class InMemoryStorage:
 class DatabaseStorage:
     """Database storage for feature flags (production use)"""
 
-    def __init__(self, db_connection):
-        self.db = db_connection
-        self._init_tables()
-
-    def _init_tables(self):
-        """Initialize database tables for feature flags"""
-        # This would create the necessary tables
-        # Implementation depends on your database setup
-        pass
+    def __init__(self, db_manager):
+        self.db = db_manager
+        # Tables are already created in postgres_db.py
 
     def get_feature_flag(self, name: str) -> Optional[FeatureFlag]:
-        # Implementation for database retrieval
-        pass
+        """Get feature flag from database"""
+        try:
+            cursor = self.db.connection.cursor()
+            cursor.execute(
+                """
+                SELECT flag_name, description, is_enabled, rollout_percentage, 
+                       target_groups, conditions, metadata, created_by, created_date, updated_date
+                FROM feature_flags WHERE flag_name = %s
+                """,
+                (name,)
+            )
+            
+            result = cursor.fetchone()
+            if not result:
+                return None
+            
+            # Convert database result to FeatureFlag object
+            flag_name, description, is_enabled, rollout_percentage, target_groups, conditions, metadata, created_by, created_date, updated_date = result
+            
+            # Map database state to enum
+            state = FeatureState.ENABLED if is_enabled else FeatureState.DISABLED
+            
+            # Determine rollout strategy from data
+            if rollout_percentage > 0:
+                rollout_strategy = RolloutStrategy.PERCENTAGE
+            elif target_groups:
+                rollout_strategy = RolloutStrategy.USER_LIST
+            else:
+                rollout_strategy = RolloutStrategy.ALL_USERS if is_enabled else RolloutStrategy.ALL_USERS
+            
+            return FeatureFlag(
+                name=flag_name,
+                description=description,
+                state=state,
+                rollout_strategy=rollout_strategy,
+                rollout_percentage=float(rollout_percentage),
+                target_users=json.loads(target_groups) if target_groups else [],
+                created_at=created_date,
+                updated_at=updated_date,
+                created_by=created_by
+            )
+            
+        except Exception as e:
+            logger.error(f"Error getting feature flag {name}: {e}")
+            return None
 
     def save_feature_flag(self, flag: FeatureFlag):
-        # Implementation for database storage
-        pass
+        """Save feature flag to database"""
+        try:
+            cursor = self.db.connection.cursor()
+            
+            # Check if flag exists
+            cursor.execute("SELECT flag_id FROM feature_flags WHERE flag_name = %s", (flag.name,))
+            exists = cursor.fetchone()
+            
+            if exists:
+                # Update existing flag
+                cursor.execute(
+                    """
+                    UPDATE feature_flags SET
+                        description = %s,
+                        is_enabled = %s,
+                        rollout_percentage = %s,
+                        target_groups = %s,
+                        conditions = %s,
+                        metadata = %s,
+                        updated_date = CURRENT_TIMESTAMP
+                    WHERE flag_name = %s
+                    """,
+                    (
+                        flag.description,
+                        flag.state == FeatureState.ENABLED,
+                        flag.rollout_percentage,
+                        json.dumps(flag.target_users),
+                        json.dumps({}),  # conditions
+                        json.dumps({}),  # metadata
+                        flag.name
+                    )
+                )
+            else:
+                # Create new flag
+                flag_id = f"flag_{uuid.uuid4().hex[:8]}"
+                cursor.execute(
+                    """
+                    INSERT INTO feature_flags (
+                        flag_id, flag_name, description, is_enabled, rollout_percentage,
+                        target_groups, conditions, metadata, created_by
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    """,
+                    (
+                        flag_id,
+                        flag.name,
+                        flag.description,
+                        flag.state == FeatureState.ENABLED,
+                        flag.rollout_percentage,
+                        json.dumps(flag.target_users),
+                        json.dumps({}),  # conditions
+                        json.dumps({}),  # metadata
+                        flag.created_by
+                    )
+                )
+                
+        except Exception as e:
+            logger.error(f"Error saving feature flag {flag.name}: {e}")
+            raise
 
-    # ... other methods
+    def delete_feature_flag(self, name: str):
+        """Delete feature flag from database"""
+        try:
+            cursor = self.db.connection.cursor()
+            cursor.execute("DELETE FROM feature_flags WHERE flag_name = %s", (name,))
+        except Exception as e:
+            logger.error(f"Error deleting feature flag {name}: {e}")
+            raise
+
+    def list_feature_flags(self) -> List[FeatureFlag]:
+        """List all feature flags from database"""
+        try:
+            cursor = self.db.connection.cursor()
+            cursor.execute(
+                """
+                SELECT flag_name, description, is_enabled, rollout_percentage, 
+                       target_groups, conditions, metadata, created_by, created_date, updated_date
+                FROM feature_flags ORDER BY created_date DESC
+                """
+            )
+            
+            flags = []
+            for result in cursor.fetchall():
+                flag_name, description, is_enabled, rollout_percentage, target_groups, conditions, metadata, created_by, created_date, updated_date = result
+                
+                state = FeatureState.ENABLED if is_enabled else FeatureState.DISABLED
+                rollout_strategy = RolloutStrategy.PERCENTAGE if rollout_percentage > 0 else RolloutStrategy.ALL_USERS
+                
+                flags.append(FeatureFlag(
+                    name=flag_name,
+                    description=description,
+                    state=state,
+                    rollout_strategy=rollout_strategy,
+                    rollout_percentage=float(rollout_percentage),
+                    target_users=json.loads(target_groups) if target_groups else [],
+                    created_at=created_date,
+                    updated_at=updated_date,
+                    created_by=created_by
+                ))
+            
+            return flags
+            
+        except Exception as e:
+            logger.error(f"Error listing feature flags: {e}")
+            return []
+
+    def get_ab_test(self, name: str) -> Optional[ABTest]:
+        """Get A/B test from database"""
+        try:
+            cursor = self.db.connection.cursor()
+            cursor.execute(
+                """
+                SELECT experiment_name, description, is_active, variants, 
+                       traffic_allocation, target_criteria, success_metrics, 
+                       start_date, end_date, created_date
+                FROM ab_experiments WHERE experiment_name = %s
+                """,
+                (name,)
+            )
+            
+            result = cursor.fetchone()
+            if not result:
+                return None
+            
+            experiment_name, description, is_active, variants, traffic_allocation, target_criteria, success_metrics, start_date, end_date, created_date = result
+            
+            return ABTest(
+                name=experiment_name,
+                description=description,
+                is_active=is_active,
+                variants=json.loads(variants),
+                target_users=json.loads(target_criteria).get('target_users', []) if target_criteria else [],
+                start_time=start_date,
+                end_time=end_date,
+                created_at=created_date
+            )
+            
+        except Exception as e:
+            logger.error(f"Error getting A/B test {name}: {e}")
+            return None
+
+    def save_ab_test(self, test: ABTest):
+        """Save A/B test to database"""
+        try:
+            cursor = self.db.connection.cursor()
+            
+            # Check if experiment exists
+            cursor.execute("SELECT experiment_id FROM ab_experiments WHERE experiment_name = %s", (test.name,))
+            exists = cursor.fetchone()
+            
+            if exists:
+                # Update existing experiment
+                cursor.execute(
+                    """
+                    UPDATE ab_experiments SET
+                        description = %s,
+                        is_active = %s,
+                        variants = %s,
+                        traffic_allocation = %s,
+                        target_criteria = %s,
+                        start_date = %s,
+                        end_date = %s,
+                        updated_date = CURRENT_TIMESTAMP
+                    WHERE experiment_name = %s
+                    """,
+                    (
+                        test.description,
+                        test.is_active,
+                        json.dumps(test.variants),
+                        json.dumps(test.variants),  # traffic_allocation same as variants for simplicity
+                        json.dumps({'target_users': test.target_users}),
+                        test.start_time,
+                        test.end_time,
+                        test.name
+                    )
+                )
+            else:
+                # Create new experiment
+                experiment_id = f"exp_{uuid.uuid4().hex[:8]}"
+                cursor.execute(
+                    """
+                    INSERT INTO ab_experiments (
+                        experiment_id, experiment_name, description, is_active, variants,
+                        traffic_allocation, target_criteria, success_metrics,
+                        start_date, end_date, created_by
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    """,
+                    (
+                        experiment_id,
+                        test.name,
+                        test.description,
+                        test.is_active,
+                        json.dumps(test.variants),
+                        json.dumps(test.variants),
+                        json.dumps({'target_users': test.target_users}),
+                        json.dumps([]),  # success_metrics
+                        test.start_time,
+                        test.end_time,
+                        'system'  # created_by
+                    )
+                )
+                
+        except Exception as e:
+            logger.error(f"Error saving A/B test {test.name}: {e}")
+            raise
+
+    def list_ab_tests(self) -> List[ABTest]:
+        """List all A/B tests from database"""
+        try:
+            cursor = self.db.connection.cursor()
+            cursor.execute(
+                """
+                SELECT experiment_name, description, is_active, variants, 
+                       traffic_allocation, target_criteria, success_metrics, 
+                       start_date, end_date, created_date
+                FROM ab_experiments ORDER BY created_date DESC
+                """
+            )
+            
+            tests = []
+            for result in cursor.fetchall():
+                experiment_name, description, is_active, variants, traffic_allocation, target_criteria, success_metrics, start_date, end_date, created_date = result
+                
+                tests.append(ABTest(
+                    name=experiment_name,
+                    description=description,
+                    is_active=is_active,
+                    variants=json.loads(variants),
+                    target_users=json.loads(target_criteria).get('target_users', []) if target_criteria else [],
+                    start_time=start_date,
+                    end_time=end_date,
+                    created_at=created_date
+                ))
+            
+            return tests
+            
+        except Exception as e:
+            logger.error(f"Error listing A/B tests: {e}")
+            return []
 
 
-# Global feature flag manager
-feature_manager = FeatureFlagManager()
+# Global feature flag manager - will be initialized in app.py
+feature_manager = None
 
 
 # Convenience functions
 def is_feature_enabled(feature_name: str, user_context: Dict = None) -> bool:
     """Check if a feature is enabled"""
+    global feature_manager
+    if not feature_manager:
+        logger.warning("Feature flag manager not initialized")
+        return False
     return feature_manager.is_feature_enabled(feature_name, user_context)
 
 
 def get_ab_test_variant(test_name: str, user_context: Dict = None) -> str:
     """Get A/B test variant"""
+    global feature_manager
+    if not feature_manager:
+        logger.warning("Feature flag manager not initialized")
+        return "control"
     return feature_manager.get_ab_test_variant(test_name, user_context)
 
 
@@ -417,13 +697,25 @@ def feature_flag(feature_name: str):
     return decorator
 
 
-def init_feature_flags(app):
+def init_feature_flags(app, db_manager=None):
     """Initialize feature flags for Flask app"""
+    global feature_manager
+    
+    # Initialize feature manager with database storage if available
+    if db_manager:
+        storage = DatabaseStorage(db_manager)
+        feature_manager = FeatureFlagManager(storage)
+    else:
+        feature_manager = FeatureFlagManager()
+    
+    logger.info("Feature flag manager initialized")
 
     @app.route("/api/admin/feature-flags", methods=["GET"])
     def list_feature_flags():
         """List all feature flags (admin only)"""
         # Add admin authentication check here
+        if not feature_manager:
+            return {"feature_flags": []}
         flags = feature_manager.list_feature_flags()
         return {"feature_flags": [asdict(flag) for flag in flags]}
 
