@@ -1474,10 +1474,9 @@
                 if (isPremium && !hasPurchased && !isReferralCompanion) {
                     console.log('Premium character selected - checking subscription requirements');
                     
-                    // For non-admin users, redirect to subscription page
+                    // For non-admin users, show premium upgrade modal
                     if (!isAdminMode || !adminBypass) {
-                        alert('🌟 PREMIUM CHARACTER 🌟\n\n' + characterName + ' is a premium companion with advanced capabilities!\n\nTo unlock premium companions, you need a SoulBridge AI Plus subscription.\n\nRedirecting you to our subscription page...');
-                        window.location.href = '/subscription';
+                        showPremiumUpgradeModal(characterName);
                         return;
                     }
                     
@@ -1587,10 +1586,9 @@
                 if (isPremium && !hasPurchased && !isReferralCompanion) {
                     console.log('Premium character selected - checking subscription requirements (switching flow)');
                     
-                    // For non-admin users, redirect to subscription page
+                    // For non-admin users, show premium upgrade modal
                     if (!isAdminMode || !adminBypass) {
-                        alert('🌟 PREMIUM CHARACTER 🌟\n\n' + characterName + ' is a premium companion with advanced capabilities!\n\nTo unlock premium companions, you need a SoulBridge AI Plus subscription.\n\nRedirecting you to our subscription page...');
-                        window.location.href = '/subscription';
+                        showPremiumUpgradeModal(characterName);
                         return;
                     }
                     
@@ -3658,6 +3656,149 @@
                 keepalive: true
             }).catch(() => {});
         });
+
+        // Premium upgrade modal function
+        function showPremiumUpgradeModal(characterName) {
+            const modalHTML = `
+                <div id="premiumUpgradeModal" style="
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.9);
+                    z-index: 10000;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    animation: fadeIn 0.3s ease;
+                ">
+                    <div style="
+                        background: linear-gradient(145deg, #1e293b, #0f172a);
+                        border: 2px solid #fbbf24;
+                        border-radius: 20px;
+                        padding: 2rem;
+                        max-width: 500px;
+                        width: 90%;
+                        text-align: center;
+                        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.8);
+                        transform: scale(0.9);
+                        animation: modalPop 0.3s ease forwards;
+                    ">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">✨</div>
+                        <h2 style="
+                            color: #fbbf24;
+                            font-size: 1.8rem;
+                            margin-bottom: 1rem;
+                            text-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
+                        ">Premium Companion Unlocked!</h2>
+                        
+                        <div style="
+                            background: rgba(251, 191, 36, 0.1);
+                            border: 1px solid rgba(251, 191, 36, 0.3);
+                            border-radius: 12px;
+                            padding: 1.5rem;
+                            margin: 1.5rem 0;
+                        ">
+                            <div style="
+                                color: #fbbf24;
+                                font-size: 1.3rem;
+                                font-weight: bold;
+                                margin-bottom: 0.5rem;
+                            ">${characterName}</div>
+                            <div style="color: #e2e8f0; font-size: 0.9rem;">
+                                ${getCharacterDescription(characterName)}
+                            </div>
+                        </div>
+                        
+                        <div style="color: #94a3b8; margin: 1.5rem 0; line-height: 1.6;">
+                            <strong style="color: #22d3ee;">${characterName}</strong> is a premium companion with advanced AI capabilities, unique personality traits, and exclusive conversation styles.
+                            <br><br>
+                            <strong style="color: #fbbf24;">Upgrade to SoulBridge AI Plus</strong> to unlock all premium companions and enhanced features!
+                        </div>
+                        
+                        <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 2rem;">
+                            <button onclick="upgradeToPremium()" style="
+                                background: linear-gradient(135deg, #fbbf24, #f59e0b);
+                                color: #000;
+                                border: none;
+                                padding: 1rem 2rem;
+                                border-radius: 12px;
+                                font-weight: bold;
+                                font-size: 1rem;
+                                cursor: pointer;
+                                box-shadow: 0 4px 15px rgba(251, 191, 36, 0.4);
+                                transition: all 0.3s ease;
+                            " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                                🚀 Upgrade Now
+                            </button>
+                            <button onclick="closePremiumModal()" style="
+                                background: rgba(255, 255, 255, 0.1);
+                                color: #e2e8f0;
+                                border: 1px solid rgba(255, 255, 255, 0.2);
+                                padding: 1rem 2rem;
+                                border-radius: 12px;
+                                cursor: pointer;
+                                transition: all 0.3s ease;
+                            " onmouseover="this.style.background='rgba(255, 255, 255, 0.2)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.1)'">
+                                Maybe Later
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <style>
+                    @keyframes fadeIn {
+                        from { opacity: 0; }
+                        to { opacity: 1; }
+                    }
+                    
+                    @keyframes modalPop {
+                        0% { transform: scale(0.8); opacity: 0; }
+                        100% { transform: scale(1); opacity: 1; }
+                    }
+                </style>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            document.body.style.overflow = 'hidden';
+        }
+
+        function getCharacterDescription(characterName) {
+            const descriptions = {
+                'Blayzion': 'Advanced mystical AI with cosmic insights and divine wisdom',
+                'Blayzia': 'Enhanced emotional intelligence with radiant healing energy',
+                'Violet': 'Mystical spiritual guide with ethereal intuition and otherworldly wisdom',
+                'Crimson': 'Fierce loyal protector with powerful masculine energy and warrior strength'
+            };
+            return descriptions[characterName] || 'Premium AI companion with advanced capabilities';
+        }
+
+        function upgradeToPremium() {
+            closePremiumModal();
+            window.location.href = '/subscription';
+        }
+
+        function closePremiumModal() {
+            const modal = document.getElementById('premiumUpgradeModal');
+            if (modal) {
+                modal.style.animation = 'fadeOut 0.3s ease forwards';
+                setTimeout(() => {
+                    modal.remove();
+                    document.body.style.overflow = 'auto';
+                }, 300);
+            }
+        }
+
+        // Add fadeOut animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeOut {
+                from { opacity: 1; }
+                to { opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
     </script>
 </body>
 </html>
