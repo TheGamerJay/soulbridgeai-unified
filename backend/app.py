@@ -55,6 +55,8 @@ from coppa_compliance import init_coppa_compliance, init_coppa_database
 from community_system import init_community_manager, init_community_database
 from community_api import init_community_api
 from expert_content import init_expert_content_manager, init_expert_content_database
+from creator_portal import init_creator_portal_manager, init_creator_portal_database
+from creator_portal_api import init_creator_portal_api
 
 # Load environment variables from .env file (optional in production)
 try:
@@ -327,6 +329,10 @@ def init_database():
                 init_expert_content_database(db_connection)
                 expert_content_manager = init_expert_content_manager(db)
                 
+                # Initialize creator portal system
+                init_creator_portal_database(db_connection)
+                creator_portal_manager = init_creator_portal_manager(db)
+                
                 # Initialize notification scheduler
                 if notification_api:
                     init_notification_scheduler(notification_api.get_manager(), db)
@@ -433,6 +439,19 @@ def init_database():
                     expert_content_manager.seed_sample_content()
                 else:
                     logger.warning("Expert content system initialization failed")
+                
+                if creator_portal_manager:
+                    logger.info("Creator portal manager initialized successfully")
+                    
+                    # Initialize and register creator portal API
+                    global creator_portal_api_blueprint
+                    creator_portal_api_blueprint = init_creator_portal_api()
+                    
+                    if creator_portal_api_blueprint:
+                        app.register_blueprint(creator_portal_api_blueprint)
+                        logger.info("Creator portal API registered successfully")
+                else:
+                    logger.warning("Creator portal system initialization failed")
             else:
                 logger.warning("No database connection available, skipping notification system initialization")
         except Exception as e:
@@ -3125,6 +3144,24 @@ def community_dashboard():
         return redirect(url_for('login'))
     
     return render_template('community_dashboard.html')
+
+
+@app.route("/creator-dashboard")
+def creator_dashboard():
+    """Creator Portal Dashboard"""
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    return render_template('creator_dashboard.html')
+
+
+@app.route("/course-builder")
+def course_builder():
+    """Course Builder Interface"""
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    return render_template('course_builder.html')
 
 
 # -------------------------------------------------
