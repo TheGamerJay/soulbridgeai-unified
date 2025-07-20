@@ -3283,45 +3283,13 @@
             setInterval(verifySubscriptionStatus, 5 * 60 * 1000);
             addCharacterHoverAnimations();
             
-            // Restore user's current state on page load/refresh
-            const selectedCharacter = localStorage.getItem('selectedCharacter');
-            const firstPickMade = localStorage.getItem('firstPickMade');
-            const currentScreen = localStorage.getItem('currentScreen');
+            // Always start at intro screen on page load/refresh
+            console.log('Page load - Always starting at intro screen');
             
-            console.log('Page load - selectedCharacter:', selectedCharacter);
-            console.log('Page load - firstPickMade:', firstPickMade);
-            console.log('Page load - currentScreen:', currentScreen);
-            
-            // If user has made a character selection or was in chat, go directly to chat
-            if ((selectedCharacter && firstPickMade === 'true') || currentScreen === 'chat') {
-                console.log('Restoring chat with character:', selectedCharacter);
-                
-                // Hide intro and character select screens, show chat interface
-                document.getElementById('introScreen').classList.add('hidden');
-                document.getElementById('characterSelect').classList.add('hidden');
-                document.getElementById('chatInterface').classList.remove('hidden');
-                
-                // Update character info and avatar
-                if (selectedCharacter) {
-                    updateCharacterInfo(selectedCharacter);
-                    updateChatAvatar(selectedCharacter);
-                }
-                
-                // Add greeting after a short delay to ensure DOM is ready
-                setTimeout(function() {
-                    addGreetingToChat();
-                }, 500);
-                
-            } else if (currentScreen === 'select') {
-                // User was on character select screen
-                console.log('Restoring character select screen');
-                showCharacterSelect();
-            } else {
-                // If no character selected and no specific screen, redirect to login
-                // This ensures fresh visits always start with character selection
-                console.log('No character selected, redirecting to character select');
-                showCharacterSelect();
-            }
+            // Show intro screen by default (all others hidden by default)
+            document.getElementById('introScreen').classList.remove('hidden');
+            document.getElementById('characterSelect').classList.add('hidden');
+            document.getElementById('chatInterface').classList.add('hidden');
             
             // Show unlocked referral companions
             showUnlockedReferralCompanions();
