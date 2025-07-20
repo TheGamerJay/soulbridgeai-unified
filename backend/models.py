@@ -15,15 +15,22 @@ class DatabaseManager:
     
     def _load_data(self) -> Dict:
         """Load data from JSON file or create empty structure"""
+        print(f"🔍 Loading database from: {self.db_file}")
+        print(f"📁 Database file exists: {os.path.exists(self.db_file)}")
+        
         if os.path.exists(self.db_file):
             try:
                 with open(self.db_file, 'r', encoding='utf-8') as f:
-                    return json.load(f)
-            except (json.JSONDecodeError, FileNotFoundError):
-                pass
+                    data = json.load(f)
+                print(f"✅ Database loaded successfully. Users: {len(data.get('users', []))}")
+                return data
+            except (json.JSONDecodeError, FileNotFoundError) as e:
+                print(f"❌ Database file corrupted: {e}")
+        else:
+            print("📝 Creating new database structure")
         
         # Default structure
-        return {
+        default_data = {
             "users": [],
             "support_tickets": [],
             "invoices": [],
@@ -35,13 +42,48 @@ class DatabaseManager:
                 "lastUpdated": datetime.utcnow().isoformat() + "Z"
             }
         }
+        
+        # Save the default structure immediately
+        try:
+            with open(self.db_file, 'w', encoding='utf-8') as f:
+                json.dump(default_data, f, indent=2, ensure_ascii=False)
+            print(f"💾 New database file created at: {self.db_file}")
+        except Exception as e:
+            print(f"❌ Failed to create database file: {e}")
+        
+        return default_data
     
     def _save_data(self):
         """Save data to JSON file"""
         self.data["metadata"]["lastUpdated"] = datetime.utcnow().isoformat() + "Z"
         
-        with open(self.db_file, 'w', encoding='utf-8') as f:
-            json.dump(self.data, f, indent=2, ensure_ascii=False)
+        try:
+            # Create directory if it doesn't exist
+            os.makedirs(os.path.dirname(self.db_file) if os.path.dirname(self.db_file) else '.', exist_ok=True)
+            
+            # Write to temp file first, then move to prevent corruption
+            temp_file = self.db_file + '.tmp'
+            with open(temp_file, 'w', encoding='utf-8') as f:
+                json.dump(self.data, f, indent=2, ensure_ascii=False)
+            
+            # Move temp file to actual file (atomic operation)
+            if os.path.exists(temp_file):
+                if os.path.exists(self.db_file):
+                    os.remove(self.db_file)
+                os.rename(temp_file, self.db_file)
+                
+            print(f"💾 Database saved successfully to {self.db_file}")
+            print(f"📊 Total users in database: {len(self.data.get('users', []))}")
+            
+        except Exception as e:
+            print(f"❌ Failed to save database: {e}")
+            # Try to clean up temp file
+            temp_file = self.db_file + '.tmp'
+            if os.path.exists(temp_file):
+                try:
+                    os.remove(temp_file)
+                except:
+                    pass
 
 class User:
     def __init__(self, db_manager: DatabaseManager):

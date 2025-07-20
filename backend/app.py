@@ -131,14 +131,22 @@ def add_aggressive_cache_busting(response):
 def init_database():
     global db
     try:
-        db = SoulBridgeDB("soulbridge_data.json")
-        logging.info("Database initialized successfully")
+        # Use persistent path for Railway or local development
+        db_path = "soulbridge_data.json"
+        if os.environ.get('RAILWAY_ENVIRONMENT'):
+            # Try to use a data directory that might persist
+            db_path = "/data/soulbridge_data.json" if os.path.exists("/data") else "soulbridge_data.json"
+        
+        print(f"🗄️ Initializing database at: {db_path}")
+        db = SoulBridgeDB(db_path)
+        logging.info(f"Database initialized successfully at {db_path}")
         
         # Ensure essential users exist
         ensure_essential_users()
         
     except Exception as e:
         logging.error(f"Database initialization failed: {e}")
+        print(f"❌ Database initialization error: {e}")
         # Create a minimal fallback
         class FallbackDB:
             def get_stats(self): return {"users": 0, "sessions": 0}
