@@ -843,9 +843,12 @@ def login():
 # -------------------------------------------------
 @app.route("/auth/login", methods=["POST"])
 def auth_login():
-    # Ensure database is initialized
+    # Ensure database is initialized and essential users exist
     if db is None:
         init_database()
+    else:
+        # Always ensure essential users exist before login attempt
+        ensure_essential_users()
     
     email = request.form.get("email", "").strip()
     password = request.form.get("password", "").strip()
@@ -862,6 +865,18 @@ def auth_login():
     
     # Check if this is the developer account
     is_developer = (email == DEV_EMAIL and password == DEV_PASSWORD)
+    
+    # SAFETY: If developer login and no developer in database, recreate immediately
+    if is_developer:
+        try:
+            dev_user = db.users.get_user_by_email(DEV_EMAIL)
+            if not dev_user:
+                print("🚨 SAFETY: Developer account missing during login - recreating now")
+                dev_user_data = db.users.create_user(DEV_EMAIL, companion="Blayzo")
+                db.users.update_user(dev_user_data["userID"], {"password": DEV_PASSWORD, "dev_mode": True})
+                print("✅ Developer account recreated successfully")
+        except Exception as e:
+            print(f"Error checking/creating developer account: {e}")
     
     # Check if this is a registered user
     user_from_db = None

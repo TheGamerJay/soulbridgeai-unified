@@ -8,12 +8,29 @@ import json
 import os
 
 # Current version - increment with each significant update
-VERSION = "2.1.1"
-BUILD_NUMBER = "242"
-CODENAME = "DebugMode"
+VERSION = "2.1.2"
+BUILD_NUMBER = "243"
+CODENAME = "LoginFix"
 
 # Version history with meaningful names
 VERSION_HISTORY = {
+    "2.1.2": {
+        "build": "243",
+        "codename": "LoginFix",
+        "date": "2025-01-20",
+        "features": [
+            "Auto-recreate developer account if missing",
+            "Safety checks on every login attempt",
+            "Enhanced database persistence",
+            "Login recovery mechanisms"
+        ],
+        "fixes": [
+            "Login works once then fails after logout",
+            "Developer account disappearing after logout",
+            "Database corruption issues",
+            "User registration persistence"
+        ]
+    },
     "2.1.1": {
         "build": "242",
         "codename": "DebugMode",
