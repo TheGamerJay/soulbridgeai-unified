@@ -221,12 +221,21 @@ p {
     /* Intro screen tablet fixes */
     #introScreen {
         padding: 1rem !important;
+        padding-top: 0.5rem !important;
     }
     
     #introScreen h1 {
         font-size: 2rem !important;
         margin-bottom: 1rem !important;
         padding: 0 1rem !important;
+        margin-top: 0.5rem !important;
+    }
+    
+    /* Move intro logo up on mobile */
+    #introScreen .auth-card::before,
+    #introScreen .container::before {
+        background-position: center 10px !important;
+        transform: translateY(-20px) !important;
     }
     
     #introScreen p {
@@ -267,6 +276,15 @@ p {
         margin-bottom: 1rem !important;
         line-height: 1.2 !important;
         padding: 0 1rem !important;
+        margin-top: 0 !important;
+    }
+    
+    /* Move intro logo higher up on small mobile */
+    #introScreen .auth-card::before,
+    #introScreen .container::before {
+        background-position: center 5px !important;
+        background-size: 350px 350px !important;
+        transform: translateY(-30px) !important;
     }
     
     #introScreen p {
