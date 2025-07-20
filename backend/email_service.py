@@ -41,12 +41,12 @@ class EmailService:
 
         if not self.is_configured:
             logging.warning(
-                "⚠️  No email service configured. Email features will not work."
+                "No email service configured. Email features will not work."
             )
         elif self.sendgrid_configured:
-            logging.info("✅ SendGrid email service configured")
+            logging.info("SendGrid email service configured")
         elif self.smtp_configured:
-            logging.info("✅ SMTP email service configured")
+            logging.info("SMTP email service configured")
 
     def send_email(self, to_email, subject, text_content, html_content=None):
         """Send email using SendGrid or SMTP"""
