@@ -35,6 +35,8 @@ from feature_flags import init_feature_flags, is_feature_enabled, feature_flag
 from security_monitor import init_security_monitoring
 from security_manager import init_security_features, security_manager, require_2fa, security_headers
 from admin_dashboard import admin_dashboard
+from notification_api import notifications_api, init_notification_api, init_notification_database
+from notification_scheduler import init_notification_scheduler
 
 # Load environment variables from .env file (optional in production)
 try:
@@ -95,6 +97,9 @@ init_security_monitoring(app)
 
 # Register admin dashboard blueprint
 app.register_blueprint(admin_dashboard)
+
+# Register notifications API blueprint
+app.register_blueprint(notifications_api)
 
 # Initialize security features (will be initialized with database later)
 security_features = None
@@ -240,6 +245,20 @@ def init_database():
         # Initialize security features with database
         global security_features
         security_features = init_security_features(app, db)
+        
+        # Initialize notification system
+        try:
+            init_notification_database(db.connection if hasattr(db, 'connection') else None)
+            notification_api = init_notification_api(db, email_service)
+            
+            # Initialize notification scheduler
+            if notification_api:
+                init_notification_scheduler(notification_api.get_manager(), db)
+                logger.info("Notification system and scheduler initialized successfully")
+            else:
+                logger.warning("Notification API not initialized, skipping scheduler")
+        except Exception as e:
+            logger.error(f"Error initializing notification system: {e}")
 
     except Exception as e:
         logging.error(f"All database initialization attempts failed: {e}")

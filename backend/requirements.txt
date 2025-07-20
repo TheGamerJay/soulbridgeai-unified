@@ -18,3 +18,4 @@ pillow>=10.0.0
 geoip2>=4.7.0
 user-agents>=2.2.0
 passlib>=1.7.4
+schedule>=1.2.0
