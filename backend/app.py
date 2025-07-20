@@ -37,6 +37,9 @@ from security_manager import init_security_features, security_manager, require_2
 from admin_dashboard import admin_dashboard
 from notification_api import notifications_api, init_notification_api, init_notification_database
 from notification_scheduler import init_notification_scheduler
+from support_chatbot import init_support_chatbot, init_support_database
+from support_api import init_support_api
+from support_dashboard import init_support_dashboard
 
 # Load environment variables from .env file (optional in production)
 try:
@@ -100,6 +103,10 @@ app.register_blueprint(admin_dashboard)
 
 # Register notifications API blueprint
 app.register_blueprint(notifications_api)
+
+# Initialize support system blueprints (will be registered after initialization)
+support_api_blueprint = None
+support_dashboard_blueprint = None
 
 # Initialize security features (will be initialized with database later)
 security_features = None
@@ -260,12 +267,34 @@ def init_database():
                 init_notification_database(db_connection)
                 notification_api = init_notification_api(db, email_service)
                 
+                # Initialize support chatbot system
+                init_support_database(db_connection)
+                support_chatbot = init_support_chatbot(openai_client, db, notification_api.get_manager() if notification_api else None)
+                
                 # Initialize notification scheduler
                 if notification_api:
                     init_notification_scheduler(notification_api.get_manager(), db)
                     logger.info("Notification system initialized successfully with scheduler")
                 else:
                     logger.warning("Notification API not initialized, skipping scheduler")
+                
+                if support_chatbot:
+                    logger.info("Support chatbot initialized successfully")
+                    
+                    # Initialize and register support API  
+                    global support_api_blueprint, support_dashboard_blueprint
+                    support_api_blueprint = init_support_api(support_chatbot, None, None)  # Will handle gracefully
+                    support_dashboard_blueprint = init_support_dashboard(support_chatbot, db)
+                    
+                    if support_api_blueprint:
+                        app.register_blueprint(support_api_blueprint)
+                        logger.info("Support API registered successfully")
+                    
+                    if support_dashboard_blueprint:
+                        app.register_blueprint(support_dashboard_blueprint)
+                        logger.info("Support dashboard registered successfully")
+                else:
+                    logger.warning("Support chatbot initialization failed")
             else:
                 logger.warning("No database connection available, skipping notification system initialization")
         except Exception as e:
