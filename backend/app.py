@@ -1139,14 +1139,21 @@ def auth_login():
     print(f"Auth login attempt - Password length: {len(password)}")
     print(f"Auth login attempt - Session before auth: {dict(session)}")
 
-    # Development credentials (remove in production)
-    DEV_EMAIL = "GamerJay@gmail.com"
-    DEV_PASSWORD = "Yariel13"
+    # Developer credentials from environment (secure)
+    DEV_EMAIL = os.environ.get("DEV_EMAIL")
+    DEV_PASSWORD = os.environ.get("DEV_PASSWORD")
 
     print(f"Login attempt for email: '{email}'")
 
     # Check if this is the developer account
-    is_developer = email == DEV_EMAIL and password == DEV_PASSWORD
+    is_developer = False
+    if DEV_EMAIL and DEV_PASSWORD and email == DEV_EMAIL:
+        # Use security manager for password verification if available
+        if security_manager:
+            is_developer = security_manager.verify_password(password, DEV_PASSWORD)
+        else:
+            # Fallback to direct comparison (only for development)
+            is_developer = password == DEV_PASSWORD
 
     # SAFETY: If developer login and no developer in database, recreate immediately
     if is_developer:
@@ -1157,9 +1164,18 @@ def auth_login():
                     "🚨 SAFETY: Developer account missing during login - recreating now"
                 )
                 dev_user_data = db.users.create_user(DEV_EMAIL, companion="Blayzo")
+                
+                # Hash the developer password if security manager available
+                hashed_password = DEV_PASSWORD
+                if security_manager:
+                    hashed_password = security_manager.hash_password(DEV_PASSWORD)
+                    print("🔒 Developer password hashed securely")
+                else:
+                    print("⚠️ WARNING: Storing developer password in plaintext (security manager not available)")
+                
                 db.users.update_user(
                     dev_user_data["userID"],
-                    {"password": DEV_PASSWORD, "dev_mode": True},
+                    {"password": hashed_password, "dev_mode": True},
                 )
                 print("✅ Developer account recreated successfully")
         except Exception as e:
@@ -1180,17 +1196,43 @@ def auth_login():
             user_from_db = db.users.get_user_by_email(email)
             if user_from_db:
                 stored_password = user_from_db.get("password")
-                print(
-                    f"Found user {user_from_db['userID']} with stored password: '{stored_password}'"
-                )
-                print(f"Login attempt with password: '{password}'")
-                print(f"Passwords match: {stored_password == password}")
-                if stored_password == password:
-                    print(
-                        f"Login successful for registered user: {user_from_db['userID']}"
-                    )
+                print(f"Found user {user_from_db['userID']}")
+                
+                # Use security manager for password verification if available
+                password_valid = False
+                if security_manager:
+                    password_valid = security_manager.verify_password(password, stored_password)
+                    print(f"Password verification via security manager: {password_valid}")
+                else:
+                    # Fallback to plaintext comparison (insecure - for development only)
+                    password_valid = stored_password == password
+                    print(f"Plaintext password comparison (INSECURE): {password_valid}")
+                
+                if password_valid:
+                    print(f"Login successful for registered user: {user_from_db['userID']}")
+                    
+                    # Log successful login if security manager available
+                    if security_manager:
+                        security_manager.log_security_event(
+                            user_id=user_from_db['userID'],
+                            event_type="login_success",
+                            description="User login successful",
+                            risk_level="low",
+                            metadata={"email": email}
+                        )
                 else:
                     print(f"Password mismatch for: {email}")
+                    
+                    # Log failed login attempt if security manager available
+                    if security_manager:
+                        security_manager.log_security_event(
+                            user_id=user_from_db.get('userID'),
+                            event_type="login_failed", 
+                            description="Login failed - invalid password",
+                            risk_level="medium",
+                            metadata={"email": email}
+                        )
+                    
                     user_from_db = None
             else:
                 print(f"User not found for email: {email}")
@@ -1497,6 +1539,32 @@ def terminate_session(session_id):
     except Exception as e:
         logger.error(f"Error terminating session: {e}")
         return jsonify({"error": "Failed to terminate session"}), 500
+
+
+@app.route("/api/auth/password/validate", methods=["POST"])
+@security_headers
+def validate_password_strength():
+    """Validate password strength"""
+    try:
+        password = request.json.get('password', '')
+        
+        if not password:
+            return jsonify({"error": "Password is required"}), 400
+        
+        if not security_manager:
+            return jsonify({"error": "Security features not available"}), 503
+        
+        # Validate password strength
+        validation_result = security_manager.validate_password_strength(password)
+        
+        return jsonify({
+            "success": True,
+            "validation": validation_result
+        })
+        
+    except Exception as e:
+        logger.error(f"Error validating password strength: {e}")
+        return jsonify({"error": "Failed to validate password"}), 500
 
 
 @app.route("/register")

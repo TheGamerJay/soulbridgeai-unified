@@ -842,6 +842,161 @@ class SecurityManager:
         except Exception as e:
             logger.error(f"Error counting recent failures: {e}")
             return 0
+    
+    # Password and Authentication Methods
+    
+    def hash_password(self, password: str) -> str:
+        """Hash a password securely"""
+        try:
+            return generate_password_hash(password, method='pbkdf2:sha256:600000')
+        except Exception as e:
+            logger.error(f"Error hashing password: {e}")
+            raise
+    
+    def verify_password(self, password: str, password_hash: str) -> bool:
+        """Verify a password against its hash"""
+        try:
+            # If password_hash doesn't start with hash indicators, it might be plaintext
+            if not any(password_hash.startswith(prefix) for prefix in ['pbkdf2:', 'scrypt:', 'argon2:']):
+                # This is likely a plaintext password (legacy/development)
+                logger.warning("Comparing against plaintext password - this is insecure!")
+                return password == password_hash
+            
+            return check_password_hash(password_hash, password)
+        except Exception as e:
+            logger.error(f"Error verifying password: {e}")
+            return False
+    
+    def authenticate_user(self, email: str, password: str) -> Dict[str, Any]:
+        """Authenticate user with enhanced security logging"""
+        try:
+            ip_address = self.get_client_ip()
+            
+            # Check for too many failed attempts from this IP
+            recent_failures = self._count_recent_failures(ip_address)
+            if recent_failures >= self.max_login_attempts:
+                self.log_security_event(
+                    user_id=None,
+                    event_type="login_blocked",
+                    description=f"Login blocked due to too many failed attempts from {ip_address}",
+                    risk_level="high",
+                    metadata={"email": email, "failure_count": recent_failures}
+                )
+                return {"success": False, "error": "Too many failed attempts. Please try again later."}
+            
+            # Log login attempt
+            attempt = LoginAttempt(
+                attempt_id=f"attempt_{uuid.uuid4().hex[:8]}",
+                email=email,
+                ip_address=ip_address,
+                user_agent=request.headers.get('User-Agent', ''),
+                success=False,
+                failure_reason=None,
+                timestamp=datetime.utcnow(),
+                metadata={}
+            )
+            
+            # Try to find user (this would need to be adapted to your user storage system)
+            user_data = None
+            user_id = None
+            
+            # For now, return placeholder - this needs integration with your user system
+            # You would typically query your user database here
+            
+            if user_data and self.verify_password(password, user_data.get('password_hash', '')):
+                # Successful login
+                attempt.success = True
+                
+                # Log successful login
+                self.log_security_event(
+                    user_id=user_id,
+                    event_type="login_success",
+                    description="User login successful",
+                    risk_level="low",
+                    metadata={"email": email}
+                )
+                
+                # Create session
+                session_id = self.create_session(user_id)
+                
+                return {
+                    "success": True,
+                    "user_id": user_id,
+                    "session_id": session_id,
+                    "requires_2fa": self.is_2fa_enabled(user_id)
+                }
+            else:
+                # Failed login
+                attempt.failure_reason = "Invalid credentials"
+                
+                # Log failed login
+                self.log_security_event(
+                    user_id=user_id,
+                    event_type="login_failed",
+                    description="Login failed - invalid credentials",
+                    risk_level="medium",
+                    metadata={"email": email}
+                )
+                
+                return {"success": False, "error": "Invalid email or password"}
+            
+            # Store login attempt in database
+            if self.db:
+                cursor = self.db.connection.cursor()
+                cursor.execute("""
+                    INSERT INTO login_attempts 
+                    (attempt_id, email, ip_address, user_agent, success, failure_reason, metadata)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                """, (attempt.attempt_id, attempt.email, attempt.ip_address,
+                      attempt.user_agent, attempt.success, attempt.failure_reason,
+                      json.dumps(attempt.metadata)))
+        
+        except Exception as e:
+            logger.error(f"Error during authentication: {e}")
+            return {"success": False, "error": "Authentication service error"}
+    
+    def validate_password_strength(self, password: str) -> Dict[str, Any]:
+        """Validate password strength"""
+        issues = []
+        score = 0
+        
+        if len(password) < self.password_min_length:
+            issues.append(f"Password must be at least {self.password_min_length} characters long")
+        else:
+            score += 1
+        
+        if not any(c.isupper() for c in password):
+            issues.append("Password must contain at least one uppercase letter")
+        else:
+            score += 1
+        
+        if not any(c.islower() for c in password):
+            issues.append("Password must contain at least one lowercase letter")
+        else:
+            score += 1
+        
+        if not any(c.isdigit() for c in password):
+            issues.append("Password must contain at least one number")
+        else:
+            score += 1
+        
+        if not any(c in "!@#$%^&*()_+-=[]{}|;:,.<>?" for c in password):
+            issues.append("Password must contain at least one special character")
+        else:
+            score += 1
+        
+        strength = "weak"
+        if score >= 4:
+            strength = "strong"
+        elif score >= 2:
+            strength = "medium"
+        
+        return {
+            "valid": len(issues) == 0,
+            "strength": strength,
+            "score": score,
+            "issues": issues
+        }
 
 
 # Global security manager instance
