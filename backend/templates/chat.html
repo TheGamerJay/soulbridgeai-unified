@@ -587,7 +587,15 @@
             top: 80px;
             right: 20px;
             z-index: 50;
-        " onclick="showIntro()">
+            background: linear-gradient(135deg, #22d3ee, #0891b2);
+            color: #000;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(34, 211, 238, 0.3);
+            transition: all 0.3s ease;
+        " onclick="showIntro()" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0px)'">
             ← Back
         </div>
 
@@ -2145,6 +2153,8 @@
             // Remove character theme classes when going to intro
             document.body.classList.remove('character-blayzo', 'character-blayzica', 'character-blayzion', 'character-blayzia', 'character-violet', 'character-crimson');
             
+            // Clear active chat session when going back to intro
+            sessionStorage.removeItem('hasActiveChat');
             localStorage.removeItem('currentScreen');
             document.getElementById('characterSelect').classList.add('hidden');
             document.getElementById('introScreen').classList.remove('hidden');
