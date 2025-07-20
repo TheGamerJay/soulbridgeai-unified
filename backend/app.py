@@ -167,7 +167,7 @@ def ensure_essential_users():
                 logging.info("Developer account password restored")
         
         # Check database health
-        all_users = db.data.get("users", [])
+        all_users = db.db_manager.data.get("users", [])
         logging.info(f"Database health check: {len(all_users)} users in database")
         
         if len(all_users) == 0:
@@ -180,12 +180,12 @@ def ensure_essential_users():
         logging.error(f"Error ensuring essential users: {e}")
         # Try to create minimal user data directly
         try:
-            if hasattr(db, 'data') and isinstance(db.data, dict):
-                if "users" not in db.data:
-                    db.data["users"] = []
+            if hasattr(db, 'db_manager') and hasattr(db.db_manager, 'data') and isinstance(db.db_manager.data, dict):
+                if "users" not in db.db_manager.data:
+                    db.db_manager.data["users"] = []
                 
                 # Create developer user directly if needed
-                dev_exists = any(user.get("email") == "GamerJay@gmail.com" for user in db.data["users"])
+                dev_exists = any(user.get("email") == "GamerJay@gmail.com" for user in db.db_manager.data["users"])
                 if not dev_exists:
                     new_user = {
                         "userID": str(uuid.uuid4()),
@@ -195,8 +195,8 @@ def ensure_essential_users():
                         "dev_mode": True,
                         "created": datetime.utcnow().isoformat() + "Z"
                     }
-                    db.data["users"].append(new_user)
-                    db._save_data()
+                    db.db_manager.data["users"].append(new_user)
+                    db.db_manager._save_data()
                     logging.info("Emergency developer user created directly")
         except Exception as e2:
             logging.error(f"Emergency user creation also failed: {e2}")
