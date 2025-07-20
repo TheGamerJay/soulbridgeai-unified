@@ -20,6 +20,7 @@ import json
 import hashlib
 from datetime import datetime
 from models import SoulBridgeDB
+from postgres_db import SoulBridgePostgreSQL
 import jwt
 from functools import wraps
 import ipaddress
@@ -131,15 +132,22 @@ def add_aggressive_cache_busting(response):
 def init_database():
     global db
     try:
-        # Use persistent path for Railway or local development
-        db_path = "soulbridge_data.json"
-        if os.environ.get('RAILWAY_ENVIRONMENT'):
-            # Try to use a data directory that might persist
-            db_path = "/data/soulbridge_data.json" if os.path.exists("/data") else "soulbridge_data.json"
-        
-        print(f"🗄️ Initializing database at: {db_path}")
-        db = SoulBridgeDB(db_path)
-        logging.info(f"Database initialized successfully at {db_path}")
+        # Check if Railway PostgreSQL is available
+        if os.environ.get('DATABASE_URL'):
+            print(f"🐘 Using PostgreSQL database (Railway)")
+            db = SoulBridgePostgreSQL()
+            logging.info("PostgreSQL database initialized successfully")
+        else:
+            print(f"📄 Falling back to JSON file database")
+            # Use persistent path for Railway or local development
+            db_path = "soulbridge_data.json"
+            if os.environ.get('RAILWAY_ENVIRONMENT'):
+                # Try to use a data directory that might persist
+                db_path = "/data/soulbridge_data.json" if os.path.exists("/data") else "soulbridge_data.json"
+            
+            print(f"🗄️ Initializing database at: {db_path}")
+            db = SoulBridgeDB(db_path)
+            logging.info(f"JSON database initialized successfully at {db_path}")
         
         # Ensure essential users exist
         ensure_essential_users()
@@ -175,20 +183,24 @@ def ensure_essential_users():
                 logging.info("Developer account password restored")
         
         # Check database health
-        all_users = db.db_manager.data.get("users", [])
-        logging.info(f"Database health check: {len(all_users)} users in database")
-        
-        if len(all_users) == 0:
-            logging.warning("Database is empty! Creating default developer account...")
-            dev_user_data = db.users.create_user(dev_email, companion="Blayzo")
-            db.users.update_user(dev_user_data["userID"], {"password": "Yariel13", "dev_mode": True})
-            logging.info("Emergency developer account created")
+        try:
+            stats = db.get_stats()
+            user_count = stats.get("users", 0)
+            logging.info(f"Database health check: {user_count} users in database")
+            
+            if user_count == 0:
+                logging.warning("Database is empty! Creating default developer account...")
+                dev_user_data = db.users.create_user(dev_email, companion="Blayzo")
+                db.users.update_user(dev_user_data["userID"], {"password": "Yariel13", "dev_mode": True})
+                logging.info("Emergency developer account created")
+        except Exception as e:
+            logging.error(f"Database health check failed: {e}")
             
     except Exception as e:
         logging.error(f"Error ensuring essential users: {e}")
-        # Try to create minimal user data directly
+        # Try emergency user creation for JSON database only
         try:
-            if hasattr(db, 'db_manager') and hasattr(db.db_manager, 'data') and isinstance(db.db_manager.data, dict):
+            if hasattr(db, 'db_manager') and hasattr(db.db_manager, 'data'):
                 if "users" not in db.db_manager.data:
                     db.db_manager.data["users"] = []
                 
@@ -205,7 +217,7 @@ def ensure_essential_users():
                     }
                     db.db_manager.data["users"].append(new_user)
                     db.db_manager._save_data()
-                    logging.info("Emergency developer user created directly")
+                    logging.info("Emergency developer user created directly in JSON database")
         except Exception as e2:
             logging.error(f"Emergency user creation also failed: {e2}")
 
@@ -1314,9 +1326,12 @@ def auth_register_post():
         db.users.update_user(user_data["userID"], {"password": password})
         print(f"Password stored for user {user_data['userID']}: '{password}'")
         
-        # CRITICAL: Force save database to ensure persistence
-        db.db_manager._save_data()
-        print(f"🔄 Database saved after user creation")
+        # CRITICAL: Force save database to ensure persistence (PostgreSQL auto-commits)
+        if hasattr(db, 'db_manager') and hasattr(db.db_manager, '_save_data'):
+            db.db_manager._save_data()
+            print(f"🔄 JSON Database saved after user creation")
+        else:
+            print(f"🔄 PostgreSQL auto-committed user creation")
         
         # Verify user was saved by reloading
         verification_user = db.users.get_user_by_email(email)
