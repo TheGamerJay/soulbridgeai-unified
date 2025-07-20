@@ -22,14 +22,14 @@ VERSION_HISTORY = {
             "Auto-recreate developer account if missing",
             "Safety checks on every login attempt",
             "Enhanced database persistence",
-            "Login recovery mechanisms"
+            "Login recovery mechanisms",
         ],
         "fixes": [
             "Login works once then fails after logout",
             "Developer account disappearing after logout",
             "Database corruption issues",
-            "User registration persistence"
-        ]
+            "User registration persistence",
+        ],
     },
     "2.1.1": {
         "build": "242",
@@ -39,18 +39,18 @@ VERSION_HISTORY = {
             "Enhanced debugging for navigation issues",
             "Console logging for troubleshooting",
             "Aggressive logo cache-busting",
-            "Debug mode for session storage"
+            "Debug mode for session storage",
         ],
         "fixes": [
             "Navigation not respecting session state",
             "Logo cache issues persisting",
             "Referral page loading problems",
-            "Color studio functionality"
-        ]
+            "Color studio functionality",
+        ],
     },
     "2.1.0": {
         "build": "241",
-        "codename": "NavigationFix", 
+        "codename": "NavigationFix",
         "date": "2025-01-20",
         "features": [
             "Aggressive cache-busting system",
@@ -58,30 +58,30 @@ VERSION_HISTORY = {
             "Navigation refresh fixes",
             "Logo cache-busting v=2025",
             "Database initialization improvements",
-            "Emergency fix endpoints"
+            "Emergency fix endpoints",
         ],
         "fixes": [
             "Admin mode refresh going to intro",
             "Logo not updating to new version",
             "Empty database preventing login",
-            "Deployment cache issues"
-        ]
+            "Deployment cache issues",
+        ],
     },
     "2.0.0": {
         "build": "240",
         "codename": "ForceUpdate",
-        "date": "2025-01-20", 
+        "date": "2025-01-20",
         "features": [
             "Permanent login system fixes",
             "Essential users auto-creation",
             "Enhanced health monitoring",
-            "Smart navigation system"
+            "Smart navigation system",
         ],
         "fixes": [
             "Critical database empty issue",
             "Login functionality broken",
-            "Cache-busting for templates"
-        ]
+            "Cache-busting for templates",
+        ],
     },
     "1.2.0": {
         "build": "230",
@@ -91,43 +91,44 @@ VERSION_HISTORY = {
             "Beautiful premium upgrade modals",
             "Color studio rebuild with preview",
             "Referral page fallback system",
-            "Mobile responsiveness improvements"
+            "Mobile responsiveness improvements",
         ],
         "fixes": [
             "Premium companion clicks",
             "Color studio preview alerts",
             "Referral page loading issues",
-            "Mobile text overlapping"
-        ]
+            "Mobile text overlapping",
+        ],
     },
     "1.1.0": {
-        "build": "220", 
+        "build": "220",
         "codename": "MobileFirst",
         "date": "2025-01-19",
         "features": [
             "Mobile responsive design",
             "Back button styling",
-            "Session management fixes"
+            "Session management fixes",
         ],
         "fixes": [
             "Mobile navigation issues",
             "Missing back buttons",
-            "Session persistence problems"
-        ]
+            "Session persistence problems",
+        ],
     },
     "1.0.0": {
         "build": "200",
-        "codename": "Genesis", 
+        "codename": "Genesis",
         "date": "2025-01-19",
         "features": [
             "Initial SoulBridge AI release",
             "Character companion system",
             "Premium subscription model",
-            "Multi-language support"
+            "Multi-language support",
         ],
-        "fixes": []
-    }
+        "fixes": [],
+    },
 }
+
 
 def get_version_info():
     """Get comprehensive version information"""
@@ -138,22 +139,25 @@ def get_version_info():
         "full_version": f"{VERSION}.{BUILD_NUMBER}",
         "display_name": f"SoulBridge AI v{VERSION} '{CODENAME}'",
         "timestamp": datetime.utcnow().isoformat() + "Z",
-        "history": VERSION_HISTORY.get(VERSION, {})
+        "history": VERSION_HISTORY.get(VERSION, {}),
     }
+
 
 def get_version_display():
     """Get user-friendly version display"""
     return f"v{VERSION} '{CODENAME}' (Build {BUILD_NUMBER})"
+
 
 def get_changelog(version=None):
     """Get changelog for specific version or current"""
     target_version = version or VERSION
     return VERSION_HISTORY.get(target_version, {})
 
+
 def bump_version(version_type="patch"):
     """Utility to bump version number (for development use)"""
-    major, minor, patch = map(int, VERSION.split('.'))
-    
+    major, minor, patch = map(int, VERSION.split("."))
+
     if version_type == "major":
         major += 1
         minor = 0
@@ -163,5 +167,5 @@ def bump_version(version_type="patch"):
         patch = 0
     elif version_type == "patch":
         patch += 1
-    
+
     return f"{major}.{minor}.{patch}"

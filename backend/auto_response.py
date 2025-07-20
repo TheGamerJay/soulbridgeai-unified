@@ -2,16 +2,17 @@
 from email_service import EmailService
 import logging
 
+
 def send_contact_auto_response(email, name=None):
     """Send automated response for contact form submissions"""
     email_service = EmailService()
-    
+
     if not email_service.is_configured:
         logging.warning("Email service not configured - auto-response skipped")
-        return {'success': False, 'error': 'Email service not configured'}
-    
+        return {"success": False, "error": "Email service not configured"}
+
     subject = "Thanks for Reaching Out to SoulBridgeAI"
-    
+
     text_content = f"""
 Hey there{f', {name}' if name else ''},
 
@@ -26,7 +27,7 @@ Thank you for choosing SoulBridgeAI!
 IMPORTANT: This is an automated response. Please do not reply to this email.
 For urgent matters, please visit our support page at https://soulbridgeai.com/support
     """.strip()
-    
+
     html_content = f"""
 <!DOCTYPE html>
 <html>
@@ -121,5 +122,5 @@ For urgent matters, please visit our support page at https://soulbridgeai.com/su
 </body>
 </html>
     """.strip()
-    
+
     return email_service.send_email(email, subject, text_content, html_content)

@@ -8,20 +8,28 @@ from flask import Flask, jsonify
 
 app = Flask(__name__)
 
-@app.route('/health')
-def health():
-    return jsonify({
-        "status": "healthy",
-        "service": "SoulBridge AI (Minimal)",
-        "message": "Minimal app running successfully"
-    }), 200
 
-@app.route('/')
+@app.route("/health")
+def health():
+    return (
+        jsonify(
+            {
+                "status": "healthy",
+                "service": "SoulBridge AI (Minimal)",
+                "message": "Minimal app running successfully",
+            }
+        ),
+        200,
+    )
+
+
+@app.route("/")
 def home():
-    return jsonify({
-        "message": "SoulBridge AI is running",
-        "status": "minimal_mode"
-    }), 200
+    return (
+        jsonify({"message": "SoulBridge AI is running", "status": "minimal_mode"}),
+        200,
+    )
+
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))

@@ -11,55 +11,61 @@ from email import encoders
 try:
     from sendgrid import SendGridAPIClient
     from sendgrid.helpers.mail import Mail
+
     SENDGRID_AVAILABLE = True
 except ImportError:
     SENDGRID_AVAILABLE = False
     logging.info("SendGrid not installed - using SMTP only")
 
+
 class EmailService:
     def __init__(self):
         # SMTP Configuration (Gmail)
-        self.smtp_server = os.environ.get('SMTP_SERVER', 'smtp.gmail.com')
-        self.smtp_port = int(os.environ.get('SMTP_PORT', '587'))
-        self.smtp_username = os.environ.get('SMTP_USERNAME')
-        self.smtp_password = os.environ.get('SMTP_PASSWORD')
-        
+        self.smtp_server = os.environ.get("SMTP_SERVER", "smtp.gmail.com")
+        self.smtp_port = int(os.environ.get("SMTP_PORT", "587"))
+        self.smtp_username = os.environ.get("SMTP_USERNAME")
+        self.smtp_password = os.environ.get("SMTP_PASSWORD")
+
         # SendGrid Configuration
-        self.sendgrid_api_key = os.environ.get('SENDGRID_API_KEY')
-        
+        self.sendgrid_api_key = os.environ.get("SENDGRID_API_KEY")
+
         # Common Configuration
-        self.from_email = os.environ.get('FROM_EMAIL', self.smtp_username)
-        self.from_name = os.environ.get('FROM_NAME', 'SoulBridge AI')
-        
+        self.from_email = os.environ.get("FROM_EMAIL", self.smtp_username)
+        self.from_name = os.environ.get("FROM_NAME", "SoulBridge AI")
+
         # Check what's available
         self.smtp_configured = bool(self.smtp_username and self.smtp_password)
         self.sendgrid_configured = bool(self.sendgrid_api_key and SENDGRID_AVAILABLE)
-        
+
         self.is_configured = self.smtp_configured or self.sendgrid_configured
-        
+
         if not self.is_configured:
-            logging.warning("⚠️  No email service configured. Email features will not work.")
+            logging.warning(
+                "⚠️  No email service configured. Email features will not work."
+            )
         elif self.sendgrid_configured:
             logging.info("✅ SendGrid email service configured")
         elif self.smtp_configured:
             logging.info("✅ SMTP email service configured")
-    
+
     def send_email(self, to_email, subject, text_content, html_content=None):
         """Send email using SendGrid or SMTP"""
         if not self.is_configured:
             logging.error("Email service not configured")
-            return {'success': False, 'error': 'Email service not configured'}
-        
+            return {"success": False, "error": "Email service not configured"}
+
         # Try SendGrid first (more reliable)
         if self.sendgrid_configured:
-            return self._send_via_sendgrid(to_email, subject, text_content, html_content)
-        
+            return self._send_via_sendgrid(
+                to_email, subject, text_content, html_content
+            )
+
         # Fallback to SMTP
         elif self.smtp_configured:
             return self._send_via_smtp(to_email, subject, text_content, html_content)
-        
-        return {'success': False, 'error': 'No email service available'}
-    
+
+        return {"success": False, "error": "No email service available"}
+
     def _send_via_sendgrid(self, to_email, subject, text_content, html_content=None):
         """Send email via SendGrid API"""
         try:
@@ -68,60 +74,66 @@ class EmailService:
                 to_emails=to_email,
                 subject=subject,
                 plain_text_content=text_content,
-                html_content=html_content
+                html_content=html_content,
             )
-            
+
             sg = SendGridAPIClient(api_key=self.sendgrid_api_key)
             response = sg.send(message)
-            
-            logging.info(f"SendGrid email sent successfully to {to_email} (Status: {response.status_code})")
-            return {'success': True, 'provider': 'sendgrid'}
-            
+
+            logging.info(
+                f"SendGrid email sent successfully to {to_email} (Status: {response.status_code})"
+            )
+            return {"success": True, "provider": "sendgrid"}
+
         except Exception as e:
             logging.error(f"SendGrid failed to send email to {to_email}: {e}")
             # Fallback to SMTP if available
             if self.smtp_configured:
                 logging.info("Falling back to SMTP...")
-                return self._send_via_smtp(to_email, subject, text_content, html_content)
-            return {'success': False, 'error': str(e)}
-    
+                return self._send_via_smtp(
+                    to_email, subject, text_content, html_content
+                )
+            return {"success": False, "error": str(e)}
+
     def _send_via_smtp(self, to_email, subject, text_content, html_content=None):
         """Send email via SMTP (Gmail)"""
         try:
             # Create message
-            msg = MIMEMultipart('alternative')
-            msg['Subject'] = subject
-            msg['From'] = f"{self.from_name} <{self.from_email}>"
-            msg['To'] = to_email
-            
+            msg = MIMEMultipart("alternative")
+            msg["Subject"] = subject
+            msg["From"] = f"{self.from_name} <{self.from_email}>"
+            msg["To"] = to_email
+
             # Add text part
-            text_part = MIMEText(text_content, 'plain')
+            text_part = MIMEText(text_content, "plain")
             msg.attach(text_part)
-            
+
             # Add HTML part if provided
             if html_content:
-                html_part = MIMEText(html_content, 'html')
+                html_part = MIMEText(html_content, "html")
                 msg.attach(html_part)
-            
+
             # Send email
             with smtplib.SMTP(self.smtp_server, self.smtp_port) as server:
                 server.starttls()
                 server.login(self.smtp_username, self.smtp_password)
                 server.send_message(msg)
-            
+
             logging.info(f"SMTP email sent successfully to {to_email}")
-            return {'success': True, 'provider': 'smtp'}
-            
+            return {"success": True, "provider": "smtp"}
+
         except Exception as e:
             logging.error(f"SMTP failed to send email to {to_email}: {e}")
-            return {'success': False, 'error': str(e)}
-    
-    def send_verification_email(self, email, display_name, verification_token, base_url):
+            return {"success": False, "error": str(e)}
+
+    def send_verification_email(
+        self, email, display_name, verification_token, base_url
+    ):
         """Send email verification email"""
         verification_url = f"{base_url}/auth/verify-email?token={verification_token}"
-        
+
         subject = "Verify your SoulBridge AI account"
-        
+
         text_content = f"""
 Hello {display_name or 'there'},
 
@@ -137,7 +149,7 @@ The SoulBridge AI Team
 ---
 SoulBridge AI - Your AI-powered emotional companion
         """.strip()
-        
+
         html_content = f"""
 <!DOCTYPE html>
 <html>
@@ -232,15 +244,15 @@ SoulBridge AI - Your AI-powered emotional companion
 </body>
 </html>
         """.strip()
-        
+
         return self.send_email(email, subject, text_content, html_content)
-    
+
     def send_password_reset_email(self, email, display_name, reset_token, base_url):
         """Send password reset email"""
         reset_url = f"{base_url}/auth/reset-password?token={reset_token}"
-        
+
         subject = "Reset your SoulBridge AI password"
-        
+
         text_content = f"""
 Hello {display_name or 'there'},
 
@@ -256,7 +268,7 @@ The SoulBridge AI Team
 ---
 SoulBridge AI - Your AI-powered emotional companion
         """.strip()
-        
+
         html_content = f"""
 <!DOCTYPE html>
 <html>
@@ -351,13 +363,13 @@ SoulBridge AI - Your AI-powered emotional companion
 </body>
 </html>
         """.strip()
-        
+
         return self.send_email(email, subject, text_content, html_content)
-    
+
     def send_welcome_email(self, email, display_name):
         """Send welcome email to new users"""
         subject = "Welcome to SoulBridge AI! 🌟"
-        
+
         text_content = f"""
 Hello {display_name or 'there'},
 
@@ -381,7 +393,7 @@ The SoulBridge AI Team
 ---
 SoulBridge AI - Your AI-powered emotional companion
         """.strip()
-        
+
         html_content = f"""
 <!DOCTYPE html>
 <html>
@@ -491,5 +503,5 @@ SoulBridge AI - Your AI-powered emotional companion
 </body>
 </html>
         """.strip()
-        
+
         return self.send_email(email, subject, text_content, html_content)
