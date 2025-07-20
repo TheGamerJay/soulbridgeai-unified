@@ -34,6 +34,7 @@ from env_validator import init_environment_validation
 from feature_flags import init_feature_flags, is_feature_enabled, feature_flag
 from security_monitor import init_security_monitoring
 from security_manager import init_security_features, security_manager, require_2fa, security_headers
+from admin_dashboard import admin_dashboard
 
 # Load environment variables from .env file (optional in production)
 try:
@@ -91,6 +92,9 @@ init_feature_flags(app)
 
 # Initialize security monitoring
 init_security_monitoring(app)
+
+# Register admin dashboard blueprint
+app.register_blueprint(admin_dashboard)
 
 # Initialize security features (will be initialized with database later)
 security_features = None
