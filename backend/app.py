@@ -723,6 +723,24 @@ def version_check():
     </html>
     """
 
+# Database inspection endpoint
+@app.route("/debug/database")
+def debug_database():
+    """Debug endpoint to inspect database state"""
+    if db is None:
+        return jsonify({"error": "Database not initialized"})
+    
+    try:
+        users = db.data.get("users", [])
+        return jsonify({
+            "total_users": len(users),
+            "users": [{"email": u.get("email"), "userID": u.get("userID"), "has_password": bool(u.get("password"))} for u in users],
+            "database_file": "soulbridge_data.json",
+            "last_updated": db.data.get("metadata", {}).get("lastUpdated", "unknown")
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)})
+
 # Emergency database fix endpoint
 @app.route("/emergency/fix-database")
 def emergency_fix_database():
@@ -884,7 +902,9 @@ def auth_login():
         try:
             # Debug: Show all users in database
             all_users = db.data["users"] if hasattr(db, 'data') else []
-            print(f"All users in database: {[u.get('email', 'no email') for u in all_users]}")
+            print(f"🔍 DEBUG: All users in database: {[u.get('email', 'no email') for u in all_users]}")
+            print(f"🔍 DEBUG: Total users count: {len(all_users)}")
+            print(f"🔍 DEBUG: Looking for user: {email}")
             
             user_from_db = db.users.get_user_by_email(email)
             if user_from_db:
@@ -1282,10 +1302,20 @@ def auth_register_post():
         user_data = db.users.create_user(email, companion="Blayzo")
         print(f"User created successfully: {user_data}")
         
-        # Store password in session temporarily for login (in production, use proper password hashing)
-        # For now, we'll store it in the user data 
+        # Store password in user data 
         db.users.update_user(user_data["userID"], {"password": password})
         print(f"Password stored for user {user_data['userID']}: '{password}'")
+        
+        # CRITICAL: Force save database to ensure persistence
+        db._save_data()
+        print(f"🔄 Database saved after user creation")
+        
+        # Verify user was saved by reloading
+        verification_user = db.users.get_user_by_email(email)
+        if verification_user:
+            print(f"✅ User verified in database: {verification_user['userID']}")
+        else:
+            print(f"❌ CRITICAL: User not found after save!")
         
         # Send welcome email
         try:
