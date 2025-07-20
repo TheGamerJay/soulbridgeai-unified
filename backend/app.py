@@ -591,7 +591,14 @@ SYSTEM_PROMPT = CHARACTER_PROMPTS["Blayzo"]
 def health():
     """Enhanced health check for Railway with comprehensive monitoring"""
     import time
-    import psutil
+    
+    # Try to import psutil, fall back gracefully if not available
+    try:
+        import psutil
+        PSUTIL_AVAILABLE = True
+    except ImportError:
+        psutil = None
+        PSUTIL_AVAILABLE = False
     
     start_time = time.time()
     health_data = {
@@ -629,16 +636,18 @@ def health():
         health_data["database_error"] = str(e)
     
     # System resource monitoring
-    try:
-        health_data["system"] = {
-            "cpu_percent": psutil.cpu_percent(interval=0.1),
-            "memory_percent": psutil.virtual_memory().percent,
-            "disk_percent": psutil.disk_usage('/').percent,
-            "uptime_seconds": time.time() - psutil.boot_time()
-        }
-    except Exception:
-        # psutil might not be available in all environments
-        health_data["system"] = {"status": "monitoring_unavailable"}
+    if PSUTIL_AVAILABLE:
+        try:
+            health_data["system"] = {
+                "cpu_percent": psutil.cpu_percent(interval=0.1),
+                "memory_percent": psutil.virtual_memory().percent,
+                "disk_percent": psutil.disk_usage('/').percent,
+                "uptime_seconds": time.time() - psutil.boot_time()
+            }
+        except Exception as e:
+            health_data["system"] = {"status": "monitoring_unavailable", "error": str(e)}
+    else:
+        health_data["system"] = {"status": "psutil_not_available"}
     
     # Version and deployment info
     version_info = get_version_info()
