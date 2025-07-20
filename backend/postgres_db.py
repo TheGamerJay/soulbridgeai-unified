@@ -26,12 +26,23 @@ class PostgreSQLManager:
                 # Fallback for local development
                 database_url = "postgresql://postgres:password@localhost:5432/soulbridge"
             
+            print(f"🔗 Attempting PostgreSQL connection...")
+            print(f"🔑 DATABASE_URL present: {bool(database_url)}")
+            
+            # Import here to avoid issues if psycopg2 is not available
+            import psycopg2
+            import psycopg2.extras
+            
             self.connection = psycopg2.connect(database_url)
             self.connection.autocommit = True
-            print(f"✅ Connected to PostgreSQL database")
+            print(f"✅ Connected to PostgreSQL database successfully")
             
+        except ImportError as e:
+            print(f"❌ psycopg2 not available: {e}")
+            raise
         except Exception as e:
             print(f"❌ Failed to connect to PostgreSQL: {e}")
+            print(f"🔍 DATABASE_URL format check: {database_url[:50] if database_url else 'None'}...")
             raise
     
     def create_tables(self):

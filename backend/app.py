@@ -15,6 +15,9 @@ logger = logging.getLogger(__name__)
 from typing import Dict
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash, make_response
 from email_service import EmailService
+from rate_limiter import rate_limit, init_rate_limiting
+from env_validator import init_environment_validation
+from feature_flags import init_feature_flags, is_feature_enabled, feature_flag
 # Load environment variables from .env file (optional in production)
 try:
     from dotenv import load_dotenv
@@ -51,6 +54,15 @@ logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key")
+
+# Initialize rate limiting
+init_rate_limiting(app)
+
+# Initialize environment validation
+init_environment_validation(app)
+
+# Initialize feature flags
+init_feature_flags(app)
 
 # Configure Stripe
 stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
@@ -145,19 +157,30 @@ def init_database():
     global db
     try:
         # Check if Railway PostgreSQL is available
-        if os.environ.get('DATABASE_URL'):
-            print(f"🐘 Using PostgreSQL database (Railway)")
-            db = SoulBridgePostgreSQL()
-            logging.info("PostgreSQL database initialized successfully")
+        database_url = os.environ.get('DATABASE_URL')
+        if database_url:
+            print(f"🐘 Attempting PostgreSQL database connection...")
+            try:
+                db = SoulBridgePostgreSQL()
+                logging.info("✅ PostgreSQL database initialized successfully")
+                print(f"🎉 PostgreSQL ready!")
+            except Exception as postgres_error:
+                logging.error(f"PostgreSQL connection failed: {postgres_error}")
+                print(f"❌ PostgreSQL failed: {postgres_error}")
+                print(f"🔄 Falling back to JSON database...")
+                # Fall back to JSON database
+                db_path = "soulbridge_data.json"
+                db = SoulBridgeDB(db_path)
+                logging.info(f"JSON fallback database initialized at {db_path}")
         else:
-            print(f"📄 Falling back to JSON file database")
+            print(f"📄 No DATABASE_URL found, using JSON file database")
             # Use persistent path for Railway or local development
             db_path = "soulbridge_data.json"
             if os.environ.get('RAILWAY_ENVIRONMENT'):
                 # Try to use a data directory that might persist
                 db_path = "/data/soulbridge_data.json" if os.path.exists("/data") else "soulbridge_data.json"
             
-            print(f"🗄️ Initializing database at: {db_path}")
+            print(f"🗄️ Initializing JSON database at: {db_path}")
             db = SoulBridgeDB(db_path)
             logging.info(f"JSON database initialized successfully at {db_path}")
         
@@ -165,12 +188,19 @@ def init_database():
         ensure_essential_users()
         
     except Exception as e:
-        logging.error(f"Database initialization failed: {e}")
-        print(f"❌ Database initialization error: {e}")
-        # Create a minimal fallback
+        logging.error(f"All database initialization attempts failed: {e}")
+        print(f"❌ Critical database error: {e}")
+        # Create a minimal fallback that won't crash the app
         class FallbackDB:
             def get_stats(self): return {"users": 0, "sessions": 0}
+            def users(self): 
+                class Users:
+                    def get_user_by_email(self, email): return None
+                    def create_user(self, email, companion): return {"userID": "fallback", "email": email}
+                    def update_user(self, user_id, updates): return True
+                return Users()
         db = FallbackDB()
+        print(f"⚠️ Running with fallback database - limited functionality")
 
 def ensure_essential_users():
     """Ensure essential users exist in the database - permanent fix for empty database"""
@@ -555,31 +585,86 @@ SYSTEM_PROMPT = CHARACTER_PROMPTS["Blayzo"]
 # Health check endpoint for Railway
 @app.route("/health")
 def health():
-    """Health check for Railway"""
-    # Initialize services on first health check
-    if db is None:
-        init_database()
-    if openai_client is None and os.environ.get("OPENAI_API_KEY"):
-        init_openai()
+    """Enhanced health check for Railway with comprehensive monitoring"""
+    import time
+    import psutil
     
-    # Database health check
-    users_count = 0
-    if db and hasattr(db, 'data'):
-        users_count = len(db.data.get("users", []))
-    
-    version_info = get_version_info()
-    
-    response = jsonify({
+    start_time = time.time()
+    health_data = {
         "status": "healthy",
         "service": "SoulBridge AI",
+        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "cache_buster": str(uuid.uuid4())
+    }
+    
+    # Service initialization health checks
+    try:
+        if db is None:
+            init_database()
+        health_data["database_status"] = "initialized" if db else "failed"
+        
+        if openai_client is None and os.environ.get("OPENAI_API_KEY"):
+            init_openai()
+        health_data["openai_status"] = "initialized" if openai_client else "not_configured"
+        
+    except Exception as e:
+        health_data["status"] = "degraded"
+        health_data["initialization_error"] = str(e)
+    
+    # Database health check
+    try:
+        if db and hasattr(db, 'data'):
+            users_count = len(db.data.get("users", []))
+            health_data["database_users"] = users_count
+        elif db and hasattr(db, 'get_user_count'):
+            health_data["database_users"] = db.get_user_count()
+        else:
+            health_data["database_users"] = 0
+    except Exception as e:
+        health_data["status"] = "degraded"
+        health_data["database_error"] = str(e)
+    
+    # System resource monitoring
+    try:
+        health_data["system"] = {
+            "cpu_percent": psutil.cpu_percent(interval=0.1),
+            "memory_percent": psutil.virtual_memory().percent,
+            "disk_percent": psutil.disk_usage('/').percent,
+            "uptime_seconds": time.time() - psutil.boot_time()
+        }
+    except Exception:
+        # psutil might not be available in all environments
+        health_data["system"] = {"status": "monitoring_unavailable"}
+    
+    # Version and deployment info
+    version_info = get_version_info()
+    health_data.update({
         **version_info,
         "deployment_time": datetime.utcnow().isoformat() + "Z",
-        "database_users": users_count,
-        "database_status": "initialized" if db else "failed",
-        "cache_buster": str(uuid.uuid4()),
         "latest_features": version_info["history"].get("features", []),
         "latest_fixes": version_info["history"].get("fixes", [])
     })
+    
+    # Environment info
+    health_data["environment"] = {
+        "railway": bool(os.environ.get('RAILWAY_ENVIRONMENT')),
+        "production": bool(os.environ.get('PRODUCTION')),
+        "test_mode": bool(os.environ.get('TEST_MODE')),
+        "debug": app.debug
+    }
+    
+    # Response time measurement
+    health_data["response_time_ms"] = round((time.time() - start_time) * 1000, 2)
+    
+    # Determine overall status
+    if health_data.get("database_error") or health_data.get("initialization_error"):
+        status_code = 503  # Service Unavailable
+    elif health_data["status"] == "degraded":
+        status_code = 200  # OK but degraded
+    else:
+        status_code = 200  # Healthy
+    
+    response = jsonify(health_data)
     
     # AGGRESSIVE cache busting
     response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0'
@@ -892,6 +977,7 @@ def login():
 # Development Authentication Routes
 # -------------------------------------------------
 @app.route("/auth/login", methods=["POST"])
+@rate_limit('auth.login')
 def auth_login():
     # Ensure database is initialized and essential users exist
     if db is None:
@@ -1077,6 +1163,11 @@ def contact_form():
 def admin_dashboard():
     # Admin page loads for everyone, but login is required for functionality
     return render_template("admin.html")
+
+@app.route("/admin/feature-flags")
+def admin_feature_flags():
+    """Feature flags management page"""
+    return render_template("feature_flags.html")
 
 @app.route("/admin/users")
 def admin_users():
@@ -1359,6 +1450,7 @@ def auth_register():
     return render_template("register.html")
 
 @app.route("/auth/register", methods=["POST"])
+@rate_limit('auth.register')
 def auth_register_post():
     email = request.form.get("email", "").strip()
     password = request.form.get("password", "").strip()
@@ -1656,6 +1748,7 @@ def send_message():
 # API endpoint for Kodular integration
 # -------------------------------------------------
 @app.route("/api/chat", methods=["POST"])
+@rate_limit('api.chat')
 def api_chat():
     """
     API endpoint for character-specific chat
@@ -2268,6 +2361,7 @@ def create_support_ticket():
         return jsonify(success=False, error="Failed to create support ticket"), 500
 
 @app.route("/api/contact", methods=["POST"])
+@rate_limit('contact.submit')
 def contact_form_submit():
     """Handle general contact form submissions with auto-response"""
     try:
