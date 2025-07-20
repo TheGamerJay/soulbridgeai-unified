@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Community Dashboard - SoulBridge AI</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .dashboard-header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        .dashboard-header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .dashboard-nav {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .nav-tab {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 500;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .nav-tab.active {
+            background: white;
+            color: #667eea;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .nav-tab:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        
+        .tab-content {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .tab-pane {
+            display: none;
+            padding: 30px;
+        }
+        
+        .tab-pane.active {
+            display: block;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f1f3f4;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #333;
+            margin: 0;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .grid {
+            display: grid;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .grid-2 {
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        }
+        
+        .grid-3 {
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        }
+        
+        .card {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 15px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+            margin: 0;
+        }
+        
+        .card-icon {
+            font-size: 1.5rem;
+        }
+        
+        .community-type {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .member-count {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        .community-description {
+            color: #555;
+            line-height: 1.5;
+            margin: 10px 0;
+        }
+        
+        .community-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin: 15px 0;
+        }
+        
+        .tag {
+            background: #e9ecef;
+            color: #495057;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+        }
+        
+        .challenge-card {
+            border-left: 4px solid #28a745;
+        }
+        
+        .challenge-progress {
+            margin: 15px 0;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #20c997);
+            transition: width 0.3s ease;
+        }
+        
+        .progress-text {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+        
+        .peer-match {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .peer-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        
+        .peer-info {
+            flex: 1;
+        }
+        
+        .peer-info h4 {
+            margin: 0 0 5px 0;
+            color: #333;
+        }
+        
+        .peer-info p {
+            margin: 0;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        .compatibility-score {
+            background: #28a745;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+        
+        .loading-spinner {
+            font-size: 2rem;
+            animation: spin 2s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+        
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+        }
+        
+        .modal-content {
+            background: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .close {
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #6c757d;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+        }
+        
+        textarea.form-control {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .difficulty-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .difficulty-beginner {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .difficulty-intermediate {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .difficulty-advanced {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <h1>🌟 Community Dashboard</h1>
+            <p>Connect, support, and grow together in our wellness community</p>
+        </div>
+        
+        <div class="dashboard-nav">
+            <button class="nav-tab active" onclick="showTab('my-communities')">My Communities</button>
+            <button class="nav-tab" onclick="showTab('discover')">Discover</button>
+            <button class="nav-tab" onclick="showTab('peer-support')">Peer Support</button>
+            <button class="nav-tab" onclick="showTab('challenges')">Challenges</button>
+            <button class="nav-tab" onclick="showTab('create')">Create</button>
+        </div>
+        
+        <div class="tab-content">
+            <!-- My Communities Tab -->
+            <div id="my-communities" class="tab-pane active">
+                <div class="section-header">
+                    <h2 class="section-title">My Communities</h2>
+                    <button class="btn btn-primary" onclick="showTab('discover')">Join More Communities</button>
+                </div>
+                
+                <div id="my-communities-loading" class="loading">
+                    <div class="loading-spinner">⭐</div>
+                    <p>Loading your communities...</p>
+                </div>
+                
+                <div id="my-communities-content" style="display: none;">
+                    <div id="my-communities-list" class="grid grid-2">
+                        <!-- Dynamic content -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Discover Tab -->
+            <div id="discover" class="tab-pane">
+                <div class="section-header">
+                    <h2 class="section-title">Discover Communities</h2>
+                    <button class="btn btn-success" onclick="showCreateCommunityModal()">Create Community</button>
+                </div>
+                
+                <div id="recommendations-section">
+                    <h3>Recommended for You</h3>
+                    <div id="recommendations-loading" class="loading">
+                        <div class="loading-spinner">⭐</div>
+                        <p>Finding perfect communities for you...</p>
+                    </div>
+                    <div id="recommendations-content" style="display: none;">
+                        <div id="recommendations-list" class="grid grid-3">
+                            <!-- Dynamic content -->
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="all-communities-section" style="margin-top: 40px;">
+                    <h3>All Communities</h3>
+                    <div id="all-communities-content">
+                        <div id="all-communities-list" class="grid grid-3">
+                            <!-- Dynamic content -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Peer Support Tab -->
+            <div id="peer-support" class="tab-pane">
+                <div class="section-header">
+                    <h2 class="section-title">Peer Support Matches</h2>
+                    <button class="btn btn-primary" onclick="findNewMatches()">Find New Matches</button>
+                </div>
+                
+                <div id="peer-matches-loading" class="loading">
+                    <div class="loading-spinner">⭐</div>
+                    <p>Finding your perfect support matches...</p>
+                </div>
+                
+                <div id="peer-matches-content" style="display: none;">
+                    <div id="peer-matches-list">
+                        <!-- Dynamic content -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Challenges Tab -->
+            <div id="challenges" class="tab-pane">
+                <div class="section-header">
+                    <h2 class="section-title">Wellness Challenges</h2>
+                    <button class="btn btn-success" onclick="showCreateChallengeModal()">Create Challenge</button>
+                </div>
+                
+                <div id="my-challenges-section">
+                    <h3>My Active Challenges</h3>
+                    <div id="my-challenges-loading" class="loading">
+                        <div class="loading-spinner">⭐</div>
+                        <p>Loading your challenges...</p>
+                    </div>
+                    <div id="my-challenges-content" style="display: none;">
+                        <div id="my-challenges-list" class="grid grid-2">
+                            <!-- Dynamic content -->
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="available-challenges-section" style="margin-top: 40px;">
+                    <h3>Available Challenges</h3>
+                    <div id="available-challenges-content">
+                        <div id="available-challenges-list" class="grid grid-3">
+                            <!-- Dynamic content -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Create Tab -->
+            <div id="create" class="tab-pane">
+                <div class="section-header">
+                    <h2 class="section-title">Create & Contribute</h2>
+                </div>
+                
+                <div class="grid grid-2">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Create Community</h3>
+                            <span class="card-icon">🏘️</span>
+                        </div>
+                        <p>Start a new wellness community around a topic you're passionate about.</p>
+                        <button class="btn btn-primary" onclick="showCreateCommunityModal()">Create Community</button>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Create Challenge</h3>
+                            <span class="card-icon">🎯</span>
+                        </div>
+                        <p>Design a wellness challenge to motivate yourself and others.</p>
+                        <button class="btn btn-success" onclick="showCreateChallengeModal()">Create Challenge</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Create Community Modal -->
+    <div id="create-community-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create New Community</h3>
+                <span class="close" onclick="closeModal('create-community-modal')">&times;</span>
+            </div>
+            <form id="create-community-form">
+                <div class="form-group">
+                    <label class="form-label">Community Name</label>
+                    <input type="text" class="form-control" id="community-name" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea class="form-control" id="community-description" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Community Type</label>
+                    <select class="form-control" id="community-type" required>
+                        <option value="">Select type...</option>
+                        <option value="general_wellness">General Wellness</option>
+                        <option value="anxiety_support">Anxiety Support</option>
+                        <option value="depression_support">Depression Support</option>
+                        <option value="meditation">Meditation</option>
+                        <option value="fitness">Fitness</option>
+                        <option value="nutrition">Nutrition</option>
+                        <option value="sleep">Sleep</option>
+                        <option value="stress_management">Stress Management</option>
+                        <option value="mindfulness">Mindfulness</option>
+                        <option value="self_care">Self Care</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Visibility</label>
+                    <select class="form-control" id="community-visibility">
+                        <option value="public">Public</option>
+                        <option value="private">Private</option>
+                        <option value="invite_only">Invite Only</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Max Members (optional)</label>
+                    <input type="number" class="form-control" id="community-max-members" min="1">
+                </div>
+                <button type="submit" class="btn btn-primary">Create Community</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Create Challenge Modal -->
+    <div id="create-challenge-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create New Challenge</h3>
+                <span class="close" onclick="closeModal('create-challenge-modal')">&times;</span>
+            </div>
+            <form id="create-challenge-form">
+                <div class="form-group">
+                    <label class="form-label">Challenge Title</label>
+                    <input type="text" class="form-control" id="challenge-title" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea class="form-control" id="challenge-description" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Challenge Type</label>
+                    <select class="form-control" id="challenge-type" required>
+                        <option value="">Select type...</option>
+                        <option value="daily">Daily</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="monthly">Monthly</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Category</label>
+                    <select class="form-control" id="challenge-category" required>
+                        <option value="">Select category...</option>
+                        <option value="fitness">Fitness</option>
+                        <option value="meditation">Meditation</option>
+                        <option value="self_care">Self Care</option>
+                        <option value="nutrition">Nutrition</option>
+                        <option value="sleep">Sleep</option>
+                        <option value="mindfulness">Mindfulness</option>
+                        <option value="stress_management">Stress Management</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Duration (days)</label>
+                    <input type="number" class="form-control" id="challenge-duration" min="1" max="365" value="7" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Difficulty Level</label>
+                    <select class="form-control" id="challenge-difficulty">
+                        <option value="beginner">Beginner</option>
+                        <option value="intermediate">Intermediate</option>
+                        <option value="advanced">Advanced</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-success">Create Challenge</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentTab = 'my-communities';
+        
+        // Tab navigation
+        function showTab(tabName) {
+            // Hide all tab panes
+            const panes = document.querySelectorAll('.tab-pane');
+            panes.forEach(pane => pane.classList.remove('active'));
+            
+            // Remove active class from all tabs
+            const tabs = document.querySelectorAll('.nav-tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            // Show selected tab pane
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+            
+            currentTab = tabName;
+            
+            // Load content for the selected tab
+            loadTabContent(tabName);
+        }
+        
+        function loadTabContent(tabName) {
+            switch(tabName) {
+                case 'my-communities':
+                    loadMyCommunities();
+                    break;
+                case 'discover':
+                    loadRecommendations();
+                    loadAllCommunities();
+                    break;
+                case 'peer-support':
+                    loadPeerMatches();
+                    break;
+                case 'challenges':
+                    loadMyChallenges();
+                    loadAvailableChallenges();
+                    break;
+            }
+        }
+        
+        // Load user's communities
+        async function loadMyCommunities() {
+            try {
+                document.getElementById('my-communities-loading').style.display = 'block';
+                document.getElementById('my-communities-content').style.display = 'none';
+                
+                const response = await fetch('/api/community/my-communities');
+                const data = await response.json();
+                
+                if (data.success) {
+                    renderMyCommunities(data.communities);
+                } else {
+                    showError('my-communities-list', 'Failed to load communities');
+                }
+            } catch (error) {
+                console.error('Error loading communities:', error);
+                showError('my-communities-list', 'Failed to load communities');
+            }
+        }
+        
+        function renderMyCommunities(communities) {
+            const container = document.getElementById('my-communities-list');
+            
+            if (!communities || communities.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🏘️</div>
+                        <h3>No Communities Yet</h3>
+                        <p>Join your first community to start connecting with others!</p>
+                        <button class="btn btn-primary" onclick="showTab('discover')">Discover Communities</button>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = communities.map(community => `
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">${community.name}</h3>
+                            <span class="community-type">${formatCommunityType(community.community_type)}</span>
+                        </div>
+                        <p class="community-description">${community.description}</p>
+                        <div class="community-tags">
+                            ${community.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+                            <span class="member-count">${community.member_count} members</span>
+                            <span class="community-type">${community.my_role}</span>
+                        </div>
+                        <div style="margin-top: 15px;">
+                            <button class="btn btn-primary" onclick="viewCommunity('${community.community_id}')">View Community</button>
+                            <button class="btn btn-secondary" onclick="leaveCommunity('${community.community_id}')">Leave</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            document.getElementById('my-communities-loading').style.display = 'none';
+            document.getElementById('my-communities-content').style.display = 'block';
+        }
+        
+        // Load community recommendations
+        async function loadRecommendations() {
+            try {
+                document.getElementById('recommendations-loading').style.display = 'block';
+                document.getElementById('recommendations-content').style.display = 'none';
+                
+                const response = await fetch('/api/community/recommendations');
+                const data = await response.json();
+                
+                if (data.success) {
+                    renderRecommendations(data.recommendations);
+                } else {
+                    showError('recommendations-list', 'Failed to load recommendations');
+                }
+            } catch (error) {
+                console.error('Error loading recommendations:', error);
+                showError('recommendations-list', 'Failed to load recommendations');
+            }
+        }
+        
+        function renderRecommendations(recommendations) {
+            const container = document.getElementById('recommendations-list');
+            
+            if (!recommendations || recommendations.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🎯</div>
+                        <p>No recommendations available. Join some communities to get better suggestions!</p>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = recommendations.map(community => `
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">${community.name}</h3>
+                            <span class="community-type">${formatCommunityType(community.community_type)}</span>
+                        </div>
+                        <p class="community-description">${community.description}</p>
+                        <div class="community-tags">
+                            ${community.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                        </div>
+                        <div style="margin-top: 15px;">
+                            <span class="member-count">${community.member_count} members</span>
+                        </div>
+                        <div style="margin-top: 15px;">
+                            <button class="btn btn-success" onclick="joinCommunity('${community.community_id}')">Join Community</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            document.getElementById('recommendations-loading').style.display = 'none';
+            document.getElementById('recommendations-content').style.display = 'block';
+        }
+        
+        // Load all communities
+        async function loadAllCommunities() {
+            try {
+                const response = await fetch('/api/community/communities?limit=12');
+                const data = await response.json();
+                
+                if (data.success) {
+                    renderAllCommunities(data.communities);
+                }
+            } catch (error) {
+                console.error('Error loading all communities:', error);
+            }
+        }
+        
+        function renderAllCommunities(communities) {
+            const container = document.getElementById('all-communities-list');
+            
+            container.innerHTML = communities.map(community => `
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">${community.name}</h3>
+                        <span class="community-type">${formatCommunityType(community.community_type)}</span>
+                    </div>
+                    <p class="community-description">${community.description}</p>
+                    <div style="margin-top: 15px;">
+                        <span class="member-count">${community.member_count} members</span>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <button class="btn btn-primary" onclick="joinCommunity('${community.community_id}')">Join Community</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Load peer support matches
+        async function loadPeerMatches() {
+            try {
+                document.getElementById('peer-matches-loading').style.display = 'block';
+                document.getElementById('peer-matches-content').style.display = 'none';
+                
+                const response = await fetch('/api/community/peer-support/matches');
+                const data = await response.json();
+                
+                if (data.success) {
+                    renderPeerMatches(data.matches);
+                } else {
+                    showError('peer-matches-list', 'Failed to load peer matches');
+                }
+            } catch (error) {
+                console.error('Error loading peer matches:', error);
+                showError('peer-matches-list', 'Failed to load peer matches');
+            }
+        }
+        
+        function renderPeerMatches(matches) {
+            const container = document.getElementById('peer-matches-list');
+            
+            if (!matches || matches.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🤝</div>
+                        <h3>No Peer Matches Found</h3>
+                        <p>Join more communities to find compatible peers for support!</p>
+                        <button class="btn btn-primary" onclick="showTab('discover')">Explore Communities</button>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = matches.map(match => `
+                    <div class="peer-match">
+                        <div class="peer-avatar">👤</div>
+                        <div class="peer-info">
+                            <h4>Support Match</h4>
+                            <p><strong>Shared interests:</strong> ${match.shared_interests.join(', ')}</p>
+                            <p><strong>Reason:</strong> ${match.match_reason}</p>
+                            <p><strong>Goals:</strong> ${match.support_goals.join(', ')}</p>
+                        </div>
+                        <div>
+                            <div class="compatibility-score">${Math.round(match.compatibility_score * 100)}%</div>
+                            <div style="margin-top: 10px;">
+                                <button class="btn btn-success" onclick="acceptPeerMatch('${match.match_id}')">Connect</button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            document.getElementById('peer-matches-loading').style.display = 'none';
+            document.getElementById('peer-matches-content').style.display = 'block';
+        }
+        
+        // Load user's challenges
+        async function loadMyChallenges() {
+            try {
+                document.getElementById('my-challenges-loading').style.display = 'block';
+                document.getElementById('my-challenges-content').style.display = 'none';
+                
+                const response = await fetch('/api/community/my-challenges');
+                const data = await response.json();
+                
+                if (data.success) {
+                    renderMyChallenges(data.challenges);
+                } else {
+                    showError('my-challenges-list', 'Failed to load challenges');
+                }
+            } catch (error) {
+                console.error('Error loading challenges:', error);
+                showError('my-challenges-list', 'Failed to load challenges');
+            }
+        }
+        
+        function renderMyChallenges(challenges) {
+            const container = document.getElementById('my-challenges-list');
+            
+            if (!challenges || challenges.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🎯</div>
+                        <h3>No Active Challenges</h3>
+                        <p>Join a wellness challenge to start your journey!</p>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = challenges.map(challenge => `
+                    <div class="card challenge-card">
+                        <div class="card-header">
+                            <h3 class="card-title">${challenge.title}</h3>
+                            <span class="difficulty-badge difficulty-${challenge.difficulty_level}">${challenge.difficulty_level}</span>
+                        </div>
+                        <p>${challenge.description}</p>
+                        <div class="challenge-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${challenge.my_progress * 100}%"></div>
+                            </div>
+                            <div class="progress-text">${Math.round(challenge.my_progress * 100)}% complete</div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span>🔥 ${challenge.current_streak} day streak</span>
+                            <span>⭐ ${challenge.points_earned} points</span>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            document.getElementById('my-challenges-loading').style.display = 'none';
+            document.getElementById('my-challenges-content').style.display = 'block';
+        }
+        
+        // Load available challenges
+        async function loadAvailableChallenges() {
+            try {
+                const response = await fetch('/api/community/challenges?active_only=true&limit=12');
+                const data = await response.json();
+                
+                if (data.success) {
+                    renderAvailableChallenges(data.challenges);
+                }
+            } catch (error) {
+                console.error('Error loading available challenges:', error);
+            }
+        }
+        
+        function renderAvailableChallenges(challenges) {
+            const container = document.getElementById('available-challenges-list');
+            
+            container.innerHTML = challenges.map(challenge => `
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">${challenge.title}</h3>
+                        <span class="difficulty-badge difficulty-${challenge.difficulty_level}">${challenge.difficulty_level}</span>
+                    </div>
+                    <p>${challenge.description}</p>
+                    <div style="margin: 15px 0;">
+                        <span class="tag">${challenge.category}</span>
+                        <span class="tag">${challenge.duration_days} days</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin: 15px 0;">
+                        <span>${challenge.participant_count} participants</span>
+                        <span>⭐ ${challenge.reward_points} points</span>
+                    </div>
+                    <button class="btn btn-success" onclick="joinChallenge('${challenge.challenge_id}')">Join Challenge</button>
+                </div>
+            `).join('');
+        }
+        
+        // Modal functions
+        function showCreateCommunityModal() {
+            document.getElementById('create-community-modal').style.display = 'block';
+        }
+        
+        function showCreateChallengeModal() {
+            document.getElementById('create-challenge-modal').style.display = 'block';
+        }
+        
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+        
+        // Action functions
+        async function joinCommunity(communityId) {
+            try {
+                const response = await fetch(`/api/community/communities/${communityId}/join`, {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    alert('Successfully joined community!');
+                    if (currentTab === 'my-communities') {
+                        loadMyCommunities();
+                    }
+                } else {
+                    alert('Failed to join community: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error joining community:', error);
+                alert('Failed to join community');
+            }
+        }
+        
+        async function leaveCommunity(communityId) {
+            if (!confirm('Are you sure you want to leave this community?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/community/communities/${communityId}/leave`, {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    alert('Successfully left community');
+                    loadMyCommunities();
+                } else {
+                    alert('Failed to leave community: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error leaving community:', error);
+                alert('Failed to leave community');
+            }
+        }
+        
+        async function acceptPeerMatch(matchId) {
+            try {
+                const response = await fetch(`/api/community/peer-support/matches/${matchId}/accept`, {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    alert('Peer support match accepted! You can now connect with your match.');
+                    loadPeerMatches();
+                } else {
+                    alert('Failed to accept match: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error accepting peer match:', error);
+                alert('Failed to accept peer match');
+            }
+        }
+        
+        async function joinChallenge(challengeId) {
+            try {
+                const response = await fetch(`/api/community/challenges/${challengeId}/join`, {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    alert('Successfully joined challenge!');
+                    if (currentTab === 'challenges') {
+                        loadMyChallenges();
+                    }
+                } else {
+                    alert('Failed to join challenge: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error joining challenge:', error);
+                alert('Failed to join challenge');
+            }
+        }
+        
+        function findNewMatches() {
+            loadPeerMatches();
+        }
+        
+        // Form submissions
+        document.getElementById('create-community-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                name: document.getElementById('community-name').value,
+                description: document.getElementById('community-description').value,
+                community_type: document.getElementById('community-type').value,
+                visibility: document.getElementById('community-visibility').value,
+                max_members: document.getElementById('community-max-members').value || null
+            };
+            
+            try {
+                const response = await fetch('/api/community/communities', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    alert('Community created successfully!');
+                    closeModal('create-community-modal');
+                    document.getElementById('create-community-form').reset();
+                    if (currentTab === 'my-communities') {
+                        loadMyCommunities();
+                    }
+                } else {
+                    alert('Failed to create community: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error creating community:', error);
+                alert('Failed to create community');
+            }
+        });
+        
+        document.getElementById('create-challenge-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                title: document.getElementById('challenge-title').value,
+                description: document.getElementById('challenge-description').value,
+                challenge_type: document.getElementById('challenge-type').value,
+                category: document.getElementById('challenge-category').value,
+                duration_days: parseInt(document.getElementById('challenge-duration').value),
+                difficulty_level: document.getElementById('challenge-difficulty').value
+            };
+            
+            try {
+                const response = await fetch('/api/community/challenges', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    alert('Challenge created successfully!');
+                    closeModal('create-challenge-modal');
+                    document.getElementById('create-challenge-form').reset();
+                    if (currentTab === 'challenges') {
+                        loadAvailableChallenges();
+                    }
+                } else {
+                    alert('Failed to create challenge: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error creating challenge:', error);
+                alert('Failed to create challenge');
+            }
+        });
+        
+        // Utility functions
+        function formatCommunityType(type) {
+            const types = {
+                'general_wellness': 'General Wellness',
+                'anxiety_support': 'Anxiety Support',
+                'depression_support': 'Depression Support',
+                'meditation': 'Meditation',
+                'fitness': 'Fitness',
+                'nutrition': 'Nutrition',
+                'sleep': 'Sleep',
+                'stress_management': 'Stress Management',
+                'mindfulness': 'Mindfulness',
+                'self_care': 'Self Care'
+            };
+            return types[type] || type.replace('_', ' ').toUpperCase();
+        }
+        
+        function showError(containerId, message) {
+            document.getElementById(containerId).innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">⚠️</div>
+                    <h3>Error</h3>
+                    <p>${message}</p>
+                </div>
+            `;
+        }
+        
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+        
+        // Load initial content
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTabContent('my-communities');
+        });
+    </script>
+</body>
+</html>

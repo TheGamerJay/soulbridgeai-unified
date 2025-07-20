@@ -52,6 +52,9 @@ from insights_api import init_insights_api
 from gdpr_compliance import init_gdpr_compliance, init_gdpr_database
 from gdpr_api import init_gdpr_api
 from coppa_compliance import init_coppa_compliance, init_coppa_database
+from community_system import init_community_manager, init_community_database
+from community_api import init_community_api
+from expert_content import init_expert_content_manager, init_expert_content_database
 
 # Load environment variables from .env file (optional in production)
 try:
@@ -316,6 +319,14 @@ def init_database():
                 init_coppa_database(db_connection)
                 coppa_manager = init_coppa_compliance(db, EmailService() if 'EmailService' in globals() else None)
                 
+                # Initialize community system
+                init_community_database(db_connection)
+                community_manager = init_community_manager(db, social_manager)
+                
+                # Initialize expert content system
+                init_expert_content_database(db_connection)
+                expert_content_manager = init_expert_content_manager(db)
+                
                 # Initialize notification scheduler
                 if notification_api:
                     init_notification_scheduler(notification_api.get_manager(), db)
@@ -402,6 +413,26 @@ def init_database():
                     logger.info("COPPA compliance manager initialized successfully")
                 else:
                     logger.warning("COPPA compliance system initialization failed")
+                
+                if community_manager:
+                    logger.info("Community manager initialized successfully")
+                    
+                    # Initialize and register community API
+                    global community_api_blueprint
+                    community_api_blueprint = init_community_api()
+                    
+                    if community_api_blueprint:
+                        app.register_blueprint(community_api_blueprint)
+                        logger.info("Community API registered successfully")
+                else:
+                    logger.warning("Community system initialization failed")
+                
+                if expert_content_manager:
+                    logger.info("Expert content manager initialized successfully")
+                    # Seed sample content if needed
+                    expert_content_manager.seed_sample_content()
+                else:
+                    logger.warning("Expert content system initialization failed")
             else:
                 logger.warning("No database connection available, skipping notification system initialization")
         except Exception as e:
@@ -3086,6 +3117,14 @@ def privacy_dashboard():
         return redirect(url_for('login'))
     
     return render_template('privacy_dashboard.html')
+
+@app.route("/community-dashboard")
+def community_dashboard():
+    """Community and Wellness Ecosystem Dashboard"""
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    return render_template('community_dashboard.html')
 
 
 # -------------------------------------------------
