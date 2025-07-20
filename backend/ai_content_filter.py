@@ -309,9 +309,14 @@ class AIContentFilter:
         )
         
         # Store analysis history (keep last 1000)
+        # For GDPR compliance, we limit retention of moderation data
         self.analysis_history.append(analysis)
         if len(self.analysis_history) > 1000:
             self.analysis_history = self.analysis_history[-500:]
+        
+        # Schedule unsafe content for review and potential deletion
+        if result["risk_level"] in ["high", "critical"]:
+            self._schedule_unsafe_content_review(content, result, user_id)
         
         if not analysis.is_safe:
             self.metrics.blocked_content += 1
@@ -837,6 +842,61 @@ class AIContentFilter:
         except Exception as e:
             logging.error(f"Error removing pattern: {e}")
             return False
+    
+    def _schedule_unsafe_content_review(self, content: str, analysis_result: Dict, user_id: str):
+        """Schedule unsafe content for review and potential deletion (GDPR compliance)"""
+        try:
+            # Create a record of unsafe content for review
+            # Store only hash and metadata, not the actual content
+            import hashlib
+            content_hash = hashlib.sha256(content.encode()).hexdigest()
+            
+            review_record = {
+                'content_hash': content_hash,
+                'user_id': user_id,
+                'risk_level': analysis_result['risk_level'],
+                'detected_categories': analysis_result['detected_categories'],
+                'flagged_at': time.time(),
+                'review_status': 'pending',
+                'auto_delete_after': time.time() + (30 * 24 * 3600)  # 30 days
+            }
+            
+            # In production, store this in a database table for moderation review
+            # For now, log the event
+            logging.warning(f"Unsafe content flagged for review: {content_hash[:16]}... "
+                          f"Risk: {analysis_result['risk_level']}, User: {user_id}")
+            
+            # If critical risk, immediate action may be needed
+            if analysis_result['risk_level'] == 'critical':
+                logging.critical(f"CRITICAL content flagged - immediate review required: "
+                               f"User {user_id}, Categories: {analysis_result['detected_categories']}")
+                
+        except Exception as e:
+            logging.error(f"Error scheduling unsafe content review: {e}")
+    
+    def purge_old_moderation_data(self, days_old: int = 30):
+        """Purge old moderation data for GDPR compliance"""
+        try:
+            current_time = time.time()
+            cutoff_time = current_time - (days_old * 24 * 3600)
+            
+            # Remove old analysis history
+            original_count = len(self.analysis_history)
+            self.analysis_history = [
+                analysis for analysis in self.analysis_history 
+                if hasattr(analysis, 'timestamp') and analysis.timestamp > cutoff_time
+            ]
+            
+            purged_count = original_count - len(self.analysis_history)
+            
+            if purged_count > 0:
+                logging.info(f"Purged {purged_count} old moderation records for compliance")
+            
+            return purged_count
+            
+        except Exception as e:
+            logging.error(f"Error purging old moderation data: {e}")
+            return 0
 
 
 # Global instance

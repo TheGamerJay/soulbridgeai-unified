@@ -49,6 +49,9 @@ from social_api import init_social_api
 from realtime_messaging import init_realtime_messaging
 from ai_insights import init_ai_insights, init_insights_database
 from insights_api import init_insights_api
+from gdpr_compliance import init_gdpr_compliance, init_gdpr_database
+from gdpr_api import init_gdpr_api
+from coppa_compliance import init_coppa_compliance, init_coppa_database
 
 # Load environment variables from .env file (optional in production)
 try:
@@ -305,6 +308,14 @@ def init_database():
                 init_insights_database(db_connection)
                 ai_insights_engine = init_ai_insights(db, social_manager)
                 
+                # Initialize GDPR compliance system
+                init_gdpr_database(db_connection)
+                gdpr_manager = init_gdpr_compliance(db)
+                
+                # Initialize COPPA compliance system
+                init_coppa_database(db_connection)
+                coppa_manager = init_coppa_compliance(db, EmailService() if 'EmailService' in globals() else None)
+                
                 # Initialize notification scheduler
                 if notification_api:
                     init_notification_scheduler(notification_api.get_manager(), db)
@@ -373,6 +384,24 @@ def init_database():
                         logger.info("AI insights API registered successfully")
                 else:
                     logger.warning("AI insights system initialization failed")
+                
+                if gdpr_manager:
+                    logger.info("GDPR compliance manager initialized successfully")
+                    
+                    # Initialize and register GDPR API
+                    global gdpr_api_blueprint
+                    gdpr_api_blueprint = init_gdpr_api()
+                    
+                    if gdpr_api_blueprint:
+                        app.register_blueprint(gdpr_api_blueprint)
+                        logger.info("GDPR compliance API registered successfully")
+                else:
+                    logger.warning("GDPR compliance system initialization failed")
+                
+                if coppa_manager:
+                    logger.info("COPPA compliance manager initialized successfully")
+                else:
+                    logger.warning("COPPA compliance system initialization failed")
             else:
                 logger.warning("No database connection available, skipping notification system initialization")
         except Exception as e:
@@ -3049,6 +3078,14 @@ def insights_dashboard():
         return redirect(url_for('login'))
     
     return render_template('insights_dashboard.html')
+
+@app.route("/privacy-dashboard")
+def privacy_dashboard():
+    """Privacy and Data Protection Dashboard"""
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    return render_template('privacy_dashboard.html')
 
 
 # -------------------------------------------------
