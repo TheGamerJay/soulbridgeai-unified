@@ -1307,7 +1307,7 @@ def auth_register_post():
         print(f"Password stored for user {user_data['userID']}: '{password}'")
         
         # CRITICAL: Force save database to ensure persistence
-        db._save_data()
+        db.db_manager._save_data()
         print(f"🔄 Database saved after user creation")
         
         # Verify user was saved by reloading

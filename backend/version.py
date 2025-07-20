@@ -8,9 +8,9 @@ import json
 import os
 
 # Current version - increment with each significant update
-VERSION = "2.1.5"
-BUILD_NUMBER = "246"
-CODENAME = "DatabaseFix"
+VERSION = "2.1.6"
+BUILD_NUMBER = "247"
+CODENAME = "RegistrationFix"
 
 # Version history with meaningful names
 VERSION_HISTORY = {
