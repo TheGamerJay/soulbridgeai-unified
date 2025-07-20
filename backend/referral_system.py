@@ -97,10 +97,14 @@ class ReferralManager:
         return f"SB{code}"
 
     def create_referral_link(
-        self, user_email: str, base_url: str = "https://soulbridgeai.com"
+        self, user_email: str, base_url: str = None
     ) -> Dict:
         """Create referral link for user"""
         try:
+            # Use default base URL if none provided
+            if base_url is None:
+                base_url = "https://soulbridgeai.com"
+            
             referral_code = self.generate_referral_code(user_email)
             referral_link = f"{base_url}?ref={referral_code}"
 

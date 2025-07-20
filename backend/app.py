@@ -3492,7 +3492,7 @@ def create_referral_link():
         from referral_system import referral_manager
 
         result = referral_manager.create_referral_link(
-            data["userEmail"], data.get("baseUrl", "https://soulbridgeai.com")
+            data["userEmail"], data.get("baseUrl", request.url_root.rstrip('/'))
         )
 
         return jsonify(result)
