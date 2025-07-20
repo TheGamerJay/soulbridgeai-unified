@@ -38,7 +38,8 @@
       "Bash(dir:*)",
       "Bash(ls:*)",
       "Bash(grep:*)",
-      "Bash(touch:*)"
+      "Bash(touch:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": []
   }

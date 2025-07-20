@@ -133,13 +133,30 @@ class SecurityManager:
             except Exception as e:
                 logger.warning(f"GeoIP database not available: {e}")
     
+    def get_db_connection(self):
+        """Get database connection handling different database types"""
+        if not self.db:
+            return None
+        
+        if hasattr(self.db, 'db_manager') and hasattr(self.db.db_manager, 'connection'):
+            return self.db.db_manager.connection
+        elif hasattr(self.db, 'connection'):
+            return self.db.connection
+        else:
+            return None
+    
     def setup_database_tables(self):
         """Set up security-related database tables"""
         if not self.db:
             return
         
         try:
-            cursor = self.db.connection.cursor()
+            connection = self.get_db_connection()
+            if not connection:
+                logger.warning("No database connection available for security tables")
+                return
+                
+            cursor = connection.cursor()
             
             # Security events (audit log)
             cursor.execute("""
@@ -277,8 +294,11 @@ class SecurityManager:
             
             # Store in database
             if self.db:
-                cursor = self.db.connection.cursor()
-                cursor.execute("""
+                connection = self.get_db_connection()
+            if not connection:
+                return
+            cursor = connection.cursor()
+            cursor.execute("""
                     INSERT INTO user_2fa (user_id, secret_key, backup_codes, is_enabled)
                     VALUES (%s, %s, %s, %s)
                     ON CONFLICT (user_id) 
@@ -315,7 +335,10 @@ class SecurityManager:
             if not self.db:
                 return False
             
-            cursor = self.db.connection.cursor()
+            connection = self.get_db_connection()
+            if not connection:
+                return
+            cursor = connection.cursor()
             cursor.execute("""
                 SELECT secret_key, backup_codes, is_enabled 
                 FROM user_2fa WHERE user_id = %s
@@ -334,7 +357,7 @@ class SecurityManager:
             totp = pyotp.TOTP(secret_key)
             if totp.verify(code, valid_window=1):  # Allow 1 window tolerance
                 # Update last used
-                cursor.execute("""
+            cursor.execute("""
                     UPDATE user_2fa SET last_used = CURRENT_TIMESTAMP 
                     WHERE user_id = %s
                 """, (user_id,))
@@ -351,7 +374,7 @@ class SecurityManager:
             if backup_codes and code.upper() in backup_codes:
                 # Remove used backup code
                 backup_codes.remove(code.upper())
-                cursor.execute("""
+            cursor.execute("""
                     UPDATE user_2fa SET backup_codes = %s, last_used = CURRENT_TIMESTAMP 
                     WHERE user_id = %s
                 """, (backup_codes, user_id))
@@ -384,7 +407,10 @@ class SecurityManager:
             return False
         
         try:
-            cursor = self.db.connection.cursor()
+            connection = self.get_db_connection()
+            if not connection:
+                return
+            cursor = connection.cursor()
             cursor.execute("""
                 SELECT secret_key FROM user_2fa 
                 WHERE user_id = %s AND is_enabled = FALSE
@@ -400,7 +426,7 @@ class SecurityManager:
             totp = pyotp.TOTP(secret_key)
             if totp.verify(verification_code, valid_window=1):
                 # Enable 2FA
-                cursor.execute("""
+            cursor.execute("""
                     UPDATE user_2fa SET is_enabled = TRUE 
                     WHERE user_id = %s
                 """, (user_id,))
@@ -427,7 +453,10 @@ class SecurityManager:
                 return False
             
             # Verify password first
-            cursor = self.db.connection.cursor()
+            connection = self.get_db_connection()
+            if not connection:
+                return
+            cursor = connection.cursor()
             cursor.execute("SELECT password FROM users WHERE user_id = %s", (user_id,))
             result = cursor.fetchone()
             
@@ -459,7 +488,10 @@ class SecurityManager:
             if not self.db:
                 return False
             
-            cursor = self.db.connection.cursor()
+            connection = self.get_db_connection()
+            if not connection:
+                return
+            cursor = connection.cursor()
             cursor.execute("""
                 SELECT is_enabled FROM user_2fa WHERE user_id = %s
             """, (user_id,))
@@ -503,8 +535,11 @@ class SecurityManager:
             
             # Store in database
             if self.db:
-                cursor = self.db.connection.cursor()
-                cursor.execute("""
+                connection = self.get_db_connection()
+            if not connection:
+                return
+            cursor = connection.cursor()
+            cursor.execute("""
                     INSERT INTO user_sessions 
                     (session_id, user_id, ip_address, user_agent, expires_at, metadata)
                     VALUES (%s, %s, %s, %s, %s, %s)
@@ -531,8 +566,11 @@ class SecurityManager:
             if not user_session:
                 # Try to load from database
                 if self.db:
-                    cursor = self.db.connection.cursor()
-                    cursor.execute("""
+                    connection = self.get_db_connection()
+            if not connection:
+                return
+            cursor = connection.cursor()
+                cursor.execute("""
                         SELECT user_id, ip_address, user_agent, created_at, 
                                last_activity, expires_at, is_active, metadata
                         FROM user_sessions WHERE session_id = %s
@@ -566,8 +604,11 @@ class SecurityManager:
             
             # Update in database
             if self.db:
-                cursor = self.db.connection.cursor()
-                cursor.execute("""
+                connection = self.get_db_connection()
+            if not connection:
+                return
+            cursor = connection.cursor()
+            cursor.execute("""
                     UPDATE user_sessions SET last_activity = CURRENT_TIMESTAMP 
                     WHERE session_id = %s
                 """, (session_id,))
@@ -594,8 +635,11 @@ class SecurityManager:
             
             # Update database
             if self.db:
-                cursor = self.db.connection.cursor()
-                cursor.execute("""
+                connection = self.get_db_connection()
+            if not connection:
+                return
+            cursor = connection.cursor()
+            cursor.execute("""
                     UPDATE user_sessions SET is_active = FALSE 
                     WHERE session_id = %s
                 """, (session_id,))
@@ -617,14 +661,17 @@ class SecurityManager:
             
             # Update database
             if self.db:
-                cursor = self.db.connection.cursor()
+                connection = self.get_db_connection()
+            if not connection:
+                return
+            cursor = connection.cursor()
                 if except_session:
-                    cursor.execute("""
+                cursor.execute("""
                         UPDATE user_sessions SET is_active = FALSE 
                         WHERE user_id = %s AND session_id != %s
                     """, (user_id, except_session))
                 else:
-                    cursor.execute("""
+                cursor.execute("""
                         UPDATE user_sessions SET is_active = FALSE 
                         WHERE user_id = %s
                     """, (user_id,))
@@ -645,8 +692,11 @@ class SecurityManager:
             sessions = []
             
             if self.db:
-                cursor = self.db.connection.cursor()
-                cursor.execute("""
+                connection = self.get_db_connection()
+            if not connection:
+                return
+            cursor = connection.cursor()
+            cursor.execute("""
                     SELECT session_id, ip_address, user_agent, created_at, 
                            last_activity, expires_at, is_active
                     FROM user_sessions 
@@ -695,8 +745,11 @@ class SecurityManager:
             
             # Store in database
             if self.db:
-                cursor = self.db.connection.cursor()
-                cursor.execute("""
+                connection = self.get_db_connection()
+            if not connection:
+                return
+            cursor = connection.cursor()
+            cursor.execute("""
                     INSERT INTO security_events 
                     (event_id, user_id, event_type, description, ip_address, 
                      user_agent, risk_level, metadata)
@@ -764,8 +817,11 @@ class SecurityManager:
             
             # Store in database
             if self.db:
-                cursor = self.db.connection.cursor()
-                cursor.execute("""
+                connection = self.get_db_connection()
+            if not connection:
+                return
+            cursor = connection.cursor()
+            cursor.execute("""
                     INSERT INTO security_alerts 
                     (alert_id, alert_type, severity, title, description, user_id, metadata)
                     VALUES (%s, %s, %s, %s, %s, %s, %s)
@@ -829,7 +885,10 @@ class SecurityManager:
             if not self.db:
                 return 0
             
-            cursor = self.db.connection.cursor()
+            connection = self.get_db_connection()
+            if not connection:
+                return
+            cursor = connection.cursor()
             cursor.execute("""
                 SELECT COUNT(*) FROM login_attempts 
                 WHERE ip_address = %s AND success = FALSE 
@@ -942,8 +1001,11 @@ class SecurityManager:
             
             # Store login attempt in database
             if self.db:
-                cursor = self.db.connection.cursor()
-                cursor.execute("""
+                connection = self.get_db_connection()
+            if not connection:
+                return
+            cursor = connection.cursor()
+            cursor.execute("""
                     INSERT INTO login_attempts 
                     (attempt_id, email, ip_address, user_agent, success, failure_reason, metadata)
                     VALUES (%s, %s, %s, %s, %s, %s, %s)
