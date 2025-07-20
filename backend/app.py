@@ -47,6 +47,8 @@ from preferences_dashboard import init_preferences_dashboard
 from social_system import init_social_manager, init_social_database
 from social_api import init_social_api
 from realtime_messaging import init_realtime_messaging
+from ai_insights import init_ai_insights, init_insights_database
+from insights_api import init_insights_api
 
 # Load environment variables from .env file (optional in production)
 try:
@@ -299,6 +301,10 @@ def init_database():
                 # Initialize real-time messaging system
                 realtime_messaging = init_realtime_messaging(socketio, social_manager, notification_api.get_manager() if notification_api else None)
                 
+                # Initialize AI insights system
+                init_insights_database(db_connection)
+                ai_insights_engine = init_ai_insights(db, social_manager)
+                
                 # Initialize notification scheduler
                 if notification_api:
                     init_notification_scheduler(notification_api.get_manager(), db)
@@ -354,6 +360,19 @@ def init_database():
                         logger.info("Social API registered successfully")
                 else:
                     logger.warning("Social system initialization failed")
+                
+                if ai_insights_engine:
+                    logger.info("AI insights engine initialized successfully")
+                    
+                    # Initialize and register insights API
+                    global insights_api_blueprint
+                    insights_api_blueprint = init_insights_api()
+                    
+                    if insights_api_blueprint:
+                        app.register_blueprint(insights_api_blueprint)
+                        logger.info("AI insights API registered successfully")
+                else:
+                    logger.warning("AI insights system initialization failed")
             else:
                 logger.warning("No database connection available, skipping notification system initialization")
         except Exception as e:
@@ -3017,6 +3036,19 @@ def contact_form_submit():
     except Exception as e:
         logging.error(f"Contact form submission error: {e}")
         return jsonify(success=False, error="Failed to process contact form"), 500
+
+
+# -------------------------------------------------
+# AI Insights Dashboard
+# -------------------------------------------------
+
+@app.route("/insights-dashboard")
+def insights_dashboard():
+    """AI Insights Dashboard"""
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    return render_template('insights_dashboard.html')
 
 
 # -------------------------------------------------

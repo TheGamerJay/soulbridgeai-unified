@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Insights Dashboard - SoulBridge AI</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .dashboard-header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        .dashboard-header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .dashboard-subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-top: 10px;
+        }
+        
+        .insights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .insight-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .insight-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+            margin: 0;
+        }
+        
+        .card-icon {
+            font-size: 1.5rem;
+        }
+        
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #007bff;
+            margin: 0;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin: 5px 0 0 0;
+        }
+        
+        .mood-pattern {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .mood-pattern:last-child {
+            border-bottom: none;
+        }
+        
+        .mood-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .mood-emoji {
+            font-size: 1.5rem;
+        }
+        
+        .mood-details h4 {
+            margin: 0;
+            color: #333;
+            font-size: 1rem;
+        }
+        
+        .mood-details p {
+            margin: 0;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        .mood-score {
+            font-weight: bold;
+            padding: 5px 10px;
+            border-radius: 20px;
+            color: white;
+            font-size: 0.9rem;
+        }
+        
+        .score-high { background: #28a745; }
+        .score-medium { background: #ffc107; color: #333; }
+        .score-low { background: #dc3545; }
+        
+        .companion-rec {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .companion-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        
+        .companion-info h4 {
+            margin: 0 0 5px 0;
+            color: #333;
+        }
+        
+        .companion-info p {
+            margin: 0;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        .match-score {
+            background: #007bff;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .alert-high {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        .alert-medium {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+        
+        .alert-low {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        
+        .alert-icon {
+            font-size: 1.5rem;
+        }
+        
+        .alert-content h4 {
+            margin: 0 0 5px 0;
+        }
+        
+        .alert-content p {
+            margin: 0;
+            font-size: 0.9rem;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+        
+        .loading-spinner {
+            font-size: 2rem;
+            animation: spin 2s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .refresh-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 20px;
+            transition: background 0.3s ease;
+        }
+        
+        .refresh-button:hover {
+            background: #0056b3;
+        }
+        
+        .trend-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .trend-up { color: #28a745; }
+        .trend-down { color: #dc3545; }
+        .trend-stable { color: #6c757d; }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <h1>🧠 AI Insights Dashboard</h1>
+            <p class="dashboard-subtitle">Your personalized wellness analytics and recommendations</p>
+        </div>
+        
+        <div id="loading" class="loading">
+            <div class="loading-spinner">⭐</div>
+            <p>Loading your insights...</p>
+        </div>
+        
+        <div id="error" class="error" style="display: none;">
+            <h3>Unable to Load Insights</h3>
+            <p>We couldn't load your insights dashboard. Please try again.</p>
+            <button class="refresh-button" onclick="loadDashboard()">Refresh</button>
+        </div>
+        
+        <div id="dashboard-content" style="display: none;">
+            <!-- Summary Stats -->
+            <div class="insight-card">
+                <div class="card-header">
+                    <h3 class="card-title">Overview</h3>
+                    <span class="card-icon">📊</span>
+                </div>
+                <div class="summary-stats" id="summary-stats">
+                    <!-- Dynamic content -->
+                </div>
+            </div>
+            
+            <div class="insights-grid">
+                <!-- Mood Patterns -->
+                <div class="insight-card">
+                    <div class="card-header">
+                        <h3 class="card-title">Recent Mood Patterns</h3>
+                        <span class="card-icon">😊</span>
+                    </div>
+                    <div id="mood-patterns">
+                        <!-- Dynamic content -->
+                    </div>
+                </div>
+                
+                <!-- Companion Recommendations -->
+                <div class="insight-card">
+                    <div class="card-header">
+                        <h3 class="card-title">Recommended Companions</h3>
+                        <span class="card-icon">🤖</span>
+                    </div>
+                    <div id="companion-recommendations">
+                        <!-- Dynamic content -->
+                    </div>
+                </div>
+                
+                <!-- Wellness Alerts -->
+                <div class="insight-card">
+                    <div class="card-header">
+                        <h3 class="card-title">Wellness Insights</h3>
+                        <span class="card-icon">💡</span>
+                    </div>
+                    <div id="wellness-alerts">
+                        <!-- Dynamic content -->
+                    </div>
+                </div>
+                
+                <!-- Friend Matches -->
+                <div class="insight-card">
+                    <div class="card-header">
+                        <h3 class="card-title">Friend Suggestions</h3>
+                        <span class="card-icon">👥</span>
+                    </div>
+                    <div id="friend-matches">
+                        <!-- Dynamic content -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dashboard functionality
+        let dashboardData = null;
+        
+        async function loadDashboard() {
+            try {
+                showLoading();
+                
+                const response = await fetch('/api/insights/dashboard-data');
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to load dashboard');
+                }
+                
+                if (!data.success) {
+                    showInsufficientData(data.message);
+                    return;
+                }
+                
+                dashboardData = data.dashboard;
+                renderDashboard();
+                
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+                showError();
+            }
+        }
+        
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('dashboard-content').style.display = 'none';
+        }
+        
+        function showError() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').style.display = 'block';
+            document.getElementById('dashboard-content').style.display = 'none';
+        }
+        
+        function showInsufficientData(message) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').style.display = 'block';
+            document.getElementById('dashboard-content').style.display = 'none';
+            
+            const errorDiv = document.getElementById('error');
+            errorDiv.innerHTML = `
+                <h3>Building Your Profile</h3>
+                <p>${message || 'Keep using SoulBridge AI to unlock personalized insights!'}</p>
+                <button class="refresh-button" onclick="loadDashboard()">Check Again</button>
+            `;
+        }
+        
+        function renderDashboard() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('dashboard-content').style.display = 'block';
+            
+            renderSummaryStats();
+            renderMoodPatterns();
+            renderCompanionRecommendations();
+            renderWellnessAlerts();
+            renderFriendMatches();
+        }
+        
+        function renderSummaryStats() {
+            const container = document.getElementById('summary-stats');
+            const summary = dashboardData.summary;
+            
+            container.innerHTML = `
+                <div class="stat-item">
+                    <div class="stat-value">${summary.total_mood_patterns}</div>
+                    <div class="stat-label">Mood Patterns</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${summary.average_mood_score}</div>
+                    <div class="stat-label">Avg Mood Score</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${summary.total_alerts}</div>
+                    <div class="stat-label">Wellness Alerts</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${summary.friend_matches}</div>
+                    <div class="stat-label">Friend Matches</div>
+                </div>
+            `;
+        }
+        
+        function renderMoodPatterns() {
+            const container = document.getElementById('mood-patterns');
+            const patterns = dashboardData.recent_patterns;
+            
+            if (!patterns || patterns.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #6c757d;">No recent mood data available</p>';
+                return;
+            }
+            
+            container.innerHTML = patterns.map(pattern => {
+                const scoreClass = pattern.average_score > 0.7 ? 'score-high' : 
+                                 pattern.average_score > 0.4 ? 'score-medium' : 'score-low';
+                
+                const trendDirection = pattern.trends.weekly > 0.05 ? 'up' : 
+                                     pattern.trends.weekly < -0.05 ? 'down' : 'stable';
+                const trendIcon = trendDirection === 'up' ? '📈' : 
+                                trendDirection === 'down' ? '📉' : '➡️';
+                
+                return `
+                    <div class="mood-pattern">
+                        <div class="mood-info">
+                            <div class="mood-emoji">${getMoodEmoji(pattern.dominant_mood)}</div>
+                            <div class="mood-details">
+                                <h4>${pattern.dominant_mood}</h4>
+                                <p>Stability: ${(pattern.mood_stability * 100).toFixed(0)}%</p>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="mood-score ${scoreClass}">${pattern.average_score.toFixed(1)}</div>
+                            <div class="trend-indicator trend-${trendDirection}">${trendIcon}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function renderCompanionRecommendations() {
+            const container = document.getElementById('companion-recommendations');
+            const companions = dashboardData.recommended_companions;
+            
+            if (!companions || companions.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #6c757d;">No companion recommendations available</p>';
+                return;
+            }
+            
+            container.innerHTML = companions.map(companion => `
+                <div class="companion-rec">
+                    <div class="companion-avatar">${companion.companion_name[0]}</div>
+                    <div class="companion-info">
+                        <h4>${companion.companion_name}</h4>
+                        <p>${companion.reasons[0] || 'Great companion for you'}</p>
+                    </div>
+                    <div class="match-score">${(companion.match_score * 100).toFixed(0)}%</div>
+                </div>
+            `).join('');
+        }
+        
+        function renderWellnessAlerts() {
+            const container = document.getElementById('wellness-alerts');
+            const alerts = dashboardData.active_alerts;
+            
+            if (!alerts || alerts.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #6c757d;">No active wellness alerts</p>';
+                return;
+            }
+            
+            container.innerHTML = alerts.map(alert => {
+                const alertIcon = alert.severity === 'high' ? '🚨' : 
+                                alert.severity === 'medium' ? '⚠️' : 'ℹ️';
+                
+                return `
+                    <div class="alert alert-${alert.severity}">
+                        <div class="alert-icon">${alertIcon}</div>
+                        <div class="alert-content">
+                            <h4>${alert.alert_type.replace('_', ' ').toUpperCase()}</h4>
+                            <p>${alert.message}</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function renderFriendMatches() {
+            const container = document.getElementById('friend-matches');
+            const matches = dashboardData.suggested_friends;
+            
+            if (!matches || matches.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #6c757d;">No friend suggestions available</p>';
+                return;
+            }
+            
+            container.innerHTML = matches.map(match => `
+                <div class="companion-rec">
+                    <div class="companion-avatar">👤</div>
+                    <div class="companion-info">
+                        <h4>User ${match.user_id.substring(0, 8)}</h4>
+                        <p>${match.shared_interests.join(', ') || 'Compatible personality'}</p>
+                    </div>
+                    <div class="match-score">${(match.compatibility_score * 100).toFixed(0)}%</div>
+                </div>
+            `).join('');
+        }
+        
+        function getMoodEmoji(mood) {
+            const moodEmojis = {
+                happy: '😊',
+                sad: '😢',
+                angry: '😠',
+                anxious: '😰',
+                excited: '🤩',
+                calm: '😌',
+                stressed: '😤',
+                content: '😊',
+                overwhelmed: '😵',
+                peaceful: '😇'
+            };
+            return moodEmojis[mood.toLowerCase()] || '😐';
+        }
+        
+        // Load dashboard on page load
+        document.addEventListener('DOMContentLoaded', loadDashboard);
+        
+        // Auto-refresh every 5 minutes
+        setInterval(loadDashboard, 5 * 60 * 1000);
+        
+        console.log('AI Insights Dashboard initialized');
+    </script>
+</body>
+</html>
