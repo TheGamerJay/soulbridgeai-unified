@@ -33,6 +33,7 @@ from rate_limiter import rate_limit, init_rate_limiting
 from env_validator import init_environment_validation
 from feature_flags import init_feature_flags, is_feature_enabled, feature_flag
 from security_monitor import init_security_monitoring
+from security_manager import init_security_features, security_manager, require_2fa, security_headers
 
 # Load environment variables from .env file (optional in production)
 try:
@@ -90,6 +91,9 @@ init_feature_flags(app)
 
 # Initialize security monitoring
 init_security_monitoring(app)
+
+# Initialize security features (will be initialized with database later)
+security_features = None
 
 # Configure Stripe
 stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
@@ -228,6 +232,10 @@ def init_database():
 
         # Ensure essential users exist
         ensure_essential_users()
+        
+        # Initialize security features with database
+        global security_features
+        security_features = init_security_features(app, db)
 
     except Exception as e:
         logging.error(f"All database initialization attempts failed: {e}")
@@ -1311,6 +1319,184 @@ def auth_logout():
         print(f"Error during logout: {e}")
         # Simple fallback - just redirect to login
         return redirect(url_for("login"))
+
+
+# -------------------------------------------------
+# 2FA/Security API Endpoints
+# -------------------------------------------------
+
+@app.route("/api/auth/2fa/setup", methods=["POST"])
+@security_headers
+def setup_2fa():
+    """Setup 2FA for current user"""
+    try:
+        if not session.get('user_authenticated'):
+            return jsonify({"error": "Not authenticated"}), 401
+        
+        user_id = session.get('user_id')
+        user_email = session.get('user_email')
+        
+        if not user_id or not user_email:
+            return jsonify({"error": "Invalid session"}), 401
+        
+        if not security_manager:
+            return jsonify({"error": "Security features not available"}), 503
+        
+        # Generate 2FA setup data
+        setup_data = security_manager.generate_2fa_secret(user_id, user_email)
+        
+        return jsonify({
+            "success": True,
+            "qr_code": setup_data["qr_code"],
+            "manual_entry_key": setup_data["manual_entry_key"],
+            "backup_codes": setup_data["backup_codes"]
+        })
+        
+    except Exception as e:
+        logger.error(f"Error setting up 2FA: {e}")
+        return jsonify({"error": "Failed to setup 2FA"}), 500
+
+
+@app.route("/api/auth/2fa/enable", methods=["POST"])
+@security_headers
+def enable_2fa():
+    """Enable 2FA after verification"""
+    try:
+        if not session.get('user_authenticated'):
+            return jsonify({"error": "Not authenticated"}), 401
+        
+        user_id = session.get('user_id')
+        verification_code = request.json.get('code', '').strip()
+        
+        if not user_id or not verification_code:
+            return jsonify({"error": "Missing required fields"}), 400
+        
+        if not security_manager:
+            return jsonify({"error": "Security features not available"}), 503
+        
+        # Enable 2FA
+        success = security_manager.enable_2fa(user_id, verification_code)
+        
+        if success:
+            return jsonify({"success": True, "message": "2FA enabled successfully"})
+        else:
+            return jsonify({"error": "Invalid verification code"}), 400
+        
+    except Exception as e:
+        logger.error(f"Error enabling 2FA: {e}")
+        return jsonify({"error": "Failed to enable 2FA"}), 500
+
+
+@app.route("/api/auth/2fa/verify", methods=["POST"])
+@security_headers
+def verify_2fa():
+    """Verify 2FA code during login"""
+    try:
+        user_id = request.json.get('user_id')
+        code = request.json.get('code', '').strip()
+        
+        if not user_id or not code:
+            return jsonify({"error": "Missing required fields"}), 400
+        
+        if not security_manager:
+            return jsonify({"error": "Security features not available"}), 503
+        
+        # Verify 2FA code
+        success = security_manager.verify_2fa_code(user_id, code)
+        
+        if success:
+            # Mark 2FA as verified for this session
+            session['2fa_verified'] = True
+            return jsonify({"success": True, "message": "2FA verified"})
+        else:
+            return jsonify({"error": "Invalid 2FA code"}), 400
+        
+    except Exception as e:
+        logger.error(f"Error verifying 2FA: {e}")
+        return jsonify({"error": "Failed to verify 2FA"}), 500
+
+
+@app.route("/api/auth/2fa/disable", methods=["POST"])
+@security_headers
+def disable_2fa():
+    """Disable 2FA with password confirmation"""
+    try:
+        if not session.get('user_authenticated'):
+            return jsonify({"error": "Not authenticated"}), 401
+        
+        user_id = session.get('user_id')
+        password = request.json.get('password', '').strip()
+        
+        if not user_id or not password:
+            return jsonify({"error": "Missing required fields"}), 400
+        
+        if not security_manager:
+            return jsonify({"error": "Security features not available"}), 503
+        
+        # Disable 2FA
+        success = security_manager.disable_2fa(user_id, password)
+        
+        if success:
+            session.pop('2fa_verified', None)  # Clear 2FA session flag
+            return jsonify({"success": True, "message": "2FA disabled successfully"})
+        else:
+            return jsonify({"error": "Invalid password"}), 400
+        
+    except Exception as e:
+        logger.error(f"Error disabling 2FA: {e}")
+        return jsonify({"error": "Failed to disable 2FA"}), 500
+
+
+@app.route("/api/auth/sessions", methods=["GET"])
+@security_headers
+def get_user_sessions():
+    """Get all active sessions for current user"""
+    try:
+        if not session.get('user_authenticated'):
+            return jsonify({"error": "Not authenticated"}), 401
+        
+        user_id = session.get('user_id')
+        
+        if not user_id:
+            return jsonify({"error": "Invalid session"}), 401
+        
+        if not security_manager:
+            return jsonify({"error": "Security features not available"}), 503
+        
+        # Get user sessions
+        sessions = security_manager.get_user_sessions(user_id)
+        
+        return jsonify({"success": True, "sessions": sessions})
+        
+    except Exception as e:
+        logger.error(f"Error getting user sessions: {e}")
+        return jsonify({"error": "Failed to get sessions"}), 500
+
+
+@app.route("/api/auth/sessions/<session_id>", methods=["DELETE"])
+@security_headers
+def terminate_session(session_id):
+    """Terminate a specific session"""
+    try:
+        if not session.get('user_authenticated'):
+            return jsonify({"error": "Not authenticated"}), 401
+        
+        user_id = session.get('user_id')
+        
+        if not user_id:
+            return jsonify({"error": "Invalid session"}), 401
+        
+        if not security_manager:
+            return jsonify({"error": "Security features not available"}), 503
+        
+        # Terminate session
+        security_manager.invalidate_session(session_id)
+        
+        return jsonify({"success": True, "message": "Session terminated"})
+        
+    except Exception as e:
+        logger.error(f"Error terminating session: {e}")
+        return jsonify({"error": "Failed to terminate session"}), 500
 
 
 @app.route("/register")
