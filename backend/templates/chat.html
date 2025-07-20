@@ -3811,5 +3811,28 @@
         `;
         document.head.appendChild(style);
     </script>
+    
+    <!-- Version Footer -->
+    {% if version_info %}
+    <div id="versionFooter" style="
+        position: fixed;
+        bottom: 10px;
+        right: 10px;
+        background: rgba(0, 0, 0, 0.8);
+        color: #22d3ee;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        font-family: monospace;
+        border: 1px solid rgba(34, 211, 238, 0.3);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        z-index: 1000;
+    " onclick="window.open('/version', '_blank')" 
+       onmouseover="this.style.background='rgba(34, 211, 238, 0.2)'" 
+       onmouseout="this.style.background='rgba(0, 0, 0, 0.8)'">
+        v{{ version_info.version }} "{{ version_info.codename }}"
+    </div>
+    {% endif %}
 </body>
 </html>

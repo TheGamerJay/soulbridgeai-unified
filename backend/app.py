@@ -25,6 +25,7 @@ from functools import wraps
 import ipaddress
 import stripe
 from referral_system import referral_manager
+from version import get_version_info, get_version_display, get_changelog, VERSION, BUILD_NUMBER, CODENAME
 
 # -------------------------------------------------
 # Security Functions (defined after db initialization)
@@ -534,26 +535,18 @@ def health():
     if db and hasattr(db, 'data'):
         users_count = len(db.data.get("users", []))
     
+    version_info = get_version_info()
+    
     response = jsonify({
         "status": "healthy",
         "service": "SoulBridge AI",
-        "version": "2.0.0-FORCE-UPDATE",
+        **version_info,
         "deployment_time": datetime.utcnow().isoformat() + "Z",
-        "commit_hash": "010a18d",
         "database_users": users_count,
         "database_status": "initialized" if db else "failed",
         "cache_buster": str(uuid.uuid4()),
-        "latest_fixes": [
-            "FORCE_CACHE_CLEAR_2025",
-            "permanent_login_fix",
-            "essential_users_creation",
-            "database_health_check",
-            "premium_upgrade_modal",
-            "color_studio_rebuild", 
-            "referral_fallback",
-            "mobile_navigation_fix",
-            "intro_logo_cache_bust"
-        ]
+        "latest_features": version_info["history"].get("features", []),
+        "latest_fixes": version_info["history"].get("fixes", [])
     })
     
     # AGGRESSIVE cache busting
@@ -568,64 +561,163 @@ def health():
 # Version check endpoint - VISIT THIS TO VERIFY LATEST VERSION
 @app.route("/version")
 def version_check():
-    """Immediate version check - visit this URL to verify you're getting latest code"""
+    """Professional version check page like other applications"""
+    version_info = get_version_info()
+    users_count = len(db.data.get("users", [])) if db and hasattr(db, 'data') else 0
+    
     return f"""
     <html>
     <head>
-        <title>SoulBridge AI - Version Check</title>
+        <title>SoulBridge AI - {version_info['display_name']}</title>
         <style>
             body {{ 
-                font-family: monospace; 
-                background: #000; 
+                font-family: 'Segoe UI', system-ui, sans-serif; 
+                background: linear-gradient(135deg, #000000 0%, #0f172a 50%, #1e293b 100%);
                 color: #22d3ee; 
                 padding: 2rem;
                 margin: 0;
+                min-height: 100vh;
             }}
-            .status {{ 
-                background: #0f172a; 
+            .version-container {{ 
+                background: rgba(15, 23, 42, 0.8); 
                 border: 2px solid #22d3ee; 
                 padding: 2rem; 
-                border-radius: 12px; 
-                max-width: 600px;
+                border-radius: 16px; 
+                max-width: 800px;
                 margin: 0 auto;
+                backdrop-filter: blur(10px);
+                box-shadow: 0 0 30px rgba(34, 211, 238, 0.3);
+            }}
+            .version-header {{
+                text-align: center;
+                margin-bottom: 2rem;
+                border-bottom: 2px solid rgba(34, 211, 238, 0.3);
+                padding-bottom: 1rem;
+            }}
+            .version-number {{ 
+                font-size: 2.5rem;
+                font-weight: bold;
+                color: #22c55e; 
+                text-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+            }}
+            .codename {{ 
+                font-size: 1.2rem;
+                color: #f59e0b; 
+                font-style: italic;
+                margin: 0.5rem 0;
+            }}
+            .build-info {{ 
+                color: #94a3b8; 
+                font-size: 0.9rem;
+            }}
+            .feature-list {{ 
+                background: rgba(0, 0, 0, 0.3);
+                border-radius: 8px;
+                padding: 1rem;
+                margin: 1rem 0;
+            }}
+            .feature-list h3 {{ 
+                color: #22d3ee;
+                margin-top: 0;
+            }}
+            .feature-list li {{ 
+                margin: 0.5rem 0;
+                color: #e2e8f0;
+            }}
+            .status-grid {{
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 1rem;
+                margin: 2rem 0;
+            }}
+            .status-item {{
+                background: rgba(0, 0, 0, 0.3);
+                padding: 1rem;
+                border-radius: 8px;
+                border: 1px solid rgba(34, 211, 238, 0.3);
             }}
             .success {{ color: #22c55e; }}
-            .timestamp {{ color: #f59e0b; }}
+            .warning {{ color: #f59e0b; }}
+            .nav-links {{
+                text-align: center;
+                margin-top: 2rem;
+                padding-top: 1rem;
+                border-top: 2px solid rgba(34, 211, 238, 0.3);
+            }}
+            .nav-links a {{
+                color: #22d3ee;
+                text-decoration: none;
+                margin: 0 1rem;
+                padding: 0.5rem 1rem;
+                border: 1px solid #22d3ee;
+                border-radius: 6px;
+                transition: all 0.3s ease;
+            }}
+            .nav-links a:hover {{
+                background: #22d3ee;
+                color: #000;
+            }}
         </style>
         <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
         <meta http-equiv="Pragma" content="no-cache">
         <meta http-equiv="Expires" content="0">
     </head>
     <body>
-        <div class="status">
-            <h1>🚀 SoulBridge AI - Deployment Status</h1>
-            <p><strong>Version:</strong> <span class="success">2.0.0-FORCE-UPDATE</span></p>
-            <p><strong>Deployment Time:</strong> <span class="timestamp">{datetime.utcnow().isoformat()}Z</span></p>
-            <p><strong>Cache Buster:</strong> {uuid.uuid4()}</p>
-            <p><strong>Status:</strong> <span class="success">✅ LATEST VERSION ACTIVE</span></p>
-            <p><strong>Database Users:</strong> {len(db.data.get("users", [])) if db and hasattr(db, 'data') else 0}</p>
+        <div class="version-container">
+            <div class="version-header">
+                <h1>🚀 SoulBridge AI</h1>
+                <div class="version-number">v{version_info['version']}</div>
+                <div class="codename">"{version_info['codename']}"</div>
+                <div class="build-info">
+                    Build {version_info['build']} • Deployed {version_info['timestamp']}
+                </div>
+            </div>
             
-            <h3>🔧 Recent Fixes Deployed:</h3>
-            <ul>
-                <li>✅ Aggressive cache-busting (FORCE-2025)</li>
-                <li>✅ Navigation fixes (intro/refresh issue)</li>
-                <li>✅ Logo cache-busting (v=2025)</li>
-                <li>✅ Database initialization fixes</li>
-                <li>✅ Login system permanent fix</li>
-                <li>✅ Premium companion modal</li>
-                <li>✅ Color studio rebuild</li>
-                <li>✅ Referral page fallback</li>
-            </ul>
+            <div class="status-grid">
+                <div class="status-item">
+                    <h4>🟢 System Status</h4>
+                    <p><strong>Status:</strong> <span class="success">✅ ONLINE</span></p>
+                    <p><strong>Database:</strong> <span class="success">{users_count} users</span></p>
+                    <p><strong>Cache:</strong> <span class="success">Force-cleared</span></p>
+                </div>
+                <div class="status-item">
+                    <h4>📊 Version Info</h4>
+                    <p><strong>Version:</strong> {version_info['version']}</p>
+                    <p><strong>Build:</strong> {version_info['build']}</p>
+                    <p><strong>Codename:</strong> {version_info['codename']}</p>
+                </div>
+            </div>
             
-            <p><strong>If you're still seeing old version:</strong></p>
-            <ol>
-                <li>Clear ALL browser data (Ctrl+Shift+Delete)</li>
-                <li>Use incognito/private mode</li>
-                <li>Hard refresh (Ctrl+F5)</li>
-                <li>Try different browser</li>
-            </ol>
+            <div class="feature-list">
+                <h3>✨ New Features in v{version_info['version']}</h3>
+                <ul>
+                    {"".join(f"<li>✅ {feature}</li>" for feature in version_info['history'].get('features', []))}
+                </ul>
+            </div>
             
-            <p><a href="/" style="color: #22d3ee;">← Back to App</a></p>
+            <div class="feature-list">
+                <h3>🔧 Bug Fixes in v{version_info['version']}</h3>
+                <ul>
+                    {"".join(f"<li>🐛 {fix}</li>" for fix in version_info['history'].get('fixes', []))}
+                </ul>
+            </div>
+            
+            <div class="feature-list">
+                <h3>💡 Cache Troubleshooting</h3>
+                <p>If you're still seeing an old version:</p>
+                <ol>
+                    <li><strong>Clear browser data:</strong> Ctrl+Shift+Delete → All time → Clear all</li>
+                    <li><strong>Hard refresh:</strong> Ctrl+F5 or Cmd+Shift+R</li>
+                    <li><strong>Try incognito mode:</strong> Bypasses all cache</li>
+                    <li><strong>Different browser:</strong> Test in Edge, Chrome, Firefox</li>
+                </ol>
+            </div>
+            
+            <div class="nav-links">
+                <a href="/">🏠 Back to App</a>
+                <a href="/health">📊 Health Check</a>
+                <a href="/emergency/fix-database">🚨 Emergency Fix</a>
+            </div>
         </div>
     </body>
     </html>
@@ -727,7 +819,7 @@ def chat():
     # Add AGGRESSIVE cache-busting headers to force latest version
     response = make_response(render_template("chat.html", 
                                            cache_buster=str(uuid.uuid4()), 
-                                           version="2.0.0-FORCE"))
+                                           version_info=get_version_info()))
     return add_aggressive_cache_busting(response)
 
 @app.route("/login")
@@ -743,7 +835,7 @@ def login():
     
     response = make_response(render_template("login.html", 
                                         cache_buster=str(uuid.uuid4()), 
-                                        version="2.0.0-FORCE"))
+                                        version_info=get_version_info()))
     return add_aggressive_cache_busting(response)
 
 # -------------------------------------------------
