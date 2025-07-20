@@ -509,18 +509,22 @@
                 <p class="auth-subtitle" data-translate="start_journey">Start your journey with AI companions</p>
             </div>
             
-            <!-- Error/Success Messages -->
-            {% if error %}
-            <div class="error-message" role="alert">
-                {{ error }}
-            </div>
-            {% endif %}
-            
-            {% if success %}
-            <div class="success-message" role="status">
-                {{ success }}
-            </div>
-            {% endif %}
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        {% if category == 'error' %}
+                        <div class="error-message" role="alert">
+                            {{ message }}
+                        </div>
+                        {% elif category == 'success' %}
+                        <div class="success-message" role="status">
+                            {{ message }}
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
             
             <!-- Registration Form -->
             <form method="POST" action="/auth/register" id="registerForm">

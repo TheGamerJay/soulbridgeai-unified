@@ -1306,6 +1306,13 @@ def auth_login():
         except Exception as e:
             print(f"Error checking/creating developer account: {e}")
 
+    # Validate email format
+    import re
+    email_pattern = re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
+    if not email_pattern.match(email):
+        flash("Please enter a valid email address.", "error")
+        return redirect(url_for("login"))
+    
     # Check if this is a registered user
     user_from_db = None
     if not is_developer:
@@ -2057,28 +2064,52 @@ def auth_register_post():
     email = request.form.get("email", "").strip()
     password = request.form.get("password", "").strip()
     confirm_password = request.form.get("confirm_password", "").strip()
+    display_name = request.form.get("display_name", "").strip()
 
     # Basic validation
-    if not email or not password:
-        flash("Email and password are required.", "error")
+    if not email or not password or not display_name:
+        flash("Email, password, and display name are required.", "error")
         return redirect(url_for("auth_register"))
 
     if password != confirm_password:
         flash("Passwords do not match.", "error")
         return redirect(url_for("auth_register"))
 
-    if len(password) < 6:
-        flash("Password must be at least 6 characters long.", "error")
+    if len(password) < 8:
+        flash("Password must be at least 8 characters long.", "error")
+        return redirect(url_for("auth_register"))
+    
+    # Email validation
+    import re
+    email_pattern = re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
+    if not email_pattern.match(email):
+        flash("Please enter a valid email address.", "error")
+        return redirect(url_for("auth_register"))
+    
+    # Display name validation
+    if len(display_name) < 2 or len(display_name) > 50:
+        flash("Display name must be between 2 and 50 characters.", "error")
         return redirect(url_for("auth_register"))
 
     try:
-        # Create user in database
+        # Create user in database with display name
         user_data = db.users.create_user(email, companion="Blayzo")
+        
+        # Add display name to user data
+        if display_name:
+            db.users.update_user(user_data["userID"], {"display_name": display_name})
         print(f"User created successfully: {user_data}")
 
-        # Store password in user data
-        db.users.update_user(user_data["userID"], {"password": password})
-        print(f"Password stored for user {user_data['userID']}: '{password}'")
+        # Hash and store password securely
+        hashed_password = password
+        if security_manager:
+            hashed_password = security_manager.hash_password(password)
+            print(f"Password hashed securely for user {user_data['userID']}")
+        else:
+            print(f"⚠️ WARNING: Storing password in plaintext (security manager not available)")
+        
+        db.users.update_user(user_data["userID"], {"password": hashed_password})
+        print(f"Password stored for user {user_data['userID']}")
 
         # CRITICAL: Force save database to ensure persistence (PostgreSQL auto-commits)
         if hasattr(db, "db_manager") and hasattr(db.db_manager, "_save_data"):
