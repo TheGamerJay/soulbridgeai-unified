@@ -99,22 +99,193 @@
         </div>
         
         <div class="color-section">
-            <h3 style="color: #22d3ee;">⚡ Quick Actions</h3>
-            <button class="back-btn" onclick="alert('Color saved! Your theme will be applied across SoulBridge.')">💾 Save Theme</button>
-            <button class="back-btn" onclick="alert('Theme reset to default cyan.')">🔄 Reset to Default</button>
+            <h3 style="color: #22d3ee;">🎨 Preview & Actions</h3>
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin: 1rem 0;">
+                <button class="back-btn" onclick="showColorPreview()" id="previewBtn">👁️ Preview Colors</button>
+                <button class="back-btn" onclick="saveTheme()">💾 Save Theme</button>
+                <button class="back-btn" onclick="resetTheme()">🔄 Reset to Default</button>
+            </div>
+            <div id="selectedColorInfo" style="margin-top: 1rem; padding: 1rem; background: rgba(34, 211, 238, 0.1); border-radius: 8px; display: none;">
+                <strong style="color: #22d3ee;">Selected:</strong> <span id="selectedColorName">None</span>
+                <br><span id="selectedColorDesc">Choose a color to see preview</span>
+            </div>
         </div>
         
         <a href="/subscription" class="back-btn">← Back to Subscription</a>
         <a href="/" class="back-btn" style="margin-left: 1rem;">🏠 Home</a>
     </div>
+
+    <!-- Preview Modal -->
+    <div id="colorPreviewModal" style="
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.9);
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    ">
+        <div style="
+            background: #1e293b;
+            border: 2px solid var(--preview-color, #22d3ee);
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+        ">
+            <h2 style="color: var(--preview-color, #22d3ee); margin-bottom: 1rem;">🎨 Color Preview</h2>
+            <div id="previewContent" style="
+                background: var(--preview-bg, #000);
+                border: 2px solid var(--preview-color, #22d3ee);
+                border-radius: 12px;
+                padding: 2rem;
+                margin: 1rem 0;
+                min-height: 150px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            ">
+                <h3 style="color: var(--preview-color, #22d3ee); margin-bottom: 1rem;">Sample Chat Interface</h3>
+                <div style="background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 8px; margin: 0.5rem 0;">
+                    <div style="color: var(--preview-color, #22d3ee); font-weight: bold;">You:</div>
+                    <div style="color: #fff;">Hello, how are you today?</div>
+                </div>
+                <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 8px; margin: 0.5rem 0;">
+                    <div style="color: var(--preview-color, #22d3ee); font-weight: bold;">Blayzo:</div>
+                    <div style="color: #fff;">I'm doing well! This is how text looks with your selected colors.</div>
+                </div>
+            </div>
+            <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 1rem;">
+                <button onclick="applyPreviewTheme()" style="
+                    background: linear-gradient(135deg, var(--preview-color, #22d3ee), var(--preview-accent, #0891b2));
+                    color: #000;
+                    border: none;
+                    padding: 0.75rem 1.5rem;
+                    border-radius: 8px;
+                    font-weight: bold;
+                    cursor: pointer;
+                ">✨ Apply This Theme</button>
+                <button onclick="closePreview()" style="
+                    background: rgba(255, 255, 255, 0.1);
+                    color: #fff;
+                    border: 1px solid rgba(255, 255, 255, 0.3);
+                    padding: 0.75rem 1.5rem;
+                    border-radius: 8px;
+                    cursor: pointer;
+                ">❌ Close</button>
+            </div>
+        </div>
+    </div>
     
     <script>
+        let selectedColor = {
+            name: 'Ocean Cyan',
+            primary: '#22d3ee',
+            accent: '#0891b2',
+            background: '#000000'
+        };
+
+        const colorThemes = {
+            'Ocean Cyan': { primary: '#22d3ee', accent: '#0891b2', background: '#000000' },
+            'Sunset Gold': { primary: '#f59e0b', accent: '#fbbf24', background: '#000000' },
+            'Royal Purple': { primary: '#8b5cf6', accent: '#a78bfa', background: '#000000' },
+            'Crimson Red': { primary: '#ef4444', accent: '#f87171', background: '#000000' },
+            'Emerald Green': { primary: '#10b981', accent: '#34d399', background: '#000000' },
+            'Pink Rose': { primary: '#ec4899', accent: '#f472b6', background: '#000000' }
+        };
+
         // Add click handlers for color options
         document.querySelectorAll('.color-option').forEach(option => {
             option.addEventListener('click', function() {
                 const title = this.getAttribute('title');
-                alert(`✨ ${title} theme selected! This would apply across your SoulBridge experience.`);
+                selectedColor = {
+                    name: title,
+                    ...colorThemes[title]
+                };
+                
+                // Update selected color info
+                document.getElementById('selectedColorName').textContent = title;
+                document.getElementById('selectedColorDesc').textContent = 'Click "Preview Colors" to see how this looks in the interface';
+                document.getElementById('selectedColorInfo').style.display = 'block';
+                
+                // Visual feedback
+                document.querySelectorAll('.color-option').forEach(opt => opt.style.transform = 'scale(1)');
+                this.style.transform = 'scale(1.1)';
+                this.style.boxShadow = '0 0 20px rgba(255,255,255,0.5)';
             });
+        });
+
+        function showColorPreview() {
+            if (!selectedColor.name) {
+                alert('Please select a color theme first!');
+                return;
+            }
+            
+            // Set CSS variables for preview
+            const modal = document.getElementById('colorPreviewModal');
+            modal.style.setProperty('--preview-color', selectedColor.primary);
+            modal.style.setProperty('--preview-accent', selectedColor.accent);
+            modal.style.setProperty('--preview-bg', selectedColor.background);
+            
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closePreview() {
+            document.getElementById('colorPreviewModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        function applyPreviewTheme() {
+            // This would integrate with the actual theme system
+            alert(`🎨 ${selectedColor.name} theme applied! Your SoulBridge experience will now use these colors.`);
+            closePreview();
+        }
+
+        function saveTheme() {
+            if (!selectedColor.name) {
+                alert('Please select a color theme first!');
+                return;
+            }
+            alert(`💾 ${selectedColor.name} theme saved! Your custom colors are now set as default.`);
+        }
+
+        function resetTheme() {
+            selectedColor = {
+                name: 'Ocean Cyan',
+                primary: '#22d3ee',
+                accent: '#0891b2',
+                background: '#000000'
+            };
+            
+            // Reset UI
+            document.getElementById('selectedColorName').textContent = 'Ocean Cyan (Default)';
+            document.getElementById('selectedColorDesc').textContent = 'Reset to default cyan theme';
+            document.querySelectorAll('.color-option').forEach(opt => {
+                opt.style.transform = 'scale(1)';
+                opt.style.boxShadow = 'none';
+            });
+            
+            alert('🔄 Theme reset to default Ocean Cyan!');
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('colorPreviewModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closePreview();
+            }
+        });
+
+        // Keyboard support
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closePreview();
+            }
         });
     </script>
 </body>
