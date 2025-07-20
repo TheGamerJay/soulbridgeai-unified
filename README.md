@@ -1,6 +1,11 @@
 # SoulBridge AI - Unified Project
 
-A complete AI companion platform with Flask backend and React frontend.
+[![CI/CD Pipeline](https://github.com/TheGamerJay/soulbridgeai-unified/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/TheGamerJay/soulbridgeai-unified/actions/workflows/ci-cd.yml)
+[![Railway Deploy](https://img.shields.io/badge/Railway-Deploy-blue)](https://railway.app)
+[![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/downloads/)
+[![Flask](https://img.shields.io/badge/Flask-2.3+-green.svg)](https://flask.palletsprojects.com/)
+
+A complete AI companion platform with Flask backend and React frontend, featuring real-time notifications, business intelligence, and enterprise security.
 
 ## Project Structure
 
