@@ -13,8 +13,15 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Set, Tuple
 from collections import defaultdict, deque
 from flask import request, jsonify, g
-import redis
 from dataclasses import dataclass, asdict
+
+# Make Redis optional
+try:
+    import redis
+    REDIS_AVAILABLE = True
+except ImportError:
+    redis = None
+    REDIS_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -159,14 +166,20 @@ class SecurityMonitor:
         self.enable_auto_blocking = True
         
         # Initialize Redis if available
-        try:
-            if redis_url:
+        if REDIS_AVAILABLE and redis_url:
+            try:
                 self.redis_client = redis.from_url(redis_url)
+                # Test connection
+                self.redis_client.ping()
                 logger.info("Security monitor using Redis backend")
+            except Exception as e:
+                logger.warning(f"Redis connection failed, using memory backend: {e}")
+                self.redis_client = None
+        else:
+            if not REDIS_AVAILABLE:
+                logger.info("Redis not available, using memory backend for security monitoring")
             else:
-                logger.info("Security monitor using memory backend")
-        except Exception as e:
-            logger.warning(f"Redis connection failed: {e}")
+                logger.info("No Redis URL provided, using memory backend for security monitoring")
     
     def _get_client_ip(self) -> str:
         """Get real client IP address"""

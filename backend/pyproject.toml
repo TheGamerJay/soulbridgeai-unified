@@ -46,3 +46,8 @@ dependencies = [
     "pre-commit>=3.0.0",
     "bandit>=1.7.0",
 ]
+
+[project.optional-dependencies]
+redis = [
+    "redis>=4.5.0",
+]

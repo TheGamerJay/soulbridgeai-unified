@@ -9,8 +9,15 @@ import logging
 from functools import wraps
 from typing import Dict, Optional, Tuple
 from flask import request, jsonify, g
-import redis
 import os
+
+# Make Redis optional - use memory fallback if not available
+try:
+    import redis
+    REDIS_AVAILABLE = True
+except ImportError:
+    redis = None
+    REDIS_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -19,21 +26,25 @@ class RateLimiter:
     
     def __init__(self, redis_url: Optional[str] = None):
         """Initialize rate limiter with Redis connection"""
-        try:
-            if redis_url:
+        self.redis_client = None
+        self.memory_store = {}
+        self.enabled = True
+        
+        # Try to use Redis if available and URL provided
+        if REDIS_AVAILABLE and redis_url:
+            try:
                 self.redis_client = redis.from_url(redis_url)
-            else:
-                # Fallback to in-memory store for development
+                # Test connection
+                self.redis_client.ping()
+                logger.info("Rate limiter initialized with Redis backend")
+            except Exception as e:
+                logger.warning(f"Redis connection failed, using memory store: {e}")
                 self.redis_client = None
-                self.memory_store = {}
-            
-            self.enabled = True
-            logger.info("Rate limiter initialized")
-        except Exception as e:
-            logger.warning(f"Redis connection failed, using memory store: {e}")
-            self.redis_client = None
-            self.memory_store = {}
-            self.enabled = True
+        else:
+            if not REDIS_AVAILABLE:
+                logger.info("Redis not available, using memory store for rate limiting")
+            else:
+                logger.info("No Redis URL provided, using memory store for rate limiting")
     
     def _get_key(self, identifier: str, endpoint: str) -> str:
         """Generate Redis key for rate limiting"""
