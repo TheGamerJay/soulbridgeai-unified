@@ -120,12 +120,73 @@ def init_database():
     try:
         db = SoulBridgeDB("soulbridge_data.json")
         logging.info("Database initialized successfully")
+        
+        # Ensure essential users exist
+        ensure_essential_users()
+        
     except Exception as e:
         logging.error(f"Database initialization failed: {e}")
         # Create a minimal fallback
         class FallbackDB:
             def get_stats(self): return {"users": 0, "sessions": 0}
         db = FallbackDB()
+
+def ensure_essential_users():
+    """Ensure essential users exist in the database - permanent fix for empty database"""
+    if db is None:
+        return
+        
+    try:
+        # Check if developer account exists
+        dev_email = "GamerJay@gmail.com"
+        dev_user = db.users.get_user_by_email(dev_email)
+        
+        if not dev_user:
+            logging.info("Creating developer account...")
+            dev_user_data = db.users.create_user(dev_email, companion="Blayzo")
+            # Set developer password
+            db.users.update_user(dev_user_data["userID"], {"password": "Yariel13", "dev_mode": True})
+            logging.info("Developer account created successfully")
+        else:
+            # Ensure developer has password and dev mode
+            if not dev_user.get("password"):
+                db.users.update_user(dev_user["userID"], {"password": "Yariel13", "dev_mode": True})
+                logging.info("Developer account password restored")
+        
+        # Check database health
+        all_users = db.data.get("users", [])
+        logging.info(f"Database health check: {len(all_users)} users in database")
+        
+        if len(all_users) == 0:
+            logging.warning("Database is empty! Creating default developer account...")
+            dev_user_data = db.users.create_user(dev_email, companion="Blayzo")
+            db.users.update_user(dev_user_data["userID"], {"password": "Yariel13", "dev_mode": True})
+            logging.info("Emergency developer account created")
+            
+    except Exception as e:
+        logging.error(f"Error ensuring essential users: {e}")
+        # Try to create minimal user data directly
+        try:
+            if hasattr(db, 'data') and isinstance(db.data, dict):
+                if "users" not in db.data:
+                    db.data["users"] = []
+                
+                # Create developer user directly if needed
+                dev_exists = any(user.get("email") == "GamerJay@gmail.com" for user in db.data["users"])
+                if not dev_exists:
+                    new_user = {
+                        "userID": str(uuid.uuid4()),
+                        "email": "GamerJay@gmail.com",
+                        "companion": "Blayzo",
+                        "password": "Yariel13",
+                        "dev_mode": True,
+                        "created": datetime.utcnow().isoformat() + "Z"
+                    }
+                    db.data["users"].append(new_user)
+                    db._save_data()
+                    logging.info("Emergency developer user created directly")
+        except Exception as e2:
+            logging.error(f"Emergency user creation also failed: {e2}")
 
 def verify_user_subscription(email: str) -> Dict:
     """Verify user subscription status via database lookup"""
@@ -456,12 +517,22 @@ def health():
     if openai_client is None and os.environ.get("OPENAI_API_KEY"):
         init_openai()
     
+    # Database health check
+    users_count = 0
+    if db and hasattr(db, 'data'):
+        users_count = len(db.data.get("users", []))
+    
     return jsonify({
         "status": "healthy",
         "service": "SoulBridge AI",
-        "version": "1.1.0",
+        "version": "1.2.0",
         "timestamp": "2025-01-20",
+        "database_users": users_count,
+        "database_status": "initialized" if db else "failed",
         "latest_fixes": [
+            "permanent_login_fix",
+            "essential_users_creation",
+            "database_health_check",
             "premium_upgrade_modal",
             "color_studio_rebuild", 
             "referral_fallback",
@@ -469,6 +540,36 @@ def health():
             "intro_logo_cache_bust"
         ]
     })
+
+# Emergency database fix endpoint
+@app.route("/emergency/fix-database")
+def emergency_fix_database():
+    """Emergency endpoint to fix database issues"""
+    try:
+        global db
+        
+        # Force database reinitialization
+        init_database()
+        
+        # Ensure essential users exist
+        ensure_essential_users()
+        
+        # Report status
+        users_count = len(db.data.get("users", [])) if db and hasattr(db, 'data') else 0
+        
+        return jsonify({
+            "status": "success",
+            "message": "Database emergency fix completed",
+            "users_created": users_count,
+            "database_reinitialized": True,
+            "timestamp": datetime.utcnow().isoformat() + "Z"
+        })
+    except Exception as e:
+        return jsonify({
+            "status": "error", 
+            "message": f"Emergency fix failed: {str(e)}",
+            "timestamp": datetime.utcnow().isoformat() + "Z"
+        }), 500
 
 # Debug route to check static files
 @app.route("/debug/static")
@@ -487,6 +588,10 @@ def debug_static():
 
 @app.route("/")
 def chat():
+    # Ensure database is initialized on every request
+    if db is None:
+        init_database()
+    
     # Debug: Check session state
     print(f"Root route accessed - Session authenticated: {session.get('user_authenticated')}")
     print(f"Root route accessed - Session contents: {dict(session)}")
@@ -554,6 +659,10 @@ def login():
 # -------------------------------------------------
 @app.route("/auth/login", methods=["POST"])
 def auth_login():
+    # Ensure database is initialized
+    if db is None:
+        init_database()
+    
     email = request.form.get("email", "").strip()
     password = request.form.get("password", "").strip()
     
