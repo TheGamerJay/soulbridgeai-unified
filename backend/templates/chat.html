@@ -3255,6 +3255,13 @@
                     card.style.opacity = '1';
                     card.style.pointerEvents = 'auto';
                     card.style.filter = 'none';
+                    card.style.cursor = 'pointer';
+                    
+                    // Remove locked overlay if present
+                    const lockedOverlay = card.querySelector('.locked-overlay');
+                    if (lockedOverlay) {
+                        lockedOverlay.remove();
+                    }
                 });
                 return;
             }
@@ -3274,21 +3281,66 @@
                 return;
             }
             
-            // Hide/show premium character cards based on subscription
+            // Style premium character cards based on subscription (but keep them clickable)
             const premiumCards = document.querySelectorAll('.premium-character');
             premiumCards.forEach(card => {
                 if (subscriptionStatus === 'free') {
-                    card.style.opacity = '0.5';
-                    card.style.pointerEvents = 'none';
+                    card.style.opacity = '0.7';
+                    card.style.filter = 'grayscale(70%)';
+                    card.style.cursor = 'pointer'; // Keep clickable for upgrade dialog
+                    card.dataset.subscriptionStatus = 'free'; // Store status for click handling
+                    
+                    // Add locked overlay if not already present
+                    if (!card.querySelector('.locked-overlay')) {
+                        const lockedOverlay = document.createElement('div');
+                        lockedOverlay.className = 'locked-overlay';
+                        lockedOverlay.style.cssText = `
+                            position: absolute;
+                            top: 0;
+                            left: 0;
+                            width: 100%;
+                            height: 100%;
+                            background: rgba(0, 0, 0, 0.5);
+                            display: flex;
+                            flex-direction: column;
+                            justify-content: center;
+                            align-items: center;
+                            color: #fbbf24;
+                            font-size: 24px;
+                            font-weight: bold;
+                            border-radius: 15px;
+                            z-index: 10;
+                            pointer-events: none;
+                        `;
+                        lockedOverlay.innerHTML = `
+                            <div style="font-size: 40px; margin-bottom: 8px;">🔒</div>
+                            <div style="font-size: 14px;">Premium</div>
+                            <div style="font-size: 12px; margin-top: 4px; color: #22d3ee;">Click to Upgrade</div>
+                        `;
+                        card.style.position = 'relative';
+                        card.appendChild(lockedOverlay);
+                    }
                 } else {
                     card.style.opacity = '1';
-                    card.style.pointerEvents = 'auto';
+                    card.style.filter = 'none';
+                    card.style.cursor = 'pointer';
+                    card.dataset.subscriptionStatus = 'premium';
+                    
+                    // Remove locked overlay if present
+                    const lockedOverlay = card.querySelector('.locked-overlay');
+                    if (lockedOverlay) {
+                        lockedOverlay.remove();
+                    }
                 }
             });
         }
         
         // Initialize animations when page loads
         document.addEventListener('DOMContentLoaded', function() {
+            // Apply immediate restrictions based on stored subscription status
+            const storedSubscription = localStorage.getItem('subscriptionStatus') || 'free';
+            enforceSubscriptionRestrictions(storedSubscription);
+            
             // Verify subscription immediately on page load
             verifySubscriptionStatus();
             
@@ -3338,9 +3390,94 @@
                 document.getElementById('chatInterface').classList.add('hidden');
             }
             
+            // Check for referral code in URL
+            handleReferralCode();
+            
             // Show unlocked referral companions
             showUnlockedReferralCompanions();
         });
+        
+        // Handle referral code tracking
+        function handleReferralCode() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const referralCode = urlParams.get('ref');
+            
+            if (referralCode) {
+                console.log('Referral code detected:', referralCode);
+                
+                // Store referral code for later processing
+                localStorage.setItem('incomingReferralCode', referralCode);
+                localStorage.setItem('referralCodeTimestamp', Date.now().toString());
+                
+                // Show referral notification
+                setTimeout(() => {
+                    const welcomeMessage = `🎉 Welcome via referral! You're joining through a friend's invitation.\n\nReferral code: ${referralCode}\n\nSign up to complete the referral and unlock rewards for both you and your friend!`;
+                    
+                    // Only show if user isn't already authenticated
+                    if (!localStorage.getItem('userEmail') && !sessionStorage.getItem('user_authenticated')) {
+                        alert(welcomeMessage);
+                    }
+                }, 2000);
+                
+                // Try to process referral if user is logged in
+                if (sessionStorage.getItem('user_authenticated') === 'true') {
+                    processReferralSignup(referralCode);
+                }
+                
+                // Clean URL without refreshing page
+                const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+                window.history.replaceState({path: newUrl}, '', newUrl);
+            }
+        }
+        
+        // Process referral signup
+        function processReferralSignup(referralCode) {
+            const userEmail = localStorage.getItem('userEmail') || sessionStorage.getItem('userEmail');
+            
+            if (!userEmail) {
+                console.log('No user email found, cannot process referral');
+                return;
+            }
+            
+            console.log('Processing referral signup for:', userEmail, 'with code:', referralCode);
+            
+            fetch('/api/referrals/process', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    referralCode: referralCode,
+                    newUserEmail: userEmail
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log('Referral processed successfully:', data);
+                    
+                    // Clear stored referral code
+                    localStorage.removeItem('incomingReferralCode');
+                    localStorage.removeItem('referralCodeTimestamp');
+                    
+                    // Show success message
+                    setTimeout(() => {
+                        alert('🎉 Referral successful! Both you and your friend have earned rewards!');
+                    }, 1000);
+                    
+                    // Refresh referral companions display
+                    setTimeout(() => {
+                        showUnlockedReferralCompanions();
+                    }, 2000);
+                    
+                } else {
+                    console.error('Referral processing failed:', data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error processing referral:', error);
+            });
+        }
         
         // Re-initialize animations when character select screen is shown
         const originalShowCharacterSelect = window.showCharacterSelect;

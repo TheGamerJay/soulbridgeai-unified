@@ -40,37 +40,69 @@
     .plan-button {
       display: block;
       width: 100%;
-      padding: 15px;
-      margin: 10px 0;
-      background: linear-gradient(to right, #0ff, #00f);
-      color: black;
+      padding: 20px;
+      margin: 15px 0;
+      background: linear-gradient(145deg, rgba(34, 211, 238, 0.1), rgba(8, 145, 178, 0.1));
+      border: 2px solid #22d3ee;
+      color: #e2e8f0;
       font-size: 18px;
+      font-weight: bold;
       text-align: center;
-      border: none;
-      border-radius: 8px;
+      border-radius: 15px;
       cursor: pointer;
-      transition: background 0.3s;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(34, 211, 238, 0.2);
+    }
+
+    .plan-button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+      transition: left 0.5s;
     }
 
     .plan-button:hover {
-      background: linear-gradient(to right, #00f, #0ff);
+      background: linear-gradient(145deg, rgba(34, 211, 238, 0.2), rgba(8, 145, 178, 0.2));
+      border-color: #0891b2;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(34, 211, 238, 0.4);
+    }
+
+    .plan-button:hover::before {
+      left: 100%;
     }
 
     .plan-button.selected {
-      background: gold;
-      color: black;
-      border: 3px solid #ffd700;
-      box-shadow: 0 0 20px gold;
+      background: linear-gradient(145deg, #fbbf24, #f59e0b);
+      color: #0f172a;
+      border: 3px solid #fbbf24;
+      box-shadow: 0 0 30px rgba(251, 191, 36, 0.6);
+      transform: translateY(-3px) scale(1.02);
+    }
+
+    .plan-button.selected::before {
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
     }
 
     .recommended {
-      background: gold;
-      color: black;
-      font-weight: bold;
+      background: linear-gradient(145deg, #ef4444, #dc2626);
+      color: white;
       padding: 4px 8px;
-      border-radius: 8px;
-      display: inline-block;
-      margin-top: 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      margin-left: 10px;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
     }
 
     label {
@@ -224,6 +256,19 @@
       </div>
     </div>
     
+    {% if user_authenticated %}
+    <div style="background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 8px; padding: 1rem; margin: 1rem 0;">
+      <div style="color: #22c55e; font-weight: 600; margin-bottom: 0.5rem;">✅ Authenticated User</div>
+      <div style="color: rgba(255, 255, 255, 0.8); font-size: 0.9rem;">Logged in as: {{ user_email }}</div>
+      <div style="color: rgba(255, 255, 255, 0.6); font-size: 0.8rem;">Your referral codes are linked to your account</div>
+    </div>
+    {% else %}
+    <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 8px; padding: 1rem; margin: 1rem 0;">
+      <div style="color: #f59e0b; font-weight: 600; margin-bottom: 0.5rem;">⚠️ Guest User</div>
+      <div style="color: rgba(255, 255, 255, 0.8); font-size: 0.9rem;"><a href="/login" style="color: #22d3ee; text-decoration: none;">Login</a> to link referral codes to your account</div>
+    </div>
+    {% endif %}
+    
     <div style="background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(34, 211, 238, 0.3); border-radius: 8px; padding: 1rem; margin: 1rem 0;">
       <div style="color: #22d3ee; font-weight: 600; margin-bottom: 0.5rem;">Your Referral Link</div>
       <div id="referralLinkDisplay" style="color: rgba(255, 255, 255, 0.8); font-family: monospace; font-size: 0.8rem; word-break: break-all; margin-bottom: 1rem;">
@@ -269,7 +314,7 @@
           <span style="color: rgba(255, 255, 255, 0.8);">Color Palette</span>
           <span id="currentColorPalette" style="color: #22d3ee;">Cyan</span>
         </div>
-        <button onclick="openColorCustomization()" style="
+        <button onclick="showColorPreview()" style="
           width: 100%;
           background: linear-gradient(135deg, #22d3ee, #0891b2);
           color: #000;
@@ -278,7 +323,29 @@
           border-radius: 8px;
           font-weight: 600;
           cursor: pointer;
-        ">🎨 Customize Colors</button>
+          margin-bottom: 10px;
+        ">🎨 Preview Colors</button>
+        
+        <div id="colorPreviewPalettes" style="
+          display: none;
+          background: rgba(34, 211, 238, 0.05);
+          border: 1px solid rgba(34, 211, 238, 0.2);
+          border-radius: 8px;
+          padding: 15px;
+          margin-top: 10px;
+        ">
+          <h5 style="color: #22d3ee; margin-bottom: 10px;">Try these themes:</h5>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <button onclick="previewTheme('ocean')" style="padding: 8px; border: 1px solid #22d3ee; border-radius: 6px; background: linear-gradient(45deg, #0ea5e9, #0284c7); color: white; cursor: pointer;">🌊 Ocean</button>
+            <button onclick="previewTheme('sunset')" style="padding: 8px; border: 1px solid #f59e0b; border-radius: 6px; background: linear-gradient(45deg, #f59e0b, #ea580c); color: white; cursor: pointer;">🌅 Sunset</button>
+            <button onclick="previewTheme('forest')" style="padding: 8px; border: 1px solid #10b981; border-radius: 6px; background: linear-gradient(45deg, #10b981, #059669); color: white; cursor: pointer;">🌲 Forest</button>
+            <button onclick="previewTheme('galaxy')" style="padding: 8px; border: 1px solid #8b5cf6; border-radius: 6px; background: linear-gradient(45deg, #8b5cf6, #7c3aed); color: white; cursor: pointer;">🌌 Galaxy</button>
+          </div>
+          <div style="margin-top: 10px; text-align: center;">
+            <button onclick="resetTheme()" style="padding: 6px 12px; background: rgba(148, 163, 184, 0.2); color: #e2e8f0; border: 1px solid #475569; border-radius: 4px; cursor: pointer; margin-right: 8px;">Reset</button>
+            <button onclick="openColorCustomization()" style="padding: 6px 12px; background: linear-gradient(45deg, #22d3ee, #0891b2); color: #0f172a; border: none; border-radius: 4px; cursor: pointer;">Full Customization</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -297,23 +364,72 @@
   
   let selectedPlan = null;
 
-  // Plan selection functionality
+  // Plan selection functionality with enhanced UX
   function selectPlan(planType) {
-    // Remove previous selections
+    // Remove previous selections with animation
     monthlyPlan.classList.remove('selected');
     yearlyPlan.classList.remove('selected');
     
-    // Add selection to clicked plan
-    if (planType === 'monthly') {
-      monthlyPlan.classList.add('selected');
-      selectedPlan = 'monthly';
-    } else if (planType === 'yearly') {
-      yearlyPlan.classList.add('selected');
-      selectedPlan = 'yearly';
+    // Add pulse animation for feedback
+    const selectedButton = planType === 'monthly' ? monthlyPlan : yearlyPlan;
+    selectedButton.style.transform = 'scale(0.95)';
+    
+    setTimeout(() => {
+      selectedButton.style.transform = 'scale(1)';
+      selectedButton.classList.add('selected');
+      
+      // Add selection to clicked plan
+      selectedPlan = planType;
+      
+      // Show selection confirmation
+      const planName = planType === 'monthly' ? 'Monthly Plan ($10/month)' : 'Yearly Plan ($100/year)';
+      showPlanSelectedFeedback(planName);
+      
+      // Enable confirm button if terms are agreed and plan is selected
+      updateConfirmButton();
+    }, 100);
+  }
+
+  // Show plan selection feedback
+  function showPlanSelectedFeedback(planName) {
+    // Create or update feedback element
+    let feedback = document.getElementById('planSelectionFeedback');
+    if (!feedback) {
+      feedback = document.createElement('div');
+      feedback.id = 'planSelectionFeedback';
+      feedback.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(145deg, #22d3ee, #0891b2);
+        color: #0f172a;
+        padding: 15px 25px;
+        border-radius: 10px;
+        font-weight: bold;
+        box-shadow: 0 10px 30px rgba(34, 211, 238, 0.3);
+        z-index: 9999;
+        transform: translateX(400px);
+        transition: transform 0.3s ease;
+      `;
+      document.body.appendChild(feedback);
     }
     
-    // Enable confirm button if terms are agreed and plan is selected
-    updateConfirmButton();
+    feedback.innerHTML = `✨ ${planName} selected!`;
+    
+    // Animate in
+    setTimeout(() => {
+      feedback.style.transform = 'translateX(0)';
+    }, 10);
+    
+    // Auto hide after 3 seconds
+    setTimeout(() => {
+      feedback.style.transform = 'translateX(400px)';
+      setTimeout(() => {
+        if (feedback.parentNode) {
+          feedback.parentNode.removeChild(feedback);
+        }
+      }, 300);
+    }, 3000);
   }
 
   // Update confirm button state
@@ -375,14 +491,27 @@
 
   confirmButton.addEventListener("click", async () => {
     if (!selectedPlan) {
-      alert("⚠️ Please select a subscription plan first!");
+      showUpgradeConfirmation("⚠️ Please select a subscription plan first!", "warning");
       return;
     }
     
     if (!agreeTerms.checked) {
-      alert("⚠️ Please agree to the Terms of Service and Privacy Policy!");
+      showUpgradeConfirmation("⚠️ Please agree to the Terms of Service and Privacy Policy!", "warning");
       return;
     }
+    
+    // Show upgrade confirmation dialog
+    const planDetails = selectedPlan === 'monthly' ? 
+      { name: 'SoulBridgeAI Plus Monthly', price: '$10/month' } :
+      { name: 'SoulBridgeAI Plus Yearly', price: '$100/year (Save 2 months!)' };
+    
+    const confirmed = await showUpgradeConfirmation(
+      `Ready to upgrade to ${planDetails.name}?`,
+      "upgrade",
+      planDetails
+    );
+    
+    if (!confirmed) return;
     
     // Store selected plan
     localStorage.setItem('selectedPlan', selectedPlan);
@@ -456,11 +585,28 @@
     alert("🔄 Colors reset to default theme!");
   });
 
-  // Load referral link - simplified and reliable
+  // Load referral link - server-first with client fallback
   function loadReferralLink() {
     console.log('Loading referral link...');
     
-    // First, check if we have a stored permanent referral link
+    // First, check if server provided a referral link
+    {% if referral_link %}
+    const serverReferralLink = "{{ referral_link }}";
+    const serverReferralCode = "{{ referral_code }}";
+    
+    if (serverReferralLink && serverReferralCode) {
+      document.getElementById('referralLinkDisplay').textContent = serverReferralLink;
+      
+      // Store server-generated link for future use
+      localStorage.setItem('permanentReferralLink', serverReferralLink);
+      localStorage.setItem('permanentReferralCode', serverReferralCode);
+      
+      console.log('Using server-generated referral link:', serverReferralLink);
+      return;
+    }
+    {% endif %}
+    
+    // Second, check if we have a stored permanent referral link
     let storedReferralLink = localStorage.getItem('permanentReferralLink');
     let storedReferralCode = localStorage.getItem('permanentReferralCode');
     
@@ -471,8 +617,44 @@
       return;
     }
     
+    // Try to generate via API for authenticated users
+    {% if user_authenticated %}
+    console.log('Attempting API referral generation for authenticated user...');
+    fetch('/api/referrals/create', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userEmail: '{{ user_email }}',
+        baseUrl: window.location.origin
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success && data.referralLink) {
+        document.getElementById('referralLinkDisplay').textContent = data.referralLink;
+        localStorage.setItem('permanentReferralLink', data.referralLink);
+        localStorage.setItem('permanentReferralCode', data.referralCode);
+        console.log('API referral generation successful:', data.referralLink);
+        return;
+      } else {
+        console.warn('API referral generation failed, falling back to client generation');
+        generateClientReferralCode();
+      }
+    })
+    .catch(error => {
+      console.error('API referral generation error:', error);
+      generateClientReferralCode();
+    });
+    {% else %}
+    generateClientReferralCode();
+    {% endif %}
+  }
+  
+  function generateClientReferralCode() {
     // Generate a new permanent referral link immediately
-    console.log('Generating new referral link...');
+    console.log('Generating client-side referral link...');
     let userEmail = localStorage.getItem('userEmail') || 
                    localStorage.getItem('user_email') ||
                    sessionStorage.getItem('userEmail') ||
@@ -696,6 +878,139 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // Show color preview palettes
+  window.showColorPreview = () => {
+    const previewDiv = document.getElementById('colorPreviewPalettes');
+    const button = event.target;
+    
+    if (previewDiv.style.display === 'none' || !previewDiv.style.display) {
+      previewDiv.style.display = 'block';
+      button.textContent = '🎨 Hide Preview';
+      
+      // Add slide down animation
+      previewDiv.style.opacity = '0';
+      previewDiv.style.transform = 'translateY(-10px)';
+      previewDiv.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+      
+      setTimeout(() => {
+        previewDiv.style.opacity = '1';
+        previewDiv.style.transform = 'translateY(0)';
+      }, 10);
+    } else {
+      previewDiv.style.opacity = '0';
+      previewDiv.style.transform = 'translateY(-10px)';
+      
+      setTimeout(() => {
+        previewDiv.style.display = 'none';
+        button.textContent = '🎨 Preview Colors';
+      }, 300);
+    }
+  };
+
+  // Preview different color themes
+  window.previewTheme = (theme) => {
+    const themes = {
+      ocean: {
+        background: 'linear-gradient(135deg, #0ea5e9, #0284c7)',
+        accent: '#22d3ee',
+        text: '#e0f7fa',
+        name: 'Ocean'
+      },
+      sunset: {
+        background: 'linear-gradient(135deg, #f59e0b, #ea580c)', 
+        accent: '#fbbf24',
+        text: '#fef3c7',
+        name: 'Sunset'
+      },
+      forest: {
+        background: 'linear-gradient(135deg, #10b981, #059669)',
+        accent: '#34d399', 
+        text: '#d1fae5',
+        name: 'Forest'
+      },
+      galaxy: {
+        background: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
+        accent: '#a78bfa',
+        text: '#ede9fe', 
+        name: 'Galaxy'
+      }
+    };
+
+    const selectedTheme = themes[theme];
+    if (!selectedTheme) return;
+
+    // Apply theme temporarily for preview
+    document.body.style.background = selectedTheme.background;
+    document.body.style.color = selectedTheme.text;
+    
+    // Update accent colors
+    const accentElements = document.querySelectorAll('h1, h2, .plan-button, #currentColorPalette');
+    accentElements.forEach(el => {
+      if (el.classList.contains('plan-button') && !el.classList.contains('selected')) {
+        el.style.borderColor = selectedTheme.accent;
+      } else {
+        el.style.color = selectedTheme.accent;
+      }
+    });
+
+    // Update palette indicator
+    document.getElementById('currentColorPalette').textContent = selectedTheme.name;
+
+    // Show feedback
+    showThemePreviewFeedback(selectedTheme.name);
+  };
+
+  // Reset to original theme
+  window.resetTheme = () => {
+    document.body.style.background = '';
+    document.body.style.color = '';
+    
+    // Reset accent colors
+    const accentElements = document.querySelectorAll('h1, h2, .plan-button, #currentColorPalette');
+    accentElements.forEach(el => {
+      el.style.color = '';
+      el.style.borderColor = '';
+    });
+
+    document.getElementById('currentColorPalette').textContent = 'Cyan';
+    showThemePreviewFeedback('Default');
+  };
+
+  // Show theme preview feedback
+  function showThemePreviewFeedback(themeName) {
+    let feedback = document.getElementById('themePreviewFeedback');
+    if (!feedback) {
+      feedback = document.createElement('div');
+      feedback.id = 'themePreviewFeedback';
+      feedback.style.cssText = `
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-weight: bold;
+        z-index: 9999;
+        transform: translateX(-400px);
+        transition: transform 0.3s ease;
+      `;
+      document.body.appendChild(feedback);
+    }
+    
+    feedback.innerHTML = `🎨 Previewing: ${themeName} theme`;
+    
+    // Animate in
+    setTimeout(() => {
+      feedback.style.transform = 'translateX(0)';
+    }, 10);
+    
+    // Auto hide after 2 seconds
+    setTimeout(() => {
+      feedback.style.transform = 'translateX(-400px)';
+    }, 2000);
+  }
+
   // Preview color customization - leads to purchase flow
   window.previewColorCustomization = () => {
     console.log('Preview button clicked!'); // Debug
@@ -759,7 +1074,186 @@
     // Check if user has Plus or Galaxy subscription
     return paymentConfirmed === 'true' && (subscriptionStatus === 'plus' || subscriptionStatus === 'galaxy');
   }
+
+  // Upgrade confirmation dialog function
+  function showUpgradeConfirmation(message, type = "info", planDetails = null) {
+    return new Promise((resolve) => {
+      const modal = document.getElementById('upgradeConfirmationModal');
+      const icon = document.getElementById('upgradeModalIcon');
+      const title = document.getElementById('upgradeModalTitle');
+      const messageEl = document.getElementById('upgradeModalMessage');
+      const detailsEl = document.getElementById('upgradeModalDetails');
+      const planNameEl = document.getElementById('upgradePlanName');
+      const planPriceEl = document.getElementById('upgradePlanPrice');
+      const confirmBtn = document.getElementById('upgradeConfirmBtn');
+      const cancelBtn = document.getElementById('upgradeCancelBtn');
+
+      // Configure modal based on type
+      switch(type) {
+        case 'warning':
+          icon.textContent = '⚠️';
+          title.textContent = 'Warning';
+          confirmBtn.textContent = 'OK';
+          cancelBtn.style.display = 'none';
+          detailsEl.style.display = 'none';
+          break;
+        case 'upgrade':
+          icon.textContent = '🚀';
+          title.textContent = 'Confirm Upgrade';
+          confirmBtn.textContent = 'Yes, Upgrade Now!';
+          cancelBtn.style.display = 'inline-block';
+          detailsEl.style.display = 'block';
+          
+          if (planDetails) {
+            planNameEl.textContent = planDetails.name;
+            planPriceEl.textContent = planDetails.price;
+          }
+          break;
+        default:
+          icon.textContent = 'ℹ️';
+          title.textContent = 'Information';
+          confirmBtn.textContent = 'OK';
+          cancelBtn.style.display = 'none';
+          detailsEl.style.display = 'none';
+      }
+
+      messageEl.textContent = message;
+      modal.style.display = 'flex';
+
+      // Add smooth animation
+      modal.style.opacity = '0';
+      setTimeout(() => {
+        modal.style.transition = 'opacity 0.3s ease';
+        modal.style.opacity = '1';
+      }, 10);
+
+      // Handle confirm
+      const confirmHandler = () => {
+        closeModal();
+        resolve(true);
+      };
+
+      // Handle cancel
+      const cancelHandler = () => {
+        closeModal();
+        resolve(false);
+      };
+
+      // Close modal function
+      const closeModal = () => {
+        modal.style.opacity = '0';
+        setTimeout(() => {
+          modal.style.display = 'none';
+          modal.style.transition = '';
+        }, 300);
+        
+        confirmBtn.removeEventListener('click', confirmHandler);
+        cancelBtn.removeEventListener('click', cancelHandler);
+        modal.removeEventListener('click', backdropHandler);
+      };
+
+      // Handle backdrop click
+      const backdropHandler = (e) => {
+        if (e.target === modal) {
+          closeModal();
+          resolve(false);
+        }
+      };
+
+      // Add event listeners
+      confirmBtn.addEventListener('click', confirmHandler);
+      cancelBtn.addEventListener('click', cancelHandler);
+      modal.addEventListener('click', backdropHandler);
+
+      // Add keyboard support
+      const keyHandler = (e) => {
+        if (e.key === 'Escape') {
+          closeModal();
+          resolve(false);
+          document.removeEventListener('keydown', keyHandler);
+        } else if (e.key === 'Enter' && type !== 'upgrade') {
+          confirmHandler();
+          document.removeEventListener('keydown', keyHandler);
+        }
+      };
+      
+      document.addEventListener('keydown', keyHandler);
+    });
+  }
 </script>
+
+<!-- Upgrade Confirmation Modal -->
+<div id="upgradeConfirmationModal" style="
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 10001;
+">
+  <div style="
+    background: linear-gradient(145deg, rgba(0,0,0,0.95), rgba(15,23,42,0.95));
+    border: 2px solid #22d3ee;
+    border-radius: 20px;
+    padding: 40px;
+    max-width: 500px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(34, 211, 238, 0.3);
+  ">
+    <div id="upgradeModalIcon" style="font-size: 60px; margin-bottom: 20px;">🚀</div>
+    <h2 id="upgradeModalTitle" style="color: #22d3ee; margin-bottom: 20px;">Confirm Upgrade</h2>
+    <p id="upgradeModalMessage" style="color: #e2e8f0; margin-bottom: 30px; font-size: 18px;"></p>
+    
+    <div id="upgradeModalDetails" style="
+      background: rgba(34, 211, 238, 0.1);
+      border: 1px solid #22d3ee;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 30px;
+      display: none;
+    ">
+      <h3 style="color: #22d3ee; margin-bottom: 15px;">Plan Details:</h3>
+      <div id="upgradePlanName" style="color: #e2e8f0; font-size: 18px; font-weight: bold; margin-bottom: 10px;"></div>
+      <div id="upgradePlanPrice" style="color: #fbbf24; font-size: 20px; font-weight: bold; margin-bottom: 15px;"></div>
+      <div style="color: #94a3b8; font-size: 14px;">
+        ✨ Unlimited conversations<br>
+        🎨 Color customization<br>
+        🔗 Referral rewards<br>
+        ⚡ Priority support
+      </div>
+    </div>
+    
+    <div style="display: flex; gap: 15px; justify-content: center;">
+      <button id="upgradeConfirmBtn" style="
+        background: linear-gradient(145deg, #22d3ee, #0891b2);
+        color: #0f172a;
+        border: none;
+        padding: 15px 30px;
+        border-radius: 10px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      ">Yes, Upgrade Now!</button>
+      
+      <button id="upgradeCancelBtn" style="
+        background: rgba(148, 163, 184, 0.2);
+        color: #e2e8f0;
+        border: 1px solid #475569;
+        padding: 15px 30px;
+        border-radius: 10px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      ">Cancel</button>
+    </div>
+  </div>
+</div>
 
 <!-- Premium Color Customization Modal -->
 <div id="colorCustomizationModal" style="
