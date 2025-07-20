@@ -36,7 +36,8 @@ from security_monitor import init_security_monitoring
 from security_manager import init_security_features, security_manager, require_2fa, security_headers
 from admin_dashboard import admin_dashboard
 from notification_api import notifications_api, init_notification_api, init_notification_database
-from notification_scheduler import init_notification_scheduler
+# Temporarily disabled until schedule dependency is installed
+# from notification_scheduler import init_notification_scheduler
 
 # Load environment variables from .env file (optional in production)
 try:
@@ -260,10 +261,10 @@ def init_database():
                 init_notification_database(db_connection)
                 notification_api = init_notification_api(db, email_service)
                 
-                # Initialize notification scheduler
+                # Initialize notification scheduler (temporarily disabled)
                 if notification_api:
-                    init_notification_scheduler(notification_api.get_manager(), db)
-                    logger.info("Notification system and scheduler initialized successfully")
+                    # init_notification_scheduler(notification_api.get_manager(), db)
+                    logger.info("Notification system initialized successfully (scheduler disabled temporarily)")
                 else:
                     logger.warning("Notification API not initialized, skipping scheduler")
             else:
