@@ -1318,6 +1318,7 @@ def auth_register_post():
             print(f"❌ CRITICAL: User not found after save!")
         
         # Send welcome email
+        email_success = False
         try:
             # Debug email service configuration
             print(f"Email service configured: {email_service.is_configured}")
@@ -1334,15 +1335,20 @@ def auth_register_post():
             
             if email_result.get('success'):
                 print(f"Welcome email sent successfully to {email}")
-                flash("Registration successful! Check your email for a welcome message, then log in with your credentials.", "success")
+                email_success = True
             else:
                 print(f"Failed to send welcome email: {email_result.get('error')}")
-                flash("Registration successful! You can now log in with your credentials. (Note: Welcome email could not be sent)", "success")
                 
         except Exception as e:
             print(f"Email service error: {e}")
+        
+        # Set success message based on email result
+        if email_success:
+            flash("Registration successful! Check your email for a welcome message, then log in with your credentials.", "success")
+        else:
             flash("Registration successful! You can now log in with your credentials. (Note: Welcome email could not be sent)", "success")
         
+        # User registration completed successfully - redirect to login
         return redirect(url_for("login"))
         
     except ValueError as e:
