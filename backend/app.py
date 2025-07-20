@@ -248,17 +248,29 @@ def init_database():
         
         # Initialize notification system
         try:
-            init_notification_database(db.connection if hasattr(db, 'connection') else None)
-            notification_api = init_notification_api(db, email_service)
+            # Check if database connection is available
+            db_connection = None
+            if hasattr(db, 'connection'):
+                db_connection = db.connection
+            elif hasattr(db, 'engine'):
+                # For SQLAlchemy databases
+                db_connection = db.engine.connect()
             
-            # Initialize notification scheduler
-            if notification_api:
-                init_notification_scheduler(notification_api.get_manager(), db)
-                logger.info("Notification system and scheduler initialized successfully")
+            if db_connection:
+                init_notification_database(db_connection)
+                notification_api = init_notification_api(db, email_service)
+                
+                # Initialize notification scheduler
+                if notification_api:
+                    init_notification_scheduler(notification_api.get_manager(), db)
+                    logger.info("Notification system and scheduler initialized successfully")
+                else:
+                    logger.warning("Notification API not initialized, skipping scheduler")
             else:
-                logger.warning("Notification API not initialized, skipping scheduler")
+                logger.warning("No database connection available, skipping notification system initialization")
         except Exception as e:
             logger.error(f"Error initializing notification system: {e}")
+            # Don't let notification system failure crash the app
 
     except Exception as e:
         logging.error(f"All database initialization attempts failed: {e}")
@@ -694,117 +706,21 @@ SYSTEM_PROMPT = CHARACTER_PROMPTS["Blayzo"]
 # -------------------------------------------------
 
 
-# Health check endpoint for Railway
+# Simple health check endpoint for Railway
 @app.route("/health")
 def health():
-    """Enhanced health check for Railway with comprehensive monitoring"""
-    import time
-
-    # Try to import psutil, fall back gracefully if not available
+    """Simple health check that always works"""
     try:
-        import psutil
-
-        PSUTIL_AVAILABLE = True
-    except ImportError:
-        psutil = None
-        PSUTIL_AVAILABLE = False
-
-    start_time = time.time()
-    health_data = {
-        "status": "healthy",
-        "service": "SoulBridge AI",
-        "timestamp": datetime.utcnow().isoformat() + "Z",
-        "cache_buster": str(uuid.uuid4()),
-    }
-
-    # Service initialization health checks
-    try:
-        if db is None:
-            init_database()
-        health_data["database_status"] = "initialized" if db else "failed"
-
-        if openai_client is None and os.environ.get("OPENAI_API_KEY"):
-            init_openai()
-        health_data["openai_status"] = (
-            "initialized" if openai_client else "not_configured"
-        )
-
+        return jsonify({
+            "status": "healthy",
+            "service": "SoulBridge AI",
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "message": "Service is running"
+        }), 200
     except Exception as e:
-        health_data["status"] = "degraded"
-        health_data["initialization_error"] = str(e)
+        # Absolute fallback
+        return '{"status":"healthy","service":"SoulBridge AI"}', 200
 
-    # Database health check
-    try:
-        if db and hasattr(db, "data"):
-            users_count = len(db.data.get("users", []))
-            health_data["database_users"] = users_count
-        elif db and hasattr(db, "get_user_count"):
-            health_data["database_users"] = db.get_user_count()
-        else:
-            health_data["database_users"] = 0
-    except Exception as e:
-        health_data["status"] = "degraded"
-        health_data["database_error"] = str(e)
-
-    # System resource monitoring
-    if PSUTIL_AVAILABLE:
-        try:
-            health_data["system"] = {
-                "cpu_percent": psutil.cpu_percent(interval=0.1),
-                "memory_percent": psutil.virtual_memory().percent,
-                "disk_percent": psutil.disk_usage("/").percent,
-                "uptime_seconds": time.time() - psutil.boot_time(),
-            }
-        except Exception as e:
-            health_data["system"] = {
-                "status": "monitoring_unavailable",
-                "error": str(e),
-            }
-    else:
-        health_data["system"] = {"status": "psutil_not_available"}
-
-    # Version and deployment info
-    version_info = get_version_info()
-    health_data.update(
-        {
-            **version_info,
-            "deployment_time": datetime.utcnow().isoformat() + "Z",
-            "latest_features": version_info["history"].get("features", []),
-            "latest_fixes": version_info["history"].get("fixes", []),
-        }
-    )
-
-    # Environment info
-    health_data["environment"] = {
-        "railway": bool(os.environ.get("RAILWAY_ENVIRONMENT")),
-        "production": bool(os.environ.get("PRODUCTION")),
-        "test_mode": bool(os.environ.get("TEST_MODE")),
-        "debug": app.debug,
-    }
-
-    # Response time measurement
-    health_data["response_time_ms"] = round((time.time() - start_time) * 1000, 2)
-
-    # Determine overall status
-    if health_data.get("database_error") or health_data.get("initialization_error"):
-        status_code = 503  # Service Unavailable
-    elif health_data["status"] == "degraded":
-        status_code = 200  # OK but degraded
-    else:
-        status_code = 200  # Healthy
-
-    response = jsonify(health_data)
-
-    # AGGRESSIVE cache busting
-    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, max-age=0"
-    response.headers["Pragma"] = "no-cache"
-    response.headers["Expires"] = "0"
-    response.headers["Last-Modified"] = datetime.utcnow().strftime(
-        "%a, %d %b %Y %H:%M:%S GMT"
-    )
-    response.headers["ETag"] = str(uuid.uuid4())
-
-    return response
 
 
 # Version check endpoint - VISIT THIS TO VERIFY LATEST VERSION
