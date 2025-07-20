@@ -2,7 +2,7 @@
 builder = "nixpacks"
 
 [deploy]
-startCommand = "cd backend && PYTHONIOENCODING=utf-8 gunicorn app:app --bind 0.0.0.0:$PORT --timeout 300"
+startCommand = "cd backend && PYTHONIOENCODING=utf-8 gunicorn simple_app:app --bind 0.0.0.0:$PORT --timeout 300"
 healthcheckPath = "/health"
 healthcheckTimeout = 300
 restartPolicyType = "on_failure"
