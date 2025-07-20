@@ -40,6 +40,9 @@ from notification_scheduler import init_notification_scheduler
 from support_chatbot import init_support_chatbot, init_support_database
 from support_api import init_support_api
 from support_dashboard import init_support_dashboard
+from user_preferences import init_preferences_manager, init_preferences_database
+from preferences_api import init_preferences_api
+from preferences_dashboard import init_preferences_dashboard
 
 # Load environment variables from .env file (optional in production)
 try:
@@ -107,6 +110,10 @@ app.register_blueprint(notifications_api)
 # Initialize support system blueprints (will be registered after initialization)
 support_api_blueprint = None
 support_dashboard_blueprint = None
+
+# Initialize preferences system blueprints (will be registered after initialization)
+preferences_api_blueprint = None
+preferences_dashboard_blueprint = None
 
 # Initialize security features (will be initialized with database later)
 security_features = None
@@ -271,6 +278,10 @@ def init_database():
                 init_support_database(db_connection)
                 support_chatbot = init_support_chatbot(openai_client, db, notification_api.get_manager() if notification_api else None)
                 
+                # Initialize user preferences system
+                init_preferences_database(db_connection)
+                preferences_manager = init_preferences_manager(db)
+                
                 # Initialize notification scheduler
                 if notification_api:
                     init_notification_scheduler(notification_api.get_manager(), db)
@@ -295,6 +306,24 @@ def init_database():
                         logger.info("Support dashboard registered successfully")
                 else:
                     logger.warning("Support chatbot initialization failed")
+                
+                if preferences_manager:
+                    logger.info("User preferences manager initialized successfully")
+                    
+                    # Initialize and register preferences API
+                    global preferences_api_blueprint, preferences_dashboard_blueprint
+                    preferences_api_blueprint = init_preferences_api(preferences_manager, None, None)  # Will handle gracefully
+                    preferences_dashboard_blueprint = init_preferences_dashboard(preferences_manager)
+                    
+                    if preferences_api_blueprint:
+                        app.register_blueprint(preferences_api_blueprint)
+                        logger.info("Preferences API registered successfully")
+                    
+                    if preferences_dashboard_blueprint:
+                        app.register_blueprint(preferences_dashboard_blueprint)
+                        logger.info("Preferences dashboard registered successfully")
+                else:
+                    logger.warning("User preferences initialization failed")
             else:
                 logger.warning("No database connection available, skipping notification system initialization")
         except Exception as e:
