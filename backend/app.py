@@ -115,6 +115,18 @@ def init_openai():
 # Initialize SoulBridge Database and Email Service
 db = None
 email_service = EmailService()
+
+def add_aggressive_cache_busting(response):
+    """Add aggressive cache-busting headers to force updates"""
+    current_time = datetime.utcnow().strftime('%a, %d %b %Y %H:%M:%S GMT')
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0, private'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    response.headers['Last-Modified'] = current_time
+    response.headers['ETag'] = f'"{uuid.uuid4()}"'
+    response.headers['Vary'] = '*'
+    response.headers['X-Cache-Buster'] = 'FORCE-2025'
+    return response
 def init_database():
     global db
     try:
@@ -522,14 +534,17 @@ def health():
     if db and hasattr(db, 'data'):
         users_count = len(db.data.get("users", []))
     
-    return jsonify({
+    response = jsonify({
         "status": "healthy",
         "service": "SoulBridge AI",
-        "version": "1.2.0",
-        "timestamp": "2025-01-20",
+        "version": "2.0.0-FORCE-UPDATE",
+        "deployment_time": datetime.utcnow().isoformat() + "Z",
+        "commit_hash": "010a18d",
         "database_users": users_count,
         "database_status": "initialized" if db else "failed",
+        "cache_buster": str(uuid.uuid4()),
         "latest_fixes": [
+            "FORCE_CACHE_CLEAR_2025",
             "permanent_login_fix",
             "essential_users_creation",
             "database_health_check",
@@ -540,6 +555,81 @@ def health():
             "intro_logo_cache_bust"
         ]
     })
+    
+    # AGGRESSIVE cache busting
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    response.headers['Last-Modified'] = datetime.utcnow().strftime('%a, %d %b %Y %H:%M:%S GMT')
+    response.headers['ETag'] = str(uuid.uuid4())
+    
+    return response
+
+# Version check endpoint - VISIT THIS TO VERIFY LATEST VERSION
+@app.route("/version")
+def version_check():
+    """Immediate version check - visit this URL to verify you're getting latest code"""
+    return f"""
+    <html>
+    <head>
+        <title>SoulBridge AI - Version Check</title>
+        <style>
+            body {{ 
+                font-family: monospace; 
+                background: #000; 
+                color: #22d3ee; 
+                padding: 2rem;
+                margin: 0;
+            }}
+            .status {{ 
+                background: #0f172a; 
+                border: 2px solid #22d3ee; 
+                padding: 2rem; 
+                border-radius: 12px; 
+                max-width: 600px;
+                margin: 0 auto;
+            }}
+            .success {{ color: #22c55e; }}
+            .timestamp {{ color: #f59e0b; }}
+        </style>
+        <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+        <meta http-equiv="Pragma" content="no-cache">
+        <meta http-equiv="Expires" content="0">
+    </head>
+    <body>
+        <div class="status">
+            <h1>🚀 SoulBridge AI - Deployment Status</h1>
+            <p><strong>Version:</strong> <span class="success">2.0.0-FORCE-UPDATE</span></p>
+            <p><strong>Deployment Time:</strong> <span class="timestamp">{datetime.utcnow().isoformat()}Z</span></p>
+            <p><strong>Cache Buster:</strong> {uuid.uuid4()}</p>
+            <p><strong>Status:</strong> <span class="success">✅ LATEST VERSION ACTIVE</span></p>
+            <p><strong>Database Users:</strong> {len(db.data.get("users", [])) if db and hasattr(db, 'data') else 0}</p>
+            
+            <h3>🔧 Recent Fixes Deployed:</h3>
+            <ul>
+                <li>✅ Aggressive cache-busting (FORCE-2025)</li>
+                <li>✅ Navigation fixes (intro/refresh issue)</li>
+                <li>✅ Logo cache-busting (v=2025)</li>
+                <li>✅ Database initialization fixes</li>
+                <li>✅ Login system permanent fix</li>
+                <li>✅ Premium companion modal</li>
+                <li>✅ Color studio rebuild</li>
+                <li>✅ Referral page fallback</li>
+            </ul>
+            
+            <p><strong>If you're still seeing old version:</strong></p>
+            <ol>
+                <li>Clear ALL browser data (Ctrl+Shift+Delete)</li>
+                <li>Use incognito/private mode</li>
+                <li>Hard refresh (Ctrl+F5)</li>
+                <li>Try different browser</li>
+            </ol>
+            
+            <p><a href="/" style="color: #22d3ee;">← Back to App</a></p>
+        </div>
+    </body>
+    </html>
+    """
 
 # Emergency database fix endpoint
 @app.route("/emergency/fix-database")
@@ -634,12 +724,11 @@ def chat():
     if "messages" not in session:
         session["messages"] = []
     
-    # Add cache-busting headers
-    response = make_response(render_template("chat.html"))
-    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
-    response.headers['Pragma'] = 'no-cache'
-    response.headers['Expires'] = '0'
-    return response
+    # Add AGGRESSIVE cache-busting headers to force latest version
+    response = make_response(render_template("chat.html", 
+                                           cache_buster=str(uuid.uuid4()), 
+                                           version="2.0.0-FORCE"))
+    return add_aggressive_cache_busting(response)
 
 @app.route("/login")
 def login():
@@ -652,7 +741,10 @@ def login():
         print("User already authenticated, redirecting to chat")
         return redirect(url_for("chat"))
     
-    return render_template("login.html")
+    response = make_response(render_template("login.html", 
+                                        cache_buster=str(uuid.uuid4()), 
+                                        version="2.0.0-FORCE"))
+    return add_aggressive_cache_busting(response)
 
 # -------------------------------------------------
 # Development Authentication Routes
@@ -798,7 +890,10 @@ def auth_logout():
 
 @app.route("/register")
 def register():
-    return render_template("register.html")
+    response = make_response(render_template("register.html", 
+                                        cache_buster=str(uuid.uuid4()), 
+                                        version="2.0.0-FORCE"))
+    return add_aggressive_cache_busting(response)
 
 @app.route("/library")
 def library():
@@ -893,12 +988,11 @@ def color_customization():
     if not session.get("user_authenticated"):
         return redirect(url_for("login"))
     
-    # Add cache-busting headers for latest fixes
-    response = make_response(render_template("color_studio.html"))
-    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
-    response.headers['Pragma'] = 'no-cache'
-    response.headers['Expires'] = '0'
-    return response
+    # Add AGGRESSIVE cache-busting headers for latest fixes
+    response = make_response(render_template("color_studio.html", 
+                                           cache_buster=str(uuid.uuid4()), 
+                                           version="2.0.0-FORCE"))
+    return add_aggressive_cache_busting(response)
 
 @app.route("/customization-full") 
 def color_customization_full():
