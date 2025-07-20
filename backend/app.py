@@ -34,7 +34,7 @@ from rate_limiter import rate_limit, init_rate_limiting
 from env_validator import init_environment_validation
 from feature_flags import init_feature_flags, is_feature_enabled, feature_flag
 from security_monitor import init_security_monitoring
-from security_manager import init_security_features, security_manager, require_2fa, security_headers
+from security_manager_minimal import init_security_features, security_manager, require_2fa, security_headers
 from admin_dashboard import admin_dashboard
 from notification_api import notifications_api, init_notification_api, init_notification_database
 from notification_scheduler import init_notification_scheduler
@@ -278,13 +278,19 @@ def init_database():
         
         # Initialize security features with database
         global security_features
-        security_features = init_security_features(app, db)
+        try:
+            security_features = init_security_features(app, db)
+        except Exception as e:
+            logger.warning(f"Security manager initialization failed: {e}")
+            security_features = None
         
         # Initialize notification system
         try:
             # Check if database connection is available
             db_connection = None
-            if hasattr(db, 'connection'):
+            if hasattr(db, 'db_manager') and hasattr(db.db_manager, 'connection'):
+                db_connection = db.db_manager.connection
+            elif hasattr(db, 'connection'):
                 db_connection = db.connection
             elif hasattr(db, 'engine'):
                 # For SQLAlchemy databases
@@ -464,21 +470,21 @@ def init_database():
 
         # Create a minimal fallback that won't crash the app
         class FallbackDB:
+            def __init__(self):
+                self.users = self.Users()
+            
             def get_stats(self):
                 return {"users": 0, "sessions": 0}
 
-            def users(self):
-                class Users:
-                    def get_user_by_email(self, email):
-                        return None
+            class Users:
+                def get_user_by_email(self, email):
+                    return None
 
-                    def create_user(self, email, companion):
-                        return {"userID": "fallback", "email": email}
+                def create_user(self, email, companion):
+                    return {"userID": "fallback", "email": email}
 
-                    def update_user(self, user_id, updates):
-                        return True
-
-                return Users()
+                def update_user(self, user_id, updates):
+                    return True
 
         db = FallbackDB()
         print(f"⚠️ Running with fallback database - limited functionality")
@@ -2032,7 +2038,30 @@ def user_profile():
 
 @app.route("/subscription")
 def subscription():
-    return render_template("subscription.html")
+    # Check if user is authenticated
+    user_email = session.get("user_email")
+    user_id = session.get("user_id")
+    user_authenticated = session.get("user_authenticated", False)
+    
+    # Generate referral code for authenticated users
+    referral_code = None
+    referral_link = None
+    
+    if user_authenticated and user_email:
+        try:
+            from referral_system import referral_manager
+            result = referral_manager.create_referral_link(user_email, request.url_root.rstrip('/'))
+            if result.get('success'):
+                referral_code = result.get('referralCode')
+                referral_link = result.get('referralLink')
+        except Exception as e:
+            logger.error(f"Error generating referral code: {e}")
+    
+    return render_template("subscription.html", 
+                         user_email=user_email,
+                         user_authenticated=user_authenticated,
+                         referral_code=referral_code,
+                         referral_link=referral_link)
 
 
 @app.route("/support")
