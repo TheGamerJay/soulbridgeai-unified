@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management - SoulBridge AI Admin</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+    <style>
+        .admin-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 2rem;
+        }
+        
+        .admin-header {
+            background: rgba(0,0,0,0.9);
+            border: 2px solid #22d3ee;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: rgba(0,0,0,0.8);
+            border: 1px solid #22d3ee;
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #22d3ee;
+        }
+        
+        .users-table {
+            background: rgba(0,0,0,0.9);
+            border: 2px solid #22d3ee;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .table-header {
+            background: #22d3ee;
+            color: #000;
+            padding: 1rem;
+            font-weight: bold;
+        }
+        
+        .users-list {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        
+        .user-row {
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr 1fr 1fr;
+            padding: 1rem;
+            border-bottom: 1px solid #333;
+            align-items: center;
+        }
+        
+        .user-row:hover {
+            background: rgba(34, 211, 238, 0.1);
+        }
+        
+        .user-email {
+            color: #22d3ee;
+            font-weight: bold;
+        }
+        
+        .user-companion {
+            color: #94a3b8;
+        }
+        
+        .user-status {
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .status-free {
+            background: #334155;
+            color: #94a3b8;
+        }
+        
+        .status-premium {
+            background: #fbbf24;
+            color: #000;
+        }
+        
+        .dev-badge {
+            background: #ef4444;
+            color: #fff;
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            font-size: 0.7rem;
+        }
+        
+        .refresh-btn {
+            background: #22d3ee;
+            color: #000;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 1rem;
+        }
+        
+        .refresh-btn:hover {
+            background: #0891b2;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <div class="admin-header">
+            <h1>👥 User Management Dashboard</h1>
+            <p>SoulBridge AI Admin Panel</p>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">{{ stats.users }}</div>
+                <div>Total Users</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ stats.sessions }}</div>
+                <div>Chat Sessions</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ stats.premium_users }}</div>
+                <div>Premium Users</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ stats.dev_users }}</div>
+                <div>Developer Accounts</div>
+            </div>
+        </div>
+        
+        <button class="refresh-btn" onclick="location.reload()">🔄 Refresh Data</button>
+        
+        <div class="users-table">
+            <div class="table-header">
+                <div class="user-row">
+                    <div>User ID</div>
+                    <div>Email</div>
+                    <div>Companion</div>
+                    <div>Status</div>
+                    <div>Created</div>
+                </div>
+            </div>
+            
+            <div class="users-list">
+                {% for user in users %}
+                <div class="user-row">
+                    <div>
+                        {{ user.userID[:12] }}...
+                        {% if user.dev_mode %}
+                        <span class="dev-badge">DEV</span>
+                        {% endif %}
+                    </div>
+                    <div class="user-email">{{ user.email }}</div>
+                    <div class="user-companion">{{ user.companion }}</div>
+                    <div>
+                        <span class="user-status status-{{ user.subscriptionStatus }}">
+                            {{ user.subscriptionStatus.upper() }}
+                        </span>
+                    </div>
+                    <div>{{ user.createdDate[:10] }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 2rem;">
+            <a href="/admin" style="color: #22d3ee;">← Back to Admin Dashboard</a>
+        </div>
+    </div>
+</body>
+</html>

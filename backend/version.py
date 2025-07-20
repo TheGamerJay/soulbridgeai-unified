@@ -8,9 +8,9 @@ import json
 import os
 
 # Current version - increment with each significant update
-VERSION = "2.2.0"
-BUILD_NUMBER = "250"
-CODENAME = "PostgreSQL"
+VERSION = "2.2.1"
+BUILD_NUMBER = "251"
+CODENAME = "AdminTools"
 
 # Version history with meaningful names
 VERSION_HISTORY = {

@@ -1,6 +1,17 @@
 import os
 import logging
 import uuid
+
+# Configure better logging for production and development
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(),  # Console output for Railway logs
+        logging.FileHandler('soulbridge.log') if not os.environ.get('RAILWAY_ENVIRONMENT') else logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
 from typing import Dict
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash, make_response
 from email_service import EmailService
@@ -21,6 +32,7 @@ import hashlib
 from datetime import datetime
 from models import SoulBridgeDB
 from postgres_db import SoulBridgePostgreSQL
+import psycopg2.extras
 import jwt
 from functools import wraps
 import ipaddress
@@ -1065,6 +1077,54 @@ def contact_form():
 def admin_dashboard():
     # Admin page loads for everyone, but login is required for functionality
     return render_template("admin.html")
+
+@app.route("/admin/users")
+def admin_users():
+    """Admin dashboard to view all users"""
+    try:
+        # Get database statistics
+        stats = db.get_stats()
+        
+        # Get all users (limit to prevent overload)
+        users = []
+        if hasattr(db, 'db_manager') and hasattr(db.db_manager, 'connection'):
+            # PostgreSQL database
+            cursor = db.db_manager.connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+            cursor.execute("""
+                SELECT user_id, email, companion, subscription_status, dev_mode, created_date
+                FROM users 
+                ORDER BY created_date DESC 
+                LIMIT 100
+            """)
+            rows = cursor.fetchall()
+            
+            for row in rows:
+                users.append({
+                    'userID': row['user_id'],
+                    'email': row['email'],
+                    'companion': row['companion'],
+                    'subscriptionStatus': row['subscription_status'],
+                    'dev_mode': row['dev_mode'],
+                    'createdDate': row['created_date'].isoformat() + "Z"
+                })
+        elif hasattr(db, 'db_manager') and hasattr(db.db_manager, 'data'):
+            # JSON database
+            users = db.db_manager.data.get('users', [])[:100]  # Limit to 100
+        
+        # Calculate additional stats
+        premium_users = len([u for u in users if u.get('subscriptionStatus') == 'premium'])
+        dev_users = len([u for u in users if u.get('dev_mode')])
+        
+        stats.update({
+            'premium_users': premium_users,
+            'dev_users': dev_users
+        })
+        
+        return render_template("admin_users.html", users=users, stats=stats)
+        
+    except Exception as e:
+        print(f"❌ Admin users error: {e}")
+        return f"Error loading users: {e}", 500
 
 @app.route("/payment")
 def payment_page():
