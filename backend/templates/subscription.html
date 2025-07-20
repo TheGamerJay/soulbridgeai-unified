@@ -585,6 +585,17 @@
     alert("🔄 Colors reset to default theme!");
   });
 
+  // Emergency fallback to ensure referral link is never stuck on "Loading..."
+  function ensureReferralLinkLoaded() {
+    setTimeout(() => {
+      const linkElement = document.getElementById('referralLinkDisplay');
+      if (linkElement && linkElement.textContent === 'Loading...') {
+        console.warn('Referral link still loading after 2 seconds, forcing generation');
+        generateClientReferralCode();
+      }
+    }, 2000);
+  }
+
   // Load referral link - server-first with client fallback
   function loadReferralLink() {
     console.log('Loading referral link...');
@@ -608,6 +619,13 @@
       console.log('Using server-generated referral link:', serverReferralLink);
       return;
     }
+    {% else %}
+    console.log('No server referral link provided - server vars:', {
+      user_authenticated: '{{ user_authenticated }}',
+      user_email: '{{ user_email }}', 
+      referral_link: '{{ referral_link }}',
+      referral_code: '{{ referral_code }}'
+    });
     {% endif %}
     
     // Second, check if we have a stored permanent referral link
@@ -837,6 +855,7 @@
     loadSavedColors();
     handlePaymentResult();
     loadReferralLink();
+    ensureReferralLinkLoaded(); // Emergency fallback
     if (localStorage.getItem('isPremium') === 'true') {
       colorCustomization.style.display = "block";
     }
