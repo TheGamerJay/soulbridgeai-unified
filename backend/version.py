@@ -8,12 +8,29 @@ import json
 import os
 
 # Current version - increment with each significant update
-VERSION = "2.1.0"
-BUILD_NUMBER = "241"
-CODENAME = "NavigationFix"
+VERSION = "2.1.1"
+BUILD_NUMBER = "242"
+CODENAME = "DebugMode"
 
 # Version history with meaningful names
 VERSION_HISTORY = {
+    "2.1.1": {
+        "build": "242",
+        "codename": "DebugMode",
+        "date": "2025-01-20",
+        "features": [
+            "Enhanced debugging for navigation issues",
+            "Console logging for troubleshooting",
+            "Aggressive logo cache-busting",
+            "Debug mode for session storage"
+        ],
+        "fixes": [
+            "Navigation not respecting session state",
+            "Logo cache issues persisting",
+            "Referral page loading problems",
+            "Color studio functionality"
+        ]
+    },
     "2.1.0": {
         "build": "241",
         "codename": "NavigationFix", 

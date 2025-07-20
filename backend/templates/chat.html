@@ -3302,11 +3302,15 @@
             const currentScreen = localStorage.getItem('currentScreen');
             const hasActiveMessages = sessionStorage.getItem('hasActiveChat');
             
-            console.log('Page load navigation check:');
+            console.log('🔍 DEBUG: Page load navigation check:');
             console.log('- selectedCharacter:', selectedCharacter);
             console.log('- firstPickMade:', firstPickMade);
             console.log('- currentScreen:', currentScreen);
             console.log('- hasActiveMessages:', hasActiveMessages);
+            console.log('- SHOULD RESTORE CHAT?', selectedCharacter && firstPickMade === 'true' && hasActiveMessages === 'true');
+            
+            // TEMP DEBUG: Always force intro for now to test
+            console.log('🚨 FORCED DEBUG MODE: Always showing intro screen to test issue');
             
             // If user has active chat session, restore chat interface
             if (selectedCharacter && firstPickMade === 'true' && hasActiveMessages === 'true') {
