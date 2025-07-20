@@ -3,619 +3,449 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Real-time Chat - SoulBridge AI</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <title>Real-Time Chat - SoulBridge AI</title>
     <style>
-        .chat-container {
-            height: 70vh;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-        .chat-header {
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 15px;
-            border-radius: 10px 10px 0 0;
+            min-height: 100vh;
         }
-        .chat-messages {
-            flex-grow: 1;
+        
+        .chat-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .chat-header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .status-indicator {
+            padding: 10px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            font-size: 14px;
+        }
+        
+        .online-status {
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        .offline-status {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        
+        .messages-container {
+            height: 400px;
             overflow-y: auto;
-            padding: 15px;
+            padding: 20px;
             background: #f8f9fa;
         }
+        
         .message {
             margin-bottom: 15px;
-            animation: messageSlideIn 0.3s ease-out;
-        }
-        @keyframes messageSlideIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        .message.own {
-            text-align: right;
-        }
-        .message-bubble {
-            display: inline-block;
-            max-width: 70%;
             padding: 12px 16px;
             border-radius: 18px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            max-width: 70%;
+            word-wrap: break-word;
         }
-        .message.own .message-bubble {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        
+        .message.own {
+            background: #007bff;
             color: white;
-            border-bottom-right-radius: 6px;
+            margin-left: auto;
+            border-bottom-right-radius: 4px;
         }
-        .message.other .message-bubble {
+        
+        .message.other {
             background: white;
-            color: #333;
-            border-bottom-left-radius: 6px;
+            border: 1px solid #e9ecef;
+            border-bottom-left-radius: 4px;
         }
-        .message-info {
-            font-size: 0.75rem;
-            color: #666;
-            margin-top: 4px;
+        
+        .message-time {
+            font-size: 12px;
+            opacity: 0.7;
+            margin-top: 5px;
         }
-        .chat-input {
-            padding: 15px;
-            background: white;
-            border-top: 1px solid #ddd;
-            border-radius: 0 0 10px 10px;
-        }
+        
         .typing-indicator {
-            padding: 8px 15px;
+            padding: 10px 20px;
             font-style: italic;
-            color: #666;
-            background: rgba(0,0,0,0.05);
-            margin: 5px 0;
-            border-radius: 15px;
-            animation: fadeInOut 2s infinite;
+            color: #6c757d;
+            background: #fff3cd;
+            border-bottom: 1px solid #ffeaa7;
         }
-        @keyframes fadeInOut {
-            0%, 100% { opacity: 0.5; }
-            50% { opacity: 1; }
+        
+        .input-container {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e9ecef;
         }
-        .online-users {
-            height: 70vh;
-            overflow-y: auto;
+        
+        .input-group {
+            display: flex;
+            gap: 10px;
         }
-        .user-card {
-            transition: all 0.2s ease;
+        
+        .message-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 25px;
+            outline: none;
+            font-size: 14px;
+        }
+        
+        .message-input:focus {
+            border-color: #007bff;
+        }
+        
+        .send-button {
+            padding: 12px 24px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 25px;
             cursor: pointer;
+            font-weight: bold;
         }
-        .user-card:hover {
-            background: #f8f9fa;
-            transform: translateX(5px);
+        
+        .send-button:hover {
+            background: #0056b3;
         }
-        .status-indicator {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            display: inline-block;
-            margin-right: 8px;
-            border: 2px solid white;
-            box-shadow: 0 0 0 1px #ddd;
+        
+        .send-button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
         }
-        .status-online { background: #28a745; }
-        .status-away { background: #ffc107; }
-        .status-busy { background: #dc3545; }
-        .status-offline { background: #6c757d; }
-        .notification-toast {
+        
+        .mood-controls {
+            padding: 15px 20px;
+            background: #e3f2fd;
+            border-top: 1px solid #bbdefb;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .mood-button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .mood-button:hover {
+            transform: scale(1.1);
+        }
+        
+        .notification {
             position: fixed;
             top: 20px;
             right: 20px;
-            z-index: 9999;
-            min-width: 300px;
-        }
-        .connection-status {
-            padding: 5px 10px;
-            border-radius: 15px;
-            font-size: 0.8rem;
-            margin-left: 10px;
-        }
-        .connection-connected {
-            background: #d4edda;
-            color: #155724;
-        }
-        .connection-disconnected {
-            background: #f8d7da;
-            color: #721c24;
-        }
-        .message-input {
-            border: none;
-            outline: none;
-            resize: none;
-            max-height: 100px;
-        }
-        .send-button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border: none;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
+            padding: 15px 20px;
+            background: #28a745;
             color: white;
-            transition: all 0.2s ease;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            z-index: 1000;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.3s ease;
         }
-        .send-button:hover {
-            transform: scale(1.1);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        }
-        .send-button:disabled {
-            opacity: 0.6;
-            transform: none;
+        
+        .notification.show {
+            opacity: 1;
+            transform: translateX(0);
         }
     </style>
 </head>
-<body class="bg-light">
-    <nav class="navbar navbar-dark bg-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#">
-                <i class="fas fa-comments"></i> SoulBridge AI Live Chat
-            </a>
-            <div class="d-flex align-items-center">
-                <span id="connection-status" class="connection-status connection-disconnected">
-                    <i class="fas fa-circle"></i> Connecting...
-                </span>
-                <a class="nav-link text-white ms-3" href="/chat">
-                    <i class="fas fa-arrow-left"></i> Back to Chat
-                </a>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h1>🌉 Real-Time Chat</h1>
+            <p>Experience live messaging with typing indicators and read receipts</p>
+        </div>
+        
+        <div class="status-indicator">
+            <span id="connection-status" class="offline-status">Connecting...</span>
+            <span id="online-friends" style="float: right;"></span>
+        </div>
+        
+        <div id="typing-indicator" class="typing-indicator" style="display: none;">
+            Someone is typing...
+        </div>
+        
+        <div id="messages-container" class="messages-container">
+            <div class="message other">
+                <div>Welcome to real-time chat! Connect with friends and see live typing indicators.</div>
+                <div class="message-time">Just now</div>
             </div>
         </div>
-    </nav>
-
-    <div class="container-fluid mt-4">
-        <div class="row">
-            <!-- Chat Area -->
-            <div class="col-md-8">
-                <div class="chat-container">
-                    <div class="chat-header">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h5 class="mb-1">
-                                    <i class="fas fa-users"></i> Live Chat Room
-                                </h5>
-                                <small id="room-info">Connecting to chat room...</small>
-                            </div>
-                            <div>
-                                <button class="btn btn-outline-light btn-sm me-2" onclick="toggleNotifications()">
-                                    <i id="notification-icon" class="fas fa-bell"></i>
-                                </button>
-                                <button class="btn btn-outline-light btn-sm" onclick="clearChat()">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="chat-messages" id="chat-messages">
-                        <!-- Messages will appear here -->
-                    </div>
-                    <div id="typing-indicators"></div>
-                    <div class="chat-input">
-                        <div class="input-group">
-                            <textarea 
-                                class="form-control message-input" 
-                                id="message-input" 
-                                placeholder="Type your message..." 
-                                rows="1"
-                                onkeydown="handleKeyDown(event)"
-                                oninput="handleTyping()"
-                            ></textarea>
-                            <button class="btn send-button" id="send-button" onclick="sendMessage()" disabled>
-                                <i class="fas fa-paper-plane"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Sidebar -->
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-header">
-                        <h6 class="mb-0">
-                            <i class="fas fa-users"></i> Online Users 
-                            <span id="online-count" class="badge bg-success ms-2">0</span>
-                        </h6>
-                    </div>
-                    <div class="card-body p-0">
-                        <div class="online-users" id="online-users">
-                            <!-- Online users will appear here -->
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card mt-3">
-                    <div class="card-header">
-                        <h6 class="mb-0">
-                            <i class="fas fa-bell"></i> Live Notifications
-                        </h6>
-                    </div>
-                    <div class="card-body" id="notifications-panel">
-                        <p class="text-muted">No new notifications</p>
-                    </div>
-                </div>
+        
+        <div class="mood-controls">
+            <span>Share your mood:</span>
+            <button class="mood-button" onclick="updateMood('😊', 0.8)">😊</button>
+            <button class="mood-button" onclick="updateMood('😔', 0.3)">😔</button>
+            <button class="mood-button" onclick="updateMood('😴', 0.5)">😴</button>
+            <button class="mood-button" onclick="updateMood('🤗', 0.9)">🤗</button>
+            <button class="mood-button" onclick="updateMood('😤', 0.2)">😤</button>
+        </div>
+        
+        <div class="input-container">
+            <div class="input-group">
+                <input type="text" id="message-input" class="message-input" placeholder="Type your message..." disabled>
+                <button id="send-button" class="send-button" onclick="sendMessage()" disabled>Send</button>
             </div>
         </div>
     </div>
+    
+    <div id="notification" class="notification"></div>
 
-    <!-- Notification Toast Template -->
-    <div id="toast-template" class="d-none">
-        <div class="toast notification-toast" role="alert">
-            <div class="toast-header">
-                <i class="fas fa-bell text-primary me-2"></i>
-                <strong class="me-auto">Notification</strong>
-                <small class="notification-time">now</small>
-                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
-            </div>
-            <div class="toast-body">
-                <div class="notification-content"></div>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
     <script>
-        // Global variables
-        let socket;
-        let currentUserId = 'user_' + Math.random().toString(36).substr(2, 9); // Demo user ID
-        let currentRoomId = 'chat_general';
+        // Initialize Socket.IO connection
+        const socket = io();
+        let currentUser = null;
+        let currentConversation = null;
+        let typingTimeout = null;
         let isTyping = false;
-        let typingTimeout;
-        let notificationsEnabled = true;
-        let connectionRetries = 0;
-        const maxRetries = 5;
-
-        // Initialize WebSocket connection
-        function initializeSocket() {
-            socket = io({
-                transports: ['websocket', 'polling'],
-                upgrade: true,
-                rememberUpgrade: true
+        
+        // DOM elements
+        const connectionStatus = document.getElementById('connection-status');
+        const onlineFriends = document.getElementById('online-friends');
+        const messagesContainer = document.getElementById('messages-container');
+        const typingIndicator = document.getElementById('typing-indicator');
+        const messageInput = document.getElementById('message-input');
+        const sendButton = document.getElementById('send-button');
+        const notification = document.getElementById('notification');
+        
+        // Connection events
+        socket.on('connect', function() {
+            console.log('Connected to server');
+            connectionStatus.textContent = 'Connected';
+            connectionStatus.className = 'online-status';
+            messageInput.disabled = false;
+            sendButton.disabled = false;
+        });
+        
+        socket.on('disconnect', function() {
+            console.log('Disconnected from server');
+            connectionStatus.textContent = 'Disconnected';
+            connectionStatus.className = 'offline-status';
+            messageInput.disabled = true;
+            sendButton.disabled = true;
+        });
+        
+        socket.on('connection_established', function(data) {
+            console.log('Connection established:', data);
+            currentUser = data.user_id;
+            updateOnlineFriends(data.online_friends || []);
+        });
+        
+        // Message events
+        socket.on('new_message', function(data) {
+            console.log('New message:', data);
+            displayMessage(data);
+            
+            // Auto-mark as read if in conversation
+            if (currentConversation === data.conversation_id) {
+                socket.emit('mark_message_read', {
+                    message_id: data.id,
+                    conversation_id: data.conversation_id
+                });
+            }
+        });
+        
+        socket.on('new_message_notification', function(data) {
+            console.log('Message notification:', data);
+            showNotification('New message: ' + data.preview);
+        });
+        
+        socket.on('message_sent', function(data) {
+            console.log('Message sent confirmation:', data);
+        });
+        
+        socket.on('message_read', function(data) {
+            console.log('Message read receipt:', data);
+            updateMessageReadStatus(data.message_id, data.read_at);
+        });
+        
+        // Typing events
+        socket.on('user_typing', function(data) {
+            console.log('User typing:', data);
+            showTypingIndicator(data.username);
+        });
+        
+        socket.on('user_stopped_typing', function(data) {
+            console.log('User stopped typing:', data);
+            hideTypingIndicator();
+        });
+        
+        // Friend status events
+        socket.on('friend_status_changed', function(data) {
+            console.log('Friend status changed:', data);
+            showNotification(data.username + ' is now ' + data.status);
+        });
+        
+        socket.on('friend_mood_updated', function(data) {
+            console.log('Friend mood updated:', data);
+            showNotification(data.username + ' is feeling ' + data.mood);
+        });
+        
+        socket.on('online_friends', function(data) {
+            console.log('Online friends:', data);
+            updateOnlineFriends(data.friends);
+        });
+        
+        // Error handling
+        socket.on('error', function(data) {
+            console.error('Socket error:', data);
+            showNotification(data.message, 'error');
+        });
+        
+        // Functions
+        function sendMessage() {
+            const content = messageInput.value.trim();
+            if (!content) return;
+            
+            const demoRecipient = 'demo-user-id';
+            
+            socket.emit('send_message', {
+                recipient_id: demoRecipient,
+                content: content,
+                message_type: 'text'
             });
-
-            // Connection events
-            socket.on('connect', function() {
-                console.log('Connected to server');
-                updateConnectionStatus(true);
-                connectionRetries = 0;
-                
-                // Join the general chat room
-                socket.emit('join_room', { room_id: currentRoomId });
-                updateRoomInfo('Connected to Live Chat');
-            });
-
-            socket.on('disconnect', function(reason) {
-                console.log('Disconnected from server:', reason);
-                updateConnectionStatus(false);
-                
-                // Attempt to reconnect
-                if (connectionRetries < maxRetries) {
-                    connectionRetries++;
-                    setTimeout(() => {
-                        console.log(`Reconnection attempt ${connectionRetries}/${maxRetries}`);
-                        socket.connect();
-                    }, 2000 * connectionRetries);
+            
+            messageInput.value = '';
+            stopTyping();
+        }
+        
+        function displayMessage(message) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message ' + (message.sender_id === currentUser ? 'own' : 'other');
+            
+            messageDiv.innerHTML = '<div>' + message.content + '</div><div class="message-time">' + new Date(message.timestamp).toLocaleTimeString() + '</div>';
+            
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+        
+        function updateMessageReadStatus(messageId, readAt) {
+            const messages = document.querySelectorAll('.message.own');
+            messages.forEach(function(msg) {
+                if (msg.dataset.messageId === messageId) {
+                    const timeDiv = msg.querySelector('.message-time');
+                    timeDiv.innerHTML += ' ✓✓';
                 }
             });
-
-            socket.on('connection_confirmed', function(data) {
-                console.log('Connection confirmed:', data);
-                currentUserId = data.user_id;
-            });
-
-            // Message events
-            socket.on('new_message', function(message) {
-                displayMessage(message);
-            });
-
-            socket.on('user_typing', function(data) {
-                handleTypingIndicator(data);
-            });
-
-            // Presence events
-            socket.on('user_joined_room', function(data) {
-                displaySystemMessage(`${data.user_id} joined the chat`);
-                updateOnlineUsers();
-            });
-
-            socket.on('user_left_room', function(data) {
-                displaySystemMessage(`${data.user_id} left the chat`);
-                updateOnlineUsers();
-            });
-
-            socket.on('presence_update', function(data) {
-                updateUserPresence(data);
-            });
-
-            // Notification events
-            socket.on('notification', function(notification) {
-                displayNotification(notification);
-            });
-
-            // Error handling
-            socket.on('error', function(error) {
-                console.error('Socket error:', error);
-                showToast('Error', error.message || 'Connection error', 'error');
-            });
-
-            socket.on('pong', function(data) {
-                // Handle ping response
-                console.log('Pong received:', data);
-            });
         }
-
-        // Message handling
-        function sendMessage() {
-            const input = document.getElementById('message-input');
-            const message = input.value.trim();
-            
-            if (!message || !socket || !socket.connected) {
-                return;
-            }
-
-            socket.emit('send_message', {
-                room_id: currentRoomId,
-                content: message,
-                type: 'text'
-            });
-
-            input.value = '';
-            stopTyping();
-            updateSendButton();
+        
+        function showTypingIndicator(username) {
+            typingIndicator.textContent = username + ' is typing...';
+            typingIndicator.style.display = 'block';
         }
-
-        function displayMessage(message) {
-            const messagesContainer = document.getElementById('chat-messages');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${message.user_id === currentUserId ? 'own' : 'other'}`;
-            
-            const time = new Date(message.timestamp).toLocaleTimeString();
-            
-            messageDiv.innerHTML = `
-                <div class="message-bubble">
-                    <div class="message-content">${escapeHtml(message.content)}</div>
-                </div>
-                <div class="message-info">
-                    ${message.user_id === currentUserId ? 'You' : message.user_id} • ${time}
-                </div>
-            `;
-            
-            messagesContainer.appendChild(messageDiv);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        
+        function hideTypingIndicator() {
+            typingIndicator.style.display = 'none';
         }
-
-        function displaySystemMessage(content) {
-            const messagesContainer = document.getElementById('chat-messages');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'message system';
-            messageDiv.innerHTML = `
-                <div class="text-center">
-                    <small class="text-muted">
-                        <i class="fas fa-info-circle"></i> ${escapeHtml(content)}
-                    </small>
-                </div>
-            `;
-            messagesContainer.appendChild(messageDiv);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }
-
-        // Typing indicators
-        function handleTyping() {
-            if (!isTyping) {
+        
+        function startTyping() {
+            if (!isTyping && currentConversation) {
                 isTyping = true;
-                socket.emit('typing_start', { room_id: currentRoomId });
+                socket.emit('typing_start', {
+                    conversation_id: currentConversation
+                });
             }
             
-            clearTimeout(typingTimeout);
-            typingTimeout = setTimeout(() => {
-                stopTyping();
+            if (typingTimeout) {
+                clearTimeout(typingTimeout);
+            }
+            
+            typingTimeout = setTimeout(stopTyping, 2000);
+        }
+        
+        function stopTyping() {
+            if (isTyping && currentConversation) {
+                isTyping = false;
+                socket.emit('typing_stop', {
+                    conversation_id: currentConversation
+                });
+            }
+            
+            if (typingTimeout) {
+                clearTimeout(typingTimeout);
+                typingTimeout = null;
+            }
+        }
+        
+        function updateMood(mood, score) {
+            socket.emit('update_mood', {
+                mood: mood,
+                mood_score: score
+            });
+            
+            showNotification('Mood updated to ' + mood);
+        }
+        
+        function updateOnlineFriends(friends) {
+            if (friends.length > 0) {
+                onlineFriends.textContent = friends.length + ' friend' + (friends.length > 1 ? 's' : '') + ' online';
+            } else {
+                onlineFriends.textContent = 'No friends online';
+            }
+        }
+        
+        function showNotification(message, type) {
+            type = type || 'success';
+            notification.textContent = message;
+            notification.className = 'notification ' + type;
+            notification.classList.add('show');
+            
+            setTimeout(function() {
+                notification.classList.remove('show');
             }, 3000);
         }
-
-        function stopTyping() {
-            if (isTyping) {
-                isTyping = false;
-                socket.emit('typing_stop', { room_id: currentRoomId });
-            }
-            clearTimeout(typingTimeout);
-        }
-
-        function handleTypingIndicator(data) {
-            const indicatorsContainer = document.getElementById('typing-indicators');
-            const indicatorId = `typing-${data.user_id}`;
-            
-            if (data.is_typing && data.user_id !== currentUserId) {
-                if (!document.getElementById(indicatorId)) {
-                    const indicator = document.createElement('div');
-                    indicator.id = indicatorId;
-                    indicator.className = 'typing-indicator';
-                    indicator.innerHTML = `
-                        <i class="fas fa-ellipsis-h"></i> ${data.user_id} is typing...
-                    `;
-                    indicatorsContainer.appendChild(indicator);
-                }
-            } else {
-                const indicator = document.getElementById(indicatorId);
-                if (indicator) {
-                    indicator.remove();
-                }
-            }
-        }
-
-        // UI Updates
-        function updateConnectionStatus(connected) {
-            const statusElement = document.getElementById('connection-status');
-            if (connected) {
-                statusElement.className = 'connection-status connection-connected';
-                statusElement.innerHTML = '<i class="fas fa-circle"></i> Connected';
-            } else {
-                statusElement.className = 'connection-status connection-disconnected';
-                statusElement.innerHTML = '<i class="fas fa-circle"></i> Disconnected';
-            }
-        }
-
-        function updateRoomInfo(info) {
-            document.getElementById('room-info').textContent = info;
-        }
-
-        function updateSendButton() {
-            const input = document.getElementById('message-input');
-            const button = document.getElementById('send-button');
-            button.disabled = !input.value.trim() || !socket || !socket.connected;
-        }
-
-        function updateOnlineUsers() {
-            // Mock online users for demo
-            const users = [
-                { user_id: 'Alice', status: 'online' },
-                { user_id: 'Bob', status: 'away' },
-                { user_id: 'Charlie', status: 'busy' }
-            ];
-            
-            const container = document.getElementById('online-users');
-            const countElement = document.getElementById('online-count');
-            
-            container.innerHTML = users.map(user => `
-                <div class="user-card p-3 border-bottom">
-                    <div class="d-flex align-items-center">
-                        <span class="status-indicator status-${user.status}"></span>
-                        <span class="fw-medium">${user.user_id}</span>
-                        <span class="ms-auto badge bg-light text-dark">${user.status}</span>
-                    </div>
-                </div>
-            `).join('');
-            
-            countElement.textContent = users.filter(u => u.status === 'online').length;
-        }
-
-        // Notifications
-        function displayNotification(notification) {
-            // Add to notifications panel
-            const panel = document.getElementById('notifications-panel');
-            if (panel.querySelector('.text-muted')) {
-                panel.innerHTML = '';
-            }
-            
-            const notifDiv = document.createElement('div');
-            notifDiv.className = 'notification-item p-2 border-bottom';
-            notifDiv.innerHTML = `
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <strong>${notification.title}</strong>
-                        <div class="small text-muted">${notification.message}</div>
-                    </div>
-                    <small class="text-muted">${new Date(notification.created_at).toLocaleTimeString()}</small>
-                </div>
-            `;
-            panel.insertBefore(notifDiv, panel.firstChild);
-            
-            // Show toast if enabled
-            if (notificationsEnabled) {
-                showToast(notification.title, notification.message, notification.type);
-            }
-        }
-
-        function showToast(title, message, type = 'info') {
-            const template = document.getElementById('toast-template');
-            const toast = template.cloneNode(true);
-            toast.id = '';
-            toast.className = '';
-            
-            const toastElement = toast.querySelector('.toast');
-            toastElement.querySelector('.me-auto').textContent = title;
-            toastElement.querySelector('.notification-content').textContent = message;
-            toastElement.querySelector('.notification-time').textContent = 'now';
-            
-            document.body.appendChild(toast);
-            
-            const bsToast = new bootstrap.Toast(toastElement, {
-                autohide: true,
-                delay: 5000
-            });
-            bsToast.show();
-            
-            toastElement.addEventListener('hidden.bs.toast', () => {
-                toast.remove();
-            });
-        }
-
-        // Event handlers
-        function handleKeyDown(event) {
-            if (event.key === 'Enter' && !event.shiftKey) {
-                event.preventDefault();
+        
+        // Event listeners
+        messageInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
                 sendMessage();
+            } else {
+                startTyping();
             }
-        }
-
-        function toggleNotifications() {
-            notificationsEnabled = !notificationsEnabled;
-            const icon = document.getElementById('notification-icon');
-            icon.className = notificationsEnabled ? 'fas fa-bell' : 'fas fa-bell-slash';
-            
-            showToast('Notifications', 
-                notificationsEnabled ? 'Notifications enabled' : 'Notifications disabled',
-                'info'
-            );
-        }
-
-        function clearChat() {
-            if (confirm('Clear all messages from this chat?')) {
-                document.getElementById('chat-messages').innerHTML = '';
-                displaySystemMessage('Chat cleared');
-            }
-        }
-
-        function updateUserPresence(data) {
-            console.log('Presence update:', data);
-            updateOnlineUsers();
-        }
-
-        // Utility functions
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        // Initialize when page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            // Enable send button on input
-            document.getElementById('message-input').addEventListener('input', updateSendButton);
-            
-            // Initialize mock data
-            updateOnlineUsers();
-            
-            // Connect to WebSocket
-            initializeSocket();
-            
-            // Add some demo messages
-            setTimeout(() => {
-                displaySystemMessage('Welcome to SoulBridge AI Live Chat!');
-                displayMessage({
-                    user_id: 'System',
-                    content: 'This is a real-time chat powered by WebSocket technology. Try typing a message!',
-                    timestamp: new Date().toISOString()
-                });
-            }, 1000);
-            
-            // Send periodic pings
-            setInterval(() => {
-                if (socket && socket.connected) {
-                    socket.emit('ping');
-                }
-            }, 30000);
         });
+        
+        messageInput.addEventListener('input', function() {
+            if (messageInput.value.trim()) {
+                startTyping();
+            } else {
+                stopTyping();
+            }
+        });
+        
+        // Demo: Join a demo conversation for testing
+        setTimeout(function() {
+            currentConversation = 'demo-conversation-id';
+            socket.emit('join_conversation', {
+                conversation_id: currentConversation
+            });
+        }, 1000);
+        
+        console.log('Real-time chat initialized');
     </script>
 </body>
 </html>

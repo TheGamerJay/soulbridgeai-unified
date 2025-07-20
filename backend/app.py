@@ -28,6 +28,7 @@ from flask import (
     flash,
     make_response,
 )
+from flask_socketio import SocketIO
 from email_service import EmailService
 from rate_limiter import rate_limit, init_rate_limiting
 from env_validator import init_environment_validation
@@ -45,6 +46,7 @@ from preferences_api import init_preferences_api
 from preferences_dashboard import init_preferences_dashboard
 from social_system import init_social_manager, init_social_database
 from social_api import init_social_api
+from realtime_messaging import init_realtime_messaging
 
 # Load environment variables from .env file (optional in production)
 try:
@@ -90,6 +92,9 @@ logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key")
+
+# Initialize Socket.IO for real-time features
+socketio = SocketIO(app, cors_allowed_origins="*", logger=True, engineio_logger=True)
 
 # Initialize rate limiting
 init_rate_limiting(app)
@@ -290,6 +295,9 @@ def init_database():
                 # Initialize social system
                 init_social_database(db_connection)
                 social_manager = init_social_manager(db, preferences_manager, notification_api.get_manager() if notification_api else None)
+                
+                # Initialize real-time messaging system
+                realtime_messaging = init_realtime_messaging(socketio, social_manager, notification_api.get_manager() if notification_api else None)
                 
                 # Initialize notification scheduler
                 if notification_api:
@@ -1938,6 +1946,11 @@ def voice_chat():
 @app.route("/auth/register")
 def auth_register():
     return render_template("register.html")
+
+@app.route("/realtime-chat")
+def realtime_chat():
+    """Real-time chat demo page"""
+    return render_template("realtime_chat.html")
 
 
 @app.route("/auth/register", methods=["POST"])
@@ -4998,4 +5011,4 @@ if __name__ == "__main__":
     except Exception as e:
         logging.warning(f"Service initialization warning: {e}")
 
-    app.run(host="0.0.0.0", port=port, debug=False)
+    socketio.run(app, host="0.0.0.0", port=port, debug=False)
