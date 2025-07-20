@@ -408,6 +408,129 @@ def create_social_api(social_manager, rate_limiter, security_monitor):
             logger.error(f"Error getting social stats: {e}")
             return jsonify({'error': 'Internal server error'}), 500
     
+    @social_api.route('/messages', methods=['POST'])
+    @require_auth
+    def send_message():
+        """Send a message to another user"""
+        try:
+            user_id = session['user_id']
+            data = request.get_json()
+            
+            if not data or 'recipient_id' not in data or 'content' not in data:
+                return jsonify({'error': 'Recipient ID and content required'}), 400
+            
+            recipient_id = data['recipient_id']
+            content = data['content'].strip()
+            message_type = data.get('message_type', 'text')
+            metadata = data.get('metadata')
+            
+            if not content:
+                return jsonify({'error': 'Message content cannot be empty'}), 400
+            
+            if not social_manager:
+                return jsonify({'error': 'Social system unavailable'}), 503
+            
+            # Rate limiting (if available)
+            if rate_limiter and not rate_limiter.check_rate_limit(f"send_message_{user_id}", max_requests=50, window=3600):
+                return jsonify({'error': 'Too many messages. Please wait.'}), 429
+            
+            # Security monitoring (if available)
+            if security_monitor:
+                security_monitor.log_event(user_id, 'message_sent', {
+                    'recipient_id': recipient_id,
+                    'message_type': message_type
+                })
+            
+            result = social_manager.send_message(user_id, recipient_id, content, message_type, metadata)
+            
+            if not result['success']:
+                return jsonify({'error': result['error']}), 400
+            
+            return jsonify({
+                'success': True,
+                'message': 'Message sent successfully',
+                'message_id': result['message_id'],
+                'conversation_id': result['conversation_id']
+            })
+            
+        except Exception as e:
+            logger.error(f"Error sending message: {e}")
+            return jsonify({'error': 'Internal server error'}), 500
+    
+    @social_api.route('/conversations', methods=['GET'])
+    @require_auth
+    def get_conversations():
+        """Get user's conversations"""
+        try:
+            user_id = session['user_id']
+            
+            if not social_manager:
+                return jsonify({'error': 'Social system unavailable'}), 503
+            
+            conversations = social_manager.get_conversations(user_id)
+            
+            return jsonify({
+                'success': True,
+                'conversations': conversations,
+                'count': len(conversations)
+            })
+            
+        except Exception as e:
+            logger.error(f"Error getting conversations: {e}")
+            return jsonify({'error': 'Internal server error'}), 500
+    
+    @social_api.route('/conversations/<conversation_id>/messages', methods=['GET'])
+    @require_auth
+    def get_messages(conversation_id):
+        """Get messages in a conversation"""
+        try:
+            user_id = session['user_id']
+            limit = min(int(request.args.get('limit', 50)), 100)  # Max 100 messages
+            before_message_id = request.args.get('before')
+            
+            if not social_manager:
+                return jsonify({'error': 'Social system unavailable'}), 503
+            
+            result = social_manager.get_messages(user_id, conversation_id, limit, before_message_id)
+            
+            if not result['success']:
+                return jsonify({'error': result['error']}), 400
+            
+            return jsonify({
+                'success': True,
+                'messages': result['messages'],
+                'count': len(result['messages']),
+                'conversation_id': conversation_id
+            })
+            
+        except Exception as e:
+            logger.error(f"Error getting messages: {e}")
+            return jsonify({'error': 'Internal server error'}), 500
+    
+    @social_api.route('/messages/<message_id>/read', methods=['PUT'])
+    @require_auth
+    def mark_message_read(message_id):
+        """Mark a message as read"""
+        try:
+            user_id = session['user_id']
+            
+            if not social_manager:
+                return jsonify({'error': 'Social system unavailable'}), 503
+            
+            result = social_manager.mark_message_as_read(user_id, message_id)
+            
+            if not result['success']:
+                return jsonify({'error': result['error']}), 400
+            
+            return jsonify({
+                'success': True,
+                'message': 'Message marked as read'
+            })
+            
+        except Exception as e:
+            logger.error(f"Error marking message as read: {e}")
+            return jsonify({'error': 'Internal server error'}), 500
+    
     return social_api
 
 def init_social_api(social_manager, rate_limiter, security_monitor):

@@ -29,6 +29,16 @@ class PostType(Enum):
     REFLECTION = "reflection"
     MILESTONE = "milestone"
 
+class MessageType(Enum):
+    TEXT = "text"
+    MOOD_SHARE = "mood_share"
+    ACHIEVEMENT_SHARE = "achievement_share"
+
+class MessageStatus(Enum):
+    SENT = "sent"
+    DELIVERED = "delivered"
+    READ = "read"
+
 @dataclass
 class FriendRequest:
     id: str
@@ -58,6 +68,29 @@ class SocialPost:
     created_at: datetime = None
     likes_count: int = 0
     comments_count: int = 0
+
+@dataclass
+class Message:
+    id: str
+    sender_id: str
+    recipient_id: str
+    message_type: MessageType
+    content: str
+    metadata: Optional[Dict] = None
+    status: MessageStatus = MessageStatus.SENT
+    created_at: datetime = None
+    read_at: Optional[datetime] = None
+
+@dataclass
+class Conversation:
+    id: str
+    user1_id: str
+    user2_id: str
+    last_message_id: Optional[str] = None
+    last_message_at: Optional[datetime] = None
+    user1_unread_count: int = 0
+    user2_unread_count: int = 0
+    created_at: datetime = None
 
 @dataclass
 class UserProfile:
@@ -658,6 +691,328 @@ class SocialManager:
                 mood_sharing_enabled=True,
                 public_profile=True
             )
+    
+    def send_message(self, sender_id: str, recipient_id: str, content: str, message_type: str = "text", metadata: Dict = None) -> Dict[str, Any]:
+        """Send a message to another user"""
+        try:
+            if not self.db:
+                return {'success': False, 'error': 'Database unavailable'}
+            
+            # Validate message type
+            if message_type not in [e.value for e in MessageType]:
+                return {'success': False, 'error': 'Invalid message type'}
+            
+            # Check if users are friends
+            friendship_status = self._check_friendship_status(sender_id, recipient_id)
+            if friendship_status != "friends":
+                return {'success': False, 'error': 'Can only message friends'}
+            
+            # Check privacy settings
+            recipient_prefs = self.preferences.get_user_preferences(recipient_id) if self.preferences else {}
+            privacy = recipient_prefs.get('privacy', {})
+            
+            if not privacy.get('allow_messages', True):
+                return {'success': False, 'error': 'User has disabled messages'}
+            
+            # Create or get conversation
+            conversation_id = self._get_or_create_conversation(sender_id, recipient_id)
+            
+            # Create message
+            message_id = str(uuid.uuid4())
+            message = Message(
+                id=message_id,
+                sender_id=sender_id,
+                recipient_id=recipient_id,
+                message_type=MessageType(message_type),
+                content=content.strip(),
+                metadata=metadata,
+                status=MessageStatus.SENT,
+                created_at=datetime.now()
+            )
+            
+            # Insert message
+            query = """
+            INSERT INTO messages 
+            (id, conversation_id, sender_id, recipient_id, message_type, content, metadata, status, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """
+            
+            self.db.execute_query(query, (
+                message.id, conversation_id, message.sender_id, message.recipient_id,
+                message.message_type.value, message.content, 
+                json.dumps(message.metadata) if message.metadata else None,
+                message.status.value, message.created_at
+            ))
+            
+            # Update conversation
+            self._update_conversation(conversation_id, message_id, sender_id, recipient_id)
+            
+            # Send notification
+            if self.notifications:
+                sender_profile = self.get_user_profile(sender_id)
+                self.notifications.send_notification(
+                    user_id=recipient_id,
+                    title=f"New message from {sender_profile.display_name}",
+                    message=content[:100] + "..." if len(content) > 100 else content,
+                    notification_type="message",
+                    metadata={'message_id': message_id, 'sender_id': sender_id, 'conversation_id': conversation_id}
+                )
+            
+            logger.info(f"Message sent from {sender_id} to {recipient_id}")
+            return {'success': True, 'message_id': message_id, 'conversation_id': conversation_id}
+            
+        except Exception as e:
+            logger.error(f"Error sending message: {e}")
+            return {'success': False, 'error': 'Failed to send message'}
+    
+    def get_conversations(self, user_id: str) -> List[Dict[str, Any]]:
+        """Get user's conversations"""
+        try:
+            if not self.db:
+                return []
+            
+            query = """
+            SELECT c.id, c.user1_id, c.user2_id, c.last_message_id, c.last_message_at,
+                   c.user1_unread_count, c.user2_unread_count,
+                   m.content as last_message, m.sender_id as last_sender,
+                   up.display_name, up.avatar_url
+            FROM conversations c
+            LEFT JOIN messages m ON c.last_message_id = m.id
+            LEFT JOIN user_profiles up ON (
+                CASE WHEN c.user1_id = ? THEN c.user2_id ELSE c.user1_id END = up.user_id
+            )
+            WHERE c.user1_id = ? OR c.user2_id = ?
+            ORDER BY c.last_message_at DESC
+            """
+            
+            results = self.db.fetch_all(query, (user_id, user_id, user_id))
+            
+            conversations = []
+            for row in results:
+                other_user_id = row[2] if row[1] == user_id else row[1]
+                unread_count = row[6] if row[1] == user_id else row[5]
+                
+                conversations.append({
+                    'id': row[0],
+                    'other_user_id': other_user_id,
+                    'other_user_name': row[9] or 'Unknown User',
+                    'other_user_avatar': row[10],
+                    'last_message': row[7],
+                    'last_message_sender': row[8],
+                    'last_message_at': row[4],
+                    'unread_count': unread_count,
+                    'is_last_message_mine': row[8] == user_id if row[8] else False
+                })
+            
+            return conversations
+            
+        except Exception as e:
+            logger.error(f"Error getting conversations: {e}")
+            return []
+    
+    def get_messages(self, user_id: str, conversation_id: str, limit: int = 50, before_message_id: str = None) -> Dict[str, Any]:
+        """Get messages in a conversation"""
+        try:
+            if not self.db:
+                return {'success': False, 'error': 'Database unavailable'}
+            
+            # Verify user is part of conversation
+            conv_query = "SELECT user1_id, user2_id FROM conversations WHERE id = ?"
+            conv_result = self.db.fetch_one(conv_query, (conversation_id,))
+            
+            if not conv_result or user_id not in [conv_result[0], conv_result[1]]:
+                return {'success': False, 'error': 'Conversation not found'}
+            
+            # Build query
+            base_query = """
+            SELECT m.id, m.sender_id, m.recipient_id, m.message_type, m.content, 
+                   m.metadata, m.status, m.created_at, m.read_at,
+                   up.display_name, up.avatar_url
+            FROM messages m
+            LEFT JOIN user_profiles up ON m.sender_id = up.user_id
+            WHERE m.conversation_id = ?
+            """
+            
+            params = [conversation_id]
+            
+            if before_message_id:
+                # Get timestamp of before_message_id for pagination
+                timestamp_query = "SELECT created_at FROM messages WHERE id = ?"
+                timestamp_result = self.db.fetch_one(timestamp_query, (before_message_id,))
+                if timestamp_result:
+                    base_query += " AND m.created_at < ?"
+                    params.append(timestamp_result[0])
+            
+            base_query += " ORDER BY m.created_at DESC LIMIT ?"
+            params.append(limit)
+            
+            results = self.db.fetch_all(base_query, params)
+            
+            messages = []
+            for row in results:
+                metadata = None
+                if row[5]:
+                    try:
+                        metadata = json.loads(row[5])
+                    except json.JSONDecodeError:
+                        pass
+                
+                messages.append({
+                    'id': row[0],
+                    'sender_id': row[1],
+                    'recipient_id': row[2],
+                    'message_type': row[3],
+                    'content': row[4],
+                    'metadata': metadata,
+                    'status': row[6],
+                    'created_at': row[7],
+                    'read_at': row[8],
+                    'sender_name': row[9] or 'Unknown User',
+                    'sender_avatar': row[10],
+                    'is_mine': row[1] == user_id
+                })
+            
+            # Mark messages as read
+            self._mark_messages_as_read(user_id, conversation_id)
+            
+            # Reverse to show oldest first
+            messages.reverse()
+            
+            return {'success': True, 'messages': messages}
+            
+        except Exception as e:
+            logger.error(f"Error getting messages: {e}")
+            return {'success': False, 'error': 'Failed to get messages'}
+    
+    def mark_message_as_read(self, user_id: str, message_id: str) -> Dict[str, Any]:
+        """Mark a specific message as read"""
+        try:
+            if not self.db:
+                return {'success': False, 'error': 'Database unavailable'}
+            
+            # Verify user is recipient
+            query = "SELECT recipient_id, conversation_id FROM messages WHERE id = ?"
+            result = self.db.fetch_one(query, (message_id,))
+            
+            if not result or result[0] != user_id:
+                return {'success': False, 'error': 'Message not found'}
+            
+            # Update message status
+            update_query = """
+            UPDATE messages 
+            SET status = ?, read_at = ?
+            WHERE id = ? AND recipient_id = ? AND status != 'read'
+            """
+            
+            self.db.execute_query(update_query, (
+                MessageStatus.READ.value, datetime.now(), message_id, user_id
+            ))
+            
+            # Update conversation unread count
+            self._update_unread_count(result[1], user_id)
+            
+            return {'success': True}
+            
+        except Exception as e:
+            logger.error(f"Error marking message as read: {e}")
+            return {'success': False, 'error': 'Failed to mark message as read'}
+    
+    def _get_or_create_conversation(self, user1_id: str, user2_id: str) -> str:
+        """Get existing conversation or create new one"""
+        try:
+            # Check for existing conversation
+            query = """
+            SELECT id FROM conversations 
+            WHERE (user1_id = ? AND user2_id = ?) OR (user1_id = ? AND user2_id = ?)
+            """
+            result = self.db.fetch_one(query, (user1_id, user2_id, user2_id, user1_id))
+            
+            if result:
+                return result[0]
+            
+            # Create new conversation
+            conversation_id = str(uuid.uuid4())
+            conversation = Conversation(
+                id=conversation_id,
+                user1_id=user1_id,
+                user2_id=user2_id,
+                created_at=datetime.now()
+            )
+            
+            insert_query = """
+            INSERT INTO conversations (id, user1_id, user2_id, created_at)
+            VALUES (?, ?, ?, ?)
+            """
+            
+            self.db.execute_query(insert_query, (
+                conversation.id, conversation.user1_id, conversation.user2_id, conversation.created_at
+            ))
+            
+            return conversation_id
+            
+        except Exception as e:
+            logger.error(f"Error getting/creating conversation: {e}")
+            raise
+    
+    def _update_conversation(self, conversation_id: str, message_id: str, sender_id: str, recipient_id: str):
+        """Update conversation with latest message"""
+        try:
+            query = """
+            UPDATE conversations 
+            SET last_message_id = ?, 
+                last_message_at = ?,
+                user1_unread_count = CASE 
+                    WHEN user1_id = ? THEN user1_unread_count 
+                    ELSE user1_unread_count + 1 
+                END,
+                user2_unread_count = CASE 
+                    WHEN user2_id = ? THEN user2_unread_count 
+                    ELSE user2_unread_count + 1 
+                END
+            WHERE id = ?
+            """
+            
+            self.db.execute_query(query, (
+                message_id, datetime.now(), sender_id, sender_id, conversation_id
+            ))
+            
+        except Exception as e:
+            logger.error(f"Error updating conversation: {e}")
+    
+    def _mark_messages_as_read(self, user_id: str, conversation_id: str):
+        """Mark all unread messages in conversation as read"""
+        try:
+            # Mark messages as read
+            query = """
+            UPDATE messages 
+            SET status = ?, read_at = ?
+            WHERE conversation_id = ? AND recipient_id = ? AND status != 'read'
+            """
+            
+            self.db.execute_query(query, (
+                MessageStatus.READ.value, datetime.now(), conversation_id, user_id
+            ))
+            
+            # Reset unread count
+            self._update_unread_count(conversation_id, user_id)
+            
+        except Exception as e:
+            logger.error(f"Error marking messages as read: {e}")
+    
+    def _update_unread_count(self, conversation_id: str, user_id: str):
+        """Reset unread count for user in conversation"""
+        try:
+            query = """
+            UPDATE conversations 
+            SET user1_unread_count = CASE WHEN user1_id = ? THEN 0 ELSE user1_unread_count END,
+                user2_unread_count = CASE WHEN user2_id = ? THEN 0 ELSE user2_unread_count END
+            WHERE id = ?
+            """
+            
+            self.db.execute_query(query, (user_id, user_id, conversation_id))
+            
+        except Exception as e:
+            logger.error(f"Error updating unread count: {e}")
 
 def init_social_database(db_connection):
     """Initialize social system database tables"""
@@ -735,6 +1090,44 @@ def init_social_database(db_connection):
                 UNIQUE(user_id, post_id),
                 INDEX(user_id),
                 INDEX(post_id)
+            )
+        ''')
+        
+        # Conversations table
+        db_connection.execute('''
+            CREATE TABLE IF NOT EXISTS conversations (
+                id TEXT PRIMARY KEY,
+                user1_id TEXT NOT NULL,
+                user2_id TEXT NOT NULL,
+                last_message_id TEXT,
+                last_message_at DATETIME,
+                user1_unread_count INTEGER DEFAULT 0,
+                user2_unread_count INTEGER DEFAULT 0,
+                created_at DATETIME NOT NULL,
+                INDEX(user1_id),
+                INDEX(user2_id),
+                INDEX(last_message_at)
+            )
+        ''')
+        
+        # Messages table
+        db_connection.execute('''
+            CREATE TABLE IF NOT EXISTS messages (
+                id TEXT PRIMARY KEY,
+                conversation_id TEXT NOT NULL,
+                sender_id TEXT NOT NULL,
+                recipient_id TEXT NOT NULL,
+                message_type TEXT NOT NULL,
+                content TEXT NOT NULL,
+                metadata TEXT,
+                status TEXT NOT NULL,
+                created_at DATETIME NOT NULL,
+                read_at DATETIME,
+                INDEX(conversation_id),
+                INDEX(sender_id),
+                INDEX(recipient_id),
+                INDEX(created_at),
+                INDEX(status)
             )
         ''')
         
