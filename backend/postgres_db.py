@@ -174,6 +174,87 @@ class PostgreSQLManager:
             """
             )
 
+            # Real-time chat messages table
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS chat_messages (
+                    message_id VARCHAR(50) PRIMARY KEY,
+                    user_id VARCHAR(50) REFERENCES users(user_id) ON DELETE CASCADE,
+                    room_id VARCHAR(100) NOT NULL,
+                    content TEXT NOT NULL,
+                    message_type VARCHAR(50) DEFAULT 'text',
+                    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    metadata JSONB DEFAULT '{}',
+                    edited_at TIMESTAMP,
+                    deleted_at TIMESTAMP
+                )
+            """
+            )
+
+            # Real-time notifications table
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS live_notifications (
+                    notification_id VARCHAR(50) PRIMARY KEY,
+                    user_id VARCHAR(50) REFERENCES users(user_id) ON DELETE CASCADE,
+                    type VARCHAR(50) NOT NULL,
+                    title VARCHAR(255) NOT NULL,
+                    message TEXT NOT NULL,
+                    data JSONB DEFAULT '{}',
+                    read BOOLEAN DEFAULT FALSE,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    expires_at TIMESTAMP,
+                    read_at TIMESTAMP
+                )
+            """
+            )
+
+            # User presence and sessions table
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS user_presence (
+                    session_id VARCHAR(100) PRIMARY KEY,
+                    user_id VARCHAR(50) REFERENCES users(user_id) ON DELETE CASCADE,
+                    status VARCHAR(20) DEFAULT 'online',
+                    current_room VARCHAR(100),
+                    last_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    metadata JSONB DEFAULT '{}',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """
+            )
+
+            # Chat rooms table
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS chat_rooms (
+                    room_id VARCHAR(100) PRIMARY KEY,
+                    room_name VARCHAR(255) NOT NULL,
+                    room_type VARCHAR(50) DEFAULT 'public',
+                    description TEXT,
+                    created_by VARCHAR(50) REFERENCES users(user_id),
+                    settings JSONB DEFAULT '{}',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """
+            )
+
+            # Room memberships table
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS room_memberships (
+                    membership_id VARCHAR(50) PRIMARY KEY,
+                    room_id VARCHAR(100) REFERENCES chat_rooms(room_id) ON DELETE CASCADE,
+                    user_id VARCHAR(50) REFERENCES users(user_id) ON DELETE CASCADE,
+                    role VARCHAR(50) DEFAULT 'member',
+                    joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    last_read_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(room_id, user_id)
+                )
+            """
+            )
+
             # Create indexes for performance
             cursor.execute(
                 "CREATE INDEX IF NOT EXISTS idx_feature_flags_name ON feature_flags(flag_name)"
@@ -187,8 +268,31 @@ class PostgreSQLManager:
             cursor.execute(
                 "CREATE INDEX IF NOT EXISTS idx_ab_experiments_active ON ab_experiments(is_active, start_date, end_date)"
             )
+            
+            # Real-time feature indexes
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_chat_messages_room_time ON chat_messages(room_id, timestamp DESC)"
+            )
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_chat_messages_user ON chat_messages(user_id, timestamp DESC)"
+            )
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_live_notifications_user ON live_notifications(user_id, created_at DESC)"
+            )
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_live_notifications_unread ON live_notifications(user_id, read, created_at DESC)"
+            )
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_user_presence_user ON user_presence(user_id, last_seen DESC)"
+            )
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_room_memberships_user ON room_memberships(user_id, joined_at DESC)"
+            )
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_room_memberships_room ON room_memberships(room_id, joined_at DESC)"
+            )
 
-            print("✅ Database tables created/verified (including feature flags)")
+            print("✅ Database tables created/verified (including feature flags and real-time features)")
 
         except Exception as e:
             print(f"❌ Failed to create tables: {e}")
