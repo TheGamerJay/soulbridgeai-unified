@@ -12,3 +12,9 @@ stripe>=7.0.0
 python-dotenv>=1.0.0
 sendgrid>=6.10.0
 psycopg2-binary
+pyotp>=2.8.0
+qrcode>=7.4.0
+pillow>=10.0.0
+geoip2>=4.7.0
+user-agents>=2.2.0
+passlib>=1.7.4
