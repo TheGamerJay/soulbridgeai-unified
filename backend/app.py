@@ -2343,7 +2343,7 @@ def create_addon_checkout():
             "complete-bundle": {
                 "name": "Complete Add-On Bundle",
                 "description": "All add-ons included (Save $2!)",
-                "price": 899,  # $8.99 (normally $13.96)
+                "price": 1199,  # $11.99 (normally $13.96, save $1.97)
                 "emoji": "📦"
             }
         }
