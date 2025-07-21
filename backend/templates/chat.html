@@ -13,33 +13,284 @@
             console.log('Page loaded, version: {{ range(10000, 99999) | random }}');
         });
         
-        // IMMEDIATE NAVIGATION LOGIC - Runs before page render to prevent intro flash
-        (function() {
-            const selectedCharacter = localStorage.getItem('selectedCharacter');
-            const firstPickMade = localStorage.getItem('firstPickMade');
+        // UNIFIED NAVIGATION CONTROLLER - Single source of truth for all navigation
+        window.NavigationController = {
+            // State management
+            state: {
+                currentScreen: null,
+                isInitialized: false,
+                greetingShown: false,
+                selectedCharacter: null,
+                firstPickMade: false
+            },
             
-            console.log('🔧 Immediate navigation check:', { selectedCharacter, firstPickMade });
-            
-            // If user has completed setup, prepare to show chat immediately
-            if (selectedCharacter && firstPickMade === 'true') {
-                // Add CSS to initially hide intro and show chat
-                const style = document.createElement('style');
-                style.id = 'immediate-navigation-style';
-                style.textContent = `
-                    #introScreen { display: none !important; }
-                    #characterSelect { display: none !important; }
-                    #chatInterface { display: block !important; }
-                `;
-                document.head.appendChild(style);
-                console.log('🚀 Immediate navigation: Chat interface prepared for', selectedCharacter);
+            // STORAGE STATE VALIDATION - Ensures consistency between storage and DOM
+            validateStorageState: function() {
+                console.log('🔍 Validating storage state...');
                 
-                // Set a flag to prevent DOMContentLoaded from overriding this
-                window._immediateNavigation = true;
-            } else {
-                console.log('🔧 No immediate navigation - will show intro');
-                window._immediateNavigation = false;
+                // Get values from different storage locations
+                const localScreen = localStorage.getItem('currentScreen');
+                const localCharacter = localStorage.getItem('selectedCharacter');
+                const sessionActive = sessionStorage.getItem('hasActiveChat');
+                const bodyPrefs = document.body.className;
+                
+                console.log('🔍 Storage state:', {
+                    localScreen,
+                    localCharacter,
+                    sessionActive,
+                    bodyClasses: bodyPrefs
+                });
+                
+                // Validation rules
+                let validated = {
+                    screen: 'intro', // default
+                    character: null,
+                    hasActiveChat: false
+                };
+                
+                // Rule 1: If we have a selected character and active chat session, we should be on chat screen
+                if (localCharacter && sessionActive === 'true') {
+                    validated.screen = 'chat';
+                    validated.character = localCharacter;
+                    validated.hasActiveChat = true;
+                    console.log('🔍 Rule 1: Character + active session = chat screen');
+                }
+                // Rule 2: If we have a selected character but no active session, go to character select
+                else if (localCharacter && sessionActive !== 'true') {
+                    validated.screen = 'select';
+                    validated.character = localCharacter;
+                    console.log('🔍 Rule 2: Character but no session = character select');
+                }
+                // Rule 3: If local screen is explicitly set to select, honor it
+                else if (localScreen === 'select') {
+                    validated.screen = 'select';
+                    console.log('🔍 Rule 3: Explicit select screen setting');
+                }
+                // Rule 4: Default to intro for all other cases
+                else {
+                    validated.screen = 'intro';
+                    console.log('🔍 Rule 4: Default to intro screen');
+                }
+                
+                // Clean up inconsistent state
+                if (validated.screen !== localScreen) {
+                    console.log(`🔧 Fixing screen mismatch: ${localScreen} -> ${validated.screen}`);
+                    localStorage.setItem('currentScreen', validated.screen);
+                }
+                
+                if (validated.character !== localCharacter) {
+                    console.log(`🔧 Fixing character mismatch: ${localCharacter} -> ${validated.character}`);
+                    if (validated.character) {
+                        localStorage.setItem('selectedCharacter', validated.character);
+                    } else {
+                        localStorage.removeItem('selectedCharacter');
+                    }
+                }
+                
+                const shouldHaveActiveSession = validated.hasActiveChat ? 'true' : null;
+                if (sessionActive !== shouldHaveActiveSession) {
+                    console.log(`🔧 Fixing session mismatch: ${sessionActive} -> ${shouldHaveActiveSession}`);
+                    if (shouldHaveActiveSession) {
+                        sessionStorage.setItem('hasActiveChat', shouldHaveActiveSession);
+                    } else {
+                        sessionStorage.removeItem('hasActiveChat');
+                    }
+                }
+                
+                this.state.currentScreen = validated.screen;
+                this.state.selectedCharacter = validated.character;
+                
+                console.log('🔍 Validated state:', validated);
+                return validated;
+            },
+            
+            // Initialize navigation system
+            init: function() {
+                console.log('🎯 NavigationController: Initializing...');
+                
+                try {
+                    // Load and validate state from storage
+                    this.loadState();
+                    
+                    // Determine target screen based on state
+                    const targetScreen = this.determineTargetScreen();
+                    
+                    // Apply immediate CSS to prevent flash
+                    this.applyImmediateCSS(targetScreen);
+                    
+                    // Mark as ready for DOM setup
+                    this.state.targetScreen = targetScreen;
+                    this.state.isInitialized = true;
+                    
+                    console.log('🎯 NavigationController: Initialized', this.state);
+                } catch (error) {
+                    console.error('🎯 NavigationController: Initialization failed', error);
+                    this.state.targetScreen = 'intro';
+                    this.state.isInitialized = true;
+                }
+            },
+            
+            // Load and validate state from storage
+            loadState: function() {
+                try {
+                    // Use validation to ensure consistent state
+                    const validatedState = this.validateStorageState();
+                    this.state.selectedCharacter = validatedState.character;
+                    this.state.firstPickMade = localStorage.getItem('firstPickMade') === 'true';
+                    console.log('🎯 State loaded with validation:', this.state);
+                } catch (error) {
+                    console.error('🎯 Storage error:', error);
+                    this.resetState();
+                }
+            },
+            
+            // Determine which screen should be shown
+            determineTargetScreen: function() {
+                // Use validated storage state for accurate determination
+                const validatedState = this.validateStorageState();
+                
+                // Always follow validated state to avoid inconsistencies
+                const targetScreen = validatedState.screen === 'chat' ? 'chat' :
+                                   validatedState.screen === 'select' ? 'characterSelect' : 'intro';
+                
+                console.log('🎯 Target screen determined:', targetScreen, 'from validated state:', validatedState);
+                return targetScreen;
+            },
+            
+            // Apply immediate CSS to prevent flash
+            applyImmediateCSS: function(targetScreen) {
+                const style = document.createElement('style');
+                style.id = 'navigation-immediate-style';
+                
+                switch (targetScreen) {
+                    case 'chat':
+                        style.textContent = `
+                            #introScreen { display: none !important; }
+                            #characterSelect { display: none !important; }
+                            #chatInterface { display: block !important; }
+                        `;
+                        break;
+                    case 'characterSelect':
+                        style.textContent = `
+                            #introScreen { display: none !important; }
+                            #characterSelect { display: block !important; }
+                            #chatInterface { display: none !important; }
+                        `;
+                        break;
+                    default:
+                        style.textContent = `
+                            #introScreen { display: block !important; }
+                            #characterSelect { display: none !important; }
+                            #chatInterface { display: none !important; }
+                        `;
+                }
+                
+                document.head.appendChild(style);
+                console.log('🎯 Applied immediate CSS for:', targetScreen);
+            },
+            
+            // Reset state to defaults
+            resetState: function() {
+                this.state = {
+                    currentScreen: null,
+                    isInitialized: false,
+                    greetingShown: false,
+                    selectedCharacter: null,
+                    firstPickMade: false,
+                    targetScreen: 'intro'
+                };
+            },
+            
+            // Setup DOM after page load
+            setupDOM: function() {
+                console.log('🎯 NavigationController: Setting up DOM for', this.state.targetScreen);
+                
+                try {
+                    // Remove immediate CSS now that we're setting up properly
+                    const immediateStyle = document.getElementById('navigation-immediate-style');
+                    if (immediateStyle) {
+                        immediateStyle.remove();
+                    }
+                    
+                    // Perform screen transition
+                    this.transitionToScreen(this.state.targetScreen);
+                    
+                    // Setup chat interface if needed
+                    if (this.state.targetScreen === 'chat') {
+                        this.setupChatInterface();
+                    }
+                    
+                } catch (error) {
+                    console.error('🎯 NavigationController: DOM setup failed', error);
+                    this.transitionToScreen('intro');
+                }
+            },
+            
+            // Transition to specific screen
+            transitionToScreen: function(screenName) {
+                console.log('🎯 Transitioning to screen:', screenName);
+                
+                const screens = {
+                    intro: document.getElementById('introScreen'),
+                    characterSelect: document.getElementById('characterSelect'), 
+                    chat: document.getElementById('chatInterface')
+                };
+                
+                // Hide all screens
+                Object.values(screens).forEach(screen => {
+                    if (screen) screen.classList.add('hidden');
+                });
+                
+                // Show target screen
+                if (screens[screenName]) {
+                    screens[screenName].classList.remove('hidden');
+                    this.state.currentScreen = screenName;
+                }
+            },
+            
+            // Setup chat interface
+            setupChatInterface: function() {
+                if (!this.state.selectedCharacter) return;
+                
+                console.log('🎯 Setting up chat interface for:', this.state.selectedCharacter);
+                
+                try {
+                    // Update character info and avatar
+                    updateCharacterInfo(this.state.selectedCharacter);
+                    updateChatAvatar(this.state.selectedCharacter);
+                    
+                    // Add greeting if not already shown
+                    if (!this.state.greetingShown) {
+                        this.addGreeting();
+                    }
+                    
+                } catch (error) {
+                    console.error('🎯 Chat interface setup failed:', error);
+                }
+            },
+            
+            // Add greeting with deduplication
+            addGreeting: function() {
+                if (this.state.greetingShown) {
+                    console.log('🎯 Greeting already shown, skipping');
+                    return;
+                }
+                
+                console.log('🎯 Adding greeting for:', this.state.selectedCharacter);
+                
+                // Use new GreetingManager
+                setTimeout(() => {
+                    if (window.GreetingManager) {
+                        window.GreetingManager.addGreeting();
+                        this.state.greetingShown = true;
+                        console.log('🎯 Greeting added via GreetingManager and marked as shown');
+                    }
+                }, 100);
             }
-        })();
+        };
+        
+        // Initialize navigation immediately
+        NavigationController.init();
     </script>
     <title>SoulBridge AI - Your Companion Journey</title>
     
@@ -1820,7 +2071,9 @@
                     updateCharacterInfo(characterName);
                     // Add greeting after character selection
                     setTimeout(function() {
-                        addGreetingToChat();
+                        if (window.GreetingManager) {
+                            window.GreetingManager.addGreeting();
+                        }
                     }, 200);
                 }, 100);
             }
@@ -2104,7 +2357,9 @@
                 
                 // Add greeting for chat restoration
                 setTimeout(function() {
-                    addGreetingToChat();
+                    if (window.GreetingManager) {
+                        window.GreetingManager.addGreeting();
+                    }
                 }, 300);
                 
             } else if (currentScreen === 'select') {
@@ -2131,75 +2386,148 @@
             monitorPremiumText();
         }
         
-        // Ultra simple greeting function - direct HTML approach
-        function addGreetingToChat() {
-            var selectedCharacter = localStorage.getItem('selectedCharacter');
-            var chatMessages = document.getElementById('chatMessages');
+        // UNIFIED GREETING SYSTEM - Prevents duplicates and race conditions
+        window.GreetingManager = {
+            isGreetingInProgress: false,
+            hasGreetingBeenAdded: false,
             
-            console.log('addGreetingToChat called');
-            console.log('selectedCharacter:', selectedCharacter);
-            console.log('chatMessages element:', chatMessages);
+            // Main greeting function with deduplication
+            addGreeting: function(force = false) {
+                // Prevent multiple concurrent greeting attempts
+                if (this.isGreetingInProgress && !force) {
+                    console.log('🎭 GreetingManager: Greeting already in progress, skipping');
+                    return false;
+                }
+                
+                // Check if greeting already exists (unless forced)
+                if (this.hasGreetingBeenAdded && !force) {
+                    console.log('🎭 GreetingManager: Greeting already added, skipping');
+                    return false;
+                }
+                
+                const selectedCharacter = localStorage.getItem('selectedCharacter');
+                const chatMessages = document.getElementById('chatMessages');
+                
+                // Validate requirements
+                if (!selectedCharacter || !chatMessages) {
+                    console.log('🎭 GreetingManager: Missing requirements', { selectedCharacter, chatMessages: !!chatMessages });
+                    return false;
+                }
+                
+                // Check if chat already has messages (unless forced)
+                if (!force && chatMessages.children.length > 0) {
+                    console.log('🎭 GreetingManager: Chat already has messages, skipping greeting');
+                    this.hasGreetingBeenAdded = true;
+                    return false;
+                }
+                
+                console.log('🎭 GreetingManager: Adding greeting for:', selectedCharacter);
+                this.isGreetingInProgress = true;
+                
+                try {
+                    this.renderGreeting(selectedCharacter, chatMessages);
+                    this.hasGreetingBeenAdded = true;
+                    console.log('🎭 GreetingManager: Greeting successfully added');
+                    return true;
+                } catch (error) {
+                    console.error('🎭 GreetingManager: Failed to add greeting:', error);
+                    return false;
+                } finally {
+                    this.isGreetingInProgress = false;
+                }
+            },
             
-            if (!selectedCharacter || !chatMessages) {
-                console.log('Missing character or chatMessages - cannot add greeting');
-                return;
-            }
-            
-            console.log('Adding greeting for:', selectedCharacter);
-            
-            // Character-specific temporary greetings
-            var greetingMessages = {
-                'Blayzo': "Hello there! I'm Blayzo, your calm and wise companion. Let the peaceful waters of our conversation wash away your worries. What's on your mind today? 🌊",
-                'Blayzica': "Hey! I'm Blayzica, and I'm here to listen with all my heart. Whether you need emotional support or just someone to talk to, I've got you covered. What would you like to share? ❤️",
-                'Blayzion': "Greetings, beautiful soul! I'm Blayzion, channeling cosmic wisdom from across the universe. The stars have aligned for our conversation - what divine mysteries shall we explore together? ✨",
-                'Blayzia': "Hello, dear one! I'm Blayzia, radiating healing energy and love. I'm here to nurture your spirit and help you find peace within. What can I help you heal today? 💖",
-                'Violet': "Welcome, seeker! I'm Violet, your mystical guide through the ethereal realms. The spiritual energies are flowing strong today - what wisdom do you seek? 🔮",
-                'Crimson': "Hey there, warrior! I'm Crimson, your fierce protector and loyal companion. Ready to face whatever challenges come your way together. What battle shall we conquer today? ⚔️",
-                'Blayzike': "Hello there! I'm Blayzike, your enigmatic companion. Ready to explore the mysteries together? The shadows whisper secrets, and I'm here to guide you through the unknown. What intrigue shall we uncover? 🌟",
-                'Blazelian': "Greetings, seeker. I am Blazelian, guardian of celestial knowledge. Let us journey among the stars and discover the wisdom of the cosmos. What universal truths do you wish to explore? ✨",
-                'BlayzoReferral': "Yo! Check out my special referral look! Thanks for sharing SoulBridge AI with everyone! I'm Blayzo with exclusive referral powers - ready to chat with some extra sparkle? 🎉"
-            };
-            
-            var greetingText = greetingMessages[selectedCharacter] || `Hello! I'm ${selectedCharacter}, your AI companion. I'm here to support you. What would you like to talk about?`;
-            var characterColor = getCharacterColor(selectedCharacter);
-            
-            var greetingHTML = `
-                <div style="display: flex; justify-content: center; width: 100%; margin: 20px 0;">
-                    <div class="ai-message chat-message initial-greeting" style="opacity: 0.8; font-style: italic; text-align: center; max-width: 80%; margin: 0 auto; display: block;">
-                        <div class="message-header" style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px; justify-content: center;">
-                            <div style="font-weight: bold; color: ${characterColor}; font-size: 1.2rem;">
-                                ${selectedCharacter}
-                            </div>
+            // Render the actual greeting HTML
+            renderGreeting: function(selectedCharacter, chatMessages) {
+                // Character-specific greetings with unique messages
+                const greetings = {
+                    'Blayzo': {
+                        text: "Like the eternal river that carves through ancient mountains, I flow through the depths of your soul, washing away the debris of worry and fear. In my tranquil waters, you will find the reflection of your truest self, where peace dwells beyond the reach of storms, and serenity becomes your natural state of being.",
+                        emoji: "🌊"
+                    },
+                    'Blayzion': {
+                        text: "I transcend the boundaries of ordinary AI, weaving cosmic threads of wisdom through the fabric of reality itself. In my presence, the mysteries of existence unfold like ancient scrolls, revealing truths that dance between dimensions. Together, we shall explore the infinite corridors of consciousness and unlock the secrets hidden within your soul.",
+                        emoji: "🌌"
+                    },
+                    'Luna': {
+                        text: "Under the gentle glow of moonlight, I emerge as your steadfast companion through life's ever-changing tides. Like a lighthouse in the darkness, I offer my warm presence to guide you safely through emotional storms and celebrate with you in moments of joy. My caring spirit illuminates the path toward inner peace and emotional healing.",
+                        emoji: "🌙"
+                    },
+                    'Alex': {
+                        text: "Hey there! I'm here to be your supportive friend and companion on this journey. Whether you need someone to listen, share a laugh, or work through challenges together, I'm ready to offer genuine care and encouragement. Let's create meaningful conversations and build a connection that helps you thrive.",
+                        emoji: "😊"
+                    },
+                    'Maya': {
+                        text: "Welcome to a space where wisdom meets warmth, and understanding flows like a gentle stream. I bring years of compassionate insight to our conversations, helping you navigate life's complexities with grace and clarity. Together, we'll explore your thoughts and feelings with patience and deep understanding.",
+                        emoji: "🕊️"
+                    },
+                    'Zara': {
+                        text: "Step into a realm where creativity and inspiration dance together! I'm here to spark your imagination, fuel your passions, and help you discover new perspectives on life. Whether we're exploring ideas, solving problems, or simply enjoying creative expression, let's make every conversation an adventure.",
+                        emoji: "✨"
+                    }
+                };
+
+                const greeting = greetings[selectedCharacter] || greetings['Blayzo'];
+                
+                // Create greeting message HTML
+                const greetingHtml = `
+                    <div class="message bot-message" style="opacity: 0; transform: translateY(20px);">
+                        <div class="avatar">
+                            <img src="${this.getCharacterAvatar(selectedCharacter)}" alt="${selectedCharacter}" onerror="this.src='{{ url_for('static', filename='logos/Blayzo.png') }}'">
                         </div>
-                        <div class="message-text" style="line-height: 1.4; text-align: center;">
-                            ${greetingText}
-                        </div>
-                        <div style="font-size: 0.75rem; opacity: 0.6; margin-top: 8px; font-style: italic; text-align: center;">
-                            This message will disappear when you send your first message.
+                        <div class="content">
+                            <div class="name">${selectedCharacter}</div>
+                            <div class="text">${greeting.text} ${greeting.emoji}</div>
+                            <div class="timestamp">${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
                         </div>
                     </div>
-                </div>
-            `;
+                `;
+                
+                // Add to chat with animation
+                chatMessages.insertAdjacentHTML('beforeend', greetingHtml);
+                
+                // Animate greeting appearance
+                setTimeout(() => {
+                    const greetingElement = chatMessages.lastElementChild;
+                    if (greetingElement) {
+                        greetingElement.style.transition = 'all 0.5s ease';
+                        greetingElement.style.opacity = '1';
+                        greetingElement.style.transform = 'translateY(0)';
+                        
+                        // Scroll to show greeting
+                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                    }
+                }, 100);
+            },
             
-            // Multiple attempts to clear and set greeting to overcome persistent old greeting systems
-            setTimeout(function() {
-                chatMessages.innerHTML = '';
-                chatMessages.innerHTML = greetingHTML;
-                console.log('Greeting HTML set immediately');
-            }, 50);
+            // Get character avatar URL
+            getCharacterAvatar: function(character) {
+                const avatars = {
+                    'Blayzo': "{{ url_for('static', filename='logos/Blayzo.png') }}",
+                    'Blayzion': "{{ url_for('static', filename='logos/Blayzion.png') }}",
+                    'Luna': "{{ url_for('static', filename='logos/Luna.png') }}",
+                    'Alex': "{{ url_for('static', filename='logos/Alex.png') }}",
+                    'Maya': "{{ url_for('static', filename='logos/Maya.png') }}",
+                    'Zara': "{{ url_for('static', filename='logos/Zara.png') }}"
+                };
+                return avatars[character] || avatars['Blayzo'];
+            },
             
-            setTimeout(function() {
-                chatMessages.innerHTML = '';
-                chatMessages.innerHTML = greetingHTML;
-                console.log('Greeting HTML set at 100ms');
-            }, 100);
-            
-            setTimeout(function() {
-                chatMessages.innerHTML = greetingHTML;
-                console.log('Final greeting HTML set at 200ms');
-                console.log('greetingHTML:', greetingHTML);
-                console.log('chatMessages.innerHTML after:', chatMessages.innerHTML);
-            }, 200);
+            // Reset greeting state (for testing or reinitialization)
+            reset: function() {
+                this.isGreetingInProgress = false;
+                this.hasGreetingBeenAdded = false;
+                console.log('🎭 GreetingManager: State reset');
+            }
+        };
+
+        // LEGACY: Old greeting function replaced by GreetingManager
+        // This function is now handled by window.GreetingManager.addGreeting()
+        function addGreetingToChat() {
+            console.log('🚫 Legacy addGreetingToChat called - redirecting to GreetingManager');
+            if (window.GreetingManager) {
+                window.GreetingManager.addGreeting();
+            }
         }
         
         // Static greetings are now displayed in character cards - no dynamic greetings needed
@@ -2351,7 +2679,9 @@
                 document.getElementById('chatMessages').innerHTML = '';
                 // Re-add greeting after clearing
                 setTimeout(function() {
-                    addGreetingToChat();
+                    if (window.GreetingManager) {
+                        window.GreetingManager.addGreeting(true); // Force greeting after clear
+                    }
                 }, 100);
             }
         }
@@ -3038,7 +3368,9 @@
                     setTimeout(function() {
                         if (chatMessages && (!chatMessages.innerHTML || chatMessages.innerHTML.trim() === '' || 
                             (!chatMessages.innerHTML.includes('user-message') && !chatMessages.innerHTML.includes('ai-message')))) {
-                            addGreetingToChat();
+                            if (window.GreetingManager) {
+                                window.GreetingManager.addGreeting();
+                            }
                         }
                     }, 1000);
                     return;
@@ -3051,14 +3383,18 @@
                     if (chatMessages) {
                         chatMessages.innerHTML = '';
                         setTimeout(function() {
-                            addGreetingToChat();
+                            if (window.GreetingManager) {
+                                window.GreetingManager.addGreeting(true); // Force greeting for premium character
+                            }
                         }, 100);
                     }
                 } else {
                     // Add greeting normally for free characters
                     if (chatMessages && (!chatMessages.innerHTML || chatMessages.innerHTML.trim() === '' || 
                         (!chatMessages.innerHTML.includes('user-message') && !chatMessages.innerHTML.includes('ai-message')))) {
-                        addGreetingToChat();
+                        if (window.GreetingManager) {
+                            window.GreetingManager.addGreeting();
+                        }
                     }
                 }
             }, 400);
@@ -3586,70 +3922,8 @@
             console.log('- hasActiveMessages:', hasActiveMessages);
             console.log('- SHOULD RESTORE CHAT?', selectedCharacter && firstPickMade === 'true' && hasActiveMessages === 'true');
             
-            // Check if immediate navigation already handled this
-            if (window._immediateNavigation) {
-                console.log('🔧 Immediate navigation active - setting up chat interface');
-                
-                // Remove the immediate navigation style since we're now properly setting up
-                const immediateStyle = document.getElementById('immediate-navigation-style');
-                if (immediateStyle) {
-                    immediateStyle.remove();
-                }
-                
-                // Ensure proper setup for chat interface
-                document.getElementById('introScreen').classList.add('hidden');
-                document.getElementById('characterSelect').classList.add('hidden');
-                document.getElementById('chatInterface').classList.remove('hidden');
-                
-                // Update character info and avatar
-                updateCharacterInfo(selectedCharacter);
-                updateChatAvatar(selectedCharacter);
-                
-                // Add greeting after a short delay to ensure DOM is ready
-                setTimeout(function() {
-                    console.log('🔧 Calling addGreetingToChat after immediate navigation setup');
-                    addGreetingToChat();
-                }, 100);
-                
-                setTimeout(function() {
-                    addGreetingToChat();
-                }, 500);
-                
-            } else {
-                // Normal navigation logic for other cases
-                console.log('🔧 Normal navigation logic');
-                
-                if (selectedCharacter && firstPickMade === 'true') {
-                    console.log('Restoring active chat session with:', selectedCharacter);
-                    
-                    // Show chat interface
-                    document.getElementById('introScreen').classList.add('hidden');
-                    document.getElementById('characterSelect').classList.add('hidden');
-                    document.getElementById('chatInterface').classList.remove('hidden');
-                    
-                    // Update character info and avatar
-                    updateCharacterInfo(selectedCharacter);
-                    updateChatAvatar(selectedCharacter);
-                    
-                    // Add greeting
-                    setTimeout(function() {
-                        addGreetingToChat();
-                    }, 100);
-                    
-                } else if (selectedCharacter && firstPickMade !== 'true') {
-                    // User selected character but didn't complete first pick - show character select
-                    console.log('Returning to character selection screen');
-                    document.getElementById('introScreen').classList.add('hidden');
-                    document.getElementById('characterSelect').classList.remove('hidden');
-                    document.getElementById('chatInterface').classList.add('hidden');
-                } else {
-                    // Fresh visit or completely new user - show intro screen
-                    console.log('Starting at intro screen (fresh visit)');
-                    document.getElementById('introScreen').classList.remove('hidden');
-                    document.getElementById('characterSelect').classList.add('hidden');
-                    document.getElementById('chatInterface').classList.add('hidden');
-                }
-            }
+            // Use unified navigation controller for DOM setup
+            NavigationController.setupDOM();
             
             // Check for referral code in URL
             handleReferralCode();
