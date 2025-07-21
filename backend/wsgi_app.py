@@ -94,6 +94,36 @@ def create_app():
             logger.error(f"Profile template error: {e}")
             return jsonify({"error": "Profile page temporarily unavailable"}), 200
 
+    @app.route("/auth/logout")
+    def logout():
+        """Logout route"""
+        try:
+            session.clear()
+            return redirect("/login")
+        except Exception as e:
+            logger.error(f"Logout error: {e}")
+            return redirect("/login")
+    
+    @app.route("/community-dashboard")
+    def community_dashboard():
+        """Community dashboard route"""
+        try:
+            if not session.get("user_authenticated", False):
+                return redirect("/login")
+            return render_template("community_dashboard.html")
+        except Exception as e:
+            logger.error(f"Community dashboard error: {e}")
+            return jsonify({"error": "Community dashboard temporarily unavailable"}), 200
+            
+    @app.route("/referrals")
+    def referrals():
+        """Referrals route"""
+        try:
+            return render_template("referrals.html")
+        except Exception as e:
+            logger.error(f"Referrals template error: {e}")
+            return jsonify({"error": "Referrals page temporarily unavailable"}), 200
+
     # API routes
     @app.route("/api/select-plan", methods=["POST"])
     def select_plan():
