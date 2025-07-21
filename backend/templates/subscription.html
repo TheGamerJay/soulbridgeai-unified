@@ -317,17 +317,18 @@
           font-weight: 600;
           cursor: pointer;
           margin-bottom: 10px;
-        ">🎨 Preview Colors</button>
+          font-size: 1.1rem;
+        ">🎨 TRY LIVE PREVIEW (FREE)</button>
         
         <div id="colorPreviewPalettes" style="
-          display: none;
+          display: block;
           background: rgba(34, 211, 238, 0.05);
           border: 1px solid rgba(34, 211, 238, 0.2);
           border-radius: 8px;
           padding: 15px;
           margin-top: 10px;
         ">
-          <h5 style="color: #22d3ee; margin-bottom: 10px;">Try these themes:</h5>
+          <h5 style="color: #22d3ee; margin-bottom: 10px;">🎨 Try Live Color Previews (FREE):</h5>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
             <button onclick="previewTheme('ocean')" style="padding: 8px; border: 1px solid #22d3ee; border-radius: 6px; background: linear-gradient(45deg, #0ea5e9, #0284c7); color: white; cursor: pointer;">🌊 Ocean</button>
             <button onclick="previewTheme('sunset')" style="padding: 8px; border: 1px solid #f59e0b; border-radius: 6px; background: linear-gradient(45deg, #f59e0b, #ea580c); color: white; cursor: pointer;">🌅 Sunset</button>
@@ -893,9 +894,9 @@
     
     console.log('Color preview triggered', previewDiv);
     
-    if (previewDiv.style.display === 'none' || !previewDiv.style.display) {
+    if (previewDiv.style.display === 'none') {
       previewDiv.style.display = 'block';
-      button.textContent = '🎨 Hide Preview';
+      button.textContent = '🎨 HIDE PREVIEW';
       
       // Show immediate feedback that preview is active
       showThemePreviewFeedback('Color Preview Active');
@@ -915,7 +916,7 @@
       
       setTimeout(() => {
         previewDiv.style.display = 'none';
-        button.textContent = '🎨 Preview Colors';
+        button.textContent = '🎨 TRY LIVE PREVIEW (FREE)';
       }, 300);
     }
   };

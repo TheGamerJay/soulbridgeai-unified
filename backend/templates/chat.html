@@ -12,6 +12,25 @@
         window.addEventListener('load', function() {
             console.log('Page loaded, version: {{ range(10000, 99999) | random }}');
         });
+        
+        // IMMEDIATE NAVIGATION LOGIC - Runs before page render to prevent intro flash
+        (function() {
+            const selectedCharacter = localStorage.getItem('selectedCharacter');
+            const firstPickMade = localStorage.getItem('firstPickMade');
+            
+            // If user has completed setup, prepare to show chat immediately
+            if (selectedCharacter && firstPickMade === 'true') {
+                // Add CSS to initially hide intro and show chat
+                const style = document.createElement('style');
+                style.textContent = `
+                    #introScreen { display: none !important; }
+                    #characterSelect { display: none !important; }
+                    #chatInterface { display: block !important; }
+                `;
+                document.head.appendChild(style);
+                console.log('🚀 Immediate navigation: Chat interface prepared');
+            }
+        })();
     </script>
     <title>SoulBridge AI - Your Companion Journey</title>
     
