@@ -82,8 +82,8 @@ def init_database():
     """Initialize database with error handling"""
     try:
         logger.info("Initializing database...")
-        from database import Database
-        services["database"] = Database()
+        from models import DatabaseManager
+        services["database"] = DatabaseManager()
         logger.info("✅ Database initialized successfully")
         return True
     except Exception as e:
