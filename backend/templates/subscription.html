@@ -563,9 +563,118 @@ function togglePricing(type) {
   }
 }
 
-function selectAddOn(addOnType) {
-  // Coming soon functionality
-  alert(`${addOnType.replace('-', ' ').toUpperCase()}: Coming soon! This add-on will be available in the next update. Subscribe to a plan now to get early access when released!`);
+async function selectAddOn(addOnType) {
+  // Check if user already has this add-on
+  const userAddons = await getUserAddons();
+  if (userAddons.includes(addOnType)) {
+    alert('You already have this add-on!');
+    return;
+  }
+  
+  // Add-on names for display
+  const addonNames = {
+    'voice-journaling': 'Voice Journaling ($4.99/month)',
+    'relationship-profiles': 'Relationship Profiles ($2.99/month)',
+    'emotional-meditations': 'Emotional Meditations ($3.99/month)', 
+    'color-customization': 'Color Customization ($1.99/month)',
+    'complete-bundle': 'Complete Add-On Bundle ($8.99/month - Save $2!)'
+  };
+  
+  const confirm = window.confirm(`Purchase ${addonNames[addOnType]}?\n\nThis will be a monthly subscription that you can cancel anytime.`);
+  
+  if (confirm) {
+    try {
+      const response = await fetch('/api/create-addon-checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          addon_type: addOnType
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        // Redirect to Stripe checkout
+        window.location.href = result.checkout_url;
+      } else {
+        alert('Payment setup failed: ' + result.error);
+      }
+    } catch (error) {
+      console.error('Add-on checkout error:', error);
+      alert('Payment setup failed. Please try again.');
+    }
+  }
+}
+
+// Get user's active add-ons
+async function getUserAddons() {
+  try {
+    const response = await fetch('/api/user-addons');
+    const result = await response.json();
+    return result.success ? result.active_addons : [];
+  } catch (error) {
+    console.error('Error fetching user addons:', error);
+    return [];
+  }
+}
+
+// Update add-on cards to show purchased status
+async function updateAddonStatus() {
+  const userAddons = await getUserAddons();
+  
+  // Update each add-on card
+  const addonCards = document.querySelectorAll('.add-on-card');
+  addonCards.forEach(card => {
+    const onclick = card.getAttribute('onclick');
+    const addonType = onclick.match(/selectAddOn\('([^']+)'\)/)[1];
+    
+    if (userAddons.includes(addonType)) {
+      // Mark as purchased
+      card.style.background = 'rgba(16, 185, 129, 0.2)';
+      card.style.border = '2px solid #10b981';
+      card.style.cursor = 'default';
+      card.onclick = null;
+      
+      // Add purchased indicator
+      const title = card.querySelector('h4');
+      if (title && !title.textContent.includes('✅')) {
+        title.textContent = '✅ ' + title.textContent;
+      }
+      
+      // Update description
+      const desc = card.querySelector('p');
+      if (desc) {
+        desc.textContent = 'Active subscription';
+        desc.style.color = '#10b981';
+      }
+    }
+  });
+}
+
+// Handle successful add-on purchase on page load
+function handleAddonPaymentSuccess() {
+  const urlParams = new URLSearchParams(window.location.search);
+  
+  if (urlParams.get('addon_success') === 'true') {
+    const addon = urlParams.get('addon');
+    // Clear URL parameters
+    window.history.replaceState({}, document.title, window.location.pathname);
+    
+    // Show success message
+    alert(`🎉 Add-on purchased successfully! Your ${addon.replace('-', ' ')} add-on is now active!`);
+    
+    // Refresh addon status
+    updateAddonStatus();
+  } else if (urlParams.get('addon_canceled') === 'true') {
+    const addon = urlParams.get('addon');
+    // Clear URL parameters
+    window.history.replaceState({}, document.title, window.location.pathname);
+    
+    alert('Add-on purchase was canceled. You can try again anytime.');
+  }
 }
 
 function selectPlan(planType) {
@@ -637,6 +746,12 @@ async function selectPlanViaAPI(planType, billing) {
 // Initialize with monthly pricing
 document.addEventListener('DOMContentLoaded', function() {
   togglePricing('monthly');
+  
+  // Handle addon payment success/cancel
+  handleAddonPaymentSuccess();
+  
+  // Update addon status on page load
+  updateAddonStatus();
 });
 </script>
 

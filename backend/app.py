@@ -2303,6 +2303,179 @@ def test_auth():
     })
 
 
+@app.route("/api/create-addon-checkout", methods=["POST"])
+def create_addon_checkout():
+    """Create Stripe checkout session for add-ons"""
+    try:
+        if not is_logged_in():
+            return jsonify(success=False, error="Authentication required"), 401
+            
+        user_email = session.get("user_email")
+        data = request.get_json()
+        addon_type = data.get("addon_type")
+        
+        # Define add-on pricing
+        addon_prices = {
+            "voice-journaling": {
+                "name": "Voice Journaling",
+                "description": "Record and analyze emotional voice entries",
+                "price": 499,  # $4.99
+                "emoji": "🔊"
+            },
+            "relationship-profiles": {
+                "name": "Relationship Profiles", 
+                "description": "Track and improve your relationships",
+                "price": 299,  # $2.99
+                "emoji": "👤"
+            },
+            "emotional-meditations": {
+                "name": "Emotional Meditations",
+                "description": "Guided meditations for healing", 
+                "price": 399,  # $3.99
+                "emoji": "🧘"
+            },
+            "color-customization": {
+                "name": "Color Customization",
+                "description": "Personalize your interface with custom color palettes",
+                "price": 199,  # $1.99
+                "emoji": "🎨"
+            },
+            "complete-bundle": {
+                "name": "Complete Add-On Bundle",
+                "description": "All add-ons included (Save $2!)",
+                "price": 899,  # $8.99 (normally $13.96)
+                "emoji": "📦"
+            }
+        }
+        
+        if addon_type not in addon_prices:
+            return jsonify(success=False, error="Invalid add-on type"), 400
+            
+        addon = addon_prices[addon_type]
+        
+        # Development mode bypass for testing
+        if DEVELOPMENT_MODE:
+            return jsonify(
+                success=True,
+                checkout_url="/api/simulate-addon-payment-success",
+                message=f"Development mode: Simulating {addon['name']} purchase",
+                addon_type=addon_type
+            )
+
+        # Create Stripe checkout session for add-on subscription
+        session_stripe = stripe.checkout.Session.create(
+            payment_method_types=["card"],
+            line_items=[
+                {
+                    "price_data": {
+                        "currency": "usd",
+                        "product_data": {
+                            "name": f"SoulBridge AI - {addon['name']}",
+                            "description": addon['description'],
+                        },
+                        "unit_amount": addon['price'],
+                        "recurring": {"interval": "month"},
+                    },
+                    "quantity": 1,
+                }
+            ],
+            mode="subscription",
+            success_url=request.url_root + f"subscription?addon_success=true&addon={addon_type}&session_id={{CHECKOUT_SESSION_ID}}",
+            cancel_url=request.url_root + f"subscription?addon_canceled=true&addon={addon_type}",
+            metadata={"user_email": user_email, "addon_type": addon_type, "payment_type": "addon"},
+        )
+
+        return jsonify(success=True, checkout_url=session_stripe.url, session_id=session_stripe.id)
+
+    except Exception as e:
+        logging.error(f"Stripe add-on checkout error: {e}")
+        return jsonify(success=False, error="Failed to create add-on checkout session"), 500
+
+
+@app.route("/api/simulate-addon-payment-success")
+def simulate_addon_payment_success():
+    """Development route to simulate successful add-on payment"""
+    addon_type = request.args.get('addon', 'voice-journaling')
+    
+    return render_template_string(
+        """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Add-On Purchase Success</title>
+        <style>
+            body { 
+                font-family: Arial, sans-serif; 
+                background: linear-gradient(135deg, #000000 0%, #0f172a 50%, #1e293b 100%);
+                color: white;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                min-height: 100vh;
+                margin: 0;
+                text-align: center;
+            }
+            .container {
+                background: rgba(15, 23, 42, 0.8);
+                padding: 2rem;
+                border-radius: 20px;
+                border: 2px solid #22d3ee;
+                box-shadow: 0 20px 40px rgba(34, 211, 238, 0.3);
+            }
+            .success-icon { font-size: 4rem; margin-bottom: 1rem; }
+            .success-message { color: #22d3ee; font-size: 1.5rem; margin-bottom: 1rem; }
+            .continue-btn {
+                background: linear-gradient(135deg, #22d3ee, #0891b2);
+                color: #000;
+                border: none;
+                padding: 1rem 2rem;
+                border-radius: 12px;
+                font-weight: bold;
+                cursor: pointer;
+                font-size: 1rem;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="success-icon">🎉</div>
+            <div class="success-message">Add-On Purchase Successful!</div>
+            <p>Your {{ addon_type.replace('-', ' ').title() }} add-on is now active!</p>
+            <button class="continue-btn" onclick="window.location.href='/subscription'">Back to Subscription</button>
+        </div>
+        <script>
+            // Auto-redirect after 5 seconds
+            setTimeout(() => {
+                window.location.href = '/subscription?addon_success=true&addon={{ addon_type }}';
+            }, 5000);
+        </script>
+    </body>
+    </html>
+    """, addon_type=addon_type)
+
+
+@app.route("/api/user-addons", methods=["GET"])
+def get_user_addons():
+    """Get user's active add-ons"""
+    try:
+        if not is_logged_in():
+            return jsonify(success=False, active_addons=[], error="Not logged in"), 401
+            
+        user_email = session.get("user_email")
+        user = db.users.get_user_by_email(user_email)
+        
+        if not user:
+            return jsonify(success=False, active_addons=[], error="User not found"), 404
+            
+        active_addons = user.get("active_addons", [])
+        
+        return jsonify(success=True, active_addons=active_addons)
+        
+    except Exception as e:
+        logging.error(f"Error getting user addons: {e}")
+        return jsonify(success=False, active_addons=[], error="Server error"), 500
+
+
 @app.route("/support")
 def support():
     return render_template("support.html")
@@ -3475,6 +3648,25 @@ def stripe_webhook():
                         logging.error(f"User not found for switching payment: {user_email}")
                 except Exception as e:
                     logging.error(f"Failed to process switching payment for {user_email}: {e}")
+                    
+            # Handle add-on subscription payment
+            elif payment_type == "addon" and user_email:
+                try:
+                    addon_type = session.metadata.get("addon_type")
+                    user = db.users.get_user_by_email(user_email)
+                    if user and addon_type:
+                        # Add addon to user's active addons list
+                        current_addons = user.get("active_addons", [])
+                        if addon_type not in current_addons:
+                            current_addons.append(addon_type)
+                            db.users.update_user_field(user["_id"], "active_addons", current_addons)
+                            logging.info(f"Add-on {addon_type} activated for user {user_email}")
+                        else:
+                            logging.info(f"Add-on {addon_type} already active for user {user_email}")
+                    else:
+                        logging.error(f"User not found or invalid addon for addon payment: {user_email}, {addon_type}")
+                except Exception as e:
+                    logging.error(f"Failed to process addon payment for {user_email}: {e}")
                     
             # Handle subscription payment
             elif user_id:
