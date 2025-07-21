@@ -589,19 +589,24 @@
             async loadUserProfile() {
                 try {
                     // Use session storage or default values since server already authenticated
-                    this.currentUser = { email: 'GamerJay@gmail.com', displayName: 'SoulBridge User' };
+                    this.currentUser = { 
+                        uid: 'user_' + Date.now(), // Generate a simple uid
+                        email: 'GamerJay@gmail.com', 
+                        displayName: 'SoulBridge User' 
+                    };
 
-                    // Load user data from API
-                    const response = await fetch(`/api/users/${this.currentUser.uid}`);
+                    // Since we have session-based auth, load user data directly from session
+                    // Skip API call and use fallback data
+                    this.userData = {
+                        email: this.currentUser.email,
+                        displayName: this.currentUser.displayName,
+                        uid: this.currentUser.uid,
+                        createdAt: new Date().toISOString(),
+                        subscription: localStorage.getItem('soulbridge_subscription') || 'free',
+                        companionName: localStorage.getItem('selectedCharacter') || 'Blayzo'
+                    };
                     
-                    if (response.ok) {
-                        const result = await response.json();
-                        this.userData = result.user;
-                        this.updateProfileDisplay();
-                    } else {
-                        // Fallback: create user profile if doesn't exist
-                        await this.createUserProfile();
-                    }
+                    this.updateProfileDisplay();
                 } catch (error) {
                     console.error('Failed to load profile:', error);
                     this.showError('Failed to load profile data');

@@ -2548,14 +2548,14 @@
                 
                 // Create greeting message HTML
                 const greetingHtml = `
-                    <div class="message bot-message" style="opacity: 0; transform: translateY(20px);">
-                        <div class="avatar">
-                            <img src="${this.getCharacterAvatar(selectedCharacter)}" alt="${selectedCharacter}" onerror="this.src='{{ url_for('static', filename='logos/Blayzo.png') }}'">
+                    <div class="message bot-message" style="opacity: 0; transform: translateY(20px); display: flex; align-items: flex-start; margin-bottom: 16px; max-width: 80%;">
+                        <div class="avatar" style="width: 40px; height: 40px; flex-shrink: 0; margin-right: 12px;">
+                            <img src="${this.getCharacterAvatar(selectedCharacter)}" alt="${selectedCharacter}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" onerror="this.src='{{ url_for('static', filename='logos/Blayzo.png') }}'">
                         </div>
-                        <div class="content">
-                            <div class="name">${selectedCharacter}</div>
-                            <div class="text">${greeting.text} ${greeting.emoji}</div>
-                            <div class="timestamp">${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+                        <div class="content" style="flex: 1; background: rgba(34, 211, 238, 0.1); padding: 12px; border-radius: 12px; border: 1px solid rgba(34, 211, 238, 0.3);">
+                            <div class="name" style="font-weight: 600; color: #22d3ee; margin-bottom: 4px;">${selectedCharacter}</div>
+                            <div class="text" style="color: #e2e8f0; line-height: 1.5; margin-bottom: 8px;">${greeting.text} ${greeting.emoji}</div>
+                            <div class="timestamp" style="font-size: 0.8rem; color: #94a3b8;">${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
                         </div>
                     </div>
                 `;
@@ -4321,22 +4321,26 @@
                             left: 0;
                             width: 100%;
                             height: 100%;
-                            background: rgba(0, 0, 0, 0.5);
+                            background: rgba(0, 0, 0, 0.85);
                             display: flex;
                             flex-direction: column;
                             justify-content: center;
                             align-items: center;
-                            color: #fbbf24;
-                            font-size: 24px;
-                            font-weight: bold;
-                            border-radius: 15px;
+                            color: white;
+                            font-size: 16px;
+                            font-weight: 600;
+                            border-radius: 20px;
                             z-index: 10;
-                            pointer-events: none;
+                            pointer-events: auto;
+                            cursor: pointer;
+                            backdrop-filter: blur(5px);
+                            border: 2px solid #22d3ee;
+                            box-sizing: border-box;
                         `;
                         lockedOverlay.innerHTML = `
-                            <div style="font-size: 40px; margin-bottom: 8px;">🔒</div>
-                            <div style="font-size: 14px;">Premium</div>
-                            <div style="font-size: 12px; margin-top: 4px; color: #22d3ee;">Click to Upgrade</div>
+                            <div style="font-size: 2.5rem; margin-bottom: 8px; filter: drop-shadow(0 0 10px #22d3ee);">🔒</div>
+                            <div style="font-size: 1rem; font-weight: 700; margin-bottom: 4px;">Premium</div>
+                            <div style="font-size: 0.85rem; color: #22d3ee; font-weight: 500;">Click to Upgrade</div>
                         `;
                         card.style.position = 'relative';
                         card.appendChild(lockedOverlay);
