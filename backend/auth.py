@@ -136,6 +136,42 @@ class User:
             return user
         return None
 
+    def user_exists(self, email):
+        """Check if user exists by email"""
+        conn = self.db.get_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute("SELECT id FROM users WHERE email = ?", (email,))
+            result = cursor.fetchone()
+            conn.close()
+            return result is not None
+        except Exception as e:
+            conn.close()
+            raise e
+
+    def create_user(self, email, password, display_name):
+        """Create new user and return user ID"""
+        conn = self.db.get_connection()
+        cursor = conn.cursor()
+        
+        try:
+            # Hash the password using bcrypt
+            password_hash = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+            
+            # Insert the new user
+            cursor.execute(
+                "INSERT INTO users (email, password_hash, display_name) VALUES (?, ?, ?)",
+                (email, password_hash, display_name)
+            )
+            conn.commit()
+            user_id = cursor.lastrowid
+            conn.close()
+            return user_id
+        except Exception as e:
+            conn.rollback()
+            conn.close()
+            raise e
+
     def create_password_reset_token(self, email):
         """Create a password reset token for the given email"""
         import secrets

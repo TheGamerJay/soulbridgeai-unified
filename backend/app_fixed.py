@@ -12,17 +12,30 @@ import os
 import sys
 import logging
 import time
-import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from flask import Flask, jsonify, render_template, request, session, redirect, url_for, flash, make_response
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
-# Create Flask app
+# Create Flask app with secure session configuration
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", "railway-production-secret-key-2024")
+
+# Security: Use strong secret key or generate one
+secret_key = os.environ.get("SECRET_KEY")
+if not secret_key:
+    import secrets
+    secret_key = secrets.token_hex(32)
+    logger.warning("Generated temporary secret key - set SECRET_KEY environment variable for production")
+
+app.secret_key = secret_key
+
+# Security: Configure session cookies
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SECURE'] = bool(os.environ.get('RAILWAY_ENVIRONMENT'))  # HTTPS in production
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=2)
 
 # Global variables for services
 services = {
@@ -32,11 +45,17 @@ services = {
     "socketio": None
 }
 
-# Global service instances
+# Global service instances and thread safety
+import threading
 db = None
 openai_client = None
 email_service = None
 socketio = None
+_service_lock = threading.RLock()
+
+# Constants
+VALID_CHARACTERS = ["Blayzo", "Sapphire", "Violet", "Crimson", "Blayzia", "Blayzica", "Blayzike", "Blayzion", "Blazelian"]
+VALID_PLANS = ["foundation", "premium", "enterprise"]
 
 def is_logged_in():
     """Check if user is logged in"""
@@ -46,39 +65,90 @@ def get_user_plan():
     """Get user's selected plan"""
     return session.get("user_plan", "foundation")
 
+def parse_request_data():
+    """Parse request data from both JSON and form data"""
+    if request.is_json:
+        data = request.get_json()
+        return data.get("email", "").strip(), data.get("password", "").strip(), data.get("display_name", "").strip()
+    else:
+        return (request.form.get("email", "").strip(), 
+                request.form.get("password", "").strip(),
+                request.form.get("display_name", "").strip())
+
+def setup_user_session(email, user_id=None, is_admin=False, dev_mode=False):
+    """Setup user session with security measures"""
+    # Security: Clear and regenerate session to prevent fixation attacks
+    session.clear()
+    session.permanent = True  # Use configured timeout
+    session["user_authenticated"] = True
+    session["user_email"] = email
+    session["login_timestamp"] = datetime.now().isoformat()
+    session["user_plan"] = "foundation"
+    if user_id:
+        session["user_id"] = user_id
+    if is_admin:
+        session["is_admin"] = True
+    if dev_mode:
+        session["dev_mode"] = True
+
 def init_database():
-    """Initialize database with error handling"""
+    """Initialize database with error handling and thread safety"""
     global db
-    try:
-        logger.info("Initializing database...")
-        from auth import Database
-        db = Database()
-        services["database"] = db
-        logger.info("✅ Database initialized successfully")
-        return True
-    except Exception as e:
-        logger.error(f"❌ Database initialization failed: {e}")
-        services["database"] = None
-        return False
+    with _service_lock:
+        # Double-check pattern with lock
+        if services["database"] and db:
+            return True
+            
+        try:
+            logger.info("Initializing database...")
+            from auth import Database
+            temp_db = Database()
+            # Test database connectivity
+            temp_conn = temp_db.get_connection()
+            temp_conn.close()
+            
+            # Only update globals if successful
+            db = temp_db
+            services["database"] = temp_db
+            logger.info("✅ Database initialized successfully")
+            return True
+        except Exception as e:
+            logger.error(f"❌ Database initialization failed: {e}")
+            # Ensure consistent failure state
+            db = None
+            services["database"] = None
+            return False
 
 def init_openai():
-    """Initialize OpenAI with error handling"""
+    """Initialize OpenAI with error handling and thread safety"""
     global openai_client
-    try:
-        if not os.environ.get("OPENAI_API_KEY"):
-            logger.warning("OpenAI API key not provided")
-            return False
+    with _service_lock:
+        if services["openai"] and openai_client:
+            return True
             
-        logger.info("Initializing OpenAI...")
-        import openai
-        openai_client = openai.OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
-        services["openai"] = openai_client
-        logger.info("✅ OpenAI initialized successfully")
-        return True
-    except Exception as e:
-        logger.error(f"❌ OpenAI initialization failed: {e}")
-        services["openai"] = None
-        return False
+        try:
+            if not os.environ.get("OPENAI_API_KEY"):
+                logger.warning("OpenAI API key not provided")
+                # Consistent failure state
+                openai_client = None
+                services["openai"] = None
+                return False
+                
+            logger.info("Initializing OpenAI...")
+            import openai
+            temp_client = openai.OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+            
+            # Only update globals if successful
+            openai_client = temp_client
+            services["openai"] = temp_client
+            logger.info("✅ OpenAI initialized successfully")
+            return True
+        except Exception as e:
+            logger.error(f"❌ OpenAI initialization failed: {e}")
+            # Ensure consistent failure state
+            openai_client = None
+            services["openai"] = None
+            return False
 
 def init_email():
     """Initialize email service with error handling"""
@@ -101,7 +171,16 @@ def init_socketio():
     try:
         logger.info("Initializing SocketIO...")
         from flask_socketio import SocketIO
-        socketio = SocketIO(app, cors_allowed_origins="*", logger=False, engineio_logger=False)
+        # Use environment-specific CORS settings for security
+        allowed_origins = []
+        if os.environ.get('RAILWAY_ENVIRONMENT'):
+            # Production - only allow specific domains
+            allowed_origins = ["https://*.railway.app", "https://soulbridgeai.com"]
+        else:
+            # Development - allow local development
+            allowed_origins = ["http://localhost:*", "http://127.0.0.1:*"]
+            
+        socketio = SocketIO(app, cors_allowed_origins=allowed_origins, logger=False, engineio_logger=False)
         services["socketio"] = socketio
         logger.info("✅ SocketIO initialized successfully")
         return True
@@ -143,8 +222,13 @@ def initialize_services():
 
 @app.route("/health")
 def health():
-    """Production health check with service status"""
+    """Production health check with service status and lazy initialization"""
     try:
+        # Ensure services are initialized
+        if not any(services.values()):
+            logger.info("Lazy initializing services for health check...")
+            initialize_services()
+            
         return jsonify({
             "status": "healthy",
             "service": "SoulBridge AI", 
@@ -196,14 +280,8 @@ def login_page():
 def auth_login():
     """Handle login authentication"""
     try:
-        # Handle both JSON and form data
-        if request.is_json:
-            data = request.get_json()
-            email = data.get("email", "").strip()
-            password = data.get("password", "").strip()
-        else:
-            email = request.form.get("email", "").strip()
-            password = request.form.get("password", "").strip()
+        # Parse request data
+        email, password, _ = parse_request_data()
         
         if not email or not password:
             return jsonify({"success": False, "error": "Email and password required"}), 400
@@ -223,13 +301,7 @@ def auth_login():
             logger.info(f"Developer login attempt: {is_developer}")
         
         if is_developer:
-            # Set session for developer
-            session["user_authenticated"] = True
-            session["user_email"] = email
-            session["login_timestamp"] = datetime.now().isoformat()
-            session["is_admin"] = True
-            session["dev_mode"] = True
-            session.permanent = False
+            setup_user_session(email, is_admin=True, dev_mode=True)
             logger.info("Developer login successful")
             return jsonify({"success": True, "redirect": "/"})
         
@@ -241,16 +313,7 @@ def auth_login():
                 user_data = User.authenticate(db, email, password)
                 
                 if user_data:
-                    # Set session for authenticated user
-                    session["user_authenticated"] = True
-                    session["user_email"] = email
-                    session["login_timestamp"] = datetime.now().isoformat()
-                    session["user_id"] = user_data[0]  # user ID from database
-                    session.permanent = False
-                    
-                    # Restore user plan if exists
-                    session["user_plan"] = session.get("user_plan", "foundation")
-                    
+                    setup_user_session(email, user_id=user_data[0])
                     logger.info(f"User login successful: {email}")
                     return jsonify({"success": True, "redirect": "/"})
                 else:
@@ -261,22 +324,18 @@ def auth_login():
                 logger.error(f"Database authentication error: {db_error}")
                 # Fall through to basic auth if database fails
         
-        # Fallback: Basic authentication for testing (if no database)
-        # This should be removed in production
-        if email == "test@example.com" and password == "test123":
-            session["user_authenticated"] = True
-            session["user_email"] = email
-            session["user_plan"] = "foundation"
-            session.permanent = False
-            logger.warning("Using fallback test authentication - NOT FOR PRODUCTION")
-            return jsonify({"success": True, "redirect": "/"})
+        # Fallback: Basic authentication for testing (ONLY if database fails)
+        if not os.environ.get('RAILWAY_ENVIRONMENT'):  # Only in development
+            if email == "test@example.com" and password == "test123":
+                setup_user_session(email)
+                logger.warning("Using development test authentication")
+                return jsonify({"success": True, "redirect": "/"})
         
         # Authentication failed
-        logger.warning(f"Authentication failed for: {email}")
+        logger.warning(f"Authentication failed for user")  # Don't log email for security
         return jsonify({
             "success": False, 
-            "error": "Invalid email or password", 
-            "hint": "For testing, try: test@example.com / test123"
+            "error": "Invalid email or password"
         }), 401
         
     except Exception as e:
@@ -306,16 +365,8 @@ def register_page():
 def auth_register():
     """Handle user registration"""
     try:
-        # Handle both JSON and form data
-        if request.is_json:
-            data = request.get_json()
-            email = data.get("email", "").strip()
-            password = data.get("password", "").strip()
-            display_name = data.get("display_name", "").strip()
-        else:
-            email = request.form.get("email", "").strip()
-            password = request.form.get("password", "").strip() 
-            display_name = request.form.get("display_name", "").strip()
+        # Parse request data
+        email, password, display_name = parse_request_data()
         
         if not email or not password:
             return jsonify({"success": False, "error": "Email and password required"}), 400
@@ -341,12 +392,7 @@ def auth_register():
                 
                 if user_id:
                     # Auto-login after registration
-                    session["user_authenticated"] = True
-                    session["user_email"] = email
-                    session["user_id"] = user_id
-                    session["user_plan"] = "foundation"
-                    session.permanent = False
-                    
+                    setup_user_session(email, user_id=user_id)
                     logger.info(f"User registered and logged in: {email}")
                     return jsonify({"success": True, "redirect": "/"})
                 else:
@@ -401,19 +447,23 @@ def community_dashboard():
 def referrals():
     """Referrals route"""
     try:
+        if not is_logged_in():
+            return redirect("/login")
         return render_template("referrals.html")
     except Exception as e:
         logger.error(f"Referrals template error: {e}")
-        return jsonify({"error": "Referrals page temporarily unavailable"}), 200
+        return jsonify({"error": "Referrals page temporarily unavailable"}), 500
 
 @app.route("/decoder")
 def decoder():
     """Decoder page"""
     try:
+        if not is_logged_in():
+            return redirect("/login")
         return render_template("decoder.html")
     except Exception as e:
         logger.error(f"Decoder template error: {e}")
-        return jsonify({"error": "Decoder temporarily unavailable"}), 200
+        return jsonify({"error": "Decoder temporarily unavailable"}), 500
 
 # ========================================
 # API ROUTES
@@ -423,12 +473,23 @@ def decoder():
 def select_plan():
     """Plan selection API"""
     try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+            
         data = request.get_json()
+        if not data:
+            return jsonify({"success": False, "error": "Invalid request data"}), 400
+            
         plan_type = data.get("plan_type", "foundation")
+        
+        if plan_type not in VALID_PLANS:
+            return jsonify({"success": False, "error": "Invalid plan type"}), 400
         
         session["user_plan"] = plan_type
         session["plan_selected_at"] = time.time()
         session["first_time_user"] = False
+        
+        logger.info(f"Plan selected: {plan_type} by {session.get('user_email')}")
         
         return jsonify({
             "success": True,
@@ -437,21 +498,31 @@ def select_plan():
         })
     except Exception as e:
         logger.error(f"Plan selection error: {e}")
-        return jsonify({"success": False, "error": str(e)}), 500
+        return jsonify({"success": False, "error": "Plan selection failed"}), 500
 
 @app.route("/api/chat", methods=["POST"])
 def api_chat():
     """Chat API endpoint"""
     try:
+        if not is_logged_in():
+            return jsonify({"success": False, "response": "Authentication required"}), 401
+            
         if not services["openai"]:
             return jsonify({"success": False, "response": "AI service temporarily unavailable"}), 503
             
         data = request.get_json()
-        message = data.get("message", "")
+        if not data:
+            return jsonify({"success": False, "response": "Invalid request data"}), 400
+            
+        message = data.get("message", "").strip()
         character = data.get("character", "Blayzo")
         
-        if not message:
-            return jsonify({"success": False, "response": "Message is required"}), 400
+        if not message or len(message) > 1000:
+            return jsonify({"success": False, "response": "Message is required and must be under 1000 characters"}), 400
+        
+        # Sanitize character input
+        if character not in VALID_CHARACTERS:
+            character = "Blayzo"  # Default fallback
         
         # Use OpenAI for actual AI response
         try:
@@ -497,21 +568,22 @@ def server_error(e):
 # APPLICATION STARTUP
 # ========================================
 
-# Initialize services when module is imported (for gunicorn)
-logger.info("🚀 Initializing SoulBridge AI services...")
-initialize_services()
-logger.info("✅ SoulBridge AI ready for deployment")
+# Services will be initialized on first request to avoid blocking module import
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     logger.info(f"Starting SoulBridge AI on port {port}")
     logger.info(f"Environment: {'Production' if os.environ.get('RAILWAY_ENVIRONMENT') else 'Development'}")
     
-    # Start the server regardless of service status
+    # Initialize services for standalone execution
+    logger.info("🚀 Initializing services...")
+    initialize_services()
+    
+    # Start the server
     logger.info("🌟 Starting Flask server...")
     
     # Use SocketIO if available, otherwise fall back to regular Flask
-    if services["socketio"]:
+    if services["socketio"] and socketio:
         logger.info("Using SocketIO server")
         socketio.run(app, host="0.0.0.0", port=port, debug=False)
     else:
