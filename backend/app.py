@@ -1530,9 +1530,9 @@ def auth_login():
             session["dev_mode"] = False
             flash("Welcome to SoulBridge AI!", "success")
 
-        # Redirect to chat with intro flag to ensure intro screen shows first
+        # Redirect to chat - let client-side navigation handle intro vs direct chat
         print(f"Login successful, redirecting to chat")
-        return redirect(url_for("chat", show_intro="true"))
+        return redirect(url_for("chat"))
     else:
         print(f"Login failed - invalid credentials")
         flash("Invalid email or password. Please try again.", "error")

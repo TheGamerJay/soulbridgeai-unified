@@ -4009,7 +4009,7 @@
             }
         }
         
-        // SECURITY: Clear session when user closes browser/tab
+        // SECURITY: Clear session when user closes browser/tab (but preserve user preferences)
         window.addEventListener('beforeunload', function(e) {
             // Clear session data on browser close
             fetch('/auth/logout', {
@@ -4019,12 +4019,19 @@
                 // Ignore errors - browser might be closing
             });
             
-            // Clear any local storage
-            localStorage.removeItem('selectedCharacter');
-            localStorage.removeItem('selectedLanguage');
-            localStorage.removeItem('themeMode');
+            // Clear only sensitive session data - PRESERVE user preferences
+            localStorage.removeItem('user_authenticated');
+            localStorage.removeItem('session_token');
+            localStorage.removeItem('auth_timestamp');
+            sessionStorage.clear(); // Clear all session storage
             
-            console.log('Browser closing - session cleared');
+            // PRESERVE these user preferences for better UX:
+            // - selectedCharacter (so user doesn't lose their companion choice)
+            // - firstPickMade (so user doesn't have to go through intro again)
+            // - themeMode (day/night preference)
+            // - subscriptionStatus (subscription info)
+            
+            console.log('Browser closing - session cleared but preferences preserved');
         });
         
         // Also clear on page unload
