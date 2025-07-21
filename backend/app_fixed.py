@@ -273,7 +273,11 @@ def auth_login():
         
         # Authentication failed
         logger.warning(f"Authentication failed for: {email}")
-        return jsonify({"success": False, "error": "Invalid email or password"}), 401
+        return jsonify({
+            "success": False, 
+            "error": "Invalid email or password", 
+            "hint": "For testing, try: test@example.com / test123"
+        }), 401
         
     except Exception as e:
         logger.error(f"Login error: {e}")
@@ -297,6 +301,66 @@ def register_page():
     except Exception as e:
         logger.error(f"Register template error: {e}")
         return jsonify({"error": "Register page temporarily unavailable"}), 200
+
+@app.route("/auth/register", methods=["POST"])
+def auth_register():
+    """Handle user registration"""
+    try:
+        # Handle both JSON and form data
+        if request.is_json:
+            data = request.get_json()
+            email = data.get("email", "").strip()
+            password = data.get("password", "").strip()
+            display_name = data.get("display_name", "").strip()
+        else:
+            email = request.form.get("email", "").strip()
+            password = request.form.get("password", "").strip() 
+            display_name = request.form.get("display_name", "").strip()
+        
+        if not email or not password:
+            return jsonify({"success": False, "error": "Email and password required"}), 400
+            
+        if not display_name:
+            display_name = email.split('@')[0]  # Use email prefix as default name
+        
+        # Initialize database if needed
+        if not services["database"]:
+            init_database()
+        
+        if services["database"] and db:
+            try:
+                from auth import User
+                user = User(db)
+                
+                # Check if user already exists
+                if user.user_exists(email):
+                    return jsonify({"success": False, "error": "User already exists"}), 409
+                
+                # Create new user
+                user_id = user.create_user(email, password, display_name)
+                
+                if user_id:
+                    # Auto-login after registration
+                    session["user_authenticated"] = True
+                    session["user_email"] = email
+                    session["user_id"] = user_id
+                    session["user_plan"] = "foundation"
+                    session.permanent = False
+                    
+                    logger.info(f"User registered and logged in: {email}")
+                    return jsonify({"success": True, "redirect": "/"})
+                else:
+                    return jsonify({"success": False, "error": "Registration failed"}), 500
+                    
+            except Exception as db_error:
+                logger.error(f"Registration database error: {db_error}")
+                return jsonify({"success": False, "error": "Registration failed"}), 500
+        else:
+            return jsonify({"success": False, "error": "Registration service unavailable"}), 503
+            
+    except Exception as e:
+        logger.error(f"Registration error: {e}")
+        return jsonify({"success": False, "error": "Registration failed"}), 500
 
 # ========================================
 # MAIN APP ROUTES
