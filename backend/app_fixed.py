@@ -246,22 +246,26 @@ def health():
 
 @app.route("/")
 def home():
-    """Home route with plan checking"""
+    """Home route - redirect to login for security"""
     try:
+        # Always require authentication for home page
+        if not is_logged_in():
+            return redirect("/login")
+            
+        # Ensure services are initialized for authenticated users
         if not services["database"]:
             initialize_services()
-            
-        user_authenticated = is_logged_in()
+        
         user_plan = get_user_plan()
         
         # Check if user needs to select a plan
-        if user_authenticated and not user_plan:
+        if not user_plan or user_plan == "foundation":
             return redirect("/subscription")
             
         return render_template("chat.html")
     except Exception as e:
         logger.error(f"Home route error: {e}")
-        return jsonify({"error": "Service temporarily unavailable"}), 503
+        return redirect("/login")
 
 # ========================================
 # AUTHENTICATION ROUTES
