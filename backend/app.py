@@ -2240,37 +2240,66 @@ def subscription():
 @app.route("/api/select-plan", methods=["POST"])
 def select_plan():
     """Handle plan selection and set session data"""
-    if not session.get("user_authenticated"):
-        return jsonify({"success": False, "error": "Not authenticated"}), 401
-    
-    data = request.get_json()
-    plan_type = data.get("plan_type")
-    
-    if not plan_type or plan_type not in ["foundation", "growth", "transformation"]:
-        return jsonify({"success": False, "error": "Invalid plan type"}), 400
-    
-    # Set user plan in session
-    session["user_plan"] = plan_type
-    session["plan_selected_at"] = time.time()
-    session["first_time_user"] = False  # Mark as no longer first-time user
-    
-    print(f"Plan selected: {plan_type} for user {session.get('user_email')}")
-    
-    # For free plan, allow immediate access to chat
-    if plan_type == "foundation":
+    try:
+        print(f"Plan selection request from: {session.get('user_email', 'unknown')}")
+        print(f"User authenticated: {session.get('user_authenticated', False)}")
+        
+        if not session.get("user_authenticated"):
+            print("ERROR: User not authenticated")
+            return jsonify({"success": False, "error": "Not authenticated"}), 401
+        
+        data = request.get_json()
+        print(f"Request data: {data}")
+        
+        if not data:
+            print("ERROR: No JSON data received")
+            return jsonify({"success": False, "error": "No data received"}), 400
+            
+        plan_type = data.get("plan_type")
+        print(f"Plan type: {plan_type}")
+        
+        if not plan_type or plan_type not in ["foundation", "growth", "transformation"]:
+            print(f"ERROR: Invalid plan type: {plan_type}")
+            return jsonify({"success": False, "error": "Invalid plan type"}), 400
+        
+        # Set user plan in session
+        session["user_plan"] = plan_type
+        session["plan_selected_at"] = time.time()
+        session["first_time_user"] = False  # Mark as no longer first-time user
+        
+        print(f"Plan selected: {plan_type} for user {session.get('user_email')}")
+        
+        # For free plan, allow immediate access to chat
+        if plan_type == "foundation":
+            return jsonify({
+                "success": True, 
+                "plan": plan_type,
+                "message": "Free plan activated! You can now start chatting.",
+                "redirect": "/"
+            })
+        
+        # For paid plans, redirect to payment
         return jsonify({
             "success": True, 
             "plan": plan_type,
-            "message": "Free plan activated! You can now start chatting.",
-            "redirect": "/"
+            "message": f"{plan_type.title()} plan selected! Complete payment to activate.",
+            "redirect": f"/payment?plan={plan_type}"
         })
-    
-    # For paid plans, redirect to payment
+        
+    except Exception as e:
+        print(f"ERROR in select_plan: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"success": False, "error": f"Server error: {str(e)}"}), 500
+
+
+@app.route("/api/test-auth", methods=["GET"])
+def test_auth():
+    """Test authentication status"""
     return jsonify({
-        "success": True, 
-        "plan": plan_type,
-        "message": f"{plan_type.title()} plan selected! Complete payment to activate.",
-        "redirect": f"/payment?plan={plan_type}"
+        "authenticated": session.get("user_authenticated", False),
+        "user_email": session.get("user_email", "none"),
+        "session_keys": list(session.keys())
     })
 
 
