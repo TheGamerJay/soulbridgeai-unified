@@ -74,6 +74,7 @@ import base64
 import json
 import hashlib
 from datetime import datetime
+import time
 from models import SoulBridgeDB
 from postgres_db import SoulBridgePostgreSQL
 import psycopg2.extras
@@ -214,18 +215,17 @@ def init_openai():
     global openai_client
     openai_api_key = os.environ.get("OPENAI_API_KEY")
     if openai_api_key:
-        # Temporarily disable OpenAI initialization due to Railway proxy conflicts
-        logging.warning(
-            "OpenAI temporarily disabled due to Railway deployment proxy conflicts"
-        )
-        logging.info("App will function normally without AI features for now")
-        openai_client = None
-
-        # TODO: Re-enable OpenAI once proxy configuration is resolved
-        # The error appears to be related to Railway's environment passing proxy parameters
-        # that conflict with the newer OpenAI client library
+        try:
+            openai_client = OpenAI(api_key=openai_api_key)
+            # Test the connection with a simple API call
+            openai_client.models.list()
+            logging.info("OpenAI client initialized successfully")
+        except Exception as e:
+            logging.error(f"Failed to initialize OpenAI client: {str(e)}")
+            openai_client = None
     else:
         logging.warning("OPENAI_API_KEY not found - AI features will be disabled")
+        openai_client = None
 
 
 # Initialize SoulBridge Database and Email Service
@@ -641,8 +641,8 @@ DEVELOPMENT_MODE = DEVELOPMENT_MODE_EARLY
 # -------------------------------------------------
 JWT_SECRET = os.environ.get("JWT_SECRET", "admin-secret-key-change-in-production")
 ADMIN_EMAILS = [
-    "GamerJay@gmail.com",  # Your admin email
-    "admin@soulbridgeai.com",  # Add more admin emails as needed
+    "soulbridgeai.contact@gmail.com",  # Official admin email
+    "GamerJay@gmail.com",  # Developer email (backup)
 ]
 
 # IP whitelist for admin endpoints (optional)
@@ -758,8 +758,8 @@ def admin_jwt_login():
         password = data.get("password", "").strip()
 
         # Validate admin credentials (use your existing validation)
-        DEV_EMAIL = "GamerJay@gmail.com"
-        DEV_PASSWORD = "Yariel13"
+        ADMIN_EMAIL = "soulbridgeai.contact@gmail.com"
+        ADMIN_PASSWORD = "Yariel13"
 
         if email != DEV_EMAIL or password != DEV_PASSWORD:
             return jsonify(success=False, error="Invalid admin credentials"), 401
@@ -1547,7 +1547,12 @@ def auth_login():
             flash("Account verification failed. Please contact support.", "error")
             return redirect(url_for("login"))
 
-        # Set session with subscription info - AGGRESSIVE session tracking
+        # Set session with subscription info - PRESERVE important session data during login
+        # Preserve existing user plan and companion selection before clearing
+        existing_plan = session.get("user_plan")
+        existing_first_time = session.get("first_time_user", True)
+        existing_plan_selected_at = session.get("plan_selected_at")
+        
         session.clear()  # Clear any existing session data first
         current_time = datetime.now()
 
@@ -1560,11 +1565,15 @@ def auth_login():
         session["last_activity"] = current_time.isoformat()  # Track activity
         session.permanent = False  # Session dies when browser closes
         
-        # Check if this is a first-time login (no plan selected yet)
-        if "user_plan" not in session:
-            session["first_time_user"] = True
+        # Restore preserved session data
+        if existing_plan:
+            session["user_plan"] = existing_plan
+            session["first_time_user"] = existing_first_time
+            if existing_plan_selected_at:
+                session["plan_selected_at"] = existing_plan_selected_at
         else:
-            session["first_time_user"] = False
+            # Check if this is a first-time login (no plan selected yet)
+            session["first_time_user"] = True
 
         print(
             f"Login successful with subscription status: {subscription_data['status']}"
@@ -1997,12 +2006,13 @@ def test_route():
 
 @app.route("/admin-login-bypass")
 def admin_login_bypass():
-    """Admin bypass route to establish session for testing"""
+    """Admin bypass route to establish session for live production fixes"""
     # Set up admin session with longer duration
     session["user_authenticated"] = True
-    session["user_email"] = "admin@test.com"
+    session["user_email"] = "GamerJay@gmail.com"  # Live admin email
     session["login_timestamp"] = datetime.now().isoformat()
     session["is_admin"] = True
+    session["dev_mode"] = True  # Enable developer access
     session.permanent = True  # Make session persistent
 
     # Return HTML with localStorage setup and redirect
@@ -2012,7 +2022,8 @@ def admin_login_bypass():
     <head><title>Admin Setup</title></head>
     <body style="background: #000; color: #22d3ee; font-family: Arial; padding: 2rem;">
         <h1>🔧 Setting up admin access...</h1>
-        <p>Configuring premium access for testing.</p>
+        <p>🚀 Configuring production admin access for live system management.</p>
+        <p style="color: #fbbf24;">⚠️ LIVE PRODUCTION MODE - Admin backdoor for debugging & fixes</p>
         
         <script>
             // Set up premium access flags
