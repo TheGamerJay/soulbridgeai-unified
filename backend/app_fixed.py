@@ -187,20 +187,84 @@ def login_page():
 def auth_login():
     """Handle login authentication"""
     try:
-        data = request.get_json()
-        email = data.get("email")
-        password = data.get("password")
+        # Handle both JSON and form data
+        if request.is_json:
+            data = request.get_json()
+            email = data.get("email", "").strip()
+            password = data.get("password", "").strip()
+        else:
+            email = request.form.get("email", "").strip()
+            password = request.form.get("password", "").strip()
         
         if not email or not password:
             return jsonify({"success": False, "error": "Email and password required"}), 400
         
-        # Simple authentication (you can enhance this)
-        # For now, just set session
-        session["user_authenticated"] = True
-        session["user_email"] = email
-        session["user_plan"] = session.get("user_plan", "foundation")
+        # Initialize database if needed
+        if not services["database"]:
+            init_database()
         
-        return jsonify({"success": True, "redirect": "/"})
+        # Developer credentials from environment (secure)
+        DEV_EMAIL = os.environ.get("DEV_EMAIL")
+        DEV_PASSWORD = os.environ.get("DEV_PASSWORD")
+        
+        # Check if this is the developer account
+        is_developer = False
+        if DEV_EMAIL and DEV_PASSWORD and email == DEV_EMAIL:
+            is_developer = password == DEV_PASSWORD
+            logger.info(f"Developer login attempt: {is_developer}")
+        
+        if is_developer:
+            # Set session for developer
+            session["user_authenticated"] = True
+            session["user_email"] = email
+            session["login_timestamp"] = datetime.now().isoformat()
+            session["is_admin"] = True
+            session["dev_mode"] = True
+            session.permanent = False
+            logger.info("Developer login successful")
+            return jsonify({"success": True, "redirect": "/"})
+        
+        # For regular users, check database if available
+        if services["database"] and db:
+            try:
+                # Use the authentication system from auth.py
+                from auth import User
+                user_data = User.authenticate(db, email, password)
+                
+                if user_data:
+                    # Set session for authenticated user
+                    session["user_authenticated"] = True
+                    session["user_email"] = email
+                    session["login_timestamp"] = datetime.now().isoformat()
+                    session["user_id"] = user_data[0]  # user ID from database
+                    session.permanent = False
+                    
+                    # Restore user plan if exists
+                    session["user_plan"] = session.get("user_plan", "foundation")
+                    
+                    logger.info(f"User login successful: {email}")
+                    return jsonify({"success": True, "redirect": "/"})
+                else:
+                    logger.warning(f"Failed login attempt for: {email}")
+                    return jsonify({"success": False, "error": "Invalid email or password"}), 401
+                    
+            except Exception as db_error:
+                logger.error(f"Database authentication error: {db_error}")
+                # Fall through to basic auth if database fails
+        
+        # Fallback: Basic authentication for testing (if no database)
+        # This should be removed in production
+        if email == "test@example.com" and password == "test123":
+            session["user_authenticated"] = True
+            session["user_email"] = email
+            session["user_plan"] = "foundation"
+            session.permanent = False
+            logger.warning("Using fallback test authentication - NOT FOR PRODUCTION")
+            return jsonify({"success": True, "redirect": "/"})
+        
+        # Authentication failed
+        logger.warning(f"Authentication failed for: {email}")
+        return jsonify({"success": False, "error": "Invalid email or password"}), 401
         
     except Exception as e:
         logger.error(f"Login error: {e}")
