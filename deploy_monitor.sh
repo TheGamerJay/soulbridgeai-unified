@@ -17,8 +17,8 @@ pip install requests openai python-dotenv
 
 # Download monitoring script
 echo "📥 Setting up monitoring script..."
-wget https://raw.githubusercontent.com/TheGamerJay/soulbridgeai-unified/main/maintenance_improved.py
-chmod +x maintenance_improved.py
+wget https://raw.githubusercontent.com/TheGamerJay/soulbridgeai-unified/main/maintenance_resend.py
+chmod +x maintenance_resend.py
 
 # Install Railway CLI
 echo "🚄 Installing Railway CLI..."
@@ -40,7 +40,7 @@ RestartSec=30
 User=root
 WorkingDirectory=/opt/soulbridge-monitor
 Environment=PATH=/opt/soulbridge-monitor/monitor_env/bin:/root/.railway/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-ExecStart=/opt/soulbridge-monitor/monitor_env/bin/python maintenance_improved.py
+ExecStart=/opt/soulbridge-monitor/monitor_env/bin/python maintenance_resend.py
 StandardOutput=journal
 StandardError=journal
 

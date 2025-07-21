@@ -4,7 +4,8 @@
 
 ### **Environment Variables** (Get these ready):
 - [ ] **Railway API Token** - From Railway dashboard → Settings → Tokens
-- [ ] **Discord Webhook URL** - See DISCORD_SETUP.md
+- [ ] **Resend API Key** - Already configured: `re_atdLxCys_5xcKG6NvWCQ1vfXfhpJUvnR5`
+- [ ] **Monitor Email Settings** - See EMAIL_SETUP.md for configuration
 - [ ] **OpenAI API Key** - From platform.openai.com → API Keys
 - [ ] **Site Health URL** - Currently: `https://soulbridgeai-unified-production.up.railway.app/health`
 
@@ -47,8 +48,8 @@ railway link
 ```bash
 # Test the script manually first
 source monitor_env/bin/activate
-python maintenance_improved.py
-# Should send a "Monitor Started" message to Discord
+python maintenance_resend.py
+# Should send a "Monitor Started" email to your configured address
 
 # If working, set up as service
 sudo systemctl start soulbridge-monitor
@@ -57,8 +58,8 @@ sudo systemctl status soulbridge-monitor
 ```
 
 ### **4. Verification:**
-- [ ] Discord message received: "Monitor Started"
-- [ ] Health check shows ✅ "Site is healthy"
+- [ ] Email received: "Monitoring System Started"
+- [ ] Health check shows ✅ "Site is healthy" 
 - [ ] Railway CLI can access your project
 - [ ] Service starts automatically after server reboot
 
@@ -73,7 +74,7 @@ sudo journalctl -u soulbridge-monitor -f
 ### **Update the Monitor:**
 ```bash
 cd /opt/soulbridge-monitor
-wget -O maintenance_improved.py https://raw.githubusercontent.com/TheGamerJay/soulbridgeai-unified/main/maintenance_improved.py
+wget -O maintenance_resend.py https://raw.githubusercontent.com/TheGamerJay/soulbridgeai-unified/main/maintenance_resend.py
 sudo systemctl restart soulbridge-monitor
 ```
 
