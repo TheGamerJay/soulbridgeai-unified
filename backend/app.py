@@ -2712,15 +2712,34 @@ def create_checkout_session():
                 message="Development mode: Simulating successful payment",
             )
 
-        # Define pricing
+        # Define new 3-tier pricing structure
         prices = {
-            "monthly": {"amount": 1000, "interval": "month"},  # $10.00 in cents
-            "yearly": {"amount": 10000, "interval": "year"},  # $100.00 in cents
+            "growth": {
+                "monthly": {"amount": 1299, "interval": "month"},  # $12.99
+                "yearly": {"amount": 9900, "interval": "year"},   # $99.00
+            },
+            "transformation": {
+                "monthly": {"amount": 1999, "interval": "month"},  # $19.99
+                "yearly": {"amount": 17900, "interval": "year"},  # $179.00
+            }
         }
+        
+        # Get billing type from request
+        billing = data.get("billing", "monthly")
+        
+        # Validate plan and billing combination
+        if plan not in prices or billing not in prices[plan]:
+            return jsonify(success=False, error="Invalid plan or billing type"), 400
 
-        if plan not in prices:
-            return jsonify(success=False, error="Invalid plan"), 400
-
+        # Get pricing for the selected plan and billing cycle
+        plan_pricing = prices[plan][billing]
+        
+        # Map plan names to display names
+        plan_names = {
+            "growth": "Growth",
+            "transformation": "Transformation"
+        }
+        
         # Create Stripe checkout session
         session = stripe.checkout.Session.create(
             payment_method_types=["card"],
@@ -2729,11 +2748,11 @@ def create_checkout_session():
                     "price_data": {
                         "currency": "usd",
                         "product_data": {
-                            "name": f"SoulBridge AI {plan.capitalize()} Subscription",
-                            "description": f"Premium AI companion access - {plan} billing",
+                            "name": f"SoulBridge AI {plan_names[plan]} Plan",
+                            "description": f"Premium AI emotional wellness companion - {billing} billing",
                         },
-                        "unit_amount": prices[plan]["amount"],
-                        "recurring": {"interval": prices[plan]["interval"]},
+                        "unit_amount": plan_pricing["amount"],
+                        "recurring": {"interval": plan_pricing["interval"]},
                     },
                     "quantity": 1,
                 }
@@ -2742,7 +2761,7 @@ def create_checkout_session():
             success_url=request.url_root
             + "subscription?success=true&session_id={CHECKOUT_SESSION_ID}",
             cancel_url=request.url_root + "subscription?canceled=true",
-            metadata={"user_id": user_id, "plan": plan},
+            metadata={"user_id": user_id, "plan": plan, "billing": billing},
         )
 
         return jsonify(success=True, checkout_url=session.url, session_id=session.id)
