@@ -1251,6 +1251,101 @@ def login():
 
 
 # -------------------------------------------------
+# Static Files Routes
+# -------------------------------------------------
+@app.route('/favicon.ico')
+def favicon():
+    """Serve favicon - tries multiple locations"""
+    try:
+        from flask import send_from_directory
+        import os
+        
+        # Try multiple locations for favicon
+        favicon_locations = [
+            # Primary: frontend public directory
+            os.path.join(app.root_path, 'soulbridgeai-frontend', 'public'),
+            # Fallback: backend static directory  
+            os.path.join(app.root_path, 'static'),
+            # Alternative: root directory
+            app.root_path
+        ]
+        
+        for favicon_dir in favicon_locations:
+            favicon_path = os.path.join(favicon_dir, 'favicon.ico')
+            if os.path.exists(favicon_path):
+                response = send_from_directory(favicon_dir, 'favicon.ico', mimetype='image/x-icon')
+                # Add caching headers for favicon
+                response.headers['Cache-Control'] = 'public, max-age=86400'  # Cache for 1 day
+                response.headers['X-Favicon-Source'] = favicon_dir  # Debug header
+                return response
+        
+        # If no favicon found, return empty 204 response
+        logging.warning("Favicon not found in any location")
+        return '', 204
+        
+    except Exception as e:
+        logging.error(f"Favicon serving error: {e}")
+        return '', 204
+
+@app.route('/favicon-<size>.png')
+def favicon_png(size):
+    """Serve PNG favicons in different sizes"""
+    try:
+        from flask import send_from_directory
+        import os
+        
+        # Validate size parameter  
+        valid_sizes = ['16x16', '32x32', '48x48', '180x180', '192x192', '512x512']
+        if size not in valid_sizes:
+            return '', 404
+        
+        filename = f'favicon-{size}.png'
+        
+        # Try multiple locations
+        favicon_locations = [
+            os.path.join(app.root_path, 'soulbridgeai-frontend', 'public'),
+            os.path.join(app.root_path, 'static')
+        ]
+        
+        for favicon_dir in favicon_locations:
+            favicon_path = os.path.join(favicon_dir, filename)
+            if os.path.exists(favicon_path):
+                response = send_from_directory(favicon_dir, filename, mimetype='image/png')
+                response.headers['Cache-Control'] = 'public, max-age=86400'
+                return response
+        
+        return '', 404
+        
+    except Exception as e:
+        logging.error(f"PNG favicon serving error: {e}")
+        return '', 404
+
+@app.route('/apple-touch-icon.png')
+def apple_touch_icon():
+    """Serve Apple touch icon"""
+    try:
+        from flask import send_from_directory
+        import os
+        
+        favicon_locations = [
+            os.path.join(app.root_path, 'soulbridgeai-frontend', 'public'),
+            os.path.join(app.root_path, 'static')
+        ]
+        
+        for favicon_dir in favicon_locations:
+            icon_path = os.path.join(favicon_dir, 'apple-touch-icon.png')
+            if os.path.exists(icon_path):
+                response = send_from_directory(favicon_dir, 'apple-touch-icon.png', mimetype='image/png')
+                response.headers['Cache-Control'] = 'public, max-age=86400'
+                return response
+        
+        return '', 404
+        
+    except Exception as e:
+        logging.error(f"Apple touch icon serving error: {e}")
+        return '', 404
+
+# -------------------------------------------------
 # Development Authentication Routes
 # -------------------------------------------------
 @app.route("/auth/login", methods=["POST"])
