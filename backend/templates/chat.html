@@ -3548,11 +3548,9 @@
             console.log('- hasActiveMessages:', hasActiveMessages);
             console.log('- SHOULD RESTORE CHAT?', selectedCharacter && firstPickMade === 'true' && hasActiveMessages === 'true');
             
-            // TEMP DEBUG: Always force intro for now to test
-            console.log('🚨 FORCED DEBUG MODE: Always showing intro screen to test issue');
-            
-            // If user has active chat session, restore chat interface
-            if (selectedCharacter && firstPickMade === 'true' && hasActiveMessages === 'true') {
+            // Smart navigation logic - restore chat if user has made a character selection
+            // Even on refresh, if they selected a character and completed first pick, show chat
+            if (selectedCharacter && firstPickMade === 'true') {
                 console.log('Restoring active chat session with:', selectedCharacter);
                 
                 // Show chat interface
@@ -3566,12 +3564,24 @@
                 
                 // Add greeting after a short delay to ensure DOM is ready
                 setTimeout(function() {
+                    console.log('Calling addGreetingToChat after screen restore');
                     addGreetingToChat();
                 }, 500);
                 
+                // Also call immediately to ensure greeting appears
+                setTimeout(function() {
+                    addGreetingToChat();
+                }, 100);
+                
+            } else if (selectedCharacter && firstPickMade !== 'true') {
+                // User selected character but didn't complete first pick - show character select
+                console.log('Returning to character selection screen');
+                document.getElementById('introScreen').classList.add('hidden');
+                document.getElementById('characterSelect').classList.remove('hidden');
+                document.getElementById('chatInterface').classList.add('hidden');
             } else {
-                // Default to intro screen for fresh visits or when no active chat
-                console.log('Starting at intro screen (fresh visit or no active chat)');
+                // Fresh visit or completely new user - show intro screen
+                console.log('Starting at intro screen (fresh visit)');
                 document.getElementById('introScreen').classList.remove('hidden');
                 document.getElementById('characterSelect').classList.add('hidden');
                 document.getElementById('chatInterface').classList.add('hidden');

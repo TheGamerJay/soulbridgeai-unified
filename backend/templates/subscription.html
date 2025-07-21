@@ -891,9 +891,14 @@
     const previewDiv = document.getElementById('colorPreviewPalettes');
     const button = event.target;
     
+    console.log('Color preview triggered', previewDiv);
+    
     if (previewDiv.style.display === 'none' || !previewDiv.style.display) {
       previewDiv.style.display = 'block';
       button.textContent = '🎨 Hide Preview';
+      
+      // Show immediate feedback that preview is active
+      showThemePreviewFeedback('Color Preview Active');
       
       // Add slide down animation
       previewDiv.style.opacity = '0';
@@ -917,6 +922,8 @@
 
   // Preview different color themes
   window.previewTheme = (theme) => {
+    console.log('Previewing theme:', theme);
+    
     const themes = {
       ocean: {
         background: 'linear-gradient(135deg, #0ea5e9, #0284c7)',
@@ -947,25 +954,33 @@
     const selectedTheme = themes[theme];
     if (!selectedTheme) return;
 
-    // Apply theme temporarily for preview
+    // Apply theme temporarily for preview with smooth transition
+    document.body.style.transition = 'background 0.5s ease, color 0.5s ease';
     document.body.style.background = selectedTheme.background;
     document.body.style.color = selectedTheme.text;
     
-    // Update accent colors
+    // Update accent colors with animation
     const accentElements = document.querySelectorAll('h1, h2, .plan-button, #currentColorPalette');
     accentElements.forEach(el => {
+      el.style.transition = 'color 0.3s ease, border-color 0.3s ease';
       if (el.classList.contains('plan-button') && !el.classList.contains('selected')) {
         el.style.borderColor = selectedTheme.accent;
+        el.style.boxShadow = `0 4px 15px ${selectedTheme.accent}40`;
       } else {
         el.style.color = selectedTheme.accent;
       }
     });
 
     // Update palette indicator
-    document.getElementById('currentColorPalette').textContent = selectedTheme.name;
+    const paletteEl = document.getElementById('currentColorPalette');
+    if (paletteEl) {
+      paletteEl.textContent = selectedTheme.name;
+      paletteEl.style.fontWeight = 'bold';
+      paletteEl.style.textShadow = `0 0 10px ${selectedTheme.accent}`;
+    }
 
-    // Show feedback
-    showThemePreviewFeedback(selectedTheme.name);
+    // Show feedback with theme colors
+    showThemePreviewFeedback(selectedTheme.name, selectedTheme.accent);
   };
 
   // Reset to original theme
@@ -985,7 +1000,7 @@
   };
 
   // Show theme preview feedback
-  function showThemePreviewFeedback(themeName) {
+  function showThemePreviewFeedback(themeName, accentColor = '#22d3ee') {
     let feedback = document.getElementById('themePreviewFeedback');
     if (!feedback) {
       feedback = document.createElement('div');
@@ -994,19 +1009,24 @@
         position: fixed;
         top: 20px;
         left: 20px;
-        background: rgba(0, 0, 0, 0.8);
+        background: rgba(0, 0, 0, 0.9);
         color: white;
-        padding: 12px 20px;
-        border-radius: 8px;
+        padding: 15px 25px;
+        border-radius: 12px;
         font-weight: bold;
+        font-size: 1.1rem;
         z-index: 9999;
         transform: translateX(-400px);
         transition: transform 0.3s ease;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(10px);
       `;
       document.body.appendChild(feedback);
     }
     
-    feedback.innerHTML = `🎨 Previewing: ${themeName} theme`;
+    feedback.innerHTML = `🎨 Previewing: <span style="color: ${accentColor};">${themeName}</span> theme`;
+    feedback.style.border = `2px solid ${accentColor}`;
+    feedback.style.boxShadow = `0 8px 32px rgba(0, 0, 0, 0.3), 0 0 20px ${accentColor}40`;
     
     // Animate in
     setTimeout(() => {
