@@ -1239,6 +1239,22 @@ def chat():
     user_plan = session.get("user_plan")
     is_first_time = session.get("first_time_user", True)
     
+    # If no plan in session, try to load from database
+    if not user_plan and user_authenticated and user_email:
+        try:
+            user = db.users.get_user_by_email(user_email)
+            if user and "selected_plan" in user:
+                stored_plan = user["selected_plan"]
+                if stored_plan in ["foundation", "growth", "transformation"]:
+                    # Restore plan from database to session
+                    session["user_plan"] = stored_plan
+                    session["first_time_user"] = False
+                    session["plan_selected_at"] = user.get("plan_selected_at", time.time())
+                    user_plan = stored_plan
+                    print(f"Plan restored from database: {stored_plan} for user {user_email}")
+        except Exception as e:
+            print(f"Warning: Failed to load plan from database: {e}")
+    
     if not user_plan and is_first_time:
         print("First-time user: Redirecting to plan selection")
         flash("Welcome! Please select a plan to start using SoulBridge AI.", "info")
@@ -2278,6 +2294,28 @@ def select_plan():
         session["plan_selected_at"] = time.time()
         session["first_time_user"] = False  # Mark as no longer first-time user
         
+        # ALSO save the plan in the database for persistence across sessions
+        user_email = session.get("user_email")
+        if user_email and db:
+            try:
+                user = db.users.get_user_by_email(user_email)
+                if user:
+                    # Update user's selected plan in database using correct method
+                    user_id = user.get("userID")
+                    if user_id:
+                        updates = {
+                            "selected_plan": plan_type,
+                            "plan_selected_at": time.time()
+                        }
+                        db.users.update_user(user_id, updates)
+                        print(f"Plan {plan_type} saved to database for user {user_email}")
+                    else:
+                        print(f"WARNING: User ID not found for user {user_email}")
+                else:
+                    print(f"WARNING: User not found in database: {user_email}")
+            except Exception as db_error:
+                print(f"WARNING: Failed to save plan to database: {db_error}")
+        
         print(f"Plan selected: {plan_type} for user {session.get('user_email')}")
         
         # For free plan, allow immediate access to chat
@@ -3122,6 +3160,14 @@ def get_user_by_email_api(email):
         logging.error(f"Get user by email error: {e}")
         return jsonify(success=False, error="Failed to retrieve user"), 500
 
+
+# -------------------------------------------------
+# Helper Functions
+# -------------------------------------------------
+
+def is_logged_in():
+    """Check if user is authenticated"""
+    return session.get("user_authenticated", False)
 
 # -------------------------------------------------
 # Stripe Payment Processing
@@ -5922,6 +5968,74 @@ def after_request(response):
 
 
 # -------------------------------------------------
+# Email Service Routes
+# -------------------------------------------------
+
+@app.route("/api/contact", methods=["POST"])
+def contact_form():
+    """Handle contact form submissions"""
+    try:
+        data = request.get_json()
+        user_email = data.get("email", "").strip()
+        user_message = data.get("message", "").strip()
+        
+        if not user_email or not user_message:
+            return jsonify(success=False, error="Email and message are required"), 400
+            
+        if not email_service or not email_service.is_configured:
+            return jsonify(success=False, error="Email service not available"), 503
+            
+        # Handle contact form (sends notification to support and auto-reply to user)
+        result = email_service.handle_contact_form(user_email, user_message)
+        
+        if result['success']:
+            return jsonify(
+                success=True,
+                message="Thank you for your message! We'll get back to you soon."
+            )
+        else:
+            return jsonify(
+                success=False,
+                error="Failed to send message. Please try again later."
+            ), 500
+            
+    except Exception as e:
+        logging.error(f"Contact form error: {e}")
+        return jsonify(success=False, error="Failed to process contact form"), 500
+
+@app.route("/api/send-welcome-email", methods=["POST"])
+def send_welcome_email():
+    """Send welcome email to new users (internal use)"""
+    try:
+        data = request.get_json()
+        user_email = data.get("email", "").strip()
+        display_name = data.get("name", "").strip()
+        
+        if not user_email:
+            return jsonify(success=False, error="Email is required"), 400
+            
+        if not email_service or not email_service.is_configured:
+            return jsonify(success=False, error="Email service not available"), 503
+            
+        # Send welcome email
+        result = email_service.send_welcome_email(user_email, display_name)
+        
+        if result['success']:
+            return jsonify(
+                success=True,
+                message="Welcome email sent successfully"
+            )
+        else:
+            return jsonify(
+                success=False,
+                error="Failed to send welcome email"
+            ), 500
+            
+    except Exception as e:
+        logging.error(f"Welcome email error: {e}")
+        return jsonify(success=False, error="Failed to send welcome email"), 500
+
+# -------------------------------------------------
 # Run the server
 # -------------------------------------------------
 if __name__ == "__main__":
@@ -5930,6 +6044,11 @@ if __name__ == "__main__":
     logging.info(
         f"Environment: {'Production' if os.environ.get('RAILWAY_ENVIRONMENT') or os.environ.get('PRODUCTION') else 'Development'}"
     )
+    
+    # Set Resend API key if not already set (for Railway deployment)
+    if not os.environ.get("RESEND_API_KEY"):
+        os.environ["RESEND_API_KEY"] = "re_5qFQNft3_DwXgL5bPcbemZbcrogmP1Knc"
+        logging.info("Resend API key configured")
 
     # Initialize core services
     try:

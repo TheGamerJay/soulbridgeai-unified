@@ -17,6 +17,14 @@ except ImportError:
     SENDGRID_AVAILABLE = False
     logging.info("SendGrid not installed - using SMTP only")
 
+# Try to import Resend (optional)
+try:
+    import requests
+    RESEND_AVAILABLE = True
+except ImportError:
+    RESEND_AVAILABLE = False
+    logging.info("Requests not installed - Resend not available")
+
 
 class EmailService:
     def __init__(self):
@@ -29,33 +37,46 @@ class EmailService:
         # SendGrid Configuration
         self.sendgrid_api_key = os.environ.get("SENDGRID_API_KEY")
 
+        # Resend Configuration
+        self.resend_api_key = os.environ.get("RESEND_API_KEY")
+
         # Common Configuration
-        self.from_email = os.environ.get("FROM_EMAIL", self.smtp_username)
+        self.from_email = os.environ.get("FROM_EMAIL", self.smtp_username or "support@soulbridgeai.com")
         self.from_name = os.environ.get("FROM_NAME", "SoulBridge AI")
+        self.support_email = os.environ.get("SUPPORT_EMAIL", "soulbridgeai.contact@gmail.com")
 
         # Check what's available
         self.smtp_configured = bool(self.smtp_username and self.smtp_password)
         self.sendgrid_configured = bool(self.sendgrid_api_key and SENDGRID_AVAILABLE)
+        self.resend_configured = bool(self.resend_api_key and RESEND_AVAILABLE)
 
-        self.is_configured = self.smtp_configured or self.sendgrid_configured
+        self.is_configured = self.smtp_configured or self.sendgrid_configured or self.resend_configured
 
         if not self.is_configured:
             logging.warning(
                 "No email service configured. Email features will not work."
             )
+        elif self.resend_configured:
+            logging.info("Resend email service configured")
         elif self.sendgrid_configured:
             logging.info("SendGrid email service configured")
         elif self.smtp_configured:
             logging.info("SMTP email service configured")
 
     def send_email(self, to_email, subject, text_content, html_content=None):
-        """Send email using SendGrid or SMTP"""
+        """Send email using Resend, SendGrid, or SMTP (in priority order)"""
         if not self.is_configured:
             logging.error("Email service not configured")
             return {"success": False, "error": "Email service not configured"}
 
-        # Try SendGrid first (more reliable)
-        if self.sendgrid_configured:
+        # Try Resend first (most reliable and modern)
+        if self.resend_configured:
+            return self._send_via_resend(
+                to_email, subject, text_content, html_content
+            )
+
+        # Try SendGrid next
+        elif self.sendgrid_configured:
             return self._send_via_sendgrid(
                 to_email, subject, text_content, html_content
             )
@@ -65,6 +86,58 @@ class EmailService:
             return self._send_via_smtp(to_email, subject, text_content, html_content)
 
         return {"success": False, "error": "No email service available"}
+
+    def _send_via_resend(self, to_email, subject, text_content, html_content=None):
+        """Send email via Resend API"""
+        try:
+            payload = {
+                "from": f"{self.from_name} <{self.from_email}>",
+                "to": [to_email],
+                "subject": subject,
+            }
+            
+            # Add HTML or text content
+            if html_content:
+                payload["html"] = html_content
+            else:
+                payload["text"] = text_content
+
+            headers = {
+                "Authorization": f"Bearer {self.resend_api_key}",
+                "Content-Type": "application/json"
+            }
+
+            response = requests.post(
+                "https://api.resend.com/emails",
+                json=payload,
+                headers=headers
+            )
+
+            if response.status_code == 200:
+                logging.info(f"Resend email sent successfully to {to_email}")
+                return {"success": True, "provider": "resend"}
+            else:
+                error_msg = response.text
+                logging.error(f"Resend API error: {response.status_code} - {error_msg}")
+                # Fallback to next provider
+                if self.sendgrid_configured:
+                    logging.info("Falling back to SendGrid...")
+                    return self._send_via_sendgrid(to_email, subject, text_content, html_content)
+                elif self.smtp_configured:
+                    logging.info("Falling back to SMTP...")
+                    return self._send_via_smtp(to_email, subject, text_content, html_content)
+                return {"success": False, "error": error_msg}
+
+        except Exception as e:
+            logging.error(f"Resend failed to send email to {to_email}: {e}")
+            # Fallback to next provider
+            if self.sendgrid_configured:
+                logging.info("Falling back to SendGrid...")
+                return self._send_via_sendgrid(to_email, subject, text_content, html_content)
+            elif self.smtp_configured:
+                logging.info("Falling back to SMTP...")
+                return self._send_via_smtp(to_email, subject, text_content, html_content)
+            return {"success": False, "error": str(e)}
 
     def _send_via_sendgrid(self, to_email, subject, text_content, html_content=None):
         """Send email via SendGrid API"""
@@ -505,3 +578,193 @@ SoulBridge AI - Your AI-powered emotional companion
         """.strip()
 
         return self.send_email(email, subject, text_content, html_content)
+
+    def handle_contact_form(self, user_email, user_message):
+        """Handle contact form submission - send notification and auto-reply"""
+        results = {}
+        
+        # Send notification to support team
+        notification_result = self.send_contact_form_notification(user_email, user_message)
+        results['notification'] = notification_result
+        
+        # Send auto-reply to user
+        reply_result = self.send_contact_form_auto_reply(user_email)
+        results['auto_reply'] = reply_result
+        
+        # Return combined success status
+        overall_success = notification_result.get('success', False) and reply_result.get('success', False)
+        
+        return {
+            'success': overall_success,
+            'results': results,
+            'message': 'Contact form processed and emails sent' if overall_success else 'Some emails failed to send'
+        }
+
+    def send_contact_form_notification(self, user_email, user_message):
+        """Send contact form notification to support team"""
+        subject = "📥 New Contact Form Message"
+        
+        text_content = f"""
+New Contact Form Submission
+
+From: {user_email}
+
+Message:
+{user_message}
+
+Please respond to this user as soon as possible.
+        """.strip()
+
+        html_content = f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {{
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8fafc;
+        }}
+        .container {{
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }}
+        .header {{
+            background: #22d3ee;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 20px;
+        }}
+        .message-box {{
+            background: #f8fafc;
+            border-left: 4px solid #22d3ee;
+            padding: 15px;
+            margin: 20px 0;
+        }}
+        .from-email {{
+            font-weight: bold;
+            color: #0891b2;
+        }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📥 New Contact Form Message</h1>
+        </div>
+        
+        <p><strong>From:</strong> <span class="from-email">{user_email}</span></p>
+        
+        <div class="message-box">
+            <strong>Message:</strong><br>
+            {user_message.replace(chr(10), '<br>')}
+        </div>
+        
+        <p><em>Please respond to this user as soon as possible.</em></p>
+    </div>
+</body>
+</html>
+        """.strip()
+
+        return self.send_email(self.support_email, subject, text_content, html_content)
+
+    def send_contact_form_auto_reply(self, user_email):
+        """Send auto-reply to user who submitted contact form"""
+        subject = "Thanks for contacting SoulBridge AI"
+        
+        text_content = """
+Hi there,
+
+Thank you for reaching out to SoulBridge AI. We received your message and will get back to you soon.
+
+Our support team typically responds within 24-48 hours. If you have an urgent issue, please mention "URGENT" in your subject line.
+
+In the meantime, feel free to explore our FAQ section or continue chatting with your AI companions.
+
+Warm regards,
+SoulBridge AI Support Team
+        """.strip()
+
+        html_content = """
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8fafc;
+        }
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #22d3ee;
+            margin-bottom: 10px;
+        }
+        .response-time {
+            background: #e0f2fe;
+            border: 1px solid #22d3ee;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            font-size: 14px;
+            color: #666;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">SoulBridge AI</div>
+            <h1>Thanks for contacting us! 💌</h1>
+        </div>
+        
+        <p>Hi there,</p>
+        <p>Thank you for reaching out to SoulBridge AI. We received your message and will get back to you soon.</p>
+        
+        <div class="response-time">
+            <strong>⏰ Response Time:</strong> 24-48 hours<br>
+            <em>For urgent issues, please mention "URGENT" in your subject line</em>
+        </div>
+        
+        <p>In the meantime, feel free to explore our FAQ section or continue chatting with your AI companions.</p>
+        
+        <div class="footer">
+            <p>Warm regards,<br><strong>SoulBridge AI Support Team</strong></p>
+            <p>SoulBridge AI - Your AI-powered emotional companion</p>
+        </div>
+    </div>
+</body>
+</html>
+        """.strip()
+
+        return self.send_email(user_email, subject, text_content, html_content)
