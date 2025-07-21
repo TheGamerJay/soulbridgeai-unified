@@ -611,8 +611,9 @@
 
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
     <script>
-        // Form submission handling with debugging
+        // Form submission handling with AJAX
         document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault(); // Prevent default form submission
             console.log('Form submission started');
             
             const email = document.getElementById('email').value;
@@ -625,7 +626,6 @@
             if (!email || !password) {
                 console.log('Empty fields detected');
                 alert('Please fill in both email and password');
-                e.preventDefault();
                 return false;
             }
             
@@ -635,8 +635,36 @@
             submitBtn.disabled = true;
             submitBtn.textContent = 'Signing In...';
             
-            // Allow form to submit normally
-            console.log('Form should now submit to /auth/login');
+            // Submit via AJAX
+            fetch('/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email: email,
+                    password: password
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Login response:', data);
+                if (data.success) {
+                    console.log('Login successful, redirecting...');
+                    window.location.href = data.redirect || '/';
+                } else {
+                    console.log('Login failed:', data.error);
+                    alert(data.error || 'Login failed');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Sign In';
+                }
+            })
+            .catch(error => {
+                console.error('Login error:', error);
+                alert('Login failed. Please try again.');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Sign In';
+            });
         });
         
         // Auto-focus first input
