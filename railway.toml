@@ -2,7 +2,10 @@
 builder = "nixpacks"
 
 [deploy]
-startCommand = "cd backend && SECRET_KEY=railway-production-secret-key-2024 PYTHONIOENCODING=utf-8 gunicorn -c gunicorn.conf.py app_fixed:app"
+startCommand = "cd backend && python -m gunicorn -c gunicorn.conf.py app_fixed:app"
 healthcheckPath = "/health"
 healthcheckTimeout = 60
 restartPolicyType = "on_failure"
+
+[build.env]
+NIXPACKS_PYTHON_VERSION = "3.11"

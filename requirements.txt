@@ -25,3 +25,4 @@ flask-migrate>=4.0.5
 firebase-admin>=6.2.0
 requests>=2.31.0
 werkzeug>=2.3.7
+resend>=0.6.0

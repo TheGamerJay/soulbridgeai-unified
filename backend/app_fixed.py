@@ -144,12 +144,21 @@ def initialize_services():
 @app.route("/health")
 def health():
     """Production health check with service status"""
-    return jsonify({
-        "status": "healthy",
-        "service": "SoulBridge AI", 
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "services": {name: service is not None for name, service in services.items()}
-    }), 200
+    try:
+        return jsonify({
+            "status": "healthy",
+            "service": "SoulBridge AI", 
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "services": {name: service is not None for name, service in services.items()}
+        })
+    except Exception as e:
+        logger.error(f"Health check failed: {e}")
+        return jsonify({
+            "status": "unhealthy",
+            "service": "SoulBridge AI",
+            "error": str(e),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }), 500
 
 @app.route("/")
 def home():
@@ -380,10 +389,23 @@ def api_chat():
         if not message:
             return jsonify({"success": False, "response": "Message is required"}), 400
         
-        # Simple AI response (you can enhance this)
-        response = f"Hello! I'm {character}. Thanks for your message: '{message}'. How can I help you today?"
+        # Use OpenAI for actual AI response
+        try:
+            response = openai_client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": f"You are {character}, a helpful AI companion from SoulBridge AI."},
+                    {"role": "user", "content": message}
+                ],
+                max_tokens=150,
+                temperature=0.7
+            )
+            ai_response = response.choices[0].message.content
+        except Exception as ai_error:
+            logger.warning(f"OpenAI API error: {ai_error}")
+            ai_response = f"Hello! I'm {character}. Thanks for your message: '{message}'. How can I help you today?"
         
-        return jsonify({"success": True, "response": response})
+        return jsonify({"success": True, "response": ai_response})
         
     except Exception as e:
         logger.error(f"Chat API error: {e}")
@@ -411,13 +433,15 @@ def server_error(e):
 # APPLICATION STARTUP
 # ========================================
 
+# Initialize services when module is imported (for gunicorn)
+logger.info("🚀 Initializing SoulBridge AI services...")
+initialize_services()
+logger.info("✅ SoulBridge AI ready for deployment")
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     logger.info(f"Starting SoulBridge AI on port {port}")
     logger.info(f"Environment: {'Production' if os.environ.get('RAILWAY_ENVIRONMENT') else 'Development'}")
-    
-    # Initialize services but don't fail if they don't work
-    service_results = initialize_services()
     
     # Start the server regardless of service status
     logger.info("🌟 Starting Flask server...")
