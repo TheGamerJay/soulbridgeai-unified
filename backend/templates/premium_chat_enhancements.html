@@ -1,0 +1,567 @@
+<!-- Premium Chat Enhancements for SoulBridge AI -->
+<style>
+/* ========================================
+   💎 PREMIUM CHAT INTERFACE ENHANCEMENTS
+   ======================================== */
+
+/* Advanced Typing Indicators */
+.typing-indicator {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 15px 20px;
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(99, 102, 241, 0.1));
+    border-radius: 20px;
+    margin: 10px 0;
+    animation: typingPulse 2s ease-in-out infinite;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.typing-dots {
+    display: flex;
+    gap: 4px;
+}
+
+.typing-dot {
+    width: 8px;
+    height: 8px;
+    background: #8b5cf6;
+    border-radius: 50%;
+    animation: typingBounce 1.4s ease-in-out infinite both;
+}
+
+.typing-dot:nth-child(1) { animation-delay: -0.32s; }
+.typing-dot:nth-child(2) { animation-delay: -0.16s; }
+.typing-dot:nth-child(3) { animation-delay: 0s; }
+
+@keyframes typingBounce {
+    0%, 80%, 100% { 
+        transform: scale(0.8);
+        opacity: 0.5;
+    }
+    40% { 
+        transform: scale(1.2);
+        opacity: 1;
+    }
+}
+
+@keyframes typingPulse {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-2px); }
+}
+
+/* Enhanced Message Animations */
+.chat-message {
+    animation: messageSlideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transform-origin: left center;
+}
+
+.ai-message {
+    animation: aiMessageSlideIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes messageSlideIn {
+    0% {
+        opacity: 0;
+        transform: translateX(50px) scale(0.9);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+}
+
+@keyframes aiMessageSlideIn {
+    0% {
+        opacity: 0;
+        transform: translateX(-50px) scale(0.9);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+}
+
+/* Premium Message Styling */
+.premium-message {
+    position: relative;
+    overflow: hidden;
+}
+
+.premium-message::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.1), transparent);
+    animation: shimmer 3s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+/* Character Avatar Enhancements */
+.character-avatar {
+    position: relative;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.character-avatar:hover {
+    transform: scale(1.1) rotate(2deg);
+    filter: brightness(1.2) saturate(1.3);
+}
+
+.character-avatar::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, #8b5cf6, #ec4899, #06b6d4, #8b5cf6);
+    border-radius: 50%;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.character-avatar.speaking::after {
+    opacity: 0.7;
+    animation: rainbowPulse 2s ease-in-out infinite;
+}
+
+@keyframes rainbowPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+/* Premium Chat Input */
+.premium-chat-input {
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(31, 41, 55, 0.9));
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    position: relative;
+    overflow: hidden;
+}
+
+.premium-chat-input::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, #8b5cf6, #ec4899, #06b6d4, #8b5cf6);
+    background-size: 400% 400%;
+    animation: gradientShift 8s ease infinite;
+    z-index: -1;
+    margin: -2px;
+    border-radius: inherit;
+}
+
+@keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+/* Floating Action Buttons */
+.floating-actions {
+    position: fixed;
+    right: 20px;
+    bottom: 100px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    z-index: 1000;
+}
+
+.float-btn {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #8b5cf6, #6366f1);
+    border: none;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    backdrop-filter: blur(10px);
+}
+
+.float-btn:hover {
+    transform: scale(1.1) translateY(-2px);
+    box-shadow: 0 12px 35px rgba(139, 92, 246, 0.6);
+}
+
+/* Premium Theme Switcher */
+.theme-palette {
+    display: flex;
+    gap: 8px;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.8);
+    border-radius: 25px;
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.theme-color {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.theme-color:hover {
+    transform: scale(1.2);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.theme-color.active {
+    border-color: #8b5cf6;
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.6);
+}
+
+/* Character Mood Indicator */
+.mood-indicator {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid rgba(0, 0, 0, 0.8);
+    z-index: 10;
+    animation: moodPulse 3s ease-in-out infinite;
+}
+
+.mood-happy { background: linear-gradient(45deg, #10b981, #34d399); }
+.mood-excited { background: linear-gradient(45deg, #f59e0b, #fbbf24); }
+.mood-calm { background: linear-gradient(45deg, #06b6d4, #67e8f9); }
+.mood-mysterious { background: linear-gradient(45deg, #8b5cf6, #a78bfa); }
+
+@keyframes moodPulse {
+    0%, 100% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.3); opacity: 1; }
+}
+
+/* Advanced Message Effects */
+.message-with-effects {
+    position: relative;
+    overflow: hidden;
+}
+
+.sparkle-effect {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: #fbbf24;
+    border-radius: 50%;
+    animation: sparkle 3s ease-in-out infinite;
+    pointer-events: none;
+}
+
+@keyframes sparkle {
+    0%, 100% { opacity: 0; transform: scale(0) rotate(0deg); }
+    50% { opacity: 1; transform: scale(1) rotate(180deg); }
+}
+
+/* Premium Scrollbar */
+.chat-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.chat-container::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+}
+
+.chat-container::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #8b5cf6, #6366f1);
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.chat-container::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #7c3aed, #4f46e5);
+    transform: scaleY(1.1);
+}
+
+/* Responsive Premium Features */
+@media (max-width: 768px) {
+    .floating-actions {
+        right: 15px;
+        bottom: 80px;
+    }
+    
+    .float-btn {
+        width: 48px;
+        height: 48px;
+        font-size: 1rem;
+    }
+    
+    .theme-palette {
+        padding: 8px;
+        gap: 6px;
+    }
+    
+    .theme-color {
+        width: 28px;
+        height: 28px;
+    }
+}
+</style>
+
+<script>
+/* ========================================
+   💎 PREMIUM CHAT FUNCTIONALITY
+   ======================================== */
+
+// Enhanced Typing Indicator with Character Personality
+function showPremiumTypingIndicator(character) {
+    const chatContainer = document.getElementById('chat-messages');
+    const typingDiv = document.createElement('div');
+    typingDiv.className = 'typing-indicator premium-typing';
+    typingDiv.id = 'typing-indicator';
+    
+    // Character-specific typing messages
+    const typingMessages = {
+        'Blayzo': ['Blayzo is contemplating...', 'Considering your words...', 'Gathering wisdom...'],
+        'Blayzica': ['Blayzica is thinking...', 'Crafting a response...', 'Processing emotions...'],
+        'Crimson': ['Crimson is energized...', 'Passion flowing...', 'Igniting thoughts...'],
+        'Violet': ['Violet is reflecting...', 'Gentle thoughts emerging...', 'Nurturing a response...'],
+        'Blayzion': ['Blayzion is innovating...', 'Creating solutions...', 'Mind at work...']
+    };
+    
+    const messages = typingMessages[character] || typingMessages['Blayzo'];
+    const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+    
+    typingDiv.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <img src="/static/logos/${character}.png" alt="${character}" style="
+                width: 32px; 
+                height: 32px; 
+                border-radius: 50%; 
+                border: 2px solid #8b5cf6;
+                animation: breathe 2s ease-in-out infinite;
+            " class="character-avatar speaking">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="color: #8b5cf6; font-weight: 600;">${randomMessage}</span>
+                <div class="typing-dots">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    chatContainer.appendChild(typingDiv);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+    
+    // Add sparkle effects
+    setTimeout(() => addSparkleEffects(typingDiv), 500);
+}
+
+// Add sparkle effects to messages
+function addSparkleEffects(element) {
+    for (let i = 0; i < 5; i++) {
+        setTimeout(() => {
+            const sparkle = document.createElement('div');
+            sparkle.className = 'sparkle-effect';
+            sparkle.style.left = Math.random() * 100 + '%';
+            sparkle.style.top = Math.random() * 100 + '%';
+            sparkle.style.animationDelay = Math.random() * 2 + 's';
+            element.appendChild(sparkle);
+            
+            setTimeout(() => sparkle.remove(), 3000);
+        }, i * 200);
+    }
+}
+
+// Premium Theme System
+const premiumThemes = {
+    cosmic: {
+        primary: '#8b5cf6',
+        secondary: '#ec4899',
+        accent: '#06b6d4',
+        background: 'linear-gradient(135deg, #000000 0%, #1a1a2e 50%, #16213e 100%)'
+    },
+    sunset: {
+        primary: '#f59e0b',
+        secondary: '#ef4444',
+        accent: '#ec4899',
+        background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f1419 100%)'
+    },
+    ocean: {
+        primary: '#06b6d4',
+        secondary: '#10b981',
+        accent: '#3b82f6',
+        background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)'
+    },
+    royal: {
+        primary: '#7c3aed',
+        secondary: '#c026d3',
+        accent: '#2563eb',
+        background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #1e1b4b 100%)'
+    }
+};
+
+function applyPremiumTheme(themeName) {
+    const theme = premiumThemes[themeName];
+    if (!theme) return;
+    
+    const root = document.documentElement;
+    root.style.setProperty('--primary-color', theme.primary);
+    root.style.setProperty('--secondary-color', theme.secondary);
+    root.style.setProperty('--accent-color', theme.accent);
+    document.body.style.background = theme.background;
+    
+    // Store theme preference
+    localStorage.setItem('premiumTheme', themeName);
+    
+    // Update theme selector
+    document.querySelectorAll('.theme-color').forEach(el => el.classList.remove('active'));
+    document.querySelector(`[data-theme="${themeName}"]`)?.classList.add('active');
+    
+    // Animate theme change
+    document.body.style.transition = 'all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)';
+    setTimeout(() => document.body.style.transition = '', 800);
+}
+
+// Character Mood System
+function updateCharacterMood(character, mood = 'happy') {
+    const avatars = document.querySelectorAll(`img[alt="${character}"]`);
+    avatars.forEach(avatar => {
+        // Remove existing mood indicators
+        const existingMood = avatar.parentNode.querySelector('.mood-indicator');
+        if (existingMood) existingMood.remove();
+        
+        // Add new mood indicator
+        const moodIndicator = document.createElement('div');
+        moodIndicator.className = `mood-indicator mood-${mood}`;
+        avatar.parentNode.style.position = 'relative';
+        avatar.parentNode.appendChild(moodIndicator);
+    });
+}
+
+// Enhanced Message Display
+function createPremiumMessage(character, message, isUser = false) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `${isUser ? 'user' : 'ai'}-message chat-message premium-message`;
+    
+    if (!isUser) {
+        // Add character-specific styling
+        const characterColors = {
+            'Blayzo': 'linear-gradient(135deg, #06b6d4, #0891b2)',
+            'Blayzica': 'linear-gradient(135deg, #ef4444, #dc2626)',
+            'Crimson': 'linear-gradient(135deg, #f59e0b, #d97706)',
+            'Violet': 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
+            'Blayzion': 'linear-gradient(135deg, #10b981, #059669)'
+        };
+        
+        messageDiv.style.borderLeft = `4px solid transparent`;
+        messageDiv.style.background = `${characterColors[character] || characterColors['Blayzo']} border-box`;
+        messageDiv.style.backgroundClip = 'padding-box';
+    }
+    
+    messageDiv.innerHTML = message;
+    
+    // Add premium effects
+    setTimeout(() => addSparkleEffects(messageDiv), 1000);
+    
+    return messageDiv;
+}
+
+// Initialize Premium Features
+function initializePremiumFeatures() {
+    // Load saved theme
+    const savedTheme = localStorage.getItem('premiumTheme') || 'cosmic';
+    applyPremiumTheme(savedTheme);
+    
+    // Add floating action buttons
+    if (!document.querySelector('.floating-actions')) {
+        const floatingActions = document.createElement('div');
+        floatingActions.className = 'floating-actions';
+        floatingActions.innerHTML = `
+            <button class="float-btn" onclick="toggleThemeSelector()" title="Change Theme">
+                🎨
+            </button>
+            <button class="float-btn" onclick="togglePremiumEffects()" title="Toggle Effects">
+                ✨
+            </button>
+            <button class="float-btn" onclick="exportChat()" title="Export Chat">
+                💾
+            </button>
+        `;
+        document.body.appendChild(floatingActions);
+    }
+    
+    // Add theme selector
+    if (!document.querySelector('.theme-palette')) {
+        const themeSelector = document.createElement('div');
+        themeSelector.className = 'theme-palette';
+        themeSelector.id = 'theme-selector';
+        themeSelector.style.display = 'none';
+        themeSelector.style.position = 'fixed';
+        themeSelector.style.right = '90px';
+        themeSelector.style.bottom = '160px';
+        themeSelector.style.zIndex = '1001';
+        
+        themeSelector.innerHTML = `
+            <div class="theme-color" data-theme="cosmic" style="background: linear-gradient(45deg, #8b5cf6, #ec4899)"></div>
+            <div class="theme-color" data-theme="sunset" style="background: linear-gradient(45deg, #f59e0b, #ef4444)"></div>
+            <div class="theme-color" data-theme="ocean" style="background: linear-gradient(45deg, #06b6d4, #10b981)"></div>
+            <div class="theme-color" data-theme="royal" style="background: linear-gradient(45deg, #7c3aed, #c026d3)"></div>
+        `;
+        
+        // Add click handlers
+        themeSelector.addEventListener('click', (e) => {
+            if (e.target.classList.contains('theme-color')) {
+                const theme = e.target.dataset.theme;
+                applyPremiumTheme(theme);
+            }
+        });
+        
+        document.body.appendChild(themeSelector);
+    }
+    
+    // Update character moods randomly
+    setInterval(() => {
+        const characters = ['Blayzo', 'Blayzica', 'Crimson', 'Violet', 'Blayzion'];
+        const moods = ['happy', 'excited', 'calm', 'mysterious'];
+        const currentCharacter = localStorage.getItem('selectedCharacter') || 'Blayzo';
+        const randomMood = moods[Math.floor(Math.random() * moods.length)];
+        updateCharacterMood(currentCharacter, randomMood);
+    }, 30000); // Every 30 seconds
+}
+
+// Utility Functions
+function toggleThemeSelector() {
+    const selector = document.getElementById('theme-selector');
+    selector.style.display = selector.style.display === 'none' ? 'flex' : 'none';
+}
+
+function togglePremiumEffects() {
+    document.body.classList.toggle('premium-effects-disabled');
+}
+
+function exportChat() {
+    // Implementation for chat export
+    console.log('🔄 Exporting chat...');
+    // This would integrate with your existing chat history system
+}
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', initializePremiumFeatures);
+</script>

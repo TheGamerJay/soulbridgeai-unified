@@ -522,17 +522,21 @@ def ensure_essential_users():
         if not dev_user:
             logging.info("Creating developer account...")
             dev_user_data = db.users.create_user(dev_email, companion="Blayzo")
-            # Set developer password
-            db.users.update_user(
-                dev_user_data["userID"], {"password": "Yariel13", "dev_mode": True}
-            )
+            # Set developer password from environment
+            dev_password = os.environ.get("DEV_PASSWORD")
+            if dev_password:
+                db.users.update_user(
+                    dev_user_data["userID"], {"password": dev_password, "dev_mode": True}
+                )
             logging.info("Developer account created successfully")
         else:
             # Ensure developer has password and dev mode
             if not dev_user.get("password"):
-                db.users.update_user(
-                    dev_user["userID"], {"password": "Yariel13", "dev_mode": True}
-                )
+                dev_password = os.environ.get("DEV_PASSWORD")
+                if dev_password:
+                    db.users.update_user(
+                        dev_user["userID"], {"password": dev_password, "dev_mode": True}
+                    )
                 logging.info("Developer account password restored")
 
         # Check database health
@@ -546,9 +550,11 @@ def ensure_essential_users():
                     "Database is empty! Creating default developer account..."
                 )
                 dev_user_data = db.users.create_user(dev_email, companion="Blayzo")
-                db.users.update_user(
-                    dev_user_data["userID"], {"password": "Yariel13", "dev_mode": True}
-                )
+                dev_password = os.environ.get("DEV_PASSWORD")
+                if dev_password:
+                    db.users.update_user(
+                        dev_user_data["userID"], {"password": dev_password, "dev_mode": True}
+                    )
                 logging.info("Emergency developer account created")
         except Exception as e:
             logging.error(f"Database health check failed: {e}")
@@ -567,11 +573,12 @@ def ensure_essential_users():
                     for user in db.db_manager.data["users"]
                 )
                 if not dev_exists:
+                    dev_password = os.environ.get("DEV_PASSWORD", "default-temp-password")
                     new_user = {
                         "userID": str(uuid.uuid4()),
                         "email": "GamerJay@gmail.com",
                         "companion": "Blayzo",
-                        "password": "Yariel13",
+                        "password": dev_password,
                         "dev_mode": True,
                         "created": datetime.utcnow().isoformat() + "Z",
                     }
@@ -766,11 +773,14 @@ def admin_jwt_login():
         email = data.get("email", "").strip()
         password = data.get("password", "").strip()
 
-        # Validate admin credentials (use your existing validation)
-        ADMIN_EMAIL = "soulbridgeai.contact@gmail.com"
-        ADMIN_PASSWORD = "Yariel13"
+        # Validate admin credentials from environment
+        ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL", "soulbridgeai.contact@gmail.com")
+        ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD")
+        
+        if not ADMIN_PASSWORD:
+            return jsonify(success=False, error="Admin system not configured"), 503
 
-        if email != DEV_EMAIL or password != DEV_PASSWORD:
+        if email != ADMIN_EMAIL or password != ADMIN_PASSWORD:
             return jsonify(success=False, error="Invalid admin credentials"), 401
 
         # Check if email is in admin list
@@ -809,9 +819,12 @@ def admin_session_login():
         email = data.get("email", "").strip()
         password = data.get("password", "").strip()
 
-        # Validate admin credentials
-        DEV_EMAIL = "GamerJay@gmail.com"
-        DEV_PASSWORD = "Yariel13"
+        # Validate admin credentials from environment
+        DEV_EMAIL = os.environ.get("DEV_EMAIL", "GamerJay@gmail.com")
+        DEV_PASSWORD = os.environ.get("DEV_PASSWORD")
+        
+        if not DEV_PASSWORD:
+            return jsonify(success=False, error="Developer system not configured"), 503
 
         if email != DEV_EMAIL or password != DEV_PASSWORD:
             return jsonify(success=False, error="Invalid admin credentials"), 401
@@ -1236,87 +1249,92 @@ def chat():
                 # Continue without database for health checks
                 pass
 
-    # Debug: Check session state
-    print(
-        f"Root route accessed - Session authenticated: {session.get('user_authenticated')}"
-    )
-    print(f"Root route accessed - Session contents: {dict(session)}")
-    print(f"Root route accessed - Session ID: {session.get('_id', 'No ID')}")
-
-    # Check if user is authenticated
-    user_authenticated = session.get("user_authenticated")
-    user_email = session.get("user_email")
-    login_timestamp = session.get("login_timestamp")
-
-    # Sessions persist indefinitely - only clear when browser closes
-    session_expired = False
-    print("Session persistence: Stays logged in until browser closes")
-
-    # SECURITY: Only force re-authentication if session is invalid or expired
-    if not user_authenticated or session_expired or not user_email:
-        print("Security check: Session invalid or expired, forcing re-authentication")
-        print("This prevents bypassing subscription checks by staying logged in")
-
-        # Clear session and redirect to login for fresh authentication
-        session.clear()
-
-        response = make_response(redirect(url_for("login")))
-        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-        response.headers["Pragma"] = "no-cache"
-        response.headers["Expires"] = "0"
-        return response
-    
-    # Check if user has selected a plan (new requirement for first-time users)
-    user_plan = session.get("user_plan")
-    is_first_time = session.get("first_time_user", True)
-    
-    # If no plan in session, try to load from database
-    if not user_plan and user_authenticated and user_email:
-        try:
-            user = db.users.get_user_by_email(user_email)
-            if user and "selected_plan" in user:
-                stored_plan = user["selected_plan"]
-                if stored_plan in ["foundation", "growth", "transformation"]:
-                    # Restore plan from database to session
-                    session["user_plan"] = stored_plan
-                    session["first_time_user"] = False
-                    session["plan_selected_at"] = user.get("plan_selected_at", time.time())
-                    user_plan = stored_plan
-                    print(f"Plan restored from database: {stored_plan} for user {user_email}")
-        except Exception as e:
-            print(f"Warning: Failed to load plan from database: {e}")
-    
-    if not user_plan and is_first_time:
-        print("First-time user: Redirecting to plan selection")
-        flash("Welcome! Please select a plan to start using SoulBridge AI.", "info")
-        return redirect(url_for("subscription"))
-    elif not user_plan and not is_first_time:
-        # Returning user without plan - something went wrong, redirect to plan selection
-        print("Returning user without plan: Redirecting to plan selection")
-        flash("Please select a plan to continue using SoulBridge AI.", "info")
-        return redirect(url_for("subscription"))
-
-    # If session is valid, verify subscription status periodically
-    print("Session is valid, checking subscription status")
-    subscription_data = verify_user_subscription(user_email)
-
-    if not subscription_data["valid"]:
-        print("Subscription verification failed, forcing logout")
-        session.clear()
-        flash("Your account access has expired. Please contact support.", "error")
-        return redirect(url_for("login"))
-
-    # Start a fresh message list if it doesn't exist
-    if "messages" not in session:
-        session["messages"] = []
-
-    # Add AGGRESSIVE cache-busting headers to force latest version
-    response = make_response(
-        render_template(
-            "chat.html", cache_buster=str(uuid.uuid4()), version_info=get_version_info()
+        # Debug: Check session state
+        print(
+            f"Root route accessed - Session authenticated: {session.get('user_authenticated')}"
         )
-    )
-    return add_aggressive_cache_busting(response)
+        print(f"Root route accessed - Session contents: {dict(session)}")
+        print(f"Root route accessed - Session ID: {session.get('_id', 'No ID')}")
+
+        # Check if user is authenticated
+        user_authenticated = session.get("user_authenticated")
+        user_email = session.get("user_email")
+        login_timestamp = session.get("login_timestamp")
+
+        # Sessions persist indefinitely - only clear when browser closes
+        session_expired = False
+        print("Session persistence: Stays logged in until browser closes")
+
+        # SECURITY: Only force re-authentication if session is invalid or expired
+        if not user_authenticated or session_expired or not user_email:
+            print("Security check: Session invalid or expired, forcing re-authentication")
+            print("This prevents bypassing subscription checks by staying logged in")
+
+            # Clear session and redirect to login for fresh authentication
+            session.clear()
+
+            response = make_response(redirect(url_for("login")))
+            response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+            response.headers["Pragma"] = "no-cache"
+            response.headers["Expires"] = "0"
+            return response
+        
+        # Check if user has selected a plan (new requirement for first-time users)
+        user_plan = session.get("user_plan")
+        is_first_time = session.get("first_time_user", True)
+        
+        # If no plan in session, try to load from database
+        if not user_plan and user_authenticated and user_email:
+            try:
+                user = db.users.get_user_by_email(user_email)
+                if user and "selected_plan" in user:
+                    stored_plan = user["selected_plan"]
+                    if stored_plan in ["foundation", "growth", "transformation"]:
+                        # Restore plan from database to session
+                        session["user_plan"] = stored_plan
+                        session["first_time_user"] = False
+                        session["plan_selected_at"] = user.get("plan_selected_at", time.time())
+                        user_plan = stored_plan
+                        print(f"Plan restored from database: {stored_plan} for user {user_email}")
+            except Exception as e:
+                print(f"Warning: Failed to load plan from database: {e}")
+        
+        if not user_plan and is_first_time:
+            print("First-time user: Redirecting to plan selection")
+            flash("Welcome! Please select a plan to start using SoulBridge AI.", "info")
+            return redirect(url_for("subscription"))
+        elif not user_plan and not is_first_time:
+            # Returning user without plan - something went wrong, redirect to plan selection
+            print("Returning user without plan: Redirecting to plan selection")
+            flash("Please select a plan to continue using SoulBridge AI.", "info")
+            return redirect(url_for("subscription"))
+
+        # If session is valid, verify subscription status periodically
+        print("Session is valid, checking subscription status")
+        subscription_data = verify_user_subscription(user_email)
+
+        if not subscription_data["valid"]:
+            print("Subscription verification failed, forcing logout")
+            session.clear()
+            flash("Your account access has expired. Please contact support.", "error")
+            return redirect(url_for("login"))
+
+        # Start a fresh message list if it doesn't exist
+        if "messages" not in session:
+            session["messages"] = []
+
+        # Add AGGRESSIVE cache-busting headers to force latest version
+        response = make_response(
+            render_template(
+                "chat.html", cache_buster=str(uuid.uuid4()), version_info=get_version_info()
+            )
+        )
+        return add_aggressive_cache_busting(response)
+    
+    except Exception as e:
+        logging.error(f"Error in chat route: {e}")
+        # Fallback to login page if chat fails
+        return redirect(url_for("login"))
 
 
 @app.route("/decoder")
@@ -6191,12 +6209,11 @@ if __name__ == "__main__":
         
     try:
         # Initialize email service
-        global email_service
         if not email_service:
             from email_service import EmailService
             email_service = EmailService()
-            services_status["email"] = email_service.is_configured
-            logging.info(f"✅ Email service initialized: {email_service.is_configured}")
+        services_status["email"] = email_service.is_configured
+        logging.info(f"✅ Email service initialized: {email_service.is_configured}")
     except Exception as e:
         logging.error(f"❌ Email service initialization failed: {e}")
     
