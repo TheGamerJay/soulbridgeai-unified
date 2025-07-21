@@ -1811,8 +1811,14 @@
                 if (isPremium && !hasPurchased && !isReferralCompanion) {
                     console.log('Premium character selected - checking subscription requirements');
                     
-                    // For non-admin users, show premium upgrade modal
-                    if (!isAdminMode || !adminBypass) {
+                    // STRICT CHECK: Always require subscription for premium characters
+                    var hasActiveSubscription = localStorage.getItem('soulbridge_subscription') === 'plus' || 
+                                               localStorage.getItem('soulbridge_subscription') === 'growth' ||
+                                               localStorage.getItem('soulbridge_subscription') === 'transformation';
+                    
+                    // For non-admin users OR users without active subscription, show premium upgrade modal
+                    if (!isAdminMode || !adminBypass || !hasActiveSubscription) {
+                        console.log('Showing premium upgrade modal - no valid subscription');
                         showPremiumUpgradeModal(characterName);
                         return;
                     }
@@ -1923,8 +1929,14 @@
                 if (isPremium && !hasPurchased && !isReferralCompanion) {
                     console.log('Premium character selected - checking subscription requirements (switching flow)');
                     
-                    // For non-admin users, show premium upgrade modal
-                    if (!isAdminMode || !adminBypass) {
+                    // STRICT CHECK: Always require subscription for premium characters
+                    var hasActiveSubscription = localStorage.getItem('soulbridge_subscription') === 'plus' || 
+                                               localStorage.getItem('soulbridge_subscription') === 'growth' ||
+                                               localStorage.getItem('soulbridge_subscription') === 'transformation';
+                    
+                    // For non-admin users OR users without active subscription, show premium upgrade modal
+                    if (!isAdminMode || !adminBypass || !hasActiveSubscription) {
+                        console.log('Showing premium upgrade modal - no valid subscription (switching)');
                         showPremiumUpgradeModal(characterName);
                         return;
                     }

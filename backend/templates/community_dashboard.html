@@ -396,6 +396,27 @@
     </style>
 </head>
 <body>
+    <!-- Back Button -->
+    <a href="javascript:history.back()" style="
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: rgba(255, 255, 255, 0.9);
+        color: #333;
+        padding: 10px 16px;
+        border-radius: 20px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        z-index: 100;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    " onmouseover="this.style.background='rgba(255, 255, 255, 1)'; this.style.transform='translateY(-2px)'" 
+       onmouseout="this.style.background='rgba(255, 255, 255, 0.9)'; this.style.transform='translateY(0px)'">
+        ← Back
+    </a>
+
     <div class="dashboard-container">
         <div class="dashboard-header">
             <h1>🌟 Community Dashboard</h1>
