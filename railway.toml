@@ -2,7 +2,7 @@
 builder = "nixpacks"
 
 [deploy]
-startCommand = "cd backend && SECRET_KEY=railway-production-secret-key-2024 PYTHONIOENCODING=utf-8 python startup_debug.py"
+startCommand = "cd backend && SECRET_KEY=railway-production-secret-key-2024 PYTHONIOENCODING=utf-8 python minimal_health.py"
 healthcheckPath = "/health"
-healthcheckTimeout = 120
+healthcheckTimeout = 60
 restartPolicyType = "on_failure"
