@@ -38,4 +38,4 @@ keyfile = None
 certfile = None
 
 # Application
-wsgi_application = "app:app"
+wsgi_application = "app_hybrid:app"
