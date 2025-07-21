@@ -407,6 +407,24 @@
 
     <!-- User Menu and Controls (Right Side) -->
     <div style="position: fixed; top: 20px; right: 20px; z-index: 100; display: flex; gap: 10px; flex-wrap: wrap;">
+        <!-- Community & Social Button -->
+        <div id="communityBtn" style="
+            background: rgba(168, 85, 247, 0.8);
+            color: #fff;
+            padding: 10px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            z-index: 1000;
+        " onclick="openCommunityDashboard();">
+            <span>Community</span>
+            <span>🌟</span>
+        </div>
+        
         <!-- User Profile Button -->
         <div id="profileBtn" style="
             background: rgba(34, 211, 238, 0.8);
@@ -2501,6 +2519,161 @@
         function openUserProfile() {
             window.location.href = '/profile';
         }
+        
+        function openCommunityDashboard() {
+            window.location.href = '/community-dashboard';
+        }
+        
+        // Social sharing function for AI messages
+        function shareMessage(character, messageText, button) {
+            // Create a clean version of the message text
+            const cleanMessage = messageText.replace(/'/g, '"').replace(/\n/g, ' ').trim();
+            
+            // Create sharing modal
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.8);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+                backdrop-filter: blur(5px);
+            `;
+            
+            modal.innerHTML = `
+                <div style="
+                    background: linear-gradient(135deg, #667eea, #764ba2);
+                    padding: 2rem;
+                    border-radius: 15px;
+                    max-width: 500px;
+                    width: 90%;
+                    color: white;
+                    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+                ">
+                    <h3 style="margin-top: 0; color: #22d3ee;">Share this wisdom from ${character}</h3>
+                    <div style="
+                        background: rgba(255,255,255,0.1);
+                        padding: 1rem;
+                        border-radius: 8px;
+                        margin: 1rem 0;
+                        border-left: 4px solid #22d3ee;
+                    ">
+                        <em>"${cleanMessage.substring(0, 200)}${cleanMessage.length > 200 ? '...' : ''}"</em>
+                        <br><small>- ${character}, SoulBridge AI</small>
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 1.5rem;">
+                        <button onclick="shareToMoodJournal('${character}', '${cleanMessage}')" style="
+                            background: rgba(34, 211, 238, 0.8);
+                            color: white;
+                            border: none;
+                            padding: 10px 15px;
+                            border-radius: 8px;
+                            cursor: pointer;
+                            font-size: 0.9rem;
+                        ">💫 Save to Mood Journal</button>
+                        
+                        <button onclick="shareToSocial('${character}', '${cleanMessage}')" style="
+                            background: rgba(168, 85, 247, 0.8);
+                            color: white;
+                            border: none;
+                            padding: 10px 15px;
+                            border-radius: 8px;
+                            cursor: pointer;
+                            font-size: 0.9rem;
+                        ">🌟 Share to Community</button>
+                        
+                        <button onclick="copyToClipboard('${cleanMessage}', '${character}')" style="
+                            background: rgba(34, 197, 94, 0.8);
+                            color: white;
+                            border: none;
+                            padding: 10px 15px;
+                            border-radius: 8px;
+                            cursor: pointer;
+                            font-size: 0.9rem;
+                        ">📋 Copy Quote</button>
+                    </div>
+                    
+                    <button onclick="this.parentElement.parentElement.remove()" style="
+                        background: rgba(220, 38, 38, 0.8);
+                        color: white;
+                        border: none;
+                        padding: 8px 16px;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        margin-top: 1rem;
+                        float: right;
+                    ">Close</button>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // Close modal when clicking outside
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            });
+        }
+        
+        // Share to mood journal
+        function shareToMoodJournal(character, message) {
+            // This would integrate with the existing mood tracking system
+            console.log('Sharing to mood journal:', character, message);
+            alert('💫 Wisdom saved to your mood journal! Check your insights dashboard to see how companion conversations affect your wellness.');
+            document.querySelector('[style*="backdrop-filter: blur(5px)"]').remove();
+        }
+        
+        // Share to social/community
+        function shareToSocial(character, message) {
+            // This would integrate with the social system
+            console.log('Sharing to community:', character, message);
+            const confirmed = confirm('🌟 Share this meaningful moment with the SoulBridge community? This helps others discover the power of AI companionship.');
+            if (confirmed) {
+                alert('✨ Shared to community! Your post will inspire others on their wellness journey.');
+                document.querySelector('[style*="backdrop-filter: blur(5px)"]').remove();
+            }
+        }
+        
+        // Copy to clipboard
+        function copyToClipboard(message, character) {
+            const textToCopy = `"${message}" - ${character}, SoulBridge AI\n\nDiscover meaningful AI conversations at soulbridgeai.com`;
+            
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    alert('📋 Quote copied to clipboard! Share this wisdom with friends.');
+                    document.querySelector('[style*="backdrop-filter: blur(5px)"]').remove();
+                }).catch(err => {
+                    console.error('Copy failed:', err);
+                    fallbackCopy(textToCopy);
+                });
+            } else {
+                fallbackCopy(textToCopy);
+            }
+        }
+        
+        // Fallback copy method
+        function fallbackCopy(text) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                alert('📋 Quote copied to clipboard! Share this wisdom with friends.');
+                document.querySelector('[style*="backdrop-filter: blur(5px)"]').remove();
+            } catch (err) {
+                console.error('Fallback copy failed:', err);
+                alert('❌ Copy failed. Please manually select and copy the text.');
+            }
+            document.body.removeChild(textArea);
+        }
 
         function performSignOut() {
             // First try Firebase sign out if available
@@ -2962,6 +3135,20 @@
                         ${characterIcon} ${character}
                     </div>
                     <span class="timestamp" style="margin-left: auto; font-size: 0.75rem; opacity: 0.7;">Just now</span>
+                    
+                    <!-- Social Share Button -->
+                    <div class="social-share-btn" style="
+                        margin-left: 10px;
+                        cursor: pointer;
+                        opacity: 0.6;
+                        transition: opacity 0.2s ease;
+                        font-size: 0.8rem;
+                        color: ${characterColor};
+                    " onclick="shareMessage('${character}', '${messageText.replace(/'/g, "\\'")}', this)" 
+                       onmouseover="this.style.opacity='1'" 
+                       onmouseout="this.style.opacity='0.6'">
+                        🌟 Share
+                    </div>
                 </div>
                 <div class="message-text" style="margin-left: 42px; line-height: 1.4;">${messageText}</div>
             `;

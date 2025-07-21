@@ -39,7 +39,8 @@
       "Bash(ls:*)",
       "Bash(grep:*)",
       "Bash(touch:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(move \"favicon.ico\\*\" .)"
     ],
     "deny": []
   }
