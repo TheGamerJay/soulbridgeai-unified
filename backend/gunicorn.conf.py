@@ -6,8 +6,8 @@ bind = f"0.0.0.0:{os.environ.get('PORT', '8080')}"
 backlog = 2048
 
 # Worker processes
-worker_class = "eventlet"
-workers = 1  # Use single worker for SocketIO compatibility
+worker_class = "sync"  # Use sync workers to avoid eventlet issues
+workers = 1  # Single worker for simplicity
 worker_connections = 1000
 timeout = 300
 keepalive = 2
@@ -38,4 +38,4 @@ keyfile = None
 certfile = None
 
 # Application
-wsgi_application = "app_hybrid:app"
+wsgi_application = "wsgi_app:app"
