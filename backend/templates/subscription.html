@@ -393,6 +393,84 @@
       </div>
     </div>
   </div>
+
+  <!-- Feature Table Footer -->
+  <div style="
+    text-align: center;
+    margin-top: 60px;
+    padding: 40px 20px;
+    background: rgba(15, 23, 42, 0.3);
+    border-radius: 20px;
+    border: 1px solid rgba(34, 211, 238, 0.2);
+  ">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 30px;">
+      <div style="display: flex; align-items: center; justify-content: center; gap: 12px; color: #94a3b8;">
+        <span style="font-size: 1.5rem;">✨</span>
+        <span>All plans include secure, private sessions. Cancel anytime.</span>
+      </div>
+      <div style="display: flex; align-items: center; justify-content: center; gap: 12px; color: #94a3b8;">
+        <span style="font-size: 1.5rem;">🔒</span>
+        <span>Your emotional data is encrypted and never sold.</span>
+      </div>
+      <div style="display: flex; align-items: center; justify-content: center; gap: 12px; color: #94a3b8;">
+        <span style="font-size: 1.5rem;">🌍</span>
+        <span>Access from desktop or mobile — whenever you need to talk.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Upgrade Confirmation Modal -->
+<div id="upgrade-confirmation" style="
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+">
+  <div style="
+    background: linear-gradient(135deg, #0f172a, #1e293b);
+    border: 2px solid #22d3ee;
+    border-radius: 20px;
+    padding: 40px;
+    max-width: 500px;
+    margin: 20px;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(34, 211, 238, 0.3);
+  ">
+    <div style="font-size: 3rem; margin-bottom: 20px;">💙</div>
+    <h3 style="color: #22d3ee; margin-bottom: 20px; font-size: 1.8rem;">You're choosing healing over hiding.</h3>
+    <p style="color: #e2e8f0; line-height: 1.6; margin-bottom: 30px; font-size: 1.1rem;">
+      This upgrade gives you access to a more emotionally aware, deeply tuned AI designed to walk with you — no judgment, just presence.
+    </p>
+    <div style="display: flex; gap: 16px; justify-content: center;">
+      <button id="confirm-upgrade" style="
+        background: linear-gradient(135deg, #22d3ee, #0891b2);
+        color: #000;
+        border: none;
+        padding: 16px 32px;
+        border-radius: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        font-size: 1rem;
+      ">Continue to Payment</button>
+      <button id="cancel-upgrade" style="
+        background: rgba(34, 211, 238, 0.2);
+        color: #22d3ee;
+        border: 2px solid #22d3ee;
+        padding: 16px 32px;
+        border-radius: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        font-size: 1rem;
+      ">Maybe Later</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -409,6 +487,48 @@ const pricing = {
     transformation: { price: '$179', period: '/year', savings: 'Save $60' }
   }
 };
+
+// Show upgrade confirmation modal
+function showUpgradeConfirmation(planType, billing) {
+  const modal = document.getElementById('upgrade-confirmation');
+  modal.style.display = 'flex';
+  
+  // Store the plan info for later use
+  window.pendingUpgrade = { plan: planType, billing: billing };
+}
+
+// Handle modal actions
+document.addEventListener('DOMContentLoaded', function() {
+  // Confirm upgrade button
+  document.getElementById('confirm-upgrade').addEventListener('click', function() {
+    const upgrade = window.pendingUpgrade;
+    if (upgrade) {
+      // Hide modal and proceed to payment
+      document.getElementById('upgrade-confirmation').style.display = 'none';
+      window.location.href = `/payment?plan=${upgrade.plan}&billing=${upgrade.billing}`;
+    }
+  });
+  
+  // Cancel upgrade button
+  document.getElementById('cancel-upgrade').addEventListener('click', function() {
+    document.getElementById('upgrade-confirmation').style.display = 'none';
+    // Reset card selection
+    document.querySelectorAll('.plan-card').forEach(card => {
+      card.style.borderColor = 'rgba(34, 211, 238, 0.2)';
+    });
+  });
+  
+  // Close modal when clicking outside
+  document.getElementById('upgrade-confirmation').addEventListener('click', function(e) {
+    if (e.target === this) {
+      this.style.display = 'none';
+      // Reset card selection
+      document.querySelectorAll('.plan-card').forEach(card => {
+        card.style.borderColor = 'rgba(34, 211, 238, 0.2)';
+      });
+    }
+  });
+});
 
 function togglePricing(type) {
   currentPricing = type;
@@ -453,7 +573,7 @@ function selectPlan(planType) {
     // Free plan - redirect to chat
     window.location.href = '/chat';
   } else {
-    // Paid plans - proceed to payment
+    // Paid plans - show confirmation modal first
     const planData = {
       plan: planType,
       billing: currentPricing,
@@ -463,8 +583,8 @@ function selectPlan(planType) {
     // Store plan selection
     localStorage.setItem('selectedPlan', JSON.stringify(planData));
     
-    // Redirect to payment
-    window.location.href = `/payment?plan=${planType}&billing=${currentPricing}`;
+    // Show upgrade confirmation modal
+    showUpgradeConfirmation(planType, currentPricing);
   }
 }
 
