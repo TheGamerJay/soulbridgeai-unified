@@ -218,14 +218,19 @@ def init_openai():
         try:
             openai_client = OpenAI(api_key=openai_api_key)
             # Test the connection with a simple API call
-            openai_client.models.list()
-            logging.info("OpenAI client initialized successfully")
+            test_response = openai_client.models.list()
+            logging.info(f"OpenAI client initialized successfully - {len(test_response.data)} models available")
+            return True
         except Exception as e:
             logging.error(f"Failed to initialize OpenAI client: {str(e)}")
+            logging.error(f"API Key starts with: {openai_api_key[:10]}...")
             openai_client = None
+            return False
     else:
         logging.warning("OPENAI_API_KEY not found - AI features will be disabled")
+        logging.warning("Please set the OPENAI_API_KEY environment variable to enable AI features")
         openai_client = None
+        return False
 
 
 # Initialize SoulBridge Database and Email Service
@@ -2820,13 +2825,25 @@ def send_message():
 
         # Check if OpenAI client is available
         if not openai_client:
-            return (
-                jsonify(
-                    success=False,
-                    error="⚠️ AI services are currently unavailable. Please contact support.",
-                ),
-                503,
-            )
+            # Try to reinitialize OpenAI client
+            logging.info("Attempting to reinitialize OpenAI client...")
+            init_success = init_openai()
+            
+            if not openai_client:
+                error_msg = "🔧 AI services are currently unavailable."
+                if not os.environ.get("OPENAI_API_KEY"):
+                    error_msg += " Missing OpenAI API key configuration."
+                else:
+                    error_msg += " OpenAI connection failed."
+                error_msg += " Please contact support if this persists."
+                
+                return (
+                    jsonify(
+                        success=False,
+                        error=error_msg,
+                    ),
+                    503,
+                )
 
         # Prepare messages for OpenAI
         api_messages = [{"role": "system", "content": SYSTEM_PROMPT}]
@@ -2929,13 +2946,25 @@ def api_chat():
 
         # Check if OpenAI client is available
         if not openai_client:
-            return (
-                jsonify(
-                    success=False,
-                    error="AI services are currently unavailable. Please contact support.",
-                ),
-                503,
-            )
+            # Try to reinitialize OpenAI client
+            logging.info("Attempting to reinitialize OpenAI client for API...")
+            init_success = init_openai()
+            
+            if not openai_client:
+                error_msg = "🔧 AI services are currently unavailable."
+                if not os.environ.get("OPENAI_API_KEY"):
+                    error_msg += " Missing OpenAI API key configuration."
+                else:
+                    error_msg += " OpenAI connection failed."
+                error_msg += " Please contact support if this persists."
+                
+                return (
+                    jsonify(
+                        success=False,
+                        error=error_msg,
+                    ),
+                    503,
+                )
 
         # Get character-specific system prompt
         system_prompt = CHARACTER_PROMPTS.get(character, CHARACTER_PROMPTS["Blayzo"])
@@ -5968,6 +5997,64 @@ def after_request(response):
 
 
 # -------------------------------------------------
+# Debug and Admin Routes  
+# -------------------------------------------------
+
+@app.route("/api/debug/openai-status", methods=["GET"])
+def openai_status():
+    """Check OpenAI client status"""
+    try:
+        has_api_key = bool(os.environ.get("OPENAI_API_KEY"))
+        client_initialized = bool(openai_client)
+        
+        if client_initialized and openai_client:
+            try:
+                # Test API call
+                models = openai_client.models.list()
+                api_working = True
+                model_count = len(models.data)
+            except Exception as e:
+                api_working = False
+                model_count = 0
+        else:
+            api_working = False
+            model_count = 0
+            
+        return jsonify({
+            "success": True,
+            "status": {
+                "has_api_key": has_api_key,
+                "client_initialized": client_initialized,
+                "api_working": api_working,
+                "model_count": model_count,
+                "api_key_preview": os.environ.get("OPENAI_API_KEY", "")[:10] + "..." if has_api_key else None
+            }
+        })
+        
+    except Exception as e:
+        logging.error(f"OpenAI status check error: {e}")
+        return jsonify(success=False, error=str(e)), 500
+
+@app.route("/api/debug/reinit-openai", methods=["POST"])  
+def reinit_openai():
+    """Manually reinitialize OpenAI client"""
+    try:
+        global openai_client
+        openai_client = None  # Reset client
+        
+        success = init_openai()
+        
+        return jsonify({
+            "success": success,
+            "client_initialized": bool(openai_client),
+            "message": "OpenAI reinitialization " + ("successful" if success else "failed")
+        })
+        
+    except Exception as e:
+        logging.error(f"OpenAI reinit error: {e}")
+        return jsonify(success=False, error=str(e)), 500
+
+# -------------------------------------------------
 # Email Service Routes
 # -------------------------------------------------
 
@@ -6049,6 +6136,13 @@ if __name__ == "__main__":
     if not os.environ.get("RESEND_API_KEY"):
         os.environ["RESEND_API_KEY"] = "re_5qFQNft3_DwXgL5bPcbemZbcrogmP1Knc"
         logging.info("Resend API key configured")
+    
+    # Check if OpenAI API key is available
+    if not os.environ.get("OPENAI_API_KEY"):
+        logging.warning("OPENAI_API_KEY not found - AI features will be disabled")
+        logging.info("Set OPENAI_API_KEY environment variable to enable AI features")
+    else:
+        logging.info("OpenAI API key found - AI features will be enabled")
 
     # Initialize core services
     try:
