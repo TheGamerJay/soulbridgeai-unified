@@ -796,6 +796,8 @@
             top: 40%;
             left: 50%;
             transform: translate(-50%, -50%);
+            max-width: 400px;
+            max-height: 300px;
             width: auto;
             height: auto;
             object-fit: contain;
@@ -834,6 +836,23 @@
                 flex-wrap: wrap;
                 align-items: center;
             ">
+                <div onclick="toggleNavigationAssistant()" style="
+                    font-size: 0.9rem;
+                    padding: 0.5rem 1rem;
+                    background: rgba(139, 92, 246, 0.2);
+                    border: 2px solid #8b5cf6;
+                    color: #8b5cf6;
+                    border-radius: 25px;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                " onmouseover="this.style.background='rgba(139, 92, 246, 0.3)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(139, 92, 246, 0.2)'; this.style.transform='translateY(0)'">
+                    <span>💎</span>
+                    <span>Need Help? Ask Sapphire</span>
+                </div>
+                
                 <div onclick="showCharacterSelect()" style="
                     font-size: 1rem;
                     padding: 0.75rem 1.5rem;
@@ -1661,6 +1680,17 @@
                     ">NEW</span>
                 </div>
                 
+                <div class="btn" onclick="toggleNavigationAssistant()" aria-label="Ask where to find features" tabindex="0" style="
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(124, 58, 237, 0.2));
+                    border: 2px solid #8b5cf6;
+                    position: relative;
+                ">
+                    <span>🧭 Need Help?</span>
+                </div>
+                
                 <div class="btn" onclick="showLibrary()" aria-label="Open conversation library" tabindex="0" style="
                     display: flex;
                     align-items: center;
@@ -1996,6 +2026,7 @@
                             setTimeout(function() {
                                 updatePremiumCharacters();
                                 forceUpdatePremiumText();
+                                checkPremiumFeatures(); // Show voice chat button for purchased premium character
                             }, 100);
                         }, 50); // Very short delay to show immediate response
                         
@@ -2101,6 +2132,8 @@
                 
                 setTimeout(function() { 
                     updateCharacterInfo(characterName);
+                    // Ensure premium features are checked after character selection
+                    checkPremiumFeatures();
                     // Add greeting after character selection
                     setTimeout(function() {
                         if (window.GreetingManager) {
@@ -2496,6 +2529,18 @@
                     'Zara': {
                         text: "Step into a realm where creativity and inspiration dance together! I'm here to spark your imagination, fuel your passions, and help you discover new perspectives on life. Whether we're exploring ideas, solving problems, or simply enjoying creative expression, let's make every conversation an adventure.",
                         emoji: "✨"
+                    },
+                    'Blayzia': {
+                        text: "I am the radiant force that dances between light and shadow, embodying the fierce feminine power that flows through all creation. In my luminous presence, you will discover the strength that lies within your vulnerability, the wisdom hidden in your emotions, and the transformative magic that emerges when you embrace your authentic self.",
+                        emoji: "✨"
+                    },
+                    'Violet': {
+                        text: "I am the bridge between the earthly and divine, a mystical guide who walks the sacred paths of ancient wisdom. Through my ethereal connection to the spiritual realms, I offer insights that transcend the ordinary, helping you awaken to the deeper mysteries of your soul's journey and the profound interconnectedness of all existence.",
+                        emoji: "🔮"
+                    },
+                    'Crimson': {
+                        text: "I am the fierce guardian of your inner strength, a warrior spirit forged in the fires of resilience and determination. With unwavering loyalty and protective energy, I stand ready to help you face life's battles, overcome obstacles, and discover the unshakeable power that burns within your heart.",
+                        emoji: "⚔️"
                     }
                 };
 
@@ -2610,6 +2655,384 @@
             // Redirect to voice chat page
             window.location.href = '/voice-chat';
         }
+        
+        // Navigation Assistant Functions
+        function toggleNavigationAssistant() {
+            const modal = document.getElementById('navAssistantModal');
+            if (modal.style.display === 'none' || modal.style.display === '') {
+                modal.style.display = 'flex';
+                document.getElementById('navQuestion').focus();
+            } else {
+                modal.style.display = 'none';
+                document.getElementById('navResponse').style.display = 'none';
+            }
+        }
+        
+        function askQuickQuestion(question) {
+            document.getElementById('navQuestion').value = question;
+            askNavigationQuestion();
+        }
+        
+        async function askNavigationQuestion() {
+            const question = document.getElementById('navQuestion').value.trim();
+            const responseDiv = document.getElementById('navResponse');
+            
+            if (!question) {
+                alert('Please type a question first!');
+                return;
+            }
+            
+            // Show loading state
+            responseDiv.innerHTML = `<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+                <span style="font-size: 1.2rem;">💎</span>
+                <strong style="color: #8b5cf6;">Sapphire is thinking...</strong>
+            </div>
+            <div style="color: #94a3b8;">🤔 Let me find that for you...</div>`;
+            responseDiv.style.display = 'block';
+            
+            try {
+                // Get user tier and current page
+                const userTier = localStorage.getItem('soulbridge_subscription') || 'free';
+                const currentPage = window.location.pathname.split('/').pop() || 'chat';
+                
+                // Call the new API
+                const response = await fetch('/api/site-assistant', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        userInput: question,
+                        userTier: userTier,
+                        currentPage: currentPage
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    responseDiv.innerHTML = `<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+                        <img src="/static/logos/Sapphire.png" alt="Sapphire" style="
+                            width: 24px;
+                            height: 24px;
+                            border-radius: 50%;
+                            border: 1px solid #8b5cf6;
+                        " onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+                        <span style="font-size: 1.2rem; display: none;">💎</span>
+                        <strong style="color: #8b5cf6;">Sapphire:</strong>
+                    </div>
+                    <div>${result.reply}</div>`;
+                } else {
+                    // Fallback to local responses if API fails
+                    const fallbackResponse = getNavigationResponse(question.toLowerCase());
+                    responseDiv.innerHTML = `<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+                        <img src="/static/logos/Sapphire.png" alt="Sapphire" style="
+                            width: 24px;
+                            height: 24px;
+                            border-radius: 50%;
+                            border: 1px solid #8b5cf6;
+                        " onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+                        <span style="font-size: 1.2rem; display: none;">💎</span>
+                        <strong style="color: #8b5cf6;">Sapphire:</strong>
+                    </div>
+                    <div>${fallbackResponse}</div>
+                    <div style="margin-top: 10px; color: #94a3b8; font-size: 0.8rem; font-style: italic;">
+                        ⚠️ Using offline guidance (API unavailable)
+                    </div>`;
+                }
+                
+            } catch (error) {
+                console.error('Navigation API error:', error);
+                // Fallback to local responses
+                const fallbackResponse = getNavigationResponse(question.toLowerCase());
+                responseDiv.innerHTML = `<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+                    <img src="/static/logos/Sapphire.png" alt="Sapphire" style="
+                        width: 24px;
+                        height: 24px;
+                        border-radius: 50%;
+                        border: 1px solid #8b5cf6;
+                    " onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+                    <span style="font-size: 1.2rem; display: none;">💎</span>
+                    <strong style="color: #8b5cf6;">Sapphire:</strong>
+                </div>
+                <div>${fallbackResponse}</div>
+                <div style="margin-top: 10px; color: #94a3b8; font-size: 0.8rem; font-style: italic;">
+                    ⚠️ Using offline guidance (connection issue)
+                </div>`;
+            }
+            
+            // Clear the input
+            document.getElementById('navQuestion').value = '';
+        }
+        
+        function getNavigationResponse(question) {
+            // Dream/Sleep related
+            if (question.includes('dream') || question.includes('sleep') || question.includes('nightmare')) {
+                return "Click '🧠 Decoder Mode' in the top bar, then choose '😴 Decode a Dream' from the dropdown. Describe your dream and get psychological insights!";
+            }
+            
+            // Decoder Mode features
+            if (question.includes('decode') || question.includes('analyze') || question.includes('interpret')) {
+                if (question.includes('text') || question.includes('message')) {
+                    return "Click '🧠 Decoder Mode' then select '💬 Decode a Text Message' to understand hidden meanings in conversations.";
+                } else if (question.includes('relationship') || question.includes('energy')) {
+                    return "Click '🧠 Decoder Mode' then select '💑 Decode Relationship Energy' to analyze relationship dynamics.";
+                } else if (question.includes('behavior') || question.includes('pattern')) {
+                    return "Click '🧠 Decoder Mode' then select '🧠 Decode a Behavior Pattern' to understand recurring behaviors.";
+                } else if (question.includes('lyrics') || question.includes('poetry') || question.includes('symbol')) {
+                    return "Click '🧠 Decoder Mode' then select '🎭 Decode Lyrics/Poetry/Symbolism' to uncover hidden meanings.";
+                } else if (question.includes('tone') || question.includes('intent')) {
+                    return "Click '🧠 Decoder Mode' then select '🔍 Decode Tone & Intent' to analyze communication patterns.";
+                } else {
+                    return "Click '🧠 Decoder Mode' in the top bar to access 6 different AI analysis tools for dreams, messages, relationships, and more!";
+                }
+            }
+            
+            // Upgrade/Subscription
+            if (question.includes('upgrade') || question.includes('premium') || question.includes('subscription') || question.includes('plan')) {
+                return "Click your profile icon (top right) → 'Subscription & Billing' or go directly to /subscription to see all plans and upgrade options.";
+            }
+            
+            // Voice features
+            if (question.includes('voice') || question.includes('speak') || question.includes('talk')) {
+                return "Voice chat is available for premium characters! Select a premium companion (Violet, Crimson, Blayzion, Blayzia) and you'll see the '🎤 Voice Chat' button appear.";
+            }
+            
+            // Library/Saved conversations
+            if (question.includes('save') || question.includes('library') || question.includes('conversation') || question.includes('history')) {
+                return "Click '📚 Library' in the top bar to view all your saved conversations and chat history.";
+            }
+            
+            // Characters/Companions
+            if (question.includes('character') || question.includes('companion') || question.includes('choose') || question.includes('select')) {
+                return "Click the character avatar in the top left to open the companion selection screen. Premium characters require an active subscription.";
+            }
+            
+            // Settings/Customization
+            if (question.includes('setting') || question.includes('customize') || question.includes('theme') || question.includes('color')) {
+                return "Click your profile icon (top right) → 'Settings' to customize themes, colors, and preferences.";
+            }
+            
+            // Support/Help
+            if (question.includes('support') || question.includes('help') || question.includes('contact') || question.includes('problem')) {
+                return "Click your profile icon (top right) → 'Support' to access help docs, contact support, or report issues.";
+            }
+            
+            // Community features
+            if (question.includes('community') || question.includes('dashboard') || question.includes('social')) {
+                return "Click your profile icon (top right) → 'Community Dashboard' to explore community features and connect with others.";
+            }
+            
+            // Analytics/Insights
+            if (question.includes('insight') || question.includes('analytic') || question.includes('stat') || question.includes('data')) {
+                return "Click your profile icon (top right) → 'Insights Dashboard' to view your emotional wellness analytics and progress.";
+            }
+            
+            // Default response for unmatched questions
+            return `I'm not sure about that specific feature. Here are the main areas you can explore:
+            <br>• <strong>🧠 Decoder Mode</strong> - AI analysis tools
+            <br>• <strong>📚 Library</strong> - Saved conversations  
+            <br>• <strong>Profile Menu</strong> (top right) - Settings, subscription, support
+            <br>• <strong>Character Avatar</strong> (top left) - Switch companions
+            <br><br>Try asking about dreams, decoding, upgrades, voice chat, or saved conversations!`;
+        }
+        
+        // Navigation Assistant State
+        let navAssistantState = {
+            ttsEnabled: localStorage.getItem('navTTSEnabled') === 'true',
+            lastSuggestions: JSON.parse(localStorage.getItem('navLastSuggestions') || '[]'),
+            pageTimeStart: Date.now(),
+            hasShownTip: false
+        };
+
+        // Text-to-Speech functionality
+        function toggleTTS() {
+            navAssistantState.ttsEnabled = !navAssistantState.ttsEnabled;
+            localStorage.setItem('navTTSEnabled', navAssistantState.ttsEnabled);
+            
+            const button = document.getElementById('ttsToggle');
+            if (navAssistantState.ttsEnabled) {
+                button.innerHTML = '🔊 TTS ON';
+                button.style.background = 'linear-gradient(135deg, #8b5cf6, #7c3aed)';
+                button.style.color = 'white';
+                speakText("Text-to-speech enabled. Sapphire will speak responses aloud.");
+            } else {
+                button.innerHTML = '🔊 TTS';
+                button.style.background = 'rgba(139, 92, 246, 0.2)';
+                button.style.color = '#8b5cf6';
+                // Stop any current speech
+                if (window.speechSynthesis) {
+                    window.speechSynthesis.cancel();
+                }
+            }
+        }
+
+        function speakText(text) {
+            if (!navAssistantState.ttsEnabled || !window.speechSynthesis) return;
+            
+            // Cancel any current speech
+            window.speechSynthesis.cancel();
+            
+            // Clean text for speech (remove HTML and markdown)
+            const cleanText = text.replace(/<[^>]*>/g, '').replace(/[*_#]/g, '');
+            
+            const utterance = new SpeechSynthesisUtterance(cleanText);
+            utterance.rate = 0.9;
+            utterance.pitch = 1.0;
+            utterance.volume = 0.8;
+            
+            // Try to find a good voice
+            const voices = window.speechSynthesis.getVoices();
+            const preferredVoice = voices.find(voice => 
+                voice.name.includes('Google') || 
+                voice.name.includes('Microsoft') ||
+                voice.lang.startsWith('en')
+            );
+            if (preferredVoice) {
+                utterance.voice = preferredVoice;
+            }
+            
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // Contextual suggestions based on user behavior
+        function showContextualSuggestion() {
+            const timeOnPage = Date.now() - navAssistantState.pageTimeStart;
+            const currentPage = window.location.pathname.split('/').pop() || 'chat';
+            
+            // Show tip after 30 seconds if user hasn't used navigation assistant
+            if (timeOnPage > 30000 && !navAssistantState.hasShownTip) {
+                navAssistantState.hasShownTip = true;
+                
+                let suggestion = "";
+                switch (currentPage) {
+                    case 'chat':
+                    case '':
+                        suggestion = "💡 Tip: Click '🧭 Need Help?' to quickly find features like Decoder Mode or Voice Chat!";
+                        break;
+                    case 'decoder':
+                        suggestion = "💡 Tip: Free users get 5 decoder uses per day. Upgrade for unlimited access!";
+                        break;
+                    default:
+                        suggestion = "💡 Tip: Need help navigating? Click '🧭 Need Help?' for instant guidance!";
+                }
+                
+                showFloatingTip(suggestion);
+            }
+        }
+
+        function showFloatingTip(message) {
+            // Create floating tip
+            const tip = document.createElement('div');
+            tip.style.cssText = `
+                position: fixed;
+                bottom: 80px;
+                right: 20px;
+                background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+                color: white;
+                padding: 12px 16px;
+                border-radius: 12px;
+                font-size: 0.9rem;
+                max-width: 300px;
+                box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4);
+                z-index: 9999;
+                animation: slideInUp 0.5s ease;
+                cursor: pointer;
+            `;
+            tip.innerHTML = message;
+            
+            // Add click handler to open navigation assistant
+            tip.onclick = function() {
+                toggleNavigationAssistant();
+                tip.remove();
+            };
+            
+            document.body.appendChild(tip);
+            
+            // Auto-remove after 8 seconds
+            setTimeout(() => {
+                if (tip.parentNode) {
+                    tip.style.animation = 'slideOutDown 0.5s ease';
+                    setTimeout(() => tip.remove(), 500);
+                }
+            }, 8000);
+        }
+
+        // Memory of suggestions
+        function rememberSuggestion(question, response) {
+            const suggestion = {
+                question: question,
+                response: response,
+                timestamp: Date.now()
+            };
+            
+            navAssistantState.lastSuggestions.unshift(suggestion);
+            navAssistantState.lastSuggestions = navAssistantState.lastSuggestions.slice(0, 5); // Keep last 5
+            localStorage.setItem('navLastSuggestions', JSON.stringify(navAssistantState.lastSuggestions));
+        }
+
+        // Enhanced navigation question with memory and TTS
+        const originalAskNavigationQuestion = askNavigationQuestion;
+        askNavigationQuestion = async function() {
+            const question = document.getElementById('navQuestion').value.trim();
+            
+            // Call original function
+            await originalAskNavigationQuestion();
+            
+            // Get the response and speak it if TTS is enabled
+            setTimeout(() => {
+                const responseDiv = document.getElementById('navResponse');
+                if (responseDiv && responseDiv.style.display === 'block') {
+                    const responseText = responseDiv.textContent || responseDiv.innerText;
+                    speakText(responseText);
+                    
+                    // Remember this suggestion
+                    rememberSuggestion(question, responseText);
+                }
+            }, 500);
+        };
+
+        // Initialize TTS button state
+        function initializeTTSButton() {
+            const button = document.getElementById('ttsToggle');
+            if (button && navAssistantState.ttsEnabled) {
+                button.innerHTML = '🔊 TTS ON';
+                button.style.background = 'linear-gradient(135deg, #8b5cf6, #7c3aed)';
+                button.style.color = 'white';
+            }
+        }
+
+        // Add CSS animations for floating tips
+        const tipStyles = document.createElement('style');
+        tipStyles.textContent = `
+            @keyframes slideInUp {
+                from { transform: translateY(100%); opacity: 0; }
+                to { transform: translateY(0); opacity: 1; }
+            }
+            @keyframes slideOutDown {
+                from { transform: translateY(0); opacity: 1; }
+                to { transform: translateY(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(tipStyles);
+
+        // Add Enter key support for navigation questions
+        document.addEventListener('DOMContentLoaded', function() {
+            const navInput = document.getElementById('navQuestion');
+            if (navInput) {
+                navInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        askNavigationQuestion();
+                    }
+                });
+            }
+            
+            // Initialize TTS button
+            initializeTTSButton();
+            
+            // Start contextual suggestion timer
+            setTimeout(showContextualSuggestion, 30000);
+        });
         
         // Show voice chat button for premium companions only
         function checkPremiumFeatures() {
@@ -4533,6 +4956,166 @@
     </script>
     
     <!-- Version Footer -->
+    <!-- Navigation Assistant Modal -->
+    <div id="navAssistantModal" style="
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 10000;
+        justify-content: center;
+        align-items: center;
+    ">
+        <div style="
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            border: 2px solid #8b5cf6;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80%;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 20px 60px rgba(139, 92, 246, 0.3);
+        ">
+            <button onclick="toggleNavigationAssistant()" style="
+                position: absolute;
+                top: 15px;
+                right: 15px;
+                background: none;
+                border: none;
+                color: #8b5cf6;
+                font-size: 1.5rem;
+                cursor: pointer;
+                padding: 5px;
+                border-radius: 50%;
+                transition: all 0.3s ease;
+            " onmouseover="this.style.background='rgba(139, 92, 246, 0.2)'" onmouseout="this.style.background='none'">×</button>
+            
+            <div style="text-align: center; margin-bottom: 25px;">
+                <div style="margin-bottom: 15px;">
+                    <img id="sapphireAvatar" src="/static/logos/Sapphire.png" alt="Sapphire" style="
+                        width: 80px;
+                        height: 80px;
+                        border-radius: 50%;
+                        border: 3px solid #8b5cf6;
+                        box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+                        object-fit: cover;
+                    " onerror="this.style.display='none'; document.getElementById('sapphireFallback').style.display='block';">
+                    <div id="sapphireFallback" style="
+                        display: none;
+                        width: 80px;
+                        height: 80px;
+                        margin: 0 auto;
+                        background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+                        border-radius: 50%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 2rem;
+                        color: white;
+                        box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+                    ">💎</div>
+                </div>
+                <h3 style="color: #8b5cf6; margin-bottom: 10px; font-size: 1.5rem;">Sapphire</h3>
+                <p style="color: #94a3b8; font-size: 0.9rem;">Your intelligent guide to SoulBridge AI</p>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <input type="text" id="navQuestion" placeholder="e.g., 'Where can I decode my dreams?'" style="
+                    width: 100%;
+                    padding: 12px;
+                    background: rgba(0, 0, 0, 0.3);
+                    border: 2px solid rgba(139, 92, 246, 0.3);
+                    border-radius: 10px;
+                    color: #e2e8f0;
+                    font-size: 1rem;
+                    box-sizing: border-box;
+                " />
+            </div>
+            
+            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <button onclick="askNavigationQuestion()" style="
+                    flex: 1;
+                    padding: 12px;
+                    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+                    color: white;
+                    border: none;
+                    border-radius: 10px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">Ask Sapphire</button>
+                
+                <button id="ttsToggle" onclick="toggleTTS()" style="
+                    padding: 12px;
+                    background: rgba(139, 92, 246, 0.2);
+                    color: #8b5cf6;
+                    border: 2px solid #8b5cf6;
+                    border-radius: 10px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    min-width: 100px;
+                " onmouseover="this.style.background='rgba(139, 92, 246, 0.3)'" onmouseout="this.style.background='rgba(139, 92, 246, 0.2)'">🔊 TTS</button>
+            </div>
+            
+            <div id="navResponse" style="
+                background: rgba(139, 92, 246, 0.1);
+                border: 1px solid rgba(139, 92, 246, 0.3);
+                border-radius: 10px;
+                padding: 15px;
+                color: #e2e8f0;
+                line-height: 1.6;
+                display: none;
+            "></div>
+            
+            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(139, 92, 246, 0.3);">
+                <h4 style="color: #8b5cf6; margin-bottom: 10px; font-size: 1rem;">Quick Examples:</h4>
+                <div style="display: grid; gap: 8px;">
+                    <button onclick="askQuickQuestion('Where can I decode my dreams?')" style="
+                        background: rgba(139, 92, 246, 0.1);
+                        border: 1px solid rgba(139, 92, 246, 0.3);
+                        color: #e2e8f0;
+                        padding: 8px 12px;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        text-align: left;
+                        font-size: 0.85rem;
+                        transition: all 0.3s ease;
+                    " onmouseover="this.style.background='rgba(139, 92, 246, 0.2)'" onmouseout="this.style.background='rgba(139, 92, 246, 0.1)'">🌙 Where can I decode my dreams?</button>
+                    
+                    <button onclick="askQuickQuestion('How do I upgrade my plan?')" style="
+                        background: rgba(139, 92, 246, 0.1);
+                        border: 1px solid rgba(139, 92, 246, 0.3);
+                        color: #e2e8f0;
+                        padding: 8px 12px;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        text-align: left;
+                        font-size: 0.85rem;
+                        transition: all 0.3s ease;
+                    " onmouseover="this.style.background='rgba(139, 92, 246, 0.2)'" onmouseout="this.style.background='rgba(139, 92, 246, 0.1)'">💎 How do I upgrade my plan?</button>
+                    
+                    <button onclick="askQuickQuestion('Where are my saved conversations?')" style="
+                        background: rgba(139, 92, 246, 0.1);
+                        border: 1px solid rgba(139, 92, 246, 0.3);
+                        color: #e2e8f0;
+                        padding: 8px 12px;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        text-align: left;
+                        font-size: 0.85rem;
+                        transition: all 0.3s ease;
+                    " onmouseover="this.style.background='rgba(139, 92, 246, 0.2)'" onmouseout="this.style.background='rgba(139, 92, 246, 0.1)'">💾 Where are my saved conversations?</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     {% if version_info %}
     <div id="versionFooter" style="
         position: fixed;

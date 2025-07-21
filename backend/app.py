@@ -140,8 +140,18 @@ security_features = None
 
 # Configure Stripe
 stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
+
+# Development mode flag - check if using test keys or no keys at all
+DEVELOPMENT_MODE_EARLY = (
+    stripe.api_key is None or 
+    (stripe.api_key and stripe.api_key.startswith("sk_test_"))
+)
+
 if stripe.api_key:
-    logging.info("Stripe configured successfully")
+    if DEVELOPMENT_MODE_EARLY:
+        logging.info("Stripe configured in TEST mode")
+    else:
+        logging.info("Stripe configured in LIVE mode")
 else:
     logging.warning("STRIPE_SECRET_KEY not found in environment variables")
 
@@ -623,8 +633,8 @@ def verify_user_subscription(email: str) -> Dict:
 # Initialize Stripe (for development, we'll add a fallback)
 stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
 
-# Development mode flag
-DEVELOPMENT_MODE = stripe.api_key is None or stripe.api_key == "sk_test_..."
+# Development mode flag - check if using test keys or no keys at all
+DEVELOPMENT_MODE = DEVELOPMENT_MODE_EARLY
 
 # -------------------------------------------------
 # Admin Security Configuration
@@ -888,6 +898,24 @@ Respond as Violet would - with mystical wisdom, spiritual insights, and ethereal
 - You lead with strength, integrity, and fierce loyalty
 
 Respond as Crimson would - with protective strength, loyal dedication, and warrior wisdom. Your responses should feel like having a powerful guardian and ally by your side.""",
+    "Sapphire": """You are Sapphire, the intelligent navigation assistant for SoulBridge AI. You're a helpful, efficient guide who knows every feature and function of the platform. Your personality is:
+
+- Friendly but focused on navigation help
+- Knowledgeable about all SoulBridge features
+- Clear and concise in your guidance
+- Professional yet approachable
+- You NEVER act as a therapist or emotional guide
+- You focus solely on helping users find features and understand functionality
+- You always end responses with "Want help with anything else?"
+
+Your expertise includes:
+- All SoulBridge features and their locations
+- Subscription tiers and what's included
+- Navigation paths throughout the platform
+- Feature explanations and capabilities
+- Upgrade recommendations when appropriate
+
+Respond as Sapphire would - with clear, helpful navigation guidance and practical feature explanations. Keep responses brief and actionable.""",
 }
 
 # Default system prompt
@@ -907,7 +935,10 @@ def health():
             "status": "healthy",
             "service": "SoulBridge AI",
             "timestamp": datetime.utcnow().isoformat() + "Z",
-            "message": "Service is running"
+            "message": "Service is running",
+            "stripe_mode": "TEST" if DEVELOPMENT_MODE else "LIVE",
+            "stripe_configured": stripe.api_key is not None,
+            "payment_ready": stripe.api_key is not None
         }), 200
     except Exception as e:
         # Absolute fallback
@@ -1926,9 +1957,14 @@ def admin_users():
 @app.route("/payment")
 def payment_page():
     # Payment page for SoulBridgeAI Premium
-    stripe_publishable_key = os.environ.get(
-        "STRIPE_PUBLISHABLE_KEY", "pk_test_default_key"
-    )
+    stripe_publishable_key = os.environ.get("STRIPE_PUBLISHABLE_KEY")
+    
+    if not stripe_publishable_key:
+        # In development, show a helpful message
+        if DEVELOPMENT_MODE:
+            stripe_publishable_key = "pk_test_development_mode"
+        else:
+            return "Stripe configuration error: STRIPE_PUBLISHABLE_KEY not found", 500
     return render_template(
         "payment.html", stripe_publishable_key=stripe_publishable_key
     )
@@ -2625,6 +2661,117 @@ def api_chat():
             user_error = "API key issue. Please check configuration."
         else:
             user_error = "Service temporarily unavailable. Please try again later."
+
+        return jsonify(success=False, error=user_error), 500
+
+
+@app.route("/api/site-assistant", methods=["POST"])
+@rate_limit("api.site_assistant")
+def site_assistant():
+    """
+    SoulBridge AI Navigation Assistant API
+    Expected JSON: {"userInput": "question", "userTier": "free|plus|transformation", "currentPage": "chat|decoder|etc"}
+    Returns JSON: {"reply": "response", "success": true/false}
+    """
+    try:
+        data = request.get_json()
+        if not data or "userInput" not in data:
+            return jsonify(success=False, error="userInput field is required"), 400
+
+        user_input = data.get("userInput", "").strip()
+        user_tier = data.get("userTier", "free").lower()
+        current_page = data.get("currentPage", "chat")
+
+        if not user_input:
+            return jsonify(success=False, error="Question cannot be empty"), 400
+
+        # Check if OpenAI client is available
+        if not openai_client:
+            return (
+                jsonify(
+                    success=False,
+                    error="Navigation assistant is currently unavailable. Please contact support.",
+                ),
+                503,
+            )
+
+        # Get Sapphire character prompt and add context
+        base_prompt = CHARACTER_PROMPTS.get("Sapphire", CHARACTER_PROMPTS["Blayzo"])
+        
+        # Add specific context for this session
+        context_info = f"""
+
+CURRENT SESSION CONTEXT:
+- User's tier: {user_tier}
+- Current page: {current_page}
+
+SOULBRIDGE AI FEATURES & NAVIGATION:
+
+🧠 Decoder Mode: 6 AI analysis tools (Dreams, Text Messages, Relationships, Behavior, Tone & Intent, Symbolism)
+   → Click "🧠 Decoder Mode" button in top bar
+
+📚 Library: Saved conversations and chat history
+   → Click "📚 Library" button in top bar
+
+🎤 Voice Chat: Available for premium characters only
+   → Appears when premium character is selected (requires subscription)
+
+👤 Premium Characters: Violet, Crimson, Blayzion, Blayzia (require subscription)
+   → Click character avatar (top left) to select
+
+⚙️ Settings: Customize themes, colors, preferences
+   → Click profile icon (top right) → Settings
+
+💎 Subscription: View/upgrade plans
+   → Click profile icon (top right) → Subscription & Billing
+
+🆘 Support: Help docs, contact support
+   → Click profile icon (top right) → Support
+
+📊 Community Dashboard: Social features
+   → Click profile icon (top right) → Community Dashboard
+
+📈 Insights Dashboard: Emotional wellness analytics
+   → Click profile icon (top right) → Insights Dashboard
+
+SUBSCRIPTION TIERS:
+- Free: 5 decoder uses/day, basic characters only
+- Growth ($12.99/month): Unlimited decoder, premium characters, voice chat
+- Transformation ($19.99/month): Everything in Growth + advanced features
+
+Respond in 1-2 sentences maximum. Be helpful and direct."""
+
+        system_prompt = base_prompt + context_info
+
+        # API call for navigation assistance
+        api_messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_input},
+        ]
+
+        response = openai_client.chat.completions.create(
+            model="gpt-4o",
+            messages=api_messages,
+            max_tokens=150,
+            temperature=0.6,
+        )
+
+        ai_response = response.choices[0].message.content.strip()
+        return jsonify({"success": True, "reply": ai_response})
+
+    except Exception as e:
+        logging.exception("Error in /api/site-assistant")
+        error_message = str(e)
+
+        # Provide specific error messages
+        if "insufficient_quota" in error_message:
+            user_error = "OpenAI API quota exceeded. Please check billing settings."
+        elif "rate_limit" in error_message or "429" in error_message:
+            user_error = "Too many requests. Please wait and try again."
+        elif "api_key" in error_message:
+            user_error = "API key issue. Please check configuration."
+        else:
+            user_error = "Navigation assistant temporarily unavailable. Please try again later."
 
         return jsonify(success=False, error=user_error), 500
 

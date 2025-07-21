@@ -40,7 +40,8 @@
       "Bash(grep:*)",
       "Bash(touch:*)",
       "Bash(git checkout:*)",
-      "Bash(move \"favicon.ico\\*\" .)"
+      "Bash(move \"favicon.ico\\*\" .)",
+      "WebFetch(domain:www.soulbridgeai.com)"
     ],
     "deny": []
   }
