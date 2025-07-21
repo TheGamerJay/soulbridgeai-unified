@@ -5,9 +5,9 @@ import os
 bind = f"0.0.0.0:{os.environ.get('PORT', '8080')}"
 backlog = 2048
 
-# Worker processes
-worker_class = "sync"  # Use sync workers to avoid eventlet issues
-workers = 1  # Single worker for simplicity
+# Worker processes  
+worker_class = "eventlet"  # Use eventlet workers for SocketIO compatibility
+workers = 1  # Single worker for SocketIO compatibility
 worker_connections = 1000
 timeout = 300
 keepalive = 2
@@ -37,5 +37,5 @@ tmp_upload_dir = None
 keyfile = None
 certfile = None
 
-# Application
-wsgi_application = "wsgi_app:app"
+# Application  
+wsgi_application = "app:app"

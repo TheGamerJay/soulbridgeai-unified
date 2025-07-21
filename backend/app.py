@@ -1,3 +1,7 @@
+# CRITICAL: eventlet monkey patching MUST be first for Gunicorn compatibility
+import eventlet
+eventlet.monkey_patch()
+
 import os
 import logging
 import uuid
