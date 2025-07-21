@@ -1234,6 +1234,20 @@ def chat():
         response.headers["Pragma"] = "no-cache"
         response.headers["Expires"] = "0"
         return response
+    
+    # Check if user has selected a plan (new requirement for first-time users)
+    user_plan = session.get("user_plan")
+    is_first_time = session.get("first_time_user", True)
+    
+    if not user_plan and is_first_time:
+        print("First-time user: Redirecting to plan selection")
+        flash("Welcome! Please select a plan to start using SoulBridge AI.", "info")
+        return redirect(url_for("subscription"))
+    elif not user_plan and not is_first_time:
+        # Returning user without plan - something went wrong, redirect to plan selection
+        print("Returning user without plan: Redirecting to plan selection")
+        flash("Please select a plan to continue using SoulBridge AI.", "info")
+        return redirect(url_for("subscription"))
 
     # If session is valid, verify subscription status periodically
     print("Session is valid, checking subscription status")
@@ -1545,6 +1559,12 @@ def auth_login():
         session["browser_session_id"] = str(uuid.uuid4())  # Unique session identifier
         session["last_activity"] = current_time.isoformat()  # Track activity
         session.permanent = False  # Session dies when browser closes
+        
+        # Check if this is a first-time login (no plan selected yet)
+        if "user_plan" not in session:
+            session["first_time_user"] = True
+        else:
+            session["first_time_user"] = False
 
         print(
             f"Login successful with subscription status: {subscription_data['status']}"
@@ -2217,6 +2237,43 @@ def subscription():
                          referral_link=referral_link)
 
 
+@app.route("/api/select-plan", methods=["POST"])
+def select_plan():
+    """Handle plan selection and set session data"""
+    if not session.get("user_authenticated"):
+        return jsonify({"success": False, "error": "Not authenticated"}), 401
+    
+    data = request.get_json()
+    plan_type = data.get("plan_type")
+    
+    if not plan_type or plan_type not in ["foundation", "growth", "transformation"]:
+        return jsonify({"success": False, "error": "Invalid plan type"}), 400
+    
+    # Set user plan in session
+    session["user_plan"] = plan_type
+    session["plan_selected_at"] = time.time()
+    session["first_time_user"] = False  # Mark as no longer first-time user
+    
+    print(f"Plan selected: {plan_type} for user {session.get('user_email')}")
+    
+    # For free plan, allow immediate access to chat
+    if plan_type == "foundation":
+        return jsonify({
+            "success": True, 
+            "plan": plan_type,
+            "message": "Free plan activated! You can now start chatting.",
+            "redirect": "/"
+        })
+    
+    # For paid plans, redirect to payment
+    return jsonify({
+        "success": True, 
+        "plan": plan_type,
+        "message": f"{plan_type.title()} plan selected! Complete payment to activate.",
+        "redirect": f"/payment?plan={plan_type}"
+    })
+
+
 @app.route("/support")
 def support():
     return render_template("support.html")
@@ -2344,8 +2401,8 @@ def auth_register_post():
                 "success",
             )
 
-        # User registration completed successfully - redirect to login
-        return redirect(url_for("login"))
+        # User registration completed successfully - redirect to plan selection
+        return redirect(url_for("subscription"))
 
     except ValueError as e:
         if "already exists" in str(e):
@@ -2858,6 +2915,140 @@ def get_user_by_email_api(email):
 # -------------------------------------------------
 
 
+@app.route("/api/create-switching-payment", methods=["POST"])
+def create_switching_payment():
+    """Create Stripe checkout session for $3 companion switching"""
+    try:
+        if not is_logged_in():
+            return jsonify(success=False, error="Authentication required"), 401
+            
+        user_email = session.get("user_email")
+        
+        # Development mode bypass for testing
+        if DEVELOPMENT_MODE:
+            return jsonify(
+                success=True,
+                checkout_url="/api/simulate-switching-payment-success",
+                message="Development mode: Simulating successful switching payment",
+            )
+
+        # Create Stripe checkout session for $3 one-time payment
+        session_stripe = stripe.checkout.Session.create(
+            payment_method_types=["card"],
+            line_items=[
+                {
+                    "price_data": {
+                        "currency": "usd",
+                        "product_data": {
+                            "name": "SoulBridge AI - Companion Switching",
+                            "description": "One-time payment to unlock switching between Blayzo and Blayzica",
+                        },
+                        "unit_amount": 300,  # $3.00 in cents
+                    },
+                    "quantity": 1,
+                }
+            ],
+            mode="payment",  # One-time payment, not subscription
+            success_url=request.url_root + "?switching_success=true&session_id={CHECKOUT_SESSION_ID}",
+            cancel_url=request.url_root + "?switching_canceled=true",
+            metadata={"user_email": user_email, "payment_type": "companion_switching"},
+        )
+
+        return jsonify(success=True, checkout_url=session_stripe.url, session_id=session_stripe.id)
+
+    except Exception as e:
+        logging.error(f"Stripe switching payment error: {e}")
+        return jsonify(success=False, error="Failed to create switching payment session"), 500
+
+
+@app.route("/api/check-switching-status", methods=["GET"])
+def check_switching_status():
+    """Check if user has unlocked companion switching"""
+    try:
+        if not is_logged_in():
+            return jsonify(success=False, switching_unlocked=False, error="Not logged in"), 401
+            
+        user_email = session.get("user_email")
+        user = db.users.get_user_by_email(user_email)
+        
+        if not user:
+            return jsonify(success=False, switching_unlocked=False, error="User not found"), 404
+            
+        switching_unlocked = user.get("switching_unlocked", False)
+        
+        return jsonify(success=True, switching_unlocked=switching_unlocked)
+        
+    except Exception as e:
+        logging.error(f"Error checking switching status: {e}")
+        return jsonify(success=False, switching_unlocked=False, error="Server error"), 500
+
+
+@app.route("/api/simulate-switching-payment-success")
+def simulate_switching_payment_success():
+    """Development route to simulate successful switching payment"""
+    return render_template_string(
+        """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Switching Payment Success</title>
+        <style>
+            body { 
+                font-family: Arial, sans-serif; 
+                background: linear-gradient(135deg, #000000 0%, #0f172a 50%, #1e293b 100%);
+                color: white;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                min-height: 100vh;
+                margin: 0;
+                text-align: center;
+            }
+            .container {
+                background: rgba(15, 23, 42, 0.8);
+                padding: 2rem;
+                border-radius: 20px;
+                border: 2px solid #22d3ee;
+                box-shadow: 0 20px 40px rgba(34, 211, 238, 0.3);
+            }
+            .success-icon { font-size: 4rem; margin-bottom: 1rem; }
+            .success-message { color: #22d3ee; font-size: 1.5rem; margin-bottom: 1rem; }
+            .continue-btn {
+                background: linear-gradient(135deg, #22d3ee, #0891b2);
+                color: #000;
+                border: none;
+                padding: 1rem 2rem;
+                border-radius: 12px;
+                font-weight: bold;
+                cursor: pointer;
+                font-size: 1rem;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="success-icon">🎉</div>
+            <div class="success-message">Switching Payment Successful!</div>
+            <p>You can now switch between Blayzo and Blayzica anytime for free!</p>
+            <button class="continue-btn" onclick="window.location.href='/'">Continue to Chat</button>
+        </div>
+        <script>
+            // Simulate successful switching payment for development
+            if (window.location.pathname === '/api/simulate-switching-payment-success') {
+                // Mark switching as unlocked in localStorage for dev mode
+                localStorage.setItem('switchingUnlocked', 'true');
+            }
+            
+            // Auto-redirect after 5 seconds
+            setTimeout(() => {
+                window.location.href = '/?switching_success=true';
+            }, 5000);
+        </script>
+    </body>
+    </html>
+    """)
+
+
 @app.route("/api/create-checkout-session", methods=["POST"])
 def create_checkout_session():
     """Create Stripe checkout session for subscription"""
@@ -3238,9 +3429,26 @@ def stripe_webhook():
         if event["type"] == "checkout.session.completed":
             session = event["data"]["object"]
             user_id = session.metadata.get("user_id")
+            user_email = session.metadata.get("user_email")
+            payment_type = session.metadata.get("payment_type")
             plan = session.metadata.get("plan")
 
-            if user_id:
+            # Handle companion switching payment
+            if payment_type == "companion_switching" and user_email:
+                try:
+                    # Record switching payment in database
+                    user = db.users.get_user_by_email(user_email)
+                    if user:
+                        # Update user record to show switching is unlocked
+                        db.users.update_user_field(user["_id"], "switching_unlocked", True)
+                        logging.info(f"Companion switching unlocked for user {user_email}")
+                    else:
+                        logging.error(f"User not found for switching payment: {user_email}")
+                except Exception as e:
+                    logging.error(f"Failed to process switching payment for {user_email}: {e}")
+                    
+            # Handle subscription payment
+            elif user_id:
                 # Update user subscription in database
                 success = db.users.update_subscription(user_id, "premium")
                 if success:

@@ -579,23 +579,58 @@ function selectPlan(planType) {
   // Highlight selected card
   event.currentTarget.style.borderColor = '#22d3ee';
   
-  // Handle plan selection
-  if (planType === 'foundation') {
-    // Free plan - redirect to chat
-    window.location.href = '/';
-  } else {
-    // Paid plans - show confirmation modal first
-    const planData = {
-      plan: planType,
-      billing: currentPricing,
-      price: pricing[currentPricing][planType]?.price || 'Free'
-    };
+  // Handle plan selection - call backend API
+  selectPlanViaAPI(planType, currentPricing);
+}
+
+// Plan selection API function
+async function selectPlanViaAPI(planType, billing) {
+  try {
+    const response = await fetch('/api/select-plan', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        plan_type: planType,
+        billing: billing
+      })
+    });
     
-    // Store plan selection
-    localStorage.setItem('selectedPlan', JSON.stringify(planData));
+    const result = await response.json();
     
-    // Show upgrade confirmation modal
-    showUpgradeConfirmation(planType, currentPricing);
+    if (result.success) {
+      // Store plan selection in localStorage for frontend use
+      const planData = {
+        plan: planType,
+        billing: billing,
+        price: pricing[billing][planType]?.price || 'Free'
+      };
+      localStorage.setItem('selectedPlan', JSON.stringify(planData));
+      localStorage.setItem('soulbridge_subscription', planType === 'foundation' ? 'free' : planType);
+      
+      // Show success message
+      alert(result.message);
+      
+      // Redirect based on plan type
+      if (planType === 'foundation') {
+        // Free plan - go directly to chat
+        window.location.href = '/';
+      } else {
+        // Paid plans - show confirmation modal or go to payment
+        if (result.redirect) {
+          window.location.href = result.redirect;
+        } else {
+          // Show upgrade confirmation modal
+          showUpgradeConfirmation(planType, billing);
+        }
+      }
+    } else {
+      alert('Error: ' + result.error);
+    }
+  } catch (error) {
+    console.error('Plan selection error:', error);
+    alert('Failed to select plan. Please try again.');
   }
 }
 

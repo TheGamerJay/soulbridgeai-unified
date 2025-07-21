@@ -1852,9 +1852,13 @@
                                                localStorage.getItem('soulbridge_subscription') === 'growth' ||
                                                localStorage.getItem('soulbridge_subscription') === 'transformation';
                     
-                    // For users without active subscription, show premium upgrade modal
-                    if (!hasActiveSubscription) {
-                        console.log('No subscription found - showing premium upgrade modal');
+                    // Check user's selected plan
+                    var selectedPlan = JSON.parse(localStorage.getItem('selectedPlan') || '{}');
+                    var userPlan = selectedPlan.plan || localStorage.getItem('user_plan') || 'foundation';
+                    
+                    // Foundation plan users need to upgrade for premium characters
+                    if (userPlan === 'foundation' && !hasActiveSubscription) {
+                        console.log('Foundation plan user trying to access premium character - showing upgrade modal');
                         showPremiumUpgradeModal(characterName);
                         return;
                     }
@@ -1970,9 +1974,13 @@
                                                localStorage.getItem('soulbridge_subscription') === 'growth' ||
                                                localStorage.getItem('soulbridge_subscription') === 'transformation';
                     
-                    // For users without active subscription, show premium upgrade modal
-                    if (!hasActiveSubscription) {
-                        console.log('No subscription found - showing premium upgrade modal (switching)');
+                    // Check user's selected plan
+                    var selectedPlan = JSON.parse(localStorage.getItem('selectedPlan') || '{}');
+                    var userPlan = selectedPlan.plan || localStorage.getItem('user_plan') || 'foundation';
+                    
+                    // Foundation plan users need to upgrade for premium characters
+                    if (userPlan === 'foundation' && !hasActiveSubscription) {
+                        console.log('Foundation plan user trying to access premium character - showing upgrade modal (switching)');
                         showPremiumUpgradeModal(characterName);
                         return;
                     }
@@ -2072,26 +2080,21 @@
                     // Check if this is a free character (Blayzo, Blayzica)
                     var freeCharacters = ['Blayzo', 'Blayzica'];
                     if (freeCharacters.includes(characterName)) {
-                        // Check if switching between free characters has been unlocked
-                        var switchingUnlocked = localStorage.getItem('switchingUnlocked');
-                        
-                        if (switchingUnlocked === 'true') {
-                            // Free switching after one-time payment
-                            var switchChoice = confirm('Switch to ' + characterName + '?');
-                            if (switchChoice) {
-                                localStorage.setItem('selectedCharacter', characterName);
-                                confirmChoice = confirm('Great! ' + characterName + ' is now your selected companion.\n\nWould you like to start chatting with ' + characterName + ' now?');
+                        // Check if switching between free characters has been unlocked from backend
+                        checkSwitchingStatus().then(unlocked => {
+                            if (unlocked) {
+                                // Free switching after one-time payment
+                                var switchChoice = confirm('Switch to ' + characterName + '?');
+                                if (switchChoice) {
+                                    localStorage.setItem('selectedCharacter', characterName);
+                                    confirmChoice = confirm('Great! ' + characterName + ' is now your selected companion.\n\nWould you like to start chatting with ' + characterName + ' now?');
+                                }
+                            } else {
+                                // First time switching between free characters requires $3 payment
+                                showSwitchingPaymentModal(characterName);
                             }
-                        } else {
-                            // First time switching between free characters requires $3 payment
-                            var switchChoice = confirm('Switching between companions requires a one-time payment of $3.00.\n\nAfter this payment, you can freely switch between Blayzo and Blayzica anytime!\n\nAre you sure you want to unlock switching?');
-                            if (switchChoice) {
-                                alert('🎉 Payment successful! You can now switch between Blayzo and Blayzica anytime for free!');
-                                localStorage.setItem('switchingUnlocked', 'true');
-                                localStorage.setItem('selectedCharacter', characterName);
-                                confirmChoice = confirm('Great! ' + characterName + ' is now your selected companion.\n\nWould you like to start chatting with ' + characterName + ' now?');
-                            }
-                        }
+                        });
+                        return; // Exit early since this is async
                     } else {
                         // Check if this is a referral companion (no switching fee)
                         if (isReferralCompanion) {
@@ -4408,6 +4411,9 @@
         
         // Initialize animations when page loads
         document.addEventListener('DOMContentLoaded', function() {
+            // Handle switching payment success/cancel
+            handleSwitchingPaymentSuccess();
+            
             // Apply immediate restrictions based on stored subscription status
             const storedSubscription = localStorage.getItem('subscriptionStatus') || 'free';
             enforceSubscriptionRestrictions(storedSubscription);
@@ -4991,6 +4997,184 @@
                     modal.remove();
                     document.body.style.overflow = 'auto';
                 }, 300);
+            }
+        }
+
+        // Switching payment modal function
+        function showSwitchingPaymentModal(characterName) {
+            const modalHTML = `
+                <div id="switchingPaymentModal" style="
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.9);
+                    z-index: 10000;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    animation: fadeIn 0.3s ease;
+                ">
+                    <div style="
+                        background: linear-gradient(145deg, #1e293b, #0f172a);
+                        border: 2px solid #22d3ee;
+                        border-radius: 20px;
+                        padding: 2rem;
+                        max-width: 500px;
+                        width: 90%;
+                        text-align: center;
+                        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.8);
+                        transform: scale(0.9);
+                        animation: modalPop 0.3s ease forwards;
+                    ">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">💰</div>
+                        <h2 style="
+                            color: #22d3ee;
+                            font-size: 1.8rem;
+                            margin-bottom: 1rem;
+                            text-shadow: 0 0 20px rgba(34, 211, 238, 0.5);
+                        ">Unlock Companion Switching</h2>
+                        
+                        <div style="
+                            background: rgba(34, 211, 238, 0.1);
+                            border: 1px solid rgba(34, 211, 238, 0.3);
+                            border-radius: 12px;
+                            padding: 1.5rem;
+                            margin: 1.5rem 0;
+                        ">
+                            <div style="
+                                color: #22d3ee;
+                                font-size: 1.3rem;
+                                font-weight: bold;
+                                margin-bottom: 0.5rem;
+                            ">One-Time Payment: $3.00</div>
+                            <div style="color: #e2e8f0; font-size: 0.9rem;">
+                                Switch freely between Blayzo and Blayzica anytime after payment
+                            </div>
+                        </div>
+                        
+                        <div style="color: #94a3b8; margin: 1.5rem 0; line-height: 1.6;">
+                            After this one-time payment, you'll be able to switch between <strong style="color: #22d3ee;">Blayzo</strong> and <strong style="color: #22d3ee;">Blayzica</strong> as many times as you want, completely free!
+                            <br><br>
+                            <strong style="color: #fbbf24;">Secure payment processed by Stripe</strong>
+                        </div>
+                        
+                        <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 2rem;">
+                            <button onclick="proceedToSwitchingPayment('${characterName}')" style="
+                                background: linear-gradient(135deg, #22d3ee, #0891b2);
+                                color: #000;
+                                border: none;
+                                padding: 1rem 2rem;
+                                border-radius: 12px;
+                                font-weight: bold;
+                                font-size: 1rem;
+                                cursor: pointer;
+                                box-shadow: 0 4px 15px rgba(34, 211, 238, 0.4);
+                                transition: all 0.3s ease;
+                            " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                                💳 Pay $3.00
+                            </button>
+                            <button onclick="closeSwitchingModal()" style="
+                                background: rgba(255, 255, 255, 0.1);
+                                color: #e2e8f0;
+                                border: 1px solid rgba(255, 255, 255, 0.2);
+                                padding: 1rem 2rem;
+                                border-radius: 12px;
+                                cursor: pointer;
+                                transition: all 0.3s ease;
+                            " onmouseover="this.style.background='rgba(255, 255, 255, 0.2)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.1)'">
+                                Maybe Later
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Add modal to page
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            document.body.style.overflow = 'hidden';
+        }
+
+        async function proceedToSwitchingPayment(characterName) {
+            try {
+                const response = await fetch('/api/create-switching-payment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({})
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Store character name for after payment
+                    localStorage.setItem('pendingSwitchCharacter', characterName);
+                    // Redirect to Stripe checkout
+                    window.location.href = result.checkout_url;
+                } else {
+                    alert('Payment setup failed: ' + result.error);
+                }
+            } catch (error) {
+                console.error('Switching payment error:', error);
+                alert('Payment setup failed. Please try again.');
+            }
+        }
+
+        function closeSwitchingModal() {
+            const modal = document.getElementById('switchingPaymentModal');
+            if (modal) {
+                modal.style.animation = 'fadeOut 0.3s ease forwards';
+                setTimeout(() => {
+                    modal.remove();
+                    document.body.style.overflow = 'auto';
+                }, 300);
+            }
+        }
+
+        // Check switching status from backend
+        async function checkSwitchingStatus() {
+            try {
+                const response = await fetch('/api/check-switching-status');
+                const result = await response.json();
+                return result.switching_unlocked || false;
+            } catch (error) {
+                console.error('Error checking switching status:', error);
+                return false;
+            }
+        }
+
+        // Handle successful switching payment on page load
+        function handleSwitchingPaymentSuccess() {
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            if (urlParams.get('switching_success') === 'true') {
+                // Clear URL parameters
+                window.history.replaceState({}, document.title, window.location.pathname);
+                
+                // Get pending character switch
+                const pendingCharacter = localStorage.getItem('pendingSwitchCharacter');
+                if (pendingCharacter) {
+                    localStorage.removeItem('pendingSwitchCharacter');
+                    localStorage.setItem('selectedCharacter', pendingCharacter);
+                    
+                    // Show success message
+                    alert(`🎉 Payment successful! You can now switch between Blayzo and Blayzica anytime for free!\n\nSwitched to ${pendingCharacter}!`);
+                    
+                    // Refresh character selection
+                    location.reload();
+                } else {
+                    alert('🎉 Payment successful! You can now switch between Blayzo and Blayzica anytime for free!');
+                }
+            } else if (urlParams.get('switching_canceled') === 'true') {
+                // Clear URL parameters
+                window.history.replaceState({}, document.title, window.location.pathname);
+                
+                // Clear pending character
+                localStorage.removeItem('pendingSwitchCharacter');
+                
+                alert('Payment was canceled. You can try again anytime.');
             }
         }
 
