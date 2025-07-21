@@ -4,7 +4,7 @@
 
 ### **Environment Variables** (Get these ready):
 - [ ] **Railway API Token** - From Railway dashboard → Settings → Tokens
-- [ ] **Resend API Key** - Already configured: `re_atdLxCys_5xcKG6NvWCQ1vfXfhpJUvnR5`
+- [ ] **Resend API Key** - From your Resend dashboard
 - [ ] **Monitor Email Settings** - See EMAIL_SETUP.md for configuration
 - [ ] **OpenAI API Key** - From platform.openai.com → API Keys
 - [ ] **Site Health URL** - Currently: `https://soulbridgeai-unified-production.up.railway.app/health`

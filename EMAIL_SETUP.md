@@ -17,7 +17,7 @@ Your Resend account should already have a verified domain for sending.
 ### **2. Configure Environment Variables:**
 ```bash
 # Your monitoring server .env file
-RESEND_API_KEY=re_atdLxCys_5xcKG6NvWCQ1vfXfhpJUvnR5
+RESEND_API_KEY=your_resend_api_key_here
 MONITOR_FROM_EMAIL=monitor@soulbridgeai.com
 MONITOR_TO_EMAIL=soulbridgeai.contact@gmail.com
 OPENAI_API_KEY=your_openai_api_key_here
@@ -28,7 +28,7 @@ RAILWAY_API_TOKEN=your_railway_token_here
 ```bash
 # Test Resend API manually
 curl -X POST "https://api.resend.com/emails" \
-  -H "Authorization: Bearer re_atdLxCys_5xcKG6NvWCQ1vfXfhpJUvnR5" \
+  -H "Authorization: Bearer YOUR_RESEND_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "from": "SoulBridge AI Monitor <monitor@soulbridgeai.com>",
