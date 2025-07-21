@@ -1641,6 +1641,26 @@
                     <span>💾 Save Conversation</span>
                 </div>
                 
+                <div class="btn" onclick="openDecoderMode()" aria-label="Open Decoder Mode - Analyze and interpret text" tabindex="0" style="
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    background: linear-gradient(135deg, rgba(34, 211, 238, 0.2), rgba(8, 145, 178, 0.2));
+                    border: 2px solid #22d3ee;
+                    position: relative;
+                ">
+                    <span>🧠 Decoder Mode</span>
+                    <span style="
+                        background: linear-gradient(135deg, #fbbf24, #f59e0b);
+                        color: #000;
+                        padding: 2px 6px;
+                        border-radius: 10px;
+                        font-size: 0.7rem;
+                        font-weight: 600;
+                        margin-left: 4px;
+                    ">NEW</span>
+                </div>
+                
                 <div class="btn" onclick="showLibrary()" aria-label="Open conversation library" tabindex="0" style="
                     display: flex;
                     align-items: center;
@@ -2567,6 +2587,11 @@
         function showLibrary() {
             // Redirect to the dedicated library page
             window.location.href = '/library';
+        }
+        
+        function openDecoderMode() {
+            // Redirect to decoder mode page
+            window.location.href = '/decoder';
         }
         
         function openVoiceChat() {

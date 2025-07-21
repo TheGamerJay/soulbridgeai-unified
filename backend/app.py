@@ -1227,6 +1227,24 @@ def chat():
     return add_aggressive_cache_busting(response)
 
 
+@app.route("/decoder")
+def decoder():
+    """Decoder Mode - AI-powered analysis and interpretation tool"""
+    # Check if user is authenticated
+    if not session.get("user_authenticated"):
+        return redirect(url_for("login"))
+    
+    # Add cache-busting headers for latest version
+    response = make_response(
+        render_template(
+            "decoder.html", 
+            cache_buster=str(uuid.uuid4()),
+            version_info=get_version_info()
+        )
+    )
+    return add_aggressive_cache_busting(response)
+
+
 @app.route("/login")
 def login():
     # Debug: Check session state when accessing login page
