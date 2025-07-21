@@ -330,9 +330,9 @@ def auth_login():
         
         # Fallback: Basic authentication for testing and initial setup
         if email == "test@example.com" and password == "test123":
-            # Try to create test user in database first
-            if services["database"] and db:
-                try:
+            # Always allow test credentials and create user if needed
+            try:
+                if services["database"] and db:
                     from auth import User
                     user = User(db)
                     if not user.user_exists(email):
@@ -340,17 +340,27 @@ def auth_login():
                         user_id = user.create_user(email, password, "Test User")
                         logger.info("Created test user in database")
                         setup_user_session(email, user_id=user_id)
+                        return jsonify({"success": True, "redirect": "/"})
                     else:
-                        # Test user exists, authenticate normally
-                        setup_user_session(email)
+                        # Test user exists, try to authenticate with database
+                        user_data = User.authenticate(db, email, password)
+                        if user_data:
+                            setup_user_session(email, user_id=user_data[0])
+                        else:
+                            # Database authentication failed, but allow test user anyway
+                            setup_user_session(email)
+                        return jsonify({"success": True, "redirect": "/"})
+                else:
+                    # Database not available, use fallback
+                    setup_user_session(email)
+                    logger.warning("Database not available, using fallback test authentication")
                     return jsonify({"success": True, "redirect": "/"})
-                except Exception as e:
-                    logger.error(f"Failed to create/authenticate test user: {e}")
-            
-            # Final fallback if database operations fail
-            setup_user_session(email)
-            logger.warning("Using fallback test authentication")
-            return jsonify({"success": True, "redirect": "/"})
+            except Exception as e:
+                logger.error(f"Error with test user authentication: {e}")
+                # Even if there's an error, allow test credentials to work
+                setup_user_session(email)
+                logger.warning("Using emergency fallback test authentication")
+                return jsonify({"success": True, "redirect": "/"})
         
         # Authentication failed
         logger.warning(f"Authentication failed for user")  # Don't log email for security
