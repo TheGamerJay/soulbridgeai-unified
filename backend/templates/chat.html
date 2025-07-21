@@ -849,7 +849,13 @@
                     align-items: center;
                     gap: 0.5rem;
                 " onmouseover="this.style.background='rgba(139, 92, 246, 0.3)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(139, 92, 246, 0.2)'; this.style.transform='translateY(0)'">
-                    <span>💎</span>
+                    <img src="/static/logos/Sapphire.png" alt="Sapphire" style="
+                        width: 20px;
+                        height: 20px;
+                        border-radius: 50%;
+                        border: 1px solid #8b5cf6;
+                    " onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+                    <span style="font-size: 1.2rem; display: none;">💎</span>
                     <span>Need Help? Ask Sapphire</span>
                 </div>
                 
@@ -1820,7 +1826,7 @@
                     
                     var goToReferrals = confirm(referralMessage);
                     if (goToReferrals) {
-                        window.open('/referrals', '_blank');
+                        window.location.href = '/referrals';
                     }
                     return; // Exit function without selecting companion
                 }
@@ -1846,15 +1852,15 @@
                                                localStorage.getItem('soulbridge_subscription') === 'growth' ||
                                                localStorage.getItem('soulbridge_subscription') === 'transformation';
                     
-                    // For non-admin users OR users without active subscription, show premium upgrade modal
-                    if (!isAdminMode || !adminBypass || !hasActiveSubscription) {
-                        console.log('Showing premium upgrade modal - no valid subscription');
+                    // For users without active subscription, show premium upgrade modal
+                    if (!hasActiveSubscription) {
+                        console.log('No subscription found - showing premium upgrade modal');
                         showPremiumUpgradeModal(characterName);
                         return;
                     }
                     
-                    // Admin users can proceed with direct unlock
-                    console.log('Admin user - allowing direct premium access');
+                    // Users with subscription can proceed
+                    console.log('Subscription validated - allowing premium access');
                     confirmChoice = true;
                     if (confirmChoice) {
                         // Set flag during purchase process
@@ -1964,15 +1970,15 @@
                                                localStorage.getItem('soulbridge_subscription') === 'growth' ||
                                                localStorage.getItem('soulbridge_subscription') === 'transformation';
                     
-                    // For non-admin users OR users without active subscription, show premium upgrade modal
-                    if (!isAdminMode || !adminBypass || !hasActiveSubscription) {
-                        console.log('Showing premium upgrade modal - no valid subscription (switching)');
+                    // For users without active subscription, show premium upgrade modal
+                    if (!hasActiveSubscription) {
+                        console.log('No subscription found - showing premium upgrade modal (switching)');
                         showPremiumUpgradeModal(characterName);
                         return;
                     }
                     
-                    // Admin users can proceed with direct unlock
-                    console.log('Admin user - allowing direct premium access (switching)');
+                    // Users with subscription can proceed
+                    console.log('Subscription validated - allowing premium access (switching)');
                     confirmChoice = true;
                     if (confirmChoice) {
                         // Set flag during purchase process
@@ -2684,7 +2690,13 @@
             
             // Show loading state
             responseDiv.innerHTML = `<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
-                <span style="font-size: 1.2rem;">💎</span>
+                <img src="/static/logos/Sapphire.png" alt="Sapphire" style="
+                    width: 24px;
+                    height: 24px;
+                    border-radius: 50%;
+                    border: 1px solid #8b5cf6;
+                " onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+                <span style="font-size: 1.2rem; display: none;">💎</span>
                 <strong style="color: #8b5cf6;">Sapphire is thinking...</strong>
             </div>
             <div style="color: #94a3b8;">🤔 Let me find that for you...</div>`;
@@ -2789,13 +2801,13 @@
             }
             
             // Upgrade/Subscription
-            if (question.includes('upgrade') || question.includes('premium') || question.includes('subscription') || question.includes('plan')) {
-                return "Click your profile icon (top right) → 'Subscription & Billing' or go directly to /subscription to see all plans and upgrade options.";
+            if (question.includes('upgrade') || question.includes('premium') || question.includes('subscription') || question.includes('plan') || question.includes('growth') || question.includes('transformation')) {
+                return "⭐ <strong>Subscription Plans</strong><br>• <strong>Foundation (Free):</strong> 50 messages/session, 2 sessions/day, basic AI<br>• <strong>Growth ($12.99/month):</strong> Unlimited messages, 4 sessions/day, memory-enabled AI, premium characters<br>• <strong>Transformation ($19.99/month):</strong> Everything in Growth + 6 sessions/day, full memory, custom prompts, advanced features<br>• <strong>Voice Chat:</strong> Included with premium plans<br>• <strong>Upgrade:</strong> Profile menu → 'Subscription & Billing'<br><br>Start your premium journey today!";
             }
             
             // Voice features
-            if (question.includes('voice') || question.includes('speak') || question.includes('talk')) {
-                return "Voice chat is available for premium characters! Select a premium companion (Violet, Crimson, Blayzion, Blayzia) and you'll see the '🎤 Voice Chat' button appear.";
+            if (question.includes('voice') || question.includes('speak') || question.includes('talk') || question.includes('microphone') || question.includes('audio')) {
+                return "🎤 <strong>Voice Chat Features</strong><br>• <strong>Premium Only:</strong> Available for Violet, Crimson, Blayzion, Blayzia<br>• <strong>How to Use:</strong> Select premium character → Click '🎤 Voice Chat' button<br>• <strong>Requirements:</strong> Active subscription + microphone permission<br>• <strong>Natural Conversations:</strong> Speak naturally, AI responds with voice<br>• <strong>Real-time:</strong> Instant voice-to-voice interaction<br>• <strong>Troubleshooting:</strong> Check microphone permissions if not working<br><br>Experience truly natural AI conversations!";
             }
             
             // Library/Saved conversations
@@ -2804,8 +2816,8 @@
             }
             
             // Characters/Companions
-            if (question.includes('character') || question.includes('companion') || question.includes('choose') || question.includes('select')) {
-                return "Click the character avatar in the top left to open the companion selection screen. Premium characters require an active subscription.";
+            if (question.includes('character') || question.includes('companion') || question.includes('choose') || question.includes('select') || question.includes('blayzo') || question.includes('violet') || question.includes('crimson')) {
+                return "🤖 <strong>AI Companions</strong><br>• <strong>Access:</strong> Click character avatar (top left)<br>• <strong>Free Characters:</strong> Blayzo, Blayzica (always available)<br>• <strong>Premium Characters:</strong> Violet, Crimson, Blayzion, Blayzia (subscription required)<br>• <strong>Referral Characters:</strong> Blayzike (2 referrals), Blazelian (4 referrals), Blayzo Master (6 referrals)<br>• <strong>Unique Personalities:</strong> Each has distinct conversation style<br>• <strong>Voice Chat:</strong> Premium characters support voice interaction<br><br>Find your perfect companion match!";
             }
             
             // Settings/Customization
@@ -2828,13 +2840,47 @@
                 return "Click your profile icon (top right) → 'Insights Dashboard' to view your emotional wellness analytics and progress.";
             }
             
+            if (question.includes('referral') || question.includes('refer') || question.includes('invite') || question.includes('friend') || question.includes('share')) {
+                return "🌟 <strong>Referral System</strong><br>Click the '📊 View Referral Progress' button at the bottom of the character selection screen to access your referral dashboard!<br><br><strong>🎁 Referral Rewards:</strong><br>• <strong>2 referrals</strong> = Unlock Blayzike<br>• <strong>4 referrals</strong> = Unlock Blazelian<br>• <strong>6 referrals</strong> = Unlock Blayzo (Referral Master)<br><br>💡 <strong>How it works:</strong><br>1. Get your unique referral link<br>2. Share with friends<br>3. They sign up using your link<br>4. Both of you earn rewards!<br><br>Click any character selection screen button to find your referral dashboard.";
+            }
+            
+            // Payment & Billing
+            if (question.includes('payment') || question.includes('billing') || question.includes('card') || question.includes('pay') || question.includes('cost') || question.includes('price')) {
+                return "💳 <strong>Payment & Billing</strong><br>• <strong>View Plans:</strong> Profile menu → 'Subscription & Billing'<br>• <strong>Prices:</strong> Growth ($12.99/month), Transformation ($19.99/month)<br>• <strong>Payment:</strong> Secure Stripe processing<br>• <strong>Cancel:</strong> Manage subscription anytime<br>• <strong>Add-ons:</strong> Voice journaling, relationship profiles, meditations<br><br>All payments are secure and you can cancel anytime!";
+            }
+            
+            // Profile & Account
+            if (question.includes('profile') || question.includes('account') || question.includes('delete') || question.includes('export') || question.includes('data')) {
+                return "👤 <strong>Profile & Account</strong><br>• <strong>View Profile:</strong> Click profile icon → 'My Profile'<br>• <strong>Download Data:</strong> Export chat history and user data<br>• <strong>Settings:</strong> Manage preferences and customization<br>• <strong>Account Management:</strong> Change email, delete account<br>• <strong>Statistics:</strong> View message counts and activity<br><br>Full control over your data and privacy!";
+            }
+            
+            // Login & Registration
+            if (question.includes('login') || question.includes('register') || question.includes('signup') || question.includes('sign up') || question.includes('account') || question.includes('password')) {
+                return "🔐 <strong>Login & Registration</strong><br>• <strong>Sign Up:</strong> Create free account to save conversations<br>• <strong>Login:</strong> Access your saved data across devices<br>• <strong>Password:</strong> Secure authentication system<br>• <strong>Data Sync:</strong> Your conversations follow you<br>• <strong>Guest Mode:</strong> Try without registering first<br><br>Registration is free and keeps your conversations safe!";
+            }
+            
+            // Features & Capabilities
+            if (question.includes('feature') || question.includes('what can') || question.includes('capability') || question.includes('function')) {
+                return "⚡ <strong>SoulBridge AI Features</strong><br>• <strong>🧠 Decoder Mode:</strong> 6 AI analysis tools (dreams, messages, relationships)<br>• <strong>🤖 Smart Companions:</strong> 8+ unique AI personalities<br>• <strong>🎤 Voice Chat:</strong> Talk to premium companions<br>• <strong>📚 Library:</strong> Save and organize conversations<br>• <strong>🎨 Customization:</strong> Themes, colors, preferences<br>• <strong>🌟 Referral System:</strong> Earn exclusive companions<br>• <strong>📊 Analytics:</strong> Track emotional wellness progress<br>• <strong>🤝 Community:</strong> Connect with other users";
+            }
+            
+            // Troubleshooting & Issues
+            if (question.includes('not working') || question.includes('broken') || question.includes('error') || question.includes('bug') || question.includes('issue') || question.includes('problem')) {
+                return "🔧 <strong>Troubleshooting</strong><br>• <strong>Page Issues:</strong> Try refreshing (Ctrl+F5) or clear browser cache<br>• <strong>Voice Chat:</strong> Check microphone permissions<br>• <strong>Login Problems:</strong> Verify email/password, try incognito mode<br>• <strong>Payment Issues:</strong> Contact support with order details<br>• <strong>Missing Features:</strong> Some features require premium subscription<br>• <strong>Still Stuck:</strong> Profile menu → 'Support' → 'Report Issue'<br><br>Most issues are quickly resolved!";
+            }
+            
+            // Getting Started
+            if (question.includes('start') || question.includes('begin') || question.includes('first') || question.includes('new') || question.includes('how to use')) {
+                return "🚀 <strong>Getting Started with SoulBridge AI</strong><br>• <strong>Choose a Companion:</strong> Click character avatar (top left)<br>• <strong>Start Chatting:</strong> Type in the message box and press Enter<br>• <strong>Try Decoder Mode:</strong> Click '🧠 Decoder Mode' for AI analysis<br>• <strong>Save Conversations:</strong> Access '📚 Library' to review chats<br>• <strong>Explore Premium:</strong> Profile menu → 'Subscription' for advanced features<br>• <strong>Get Help:</strong> Ask me anything or check Profile → 'Support'<br><br>Welcome to your emotional wellness journey!";
+            }
+            
+            // Privacy & Security
+            if (question.includes('privacy') || question.includes('security') || question.includes('safe') || question.includes('confidential') || question.includes('private')) {
+                return "🔒 <strong>Privacy & Security</strong><br>• <strong>Data Encryption:</strong> All conversations are encrypted<br>• <strong>Never Sold:</strong> Your data is never shared or sold<br>• <strong>Secure Storage:</strong> Bank-level security standards<br>• <strong>Data Control:</strong> Download or delete your data anytime<br>• <strong>Anonymous Options:</strong> Use without registration if preferred<br>• <strong>GDPR Compliant:</strong> Full privacy rights respected<br><br>Your emotional journey stays completely private!";
+            }
+            
             // Default response for unmatched questions
-            return `I'm not sure about that specific feature. Here are the main areas you can explore:
-            <br>• <strong>🧠 Decoder Mode</strong> - AI analysis tools
-            <br>• <strong>📚 Library</strong> - Saved conversations  
-            <br>• <strong>Profile Menu</strong> (top right) - Settings, subscription, support
-            <br>• <strong>Character Avatar</strong> (top left) - Switch companions
-            <br><br>Try asking about dreams, decoding, upgrades, voice chat, or saved conversations!`;
+            return `💡 <strong>I can help you with anything on SoulBridge AI!</strong><br><br><strong>🔍 Popular Topics:</strong><br>• "How do I decode dreams?" • "What are the premium features?"<br>• "How does voice chat work?" • "Where's my referral link?"<br>• "How do I change themes?" • "What payment methods work?"<br>• "Is my data private?" • "How do I delete my account?"<br><br><strong>🎯 Quick Access:</strong><br>• <strong>🧠 Decoder Mode</strong> - AI analysis tools (top bar)<br>• <strong>📚 Library</strong> - Your saved conversations (top bar)<br>• <strong>👤 Profile</strong> - Settings, billing, support (top right)<br>• <strong>🤖 Characters</strong> - Switch companions (top left)<br><br><em>Ask me anything specific - I'm here to help! 😊</em>`;
         }
         
         // Navigation Assistant State
