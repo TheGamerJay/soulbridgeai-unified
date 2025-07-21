@@ -18,17 +18,26 @@
             const selectedCharacter = localStorage.getItem('selectedCharacter');
             const firstPickMade = localStorage.getItem('firstPickMade');
             
+            console.log('🔧 Immediate navigation check:', { selectedCharacter, firstPickMade });
+            
             // If user has completed setup, prepare to show chat immediately
             if (selectedCharacter && firstPickMade === 'true') {
                 // Add CSS to initially hide intro and show chat
                 const style = document.createElement('style');
+                style.id = 'immediate-navigation-style';
                 style.textContent = `
                     #introScreen { display: none !important; }
                     #characterSelect { display: none !important; }
                     #chatInterface { display: block !important; }
                 `;
                 document.head.appendChild(style);
-                console.log('🚀 Immediate navigation: Chat interface prepared');
+                console.log('🚀 Immediate navigation: Chat interface prepared for', selectedCharacter);
+                
+                // Set a flag to prevent DOMContentLoaded from overriding this
+                window._immediateNavigation = true;
+            } else {
+                console.log('🔧 No immediate navigation - will show intro');
+                window._immediateNavigation = false;
             }
         })();
     </script>
@@ -3577,12 +3586,17 @@
             console.log('- hasActiveMessages:', hasActiveMessages);
             console.log('- SHOULD RESTORE CHAT?', selectedCharacter && firstPickMade === 'true' && hasActiveMessages === 'true');
             
-            // Smart navigation logic - restore chat if user has made a character selection
-            // Even on refresh, if they selected a character and completed first pick, show chat
-            if (selectedCharacter && firstPickMade === 'true') {
-                console.log('Restoring active chat session with:', selectedCharacter);
+            // Check if immediate navigation already handled this
+            if (window._immediateNavigation) {
+                console.log('🔧 Immediate navigation active - setting up chat interface');
                 
-                // Show chat interface
+                // Remove the immediate navigation style since we're now properly setting up
+                const immediateStyle = document.getElementById('immediate-navigation-style');
+                if (immediateStyle) {
+                    immediateStyle.remove();
+                }
+                
+                // Ensure proper setup for chat interface
                 document.getElementById('introScreen').classList.add('hidden');
                 document.getElementById('characterSelect').classList.add('hidden');
                 document.getElementById('chatInterface').classList.remove('hidden');
@@ -3593,27 +3607,48 @@
                 
                 // Add greeting after a short delay to ensure DOM is ready
                 setTimeout(function() {
-                    console.log('Calling addGreetingToChat after screen restore');
-                    addGreetingToChat();
-                }, 500);
-                
-                // Also call immediately to ensure greeting appears
-                setTimeout(function() {
+                    console.log('🔧 Calling addGreetingToChat after immediate navigation setup');
                     addGreetingToChat();
                 }, 100);
                 
-            } else if (selectedCharacter && firstPickMade !== 'true') {
-                // User selected character but didn't complete first pick - show character select
-                console.log('Returning to character selection screen');
-                document.getElementById('introScreen').classList.add('hidden');
-                document.getElementById('characterSelect').classList.remove('hidden');
-                document.getElementById('chatInterface').classList.add('hidden');
+                setTimeout(function() {
+                    addGreetingToChat();
+                }, 500);
+                
             } else {
-                // Fresh visit or completely new user - show intro screen
-                console.log('Starting at intro screen (fresh visit)');
-                document.getElementById('introScreen').classList.remove('hidden');
-                document.getElementById('characterSelect').classList.add('hidden');
-                document.getElementById('chatInterface').classList.add('hidden');
+                // Normal navigation logic for other cases
+                console.log('🔧 Normal navigation logic');
+                
+                if (selectedCharacter && firstPickMade === 'true') {
+                    console.log('Restoring active chat session with:', selectedCharacter);
+                    
+                    // Show chat interface
+                    document.getElementById('introScreen').classList.add('hidden');
+                    document.getElementById('characterSelect').classList.add('hidden');
+                    document.getElementById('chatInterface').classList.remove('hidden');
+                    
+                    // Update character info and avatar
+                    updateCharacterInfo(selectedCharacter);
+                    updateChatAvatar(selectedCharacter);
+                    
+                    // Add greeting
+                    setTimeout(function() {
+                        addGreetingToChat();
+                    }, 100);
+                    
+                } else if (selectedCharacter && firstPickMade !== 'true') {
+                    // User selected character but didn't complete first pick - show character select
+                    console.log('Returning to character selection screen');
+                    document.getElementById('introScreen').classList.add('hidden');
+                    document.getElementById('characterSelect').classList.remove('hidden');
+                    document.getElementById('chatInterface').classList.add('hidden');
+                } else {
+                    // Fresh visit or completely new user - show intro screen
+                    console.log('Starting at intro screen (fresh visit)');
+                    document.getElementById('introScreen').classList.remove('hidden');
+                    document.getElementById('characterSelect').classList.add('hidden');
+                    document.getElementById('chatInterface').classList.add('hidden');
+                }
             }
             
             // Check for referral code in URL
