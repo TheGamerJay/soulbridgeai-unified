@@ -105,8 +105,21 @@ class Database:
 
     def init_database(self):
         """Initialize the database with required tables"""
-        conn = self.get_connection()
-        cursor = conn.cursor()
+        try:
+            print(f"Attempting database connection. PostgreSQL: {self.use_postgres}")
+            if self.use_postgres:
+                print(f"PostgreSQL URL present: {bool(self.postgres_url)}")
+                print(f"psycopg2 available: {POSTGRES_AVAILABLE}")
+            
+            conn = self.get_connection()
+            cursor = conn.cursor()
+            print(f"Database connection successful. Using PostgreSQL: {self.use_postgres}")
+        except Exception as e:
+            print(f"Database connection failed: {e}")
+            print(f"Error type: {type(e).__name__}")
+            if hasattr(e, 'args'):
+                print(f"Error args: {e.args}")
+            raise e
 
         if self.use_postgres:
             # PostgreSQL table creation
@@ -242,9 +255,24 @@ class Database:
     def get_connection(self):
         """Get database connection"""
         if self.use_postgres:
-            return psycopg2.connect(self.postgres_url)
+            try:
+                print(f"Connecting to PostgreSQL with URL: {self.postgres_url[:50]}...")
+                conn = psycopg2.connect(self.postgres_url)
+                print("PostgreSQL connection established successfully")
+                return conn
+            except Exception as e:
+                print(f"PostgreSQL connection error: {e}")
+                print(f"PostgreSQL URL: {self.postgres_url}")
+                raise e
         else:
-            return sqlite3.connect(self.db_path)
+            try:
+                print(f"Connecting to SQLite at: {self.db_path}")
+                conn = sqlite3.connect(self.db_path)
+                print("SQLite connection established successfully")
+                return conn
+            except Exception as e:
+                print(f"SQLite connection error: {e}")
+                raise e
     
     def backup_database(self, backup_path=None):
         """Create a backup of the database"""
