@@ -1274,9 +1274,14 @@ def oauth_login(provider):
         
         # Get redirect URI - use hardcoded HTTPS URL for production
         redirect_uri = "https://soulbridgeai.com/api/oauth/callback"
+        logger.info(f"🔗 OAuth redirect URI: {redirect_uri}")
         
         # Generate authorization URL
         result = oauth_manager.get_auth_url(provider, redirect_uri)
+        if result["success"]:
+            logger.info(f"🌐 OAuth auth URL: {result['auth_url']}")
+        else:
+            logger.error(f"❌ OAuth URL generation failed: {result['error']}")
         
         if result["success"]:
             return redirect(result["auth_url"])
