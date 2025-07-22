@@ -20,8 +20,6 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/animations.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/themes.css') }}">
     
-    <!-- Clerk JavaScript SDK (custom URL to bypass ad blockers) -->
-    <script src="https://custom.clerk.io/soulbridge.js" crossorigin="anonymous"></script>
     
     
     <style>
@@ -582,53 +580,6 @@
                 </button>
             </form>
             
-            <!-- Clerk Authentication Section -->
-            <div class="clerk-auth-section" style="margin: 2rem 0; text-align: center;">
-                <div style="margin-bottom: 1rem;">
-                    <button id="clerkSignInButton" style="
-                        width: 100%;
-                        padding: 14px 24px;
-                        background: linear-gradient(135deg, #22d3ee, #0891b2);
-                        color: #000;
-                        border: none;
-                        border-radius: 12px;
-                        font-size: 1.1rem;
-                        font-weight: 600;
-                        cursor: pointer;
-                        transition: all 0.3s ease;
-                        display: block;
-                        text-decoration: none;
-                        text-align: center;
-                        margin-bottom: 0.5rem;
-                    ">
-                        <span style="margin-right: 8px;">📧</span>
-                        Sign In with Google
-                    </button>
-                </div>
-                
-            </div>
-            
-            <div style="margin: 2rem 0; position: relative;">
-                <div style="
-                    position: absolute;
-                    top: 50%;
-                    left: 0;
-                    right: 0;
-                    height: 1px;
-                    background: #374151;
-                "></div>
-                <div style="
-                    position: relative;
-                    text-align: center;
-                    background: rgba(0,0,0,0.95);
-                    color: #e2e8f0;
-                    padding: 0 1.5rem;
-                    display: inline-block;
-                    margin: 0 auto;
-                ">
-                    or use email/password below
-                </div>
-            </div>
             
             <!-- Footer -->
             <div class="auth-footer">
@@ -763,80 +714,6 @@
         // Auto-focus first input
         document.getElementById('email').focus();
         
-        // Initialize Clerk with your publishable key
-        const CLERK_PUBLISHABLE_KEY = "{{ clerk_publishable_key or 'pk_test_aGFyZHktcGFycm90LTk1LmNsZXJrLmFjY291bnRzLmRldiQ' }}";
-        
-        console.log('🔍 Clerk Debug Info:');
-        console.log('- Clerk SDK available:', !!window.Clerk);
-        console.log('- Publishable key:', CLERK_PUBLISHABLE_KEY);
-        console.log('- Button element:', document.getElementById('clerkSignInButton'));
-        
-        // Wait for DOM to be ready
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('📋 DOM loaded, initializing Clerk...');
-            initializeClerk();
-        });
-        
-        function initializeClerk() {
-            console.log('🚀 Starting Clerk initialization...');
-            
-            if (!window.Clerk) {
-                console.error('❌ Clerk SDK not found!');
-                showFallbackMessage();
-                return;
-            }
-            
-            console.log('✅ Clerk SDK found, loading...');
-            window.Clerk.load({
-                publishableKey: CLERK_PUBLISHABLE_KEY,
-            }).then(() => {
-                console.log('✅ Clerk loaded successfully');
-                
-                // Set up the sign-in button
-                const signInButton = document.getElementById('clerkSignInButton');
-                console.log('🎯 Setting up button:', signInButton);
-                
-                if (signInButton) {
-                    signInButton.onclick = function(e) {
-                        e.preventDefault();
-                        console.log('🔘 Google sign-in button clicked!');
-                        window.Clerk.openSignIn({
-                            afterSignInUrl: '/',
-                            afterSignUpUrl: '/'
-                        });
-                    };
-                    
-                    // Make sure button is enabled and clickable
-                    signInButton.style.pointerEvents = 'auto';
-                    signInButton.style.cursor = 'pointer';
-                    console.log('✅ Button click handler attached');
-                } else {
-                    console.error('❌ Sign-in button not found!');
-                }
-                
-                // Check if user is already signed in
-                if (window.Clerk.user) {
-                    console.log('User already signed in, redirecting...');
-                    window.location.href = '/';
-                }
-            }).catch((error) => {
-                console.error('❌ Clerk loading error:', error);
-                showFallbackMessage();
-            });
-        }
-        
-        function showFallbackMessage() {
-            console.log('🔄 Showing fallback message');
-            const clerkSection = document.querySelector('.clerk-auth-section');
-            if (clerkSection) {
-                clerkSection.innerHTML = `
-                    <div style="color: #fbbf24; text-align: center; padding: 1rem; background: rgba(251, 191, 36, 0.1); border-radius: 8px; margin-bottom: 1rem;">
-                        <p style="margin: 0; font-weight: 600;">🔧 Google sign-in temporarily unavailable</p>
-                        <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem;">Please use email/password below</p>
-                    </div>
-                `;
-            }
-        }
         
         // Debug form setup
         console.log('Login form setup complete');

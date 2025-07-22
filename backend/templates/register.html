@@ -20,8 +20,6 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/themes.css') }}">
     
-    <!-- Clerk JavaScript SDK (custom URL to bypass ad blockers) -->
-    <script src="https://custom.clerk.io/soulbridge.js" crossorigin="anonymous"></script>
     
     
     <style>
@@ -725,53 +723,6 @@
                 </button>
             </form>
             
-            <!-- Clerk Authentication Section -->
-            <div class="clerk-auth-section" style="margin: 2rem 0; text-align: center;">
-                <div style="margin-bottom: 1rem;">
-                    <button id="clerkSignUpButton" style="
-                        width: 100%;
-                        padding: 14px 24px;
-                        background: linear-gradient(135deg, #22d3ee, #0891b2);
-                        color: #000;
-                        border: none;
-                        border-radius: 12px;
-                        font-size: 1.1rem;
-                        font-weight: 600;
-                        cursor: pointer;
-                        transition: all 0.3s ease;
-                        display: block;
-                        text-decoration: none;
-                        text-align: center;
-                        margin-bottom: 0.5rem;
-                    ">
-                        <span style="margin-right: 8px;">📧</span>
-                        Sign Up with Google
-                    </button>
-                </div>
-                
-            </div>
-            
-            <div style="margin: 2rem 0; position: relative;">
-                <div style="
-                    position: absolute;
-                    top: 50%;
-                    left: 0;
-                    right: 0;
-                    height: 1px;
-                    background: #374151;
-                "></div>
-                <div style="
-                    position: relative;
-                    text-align: center;
-                    background: rgba(0,0,0,0.95);
-                    color: #e2e8f0;
-                    padding: 0 1.5rem;
-                    display: inline-block;
-                    margin: 0 auto;
-                ">
-                    or use legacy form
-                </div>
-            </div>
             
             <!-- Footer -->
             <div class="auth-footer">
@@ -1295,42 +1246,6 @@
             applyTranslations(savedLang);
         }
 
-        // Initialize Clerk with your publishable key
-        const CLERK_PUBLISHABLE_KEY = "{{ clerk_publishable_key or 'pk_test_aGFyZHktcGFycm90LTk1LmNsZXJrLmFjY291bnRzLmRldiQ' }}";
-        
-        if (window.Clerk) {
-            window.Clerk.load({
-                publishableKey: CLERK_PUBLISHABLE_KEY,
-            }).then(() => {
-                console.log('✅ Clerk loaded successfully');
-                
-                // Set up the sign-up button
-                const signUpButton = document.getElementById('clerkSignUpButton');
-                if (signUpButton) {
-                    signUpButton.onclick = () => {
-                        window.Clerk.openSignUp({
-                            afterSignInUrl: '/',
-                            afterSignUpUrl: '/'
-                        });
-                    };
-                }
-                
-                // Check if user is already signed in
-                if (window.Clerk.user) {
-                    console.log('User already signed in, redirecting...');
-                    window.location.href = '/';
-                }
-            }).catch((error) => {
-                console.error('❌ Clerk loading error:', error);
-                // Fallback to email/password only
-                const clerkSection = document.querySelector('.clerk-auth-section');
-                if (clerkSection) {
-                    clerkSection.style.display = 'none';
-                }
-            });
-        } else {
-            console.log('⚠️ Clerk SDK not loaded, using email/password only');
-        }
 
         // Load theme on page load
         window.addEventListener('load', function() {
