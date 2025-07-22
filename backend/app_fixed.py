@@ -15,6 +15,16 @@ import time
 from datetime import datetime, timezone, timedelta
 from flask import Flask, jsonify, render_template, request, session, redirect, url_for, flash, make_response
 
+# Load environment variables from .env files
+try:
+    from dotenv import load_dotenv
+    # Load .env.local first (highest priority), then .env
+    load_dotenv('.env.local')
+    load_dotenv('.env')
+    print("Environment variables loaded from .env files")
+except ImportError:
+    print("python-dotenv not installed, using system environment variables only")
+
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
