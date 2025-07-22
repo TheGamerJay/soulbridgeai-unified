@@ -1119,10 +1119,35 @@ def backup_database():
 @app.route("/debug", methods=["GET"])
 def debug_info():
     """Simple debug endpoint to test routing"""
+    # Check database configuration
+    database_url = os.environ.get("DATABASE_URL")
+    postgres_url = os.environ.get("POSTGRES_URL") 
+    railway_env = os.environ.get("RAILWAY_ENVIRONMENT")
+    
+    # Initialize database to check what's being used
+    if not services["database"]:
+        init_database()
+    
+    db_info = "Unknown"
+    if services["database"] and db:
+        if hasattr(db, 'use_postgres'):
+            if db.use_postgres:
+                db_info = f"PostgreSQL - {db.postgres_url[:50]}..." if db.postgres_url else "PostgreSQL (no URL)"
+            else:
+                db_info = f"SQLite - {db.db_path}"
+        else:
+            db_info = "Database object missing postgres info"
+    
     return jsonify({
         "status": "API routing working",
         "timestamp": datetime.now(timezone.utc).isoformat(),
-        "environment": os.environ.get("RAILWAY_ENVIRONMENT", "development")
+        "environment": railway_env,
+        "database_url_present": bool(database_url),
+        "postgres_url_present": bool(postgres_url),
+        "database_url_preview": database_url[:30] + "..." if database_url else None,
+        "postgres_url_preview": postgres_url[:30] + "..." if postgres_url else None,
+        "current_database": db_info,
+        "services_database": bool(services["database"])
     })
 
 @app.route("/stripe-status", methods=["GET"])

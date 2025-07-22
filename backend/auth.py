@@ -141,54 +141,100 @@ class Database:
                 """
             )
 
-        # Create password reset tokens table
-        cursor.execute(
-            """
-            CREATE TABLE IF NOT EXISTS password_reset_tokens (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                email TEXT NOT NULL,
-                token TEXT UNIQUE NOT NULL,
-                expires_at TIMESTAMP NOT NULL,
-                used INTEGER DEFAULT 0,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        if self.use_postgres:
+            # PostgreSQL table creation
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS password_reset_tokens (
+                    id SERIAL PRIMARY KEY,
+                    email VARCHAR(255) NOT NULL,
+                    token VARCHAR(255) UNIQUE NOT NULL,
+                    expires_at TIMESTAMP NOT NULL,
+                    used INTEGER DEFAULT 0,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+                """
             )
-        """
-        )
 
-        # Create subscriptions table for payment tracking
-        cursor.execute(
-            """
-            CREATE TABLE IF NOT EXISTS subscriptions (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER NOT NULL,
-                email TEXT NOT NULL,
-                plan_type TEXT NOT NULL,
-                status TEXT NOT NULL DEFAULT 'active',
-                stripe_customer_id TEXT,
-                stripe_subscription_id TEXT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (user_id) REFERENCES users (id)
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS subscriptions (
+                    id SERIAL PRIMARY KEY,
+                    user_id INTEGER NOT NULL,
+                    email VARCHAR(255) NOT NULL,
+                    plan_type VARCHAR(50) NOT NULL,
+                    status VARCHAR(50) NOT NULL DEFAULT 'active',
+                    stripe_customer_id TEXT,
+                    stripe_subscription_id TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (user_id) REFERENCES users (id)
+                )
+                """
             )
-        """
-        )
 
-        # Create payment events table for audit trail
-        cursor.execute(
-            """
-            CREATE TABLE IF NOT EXISTS payment_events (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER,
-                email TEXT NOT NULL,
-                event_type TEXT NOT NULL,
-                plan_type TEXT,
-                amount REAL,
-                currency TEXT DEFAULT 'usd',
-                stripe_event_id TEXT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS payment_events (
+                    id SERIAL PRIMARY KEY,
+                    user_id INTEGER,
+                    email VARCHAR(255) NOT NULL,
+                    event_type VARCHAR(50) NOT NULL,
+                    plan_type VARCHAR(50),
+                    amount REAL,
+                    currency VARCHAR(10) DEFAULT 'usd',
+                    stripe_event_id TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+                """
             )
-        """
-        )
+        else:
+            # SQLite table creation
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS password_reset_tokens (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    email TEXT NOT NULL,
+                    token TEXT UNIQUE NOT NULL,
+                    expires_at TIMESTAMP NOT NULL,
+                    used INTEGER DEFAULT 0,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """
+            )
+
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS subscriptions (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER NOT NULL,
+                    email TEXT NOT NULL,
+                    plan_type TEXT NOT NULL,
+                    status TEXT NOT NULL DEFAULT 'active',
+                    stripe_customer_id TEXT,
+                    stripe_subscription_id TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (user_id) REFERENCES users (id)
+                )
+            """
+            )
+
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS payment_events (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER,
+                    email TEXT NOT NULL,
+                    event_type TEXT NOT NULL,
+                    plan_type TEXT,
+                    amount REAL,
+                    currency TEXT DEFAULT 'usd',
+                    stripe_event_id TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """
+            )
 
         conn.commit()
         conn.close()
