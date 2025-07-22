@@ -427,8 +427,11 @@ class User:
         conn = db.get_connection()
         cursor = conn.cursor()
 
+        # Use appropriate placeholder for database type
+        placeholder = "%s" if hasattr(db, 'postgres_url') and db.postgres_url else "?"
+        
         cursor.execute(
-            "SELECT id, email, password_hash, display_name, email_verified, created_at FROM users WHERE email = ?",
+            f"SELECT id, email, password_hash, display_name, email_verified, created_at FROM users WHERE email = {placeholder}",
             (email,),
         )
         user_data = cursor.fetchone()
@@ -461,7 +464,9 @@ class User:
         conn = self.db.get_connection()
         cursor = conn.cursor()
         try:
-            cursor.execute("SELECT id FROM users WHERE email = ?", (email,))
+            # Use appropriate placeholder for database type
+            placeholder = "%s" if hasattr(self.db, 'postgres_url') and self.db.postgres_url else "?"
+            cursor.execute(f"SELECT id FROM users WHERE email = {placeholder}", (email,))
             result = cursor.fetchone()
             conn.close()
             return result is not None
@@ -527,7 +532,10 @@ class User:
         conn = self.db.get_connection()
         cursor = conn.cursor()
 
-        cursor.execute("SELECT id FROM users WHERE email = ?", (email,))
+        # Use appropriate placeholder for database type
+        placeholder = "%s" if hasattr(self.db, 'postgres_url') and self.db.postgres_url else "?"
+        
+        cursor.execute(f"SELECT id FROM users WHERE email = {placeholder}", (email,))
         if not cursor.fetchone():
             conn.close()
             return {"success": False, "error": "Email not found"}
@@ -539,14 +547,14 @@ class User:
         try:
             # Delete any existing tokens for this email
             cursor.execute(
-                "DELETE FROM password_reset_tokens WHERE email = ?", (email,)
+                f"DELETE FROM password_reset_tokens WHERE email = {placeholder}", (email,)
             )
 
             # Insert new token
             cursor.execute(
-                """
+                f"""
                 INSERT INTO password_reset_tokens (email, token, expires_at)
-                VALUES (?, ?, ?)
+                VALUES ({placeholder}, {placeholder}, {placeholder})
             """,
                 (email, token, expires_at),
             )
