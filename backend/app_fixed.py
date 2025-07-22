@@ -1279,10 +1279,6 @@ if __name__ == "__main__":
     # Start the server
     logger.info("🌟 Starting Flask server...")
     
-    # Use SocketIO if available, otherwise fall back to regular Flask
-    if services["socketio"] and socketio:
-        logger.info("Using SocketIO server")
-        socketio.run(app, host="0.0.0.0", port=port, debug=False)
-    else:
-        logger.info("Using regular Flask server")
-        app.run(host="0.0.0.0", port=port, debug=False, threaded=True, use_reloader=False)
+    # Use regular Flask for stability (SocketIO available but not used for startup)
+    logger.info("Using regular Flask server for stability")
+    app.run(host="0.0.0.0", port=port, debug=False, threaded=True, use_reloader=False)
