@@ -1272,8 +1272,8 @@ def oauth_login(provider):
             flash(f"{provider.title()} sign-in is not configured", "error")
             return redirect(url_for("login_page"))
         
-        # Get redirect URI
-        redirect_uri = url_for("oauth_callback", _external=True)
+        # Get redirect URI - use hardcoded HTTPS URL for production
+        redirect_uri = "https://soulbridgeai.com/api/oauth/callback"
         
         # Generate authorization URL
         result = oauth_manager.get_auth_url(provider, redirect_uri)
@@ -1317,8 +1317,8 @@ def oauth_callback():
         from oauth import OAuthManager
         oauth_manager = OAuthManager(db)
         
-        # Get redirect URI
-        redirect_uri = url_for("oauth_callback", _external=True)
+        # Get redirect URI - use hardcoded HTTPS URL for production
+        redirect_uri = "https://soulbridgeai.com/api/oauth/callback"
         
         # Handle callback
         result = oauth_manager.handle_callback(provider, code, state, redirect_uri)
