@@ -1116,9 +1116,18 @@ def backup_database():
         logger.error(f"Database backup error: {e}")
         return jsonify({"success": False, "error": "Backup failed"}), 500
 
-@app.route("/api/stripe-status", methods=["GET"])
+@app.route("/debug", methods=["GET"])
+def debug_info():
+    """Simple debug endpoint to test routing"""
+    return jsonify({
+        "status": "API routing working",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "environment": os.environ.get("RAILWAY_ENVIRONMENT", "development")
+    })
+
+@app.route("/stripe-status", methods=["GET"])
 def stripe_status():
-    """Check Stripe configuration status"""
+    """Check Stripe configuration status - public endpoint for debugging"""
     try:
         stripe_secret_key = os.environ.get("STRIPE_SECRET_KEY")
         stripe_publishable_key = os.environ.get("STRIPE_PUBLISHABLE_KEY")
@@ -1129,12 +1138,17 @@ def stripe_status():
             "stripe_publishable_configured": bool(stripe_publishable_key),
             "secret_key_preview": stripe_secret_key[:12] + "..." if stripe_secret_key else None,
             "publishable_key_preview": stripe_publishable_key[:12] + "..." if stripe_publishable_key else None,
+            "environment": os.environ.get("RAILWAY_ENVIRONMENT", "development"),
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
         
     except Exception as e:
         logger.error(f"Stripe status error: {e}")
-        return jsonify({"success": False, "error": "Status check failed"}), 500
+        return jsonify({
+            "success": False, 
+            "error": "Status check failed",
+            "exception": str(e)
+        }), 500
 
 @app.route("/api/test-stripe", methods=["POST"])
 def test_stripe():
