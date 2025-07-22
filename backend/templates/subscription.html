@@ -313,12 +313,12 @@
     </div>
 
     <!-- Growth Plan (Recommended) -->
-    <div class="plan-card recommended" onclick="selectPlan('growth')">
+    <div class="plan-card recommended" onclick="selectPlan('premium')">
       <div class="badge">Most Popular</div>
       <div class="plan-icon">🌉</div>
       <div class="plan-name">Growth</div>
-      <div class="plan-price" id="growth-price">$12.99</div>
-      <div class="plan-period" id="growth-period">/month</div>
+      <div class="plan-price" id="premium-price">$12.99</div>
+      <div class="plan-period" id="premium-period">/month</div>
       
       <ul class="plan-features">
         <li><span class="feature-icon">✅</span> Unlimited messages</li>
@@ -334,11 +334,11 @@
     </div>
 
     <!-- Transformation Plan (Premium) -->
-    <div class="plan-card" onclick="selectPlan('transformation')">
+    <div class="plan-card" onclick="selectPlan('enterprise')">
       <div class="plan-icon">💎</div>
       <div class="plan-name">Transformation</div>
-      <div class="plan-price" id="transformation-price">$19.99</div>
-      <div class="plan-period" id="transformation-period">/month</div>
+      <div class="plan-price" id="enterprise-price">$19.99</div>
+      <div class="plan-period" id="enterprise-period">/month</div>
       
       <ul class="plan-features">
         <li><span class="feature-icon">✅</span> Everything in Growth</li>
@@ -485,12 +485,12 @@ let selectedPlan = null;
 
 const pricing = {
   monthly: {
-    growth: { price: '$12.99', period: '/month' },
-    transformation: { price: '$19.99', period: '/month' }
+    premium: { price: '$12.99', period: '/month' },
+    enterprise: { price: '$19.99', period: '/month' }
   },
   yearly: {
-    growth: { price: '$99', period: '/year', savings: 'Save $56' },
-    transformation: { price: '$179', period: '/year', savings: 'Save $60' }
+    premium: { price: '$99', period: '/year', savings: 'Save $56' },
+    enterprise: { price: '$179', period: '/year', savings: 'Save $60' }
   }
 };
 
@@ -548,11 +548,11 @@ function togglePricing(type) {
   // Update pricing display
   const plans = pricing[type];
   
-  document.getElementById('growth-price').textContent = plans.growth.price;
-  document.getElementById('growth-period').textContent = plans.growth.period;
+  document.getElementById('premium-price').textContent = plans.premium.price;
+  document.getElementById('premium-period').textContent = plans.premium.period;
   
-  document.getElementById('transformation-price').textContent = plans.transformation.price;
-  document.getElementById('transformation-period').textContent = plans.transformation.period;
+  document.getElementById('enterprise-price').textContent = plans.enterprise.price;
+  document.getElementById('enterprise-period').textContent = plans.enterprise.period;
   
   // Show/hide yearly savings banner
   const yearlyBanner = document.getElementById('yearly-banner');
