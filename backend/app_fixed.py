@@ -636,13 +636,21 @@ def google_oauth():
         google_client_secret = os.environ.get("GOOGLE_CLIENT_SECRET")
         
         logger.info(f"Google OAuth initiation - Client ID present: {bool(google_client_id)}, Client Secret present: {bool(google_client_secret)}")
+        if google_client_id:
+            logger.info(f"Google Client ID (first 20 chars): {google_client_id[:20]}...")
+        else:
+            logger.error("GOOGLE_CLIENT_ID environment variable not set")
         
         if not google_client_id or not google_client_secret:
             logger.error("Google OAuth not properly configured")
             return redirect("/login?oauth_error=not_configured")
             
         # Build Google OAuth URL (single line to avoid newline characters)
-        oauth_url = f"https://accounts.google.com/o/oauth2/auth?client_id={google_client_id}&redirect_uri={request.host_url}auth/oauth/google/callback&scope=openid email profile&response_type=code&state={state}"
+        redirect_uri = f"{request.host_url}auth/oauth/google/callback"
+        oauth_url = f"https://accounts.google.com/o/oauth2/auth?client_id={google_client_id}&redirect_uri={redirect_uri}&scope=openid email profile&response_type=code&state={state}"
+        
+        logger.info(f"Redirecting to Google OAuth URL: {oauth_url[:100]}...")
+        logger.info(f"Redirect URI: {redirect_uri}")
         
         return redirect(oauth_url)
         
@@ -654,6 +662,8 @@ def google_oauth():
 def google_oauth_callback():
     """Google OAuth callback"""
     try:
+        logger.info("Google OAuth callback received")
+        logger.info(f"Callback URL args: {dict(request.args)}")
         # Verify state parameter
         state = request.args.get("state")
         if not state or state != session.get("oauth_state"):
