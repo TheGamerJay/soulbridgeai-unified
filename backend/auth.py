@@ -95,7 +95,7 @@ class User:
         cursor = conn.cursor()
 
         cursor.execute(
-            "SELECT id, email, password_hash, display_name, email_verified, created_at, last_login FROM users WHERE email = ?",
+            "SELECT id, email, password_hash, display_name, email_verified, created_at FROM users WHERE email = ?",
             (email,),
         )
         user_data = cursor.fetchone()
@@ -112,7 +112,7 @@ class User:
         cursor = conn.cursor()
 
         cursor.execute(
-            "SELECT id, email, display_name, email_verified, created_at, last_login FROM users WHERE id = ?",
+            "SELECT id, email, display_name, email_verified, created_at FROM users WHERE id = ?",
             (user_id,),
         )
         user_data = cursor.fetchone()
