@@ -20,6 +20,9 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/animations.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/themes.css') }}">
     
+    <!-- Clerk JavaScript SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js" crossorigin="anonymous"></script>
+    
     
     <style>
         .auth-container {
@@ -579,14 +582,14 @@
                 </button>
             </form>
             
-            <!-- OAuth Authentication Section -->
-            <div class="oauth-auth-section" style="margin: 2rem 0; text-align: center;">
+            <!-- Clerk Authentication Section -->
+            <div class="clerk-auth-section" style="margin: 2rem 0; text-align: center;">
                 <div style="margin-bottom: 1rem;">
-                    <a href="/auth/oauth/google" id="googleSignInLink" style="
+                    <button id="clerkSignInButton" style="
                         width: 100%;
                         padding: 14px 24px;
-                        background: linear-gradient(135deg, #4285f4, #3367d6);
-                        color: #fff;
+                        background: linear-gradient(135deg, #22d3ee, #0891b2);
+                        color: #000;
                         border: none;
                         border-radius: 12px;
                         font-size: 1.1rem;
@@ -600,7 +603,7 @@
                     ">
                         <span style="margin-right: 8px;">📧</span>
                         Sign In with Google
-                    </a>
+                    </button>
                 </div>
                 
             </div>
@@ -623,7 +626,7 @@
                     display: inline-block;
                     margin: 0 auto;
                 ">
-                    or use email/password
+                    or use email/password below
                 </div>
             </div>
             
@@ -760,8 +763,42 @@
         // Auto-focus first input
         document.getElementById('email').focus();
         
-        // OAuth is now handled by backend routes - no client-side initialization needed
-        console.log('OAuth authentication ready - using backend routes');
+        // Initialize Clerk with your publishable key
+        const CLERK_PUBLISHABLE_KEY = "pk_test_aGFyZHktcGFycm90LTk1LmNsZXJrLmFjY291bnRzLmRldiQ"; // Replace with your actual key
+        
+        if (window.Clerk) {
+            window.Clerk.load({
+                publishableKey: CLERK_PUBLISHABLE_KEY,
+            }).then(() => {
+                console.log('✅ Clerk loaded successfully');
+                
+                // Set up the sign-in button
+                const signInButton = document.getElementById('clerkSignInButton');
+                if (signInButton) {
+                    signInButton.onclick = () => {
+                        window.Clerk.openSignIn({
+                            afterSignInUrl: '/',
+                            afterSignUpUrl: '/'
+                        });
+                    };
+                }
+                
+                // Check if user is already signed in
+                if (window.Clerk.user) {
+                    console.log('User already signed in, redirecting...');
+                    window.location.href = '/';
+                }
+            }).catch((error) => {
+                console.error('❌ Clerk loading error:', error);
+                // Fallback to email/password only
+                const clerkSection = document.querySelector('.clerk-auth-section');
+                if (clerkSection) {
+                    clerkSection.style.display = 'none';
+                }
+            });
+        } else {
+            console.log('⚠️ Clerk SDK not loaded, using email/password only');
+        }
         
         // Debug form setup
         console.log('Login form setup complete');

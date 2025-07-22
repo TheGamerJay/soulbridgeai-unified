@@ -20,6 +20,9 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/themes.css') }}">
     
+    <!-- Clerk JavaScript SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js" crossorigin="anonymous"></script>
+    
     
     <style>
         .auth-container {
@@ -722,14 +725,14 @@
                 </button>
             </form>
             
-            <!-- Google OAuth Section -->
-            <div class="oauth-auth-section" style="margin: 2rem 0; text-align: center;">
+            <!-- Clerk Authentication Section -->
+            <div class="clerk-auth-section" style="margin: 2rem 0; text-align: center;">
                 <div style="margin-bottom: 1rem;">
-                    <a href="/auth/oauth/google" id="googleSignUpLink" style="
+                    <button id="clerkSignUpButton" style="
                         width: 100%;
                         padding: 14px 24px;
-                        background: linear-gradient(135deg, #4285f4, #3367d6);
-                        color: #fff;
+                        background: linear-gradient(135deg, #22d3ee, #0891b2);
+                        color: #000;
                         border: none;
                         border-radius: 12px;
                         font-size: 1.1rem;
@@ -743,7 +746,7 @@
                     ">
                         <span style="margin-right: 8px;">📧</span>
                         Sign Up with Google
-                    </a>
+                    </button>
                 </div>
                 
             </div>
@@ -1292,8 +1295,42 @@
             applyTranslations(savedLang);
         }
 
-        // Google OAuth is handled by backend routes - no client-side initialization needed
-        console.log('Google OAuth ready - using backend routes');
+        // Initialize Clerk with your publishable key
+        const CLERK_PUBLISHABLE_KEY = "pk_test_aGFyZHktcGFycm90LTk1LmNsZXJrLmFjY291bnRzLmRldiQ"; // Replace with your actual key
+        
+        if (window.Clerk) {
+            window.Clerk.load({
+                publishableKey: CLERK_PUBLISHABLE_KEY,
+            }).then(() => {
+                console.log('✅ Clerk loaded successfully');
+                
+                // Set up the sign-up button
+                const signUpButton = document.getElementById('clerkSignUpButton');
+                if (signUpButton) {
+                    signUpButton.onclick = () => {
+                        window.Clerk.openSignUp({
+                            afterSignInUrl: '/',
+                            afterSignUpUrl: '/'
+                        });
+                    };
+                }
+                
+                // Check if user is already signed in
+                if (window.Clerk.user) {
+                    console.log('User already signed in, redirecting...');
+                    window.location.href = '/';
+                }
+            }).catch((error) => {
+                console.error('❌ Clerk loading error:', error);
+                // Fallback to email/password only
+                const clerkSection = document.querySelector('.clerk-auth-section');
+                if (clerkSection) {
+                    clerkSection.style.display = 'none';
+                }
+            });
+        } else {
+            console.log('⚠️ Clerk SDK not loaded, using email/password only');
+        }
 
         // Load theme on page load
         window.addEventListener('load', function() {
