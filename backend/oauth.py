@@ -45,13 +45,22 @@ class OAuthManager:
             # Store state token
             with self.db.get_connection() as conn:
                 cursor = conn.cursor()
-                cursor.execute(
-                    """
-                    INSERT INTO oauth_states (state_token, provider, redirect_url, expires_at)
-                    VALUES (?, ?, ?, ?)
-                """,
-                    (state_token, provider, redirect_uri, expires_at),
-                )
+                if self.db.use_postgres:
+                    cursor.execute(
+                        """
+                        INSERT INTO oauth_states (state_token, provider, redirect_url, expires_at)
+                        VALUES (%s, %s, %s, %s)
+                    """,
+                        (state_token, provider, redirect_uri, expires_at),
+                    )
+                else:
+                    cursor.execute(
+                        """
+                        INSERT INTO oauth_states (state_token, provider, redirect_url, expires_at)
+                        VALUES (?, ?, ?, ?)
+                    """,
+                        (state_token, provider, redirect_uri, expires_at),
+                    )
                 conn.commit()
 
             # Build authorization URL
@@ -113,13 +122,22 @@ class OAuthManager:
         try:
             with self.db.get_connection() as conn:
                 cursor = conn.cursor()
-                cursor.execute(
-                    """
-                    SELECT id FROM oauth_states 
-                    WHERE state_token = ? AND provider = ? AND expires_at > CURRENT_TIMESTAMP
-                """,
-                    (state_token, provider),
-                )
+                if self.db.use_postgres:
+                    cursor.execute(
+                        """
+                        SELECT id FROM oauth_states 
+                        WHERE state_token = %s AND provider = %s AND expires_at > CURRENT_TIMESTAMP
+                    """,
+                        (state_token, provider),
+                    )
+                else:
+                    cursor.execute(
+                        """
+                        SELECT id FROM oauth_states 
+                        WHERE state_token = ? AND provider = ? AND expires_at > CURRENT_TIMESTAMP
+                    """,
+                        (state_token, provider),
+                    )
 
                 return cursor.fetchone() is not None
 
@@ -196,10 +214,16 @@ class OAuthManager:
                 # Update last login
                 with self.db.get_connection() as conn:
                     cursor = conn.cursor()
-                    cursor.execute(
-                        "UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?",
-                        (existing_user["id"],),
-                    )
+                    if self.db.use_postgres:
+                        cursor.execute(
+                            "UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = %s",
+                            (existing_user["id"],),
+                        )
+                    else:
+                        cursor.execute(
+                            "UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?",
+                            (existing_user["id"],),
+                        )
                     conn.commit()
 
                 return {"success": True, "user": existing_user, "is_new_user": False}
@@ -208,27 +232,48 @@ class OAuthManager:
             if user_info.get("email"):
                 with self.db.get_connection() as conn:
                     cursor = conn.cursor()
-                    cursor.execute(
-                        "SELECT id, email, display_name FROM users WHERE email = ?",
-                        (user_info["email"],),
-                    )
+                    if self.db.use_postgres:
+                        cursor.execute(
+                            "SELECT id, email, display_name FROM users WHERE email = %s",
+                            (user_info["email"],),
+                        )
+                    else:
+                        cursor.execute(
+                            "SELECT id, email, display_name FROM users WHERE email = ?",
+                            (user_info["email"],),
+                        )
                     email_user = cursor.fetchone()
 
                     if email_user:
                         # Link OAuth account to existing email user
-                        cursor.execute(
-                            """
-                            UPDATE users SET oauth_provider = ?, oauth_id = ?, profile_picture_url = ?, 
-                                   email_verified = TRUE, last_login = CURRENT_TIMESTAMP
-                            WHERE id = ?
-                        """,
-                            (
-                                provider,
-                                user_info["id"],
-                                user_info.get("picture"),
-                                email_user["id"],
-                            ),
-                        )
+                        if self.db.use_postgres:
+                            cursor.execute(
+                                """
+                                UPDATE users SET oauth_provider = %s, oauth_id = %s, profile_picture_url = %s, 
+                                       email_verified = TRUE, last_login = CURRENT_TIMESTAMP
+                                WHERE id = %s
+                            """,
+                                (
+                                    provider,
+                                    user_info["id"],
+                                    user_info.get("picture"),
+                                    email_user["id"],
+                                ),
+                            )
+                        else:
+                            cursor.execute(
+                                """
+                                UPDATE users SET oauth_provider = ?, oauth_id = ?, profile_picture_url = ?, 
+                                       email_verified = TRUE, last_login = CURRENT_TIMESTAMP
+                                WHERE id = ?
+                            """,
+                                (
+                                    provider,
+                                    user_info["id"],
+                                    user_info.get("picture"),
+                                    email_user["id"],
+                                ),
+                            )
                         conn.commit()
 
                         return {
@@ -252,10 +297,16 @@ class OAuthManager:
                 if user_info.get("verified_email"):
                     with self.db.get_connection() as conn:
                         cursor = conn.cursor()
-                        cursor.execute(
-                            "UPDATE users SET email_verified = TRUE WHERE id = ?",
-                            (result["user_id"],),
-                        )
+                        if self.db.use_postgres:
+                            cursor.execute(
+                                "UPDATE users SET email_verified = TRUE WHERE id = %s",
+                                (result["user_id"],),
+                            )
+                        else:
+                            cursor.execute(
+                                "UPDATE users SET email_verified = TRUE WHERE id = ?",
+                                (result["user_id"],),
+                            )
                         conn.commit()
 
                 # Get user data
@@ -273,9 +324,14 @@ class OAuthManager:
         try:
             with self.db.get_connection() as conn:
                 cursor = conn.cursor()
-                cursor.execute(
-                    "DELETE FROM oauth_states WHERE state_token = ?", (state_token,)
-                )
+                if self.db.use_postgres:
+                    cursor.execute(
+                        "DELETE FROM oauth_states WHERE state_token = %s", (state_token,)
+                    )
+                else:
+                    cursor.execute(
+                        "DELETE FROM oauth_states WHERE state_token = ?", (state_token,)
+                    )
                 conn.commit()
         except Exception as e:
             logging.error(f"Error cleaning up state token: {e}")
