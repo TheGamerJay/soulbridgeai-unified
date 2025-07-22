@@ -1033,6 +1033,71 @@ def get_user_addons():
         logger.error(f"User addons error: {e}")
         return jsonify({"success": False, "error": "Failed to fetch add-ons"}), 500
 
+@app.route("/emergency-user-create", methods=["GET", "POST"])
+def emergency_user_create():
+    """Emergency endpoint to recreate user account"""
+    try:
+        if request.method == "GET":
+            return """
+            <html><head><title>Emergency User Creation</title></head>
+            <body style="font-family: Arial; padding: 40px; background: #0f172a; color: #e2e8f0;">
+                <h1 style="color: #22d3ee;">Emergency User Creation</h1>
+                <form method="POST" style="max-width: 400px;">
+                    <p>Create user account when database issues occur:</p>
+                    <input type="email" name="email" placeholder="Email" required 
+                           style="width: 100%; padding: 10px; margin: 10px 0; background: #1e293b; color: #e2e8f0; border: 1px solid #22d3ee; border-radius: 5px;">
+                    <input type="password" name="password" placeholder="Password" required
+                           style="width: 100%; padding: 10px; margin: 10px 0; background: #1e293b; color: #e2e8f0; border: 1px solid #22d3ee; border-radius: 5px;">
+                    <input type="text" name="display_name" placeholder="Display Name" required
+                           style="width: 100%; padding: 10px; margin: 10px 0; background: #1e293b; color: #e2e8f0; border: 1px solid #22d3ee; border-radius: 5px;">
+                    <button type="submit" style="width: 100%; padding: 12px; background: #22d3ee; color: #000; border: none; border-radius: 5px; font-weight: bold;">Create User</button>
+                </form>
+            </body></html>
+            """
+        
+        # POST - create user
+        email = request.form.get("email", "").strip().lower()
+        password = request.form.get("password", "").strip()
+        display_name = request.form.get("display_name", "").strip()
+        
+        if not email or not password or not display_name:
+            return "All fields required", 400
+            
+        # Initialize database if needed
+        if not services["database"]:
+            init_database()
+            
+        if services["database"] and db:
+            from auth import User
+            user = User(db)
+            
+            try:
+                # Create user
+                user_id = user.create_user(email, password, display_name)
+                
+                # Auto-login
+                setup_user_session(email, user_id=user_id)
+                
+                logger.info(f"Emergency user created: {email}")
+                return f"""
+                <html><head><title>Success</title></head>
+                <body style="font-family: Arial; padding: 40px; background: #0f172a; color: #e2e8f0; text-align: center;">
+                    <h1 style="color: #10b981;">Success!</h1>
+                    <p>User account created and logged in.</p>
+                    <a href="/" style="display: inline-block; margin-top: 20px; padding: 12px 24px; background: #22d3ee; color: #000; text-decoration: none; border-radius: 8px; font-weight: bold;">Go to App</a>
+                </body></html>
+                """
+                
+            except Exception as e:
+                logger.error(f"Emergency user creation failed: {e}")
+                return f"User creation failed: {e}", 500
+        else:
+            return "Database not available", 503
+            
+    except Exception as e:
+        logger.error(f"Emergency user creation error: {e}")
+        return f"Error: {e}", 500
+
 @app.route("/api/recover-subscription", methods=["POST"])
 def recover_subscription():
     """Recover subscription for users who lost database access"""
