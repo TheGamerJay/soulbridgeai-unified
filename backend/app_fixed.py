@@ -180,7 +180,13 @@ def init_socketio():
             # Development - allow local development
             allowed_origins = ["http://localhost:*", "http://127.0.0.1:*"]
             
-        socketio = SocketIO(app, cors_allowed_origins=allowed_origins, logger=False, engineio_logger=False)
+        socketio = SocketIO(
+            app, 
+            cors_allowed_origins=allowed_origins, 
+            logger=False, 
+            engineio_logger=False,
+            async_mode='threading'  # Use threading mode for gunicorn compatibility
+        )
         services["socketio"] = socketio
         logger.info("✅ SocketIO initialized successfully")
         return True

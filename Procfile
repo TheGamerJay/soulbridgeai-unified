@@ -1,1 +1,1 @@
-web: cd backend && python app_fixed.py
+web: cd backend && gunicorn --worker-class gevent --workers 1 --bind 0.0.0.0:$PORT app_fixed:app
