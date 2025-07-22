@@ -281,7 +281,6 @@
         }
 
         .twitter { background: #1da1f2; color: white; }
-        .facebook { background: #4267b2; color: white; }
         .whatsapp { background: #25d366; color: white; }
         .email { background: #ea4335; color: white; }
 
@@ -530,7 +529,6 @@
 
                 <div class="social-share">
                     <a href="#" class="social-btn twitter" onclick="shareToTwitter()">🐦 Twitter</a>
-                    <a href="#" class="social-btn facebook" onclick="shareToFacebook()">📘 Facebook</a>
                     <a href="#" class="social-btn whatsapp" onclick="shareToWhatsApp()">💬 WhatsApp</a>
                     <a href="#" class="social-btn email" onclick="shareToEmail()">📧 Email</a>
                 </div>
@@ -688,10 +686,6 @@
             window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank');
         }
 
-        function shareToFacebook() {
-            const url = encodeURIComponent(dashboardData.referral_link);
-            window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
-        }
 
         function shareToWhatsApp() {
             const text = encodeURIComponent(shareTemplates.whatsapp);

@@ -1252,7 +1252,7 @@ def oauth_login(provider):
     """Initiate OAuth login"""
     try:
         # Validate provider
-        if provider not in ["google", "facebook"]:
+        if provider != "google":
             flash("Invalid OAuth provider", "error")
             return redirect(url_for("login_page"))
         

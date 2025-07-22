@@ -321,7 +321,6 @@ class ReferralManager:
 
         templates = {
             "twitter": f"🤖 I'm chatting with AI companions on @SoulBridgeAI! Join me for amazing conversations: {referral_link} #AICompanion #EmotionalSupport",
-            "facebook": f"🌟 I've been having amazing conversations with AI companions on SoulBridge AI! They really help with emotional support and personal growth. Join me: {referral_link}",
             "whatsapp": f"Hey! 😊 I found this amazing AI companion app called SoulBridge AI. The AI companions are so helpful for emotional support and just having great conversations. Want to try it? {referral_link}",
             "email": {
                 "subject": "Try SoulBridge AI - Amazing AI Companions!",

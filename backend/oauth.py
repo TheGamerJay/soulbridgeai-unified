@@ -1,4 +1,4 @@
-# OAuth Integration for Google and Facebook
+# OAuth Integration for Google
 import os
 import secrets
 import requests
@@ -21,15 +21,7 @@ class OAuthManager:
                 "token_url": "https://oauth2.googleapis.com/token",
                 "user_info_url": "https://www.googleapis.com/oauth2/v2/userinfo",
                 "scope": "openid email profile",
-            },
-            "facebook": {
-                "client_id": os.environ.get("FACEBOOK_CLIENT_ID"),
-                "client_secret": os.environ.get("FACEBOOK_CLIENT_SECRET"),
-                "auth_url": "https://www.facebook.com/v18.0/dialog/oauth",
-                "token_url": "https://graph.facebook.com/v18.0/oauth/access_token",
-                "user_info_url": "https://graph.facebook.com/v18.0/me",
-                "scope": "email public_profile",
-            },
+            }
         }
 
     def get_auth_url(self, provider, redirect_uri):
@@ -168,35 +160,21 @@ class OAuthManager:
             config = self.oauth_configs[provider]
 
             headers = {"Authorization": f"Bearer {access_token}"}
-            params = {}
-
-            if provider == "facebook":
-                params["fields"] = "id,name,email,picture"
-
             response = requests.get(
-                config["user_info_url"], headers=headers, params=params
+                config["user_info_url"], headers=headers
             )
             response.raise_for_status()
 
             user_data = response.json()
 
-            # Normalize user data across providers
-            if provider == "google":
-                user_info = {
-                    "id": user_data.get("id"),
-                    "email": user_data.get("email"),
-                    "name": user_data.get("name"),
-                    "picture": user_data.get("picture"),
-                    "verified_email": user_data.get("verified_email", False),
-                }
-            elif provider == "facebook":
-                user_info = {
-                    "id": user_data.get("id"),
-                    "email": user_data.get("email"),
-                    "name": user_data.get("name"),
-                    "picture": user_data.get("picture", {}).get("data", {}).get("url"),
-                    "verified_email": True,  # Facebook emails are considered verified
-                }
+            # Normalize user data for Google
+            user_info = {
+                "id": user_data.get("id"),
+                "email": user_data.get("email"),
+                "name": user_data.get("name"),
+                "picture": user_data.get("picture"),
+                "verified_email": user_data.get("verified_email", False),
+            }
 
             return {"success": True, "user_info": user_info}
 

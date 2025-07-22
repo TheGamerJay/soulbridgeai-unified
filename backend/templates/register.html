@@ -20,11 +20,6 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/themes.css') }}">
     
-    <!-- Clerk JavaScript SDK -->
-    <script 
-        src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"
-        crossorigin="anonymous">
-    </script>
     
     <style>
         .auth-container {
@@ -439,14 +434,6 @@
             background: rgba(66, 133, 244, 0.1);
         }
         
-        .oauth-btn.facebook {
-            border-color: #1877f2;
-        }
-        
-        .oauth-btn.facebook:hover {
-            border-color: #1877f2;
-            background: rgba(24, 119, 242, 0.1);
-        }
         
         .auth-footer {
             text-align: center;
@@ -735,14 +722,14 @@
                 </button>
             </form>
             
-            <!-- Clerk Authentication Section -->
-            <div class="clerk-auth-section" style="margin: 2rem 0; text-align: center;">
+            <!-- Google OAuth Section -->
+            <div class="oauth-auth-section" style="margin: 2rem 0; text-align: center;">
                 <div style="margin-bottom: 1rem;">
-                    <clerk-sign-up-button style="
+                    <a href="/auth/oauth/google" id="googleSignUpLink" style="
                         width: 100%;
                         padding: 14px 24px;
-                        background: linear-gradient(135deg, #22d3ee, #0891b2);
-                        color: #000;
+                        background: linear-gradient(135deg, #4285f4, #3367d6);
+                        color: #fff;
                         border: none;
                         border-radius: 12px;
                         font-size: 1.1rem;
@@ -750,9 +737,13 @@
                         cursor: pointer;
                         transition: all 0.3s ease;
                         display: block;
+                        text-decoration: none;
+                        text-align: center;
+                        margin-bottom: 0.5rem;
                     ">
-                        Sign Up with Email or Google
-                    </clerk-sign-up-button>
+                        <span style="margin-right: 8px;">📧</span>
+                        Sign Up with Google
+                    </a>
                 </div>
                 
             </div>
@@ -1301,57 +1292,8 @@
             applyTranslations(savedLang);
         }
 
-        // Wait for Clerk to load with timeout
-        let clerkCheckAttempts = 0;
-        const maxAttempts = 50; // 5 seconds
-        
-        function checkClerk() {
-            clerkCheckAttempts++;
-            console.log(`Clerk check attempt ${clerkCheckAttempts}/50`);
-            
-            if (window.Clerk && window.Clerk.load) {
-                console.log('Clerk SDK found, initializing...');
-                initializeClerk();
-            } else if (clerkCheckAttempts < maxAttempts) {
-                setTimeout(checkClerk, 100);
-            } else {
-                console.error('Clerk SDK failed to load after 5 seconds');
-                fallbackToLegacyForm();
-            }
-        }
-        
-        function initializeClerk() {
-            window.Clerk.load({
-                publishableKey: "pk_test_aGFyZHktcGFycm90LTk1LmNsZXJrLmFjY291bnRzLmRldiQ"
-            }).then(() => {
-                console.log('✅ Clerk loaded successfully');
-                const clerkSection = document.querySelector('.clerk-auth-section');
-                if (clerkSection) {
-                    clerkSection.style.opacity = '1';
-                    clerkSection.style.pointerEvents = 'auto';
-                }
-                
-                // Handle existing user
-                if (window.Clerk.user) {
-                    console.log('User already signed in:', window.Clerk.user);
-                    window.location.href = '/';
-                }
-            }).catch((error) => {
-                console.error('❌ Clerk loading error:', error);
-                fallbackToLegacyForm();
-            });
-        }
-        
-        function fallbackToLegacyForm() {
-            console.log('Falling back to legacy forms');
-            const clerkSection = document.querySelector('.clerk-auth-section');
-            if (clerkSection) {
-                clerkSection.innerHTML = '<div style="color: #ef4444; text-align: center; padding: 1rem;">Gmail sign-up temporarily unavailable. Please use the form below.</div>';
-            }
-        }
-        
-        // Start checking for Clerk
-        setTimeout(checkClerk, 100);
+        // Google OAuth is handled by backend routes - no client-side initialization needed
+        console.log('Google OAuth ready - using backend routes');
 
         // Load theme on page load
         window.addEventListener('load', function() {
