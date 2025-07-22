@@ -433,7 +433,25 @@ def auth_register():
                     # Auto-login after registration
                     setup_user_session(email, user_id=user_id)
                     logger.info(f"User registered and logged in: {email}")
-                    return jsonify({"success": True, "redirect": "/"})
+                    
+                    # Initialize email service if needed and send welcome email
+                    try:
+                        if not services["email"]:
+                            init_email()
+                        
+                        if services["email"] and email_service:
+                            result = email_service.send_welcome_email(email, display_name)
+                            if result.get("success"):
+                                logger.info(f"Welcome email sent to {email}")
+                            else:
+                                logger.warning(f"Welcome email failed for {email}: {result.get('error')}")
+                        else:
+                            logger.warning(f"Email service not available for welcome email to {email}")
+                    except Exception as e:
+                        logger.error(f"Welcome email error for {email}: {e}")
+                    
+                    # New users should go to plan selection
+                    return jsonify({"success": True, "redirect": "/subscription"})
                 else:
                     return jsonify({"success": False, "error": "Registration failed"}), 500
                     
