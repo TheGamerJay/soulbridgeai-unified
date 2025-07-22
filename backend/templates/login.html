@@ -867,33 +867,13 @@
         }
         
         function fallbackToLegacyForm() {
-            console.log('🔄 Falling back to legacy forms with direct Clerk redirect option');
+            console.log('🔄 Clerk unavailable - providing alternative options');
             const clerkSection = document.querySelector('.clerk-auth-section');
             if (clerkSection) {
                 clerkSection.innerHTML = `
-                    <div style="margin-bottom: 1rem;">
-                        <a href="https://hardy-parrot-95.clerk.accounts.dev/sign-in?redirect_url=${encodeURIComponent(window.location.origin)}" 
-                           target="_blank"
-                           style="
-                               width: 100%;
-                               padding: 14px 24px;
-                               background: linear-gradient(135deg, #4285f4, #34a853);
-                               color: #fff;
-                               border: none;
-                               border-radius: 12px;
-                               font-size: 1.1rem;
-                               font-weight: 600;
-                               cursor: pointer;
-                               transition: all 0.3s ease;
-                               display: block;
-                               text-decoration: none;
-                               text-align: center;
-                           ">
-                            🚀 Sign In with Clerk (Direct)
-                        </a>
-                    </div>
-                    <div style="color: #ef4444; text-align: center; padding: 1rem; margin-top: 1rem;">
-                        Gmail sign-in temporarily unavailable. Please use the form below.
+                    <div style="color: #fbbf24; text-align: center; padding: 1rem; background: rgba(251, 191, 36, 0.1); border-radius: 8px; margin-bottom: 1rem;">
+                        <p style="margin: 0; font-weight: 600;">🔧 Gmail sign-in is being configured</p>
+                        <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem;">Please use the email/password form below for now.</p>
                     </div>
                 `;
             }
