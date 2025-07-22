@@ -724,22 +724,60 @@ def google_oauth_callback():
         # Check if user exists or create new user
         if services["database"] and db:
             from auth import User
-            user = User(db)
+            user_manager = User(db)
             
-            if user.user_exists(email):
-                # Existing user - log them in
-                user_data = User.authenticate(db, email, "oauth_login")  # Special OAuth marker
-                if user_data:
-                    setup_user_session(email, user_id=user_data[0])
-                else:
-                    # Direct OAuth login for existing user
+            # Check if user exists by OAuth (Google ID)
+            google_id = user_data.get("id")
+            existing_oauth_user = user_manager.get_user_by_oauth("google", google_id) if google_id else None
+            
+            if existing_oauth_user:
+                # Existing OAuth user - log them in
+                setup_user_session(email, user_id=existing_oauth_user["id"])
+                logger.info(f"Existing OAuth user logged in: {email}")
+            elif user_manager.user_exists(email):
+                # User exists with this email but no OAuth - link accounts
+                try:
+                    # Get user by email
+                    conn = db.get_connection()
+                    cursor = conn.cursor()
+                    cursor.execute("SELECT id FROM users WHERE email = ?", (email,))
+                    user_record = cursor.fetchone()
+                    
+                    if user_record:
+                        user_id = user_record[0]
+                        # Link OAuth info to existing account
+                        cursor.execute("""
+                            UPDATE users SET oauth_provider = ?, oauth_id = ?, 
+                                   profile_picture_url = ?, email_verified = 1
+                            WHERE id = ?
+                        """, ("google", google_id, user_data.get("picture"), user_id))
+                        conn.commit()
+                        setup_user_session(email, user_id=user_id)
+                        logger.info(f"Linked existing account to Google OAuth: {email}")
+                    conn.close()
+                except Exception as e:
+                    logger.error(f"Account linking failed: {e}")
+                    # Fallback to session-only login
                     setup_user_session(email)
             else:
-                # New user - create account
+                # New user - create OAuth account
                 try:
-                    user_id = user.create_user(email, "oauth_password", name)
-                    setup_user_session(email, user_id=user_id)
-                    logger.info(f"New OAuth user created: {email}")
+                    result = user_manager.create_user(
+                        email=email,
+                        password=None,  # No password for OAuth users
+                        display_name=name,
+                        oauth_provider="google",
+                        oauth_id=google_id,
+                        profile_picture_url=user_data.get("picture")
+                    )
+                    
+                    if result["success"]:
+                        setup_user_session(email, user_id=result["user_id"])
+                        logger.info(f"New OAuth user created: {email}")
+                    else:
+                        logger.error(f"OAuth user creation failed: {result.get('error')}")
+                        setup_user_session(email)  # Fallback
+                        
                 except Exception as e:
                     logger.error(f"OAuth user creation failed: {e}")
                     setup_user_session(email)  # Fallback
