@@ -1273,7 +1273,7 @@ def oauth_login(provider):
             return redirect(url_for("login_page"))
         
         # Get redirect URI
-        redirect_uri = url_for("oauth_callback", provider=provider, _external=True)
+        redirect_uri = url_for("oauth_callback", _external=True)
         
         # Generate authorization URL
         result = oauth_manager.get_auth_url(provider, redirect_uri)
@@ -1318,7 +1318,7 @@ def oauth_callback():
         oauth_manager = OAuthManager(db)
         
         # Get redirect URI
-        redirect_uri = url_for("oauth_callback", provider=provider, _external=True)
+        redirect_uri = url_for("oauth_callback", _external=True)
         
         # Handle callback
         result = oauth_manager.handle_callback(provider, code, state, redirect_uri)
