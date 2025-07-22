@@ -444,6 +444,19 @@ class Database:
 class User:
     def __init__(self, db):
         self.db = db
+    
+    def _get_placeholder(self):
+        """Get appropriate SQL placeholder for database type"""
+        return "%s" if hasattr(self.db, 'postgres_url') and self.db.postgres_url else "?"
+    
+    def _format_query(self, query):
+        """Convert SQLite ? placeholders to appropriate database placeholders"""
+        if hasattr(self.db, 'postgres_url') and self.db.postgres_url:
+            # Count ? placeholders and replace with %s
+            placeholder_count = query.count('?')
+            for i in range(placeholder_count):
+                query = query.replace('?', '%s', 1)
+        return query
 
     @staticmethod
     def authenticate(db, email, password):
@@ -471,10 +484,8 @@ class User:
         conn = self.db.get_connection()
         cursor = conn.cursor()
 
-        cursor.execute(
-            "SELECT id, email, display_name, email_verified, created_at FROM users WHERE id = ?",
-            (user_id,),
-        )
+        query = self._format_query("SELECT id, email, display_name, email_verified, created_at FROM users WHERE id = ?")
+        cursor.execute(query, (user_id,))
         user_data = cursor.fetchone()
         conn.close()
 
@@ -510,12 +521,10 @@ class User:
                 password_hash = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
             
             # Insert the new user
-            cursor.execute(
-                """INSERT INTO users 
+            query = self._format_query("""INSERT INTO users 
                    (email, password_hash, display_name, oauth_provider, oauth_id, profile_picture_url, email_verified) 
-                   VALUES (?, ?, ?, ?, ?, ?, ?)""",
-                (email, password_hash, display_name, oauth_provider, oauth_id, profile_picture_url, 1 if oauth_provider else 0)
-            )
+                   VALUES (?, ?, ?, ?, ?, ?, ?)""")
+            cursor.execute(query, (email, password_hash, display_name, oauth_provider, oauth_id, profile_picture_url, 1 if oauth_provider else 0))
             conn.commit()
             user_id = cursor.lastrowid
             conn.close()
@@ -556,10 +565,9 @@ class User:
         conn = self.db.get_connection()
         cursor = conn.cursor()
 
-        # Use appropriate placeholder for database type
-        placeholder = "%s" if hasattr(self.db, 'postgres_url') and self.db.postgres_url else "?"
-        
-        cursor.execute(f"SELECT id FROM users WHERE email = {placeholder}", (email,))
+        # Check if user exists
+        query1 = self._format_query("SELECT id FROM users WHERE email = ?")
+        cursor.execute(query1, (email,))
         if not cursor.fetchone():
             conn.close()
             return {"success": False, "error": "Email not found"}
@@ -570,18 +578,15 @@ class User:
 
         try:
             # Delete any existing tokens for this email
-            cursor.execute(
-                f"DELETE FROM password_reset_tokens WHERE email = {placeholder}", (email,)
-            )
+            query2 = self._format_query("DELETE FROM password_reset_tokens WHERE email = ?")
+            cursor.execute(query2, (email,))
 
             # Insert new token
-            cursor.execute(
-                f"""
+            query3 = self._format_query("""
                 INSERT INTO password_reset_tokens (email, token, expires_at)
-                VALUES ({placeholder}, {placeholder}, {placeholder})
-            """,
-                (email, token, expires_at),
-            )
+                VALUES (?, ?, ?)
+            """)
+            cursor.execute(query3, (email, token, expires_at))
 
             conn.commit()
             conn.close()
@@ -600,13 +605,11 @@ class User:
         cursor = conn.cursor()
 
         try:
-            cursor.execute(
-                """
+            query = self._format_query("""
                 SELECT email, expires_at, used FROM password_reset_tokens 
                 WHERE token = ?
-            """,
-                (token,),
-            )
+            """)
+            cursor.execute(query, (token,))
 
             result = cursor.fetchone()
             conn.close()
@@ -666,15 +669,12 @@ class User:
             ).decode("utf-8")
 
             # Update the user's password
-            cursor.execute(
-                "UPDATE users SET password_hash = ? WHERE email = ?",
-                (password_hash, email),
-            )
+            query4 = self._format_query("UPDATE users SET password_hash = ? WHERE email = ?")
+            cursor.execute(query4, (password_hash, email))
 
             # Mark the token as used
-            cursor.execute(
-                "UPDATE password_reset_tokens SET used = 1 WHERE token = ?", (token,)
-            )
+            query5 = self._format_query("UPDATE password_reset_tokens SET used = 1 WHERE token = ?")
+            cursor.execute(query5, (token,))
 
             conn.commit()
             conn.close()
