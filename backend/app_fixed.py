@@ -386,7 +386,7 @@ def auth_login():
         logger.error(f"Login error: {e}")
         return jsonify({"success": False, "error": "Login failed"}), 500
 
-@app.route("/auth/logout")
+@app.route("/auth/logout", methods=["GET", "POST"])
 def logout():
     """Logout route"""
     try:

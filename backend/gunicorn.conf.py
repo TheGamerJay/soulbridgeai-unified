@@ -6,7 +6,7 @@ bind = f"0.0.0.0:{os.environ.get('PORT', '8080')}"
 backlog = 2048
 
 # Worker processes  
-worker_class = "eventlet"  # Use eventlet workers for SocketIO compatibility
+worker_class = "gevent"  # Use gevent workers for better SocketIO compatibility
 workers = 1  # Single worker for SocketIO compatibility
 worker_connections = 1000
 timeout = 300
