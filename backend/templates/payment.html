@@ -3,171 +3,270 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SoulBridgeAI Payment</title>
+    <title>Complete Payment - SoulBridge AI</title>
     <script src="https://js.stripe.com/v3/"></script>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background: #0d1117;
-            color: #fff;
+            background: linear-gradient(135deg, #000000 0%, #0f172a 50%, #1e293b 100%);
+            color: #e2e8f0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            padding: 20px;
         }
-        .payment-container {
-            max-width: 400px;
-            width: 100%;
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 40px 20px;
         }
-        button {
-            margin-top: 20px;
+
+        .payment-card {
+            background: rgba(15, 23, 42, 0.8);
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .plan-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: #22d3ee;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .plan-name {
+            color: #fbbf24;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 30px;
+        }
+
+        .price-display {
+            font-size: 3rem;
+            font-weight: 800;
+            color: #22d3ee;
+            margin-bottom: 10px;
+        }
+
+        .price-period {
+            color: #94a3b8;
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+        }
+
+        .features-list {
+            text-align: left;
+            margin: 30px 0;
+            background: rgba(34, 211, 238, 0.1);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(34, 211, 238, 0.3);
+        }
+
+        .features-list h3 {
+            color: #22d3ee;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .features-list ul {
+            list-style: none;
+        }
+
+        .features-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(34, 211, 238, 0.1);
+        }
+
+        .features-list li:last-child {
+            border-bottom: none;
+        }
+
+        .feature-icon {
+            color: #10b981;
+            margin-right: 10px;
+        }
+
+        .payment-btn {
             width: 100%;
-            padding: 12px;
-            background: #635bff;
+            padding: 18px 32px;
+            background: linear-gradient(135deg, #22d3ee, #0891b2);
+            color: #000;
             border: none;
-            color: white;
-            font-weight: bold;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            font-weight: 600;
             cursor: pointer;
-        }
-        button:disabled {
-            opacity: 0.5;
-        }
-        #payment-message {
-            margin-top: 20px;
-            color: lime;
-        }
-        
-        #card-element {
-            padding: 15px;
-            border: 2px solid #635bff;
-            border-radius: 8px;
-            background: white;
+            transition: all 0.3s ease;
             margin: 20px 0;
-            min-height: 40px;
         }
-        
-        .StripeElement {
-            background: white;
-            padding: 10px 12px;
-            border-radius: 4px;
+
+        .payment-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(34, 211, 238, 0.4);
         }
-        
-        .StripeElement--focus {
-            border-color: #80bdff;
-            box-shadow: 0 0 0 0.2rem rgba(99, 91, 255, 0.25);
+
+        .payment-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
         }
-        
-        .StripeElement--invalid {
-            border-color: #fa755a;
+
+        .back-btn {
+            background: rgba(34, 211, 238, 0.2);
+            color: #22d3ee;
+            border: 2px solid #22d3ee;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 20px;
+            font-weight: 600;
+            transition: all 0.3s ease;
         }
-        
-        .card-errors {
-            color: #fa755a;
-            font-size: 14px;
-            margin-top: 10px;
+
+        .back-btn:hover {
+            background: rgba(34, 211, 238, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .security-info {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 12px;
+            font-size: 0.9rem;
+            color: #94a3b8;
+        }
+
+        .loading {
+            display: none;
+            margin: 20px 0;
+        }
+
+        .spinner {
+            border: 3px solid rgba(34, 211, 238, 0.3);
+            border-top: 3px solid #22d3ee;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
 <body>
-    <div class="payment-container">
-        <h2>SoulBridgeAI Premium</h2>
-        <form id="payment-form">
-            <div id="card-element"></div>
-            <button id="submit">Pay Now</button>
-            <div id="payment-message"></div>
-        </form>
+    <div class="container">
+        <div class="payment-card">
+            <div class="plan-icon">
+                {% if plan == 'premium' %}🌉{% else %}💎{% endif %}
+            </div>
+            
+            <h1>Complete Payment</h1>
+            <div class="plan-name">{{ plan_display }}</div>
+            
+            <div class="price-display">{{ price_display }}</div>
+            <div class="price-period">per month</div>
+            
+            <div class="features-list">
+                <h3>✨ What's Included</h3>
+                <ul>
+                    {% if plan == 'premium' %}
+                    <li><span class="feature-icon">✅</span> Unlimited messages & conversations</li>
+                    <li><span class="feature-icon">✅</span> 4 sessions per day</li>
+                    <li><span class="feature-icon">✅</span> Memory-enabled AI companions</li>
+                    <li><span class="feature-icon">✅</span> Premium companion characters</li>
+                    <li><span class="feature-icon">✅</span> Advanced emotional insights</li>
+                    <li><span class="feature-icon">✅</span> Guided journaling features</li>
+                    {% else %}
+                    <li><span class="feature-icon">✅</span> Everything in Growth Plan</li>
+                    <li><span class="feature-icon">✅</span> 6 sessions per day</li>
+                    <li><span class="feature-icon">✅</span> Full conversation memory</li>
+                    <li><span class="feature-icon">✅</span> All premium companions</li>
+                    <li><span class="feature-icon">✅</span> Custom journaling prompts</li>
+                    <li><span class="feature-icon">✅</span> Advanced mood mapping</li>
+                    <li><span class="feature-icon">✅</span> Priority support</li>
+                    {% endif %}
+                </ul>
+            </div>
+            
+            <button id="paymentBtn" class="payment-btn" onclick="createCheckoutSession()">
+                🔒 Secure Payment with Stripe
+            </button>
+            
+            <div class="loading" id="loadingDiv">
+                <div class="spinner"></div>
+                <p>Creating secure payment session...</p>
+            </div>
+            
+            <div class="security-info">
+                <p>🔐 <strong>Secure Payment:</strong> Your payment is processed securely by Stripe. We never store your credit card information.</p>
+                <p>💳 <strong>Cancel Anytime:</strong> You can cancel your subscription at any time from your profile.</p>
+            </div>
+            
+            <a href="/subscription" class="back-btn">← Back to Plans</a>
+        </div>
     </div>
 
     <script>
-        const stripe = Stripe("{{ stripe_publishable_key }}");
-        const elements = stripe.elements();
-        
-        // Create card element with proper styling for dark theme
-        const card = elements.create("card", {
-            style: {
-                base: {
-                    fontSize: '16px',
-                    color: '#000000',  // Black text for visibility on white background
-                    '::placeholder': {
-                        color: '#666666',  // Gray placeholder text
-                    },
-                    fontFamily: 'Arial, sans-serif',
-                    fontSmoothing: 'antialiased',
-                },
-                invalid: {
-                    color: '#fa755a',
-                    iconColor: '#fa755a'
-                }
-            },
-            hidePostalCode: true
-        });
-        
-        card.mount("#card-element");
-        
-        // Add event listener for real-time validation
-        card.on('change', function(event) {
-            const displayError = document.getElementById('payment-message');
-            if (event.error) {
-                displayError.textContent = event.error.message;
-            } else {
-                displayError.textContent = '';
-            }
-        });
-
-        document.getElementById("payment-form").addEventListener("submit", async (event) => {
-            event.preventDefault();
+        async function createCheckoutSession() {
+            const btn = document.getElementById('paymentBtn');
+            const loading = document.getElementById('loadingDiv');
             
-            // Show loading message
-            document.getElementById("payment-message").textContent = "Processing payment...";
-            document.getElementById("submit").disabled = true;
-
+            btn.disabled = true;
+            btn.style.display = 'none';
+            loading.style.display = 'block';
+            
             try {
-                const response = await fetch("/create-payment-intent", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ amount: 1000 }) // $10 in cents
+                const response = await fetch('/api/create-checkout-session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        plan_type: '{{ plan }}'
+                    })
                 });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
+                
                 const data = await response.json();
                 
-                if (!data.clientSecret) {
-                    throw new Error("No client secret received");
-                }
-
-                const result = await stripe.confirmCardPayment(data.clientSecret, {
-                    payment_method: { card: card }
-                });
-
-                if (result.error) {
-                    document.getElementById("payment-message").textContent = result.error.message;
-                    document.getElementById("submit").disabled = false;
+                if (data.success && data.checkout_url) {
+                    // Redirect to Stripe checkout
+                    window.location.href = data.checkout_url;
                 } else {
-                    if (result.paymentIntent.status === "succeeded") {
-                        document.getElementById("payment-message").textContent = "Payment successful! Redirecting...";
-                        // Redirect to subscription page with success
-                        setTimeout(() => {
-                            window.location.href = "/subscription?success=true&session_id=" + result.paymentIntent.id;
-                        }, 2000);
-                    }
+                    alert('Payment setup failed: ' + (data.error || 'Unknown error'));
+                    btn.disabled = false;
+                    btn.style.display = 'block';
+                    loading.style.display = 'none';
                 }
             } catch (error) {
-                console.log("Payment error:", error);
-                document.getElementById("payment-message").innerHTML = 
-                    `<div style="color: #fa755a;">Error: ${error.message}</div>
-                     <div style="margin-top: 10px;">
-                         <button onclick="window.location.href='/test-payment-success'" 
-                                 style="background: #22c55e; color: white; border: none; 
-                                        padding: 10px 20px; border-radius: 5px; cursor: pointer;">
-                             Use Test Payment Instead
-                         </button>
-                     </div>`;
-                document.getElementById("submit").disabled = false;
+                console.error('Payment error:', error);
+                alert('Payment setup failed. Please try again.');
+                btn.disabled = false;
+                btn.style.display = 'block';
+                loading.style.display = 'none';
             }
-        });
+        }
+
+        // Auto-focus for better UX
+        document.getElementById('paymentBtn').focus();
     </script>
 </body>
 </html>

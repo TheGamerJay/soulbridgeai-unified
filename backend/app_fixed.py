@@ -787,9 +787,9 @@ def select_plan():
         else:
             plan_names = {"premium": "Growth", "enterprise": "Transformation"}
             plan_display = plan_names.get(plan_type, plan_type.title())
-            message = f"Great choice! {plan_display} plan selected. You can start using the app with premium features!"
-            # Redirect paid plan users directly to the app (payment processing will be added later)
-            redirect_url = "/?show_intro=false"
+            message = f"Great choice! {plan_display} plan selected. Complete payment to activate premium features."
+            # Redirect paid plan users to real payment processing
+            redirect_url = f"/payment?plan={plan_type}"
         
         return jsonify({
             "success": True,
@@ -803,34 +803,116 @@ def select_plan():
 
 @app.route("/payment")
 def payment_page():
-    """Payment setup page"""
+    """Payment setup page with real Stripe integration"""
     try:
         if not is_logged_in():
             return redirect("/login")
         
         plan = request.args.get("plan", "premium")
-        if plan not in VALID_PLANS:
-            plan = "premium"
+        if plan not in VALID_PLANS or plan == "foundation":
+            return redirect("/subscription")
             
         plan_names = {"premium": "Growth", "enterprise": "Transformation"}
         plan_display = plan_names.get(plan, plan.title())
         
-        # For now, return a simple payment setup page
-        return f"""
-        <html><head><title>Payment Setup - SoulBridge AI</title></head>
-        <body style="font-family: Arial; padding: 40px; background: #0f172a; color: #e2e8f0; text-align: center;">
-            <h1 style="color: #22d3ee; margin-bottom: 30px;">Payment Setup</h1>
-            <div style="max-width: 500px; margin: 0 auto; background: rgba(34, 211, 238, 0.1); padding: 40px; border-radius: 20px; border: 2px solid #22d3ee;">
-                <h2>🎉 {plan_display} Plan Selected!</h2>
-                <p style="margin: 20px 0; line-height: 1.6;">Payment integration is being set up. For now, you can use the app with basic features.</p>
-                <p style="margin: 20px 0; color: #fbbf24;">💡 Premium features will be activated once payment processing is configured.</p>
-                <a href="/" style="display: inline-block; margin-top: 20px; padding: 16px 32px; background: linear-gradient(135deg, #22d3ee, #0891b2); color: #000; text-decoration: none; border-radius: 12px; font-weight: 600;">Continue to App</a>
-            </div>
-        </body></html>
-        """
+        # Prices in cents
+        plan_prices = {
+            "premium": 1299,  # $12.99
+            "enterprise": 1999  # $19.99
+        }
+        
+        price_cents = plan_prices.get(plan, 1299)
+        price_display = f"${price_cents / 100:.2f}"
+        
+        return render_template("payment.html", 
+                             plan=plan,
+                             plan_display=plan_display,
+                             price_display=price_display)
     except Exception as e:
         logger.error(f"Payment page error: {e}")
         return redirect("/subscription")
+
+@app.route("/api/create-checkout-session", methods=["POST"])
+def create_checkout_session():
+    """Create Stripe checkout session for plan subscription"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+            
+        data = request.get_json()
+        if not data:
+            return jsonify({"success": False, "error": "Invalid request data"}), 400
+            
+        plan_type = data.get("plan_type")
+        if plan_type not in ["premium", "enterprise"]:
+            return jsonify({"success": False, "error": "Invalid plan type"}), 400
+        
+        # Check if Stripe is configured
+        stripe_secret_key = os.environ.get("STRIPE_SECRET_KEY")
+        if not stripe_secret_key:
+            return jsonify({
+                "success": False, 
+                "error": "Payment processing is being configured. Please try again later."
+            }), 503
+        
+        import stripe
+        stripe.api_key = stripe_secret_key
+        
+        # Plan details
+        plan_names = {"premium": "Growth Plan", "enterprise": "Transformation Plan"}
+        plan_prices = {"premium": 1299, "enterprise": 1999}  # Prices in cents
+        
+        plan_name = plan_names[plan_type]
+        price_cents = plan_prices[plan_type]
+        
+        user_email = session.get("user_email")
+        
+        try:
+            # Create Stripe checkout session
+            checkout_session = stripe.checkout.Session.create(
+                payment_method_types=['card'],
+                customer_email=user_email,
+                line_items=[{
+                    'price_data': {
+                        'currency': 'usd',
+                        'product_data': {
+                            'name': f'SoulBridge AI - {plan_name}',
+                            'description': f'Monthly subscription to {plan_name}',
+                        },
+                        'unit_amount': price_cents,
+                        'recurring': {
+                            'interval': 'month'
+                        }
+                    },
+                    'quantity': 1,
+                }],
+                mode='subscription',
+                success_url=f"{request.host_url}payment/success?session_id={{CHECKOUT_SESSION_ID}}&plan={plan_type}",
+                cancel_url=f"{request.host_url}payment/cancel?plan={plan_type}",
+                metadata={
+                    'plan_type': plan_type,
+                    'user_email': user_email
+                }
+            )
+            
+            logger.info(f"Stripe checkout created for {user_email}: {plan_type}")
+            
+            return jsonify({
+                "success": True,
+                "checkout_url": checkout_session.url,
+                "session_id": checkout_session.id
+            })
+            
+        except stripe.error.StripeError as e:
+            logger.error(f"Stripe error: {e}")
+            return jsonify({
+                "success": False,
+                "error": "Payment system error. Please try again."
+            }), 500
+        
+    except Exception as e:
+        logger.error(f"Checkout session error: {e}")
+        return jsonify({"success": False, "error": "Checkout failed"}), 500
 
 @app.route("/api/create-addon-checkout", methods=["POST"])
 def create_addon_checkout():
@@ -845,16 +927,90 @@ def create_addon_checkout():
             
         addon_type = data.get("addon_type")
         
-        # For now, return an error since payment processing isn't set up yet
+        # Add-ons will use same Stripe integration
         logger.info(f"Add-on checkout requested: {addon_type} by {session.get('user_email')}")
         return jsonify({
             "success": False, 
-            "error": "Payment processing is being configured. Add-ons will be available soon!"
+            "error": "Add-on payments coming soon! Focus on main plans for now."
         }), 503
         
     except Exception as e:
         logger.error(f"Add-on checkout error: {e}")
         return jsonify({"success": False, "error": "Checkout failed"}), 500
+
+@app.route("/payment/success")
+def payment_success():
+    """Handle successful payment"""
+    try:
+        if not is_logged_in():
+            return redirect("/login")
+            
+        session_id = request.args.get("session_id")
+        plan_type = request.args.get("plan")
+        
+        if not session_id or not plan_type:
+            return redirect("/subscription?error=invalid_payment")
+        
+        # Verify payment with Stripe
+        stripe_secret_key = os.environ.get("STRIPE_SECRET_KEY")
+        if stripe_secret_key:
+            import stripe
+            stripe.api_key = stripe_secret_key
+            
+            try:
+                checkout_session = stripe.checkout.Session.retrieve(session_id)
+                if checkout_session.payment_status == "paid":
+                    # Update user plan in session and database
+                    session["user_plan"] = plan_type
+                    user_email = session.get("user_email")
+                    
+                    # Store subscription in database
+                    if services["database"] and db:
+                        conn = db.get_connection()
+                        cursor = conn.cursor()
+                        
+                        # Insert or update subscription
+                        cursor.execute("""
+                            INSERT OR REPLACE INTO subscriptions 
+                            (user_id, email, plan_type, status, stripe_subscription_id)
+                            VALUES ((SELECT id FROM users WHERE email = ?), ?, ?, 'active', ?)
+                        """, (user_email, user_email, plan_type, checkout_session.subscription))
+                        
+                        # Log payment event
+                        cursor.execute("""
+                            INSERT INTO payment_events 
+                            (email, event_type, plan_type, amount, stripe_event_id)
+                            VALUES (?, 'payment_success', ?, ?, ?)
+                        """, (user_email, plan_type, checkout_session.amount_total / 100, session_id))
+                        
+                        conn.commit()
+                        conn.close()
+                    
+                    logger.info(f"Payment successful: {user_email} upgraded to {plan_type}")
+                    
+                    # Redirect to app with premium access
+                    return redirect("/?payment_success=true&plan=" + plan_type)
+                    
+            except Exception as e:
+                logger.error(f"Payment verification error: {e}")
+        
+        # Fallback - redirect to subscription page with error
+        return redirect("/subscription?error=payment_verification")
+        
+    except Exception as e:
+        logger.error(f"Payment success handler error: {e}")
+        return redirect("/subscription?error=payment_error")
+
+@app.route("/payment/cancel")  
+def payment_cancel():
+    """Handle cancelled payment"""
+    try:
+        plan_type = request.args.get("plan", "premium")
+        logger.info(f"Payment cancelled for plan: {plan_type}")
+        return redirect(f"/subscription?cancelled=true&plan={plan_type}")
+    except Exception as e:
+        logger.error(f"Payment cancel handler error: {e}")
+        return redirect("/subscription")
 
 @app.route("/api/user-addons")
 def get_user_addons():
