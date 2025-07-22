@@ -20,17 +20,6 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/animations.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/themes.css') }}">
     
-    <!-- Clerk JavaScript SDK with error handling -->
-    <script>
-        console.log('🔍 Loading Clerk SDK...');
-        window.clerkLoadError = false;
-    </script>
-    <script 
-        src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"
-        crossorigin="anonymous"
-        onload="console.log('✅ Clerk SDK loaded successfully from CDN')"
-        onerror="console.error('❌ Failed to load Clerk SDK from CDN'); window.clerkLoadError = true;">
-    </script>
     
     <style>
         .auth-container {
@@ -598,14 +587,14 @@
                 </button>
             </form>
             
-            <!-- Clerk Authentication Section -->
-            <div class="clerk-auth-section" style="margin: 2rem 0; text-align: center;">
+            <!-- OAuth Authentication Section -->
+            <div class="oauth-auth-section" style="margin: 2rem 0; text-align: center;">
                 <div style="margin-bottom: 1rem;">
-                    <a href="#" id="clerkSignInLink" style="
+                    <a href="/auth/oauth/google" id="googleSignInLink" style="
                         width: 100%;
                         padding: 14px 24px;
-                        background: linear-gradient(135deg, #22d3ee, #0891b2);
-                        color: #000;
+                        background: linear-gradient(135deg, #4285f4, #3367d6);
+                        color: #fff;
                         border: none;
                         border-radius: 12px;
                         font-size: 1.1rem;
@@ -615,8 +604,10 @@
                         display: block;
                         text-decoration: none;
                         text-align: center;
+                        margin-bottom: 0.5rem;
                     ">
-                        Sign In with Email or Google
+                        <span style="margin-right: 8px;">📧</span>
+                        Sign In with Google
                     </a>
                 </div>
                 
@@ -640,7 +631,7 @@
                     display: inline-block;
                     margin: 0 auto;
                 ">
-                    or use legacy form
+                    or use email/password
                 </div>
             </div>
             
@@ -777,110 +768,8 @@
         // Auto-focus first input
         document.getElementById('email').focus();
         
-        // Debug Clerk loading with comprehensive logging
-        console.log('🔍 Starting Clerk availability check...');
-        console.log('window.Clerk initial state:', window.Clerk);
-        console.log('document.readyState:', document.readyState);
-        
-        // Wait for Clerk to load with timeout
-        let clerkCheckAttempts = 0;
-        const maxAttempts = 100; // 10 seconds
-        
-        function checkClerk() {
-            clerkCheckAttempts++;
-            console.log(`🔄 Clerk check attempt ${clerkCheckAttempts}/100`);
-            
-            // Check if CDN loading failed
-            if (window.clerkLoadError) {
-                console.error('❌ Clerk SDK failed to load from CDN - network issue');
-                fallbackToLegacyForm();
-                return;
-            }
-            
-            console.log('window.Clerk exists:', !!window.Clerk);
-            console.log('window object keys containing clerk:', Object.keys(window).filter(k => k.toLowerCase().includes('clerk')));
-            
-            if (window.Clerk) {
-                console.log('Clerk object properties:', Object.keys(window.Clerk));
-                console.log('Clerk.load exists:', !!window.Clerk.load);
-                console.log('Clerk type:', typeof window.Clerk);
-                
-                if (window.Clerk.load) {
-                    console.log('✅ Clerk SDK found, initializing...');
-                    initializeClerk();
-                    return;
-                }
-            }
-            
-            if (clerkCheckAttempts < maxAttempts) {
-                setTimeout(checkClerk, 100);
-            } else {
-                console.error('❌ Clerk SDK failed to load after 10 seconds');
-                console.log('Final window.Clerk state:', window.Clerk);
-                console.log('CDN load error:', window.clerkLoadError);
-                console.log('Available global objects:', Object.keys(window).filter(k => k.length < 10));
-                fallbackToLegacyForm();
-            }
-        }
-        
-        function initializeClerk() {
-            const publishableKey = "pk_test_aGFyZHktcGFycm90LTk1LmNsZXJrLmFjY291bnRzLmRldiQ";
-            console.log('🔑 Using publishable key:', publishableKey.substring(0, 20) + '...');
-            
-            try {
-                window.Clerk.load({
-                    publishableKey: publishableKey
-                }).then(() => {
-                    console.log('✅ Clerk loaded successfully');
-                    const clerkSection = document.querySelector('.clerk-auth-section');
-                    if (clerkSection) {
-                        clerkSection.style.opacity = '1';
-                        clerkSection.style.pointerEvents = 'auto';
-                        console.log('🎯 Clerk section activated');
-                    }
-                    
-                    // Set up the sign-in link to open Clerk hosted sign-in
-                    const signInLink = document.getElementById('clerkSignInLink');
-                    if (signInLink) {
-                        signInLink.onclick = function(e) {
-                            e.preventDefault();
-                            console.log('🎯 Opening Clerk sign-in');
-                            window.Clerk.openSignIn();
-                            return false;
-                        };
-                    }
-                    
-                    // Handle existing user
-                    if (window.Clerk.user) {
-                        console.log('User already signed in:', window.Clerk.user);
-                        window.location.href = '/';
-                    }
-                }).catch((error) => {
-                    console.error('❌ Clerk loading error:', error);
-                    console.error('Error details:', error.message);
-                    fallbackToLegacyForm();
-                });
-            } catch (syncError) {
-                console.error('❌ Clerk initialization sync error:', syncError);
-                fallbackToLegacyForm();
-            }
-        }
-        
-        function fallbackToLegacyForm() {
-            console.log('🔄 Clerk unavailable - providing alternative options');
-            const clerkSection = document.querySelector('.clerk-auth-section');
-            if (clerkSection) {
-                clerkSection.innerHTML = `
-                    <div style="color: #fbbf24; text-align: center; padding: 1rem; background: rgba(251, 191, 36, 0.1); border-radius: 8px; margin-bottom: 1rem;">
-                        <p style="margin: 0; font-weight: 600;">🔧 Gmail sign-in is being configured</p>
-                        <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem;">Please use the email/password form below for now.</p>
-                    </div>
-                `;
-            }
-        }
-        
-        // Start checking for Clerk
-        setTimeout(checkClerk, 100);
+        // OAuth is now handled by backend routes - no client-side initialization needed
+        console.log('OAuth authentication ready - using backend routes');
         
         // Debug form setup
         console.log('Login form setup complete');
