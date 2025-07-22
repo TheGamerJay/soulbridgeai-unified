@@ -16,6 +16,14 @@ from cryptography.fernet import Fernet
 import shutil
 import json
 
+# Try to import PostgreSQL support
+try:
+    import psycopg2
+    import psycopg2.extras
+    POSTGRES_AVAILABLE = True
+except ImportError:
+    POSTGRES_AVAILABLE = False
+
 os.system("cls" if os.name == "nt" else "clear")
 
 logging.basicConfig(
@@ -39,51 +47,59 @@ def get_cipher():
 
 class Database:
     def __init__(self, db_path=None):
-        # Use persistent storage path in production with multiple fallbacks
-        if db_path is None:
-            if os.environ.get('RAILWAY_ENVIRONMENT') or os.environ.get('RAILWAY_PROJECT_ID'):
-                # Production: try multiple persistent paths
-                possible_paths = [
-                    "/data/soulbridge.db",
-                    "/app/data/soulbridge.db", 
-                    "/tmp/persistent/soulbridge.db",
-                    "/var/lib/soulbridge/soulbridge.db"
-                ]
-                
-                db_path = None
-                for path in possible_paths:
-                    try:
-                        # Create directory if it doesn't exist
-                        directory = os.path.dirname(path)
-                        os.makedirs(directory, exist_ok=True)
-                        
-                        # Test if we can write to this location
-                        test_file = path + "_test"
-                        with open(test_file, 'w') as f:
-                            f.write("test")
-                        os.remove(test_file)
-                        
-                        db_path = path
-                        print(f"✅ Using persistent database path: {db_path}")
-                        break
-                    except Exception as e:
-                        print(f"❌ Cannot use path {path}: {e}")
-                        continue
-                
-                # If no persistent path works, fall back to Railway app directory
-                if not db_path:
-                    db_path = "/app/soulbridge.db"
-                    print(f"⚠️ Using fallback database path: {db_path}")
-            else:
-                # Development: use local file
-                db_path = "soulbridge.db"
-                print(f"🔧 Using development database path: {db_path}")
+        # Check for PostgreSQL database URL first (production)
+        self.postgres_url = os.environ.get('DATABASE_URL') or os.environ.get('POSTGRES_URL')
+        self.use_postgres = bool(self.postgres_url and POSTGRES_AVAILABLE)
         
-        self.db_path = db_path
-        
-        # Create backup before initializing (if database exists)
-        if os.path.exists(self.db_path):
-            self.backup_database()
+        if self.use_postgres:
+            print(f"Using PostgreSQL database: {self.postgres_url[:30]}...")
+            self.db_path = None
+        else:
+            # Fallback to SQLite
+            if db_path is None:
+                if os.environ.get('RAILWAY_ENVIRONMENT') or os.environ.get('RAILWAY_PROJECT_ID'):
+                    # Production: try multiple persistent paths
+                    possible_paths = [
+                        "/data/soulbridge.db",
+                        "/app/data/soulbridge.db", 
+                        "/tmp/persistent/soulbridge.db",
+                        "/var/lib/soulbridge/soulbridge.db"
+                    ]
+                    
+                    db_path = None
+                    for path in possible_paths:
+                        try:
+                            # Create directory if it doesn't exist
+                            directory = os.path.dirname(path)
+                            os.makedirs(directory, exist_ok=True)
+                            
+                            # Test if we can write to this location
+                            test_file = path + "_test"
+                            with open(test_file, 'w') as f:
+                                f.write("test")
+                            os.remove(test_file)
+                            
+                            db_path = path
+                            print(f"Using persistent SQLite path: {db_path}")
+                            break
+                        except Exception as e:
+                            print(f"Cannot use path {path}: {e}")
+                            continue
+                    
+                    # If no persistent path works, fall back to Railway app directory
+                    if not db_path:
+                        db_path = "/app/soulbridge.db"
+                        print(f"Using fallback SQLite path: {db_path}")
+                else:
+                    # Development: use local file
+                    db_path = "soulbridge.db"
+                    print(f"Using development SQLite path: {db_path}")
+            
+            self.db_path = db_path
+            
+            # Create backup before initializing (if database exists)
+            if self.db_path and os.path.exists(self.db_path):
+                self.backup_database()
         
         self.init_database()
 
@@ -92,21 +108,38 @@ class Database:
         conn = self.get_connection()
         cursor = conn.cursor()
 
-        # Create users table
-        cursor.execute(
-            """
-            CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                email TEXT UNIQUE NOT NULL,
-                password_hash TEXT NOT NULL,
-                display_name TEXT NOT NULL,
-                email_verified INTEGER DEFAULT 0,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                trial_start TIMESTAMP,
-                ip_address TEXT
+        if self.use_postgres:
+            # PostgreSQL table creation
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS users (
+                    id SERIAL PRIMARY KEY,
+                    email VARCHAR(255) UNIQUE NOT NULL,
+                    password_hash TEXT NOT NULL,
+                    display_name TEXT NOT NULL,
+                    email_verified INTEGER DEFAULT 0,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    trial_start TIMESTAMP,
+                    ip_address TEXT
+                )
+                """
             )
-        """
-        )
+        else:
+            # SQLite table creation
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS users (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    email TEXT UNIQUE NOT NULL,
+                    password_hash TEXT NOT NULL,
+                    display_name TEXT NOT NULL,
+                    email_verified INTEGER DEFAULT 0,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    trial_start TIMESTAMP,
+                    ip_address TEXT
+                )
+                """
+            )
 
         # Create password reset tokens table
         cursor.execute(
@@ -162,7 +195,10 @@ class Database:
 
     def get_connection(self):
         """Get database connection"""
-        return sqlite3.connect(self.db_path)
+        if self.use_postgres:
+            return psycopg2.connect(self.postgres_url)
+        else:
+            return sqlite3.connect(self.db_path)
     
     def backup_database(self, backup_path=None):
         """Create a backup of the database"""
