@@ -320,6 +320,7 @@ def auth_login():
             try:
                 # Use the authentication system from auth.py
                 from auth import User
+                user = User(db)
                 user_data = User.authenticate(db, email, password)
                 
                 if user_data:
@@ -327,7 +328,7 @@ def auth_login():
                     logger.info(f"User login successful: {email}")
                     return jsonify({"success": True, "redirect": "/"})
                 else:
-                    logger.warning(f"Failed login attempt for: {email}")
+                    logger.warning(f"Failed login attempt for: {email} (user exists: {user.user_exists(email)})")
                     return jsonify({"success": False, "error": "Invalid email or password"}), 401
                     
             except Exception as db_error:
@@ -430,6 +431,7 @@ def auth_register():
                 
                 # Check if user already exists
                 if user.user_exists(email):
+                    logger.warning(f"Registration attempt for existing user: {email}")
                     return jsonify({"success": False, "error": "User already exists"}), 409
                 
                 # Create new user
