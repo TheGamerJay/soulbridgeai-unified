@@ -127,13 +127,17 @@ class Database:
                 """
                 CREATE TABLE IF NOT EXISTS users (
                     id SERIAL PRIMARY KEY,
-                    email VARCHAR(255) UNIQUE NOT NULL,
-                    password_hash TEXT NOT NULL,
+                    email VARCHAR(255) UNIQUE,
+                    password_hash TEXT,
                     display_name TEXT NOT NULL,
                     email_verified INTEGER DEFAULT 0,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     trial_start TIMESTAMP,
-                    ip_address TEXT
+                    ip_address TEXT,
+                    oauth_provider VARCHAR(50),
+                    oauth_id VARCHAR(255),
+                    profile_picture_url TEXT,
+                    last_login TIMESTAMP
                 )
                 """
             )
@@ -142,13 +146,17 @@ class Database:
                 """
                 CREATE TABLE IF NOT EXISTS users (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    email TEXT UNIQUE NOT NULL,
-                    password_hash TEXT NOT NULL,
+                    email TEXT UNIQUE,
+                    password_hash TEXT,
                     display_name TEXT NOT NULL,
                     email_verified INTEGER DEFAULT 0,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     trial_start TIMESTAMP,
-                    ip_address TEXT
+                    ip_address TEXT,
+                    oauth_provider TEXT,
+                    oauth_id TEXT,
+                    profile_picture_url TEXT,
+                    last_login TIMESTAMP
                 )
                 """
             )
@@ -200,6 +208,19 @@ class Database:
                 )
                 """
             )
+
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS oauth_states (
+                    id SERIAL PRIMARY KEY,
+                    state_token VARCHAR(255) UNIQUE NOT NULL,
+                    provider VARCHAR(50) NOT NULL,
+                    redirect_url TEXT,
+                    expires_at TIMESTAMP NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+                """
+            )
         else:
             cursor.execute(
                 """
@@ -242,6 +263,19 @@ class Database:
                     amount REAL,
                     currency TEXT DEFAULT 'usd',
                     stripe_event_id TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """
+            )
+
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS oauth_states (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    state_token TEXT UNIQUE NOT NULL,
+                    provider TEXT NOT NULL,
+                    redirect_url TEXT,
+                    expires_at TIMESTAMP NOT NULL,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """
@@ -384,28 +418,54 @@ class User:
             conn.close()
             raise e
 
-    def create_user(self, email, password, display_name):
+    def create_user(self, email=None, password=None, display_name=None, oauth_provider=None, oauth_id=None, profile_picture_url=None):
         """Create new user and return user ID"""
         conn = self.db.get_connection()
         cursor = conn.cursor()
         
         try:
-            # Hash the password using bcrypt
-            password_hash = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+            # Hash the password using bcrypt (if provided)
+            password_hash = None
+            if password:
+                password_hash = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
             
             # Insert the new user
             cursor.execute(
-                "INSERT INTO users (email, password_hash, display_name) VALUES (?, ?, ?)",
-                (email, password_hash, display_name)
+                """INSERT INTO users 
+                   (email, password_hash, display_name, oauth_provider, oauth_id, profile_picture_url, email_verified) 
+                   VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                (email, password_hash, display_name, oauth_provider, oauth_id, profile_picture_url, 1 if oauth_provider else 0)
             )
             conn.commit()
             user_id = cursor.lastrowid
             conn.close()
-            return user_id
+            return {"success": True, "user_id": user_id}
         except Exception as e:
             conn.rollback()
             conn.close()
-            raise e
+            return {"success": False, "error": str(e)}
+
+    def get_user_by_oauth(self, provider, oauth_id):
+        """Get user by OAuth provider and ID"""
+        conn = self.db.get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            "SELECT id, email, display_name, email_verified, created_at FROM users WHERE oauth_provider = ? AND oauth_id = ?",
+            (provider, oauth_id),
+        )
+        user_data = cursor.fetchone()
+        conn.close()
+
+        if user_data:
+            return {
+                "id": user_data[0],
+                "email": user_data[1], 
+                "display_name": user_data[2],
+                "email_verified": user_data[3],
+                "created_at": user_data[4]
+            }
+        return None
 
     def create_password_reset_token(self, email):
         """Create a password reset token for the given email"""
