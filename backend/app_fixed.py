@@ -458,7 +458,7 @@ def auth_register():
                     except Exception as e:
                         logger.error(f"Welcome email error for {email}: {e}")
                     
-                    # New users should go to plan selection
+                    # New users should go to plan selection  
                     return jsonify({"success": True, "redirect": "/subscription"})
                 else:
                     return jsonify({"success": False, "error": "Registration failed"}), 500
@@ -782,7 +782,7 @@ def select_plan():
         # Create appropriate success message and redirect
         if plan_type == "foundation":
             message = "Welcome to SoulBridge AI! Your free plan is now active."
-            redirect_url = "/"
+            redirect_url = "/?show_intro=true"
         else:
             plan_names = {"premium": "Growth", "enterprise": "Transformation"}
             plan_display = plan_names.get(plan_type, plan_type.title())
