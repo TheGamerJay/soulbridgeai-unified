@@ -793,7 +793,8 @@
         
         function initializeClerk() {
             window.Clerk.load({
-                publishableKey: "pk_test_aGFyZHktcGFycm90LTk1LmNsZXJrLmFjY291bnRzLmRldiQ"
+                publishableKey: "pk_test_aGFyZHktcGFycm90LTk1LmNsZXJrLmFjY291bnRzLmRldiQ",
+                frontendApi: "hardy-parrot-95.clerk.accounts.dev"
             }).then(() => {
                 console.log('✅ Clerk loaded successfully');
                 const clerkSection = document.querySelector('.clerk-auth-section');
