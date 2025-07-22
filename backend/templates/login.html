@@ -595,7 +595,7 @@
             <!-- Clerk Authentication Section -->
             <div class="clerk-auth-section" style="margin: 2rem 0; text-align: center;">
                 <div style="margin-bottom: 1rem;">
-                    <clerk-sign-in-button style="
+                    <a href="#" id="clerkSignInLink" style="
                         width: 100%;
                         padding: 14px 24px;
                         background: linear-gradient(135deg, #22d3ee, #0891b2);
@@ -607,9 +607,11 @@
                         cursor: pointer;
                         transition: all 0.3s ease;
                         display: block;
+                        text-decoration: none;
+                        text-align: center;
                     ">
                         Sign In with Email or Google
-                    </clerk-sign-in-button>
+                    </a>
                 </div>
                 
             </div>
@@ -817,6 +819,17 @@
                         clerkSection.style.opacity = '1';
                         clerkSection.style.pointerEvents = 'auto';
                         console.log('🎯 Clerk section activated');
+                    }
+                    
+                    // Set up the sign-in link to open Clerk hosted sign-in
+                    const signInLink = document.getElementById('clerkSignInLink');
+                    if (signInLink) {
+                        signInLink.onclick = function(e) {
+                            e.preventDefault();
+                            console.log('🎯 Opening Clerk sign-in');
+                            window.Clerk.openSignIn();
+                            return false;
+                        };
                     }
                     
                     // Handle existing user
