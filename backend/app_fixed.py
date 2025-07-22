@@ -18,10 +18,8 @@ from flask import Flask, jsonify, render_template, request, session, redirect, u
 # Load environment variables from .env files
 try:
     from dotenv import load_dotenv
-    # Load .env.local first (highest priority), then .env
-    load_dotenv('.env.local')
     load_dotenv('.env')
-    print("Environment variables loaded from .env files")
+    print("Environment variables loaded from .env file")
 except ImportError:
     print("python-dotenv not installed, using system environment variables only")
 
@@ -1254,114 +1252,6 @@ def api_chat():
         logger.error(f"Chat API error: {e}")
         return jsonify({"success": False, "response": "Sorry, I encountered an error."}), 500
 
-# ========================================
-# OAUTH ROUTES
-# ========================================
-
-@app.route("/auth/oauth/<provider>")
-def oauth_login(provider):
-    """Initiate OAuth login"""
-    try:
-        # Validate provider
-        if provider != "google":
-            flash("Invalid OAuth provider", "error")
-            return redirect(url_for("login_page"))
-        
-        # Initialize database if needed
-        if not services["database"]:
-            init_database()
-            
-        if not services["database"] or not db:
-            flash("Service temporarily unavailable", "error")
-            return redirect(url_for("login_page"))
-            
-        from oauth import OAuthManager
-        oauth_manager = OAuthManager(db)
-        
-        # Check if provider is configured
-        if not oauth_manager.is_provider_configured(provider):
-            flash(f"{provider.title()} sign-in is not configured", "error")
-            return redirect(url_for("login_page"))
-        
-        # Get redirect URI - use hardcoded HTTPS URL for production
-        redirect_uri = "https://soulbridgeai.com/api/oauth/callback"
-        logger.info(f"🔗 OAuth redirect URI: {redirect_uri}")
-        
-        # Generate authorization URL
-        result = oauth_manager.get_auth_url(provider, redirect_uri)
-        if result["success"]:
-            logger.info(f"🌐 OAuth auth URL: {result['auth_url']}")
-        else:
-            logger.error(f"❌ OAuth URL generation failed: {result['error']}")
-        
-        if result["success"]:
-            return redirect(result["auth_url"])
-        else:
-            flash(result["error"], "error")
-            return redirect(url_for("login_page"))
-            
-    except Exception as e:
-        logger.error(f"OAuth login error for {provider}: {e}")
-        flash("Authentication service error", "error")
-        return redirect(url_for("login_page"))
-
-@app.route("/api/oauth/callback")
-def oauth_callback():
-    """Handle OAuth callback"""
-    try:
-        provider = request.args.get("state", "").split("-")[0] if "-" in request.args.get("state", "") else "google"
-        code = request.args.get("code")
-        state = request.args.get("state")
-        error = request.args.get("error")
-        
-        if error:
-            flash(f"OAuth error: {error}", "error")
-            return redirect(url_for("login_page"))
-            
-        if not code or not state:
-            flash("Invalid OAuth callback", "error")
-            return redirect(url_for("login_page"))
-            
-        # Initialize database if needed
-        if not services["database"]:
-            init_database()
-            
-        if not services["database"] or not db:
-            flash("Service temporarily unavailable", "error")
-            return redirect(url_for("login_page"))
-            
-        from oauth import OAuthManager
-        oauth_manager = OAuthManager(db)
-        
-        # Get redirect URI - use hardcoded HTTPS URL for production
-        redirect_uri = "https://soulbridgeai.com/api/oauth/callback"
-        
-        # Handle callback
-        result = oauth_manager.handle_callback(provider, code, state, redirect_uri)
-        
-        if result["success"]:
-            user = result["user"]
-            
-            # Setup user session
-            setup_user_session(
-                email=user["email"],
-                user_id=user["id"]
-            )
-            
-            if result.get("is_new_user"):
-                flash(f"Welcome! Your account has been created using {provider.title()}.", "success")
-            else:
-                flash(f"Welcome back! Signed in with {provider.title()}.", "success")
-                
-            return redirect(url_for("profile"))
-        else:
-            flash(result["error"], "error")
-            return redirect(url_for("login_page"))
-            
-    except Exception as e:
-        logger.error(f"OAuth callback error: {e}")
-        flash("Authentication failed", "error")
-        return redirect(url_for("login_page"))
 
 # ========================================
 # UTILITY ROUTES  
