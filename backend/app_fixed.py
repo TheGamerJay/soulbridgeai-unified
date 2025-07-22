@@ -39,6 +39,10 @@ if not secret_key:
 
 app.secret_key = secret_key
 
+# Configure session to be more persistent
+app.config['SESSION_PERMANENT'] = True
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)  # Sessions last 7 days
+
 # Security: Configure session cookies
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SECURE'] = bool(os.environ.get('RAILWAY_ENVIRONMENT'))  # HTTPS in production
@@ -94,6 +98,9 @@ def setup_user_session(email, user_id=None, is_admin=False, dev_mode=False):
     session["user_plan"] = "foundation"
     if user_id:
         session["user_id"] = user_id
+    
+    # Log session setup for debugging
+    logger.info(f"Session setup complete for {email} (user_id: {user_id})")
     if is_admin:
         session["is_admin"] = True
     if dev_mode:
@@ -448,9 +455,10 @@ def auth_register():
                     return jsonify({"success": False, "error": "User already exists"}), 409
                 
                 # Create new user
-                user_id = user.create_user(email, password, display_name)
+                result = user.create_user(email, password, display_name)
                 
-                if user_id:
+                if result.get("success"):
+                    user_id = result.get("user_id")
                     # Auto-login after registration
                     setup_user_session(email, user_id=user_id)
                     logger.info(f"User registered and logged in: {email}")
