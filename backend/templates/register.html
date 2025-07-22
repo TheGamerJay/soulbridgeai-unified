@@ -16,9 +16,14 @@
     
     <!-- Modular CSS Files -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/animations.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/themes.css') }}">
+    
+    <!-- Clerk JavaScript SDK -->
+    <script async crossorigin="anonymous"
+        src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js">
+    </script>
     
     <style>
         .auth-container {
@@ -729,7 +734,52 @@
                 </button>
             </form>
             
-            <!-- OAuth section removed -->
+            <!-- Clerk Authentication Section -->
+            <div class="clerk-auth-section" style="margin: 2rem 0; text-align: center;">
+                <div style="margin-bottom: 1rem;">
+                    <clerk-sign-up-button style="
+                        width: 100%;
+                        padding: 14px 24px;
+                        background: linear-gradient(135deg, #22d3ee, #0891b2);
+                        color: #000;
+                        border: none;
+                        border-radius: 12px;
+                        font-size: 1.1rem;
+                        font-weight: 600;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        display: block;
+                    ">
+                        Sign Up with Email or Google
+                    </clerk-sign-up-button>
+                </div>
+                
+                <div style="margin-top: 1rem; color: #94a3b8;">
+                    Or use the form below for email/password
+                </div>
+            </div>
+            
+            <div style="margin: 2rem 0; position: relative;">
+                <div style="
+                    position: absolute;
+                    top: 50%;
+                    left: 0;
+                    right: 0;
+                    height: 1px;
+                    background: #374151;
+                "></div>
+                <div style="
+                    position: relative;
+                    text-align: center;
+                    background: rgba(0,0,0,0.95);
+                    color: #e2e8f0;
+                    padding: 0 1.5rem;
+                    display: inline-block;
+                    margin: 0 auto;
+                ">
+                    or continue with email
+                </div>
+            </div>
             
             <!-- Footer -->
             <div class="auth-footer">
