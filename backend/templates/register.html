@@ -980,6 +980,21 @@
         // Auto-focus first input
         document.getElementById('display_name').focus();
         
+        // Handle OAuth errors from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const oauthError = urlParams.get('error');
+        const configError = urlParams.get('oauth_error');
+        
+        if (oauthError === 'oauth_failed') {
+            alert('Google sign-up failed. Please try again or use email/password.');
+        } else if (oauthError === 'invalid_state') {
+            alert('Security error during sign-up. Please try again.');
+        } else if (oauthError === 'oauth_denied') {
+            alert('Google sign-up was cancelled.');
+        } else if (configError === 'not_configured') {
+            alert('Google sign-up is temporarily unavailable. Please use email/password to create your account.');
+        }
+        
         // Theme toggle function
         function toggleTheme() {
             document.body.classList.toggle('day-mode');

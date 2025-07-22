@@ -736,6 +736,21 @@
         // Auto-focus first input
         document.getElementById('email').focus();
         
+        // Handle OAuth errors from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const oauthError = urlParams.get('error');
+        const configError = urlParams.get('oauth_error');
+        
+        if (oauthError === 'oauth_failed') {
+            alert('Google sign-in failed. Please try again or use email/password.');
+        } else if (oauthError === 'invalid_state') {
+            alert('Security error during sign-in. Please try again.');
+        } else if (oauthError === 'oauth_denied') {
+            alert('Google sign-in was cancelled.');
+        } else if (configError === 'not_configured') {
+            alert('Google sign-in is temporarily unavailable. Please use email/password to sign in.');
+        }
+        
         // Debug form setup
         console.log('Login form setup complete');
         const form = document.getElementById('loginForm');

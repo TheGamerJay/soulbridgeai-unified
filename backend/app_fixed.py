@@ -634,7 +634,8 @@ def google_oauth():
         # Google OAuth configuration
         google_client_id = os.environ.get("GOOGLE_CLIENT_ID")
         if not google_client_id:
-            return jsonify({"error": "Google OAuth not configured"}), 500
+            # Redirect to regular login with a message instead of showing error
+            return redirect("/login?oauth_error=not_configured")
             
         # Build Google OAuth URL
         oauth_url = (
