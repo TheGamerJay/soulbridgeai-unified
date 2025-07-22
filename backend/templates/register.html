@@ -1296,7 +1296,7 @@
         }
 
         // Initialize Clerk with your publishable key
-        const CLERK_PUBLISHABLE_KEY = "pk_test_aGFyZHktcGFycm90LTk1LmNsZXJrLmFjY291bnRzLmRldiQ"; // Replace with your actual key
+        const CLERK_PUBLISHABLE_KEY = "{{ clerk_publishable_key or 'pk_test_aGFyZHktcGFycm90LTk1LmNsZXJrLmFjY291bnRzLmRldiQ' }}";
         
         if (window.Clerk) {
             window.Clerk.load({

@@ -278,7 +278,8 @@ def home():
 def login_page():
     """Login page"""
     try:
-        return render_template("login.html")
+        clerk_publishable_key = os.environ.get("NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY")
+        return render_template("login.html", clerk_publishable_key=clerk_publishable_key)
     except Exception as e:
         logger.error(f"Login template error: {e}")
         return jsonify({"error": "Login page temporarily unavailable"}), 200
@@ -399,7 +400,8 @@ def logout():
 def register_page():
     """Register page"""
     try:
-        return render_template("register.html")
+        clerk_publishable_key = os.environ.get("NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY")
+        return render_template("register.html", clerk_publishable_key=clerk_publishable_key)
     except Exception as e:
         logger.error(f"Register template error: {e}")
         return jsonify({"error": "Register page temporarily unavailable"}), 200
