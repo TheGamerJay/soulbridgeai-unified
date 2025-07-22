@@ -37,7 +37,18 @@ def get_cipher():
 
 
 class Database:
-    def __init__(self, db_path="soulbridge.db"):
+    def __init__(self, db_path=None):
+        # Use persistent storage path in production
+        if db_path is None:
+            if os.environ.get('RAILWAY_ENVIRONMENT'):
+                # Production: use persistent volume
+                db_path = "/data/soulbridge.db"
+                # Create data directory if it doesn't exist
+                os.makedirs("/data", exist_ok=True)
+            else:
+                # Development: use local file
+                db_path = "soulbridge.db"
+        
         self.db_path = db_path
         self.init_database()
 
@@ -71,6 +82,41 @@ class Database:
                 token TEXT UNIQUE NOT NULL,
                 expires_at TIMESTAMP NOT NULL,
                 used INTEGER DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """
+        )
+
+        # Create subscriptions table for payment tracking
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS subscriptions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                email TEXT NOT NULL,
+                plan_type TEXT NOT NULL,
+                status TEXT NOT NULL DEFAULT 'active',
+                stripe_customer_id TEXT,
+                stripe_subscription_id TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users (id)
+            )
+        """
+        )
+
+        # Create payment events table for audit trail
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS payment_events (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER,
+                email TEXT NOT NULL,
+                event_type TEXT NOT NULL,
+                plan_type TEXT,
+                amount REAL,
+                currency TEXT DEFAULT 'usd',
+                stripe_event_id TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """

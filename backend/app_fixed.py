@@ -871,6 +871,58 @@ def get_user_addons():
         logger.error(f"User addons error: {e}")
         return jsonify({"success": False, "error": "Failed to fetch add-ons"}), 500
 
+@app.route("/api/recover-subscription", methods=["POST"])
+def recover_subscription():
+    """Recover subscription for users who lost database access"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+            
+        data = request.get_json()
+        email = session.get("user_email")
+        
+        if not email:
+            return jsonify({"success": False, "error": "No email in session"}), 400
+            
+        # Initialize database
+        if not services["database"]:
+            init_database()
+            
+        if services["database"] and db:
+            conn = db.get_connection()
+            cursor = conn.cursor()
+            
+            # Check for existing subscription records by email
+            cursor.execute(
+                "SELECT plan_type, status, stripe_customer_id FROM subscriptions WHERE email = ? AND status = 'active'",
+                (email,)
+            )
+            subscription = cursor.fetchone()
+            
+            if subscription:
+                plan_type, status, stripe_customer_id = subscription
+                session["user_plan"] = plan_type
+                logger.info(f"Subscription recovered for {email}: {plan_type}")
+                
+                conn.close()
+                return jsonify({
+                    "success": True,
+                    "message": f"Subscription recovered! Your {plan_type} plan is active.",
+                    "plan": plan_type
+                })
+            else:
+                conn.close()
+                return jsonify({
+                    "success": False,
+                    "message": "No active subscription found. Contact support if you believe this is an error."
+                })
+        else:
+            return jsonify({"success": False, "error": "Database unavailable"}), 503
+            
+    except Exception as e:
+        logger.error(f"Subscription recovery error: {e}")
+        return jsonify({"success": False, "error": "Recovery failed"}), 500
+
 @app.route("/api/chat", methods=["POST"])
 def api_chat():
     """Chat API endpoint"""
