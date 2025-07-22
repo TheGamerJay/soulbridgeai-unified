@@ -742,7 +742,12 @@
         const configError = urlParams.get('oauth_error');
         
         if (oauthError === 'oauth_failed') {
-            alert('Google sign-in failed. Please try again or use email/password.');
+            const step = urlParams.get('step');
+            const details = urlParams.get('details');
+            let message = 'Google sign-in failed. Please try again or use email/password.';
+            if (step) message += ` (Step: ${step})`;
+            if (details) message += ` Details: ${details}`;
+            alert(message);
         } else if (oauthError === 'invalid_state') {
             alert('Security error during sign-in. Please try again.');
         } else if (oauthError === 'oauth_denied') {

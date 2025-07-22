@@ -633,8 +633,12 @@ def google_oauth():
         
         # Google OAuth configuration
         google_client_id = os.environ.get("GOOGLE_CLIENT_ID")
-        if not google_client_id:
-            # Redirect to regular login with a message instead of showing error
+        google_client_secret = os.environ.get("GOOGLE_CLIENT_SECRET")
+        
+        logger.info(f"Google OAuth initiation - Client ID present: {bool(google_client_id)}, Client Secret present: {bool(google_client_secret)}")
+        
+        if not google_client_id or not google_client_secret:
+            logger.error("Google OAuth not properly configured")
             return redirect("/login?oauth_error=not_configured")
             
         # Build Google OAuth URL
@@ -689,17 +693,19 @@ def google_oauth_callback():
             "redirect_uri": f"{request.host_url}auth/oauth/google/callback"
         }
         
+        logger.info(f"Exchanging OAuth code for token...")
         token_response = requests.post(token_url, data=token_data)
+        logger.info(f"Token exchange response status: {token_response.status_code}")
         if token_response.status_code != 200:
             logger.error(f"Token exchange failed: {token_response.text}")
-            return redirect("/login?error=oauth_failed")
+            return redirect(f"/login?error=oauth_failed&step=token_exchange")
             
         token_info = token_response.json()
         access_token = token_info.get("access_token")
         
         if not access_token:
-            logger.error("No access token received")
-            return redirect("/login?error=oauth_failed")
+            logger.error(f"No access token received. Token response: {token_info}")
+            return redirect("/login?error=oauth_failed&step=no_access_token")
         
         # Get user info from Google
         user_info_url = f"https://www.googleapis.com/oauth2/v2/userinfo?access_token={access_token}"
@@ -790,7 +796,8 @@ def google_oauth_callback():
         
     except Exception as e:
         logger.error(f"OAuth callback error: {e}")
-        return redirect("/login?error=oauth_failed")
+        logger.error(f"OAuth callback traceback:", exc_info=True)
+        return redirect(f"/login?error=oauth_failed&details={str(e)[:100]}")
 
 # ========================================
 # API ROUTES
