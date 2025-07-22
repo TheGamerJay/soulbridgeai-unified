@@ -20,10 +20,16 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/animations.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/themes.css') }}">
     
-    <!-- Clerk JavaScript SDK -->
+    <!-- Clerk JavaScript SDK with error handling -->
+    <script>
+        console.log('🔍 Loading Clerk SDK...');
+        window.clerkLoadError = false;
+    </script>
     <script 
         src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"
-        crossorigin="anonymous">
+        crossorigin="anonymous"
+        onload="console.log('✅ Clerk SDK loaded successfully from CDN')"
+        onerror="console.error('❌ Failed to load Clerk SDK from CDN'); window.clerkLoadError = true;">
     </script>
     
     <style>
@@ -783,11 +789,21 @@
         function checkClerk() {
             clerkCheckAttempts++;
             console.log(`🔄 Clerk check attempt ${clerkCheckAttempts}/100`);
+            
+            // Check if CDN loading failed
+            if (window.clerkLoadError) {
+                console.error('❌ Clerk SDK failed to load from CDN - network issue');
+                fallbackToLegacyForm();
+                return;
+            }
+            
             console.log('window.Clerk exists:', !!window.Clerk);
+            console.log('window object keys containing clerk:', Object.keys(window).filter(k => k.toLowerCase().includes('clerk')));
             
             if (window.Clerk) {
                 console.log('Clerk object properties:', Object.keys(window.Clerk));
                 console.log('Clerk.load exists:', !!window.Clerk.load);
+                console.log('Clerk type:', typeof window.Clerk);
                 
                 if (window.Clerk.load) {
                     console.log('✅ Clerk SDK found, initializing...');
@@ -801,6 +817,8 @@
             } else {
                 console.error('❌ Clerk SDK failed to load after 10 seconds');
                 console.log('Final window.Clerk state:', window.Clerk);
+                console.log('CDN load error:', window.clerkLoadError);
+                console.log('Available global objects:', Object.keys(window).filter(k => k.length < 10));
                 fallbackToLegacyForm();
             }
         }
@@ -849,10 +867,35 @@
         }
         
         function fallbackToLegacyForm() {
-            console.log('Falling back to legacy forms');
+            console.log('🔄 Falling back to legacy forms with direct Clerk redirect option');
             const clerkSection = document.querySelector('.clerk-auth-section');
             if (clerkSection) {
-                clerkSection.innerHTML = '<div style="color: #ef4444; text-align: center; padding: 1rem;">Gmail sign-in temporarily unavailable. Please use the form below.</div>';
+                clerkSection.innerHTML = `
+                    <div style="margin-bottom: 1rem;">
+                        <a href="https://hardy-parrot-95.clerk.accounts.dev/sign-in?redirect_url=${encodeURIComponent(window.location.origin)}" 
+                           target="_blank"
+                           style="
+                               width: 100%;
+                               padding: 14px 24px;
+                               background: linear-gradient(135deg, #4285f4, #34a853);
+                               color: #fff;
+                               border: none;
+                               border-radius: 12px;
+                               font-size: 1.1rem;
+                               font-weight: 600;
+                               cursor: pointer;
+                               transition: all 0.3s ease;
+                               display: block;
+                               text-decoration: none;
+                               text-align: center;
+                           ">
+                            🚀 Sign In with Clerk (Direct)
+                        </a>
+                    </div>
+                    <div style="color: #ef4444; text-align: center; padding: 1rem; margin-top: 1rem;">
+                        Gmail sign-in temporarily unavailable. Please use the form below.
+                    </div>
+                `;
             }
         }
         
