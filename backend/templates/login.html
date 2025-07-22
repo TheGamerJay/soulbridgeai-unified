@@ -768,31 +768,61 @@
         // Auto-focus first input
         document.getElementById('email').focus();
         
-        // Initialize Clerk
-        window.Clerk = window.Clerk || {};
-        if (window.Clerk.load) {
-            Clerk.load({
+        // Debug Clerk loading
+        console.log('Checking Clerk availability...');
+        console.log('window.Clerk:', typeof window.Clerk);
+        
+        // Wait for Clerk to load with timeout
+        let clerkCheckAttempts = 0;
+        const maxAttempts = 50; // 5 seconds
+        
+        function checkClerk() {
+            clerkCheckAttempts++;
+            console.log(`Clerk check attempt ${clerkCheckAttempts}/50`);
+            
+            if (window.Clerk && window.Clerk.load) {
+                console.log('Clerk SDK found, initializing...');
+                initializeClerk();
+            } else if (clerkCheckAttempts < maxAttempts) {
+                setTimeout(checkClerk, 100);
+            } else {
+                console.error('Clerk SDK failed to load after 5 seconds');
+                fallbackToLegacyForm();
+            }
+        }
+        
+        function initializeClerk() {
+            window.Clerk.load({
                 publishableKey: "pk_test_aGFyZHktcGFycm90LTk1LmNsZXJrLmFjY291bnRzLmRldiQ"
             }).then(() => {
-                console.log('Clerk loaded successfully');
+                console.log('✅ Clerk loaded successfully');
+                const clerkSection = document.querySelector('.clerk-auth-section');
+                if (clerkSection) {
+                    clerkSection.style.opacity = '1';
+                    clerkSection.style.pointerEvents = 'auto';
+                }
                 
-                // Handle Clerk sign-in success
-                if (Clerk.user) {
-                    console.log('User signed in via Clerk:', Clerk.user);
-                    // Redirect to main app or handle session
+                // Handle existing user
+                if (window.Clerk.user) {
+                    console.log('User already signed in:', window.Clerk.user);
                     window.location.href = '/';
                 }
             }).catch((error) => {
-                console.error('Clerk loading error:', error);
-                // Hide Clerk buttons if it fails to load
-                document.querySelector('.clerk-auth-section').style.display = 'none';
+                console.error('❌ Clerk loading error:', error);
+                fallbackToLegacyForm();
             });
-        } else {
-            console.log('Waiting for Clerk to load...');
-            // Hide Clerk section until SDK loads
-            const clerkSection = document.querySelector('.clerk-auth-section');
-            if (clerkSection) clerkSection.style.opacity = '0.5';
         }
+        
+        function fallbackToLegacyForm() {
+            console.log('Falling back to legacy forms');
+            const clerkSection = document.querySelector('.clerk-auth-section');
+            if (clerkSection) {
+                clerkSection.innerHTML = '<div style="color: #ef4444; text-align: center; padding: 1rem;">Gmail sign-in temporarily unavailable. Please use the form below.</div>';
+            }
+        }
+        
+        // Start checking for Clerk
+        setTimeout(checkClerk, 100);
         
         // Debug form setup
         console.log('Login form setup complete');
