@@ -850,10 +850,14 @@ def create_checkout_session():
         # Check if Stripe is configured
         stripe_secret_key = os.environ.get("STRIPE_SECRET_KEY")
         if not stripe_secret_key:
+            logger.warning("Stripe secret key not configured")
             return jsonify({
                 "success": False, 
-                "error": "Payment processing is being configured. Please try again later."
+                "error": "Payment processing is being configured. Please try again later.",
+                "debug": "STRIPE_SECRET_KEY not set"
             }), 503
+        
+        logger.info(f"Creating Stripe checkout for {plan_type} plan")
         
         import stripe
         stripe.api_key = stripe_secret_key
@@ -1111,6 +1115,72 @@ def backup_database():
     except Exception as e:
         logger.error(f"Database backup error: {e}")
         return jsonify({"success": False, "error": "Backup failed"}), 500
+
+@app.route("/api/stripe-status", methods=["GET"])
+def stripe_status():
+    """Check Stripe configuration status"""
+    try:
+        stripe_secret_key = os.environ.get("STRIPE_SECRET_KEY")
+        stripe_publishable_key = os.environ.get("STRIPE_PUBLISHABLE_KEY")
+        
+        return jsonify({
+            "success": True,
+            "stripe_secret_configured": bool(stripe_secret_key),
+            "stripe_publishable_configured": bool(stripe_publishable_key),
+            "secret_key_preview": stripe_secret_key[:12] + "..." if stripe_secret_key else None,
+            "publishable_key_preview": stripe_publishable_key[:12] + "..." if stripe_publishable_key else None,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"Stripe status error: {e}")
+        return jsonify({"success": False, "error": "Status check failed"}), 500
+
+@app.route("/api/test-stripe", methods=["POST"])
+def test_stripe():
+    """Test Stripe connectivity (admin only)"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+            
+        # Only allow admin users
+        if not session.get("is_admin"):
+            return jsonify({"success": False, "error": "Admin access required"}), 403
+            
+        stripe_secret_key = os.environ.get("STRIPE_SECRET_KEY")
+        if not stripe_secret_key:
+            return jsonify({
+                "success": False, 
+                "error": "STRIPE_SECRET_KEY not configured"
+            })
+        
+        import stripe
+        stripe.api_key = stripe_secret_key
+        
+        # Test API call to verify connectivity
+        try:
+            # List first few payment methods to test API
+            test_result = stripe.PaymentMethod.list(limit=1)
+            
+            return jsonify({
+                "success": True,
+                "message": "Stripe API connectivity verified",
+                "stripe_connected": True,
+                "api_version": stripe.api_version,
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            })
+            
+        except stripe.error.StripeError as e:
+            logger.error(f"Stripe API test failed: {e}")
+            return jsonify({
+                "success": False,
+                "error": f"Stripe API error: {str(e)}",
+                "stripe_connected": False
+            })
+        
+    except Exception as e:
+        logger.error(f"Stripe test error: {e}")
+        return jsonify({"success": False, "error": "Test failed"}), 500
 
 @app.route("/api/database-status", methods=["GET"])
 def database_status():
