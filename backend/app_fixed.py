@@ -593,6 +593,141 @@ def forgot_password_page():
         return redirect("/login")
 
 # ========================================
+# OAUTH ROUTES
+# ========================================
+
+@app.route("/auth/oauth/google")
+def google_oauth():
+    """Google OAuth login"""
+    try:
+        # Generate OAuth state for security
+        import secrets
+        state = secrets.token_urlsafe(32)
+        session["oauth_state"] = state
+        
+        # Google OAuth configuration
+        google_client_id = os.environ.get("GOOGLE_CLIENT_ID")
+        if not google_client_id:
+            return jsonify({"error": "Google OAuth not configured"}), 500
+            
+        # Build Google OAuth URL
+        oauth_url = (
+            f"https://accounts.google.com/o/oauth2/auth?"
+            f"client_id={google_client_id}&"
+            f"redirect_uri={request.host_url}auth/oauth/google/callback&"
+            f"scope=openid email profile&"
+            f"response_type=code&"
+            f"state={state}"
+        )
+        
+        return redirect(oauth_url)
+        
+    except Exception as e:
+        logger.error(f"Google OAuth initiation failed: {e}")
+        return redirect("/login?error=oauth_failed")
+
+@app.route("/auth/oauth/google/callback")
+def google_oauth_callback():
+    """Google OAuth callback"""
+    try:
+        # Verify state parameter
+        state = request.args.get("state")
+        if not state or state != session.get("oauth_state"):
+            logger.warning("OAuth state mismatch")
+            return redirect("/login?error=invalid_state")
+        
+        # Clear state from session
+        session.pop("oauth_state", None)
+        
+        # Check for authorization code
+        code = request.args.get("code")
+        error = request.args.get("error")
+        
+        if error:
+            logger.warning(f"OAuth error: {error}")
+            return redirect("/login?error=oauth_denied")
+            
+        if not code:
+            logger.warning("No authorization code received")
+            return redirect("/login?error=oauth_failed")
+        
+        # Exchange code for access token
+        import requests
+        token_url = "https://oauth2.googleapis.com/token"
+        token_data = {
+            "client_id": os.environ.get("GOOGLE_CLIENT_ID"),
+            "client_secret": os.environ.get("GOOGLE_CLIENT_SECRET"),
+            "code": code,
+            "grant_type": "authorization_code",
+            "redirect_uri": f"{request.host_url}auth/oauth/google/callback"
+        }
+        
+        token_response = requests.post(token_url, data=token_data)
+        if token_response.status_code != 200:
+            logger.error(f"Token exchange failed: {token_response.text}")
+            return redirect("/login?error=oauth_failed")
+            
+        token_info = token_response.json()
+        access_token = token_info.get("access_token")
+        
+        if not access_token:
+            logger.error("No access token received")
+            return redirect("/login?error=oauth_failed")
+        
+        # Get user info from Google
+        user_info_url = f"https://www.googleapis.com/oauth2/v2/userinfo?access_token={access_token}"
+        user_response = requests.get(user_info_url)
+        
+        if user_response.status_code != 200:
+            logger.error(f"User info request failed: {user_response.text}")
+            return redirect("/login?error=oauth_failed")
+            
+        user_data = user_response.json()
+        email = user_data.get("email")
+        name = user_data.get("name", email.split("@")[0] if email else "User")
+        
+        if not email:
+            logger.error("No email received from Google")
+            return redirect("/login?error=oauth_failed")
+        
+        # Initialize database if needed
+        if not services["database"]:
+            init_database()
+        
+        # Check if user exists or create new user
+        if services["database"] and db:
+            from auth import User
+            user = User(db)
+            
+            if user.user_exists(email):
+                # Existing user - log them in
+                user_data = User.authenticate(db, email, "oauth_login")  # Special OAuth marker
+                if user_data:
+                    setup_user_session(email, user_id=user_data[0])
+                else:
+                    # Direct OAuth login for existing user
+                    setup_user_session(email)
+            else:
+                # New user - create account
+                try:
+                    user_id = user.create_user(email, "oauth_password", name)
+                    setup_user_session(email, user_id=user_id)
+                    logger.info(f"New OAuth user created: {email}")
+                except Exception as e:
+                    logger.error(f"OAuth user creation failed: {e}")
+                    setup_user_session(email)  # Fallback
+        else:
+            # Database not available - use session only
+            setup_user_session(email)
+            
+        logger.info(f"OAuth login successful: {email}")
+        return redirect("/")
+        
+    except Exception as e:
+        logger.error(f"OAuth callback error: {e}")
+        return redirect("/login?error=oauth_failed")
+
+# ========================================
 # API ROUTES
 # ========================================
 
