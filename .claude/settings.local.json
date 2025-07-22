@@ -43,7 +43,9 @@
       "Bash(move \"favicon.ico\\*\" .)",
       "WebFetch(domain:www.soulbridgeai.com)",
       "Bash(wc:*)",
-      "Bash(sqlite3:*)"
+      "Bash(sqlite3:*)",
+      "Bash(cat:*)",
+      "Bash(echo:*)"
     ],
     "deny": []
   }
