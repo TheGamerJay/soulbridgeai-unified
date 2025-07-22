@@ -651,6 +651,24 @@ def debug_user_check(email):
         logger.error(f"Debug user check error: {e}")
         return jsonify({"error": str(e)}), 500
 
+@app.route("/debug/env")
+def debug_env():
+    """Debug endpoint to check Railway environment variables"""
+    railway_vars = {}
+    database_vars = {}
+    
+    for key, value in os.environ.items():
+        if 'RAILWAY' in key.upper():
+            railway_vars[key] = value[:50] + "..." if len(value) > 50 else value
+        elif any(db_key in key.upper() for db_key in ['DATABASE', 'POSTGRES', 'DB_']):
+            database_vars[key] = value[:50] + "..." if len(value) > 50 else value
+    
+    return jsonify({
+        "railway_vars": railway_vars,
+        "database_vars": database_vars,
+        "current_db_url": os.environ.get("DATABASE_URL", "NOT SET")[:50] + "..." if os.environ.get("DATABASE_URL") else "NOT SET"
+    })
+
 
 @app.route("/auth/forgot-password")
 def forgot_password_page():
