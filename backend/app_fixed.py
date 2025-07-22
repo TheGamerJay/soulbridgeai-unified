@@ -618,6 +618,16 @@ def voice_chat_page():
         logger.error(f"Voice chat page error: {e}")
         return redirect("/")
 
+@app.route("/debug/clerk")
+def debug_clerk():
+    """Debug endpoint to check Clerk environment variables"""
+    return jsonify({
+        "clerk_publishable_key": os.environ.get("NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY", "NOT SET"),
+        "clerk_secret_key": "SET" if os.environ.get("CLERK_SECRET_KEY") else "NOT SET",
+        "environment": os.environ.get("RAILWAY_ENVIRONMENT", "local"),
+        "all_env_keys": [k for k in os.environ.keys() if 'CLERK' in k.upper()]
+    })
+
 @app.route("/auth/forgot-password")
 def forgot_password_page():
     """Forgot password page (coming soon)"""
