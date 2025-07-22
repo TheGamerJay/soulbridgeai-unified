@@ -766,7 +766,27 @@
         // Initialize Clerk with your publishable key
         const CLERK_PUBLISHABLE_KEY = "{{ clerk_publishable_key or 'pk_test_aGFyZHktcGFycm90LTk1LmNsZXJrLmFjY291bnRzLmRldiQ' }}";
         
-        if (window.Clerk) {
+        console.log('🔍 Clerk Debug Info:');
+        console.log('- Clerk SDK available:', !!window.Clerk);
+        console.log('- Publishable key:', CLERK_PUBLISHABLE_KEY);
+        console.log('- Button element:', document.getElementById('clerkSignInButton'));
+        
+        // Wait for DOM to be ready
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('📋 DOM loaded, initializing Clerk...');
+            initializeClerk();
+        });
+        
+        function initializeClerk() {
+            console.log('🚀 Starting Clerk initialization...');
+            
+            if (!window.Clerk) {
+                console.error('❌ Clerk SDK not found!');
+                showFallbackMessage();
+                return;
+            }
+            
+            console.log('✅ Clerk SDK found, loading...');
             window.Clerk.load({
                 publishableKey: CLERK_PUBLISHABLE_KEY,
             }).then(() => {
@@ -774,13 +794,24 @@
                 
                 // Set up the sign-in button
                 const signInButton = document.getElementById('clerkSignInButton');
+                console.log('🎯 Setting up button:', signInButton);
+                
                 if (signInButton) {
-                    signInButton.onclick = () => {
+                    signInButton.onclick = function(e) {
+                        e.preventDefault();
+                        console.log('🔘 Google sign-in button clicked!');
                         window.Clerk.openSignIn({
                             afterSignInUrl: '/',
                             afterSignUpUrl: '/'
                         });
                     };
+                    
+                    // Make sure button is enabled and clickable
+                    signInButton.style.pointerEvents = 'auto';
+                    signInButton.style.cursor = 'pointer';
+                    console.log('✅ Button click handler attached');
+                } else {
+                    console.error('❌ Sign-in button not found!');
                 }
                 
                 // Check if user is already signed in
@@ -790,14 +821,21 @@
                 }
             }).catch((error) => {
                 console.error('❌ Clerk loading error:', error);
-                // Fallback to email/password only
-                const clerkSection = document.querySelector('.clerk-auth-section');
-                if (clerkSection) {
-                    clerkSection.style.display = 'none';
-                }
+                showFallbackMessage();
             });
-        } else {
-            console.log('⚠️ Clerk SDK not loaded, using email/password only');
+        }
+        
+        function showFallbackMessage() {
+            console.log('🔄 Showing fallback message');
+            const clerkSection = document.querySelector('.clerk-auth-section');
+            if (clerkSection) {
+                clerkSection.innerHTML = `
+                    <div style="color: #fbbf24; text-align: center; padding: 1rem; background: rgba(251, 191, 36, 0.1); border-radius: 8px; margin-bottom: 1rem;">
+                        <p style="margin: 0; font-weight: 600;">🔧 Google sign-in temporarily unavailable</p>
+                        <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem;">Please use email/password below</p>
+                    </div>
+                `;
+            }
         }
         
         // Debug form setup
