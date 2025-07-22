@@ -280,9 +280,14 @@ def login_page():
         logger.error(f"Login template error: {e}")
         return jsonify({"error": "Login page temporarily unavailable"}), 200
 
-@app.route("/auth/login", methods=["POST"])
+@app.route("/auth/login", methods=["GET", "POST"])
 def auth_login():
     """Handle login authentication"""
+    # Handle GET requests - show login form
+    if request.method == "GET":
+        return render_template("login.html")
+    
+    # Handle POST requests - process login
     try:
         # Parse request data
         email, password, _ = parse_request_data()
@@ -392,9 +397,14 @@ def register_page():
         logger.error(f"Register template error: {e}")
         return jsonify({"error": "Register page temporarily unavailable"}), 200
 
-@app.route("/auth/register", methods=["POST"])
+@app.route("/auth/register", methods=["GET", "POST"])
 def auth_register():
     """Handle user registration"""
+    # Handle GET requests - show registration form
+    if request.method == "GET":
+        return render_template("register.html")
+    
+    # Handle POST requests - process registration
     try:
         # Parse request data
         email, password, display_name = parse_request_data()
