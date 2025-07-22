@@ -1,1 +1,1 @@
-web: cd backend && gunicorn -c gunicorn.conf.py
+web: cd backend && python app_fixed.py

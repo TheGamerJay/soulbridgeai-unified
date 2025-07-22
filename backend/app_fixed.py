@@ -184,8 +184,7 @@ def init_socketio():
             app, 
             cors_allowed_origins=allowed_origins, 
             logger=False, 
-            engineio_logger=False,
-            async_mode='threading'  # Use threading mode for gunicorn compatibility
+            engineio_logger=False
         )
         services["socketio"] = socketio
         logger.info("✅ SocketIO initialized successfully")
