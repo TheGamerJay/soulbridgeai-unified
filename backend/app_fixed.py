@@ -779,14 +779,97 @@ def select_plan():
         
         logger.info(f"Plan selected: {plan_type} by {session.get('user_email')}")
         
+        # Create appropriate success message and redirect
+        if plan_type == "foundation":
+            message = "Welcome to SoulBridge AI! Your free plan is now active."
+            redirect_url = "/"
+        else:
+            plan_names = {"premium": "Growth", "enterprise": "Transformation"}
+            plan_display = plan_names.get(plan_type, plan_type.title())
+            message = f"Great choice! {plan_display} plan selected. Set up payment to activate premium features."
+            redirect_url = f"/payment?plan={plan_type}"
+        
         return jsonify({
             "success": True,
             "plan": plan_type,
-            "redirect": "/"
+            "message": message,
+            "redirect": redirect_url
         })
     except Exception as e:
         logger.error(f"Plan selection error: {e}")
         return jsonify({"success": False, "error": "Plan selection failed"}), 500
+
+@app.route("/payment")
+def payment_page():
+    """Payment setup page"""
+    try:
+        if not is_logged_in():
+            return redirect("/login")
+        
+        plan = request.args.get("plan", "premium")
+        if plan not in VALID_PLANS:
+            plan = "premium"
+            
+        plan_names = {"premium": "Growth", "enterprise": "Transformation"}
+        plan_display = plan_names.get(plan, plan.title())
+        
+        # For now, return a simple payment setup page
+        return f"""
+        <html><head><title>Payment Setup - SoulBridge AI</title></head>
+        <body style="font-family: Arial; padding: 40px; background: #0f172a; color: #e2e8f0; text-align: center;">
+            <h1 style="color: #22d3ee; margin-bottom: 30px;">Payment Setup</h1>
+            <div style="max-width: 500px; margin: 0 auto; background: rgba(34, 211, 238, 0.1); padding: 40px; border-radius: 20px; border: 2px solid #22d3ee;">
+                <h2>🎉 {plan_display} Plan Selected!</h2>
+                <p style="margin: 20px 0; line-height: 1.6;">Payment integration is being set up. For now, you can use the app with basic features.</p>
+                <p style="margin: 20px 0; color: #fbbf24;">💡 Premium features will be activated once payment processing is configured.</p>
+                <a href="/" style="display: inline-block; margin-top: 20px; padding: 16px 32px; background: linear-gradient(135deg, #22d3ee, #0891b2); color: #000; text-decoration: none; border-radius: 12px; font-weight: 600;">Continue to App</a>
+            </div>
+        </body></html>
+        """
+    except Exception as e:
+        logger.error(f"Payment page error: {e}")
+        return redirect("/subscription")
+
+@app.route("/api/create-addon-checkout", methods=["POST"])
+def create_addon_checkout():
+    """Create checkout session for add-ons"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+            
+        data = request.get_json()
+        if not data:
+            return jsonify({"success": False, "error": "Invalid request data"}), 400
+            
+        addon_type = data.get("addon_type")
+        
+        # For now, return an error since payment processing isn't set up yet
+        logger.info(f"Add-on checkout requested: {addon_type} by {session.get('user_email')}")
+        return jsonify({
+            "success": False, 
+            "error": "Payment processing is being configured. Add-ons will be available soon!"
+        }), 503
+        
+    except Exception as e:
+        logger.error(f"Add-on checkout error: {e}")
+        return jsonify({"success": False, "error": "Checkout failed"}), 500
+
+@app.route("/api/user-addons")
+def get_user_addons():
+    """Get user's active add-ons"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+            
+        # For now, return empty add-ons since payment isn't set up
+        return jsonify({
+            "success": True,
+            "active_addons": []
+        })
+        
+    except Exception as e:
+        logger.error(f"User addons error: {e}")
+        return jsonify({"success": False, "error": "Failed to fetch add-ons"}), 500
 
 @app.route("/api/chat", methods=["POST"])
 def api_chat():
