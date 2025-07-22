@@ -536,7 +536,7 @@
             {% endwith %}
             
             <!-- Registration Form -->
-            <form method="POST" action="/auth/register" id="registerForm">
+            <form id="registerForm" onsubmit="return false;">
                 <div class="form-group">
                     <label for="display_name" class="form-label" data-translate="display_name">Display Name</label>
                     <input 
@@ -844,6 +844,7 @@
         // Form submission handling with AJAX
         document.getElementById('registerForm').addEventListener('submit', function(e) {
             e.preventDefault(); // Prevent default form submission
+            console.log('Form submit event triggered - using AJAX');
             
             const displayName = document.getElementById('display_name').value;
             const email = document.getElementById('email').value;
@@ -872,10 +873,12 @@
             submitBtn.textContent = 'Creating Account...';
             
             // Submit via AJAX
+            console.log('Submitting registration via AJAX...');
             fetch('/auth/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json'
                 },
                 body: JSON.stringify({
                     display_name: displayName,
