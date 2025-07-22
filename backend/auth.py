@@ -95,22 +95,15 @@ class User:
         cursor = conn.cursor()
 
         cursor.execute(
-            "SELECT id, email, password_hash, display_name, email_verified, trial_start, ip_address FROM users WHERE email = ?",
+            "SELECT id, email, password_hash, display_name, email_verified, created_at, last_login FROM users WHERE email = ?",
             (email,),
         )
         user_data = cursor.fetchone()
         conn.close()
 
-        if user_data and bcrypt.checkpw(password.encode("utf-8"), user_data[2]):
-            # Return user object
-            user = User(db)
-            user.id = user_data[0]
-            user.email = user_data[1]
-            user.display_name = user_data[3]
-            user.email_verified = bool(user_data[4])
-            user.trial_start = user_data[5]
-            user.ip_address = user_data[6]
-            return user
+        if user_data and bcrypt.checkpw(password.encode("utf-8"), user_data[2].encode("utf-8")):
+            # Return user data tuple (compatible with existing code)
+            return user_data
         return None
 
     def get_user_by_id(self, user_id):
@@ -119,21 +112,15 @@ class User:
         cursor = conn.cursor()
 
         cursor.execute(
-            "SELECT id, email, display_name, email_verified, trial_start, ip_address FROM users WHERE id = ?",
+            "SELECT id, email, display_name, email_verified, created_at, last_login FROM users WHERE id = ?",
             (user_id,),
         )
         user_data = cursor.fetchone()
         conn.close()
 
         if user_data:
-            user = User(self.db)
-            user.id = user_data[0]
-            user.email = user_data[1]
-            user.display_name = user_data[2]
-            user.email_verified = bool(user_data[3])
-            user.trial_start = user_data[4]
-            user.ip_address = user_data[5]
-            return user
+            # Return user data tuple (compatible with existing code)
+            return user_data
         return None
 
     def user_exists(self, email):
