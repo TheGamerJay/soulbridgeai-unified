@@ -641,15 +641,8 @@ def google_oauth():
             logger.error("Google OAuth not properly configured")
             return redirect("/login?oauth_error=not_configured")
             
-        # Build Google OAuth URL
-        oauth_url = (
-            f"https://accounts.google.com/o/oauth2/auth?"
-            f"client_id={google_client_id}&"
-            f"redirect_uri={request.host_url}auth/oauth/google/callback&"
-            f"scope=openid email profile&"
-            f"response_type=code&"
-            f"state={state}"
-        )
+        # Build Google OAuth URL (single line to avoid newline characters)
+        oauth_url = f"https://accounts.google.com/o/oauth2/auth?client_id={google_client_id}&redirect_uri={request.host_url}auth/oauth/google/callback&scope=openid email profile&response_type=code&state={state}"
         
         return redirect(oauth_url)
         
