@@ -923,6 +923,73 @@ def recover_subscription():
         logger.error(f"Subscription recovery error: {e}")
         return jsonify({"success": False, "error": "Recovery failed"}), 500
 
+@app.route("/api/backup-database", methods=["POST"])
+def backup_database():
+    """Create database backup (admin only)"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+            
+        # Only allow admin users
+        if not session.get("is_admin"):
+            return jsonify({"success": False, "error": "Admin access required"}), 403
+            
+        if not services["database"]:
+            init_database()
+            
+        if services["database"] and db:
+            backup_path = db.backup_database()
+            json_backup = db.export_users_to_json()
+            
+            return jsonify({
+                "success": True,
+                "backup_path": backup_path,
+                "user_count": len(json_backup["users"]) if json_backup else 0,
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            })
+        else:
+            return jsonify({"success": False, "error": "Database unavailable"}), 503
+            
+    except Exception as e:
+        logger.error(f"Database backup error: {e}")
+        return jsonify({"success": False, "error": "Backup failed"}), 500
+
+@app.route("/api/database-status", methods=["GET"])
+def database_status():
+    """Get database status and health"""
+    try:
+        if not services["database"]:
+            init_database()
+            
+        if services["database"] and db:
+            conn = db.get_connection()
+            cursor = conn.cursor()
+            
+            # Get user count
+            cursor.execute("SELECT COUNT(*) FROM users")
+            user_count = cursor.fetchone()[0]
+            
+            # Get subscription count
+            cursor.execute("SELECT COUNT(*) FROM subscriptions")
+            subscription_count = cursor.fetchone()[0]
+            
+            conn.close()
+            
+            return jsonify({
+                "success": True,
+                "database_path": db.db_path,
+                "database_exists": os.path.exists(db.db_path),
+                "user_count": user_count,
+                "subscription_count": subscription_count,
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            })
+        else:
+            return jsonify({"success": False, "error": "Database unavailable"}), 503
+            
+    except Exception as e:
+        logger.error(f"Database status error: {e}")
+        return jsonify({"success": False, "error": "Status check failed"}), 500
+
 @app.route("/api/chat", methods=["POST"])
 def api_chat():
     """Chat API endpoint"""

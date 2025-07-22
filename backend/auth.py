@@ -14,6 +14,7 @@ import os
 import base64
 from cryptography.fernet import Fernet
 import shutil
+import json
 
 os.system("cls" if os.name == "nt" else "clear")
 
@@ -38,18 +39,52 @@ def get_cipher():
 
 class Database:
     def __init__(self, db_path=None):
-        # Use persistent storage path in production
+        # Use persistent storage path in production with multiple fallbacks
         if db_path is None:
-            if os.environ.get('RAILWAY_ENVIRONMENT'):
-                # Production: use persistent volume
-                db_path = "/data/soulbridge.db"
-                # Create data directory if it doesn't exist
-                os.makedirs("/data", exist_ok=True)
+            if os.environ.get('RAILWAY_ENVIRONMENT') or os.environ.get('RAILWAY_PROJECT_ID'):
+                # Production: try multiple persistent paths
+                possible_paths = [
+                    "/data/soulbridge.db",
+                    "/app/data/soulbridge.db", 
+                    "/tmp/persistent/soulbridge.db",
+                    "/var/lib/soulbridge/soulbridge.db"
+                ]
+                
+                db_path = None
+                for path in possible_paths:
+                    try:
+                        # Create directory if it doesn't exist
+                        directory = os.path.dirname(path)
+                        os.makedirs(directory, exist_ok=True)
+                        
+                        # Test if we can write to this location
+                        test_file = path + "_test"
+                        with open(test_file, 'w') as f:
+                            f.write("test")
+                        os.remove(test_file)
+                        
+                        db_path = path
+                        print(f"✅ Using persistent database path: {db_path}")
+                        break
+                    except Exception as e:
+                        print(f"❌ Cannot use path {path}: {e}")
+                        continue
+                
+                # If no persistent path works, fall back to Railway app directory
+                if not db_path:
+                    db_path = "/app/soulbridge.db"
+                    print(f"⚠️ Using fallback database path: {db_path}")
             else:
                 # Development: use local file
                 db_path = "soulbridge.db"
+                print(f"🔧 Using development database path: {db_path}")
         
         self.db_path = db_path
+        
+        # Create backup before initializing (if database exists)
+        if os.path.exists(self.db_path):
+            self.backup_database()
+        
         self.init_database()
 
     def init_database(self):
@@ -128,6 +163,65 @@ class Database:
     def get_connection(self):
         """Get database connection"""
         return sqlite3.connect(self.db_path)
+    
+    def backup_database(self, backup_path=None):
+        """Create a backup of the database"""
+        if not backup_path:
+            backup_path = f"{self.db_path}.backup.{int(time.time())}"
+        
+        try:
+            shutil.copy2(self.db_path, backup_path)
+            logger.info(f"Database backed up to: {backup_path}")
+            return backup_path
+        except Exception as e:
+            logger.error(f"Database backup failed: {e}")
+            return None
+    
+    def restore_database(self, backup_path):
+        """Restore database from backup"""
+        try:
+            if os.path.exists(backup_path):
+                shutil.copy2(backup_path, self.db_path)
+                logger.info(f"Database restored from: {backup_path}")
+                return True
+            else:
+                logger.error(f"Backup file not found: {backup_path}")
+                return False
+        except Exception as e:
+            logger.error(f"Database restore failed: {e}")
+            return False
+    
+    def export_users_to_json(self):
+        """Export all users to JSON for backup"""
+        try:
+            conn = self.get_connection()
+            cursor = conn.cursor()
+            
+            # Export users
+            cursor.execute("SELECT * FROM users")
+            users = cursor.fetchall()
+            
+            # Export subscriptions
+            cursor.execute("SELECT * FROM subscriptions")
+            subscriptions = cursor.fetchall()
+            
+            # Export payment events  
+            cursor.execute("SELECT * FROM payment_events")
+            payment_events = cursor.fetchall()
+            
+            conn.close()
+            
+            backup_data = {
+                "timestamp": datetime.now().isoformat(),
+                "users": users,
+                "subscriptions": subscriptions,
+                "payment_events": payment_events
+            }
+            
+            return backup_data
+        except Exception as e:
+            logger.error(f"JSON export failed: {e}")
+            return None
 
 
 class User:
