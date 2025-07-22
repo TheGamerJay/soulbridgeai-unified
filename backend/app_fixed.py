@@ -258,10 +258,8 @@ def home():
         
         user_plan = get_user_plan()
         
-        # Check if user needs to select a plan
-        if not user_plan or user_plan == "foundation":
-            return redirect("/subscription")
-            
+        # Allow all authenticated users to access the main app
+        # Foundation plan users get access to basic features
         return render_template("chat.html")
     except Exception as e:
         logger.error(f"Home route error: {e}")
