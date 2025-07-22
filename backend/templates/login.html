@@ -507,35 +507,6 @@
                 </button>
             </form>
             
-            <!-- OAuth Section -->
-            {% if oauth_providers %}
-            <div class="oauth-section">
-                <div class="oauth-divider">
-                    <span data-translate="or_continue_with">or continue with</span>
-                </div>
-                
-                {% if 'google' in oauth_providers %}
-                <a href="/auth/oauth/google" class="oauth-btn google">
-                    <svg width="20" height="20" viewBox="0 0 24 24">
-                        <path fill="#4285f4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                        <path fill="#34a853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                        <path fill="#fbbc05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                        <path fill="#ea4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                    </svg>
-                    <span data-translate="continue_google">Continue with Google</span>
-                </a>
-                {% endif %}
-                
-                {% if 'facebook' in oauth_providers %}
-                <a href="/auth/oauth/facebook" class="oauth-btn facebook">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="#1877f2">
-                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                    </svg>
-                    <span data-translate="continue_facebook">Continue with Facebook</span>
-                </a>
-                {% endif %}
-            </div>
-            {% endif %}
             
             <!-- Footer -->
             <div class="auth-footer">
@@ -773,9 +744,7 @@
                 email_address: "Email Address", 
                 password: "Password",
                 forgot_password: "Forgot password?",
-                or_continue_with: "or continue with",
-                continue_google: "Continue with Google",
-                continue_facebook: "Continue with Facebook", 
+ 
                 no_account: "Don't have an account?",
                 sign_up: "Sign up",
                 language_en: "EN",
@@ -794,9 +763,6 @@
                 email_address: "Dirección de Correo",
                 password: "Contraseña", 
                 forgot_password: "¿Olvidaste tu contraseña?",
-                or_continue_with: "o continúa con",
-                continue_google: "Continuar con Google",
-                continue_facebook: "Continuar con Facebook",
                 no_account: "¿No tienes una cuenta?",
                 sign_up: "Registrarse",
                 language_en: "ES",
@@ -815,9 +781,6 @@
                 email_address: "Adresse E-mail",
                 password: "Mot de Passe",
                 forgot_password: "Mot de passe oublié?",
-                or_continue_with: "ou continuez avec", 
-                continue_google: "Continuer avec Google",
-                continue_facebook: "Continuer avec Facebook",
                 no_account: "Vous n'avez pas de compte?",
                 sign_up: "S'inscrire",
                 language_en: "FR",
@@ -836,9 +799,6 @@
                 email_address: "E-Mail-Adresse",
                 password: "Passwort",
                 forgot_password: "Passwort vergessen?",
-                or_continue_with: "oder weiter mit",
-                continue_google: "Mit Google fortfahren", 
-                continue_facebook: "Mit Facebook fortfahren",
                 no_account: "Haben Sie kein Konto?",
                 sign_up: "Registrieren",
                 language_en: "DE",
@@ -857,9 +817,6 @@
                 email_address: "Endereço de E-mail",
                 password: "Senha",
                 forgot_password: "Esqueceu a senha?",
-                or_continue_with: "ou continue com",
-                continue_google: "Continuar com Google",
-                continue_facebook: "Continuar com Facebook",
                 no_account: "Não tem uma conta?",
                 sign_up: "Cadastrar-se",
                 language_en: "PT",
@@ -878,9 +835,6 @@
                 email_address: "电子邮件地址",
                 password: "密码",
                 forgot_password: "忘记密码？",
-                or_continue_with: "或继续使用",
-                continue_google: "使用Google继续",
-                continue_facebook: "使用Facebook继续",
                 no_account: "没有账户？",
                 sign_up: "注册",
                 language_en: "ZH",
@@ -899,9 +853,6 @@
                 email_address: "メールアドレス",
                 password: "パスワード",
                 forgot_password: "パスワードを忘れましたか？",
-                or_continue_with: "または続行する",
-                continue_google: "Googleで続行",
-                continue_facebook: "Facebookで続行",
                 no_account: "アカウントをお持ちでないですか？",
                 sign_up: "サインアップ",
                 language_en: "JP",
@@ -920,9 +871,6 @@
                 email_address: "Адрес электронной почты",
                 password: "Пароль",
                 forgot_password: "Забыли пароль?",
-                or_continue_with: "или продолжить с",
-                continue_google: "Продолжить с Google",
-                continue_facebook: "Продолжить с Facebook",
                 no_account: "Нет аккаунта?",
                 sign_up: "Зарегистрироваться",
                 language_en: "RU",
