@@ -293,6 +293,9 @@ def auth_login():
         if not email or not password:
             return jsonify({"success": False, "error": "Email and password required"}), 400
         
+        # Normalize email to lowercase for consistency
+        email = email.lower().strip()
+        
         # Initialize database if needed
         if not services["database"]:
             init_database()
@@ -409,6 +412,9 @@ def auth_register():
         
         if not email or not password:
             return jsonify({"success": False, "error": "Email and password required"}), 400
+        
+        # Normalize email to lowercase for consistency
+        email = email.lower().strip()
             
         if not display_name:
             display_name = email.split('@')[0]  # Use email prefix as default name
