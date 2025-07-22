@@ -21,8 +21,9 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/themes.css') }}">
     
     <!-- Clerk JavaScript SDK -->
-    <script async crossorigin="anonymous"
-        src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js">
+    <script 
+        src="https://hardy-parrot-95.clerk.accounts.dev/npm/@clerk/clerk-js@4/dist/clerk.browser.js"
+        data-clerk-publishable-key="pk_test_aGFyZHktcGFycm90LTk1LmNsZXJrLmFjY291bnRzLmRldiQ">
     </script>
     
     <style>
@@ -1320,11 +1321,8 @@
         }
         
         function initializeClerk() {
-            window.Clerk.load({
-                publishableKey: "pk_test_aGFyZHktcGFycm90LTk1LmNsZXJrLmFjY291bnRzLmRldiQ",
-                frontendApi: "hardy-parrot-95.clerk.accounts.dev"
-            }).then(() => {
-                console.log('✅ Clerk loaded successfully');
+            try {
+                console.log('✅ Clerk SDK auto-loaded successfully');
                 const clerkSection = document.querySelector('.clerk-auth-section');
                 if (clerkSection) {
                     clerkSection.style.opacity = '1';
@@ -1332,14 +1330,14 @@
                 }
                 
                 // Handle existing user
-                if (window.Clerk.user) {
+                if (window.Clerk && window.Clerk.user) {
                     console.log('User already signed in:', window.Clerk.user);
                     window.location.href = '/';
                 }
-            }).catch((error) => {
-                console.error('❌ Clerk loading error:', error);
+            } catch (error) {
+                console.error('❌ Clerk initialization error:', error);
                 fallbackToLegacyForm();
-            });
+            }
         }
         
         function fallbackToLegacyForm() {
