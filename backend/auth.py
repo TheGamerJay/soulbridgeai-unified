@@ -48,7 +48,31 @@ def get_cipher():
 class Database:
     def __init__(self, db_path=None):
         # Check for PostgreSQL database URL first (production)
-        self.postgres_url = os.environ.get('DATABASE_URL') or os.environ.get('POSTGRES_URL')
+        # Prefer private endpoint if available to avoid egress fees
+        self.postgres_url = None
+        
+        # Try to construct private URL from individual components first
+        if all([os.environ.get('PGHOST'), os.environ.get('PGUSER'), 
+                os.environ.get('PGPASSWORD'), os.environ.get('PGDATABASE')]):
+            host = os.environ.get('PGHOST')
+            user = os.environ.get('PGUSER') 
+            password = os.environ.get('PGPASSWORD')
+            database = os.environ.get('PGDATABASE')
+            port = os.environ.get('PGPORT', '5432')
+            
+            # Check if this is a Railway private domain
+            if 'railway.internal' in host or not host.endswith('.railway.app'):
+                self.postgres_url = f"postgresql://{user}:{password}@{host}:{port}/{database}"
+                print(f"Using PostgreSQL private endpoint: {host}")
+            else:
+                print(f"Host {host} appears to be public endpoint, checking for alternatives...")
+        
+        # Fallback to provided URLs 
+        if not self.postgres_url:
+            self.postgres_url = os.environ.get('DATABASE_URL') or os.environ.get('POSTGRES_URL')
+            if self.postgres_url and 'railway.app' in self.postgres_url:
+                print("Warning: Using public endpoint - may incur egress fees")
+        
         self.use_postgres = bool(self.postgres_url and POSTGRES_AVAILABLE)
         
         if self.use_postgres:
