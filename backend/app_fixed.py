@@ -631,9 +631,9 @@ def google_oauth():
         state = secrets.token_urlsafe(32)
         session["oauth_state"] = state
         
-        # Google OAuth configuration
-        google_client_id = os.environ.get("GOOGLE_CLIENT_ID")
-        google_client_secret = os.environ.get("GOOGLE_CLIENT_SECRET")
+        # Google OAuth configuration - strip any whitespace/newlines
+        google_client_id = os.environ.get("GOOGLE_CLIENT_ID", "").strip()
+        google_client_secret = os.environ.get("GOOGLE_CLIENT_SECRET", "").strip()
         
         logger.info(f"Google OAuth initiation - Client ID present: {bool(google_client_id)}, Client Secret present: {bool(google_client_secret)}")
         if google_client_id:
@@ -646,8 +646,10 @@ def google_oauth():
             return redirect("/login?oauth_error=not_configured")
             
         # Build Google OAuth URL (single line to avoid newline characters)
-        redirect_uri = f"{request.host_url}auth/oauth/google/callback"
-        oauth_url = f"https://accounts.google.com/o/oauth2/auth?client_id={google_client_id}&redirect_uri={redirect_uri}&scope=openid email profile&response_type=code&state={state}"
+        from urllib.parse import quote
+        redirect_uri = f"{request.host_url.rstrip('/')}auth/oauth/google/callback"
+        encoded_redirect_uri = quote(redirect_uri, safe=':/?#[]@!$&\'()*+,;=')
+        oauth_url = f"https://accounts.google.com/o/oauth2/auth?client_id={google_client_id}&redirect_uri={encoded_redirect_uri}&scope=openid%20email%20profile&response_type=code&state={state}"
         
         logger.info(f"Redirecting to Google OAuth URL: {oauth_url[:100]}...")
         logger.info(f"Redirect URI: {redirect_uri}")
