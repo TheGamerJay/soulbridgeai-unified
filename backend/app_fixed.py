@@ -505,6 +505,94 @@ def decoder():
         return jsonify({"error": "Decoder temporarily unavailable"}), 500
 
 # ========================================
+# ADDITIONAL ROUTES
+# ========================================
+
+@app.route("/help")
+def help_page():
+    """Help and support page"""
+    try:
+        if not is_logged_in():
+            return redirect("/login")
+        return render_template("help.html")
+    except Exception as e:
+        logger.error(f"Help page error: {e}")
+        # Fallback to simple help content
+        return """
+        <html><head><title>Help - SoulBridge AI</title></head>
+        <body style="font-family: Arial; padding: 20px; background: #0f172a; color: #e2e8f0;">
+            <h1 style="color: #22d3ee;">SoulBridge AI Help</h1>
+            <p>Welcome to SoulBridge AI! Here are some quick tips:</p>
+            <ul>
+                <li>Choose your AI companion from the character selection screen</li>
+                <li>Start conversations by typing in the chat box</li>
+                <li>Use the navigation assistant (Sapphire) for help with features</li>
+                <li>Access your profile and settings from the top menu</li>
+            </ul>
+            <a href="/" style="color: #22d3ee;">← Back to Chat</a>
+        </body></html>
+        """
+
+@app.route("/terms")
+def terms_page():
+    """Terms of service and privacy policy"""
+    try:
+        return render_template("terms.html")
+    except Exception as e:
+        logger.error(f"Terms page error: {e}")
+        # Fallback to simple terms content
+        return """
+        <html><head><title>Terms & Privacy - SoulBridge AI</title></head>
+        <body style="font-family: Arial; padding: 20px; background: #0f172a; color: #e2e8f0;">
+            <h1 style="color: #22d3ee;">Terms of Service & Privacy Policy</h1>
+            <h2>Terms of Service</h2>
+            <p>By using SoulBridge AI, you agree to use our service responsibly and in accordance with applicable laws.</p>
+            <h2>Privacy Policy</h2>
+            <p>We respect your privacy. Your conversations are private and we don't share your personal data with third parties.</p>
+            <a href="/register" style="color: #22d3ee;">← Back to Registration</a>
+        </body></html>
+        """
+
+@app.route("/library")
+def library_page():
+    """Conversation library (coming soon)"""
+    try:
+        if not is_logged_in():
+            return redirect("/login")
+        return jsonify({"message": "Library feature coming soon!", "redirect": "/"}), 200
+    except Exception as e:
+        logger.error(f"Library page error: {e}")
+        return redirect("/")
+
+@app.route("/voice-chat")
+def voice_chat_page():
+    """Voice chat feature (coming soon)"""
+    try:
+        if not is_logged_in():
+            return redirect("/login")
+        return jsonify({"message": "Voice chat feature coming soon!", "redirect": "/"}), 200
+    except Exception as e:
+        logger.error(f"Voice chat page error: {e}")
+        return redirect("/")
+
+@app.route("/auth/forgot-password")
+def forgot_password_page():
+    """Forgot password page (coming soon)"""
+    try:
+        return """
+        <html><head><title>Forgot Password - SoulBridge AI</title></head>
+        <body style="font-family: Arial; padding: 20px; background: #0f172a; color: #e2e8f0;">
+            <h1 style="color: #22d3ee;">Password Reset</h1>
+            <p>Password reset functionality is coming soon!</p>
+            <p>For now, please try logging in with your existing credentials.</p>
+            <a href="/login" style="color: #22d3ee;">← Back to Login</a>
+        </body></html>
+        """
+    except Exception as e:
+        logger.error(f"Forgot password page error: {e}")
+        return redirect("/login")
+
+# ========================================
 # API ROUTES
 # ========================================
 
