@@ -121,8 +121,8 @@ class Database:
                 print(f"Error args: {e.args}")
             raise e
 
+        # Create users table first (required for foreign keys)
         if self.use_postgres:
-            # PostgreSQL table creation
             cursor.execute(
                 """
                 CREATE TABLE IF NOT EXISTS users (
@@ -138,7 +138,6 @@ class Database:
                 """
             )
         else:
-            # SQLite table creation
             cursor.execute(
                 """
                 CREATE TABLE IF NOT EXISTS users (
@@ -154,8 +153,8 @@ class Database:
                 """
             )
 
+        # Create other tables after users table exists
         if self.use_postgres:
-            # PostgreSQL table creation
             cursor.execute(
                 """
                 CREATE TABLE IF NOT EXISTS password_reset_tokens (
@@ -202,7 +201,6 @@ class Database:
                 """
             )
         else:
-            # SQLite table creation
             cursor.execute(
                 """
                 CREATE TABLE IF NOT EXISTS password_reset_tokens (
