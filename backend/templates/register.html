@@ -841,27 +841,28 @@
             }
         });
         
-        // Form submission handling
+        // Form submission handling with AJAX
         document.getElementById('registerForm').addEventListener('submit', function(e) {
+            e.preventDefault(); // Prevent default form submission
+            
+            const displayName = document.getElementById('display_name').value;
+            const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirm_password').value;
             const termsCheckbox = document.getElementById('terms');
             
             // Check terms checkbox first
             if (!termsCheckbox.checked) {
-                e.preventDefault();
                 alert('Please accept the Terms of Service and Privacy Policy');
                 return;
             }
             
             if (password !== confirmPassword) {
-                e.preventDefault();
                 alert('Passwords do not match');
                 return;
             }
             
             if (!checkPasswordStrength(password)) {
-                e.preventDefault();
                 alert('Please create a stronger password');
                 return;
             }
@@ -869,6 +870,38 @@
             const submitBtn = document.getElementById('registerBtn');
             submitBtn.disabled = true;
             submitBtn.textContent = 'Creating Account...';
+            
+            // Submit via AJAX
+            fetch('/auth/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    display_name: displayName,
+                    email: email,
+                    password: password
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Registration response:', data);
+                if (data.success) {
+                    console.log('Registration successful, redirecting...');
+                    window.location.href = data.redirect || '/';
+                } else {
+                    console.log('Registration failed:', data.error);
+                    alert(data.error || 'Registration failed');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Create Account';
+                }
+            })
+            .catch(error => {
+                console.error('Registration error:', error);
+                alert('Registration failed. Please try again.');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Create Account';
+            });
         });
         
         // Auto-focus first input
