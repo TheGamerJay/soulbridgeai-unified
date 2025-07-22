@@ -114,6 +114,11 @@ class Database:
             conn = self.get_connection()
             cursor = conn.cursor()
             print(f"Database connection successful. Using PostgreSQL: {self.use_postgres}")
+            
+            # Clean up conflicting schema if needed
+            if self.use_postgres:
+                self._cleanup_conflicting_schema(cursor)
+                
         except Exception as e:
             print(f"Database connection failed: {e}")
             print(f"Error type: {type(e).__name__}")
@@ -283,6 +288,55 @@ class Database:
 
         conn.commit()
         conn.close()
+
+    def _cleanup_conflicting_schema(self, cursor):
+        """Clean up conflicting table schemas from previous deployments"""
+        try:
+            print("🧹 Checking for conflicting table schemas...")
+            
+            # Check if there are tables that reference users(user_id) instead of users(id)
+            cursor.execute("""
+                SELECT table_name, constraint_name
+                FROM information_schema.table_constraints tc
+                JOIN information_schema.key_column_usage kcu 
+                ON tc.constraint_name = kcu.constraint_name
+                WHERE tc.constraint_type = 'FOREIGN KEY' 
+                AND kcu.referenced_table_name = 'users'
+                AND kcu.referenced_column_name = 'user_id'
+            """)
+            
+            conflicting_fks = cursor.fetchall()
+            
+            if conflicting_fks:
+                print(f"🔧 Found {len(conflicting_fks)} conflicting foreign key constraints. Cleaning up...")
+                
+                # Drop tables that have conflicting foreign keys
+                tables_to_drop = [
+                    'chat_sessions', 'support_tickets', 'user_feature_assignments',
+                    'feature_usage_analytics', 'chat_messages', 'live_notifications',
+                    'user_presence', 'room_memberships'
+                ]
+                
+                for table in tables_to_drop:
+                    cursor.execute(f"DROP TABLE IF EXISTS {table} CASCADE")
+                    print(f"   Dropped conflicting table: {table}")
+                
+                # Check if users table has user_id column (from old schema)
+                cursor.execute("""
+                    SELECT column_name 
+                    FROM information_schema.columns 
+                    WHERE table_name = 'users' AND column_name = 'user_id'
+                """)
+                
+                if cursor.fetchone():
+                    print("🔧 Found old users table with user_id column. Dropping and recreating...")
+                    cursor.execute("DROP TABLE IF EXISTS users CASCADE")
+                    
+            print("✅ Schema cleanup completed")
+            
+        except Exception as e:
+            print(f"⚠️  Schema cleanup failed (will continue): {e}")
+            # Don't fail initialization if cleanup fails
 
     def get_connection(self):
         """Get database connection"""
