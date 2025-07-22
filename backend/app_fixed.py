@@ -787,8 +787,9 @@ def select_plan():
         else:
             plan_names = {"premium": "Growth", "enterprise": "Transformation"}
             plan_display = plan_names.get(plan_type, plan_type.title())
-            message = f"Great choice! {plan_display} plan selected. Set up payment to activate premium features."
-            redirect_url = f"/payment?plan={plan_type}"
+            message = f"Great choice! {plan_display} plan selected. You can start using the app with premium features!"
+            # Redirect paid plan users directly to the app (payment processing will be added later)
+            redirect_url = "/?show_intro=false"
         
         return jsonify({
             "success": True,

@@ -716,7 +716,13 @@ async function selectPlanViaAPI(planType, billing) {
         price: pricing[billing][planType]?.price || 'Free'
       };
       localStorage.setItem('selectedPlan', JSON.stringify(planData));
-      localStorage.setItem('soulbridge_subscription', planType === 'foundation' ? 'free' : planType);
+      // Set subscription status for premium companion access
+      if (planType === 'foundation') {
+        localStorage.setItem('soulbridge_subscription', 'free');
+      } else {
+        // For paid plans, set them as premium for companion access
+        localStorage.setItem('soulbridge_subscription', planType);
+      }
       
       // Show success message
       alert(result.message);

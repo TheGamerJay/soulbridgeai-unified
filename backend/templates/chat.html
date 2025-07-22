@@ -68,13 +68,16 @@
                 }
                 // Rule 4: Default to character selection for returning users
                 else {
-                    // Check if this is a fresh login
+                    // Check if this is a fresh login or explicit navigation
                     var urlParams = new URLSearchParams(window.location.search);
                     var showIntro = urlParams.get('show_intro');
                     
                     if (showIntro === 'true') {
                         validated.screen = 'intro';
                         console.log('🔍 Rule 4: Fresh login = intro screen');
+                    } else if (showIntro === 'false') {
+                        validated.screen = 'select';
+                        console.log('🔍 Rule 4: Paid plan user = character select screen');
                     } else {
                         validated.screen = 'select';
                         console.log('🔍 Rule 4: Returning user = character select screen');
