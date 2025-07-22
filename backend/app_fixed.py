@@ -614,6 +614,43 @@ def voice_chat_page():
         logger.error(f"Voice chat page error: {e}")
         return redirect("/")
 
+@app.route("/debug/user/<email>")
+def debug_user_check(email):
+    """Debug endpoint to check if user exists in database"""
+    try:
+        if not services["database"] or not db:
+            return jsonify({"error": "Database not available"}), 500
+            
+        from auth import User
+        user = User(db)
+        
+        # Check if user exists
+        exists = user.user_exists(email)
+        
+        # Get user data if exists
+        user_data = None
+        if exists:
+            conn = db.get_connection()
+            cursor = conn.cursor()
+            placeholder = "%s" if hasattr(db, 'postgres_url') and db.postgres_url else "?"
+            cursor.execute(
+                f"SELECT id, email, display_name, email_verified, created_at FROM users WHERE email = {placeholder}",
+                (email,)
+            )
+            user_data = cursor.fetchone()
+            conn.close()
+        
+        return jsonify({
+            "email": email,
+            "exists": exists,
+            "user_data": user_data,
+            "database_type": "PostgreSQL" if hasattr(db, 'postgres_url') and db.postgres_url else "SQLite"
+        })
+        
+    except Exception as e:
+        logger.error(f"Debug user check error: {e}")
+        return jsonify({"error": str(e)}), 500
+
 
 @app.route("/auth/forgot-password")
 def forgot_password_page():
