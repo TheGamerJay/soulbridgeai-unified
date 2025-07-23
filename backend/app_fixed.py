@@ -59,6 +59,15 @@ services = {
 # Global service instances and thread safety
 import threading
 db = None
+
+@app.before_request
+def maintain_session():
+    """Maintain session persistence across requests"""
+    if session.get("user_authenticated") and session.get("user_email"):
+        # Ensure session remains permanent
+        session.permanent = True
+        # Update last activity timestamp
+        session["last_activity"] = datetime.now().isoformat()
 openai_client = None
 email_service = None
 socketio = None
@@ -71,10 +80,17 @@ VALID_PLANS = ["foundation", "premium", "enterprise"]
 def is_logged_in():
     """Check if user is logged in"""
     authenticated = session.get("user_authenticated", False)
+    user_email = session.get("user_email", "")
+    
     if not authenticated:
-        logger.warning(f"❌ Authentication check failed. Session keys: {list(session.keys())}")
-        logger.warning(f"   Session ID: {session.get('_permanent', 'not set')}")
-        logger.warning(f"   User email: {session.get('user_email', 'not set')}")
+        logger.warning(f"❌ Authentication check failed for {user_email or 'unknown user'}")
+        logger.warning(f"   Session keys: {list(session.keys())}")
+        logger.warning(f"   Session permanent: {session.permanent}")
+        logger.warning(f"   User email: {user_email or 'not set'}")
+        logger.warning(f"   Login timestamp: {session.get('login_timestamp', 'not set')}")
+    else:
+        logger.info(f"✅ Authentication check passed for {user_email}")
+    
     return authenticated
 
 def get_user_plan():
@@ -935,16 +951,23 @@ def payment_success():
                         conn = db.get_connection()
                         cursor = conn.cursor()
                         
-                        # Insert or update subscription
-                        cursor.execute("""
-                            INSERT INTO subscriptions 
-                            (user_id, email, plan_type, status, stripe_subscription_id)
-                            VALUES ((SELECT id FROM users WHERE email = %s), %s, %s, 'active', %s)
-                            ON CONFLICT (email) DO UPDATE SET 
-                                plan_type = EXCLUDED.plan_type,
-                                status = EXCLUDED.status,
-                                stripe_subscription_id = EXCLUDED.stripe_subscription_id
-                        """, (user_email, user_email, plan_type, checkout_session.subscription))
+                        # Get user_id first
+                        cursor.execute("SELECT id FROM users WHERE email = %s", (user_email,))
+                        user_result = cursor.fetchone()
+                        if user_result:
+                            user_id = user_result[0]
+                            
+                            # Insert or update subscription
+                            cursor.execute("""
+                                INSERT INTO subscriptions 
+                                (user_id, email, plan_type, status, stripe_subscription_id)
+                                VALUES (%s, %s, %s, 'active', %s)
+                                ON CONFLICT (email) DO UPDATE SET 
+                                    plan_type = EXCLUDED.plan_type,
+                                    status = EXCLUDED.status,
+                                    stripe_subscription_id = EXCLUDED.stripe_subscription_id,
+                                    updated_at = CURRENT_TIMESTAMP
+                            """, (user_id, user_email, plan_type, checkout_session.subscription))
                         
                         # Log payment event
                         cursor.execute("""

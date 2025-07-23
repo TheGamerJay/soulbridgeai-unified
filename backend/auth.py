@@ -212,7 +212,7 @@ class Database:
                 CREATE TABLE IF NOT EXISTS subscriptions (
                     id SERIAL PRIMARY KEY,
                     user_id INTEGER NOT NULL,
-                    email VARCHAR(255) NOT NULL,
+                    email VARCHAR(255) NOT NULL UNIQUE,
                     plan_type VARCHAR(50) NOT NULL,
                     status VARCHAR(50) NOT NULL DEFAULT 'active',
                     stripe_customer_id TEXT,
