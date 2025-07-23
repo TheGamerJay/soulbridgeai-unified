@@ -935,16 +935,20 @@ def payment_success():
                         
                         # Insert or update subscription
                         cursor.execute("""
-                            INSERT OR REPLACE INTO subscriptions 
+                            INSERT INTO subscriptions 
                             (user_id, email, plan_type, status, stripe_subscription_id)
-                            VALUES ((SELECT id FROM users WHERE email = ?), ?, ?, 'active', ?)
+                            VALUES ((SELECT id FROM users WHERE email = %s), %s, %s, 'active', %s)
+                            ON CONFLICT (email) DO UPDATE SET 
+                                plan_type = EXCLUDED.plan_type,
+                                status = EXCLUDED.status,
+                                stripe_subscription_id = EXCLUDED.stripe_subscription_id
                         """, (user_email, user_email, plan_type, checkout_session.subscription))
                         
                         # Log payment event
                         cursor.execute("""
                             INSERT INTO payment_events 
                             (email, event_type, plan_type, amount, stripe_event_id)
-                            VALUES (?, 'payment_success', ?, ?, ?)
+                            VALUES (%s, 'payment_success', %s, %s, %s)
                         """, (user_email, plan_type, checkout_session.amount_total / 100, session_id))
                         
                         conn.commit()
