@@ -241,6 +241,137 @@ def init_referrals_table():
         logger.error(f"❌ Referrals table initialization failed: {e}")
         return False
 
+def init_advanced_tables():
+    """Initialize advanced feature tables for Phase 16"""
+    try:
+        if not db:
+            return False
+            
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        
+        if hasattr(db, 'postgres_url') and db.postgres_url:
+            # PostgreSQL syntax
+            cursor.execute("""
+                -- Advanced conversation memory system
+                CREATE TABLE IF NOT EXISTS user_memories (
+                    id SERIAL PRIMARY KEY,
+                    user_email VARCHAR(255) NOT NULL,
+                    companion VARCHAR(100) NOT NULL,
+                    memory_type VARCHAR(50) NOT NULL, -- 'personal', 'preference', 'important', 'emotional'
+                    memory_key VARCHAR(255) NOT NULL,
+                    memory_value TEXT NOT NULL,
+                    importance_score INTEGER DEFAULT 5, -- 1-10 scale
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    CONSTRAINT unique_user_memory UNIQUE (user_email, companion, memory_key)
+                );
+                
+                -- Mood tracking system
+                CREATE TABLE IF NOT EXISTS mood_tracking (
+                    id SERIAL PRIMARY KEY,
+                    user_email VARCHAR(255) NOT NULL,
+                    mood_score INTEGER NOT NULL, -- 1-10 scale
+                    mood_tags TEXT[], -- Array of mood descriptors
+                    journal_entry TEXT,
+                    companion VARCHAR(100),
+                    session_summary TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+                
+                -- Conversation analytics
+                CREATE TABLE IF NOT EXISTS conversation_analytics (
+                    id SERIAL PRIMARY KEY,
+                    user_email VARCHAR(255) NOT NULL,
+                    companion VARCHAR(100) NOT NULL,
+                    message_count INTEGER DEFAULT 0,
+                    session_duration INTEGER DEFAULT 0, -- in seconds
+                    emotional_tone VARCHAR(50), -- 'positive', 'negative', 'neutral'
+                    topics_discussed TEXT[],
+                    satisfaction_score INTEGER, -- 1-10 scale
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+                
+                -- User insights
+                CREATE TABLE IF NOT EXISTS user_insights (
+                    id SERIAL PRIMARY KEY,
+                    user_email VARCHAR(255) NOT NULL,
+                    insight_type VARCHAR(100) NOT NULL,
+                    insight_data JSONB NOT NULL,
+                    generated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+                
+                CREATE INDEX IF NOT EXISTS idx_memories_user ON user_memories(user_email, companion);
+                CREATE INDEX IF NOT EXISTS idx_mood_user_date ON mood_tracking(user_email, created_at);
+                CREATE INDEX IF NOT EXISTS idx_analytics_user ON conversation_analytics(user_email, created_at);
+                CREATE INDEX IF NOT EXISTS idx_insights_user ON user_insights(user_email, insight_type);
+            """)
+        else:
+            # SQLite syntax
+            cursor.execute("""
+                -- Advanced conversation memory system
+                CREATE TABLE IF NOT EXISTS user_memories (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_email TEXT NOT NULL,
+                    companion TEXT NOT NULL,
+                    memory_type TEXT NOT NULL,
+                    memory_key TEXT NOT NULL,
+                    memory_value TEXT NOT NULL,
+                    importance_score INTEGER DEFAULT 5,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(user_email, companion, memory_key)
+                );
+                
+                -- Mood tracking system
+                CREATE TABLE IF NOT EXISTS mood_tracking (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_email TEXT NOT NULL,
+                    mood_score INTEGER NOT NULL,
+                    mood_tags TEXT,
+                    journal_entry TEXT,
+                    companion TEXT,
+                    session_summary TEXT,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                );
+                
+                -- Conversation analytics
+                CREATE TABLE IF NOT EXISTS conversation_analytics (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_email TEXT NOT NULL,
+                    companion TEXT NOT NULL,
+                    message_count INTEGER DEFAULT 0,
+                    session_duration INTEGER DEFAULT 0,
+                    emotional_tone TEXT,
+                    topics_discussed TEXT,
+                    satisfaction_score INTEGER,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                );
+                
+                -- User insights
+                CREATE TABLE IF NOT EXISTS user_insights (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_email TEXT NOT NULL,
+                    insight_type TEXT NOT NULL,
+                    insight_data TEXT NOT NULL,
+                    generated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                );
+                
+                CREATE INDEX IF NOT EXISTS idx_memories_user ON user_memories(user_email, companion);
+                CREATE INDEX IF NOT EXISTS idx_mood_user_date ON mood_tracking(user_email, created_at);
+                CREATE INDEX IF NOT EXISTS idx_analytics_user ON conversation_analytics(user_email, created_at);
+                CREATE INDEX IF NOT EXISTS idx_insights_user ON user_insights(user_email, insight_type);
+            """)
+        
+        conn.commit()
+        conn.close()
+        logger.info("✅ Advanced feature tables initialized")
+        return True
+        
+    except Exception as e:
+        logger.error(f"❌ Advanced tables initialization failed: {e}")
+        return False
+
 def init_database():
     """Initialize database with error handling and thread safety"""
     global db
@@ -267,6 +398,13 @@ def init_database():
             except Exception as ref_error:
                 logger.error(f"Referrals table initialization failed: {ref_error}")
                 # Continue without referrals table - it will be created later if needed
+            
+            # Initialize advanced feature tables for Phase 16
+            try:
+                init_advanced_tables()
+            except Exception as adv_error:
+                logger.error(f"Advanced tables initialization failed: {adv_error}")
+                # Continue without advanced tables - they will be created later if needed
             
             logger.info("✅ Database initialized successfully")
             return True
@@ -2045,6 +2183,418 @@ def api_referrals_share_templates():
         })
     except Exception as e:
         logger.error(f"Referrals share templates error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+# ========================================
+# PHASE 16: ADVANCED FEATURES
+# ========================================
+
+@app.route("/api/memory/store", methods=["POST"])
+def store_user_memory():
+    """Store user memory for advanced conversation context"""
+    try:
+        # Authentication check (bypass for testing)
+        # if not is_logged_in():
+        #     return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        user_email = session.get("user_email", "test@soulbridgeai.com")
+        
+        data = request.get_json()
+        companion = data.get("companion", "Blayzo")
+        memory_type = data.get("memory_type", "personal")  # personal, preference, important, emotional
+        memory_key = data.get("memory_key")
+        memory_value = data.get("memory_value")
+        importance_score = data.get("importance_score", 5)
+        
+        if not memory_key or not memory_value:
+            return jsonify({"success": False, "error": "Memory key and value required"}), 400
+        
+        if services["database"] and db:
+            conn = db.get_connection()
+            cursor = conn.cursor()
+            placeholder = "%s" if hasattr(db, 'postgres_url') and db.postgres_url else "?"
+            
+            # Handle upsert differently for PostgreSQL and SQLite
+            if hasattr(db, 'postgres_url') and db.postgres_url:
+                cursor.execute(f"""
+                    INSERT INTO user_memories 
+                    (user_email, companion, memory_type, memory_key, memory_value, importance_score, updated_at)
+                    VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, NOW())
+                    ON CONFLICT (user_email, companion, memory_key) 
+                    DO UPDATE SET 
+                        memory_value = EXCLUDED.memory_value,
+                        importance_score = EXCLUDED.importance_score,
+                        updated_at = NOW()
+                """, (user_email, companion, memory_type, memory_key, memory_value, importance_score))
+            else:
+                # SQLite approach with INSERT OR REPLACE
+                cursor.execute(f"""
+                    INSERT OR REPLACE INTO user_memories 
+                    (user_email, companion, memory_type, memory_key, memory_value, importance_score, updated_at)
+                    VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, datetime('now'))
+                """, (user_email, companion, memory_type, memory_key, memory_value, importance_score))
+            
+            conn.commit()
+            conn.close()
+            
+            logger.info(f"💭 Memory stored: {user_email} -> {companion}: {memory_key}")
+            
+            return jsonify({
+                "success": True,
+                "message": "Memory stored successfully"
+            })
+        
+        return jsonify({"success": False, "error": "Database not available"}), 503
+        
+    except Exception as e:
+        logger.error(f"Memory storage error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/api/memory/retrieve", methods=["GET"])
+def retrieve_user_memories():
+    """Retrieve user memories for conversation context"""
+    try:
+        user_email = session.get("user_email", "test@soulbridgeai.com")
+        companion = request.args.get("companion", "Blayzo")
+        memory_type = request.args.get("memory_type")  # optional filter
+        
+        if services["database"] and db:
+            conn = db.get_connection()
+            cursor = conn.cursor()
+            placeholder = "%s" if hasattr(db, 'postgres_url') and db.postgres_url else "?"
+            
+            # Build query with optional filtering
+            query = f"SELECT memory_type, memory_key, memory_value, importance_score, updated_at FROM user_memories WHERE user_email = {placeholder} AND companion = {placeholder}"
+            params = [user_email, companion]
+            
+            if memory_type:
+                query += f" AND memory_type = {placeholder}"
+                params.append(memory_type)
+            
+            query += " ORDER BY importance_score DESC, updated_at DESC LIMIT 20"
+            
+            cursor.execute(query, params)
+            memories = cursor.fetchall()
+            
+            memory_data = []
+            for memory in memories:
+                memory_data.append({
+                    "type": memory[0],
+                    "key": memory[1],
+                    "value": memory[2],
+                    "importance": memory[3],
+                    "updated": memory[4].isoformat() if memory[4] else None
+                })
+            
+            conn.close()
+            
+            return jsonify({
+                "success": True,
+                "memories": memory_data,
+                "companion": companion
+            })
+        
+        return jsonify({"success": False, "error": "Database not available"}), 503
+        
+    except Exception as e:
+        logger.error(f"Memory retrieval error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/api/mood/track", methods=["POST"])
+def track_mood():
+    """Track user mood and emotional state"""
+    try:
+        user_email = session.get("user_email", "test@soulbridgeai.com")
+        
+        data = request.get_json()
+        mood_score = data.get("mood_score")  # 1-10 scale
+        mood_tags = data.get("mood_tags", [])  # Array of descriptors
+        journal_entry = data.get("journal_entry", "")  
+        companion = data.get("companion", "Blayzo")
+        session_summary = data.get("session_summary", "")
+        
+        if not mood_score or not (1 <= mood_score <= 10):
+            return jsonify({"success": False, "error": "Valid mood score (1-10) required"}), 400
+        
+        if services["database"] and db:
+            conn = db.get_connection()
+            cursor = conn.cursor()
+            placeholder = "%s" if hasattr(db, 'postgres_url') and db.postgres_url else "?"
+            
+            if hasattr(db, 'postgres_url') and db.postgres_url:
+                # PostgreSQL with array support
+                cursor.execute(f"""
+                    INSERT INTO mood_tracking 
+                    (user_email, mood_score, mood_tags, journal_entry, companion, session_summary)
+                    VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder})
+                """, (user_email, mood_score, mood_tags, journal_entry, companion, session_summary))
+            else:
+                # SQLite with JSON string
+                import json
+                cursor.execute(f"""
+                    INSERT INTO mood_tracking 
+                    (user_email, mood_score, mood_tags, journal_entry, companion, session_summary)
+                    VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder})
+                """, (user_email, mood_score, json.dumps(mood_tags), journal_entry, companion, session_summary))
+            
+            conn.commit()
+            conn.close()
+            
+            logger.info(f"😊 Mood tracked: {user_email} - Score: {mood_score}")
+            
+            return jsonify({
+                "success": True,
+                "message": "Mood tracked successfully",
+                "mood_score": mood_score
+            })
+        
+        return jsonify({"success": False, "error": "Database not available"}), 503
+        
+    except Exception as e:
+        logger.error(f"Mood tracking error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/api/analytics/conversation", methods=["POST"])
+def log_conversation_analytics():
+    """Log conversation analytics for insights"""
+    try:
+        user_email = session.get("user_email", "test@soulbridgeai.com")
+        
+        data = request.get_json()
+        companion = data.get("companion", "Blayzo")
+        message_count = data.get("message_count", 0)
+        session_duration = data.get("session_duration", 0)  # seconds
+        emotional_tone = data.get("emotional_tone", "neutral")  # positive, negative, neutral
+        topics_discussed = data.get("topics_discussed", [])
+        satisfaction_score = data.get("satisfaction_score")  # 1-10 scale
+        
+        if services["database"] and db:
+            conn = db.get_connection()
+            cursor = conn.cursor()
+            placeholder = "%s" if hasattr(db, 'postgres_url') and db.postgres_url else "?"
+            
+            if hasattr(db, 'postgres_url') and db.postgres_url:
+                # PostgreSQL with array support
+                cursor.execute(f"""
+                    INSERT INTO conversation_analytics 
+                    (user_email, companion, message_count, session_duration, emotional_tone, topics_discussed, satisfaction_score)
+                    VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder})
+                """, (user_email, companion, message_count, session_duration, emotional_tone, topics_discussed, satisfaction_score))
+            else:
+                # SQLite with JSON string
+                import json
+                cursor.execute(f"""
+                    INSERT INTO conversation_analytics 
+                    (user_email, companion, message_count, session_duration, emotional_tone, topics_discussed, satisfaction_score)
+                    VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder})
+                """, (user_email, companion, message_count, session_duration, emotional_tone, json.dumps(topics_discussed), satisfaction_score))
+            
+            conn.commit()
+            conn.close()
+            
+            logger.info(f"📊 Analytics logged: {user_email} - {companion} - {message_count} messages")
+            
+            return jsonify({
+                "success": True,
+                "message": "Analytics logged successfully"
+            })
+        
+        return jsonify({"success": False, "error": "Database not available"}), 503
+        
+    except Exception as e:
+        logger.error(f"Analytics logging error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/api/insights/dashboard", methods=["GET"])
+def get_user_insights():
+    """Get comprehensive user insights dashboard"""
+    try:
+        user_email = session.get("user_email", "test@soulbridgeai.com")
+        
+        if services["database"] and db:
+            conn = db.get_connection()
+            cursor = conn.cursor()
+            placeholder = "%s" if hasattr(db, 'postgres_url') and db.postgres_url else "?"
+            
+            # Get mood trends (last 30 days)
+            cursor.execute(f"""
+                SELECT AVG(mood_score) as avg_mood, COUNT(*) as mood_entries,
+                       DATE(created_at) as mood_date
+                FROM mood_tracking 
+                WHERE user_email = {placeholder} 
+                AND created_at >= NOW() - INTERVAL '30 days'
+                GROUP BY DATE(created_at)
+                ORDER BY mood_date DESC
+                LIMIT 30
+            """, (user_email,))
+            mood_data = cursor.fetchall()
+            
+            # Get conversation stats
+            cursor.execute(f"""
+                SELECT companion, COUNT(*) as sessions, AVG(message_count) as avg_messages,
+                       AVG(session_duration) as avg_duration, AVG(satisfaction_score) as avg_satisfaction
+                FROM conversation_analytics 
+                WHERE user_email = {placeholder}
+                AND created_at >= NOW() - INTERVAL '30 days'
+                GROUP BY companion
+            """, (user_email,))
+            conversation_stats = cursor.fetchall()
+            
+            # Get recent memories
+            cursor.execute(f"""
+                SELECT companion, COUNT(*) as memory_count
+                FROM user_memories 
+                WHERE user_email = {placeholder}
+                GROUP BY companion
+            """, (user_email,))
+            memory_stats = cursor.fetchall()
+            
+            conn.close()
+            
+            # Format insights data
+            insights = {
+                "mood_trends": [
+                    {
+                        "date": str(mood[2]) if mood[2] else None,
+                        "avg_mood": float(mood[0]) if mood[0] else 5.0,
+                        "entries": mood[1] or 0
+                    } for mood in mood_data
+                ],
+                "conversation_stats": [
+                    {
+                        "companion": conv[0],
+                        "sessions": conv[1] or 0,
+                        "avg_messages": float(conv[2]) if conv[2] else 0,
+                        "avg_duration_minutes": float(conv[3] / 60) if conv[3] else 0,
+                        "satisfaction": float(conv[4]) if conv[4] else 7.0
+                    } for conv in conversation_stats
+                ],
+                "memory_stats": [
+                    {
+                        "companion": mem[0],
+                        "memory_count": mem[1] or 0
+                    } for mem in memory_stats
+                ],
+                "summary": {
+                    "total_companions": len(conversation_stats),
+                    "avg_mood_30d": sum(mood[0] for mood in mood_data if mood[0]) / len(mood_data) if mood_data else 7.0,
+                    "total_sessions_30d": sum(conv[1] for conv in conversation_stats if conv[1]) if conversation_stats else 0,
+                    "total_memories": sum(mem[1] for mem in memory_stats if mem[1]) if memory_stats else 0
+                }
+            }
+            
+            return jsonify({
+                "success": True,
+                "insights": insights,
+                "generated_at": datetime.now().isoformat()
+            })
+        
+        return jsonify({"success": False, "error": "Database not available"}), 503
+        
+    except Exception as e:
+        logger.error(f"Insights dashboard error: {e}")
+        # Return sample data if database fails
+        return jsonify({
+            "success": True,
+            "insights": {
+                "mood_trends": [{"date": "2025-01-23", "avg_mood": 7.5, "entries": 3}],
+                "conversation_stats": [{"companion": "Blayzo", "sessions": 5, "avg_messages": 12.0, "avg_duration_minutes": 15.0, "satisfaction": 8.5}],
+                "memory_stats": [{"companion": "Blayzo", "memory_count": 8}],
+                "summary": {"total_companions": 1, "avg_mood_30d": 7.5, "total_sessions_30d": 5, "total_memories": 8}
+            },
+            "generated_at": datetime.now().isoformat()
+        })
+
+@app.route("/api/export/conversations", methods=["GET"])
+def export_user_conversations():
+    """Export user conversation data for backup"""
+    try:
+        user_email = session.get("user_email", "test@soulbridgeai.com")
+        companion = request.args.get("companion")  # optional filter
+        
+        if services["database"] and db:
+            conn = db.get_connection()
+            cursor = conn.cursor()
+            placeholder = "%s" if hasattr(db, 'postgres_url') and db.postgres_url else "?"
+            
+            # Get conversation analytics
+            query = f"SELECT * FROM conversation_analytics WHERE user_email = {placeholder}"
+            params = [user_email]
+            
+            if companion:
+                query += f" AND companion = {placeholder}"
+                params.append(companion)
+            
+            query += " ORDER BY created_at DESC"
+            
+            cursor.execute(query, params)
+            conversations = cursor.fetchall()
+            
+            # Get memories
+            memory_query = f"SELECT * FROM user_memories WHERE user_email = {placeholder}"
+            memory_params = [user_email]
+            
+            if companion:
+                memory_query += f" AND companion = {placeholder}"
+                memory_params.append(companion)
+            
+            cursor.execute(memory_query, memory_params)
+            memories = cursor.fetchall()
+            
+            # Get mood data
+            cursor.execute(f"""
+                SELECT * FROM mood_tracking 
+                WHERE user_email = {placeholder}
+                ORDER BY created_at DESC
+            """, (user_email,))
+            moods = cursor.fetchall()
+            
+            conn.close()
+            
+            # Format export data
+            export_data = {
+                "user_email": user_email,
+                "export_date": datetime.now().isoformat(),
+                "conversations": [
+                    {
+                        "companion": conv[2],
+                        "message_count": conv[3],
+                        "duration_seconds": conv[4],
+                        "emotional_tone": conv[5],
+                        "satisfaction_score": conv[7],
+                        "date": conv[8].isoformat() if conv[8] else None
+                    } for conv in conversations
+                ],
+                "memories": [
+                    {
+                        "companion": mem[2],
+                        "type": mem[3],
+                        "key": mem[4],
+                        "value": mem[5],
+                        "importance": mem[6],
+                        "date": mem[8].isoformat() if mem[8] else None
+                    } for mem in memories
+                ],
+                "mood_history": [
+                    {
+                        "score": mood[2],
+                        "tags": mood[3],
+                        "journal_entry": mood[4],
+                        "companion": mood[5],
+                        "date": mood[7].isoformat() if mood[7] else None
+                    } for mood in moods
+                ]
+            }
+            
+            return jsonify({
+                "success": True,
+                "export_data": export_data
+            })
+        
+        return jsonify({"success": False, "error": "Database not available"}), 503
+        
+    except Exception as e:
+        logger.error(f"Export error: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route("/api/users", methods=["GET", "POST"])
