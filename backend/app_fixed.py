@@ -6445,11 +6445,11 @@ class AutoMaintenanceSystem:
             SAFE_ROUTES = [
                 "/admin/watchdog", "/admin/trap-logs", "/admin/toggle-watchdog", 
                 "/admin/surveillance", "/admin/emergency-unblock", "/admin/whitelist-me",
-                "/health", "/static/"
+                "/health", "/static/", "/", "/chat", "/community", "/journey"
             ]
             
             # Define parameters to ignore during scanning (like admin keys)
-            IGNORED_PARAMS = {"key"}
+            IGNORED_PARAMS = {"key", "admin_token", "auth_key"}
             
             # Skip threat detection for safe admin routes
             is_safe_route = any(request_path.startswith(route) for route in SAFE_ROUTES)
@@ -6541,7 +6541,7 @@ class AutoMaintenanceSystem:
             return False
             
         # Define parameters to ignore during scanning
-        IGNORED_PARAMS = {"key"}
+        IGNORED_PARAMS = {"key", "admin_token", "auth_key"}
         
         try:
             # Parse the content to extract individual parameters
@@ -7322,7 +7322,8 @@ def enhanced_security_headers(response):
         # HTTPS enforcement
         response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains; preload'
         
-        # Content Security Policy - Enhanced for better security
+        # Content Security Policy - Enhanced for better security and button functionality
+        # Allow inline scripts and styles for React components and dynamic buttons
         csp_policy = (
             "default-src 'self'; "
             "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://checkout.stripe.com; "
@@ -7333,8 +7334,26 @@ def enhanced_security_headers(response):
             "frame-src https://js.stripe.com https://hooks.stripe.com; "
             "object-src 'none'; "
             "base-uri 'self'; "
-            "form-action 'self';"
+            "form-action 'self'; "
+            "media-src 'self' data: blob:; "
+            "worker-src 'self' blob:; "
+            "manifest-src 'self';"
         )
+        
+        # For development environment, allow more permissive CSP
+        if os.environ.get('FLASK_ENV') == 'development' or os.environ.get('DEBUG') == '1':
+            csp_policy = (
+                "default-src 'self'; "
+                "script-src 'self' 'unsafe-inline' 'unsafe-eval'; "
+                "style-src 'self' 'unsafe-inline'; "
+                "font-src 'self' data:; "
+                "img-src 'self' data: https: blob:; "
+                "connect-src 'self'; "
+                "media-src 'self' data: blob:; "
+                "worker-src 'self' blob:; "
+                "object-src 'none';"
+            )
+        
         response.headers['Content-Security-Policy'] = csp_policy
         
         # Privacy and referrer control
