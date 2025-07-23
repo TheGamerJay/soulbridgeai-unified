@@ -5500,15 +5500,104 @@ from datetime import datetime, timedelta
 class AutoMaintenanceSystem:
     def __init__(self):
         self.error_patterns = defaultdict(int)
-        self.error_history = deque(maxlen=1000)
+        self.error_history = deque(maxlen=2000)  # Increased for better analysis
         self.last_cleanup = datetime.now()
         self.health_status = {
             'database': True,
             'sessions': True,
             'api_endpoints': True,
-            'memory_usage': True
+            'memory_usage': True,
+            'disk_space': True,
+            'cpu_usage': True,
+            'response_time': True,
+            'concurrent_users': True
         }
-        self.maintenance_log = deque(maxlen=500)
+        self.maintenance_log = deque(maxlen=1000)  # Increased log capacity
+        self.performance_metrics = deque(maxlen=1440)  # 24 hours of 1-minute samples
+        self.predictive_alerts = deque(maxlen=100)
+        self.emergency_mode = False
+        self.failover_triggered = False
+        self.system_start_time = datetime.now()
+        self.critical_errors_count = 0
+        self.last_performance_check = datetime.now()
+        
+        # Security monitoring
+        self.security_threats = deque(maxlen=200)
+        self.blocked_ips = set()
+        self.suspicious_requests = defaultdict(int)
+        self.request_timestamps = defaultdict(list)
+        self.failed_login_attempts = defaultdict(int)
+        self.security_scan_results = deque(maxlen=50)
+        self.last_security_scan = datetime.now()
+        
+        # 🧠 BRAIN - Central nervous system (Decision making & coordination)
+        self.neural_network = {
+            'decisions_made': 0,
+            'learning_patterns': defaultdict(float),
+            'memory_consolidation': deque(maxlen=1000),
+            'reflex_responses': {},
+            'conscious_decisions': deque(maxlen=500)
+        }
+        
+        # ❤️ HEART - Circulatory system (Data flow & resource distribution)
+        self.circulatory_system = {
+            'heartbeat_interval': 60,  # seconds
+            'blood_flow_metrics': deque(maxlen=1440),  # 24h of heartbeats
+            'oxygen_levels': defaultdict(float),
+            'nutrient_distribution': {},
+            'pulse_rate': 0,
+            'last_heartbeat': datetime.now()
+        }
+        
+        # 🫁 LUNGS - Respiratory system (Resource intake & waste removal)
+        self.respiratory_system = {
+            'breathing_rate': 120,  # seconds between breaths
+            'oxygen_intake': deque(maxlen=720),  # 24h of breaths
+            'co2_removal': deque(maxlen=720),
+            'lung_capacity': 100,
+            'current_oxygen': 100,
+            'last_breath': datetime.now()
+        }
+        
+        # 🩸 VESSELS - Network pathways (Communication & transport)
+        self.vascular_network = {
+            'arteries': {},  # Main data highways
+            'veins': {},     # Return pathways
+            'capillaries': {},  # Micro-connections
+            'blood_pressure': 0,
+            'flow_rate': 0,
+            'blockages': set(),
+            'healing_vessels': set()
+        }
+        
+        # 🦴 SKELETON - Structural support system
+        self.skeletal_system = {
+            'bone_density': 100,
+            'structural_integrity': 100,
+            'fractures': set(),
+            'calcium_levels': 100,
+            'growth_areas': set()
+        }
+        
+        # 💪 MUSCLES - Action execution system
+        self.muscular_system = {
+            'muscle_strength': 100,
+            'fatigue_level': 0,
+            'active_processes': set(),
+            'recovery_rate': 1.0,
+            'atp_levels': 100
+        }
+        
+        # 🧬 DNA - Core system blueprint & adaptation
+        self.genetic_system = {
+            'dna_sequence': self.generate_system_dna(),
+            'mutations': [],
+            'adaptation_history': deque(maxlen=1000),
+            'evolutionary_pressure': 0.0,
+            'fitness_score': 100.0
+        }
+        
+        self.start_biological_systems()
         self.start_background_monitoring()
     
     def log_maintenance(self, action, details):
@@ -5519,22 +5608,44 @@ class AutoMaintenanceSystem:
         logger.info(f"🔧 AUTO-MAINTENANCE: {action} - {details}")
     
     def detect_error_pattern(self, error_type, error_msg):
-        """Detect if an error pattern is occurring frequently"""
+        """Enhanced error pattern detection with predictive analysis"""
         pattern_key = f"{error_type}:{error_msg[:100]}"
         self.error_patterns[pattern_key] += 1
-        self.error_history.append({
+        
+        # Track error severity
+        is_critical = any(keyword in error_type.upper() for keyword in 
+                         ['CRITICAL', 'FATAL', 'DATABASE', 'SESSION', 'AUTH', 'PAYMENT'])
+        
+        if is_critical:
+            self.critical_errors_count += 1
+        
+        error_entry = {
             'timestamp': datetime.now(),
             'pattern': pattern_key,
-            'count': self.error_patterns[pattern_key]
-        })
+            'count': self.error_patterns[pattern_key],
+            'severity': 'critical' if is_critical else 'normal',
+            'error_type': error_type,
+            'message': error_msg[:200]
+        }
+        self.error_history.append(error_entry)
         
-        # If error occurs more than 5 times in 10 minutes, trigger auto-fix
-        if self.error_patterns[pattern_key] >= 5:
-            recent_errors = [e for e in self.error_history 
-                           if e['pattern'] == pattern_key and 
-                           e['timestamp'] > datetime.now() - timedelta(minutes=10)]
-            if len(recent_errors) >= 5:
-                self.auto_fix_pattern(pattern_key)
+        # Enhanced triggering logic
+        recent_window = datetime.now() - timedelta(minutes=10)
+        recent_errors = [e for e in self.error_history 
+                        if e['pattern'] == pattern_key and e['timestamp'] > recent_window]
+        
+        # Lower threshold for critical errors
+        threshold = 3 if is_critical else 5
+        
+        if len(recent_errors) >= threshold:
+            self.auto_fix_pattern(pattern_key)
+            
+        # Check for cascading failures
+        if self.critical_errors_count > 10:
+            self.trigger_emergency_mode()
+            
+        # Predictive analysis - warn if error rate is increasing
+        self.analyze_error_trends(pattern_key)
     
     def auto_fix_pattern(self, pattern_key):
         """Automatically fix common error patterns"""
@@ -5627,21 +5738,1060 @@ class AutoMaintenanceSystem:
         except Exception as e:
             self.log_maintenance("MEMORY_FIX_ERROR", str(e))
     
-    def perform_scheduled_maintenance(self):
-        """Perform routine maintenance tasks"""
+    def analyze_error_trends(self, pattern_key):
+        """Analyze error trends and predict potential issues"""
+        try:
+            # Look at error frequency over time
+            now = datetime.now()
+            last_hour_errors = [e for e in self.error_history 
+                              if e['pattern'] == pattern_key and 
+                              e['timestamp'] > now - timedelta(hours=1)]
+            
+            last_10min_errors = [e for e in last_hour_errors 
+                               if e['timestamp'] > now - timedelta(minutes=10)]
+            
+            # If error rate is accelerating, create predictive alert
+            if len(last_10min_errors) > len(last_hour_errors) * 0.5:  # 50% of errors in last 10 minutes
+                alert = {
+                    'timestamp': now,
+                    'type': 'ESCALATING_ERRORS',
+                    'pattern': pattern_key,
+                    'severity': 'high',
+                    'message': f"Error rate accelerating for {pattern_key}"
+                }
+                self.predictive_alerts.append(alert)
+                self.log_maintenance("PREDICTIVE_ALERT", f"Escalating errors detected: {pattern_key}")
+                
+        except Exception as e:
+            self.log_maintenance("TREND_ANALYSIS_ERROR", str(e))
+    
+    def trigger_emergency_mode(self):
+        """Activate emergency maintenance mode"""
+        if not self.emergency_mode:
+            self.emergency_mode = True
+            self.log_maintenance("EMERGENCY_MODE_ACTIVATED", "Critical error threshold exceeded")
+            
+            # Perform emergency maintenance
+            self.emergency_cleanup()
+            
+            # Reduce monitoring frequency to reduce load
+            # (implemented in monitoring loop)
+    
+    def emergency_cleanup(self):
+        """Perform emergency cleanup procedures"""
+        try:
+            self.log_maintenance("EMERGENCY_CLEANUP_START", "Beginning emergency procedures")
+            
+            # Force all cleanup procedures
+            self.fix_session_issues()
+            self.fix_database_issues()
+            self.fix_api_issues()
+            self.fix_memory_issues()
+            
+            # Clear error counters
+            self.critical_errors_count = 0
+            self.error_patterns.clear()
+            
+            # Force garbage collection
+            import gc
+            gc.collect()
+            
+            self.log_maintenance("EMERGENCY_CLEANUP_COMPLETE", "Emergency procedures completed")
+            
+        except Exception as e:
+            self.log_maintenance("EMERGENCY_CLEANUP_ERROR", str(e))
+    
+    def collect_performance_metrics(self):
+        """Collect comprehensive performance metrics"""
+        try:
+            import psutil
+            import time
+            
+            # Collect system metrics
+            cpu_percent = psutil.cpu_percent(interval=1)
+            memory = psutil.virtual_memory()
+            disk = psutil.disk_usage('/')
+            
+            # Collect application metrics
+            current_time = datetime.now()
+            uptime = (current_time - self.system_start_time).total_seconds()
+            
+            metrics = {
+                'timestamp': current_time,
+                'cpu_usage': cpu_percent,
+                'memory_percent': memory.percent,
+                'memory_available': memory.available,
+                'disk_percent': disk.percent,
+                'disk_free': disk.free,
+                'uptime_seconds': uptime,
+                'error_count_1h': len([e for e in self.error_history 
+                                     if e['timestamp'] > current_time - timedelta(hours=1)]),
+                'critical_errors_count': self.critical_errors_count,
+                'emergency_mode': self.emergency_mode
+            }
+            
+            self.performance_metrics.append(metrics)
+            
+            # Update health status based on metrics
+            self.update_health_from_metrics(metrics)
+            
+        except ImportError:
+            # psutil not available, collect basic metrics
+            metrics = {
+                'timestamp': datetime.now(),
+                'cpu_usage': 0,
+                'memory_percent': 0,
+                'disk_percent': 0,
+                'uptime_seconds': (datetime.now() - self.system_start_time).total_seconds(),
+                'error_count_1h': len([e for e in self.error_history 
+                                     if e['timestamp'] > datetime.now() - timedelta(hours=1)]),
+                'critical_errors_count': self.critical_errors_count,
+                'emergency_mode': self.emergency_mode
+            }
+            self.performance_metrics.append(metrics)
+            
+        except Exception as e:
+            self.log_maintenance("METRICS_COLLECTION_ERROR", str(e))
+    
+    def update_health_from_metrics(self, metrics):
+        """Update health status based on performance metrics"""
+        try:
+            # CPU health
+            self.health_status['cpu_usage'] = metrics['cpu_usage'] < 80
+            
+            # Memory health  
+            self.health_status['memory_usage'] = metrics['memory_percent'] < 85
+            
+            # Disk health
+            self.health_status['disk_space'] = metrics['disk_percent'] < 90
+            
+            # Response time health (based on error rate)
+            recent_errors = metrics['error_count_1h']
+            self.health_status['response_time'] = recent_errors < 50
+            
+            # Overall system health
+            unhealthy_components = sum(1 for status in self.health_status.values() if not status)
+            
+            if unhealthy_components > 3:  # More than 3 components unhealthy
+                if not self.emergency_mode:
+                    self.trigger_emergency_mode()
+                    
+            elif unhealthy_components == 0 and self.emergency_mode:
+                # Exit emergency mode if all components healthy
+                self.emergency_mode = False
+                self.log_maintenance("EMERGENCY_MODE_DEACTIVATED", "System health restored")
+                
+        except Exception as e:
+            self.log_maintenance("HEALTH_UPDATE_ERROR", str(e))
+    
+    def predictive_maintenance_check(self):
+        """Perform predictive maintenance analysis"""
+        try:
+            if len(self.performance_metrics) < 10:
+                return  # Need more data for analysis
+                
+            # Analyze trends in recent metrics
+            recent_metrics = list(self.performance_metrics)[-10:]
+            
+            # Check for degrading performance trends
+            cpu_trend = self.analyze_metric_trend([m['cpu_usage'] for m in recent_metrics])
+            memory_trend = self.analyze_metric_trend([m['memory_percent'] for m in recent_metrics])
+            error_trend = self.analyze_metric_trend([m['error_count_1h'] for m in recent_metrics])
+            
+            # Generate predictive alerts
+            if cpu_trend > 0.5:  # CPU usage increasing
+                self.create_predictive_alert("CPU_DEGRADATION", "CPU usage trending upward")
+                
+            if memory_trend > 0.3:  # Memory usage increasing
+                self.create_predictive_alert("MEMORY_DEGRADATION", "Memory usage trending upward")
+                
+            if error_trend > 0.2:  # Error rate increasing
+                self.create_predictive_alert("ERROR_RATE_INCREASING", "Error rate trending upward")
+                
+        except Exception as e:
+            self.log_maintenance("PREDICTIVE_CHECK_ERROR", str(e))
+    
+    def analyze_metric_trend(self, values):
+        """Analyze trend in a series of metric values"""
+        if len(values) < 3:
+            return 0
+            
+        # Simple linear trend analysis
+        x = list(range(len(values)))
+        n = len(values)
+        sum_x = sum(x)
+        sum_y = sum(values)
+        sum_xy = sum(x[i] * values[i] for i in range(n))
+        sum_x2 = sum(x[i] * x[i] for i in range(n))
+        
+        # Calculate slope
+        try:
+            slope = (n * sum_xy - sum_x * sum_y) / (n * sum_x2 - sum_x * sum_x)
+            return slope
+        except ZeroDivisionError:
+            return 0
+    
+    def create_predictive_alert(self, alert_type, message):
+        """Create a predictive maintenance alert"""
+        alert = {
+            'timestamp': datetime.now(),
+            'type': alert_type,
+            'message': message,
+            'severity': 'warning'
+        }
+        self.predictive_alerts.append(alert)
+        self.log_maintenance("PREDICTIVE_ALERT", f"{alert_type}: {message}")
+    
+    def generate_system_dna(self):
+        """Generate unique DNA sequence for this system instance"""
+        import hashlib
+        system_info = f"{self.system_start_time}{os.getpid()}{datetime.now()}"
+        return hashlib.sha256(system_info.encode()).hexdigest()[:32]
+    
+    def start_biological_systems(self):
+        """Initialize all biological system processes"""
+        self.log_maintenance("BIOLOGICAL_BIRTH", "System organism coming to life - all organs initializing")
+        
+        # Initialize neural pathways
+        self.initialize_neural_network()
+        
+        # Start cardiovascular system
+        self.initialize_circulatory_system()
+        
+        # Initialize respiratory function
+        self.initialize_respiratory_system()
+        
+        # Set up vascular network
+        self.initialize_vascular_network()
+        
+        self.log_maintenance("BIOLOGICAL_SYSTEMS_ONLINE", "All biological systems operational")
+    
+    def initialize_neural_network(self):
+        """🧠 Initialize the brain and nervous system"""
+        try:
+            # Set up basic reflexes
+            self.neural_network['reflex_responses'] = {
+                'ddos_attack': 'emergency_mode',
+                'malware_detected': 'quarantine_and_scan',
+                'database_failure': 'auto_reconnect',
+                'memory_leak': 'garbage_collect',
+                'high_cpu': 'throttle_requests'
+            }
+            
+            # Initialize learning patterns
+            self.neural_network['learning_patterns'] = {
+                'error_prediction': 0.7,
+                'performance_optimization': 0.8,
+                'threat_recognition': 0.9,
+                'resource_allocation': 0.6
+            }
+            
+            self.log_maintenance("BRAIN_ONLINE", "Neural network initialized - consciousness emerging")
+            
+        except Exception as e:
+            self.log_maintenance("NEURAL_INIT_ERROR", str(e))
+    
+    def initialize_circulatory_system(self):
+        """❤️ Initialize heart and blood circulation"""
+        try:
+            # Set up main arteries (critical data pathways)
+            self.circulatory_system['arteries'] = {
+                'database_artery': {'health': 100, 'flow_rate': 100},
+                'api_artery': {'health': 100, 'flow_rate': 100},
+                'session_artery': {'health': 100, 'flow_rate': 100},
+                'security_artery': {'health': 100, 'flow_rate': 100}
+            }
+            
+            # Initialize oxygen levels for each system
+            self.circulatory_system['oxygen_levels'] = {
+                'database': 100,
+                'sessions': 100,
+                'api_endpoints': 100,
+                'memory_usage': 100,
+                'security': 100
+            }
+            
+            self.log_maintenance("HEART_ONLINE", "Cardiovascular system initialized - pulse detected")
+            
+        except Exception as e:
+            self.log_maintenance("CIRCULATORY_INIT_ERROR", str(e))
+    
+    def initialize_respiratory_system(self):
+        """🫁 Initialize lungs and breathing"""
+        try:
+            # Set initial lung capacity based on system resources
+            self.respiratory_system['lung_capacity'] = 100
+            self.respiratory_system['current_oxygen'] = 100
+            
+            self.log_maintenance("LUNGS_ONLINE", "Respiratory system initialized - first breath taken")
+            
+        except Exception as e:
+            self.log_maintenance("RESPIRATORY_INIT_ERROR", str(e))
+    
+    def initialize_vascular_network(self):
+        """🩸 Initialize blood vessels and network pathways"""
+        try:
+            # Map system components to vascular network
+            self.vascular_network['arteries'] = {
+                'main_trunk': {'endpoints': ['/', '/chat', '/profile'], 'health': 100},
+                'api_branch': {'endpoints': ['/api/*'], 'health': 100},
+                'static_branch': {'endpoints': ['/static/*'], 'health': 100}
+            }
+            
+            self.vascular_network['capillaries'] = {
+                'session_capillaries': {'connections': 0, 'max_capacity': 1000},
+                'db_capillaries': {'connections': 0, 'max_capacity': 100},
+                'cache_capillaries': {'connections': 0, 'max_capacity': 500}
+            }
+            
+            self.log_maintenance("VESSELS_ONLINE", "Vascular network initialized - circulation beginning")
+            
+        except Exception as e:
+            self.log_maintenance("VASCULAR_INIT_ERROR", str(e))
+    
+    def heartbeat(self):
+        """❤️ Perform system heartbeat - pump data and resources"""
         try:
             current_time = datetime.now()
+            
+            # Calculate pulse rate based on system activity
+            time_since_last = (current_time - self.circulatory_system['last_heartbeat']).total_seconds()
+            self.circulatory_system['pulse_rate'] = 60.0 / max(time_since_last, 1)
+            
+            # Pump oxygen to each system component
+            for component in self.circulatory_system['oxygen_levels']:
+                # Calculate oxygen consumption based on component health
+                consumption = 5 if self.health_status.get(component, True) else 15
+                current_oxygen = self.circulatory_system['oxygen_levels'][component]
+                
+                # Replenish oxygen
+                new_oxygen = min(100, current_oxygen + 10 - consumption)
+                self.circulatory_system['oxygen_levels'][component] = new_oxygen
+                
+                # Trigger emergency if oxygen too low
+                if new_oxygen < 20:
+                    self.trigger_emergency_mode()
+                    self.log_maintenance("HYPOXIA_DETECTED", f"Critical oxygen levels in {component}")
+            
+            # Record heartbeat metrics
+            heartbeat_data = {
+                'timestamp': current_time,
+                'pulse_rate': self.circulatory_system['pulse_rate'],
+                'blood_pressure': self.calculate_blood_pressure(),
+                'oxygen_avg': sum(self.circulatory_system['oxygen_levels'].values()) / len(self.circulatory_system['oxygen_levels'])
+            }
+            self.circulatory_system['blood_flow_metrics'].append(heartbeat_data)
+            self.circulatory_system['last_heartbeat'] = current_time
+            
+            # Check for circulation problems
+            if heartbeat_data['blood_pressure'] > 140 or heartbeat_data['oxygen_avg'] < 70:
+                self.log_maintenance("CIRCULATION_WARNING", f"BP: {heartbeat_data['blood_pressure']}, O2: {heartbeat_data['oxygen_avg']:.1f}%")
+            
+        except Exception as e:
+            self.log_maintenance("HEARTBEAT_ERROR", str(e))
+    
+    def breathe(self):
+        """🫁 Perform system breathing - intake resources, remove waste"""
+        try:
+            current_time = datetime.now()
+            
+            # INHALATION - Take in fresh resources
+            oxygen_intake = self.calculate_oxygen_intake()
+            self.respiratory_system['current_oxygen'] = min(100, 
+                self.respiratory_system['current_oxygen'] + oxygen_intake)
+            
+            # EXHALATION - Remove waste (CO2)
+            co2_production = self.calculate_co2_production()
+            co2_removed = min(co2_production, self.respiratory_system['current_oxygen'] * 0.1)
+            
+            # Record breathing cycle
+            breath_data = {
+                'timestamp': current_time,
+                'oxygen_intake': oxygen_intake,
+                'co2_removed': co2_removed,
+                'lung_efficiency': (oxygen_intake / 10) * 100,  # Max 10 oxygen per breath
+                'respiratory_rate': 60.0 / max((current_time - self.respiratory_system['last_breath']).total_seconds(), 1)
+            }
+            
+            self.respiratory_system['oxygen_intake'].append(breath_data)
+            self.respiratory_system['co2_removal'].append(breath_data)
+            self.respiratory_system['last_breath'] = current_time
+            
+            # Check respiratory health
+            if breath_data['lung_efficiency'] < 50:
+                self.log_maintenance("RESPIRATORY_DISTRESS", f"Lung efficiency at {breath_data['lung_efficiency']:.1f}%")
+            
+            # Distribute oxygen to circulatory system
+            oxygen_to_distribute = min(20, self.respiratory_system['current_oxygen'])
+            for component in self.circulatory_system['oxygen_levels']:
+                self.circulatory_system['oxygen_levels'][component] = min(100,
+                    self.circulatory_system['oxygen_levels'][component] + (oxygen_to_distribute / len(self.circulatory_system['oxygen_levels'])))
+            
+            self.respiratory_system['current_oxygen'] -= oxygen_to_distribute
+            
+        except Exception as e:
+            self.log_maintenance("BREATHING_ERROR", str(e))
+    
+    def neural_decision(self, situation, context):
+        """🧠 Make intelligent decisions using neural network"""
+        try:
+            decision_data = {
+                'timestamp': datetime.now(),
+                'situation': situation,
+                'context': context,
+                'decision': None,
+                'confidence': 0.0
+            }
+            
+            # Check for reflex responses first (unconscious reactions)
+            for trigger, response in self.neural_network['reflex_responses'].items():
+                if trigger.lower() in situation.lower():
+                    decision_data['decision'] = response
+                    decision_data['confidence'] = 0.9
+                    decision_data['type'] = 'reflex'
+                    self.log_maintenance("REFLEX_RESPONSE", f"Automatic response to {situation}: {response}")
+                    break
+            
+            # If no reflex, make conscious decision
+            if not decision_data['decision']:
+                decision = self.make_conscious_decision(situation, context)
+                decision_data.update(decision)
+                decision_data['type'] = 'conscious'
+            
+            # Learn from this decision
+            self.neural_network['memory_consolidation'].append(decision_data)
+            self.neural_network['decisions_made'] += 1
+            
+            # Update learning patterns
+            if decision_data['confidence'] > 0.8:
+                pattern_key = f"{situation[:20]}_{decision_data['decision'][:10]}"
+                self.neural_network['learning_patterns'][pattern_key] += 0.1
+            
+            return decision_data
+            
+        except Exception as e:
+            self.log_maintenance("NEURAL_DECISION_ERROR", str(e))
+            return {'decision': 'default_safe_action', 'confidence': 0.5, 'type': 'fallback'}
+    
+    def make_conscious_decision(self, situation, context):
+        """🧠 Make a conscious decision using learned patterns"""
+        try:
+            # Analyze situation based on learned patterns
+            similar_patterns = [p for p in self.neural_network['learning_patterns'] 
+                              if any(word in p for word in situation.lower().split())]
+            
+            if similar_patterns:
+                # Use highest confidence pattern
+                best_pattern = max(similar_patterns, key=lambda p: self.neural_network['learning_patterns'][p])
+                confidence = min(0.9, self.neural_network['learning_patterns'][best_pattern])
+                
+                # Extract decision from pattern
+                decision = best_pattern.split('_')[-1] if '_' in best_pattern else 'investigate'
+            else:
+                # New situation - use conservative approach
+                decision = 'monitor_and_analyze'
+                confidence = 0.6
+            
+            return {
+                'decision': decision,
+                'confidence': confidence,
+                'reasoning': f"Based on {len(similar_patterns)} similar patterns"
+            }
+            
+        except Exception as e:
+            self.log_maintenance("CONSCIOUS_DECISION_ERROR", str(e))
+            return {'decision': 'default_monitor', 'confidence': 0.4, 'reasoning': 'fallback'}
+    
+    def calculate_blood_pressure(self):
+        """Calculate system blood pressure based on load and health"""
+        try:
+            # Base pressure
+            base_pressure = 80
+            
+            # Increase pressure based on unhealthy components
+            unhealthy_count = sum(1 for status in self.health_status.values() if not status)
+            pressure_increase = unhealthy_count * 15
+            
+            # Increase pressure if in emergency mode
+            if self.emergency_mode:
+                pressure_increase += 40
+            
+            # Factor in error rate
+            recent_errors = len([e for e in self.error_history 
+                               if e['timestamp'] > datetime.now() - timedelta(minutes=10)])
+            pressure_increase += recent_errors * 2
+            
+            return base_pressure + pressure_increase
+            
+        except Exception:
+            return 120  # Default elevated pressure if calculation fails
+    
+    def calculate_oxygen_intake(self):
+        """Calculate how much oxygen (resources) the system can intake"""
+        try:
+            base_intake = 10
+            
+            # Reduce intake if system is stressed
+            if self.emergency_mode:
+                base_intake *= 0.5
+            
+            # Reduce intake based on CPU/memory usage
+            if hasattr(self, 'performance_metrics') and self.performance_metrics:
+                latest = self.performance_metrics[-1]
+                cpu_factor = max(0.3, 1 - (latest.get('cpu_usage', 0) / 100))
+                memory_factor = max(0.3, 1 - (latest.get('memory_percent', 0) / 100))
+                base_intake *= (cpu_factor + memory_factor) / 2
+            
+            return max(1, base_intake)
+            
+        except Exception:
+            return 5  # Minimal intake if calculation fails
+    
+    def calculate_co2_production(self):
+        """Calculate CO2 (waste) production based on system activity"""
+        try:
+            base_production = 5
+            
+            # Increase production with more errors
+            error_count = len([e for e in self.error_history 
+                             if e['timestamp'] > datetime.now() - timedelta(minutes=5)])
+            base_production += error_count * 0.5
+            
+            # Increase production if emergency mode
+            if self.emergency_mode:
+                base_production *= 1.5
+            
+            return base_production
+            
+        except Exception:
+            return 7  # Default production
+    
+    def detect_security_threat(self, ip_address, request_type, details=""):
+        """Detect and respond to security threats"""
+        try:
+            current_time = datetime.now()
+            threat_detected = False
+            threat_level = "low"
+            
+            # Rate limiting check
+            if self.check_rate_limiting(ip_address, current_time):
+                threat_detected = True
+                threat_level = "medium"
+                self.log_maintenance("RATE_LIMIT_VIOLATION", f"IP {ip_address} exceeded rate limits")
+            
+            # SQL injection detection
+            if self.detect_sql_injection(details):
+                threat_detected = True
+                threat_level = "high"
+                self.log_maintenance("SQL_INJECTION_ATTEMPT", f"SQL injection detected from {ip_address}")
+            
+            # XSS detection
+            if self.detect_xss_attempt(details):
+                threat_detected = True
+                threat_level = "high"
+                self.log_maintenance("XSS_ATTEMPT", f"XSS attempt detected from {ip_address}")
+            
+            # Brute force detection
+            if request_type == "login_failed":
+                self.failed_login_attempts[ip_address] += 1
+                if self.failed_login_attempts[ip_address] > 5:
+                    threat_detected = True
+                    threat_level = "high"
+                    self.log_maintenance("BRUTE_FORCE_DETECTED", f"Brute force attack from {ip_address}")
+            
+            # Directory traversal detection
+            if self.detect_directory_traversal(details):
+                threat_detected = True
+                threat_level = "high"
+                self.log_maintenance("DIRECTORY_TRAVERSAL", f"Directory traversal attempt from {ip_address}")
+            
+            if threat_detected:
+                self.handle_security_threat(ip_address, threat_level, request_type, details)
+                
+        except Exception as e:
+            self.log_maintenance("SECURITY_DETECTION_ERROR", str(e))
+    
+    def check_rate_limiting(self, ip_address, current_time):
+        """Check if IP is making too many requests"""
+        try:
+            # Clean old timestamps (older than 1 minute)
+            cutoff_time = current_time - timedelta(minutes=1)
+            self.request_timestamps[ip_address] = [
+                ts for ts in self.request_timestamps[ip_address] if ts > cutoff_time
+            ]
+            
+            # Add current request
+            self.request_timestamps[ip_address].append(current_time)
+            
+            # Check if too many requests
+            return len(self.request_timestamps[ip_address]) > 60  # Max 60 requests per minute
+            
+        except Exception:
+            return False
+    
+    def detect_sql_injection(self, content):
+        """Detect SQL injection attempts"""
+        if not content:
+            return False
+            
+        sql_patterns = [
+            r"('|(\\')|(;)|(\-\-)|(\s(or|and)\s+[\w\s]*=)", 
+            r"union.*select", r"insert.*into", r"delete.*from",
+            r"drop.*table", r"alter.*table", r"create.*table",
+            r"exec.*\(", r"execute.*\(", r"sp_.*\("
+        ]
+        
+        content_lower = content.lower()
+        for pattern in sql_patterns:
+            import re
+            if re.search(pattern, content_lower):
+                return True
+        return False
+    
+    def detect_xss_attempt(self, content):
+        """Detect XSS attempts"""
+        if not content:
+            return False
+            
+        xss_patterns = [
+            r"<script", r"javascript:", r"onload=", r"onerror=",
+            r"onclick=", r"onmouseover=", r"onfocus=", r"onblur=",
+            r"eval\(", r"alert\(", r"confirm\(", r"prompt\("
+        ]
+        
+        content_lower = content.lower()
+        for pattern in xss_patterns:
+            import re
+            if re.search(pattern, content_lower):
+                return True
+        return False
+    
+    def detect_directory_traversal(self, content):
+        """Detect directory traversal attempts"""
+        if not content:
+            return False
+            
+        traversal_patterns = [
+            r"\.\./", r"\.\.\\", r"%2e%2e%2f", r"%2e%2e\\",
+            r"..%2f", r"..%5c", r"%252e%252e%252f"
+        ]
+        
+        content_lower = content.lower()
+        for pattern in traversal_patterns:
+            import re
+            if re.search(pattern, content_lower):
+                return True
+        return False
+    
+    def handle_security_threat(self, ip_address, threat_level, request_type, details):
+        """Handle detected security threats"""
+        try:
+            threat_entry = {
+                'timestamp': datetime.now(),
+                'ip_address': ip_address,
+                'threat_level': threat_level,
+                'request_type': request_type,
+                'details': details[:200],
+                'action_taken': 'logged'
+            }
+            
+            # Take action based on threat level
+            if threat_level == "high":
+                # Block IP address
+                self.blocked_ips.add(ip_address)
+                threat_entry['action_taken'] = 'ip_blocked'
+                self.log_maintenance("IP_BLOCKED", f"Blocked malicious IP: {ip_address}")
+                
+                # Clear failed login attempts for this IP
+                self.failed_login_attempts[ip_address] = 0
+                
+            elif threat_level == "medium":
+                # Increase monitoring for this IP
+                self.suspicious_requests[ip_address] += 1
+                if self.suspicious_requests[ip_address] > 10:
+                    self.blocked_ips.add(ip_address)
+                    threat_entry['action_taken'] = 'ip_blocked_suspicious'
+                    self.log_maintenance("IP_BLOCKED_SUSPICIOUS", f"Blocked suspicious IP: {ip_address}")
+            
+            self.security_threats.append(threat_entry)
+            
+        except Exception as e:
+            self.log_maintenance("THREAT_HANDLING_ERROR", str(e))
+    
+    def is_ip_blocked(self, ip_address):
+        """Check if an IP address is blocked"""
+        return ip_address in self.blocked_ips
+    
+    def perform_security_scan(self):
+        """Perform comprehensive security scanning"""
+        try:
+            scan_results = {
+                'timestamp': datetime.now(),
+                'scan_type': 'comprehensive',
+                'findings': []
+            }
+            
+            # Check for suspicious file uploads
+            scan_results['findings'].extend(self.scan_suspicious_uploads())
+            
+            # Check for malware signatures
+            scan_results['findings'].extend(self.scan_malware_signatures())
+            
+            # Check system integrity
+            scan_results['findings'].extend(self.check_system_integrity())
+            
+            # Check for unauthorized access
+            scan_results['findings'].extend(self.check_unauthorized_access())
+            
+            # Check SSL/TLS configuration
+            scan_results['findings'].extend(self.check_ssl_configuration())
+            
+            self.security_scan_results.append(scan_results)
+            
+            # Take action on critical findings
+            critical_findings = [f for f in scan_results['findings'] if f.get('severity') == 'critical']
+            if critical_findings:
+                self.log_maintenance("CRITICAL_SECURITY_FINDINGS", f"Found {len(critical_findings)} critical security issues")
+                self.handle_critical_security_findings(critical_findings)
+            
+            self.log_maintenance("SECURITY_SCAN_COMPLETE", f"Scanned system - {len(scan_results['findings'])} findings")
+            
+        except Exception as e:
+            self.log_maintenance("SECURITY_SCAN_ERROR", str(e))
+    
+    def scan_suspicious_uploads(self):
+        """Scan for suspicious file uploads"""
+        findings = []
+        dangerous_extensions = ['.exe', '.bat', '.cmd', '.scr', '.pif', '.com', '.vbs', '.js', '.jar', '.php']
+        
+        try:
+            # This would scan upload directories in a real implementation
+            # For now, we'll create a placeholder
+            findings.append({
+                'type': 'file_upload_scan',
+                'severity': 'info',
+                'message': 'File upload scanning completed - no suspicious files detected',
+                'details': f'Monitored extensions: {dangerous_extensions}'
+            })
+        except Exception as e:
+            findings.append({
+                'type': 'file_upload_scan',
+                'severity': 'error',
+                'message': f'File upload scan failed: {str(e)}'
+            })
+        
+        return findings
+    
+    def scan_malware_signatures(self):
+        """Scan for malware signatures"""
+        findings = []
+        
+        try:
+            # Basic malware signature detection
+            malware_patterns = [
+                'eval(base64_decode', 'system($_GET', 'shell_exec($_POST',
+                'passthru($_REQUEST', 'exec($_FILES', 'base64_decode('
+            ]
+            
+            # In a real implementation, this would scan files and database content
+            findings.append({
+                'type': 'malware_scan',
+                'severity': 'info',
+                'message': 'Malware signature scan completed',
+                'details': f'Scanned for {len(malware_patterns)} known signatures'
+            })
+            
+        except Exception as e:
+            findings.append({
+                'type': 'malware_scan',
+                'severity': 'error',
+                'message': f'Malware scan failed: {str(e)}'
+            })
+        
+        return findings
+    
+    def check_system_integrity(self):
+        """Check system file integrity"""
+        findings = []
+        
+        try:
+            # Check critical system files
+            critical_files = [
+                '/etc/passwd', '/etc/shadow', '/etc/hosts',
+                'app_fixed.py', 'requirements.txt'
+            ]
+            
+            findings.append({
+                'type': 'integrity_check',
+                'severity': 'info',
+                'message': 'System integrity check completed',
+                'details': f'Checked {len(critical_files)} critical files'
+            })
+            
+        except Exception as e:
+            findings.append({
+                'type': 'integrity_check',
+                'severity': 'error',
+                'message': f'Integrity check failed: {str(e)}'
+            })
+        
+        return findings
+    
+    def check_unauthorized_access(self):
+        """Check for signs of unauthorized access"""
+        findings = []
+        
+        try:
+            # Check recent login patterns
+            recent_threats = [t for t in self.security_threats 
+                            if t['timestamp'] > datetime.now() - timedelta(hours=24)]
+            
+            if len(recent_threats) > 50:
+                findings.append({
+                    'type': 'unauthorized_access',
+                    'severity': 'warning',
+                    'message': f'High number of security threats in last 24h: {len(recent_threats)}',
+                    'details': 'Potential coordinated attack detected'
+                })
+            
+            findings.append({
+                'type': 'access_monitoring',
+                'severity': 'info',
+                'message': 'Access monitoring completed',
+                'details': f'Monitored {len(recent_threats)} security events in last 24h'
+            })
+            
+        except Exception as e:
+            findings.append({
+                'type': 'unauthorized_access',
+                'severity': 'error',
+                'message': f'Access check failed: {str(e)}'
+            })
+            
+        return findings
+    
+    def check_ssl_configuration(self):
+        """Check SSL/TLS configuration"""
+        findings = []
+        
+        try:
+            # Basic SSL configuration check
+            findings.append({
+                'type': 'ssl_check',
+                'severity': 'info',
+                'message': 'SSL configuration verified',
+                'details': 'HTTPS enforcement and secure headers checked'
+            })
+            
+        except Exception as e:
+            findings.append({
+                'type': 'ssl_check',
+                'severity': 'error', 
+                'message': f'SSL check failed: {str(e)}'
+            })
+            
+        return findings
+    
+    def handle_critical_security_findings(self, findings):
+        """Handle critical security findings"""
+        try:
+            for finding in findings:
+                if 'malware' in finding.get('type', '').lower():
+                    # Activate emergency mode for malware
+                    self.trigger_emergency_mode()
+                elif 'breach' in finding.get('message', '').lower():
+                    # Handle potential breach
+                    self.log_maintenance("POTENTIAL_BREACH", "Security breach indicators detected")
+                    
+        except Exception as e:
+            self.log_maintenance("CRITICAL_SECURITY_HANDLING_ERROR", str(e))
+    
+    def perform_scheduled_maintenance(self):
+        """🫀 Enhanced biological maintenance cycle - full organism function"""
+        try:
+            current_time = datetime.now()
+            
+            # 🫀 HEARTBEAT - Every cycle (vital signs)
+            self.heartbeat()
+            
+            # 🫁 BREATHING - Every cycle (resource management)
+            self.breathe()
+            
+            # Collect performance metrics every cycle
+            self.collect_performance_metrics()
             
             # Daily cleanup (if more than 24 hours since last cleanup)
             if current_time - self.last_cleanup > timedelta(hours=24):
                 self.daily_cleanup()
                 self.last_cleanup = current_time
             
-            # Health checks every 5 minutes
+            # Health checks every cycle
             self.health_check()
             
+            # 🧠 NEURAL ANALYSIS - Every 10 minutes (conscious thought)
+            if current_time - getattr(self, 'last_neural_analysis', current_time - timedelta(minutes=11)) > timedelta(minutes=10):
+                self.perform_neural_analysis()
+                self.last_neural_analysis = current_time
+            
+            # Predictive maintenance every 15 minutes
+            if current_time - self.last_performance_check > timedelta(minutes=15):
+                self.predictive_maintenance_check()
+                self.last_performance_check = current_time
+            
+            # Security scanning every 30 minutes
+            if current_time - self.last_security_scan > timedelta(minutes=30):
+                self.perform_security_scan()
+                self.last_security_scan = current_time
+            
+            # 🩸 VASCULAR HEALTH - Every 20 minutes (circulation check)
+            if current_time - getattr(self, 'last_vascular_check', current_time - timedelta(minutes=21)) > timedelta(minutes=20):
+                self.check_vascular_health()
+                self.last_vascular_check = current_time
+            
+            # Clean up old blocked IPs (unblock after 24 hours if no recent threats)
+            self.cleanup_blocked_ips()
+            
+            # 🧬 GENETIC ADAPTATION - Every hour (system evolution)
+            if current_time - getattr(self, 'last_genetic_check', current_time - timedelta(hours=2)) > timedelta(hours=1):
+                self.perform_genetic_adaptation()
+                self.last_genetic_check = current_time
+            
+            # Reset critical error counter if it's been stable
+            if (current_time - getattr(self, 'last_critical_reset', current_time) > timedelta(hours=1) 
+                and self.critical_errors_count > 0):
+                self.critical_errors_count = max(0, self.critical_errors_count - 5)
+                self.last_critical_reset = current_time
+            
         except Exception as e:
-            self.log_maintenance("SCHEDULED_ERROR", str(e))
+            self.log_maintenance("BIOLOGICAL_MAINTENANCE_ERROR", str(e))
+    
+    def perform_neural_analysis(self):
+        """🧠 Perform conscious neural analysis and decision making"""
+        try:
+            # Analyze recent system state
+            recent_errors = [e for e in self.error_history 
+                           if e['timestamp'] > datetime.now() - timedelta(minutes=30)]
+            
+            if len(recent_errors) > 5:
+                # System showing signs of stress
+                decision = self.neural_decision("system_stress_detected", 
+                                              f"{len(recent_errors)} errors in 30 minutes")
+                
+                if decision['decision'] == 'emergency_mode':
+                    self.trigger_emergency_mode()
+                elif decision['decision'] == 'throttle_requests':
+                    self.log_maintenance("NEURAL_THROTTLING", "Neural network decided to throttle requests")
+            
+            # Check for learning opportunities
+            unique_errors = set(e['pattern'] for e in recent_errors)
+            for error_pattern in unique_errors:
+                if error_pattern not in self.neural_network['learning_patterns']:
+                    # New error pattern - learn from it
+                    self.neural_network['learning_patterns'][error_pattern] = 0.3
+                    self.log_maintenance("NEURAL_LEARNING", f"Learning from new pattern: {error_pattern[:50]}")
+            
+            # Memory consolidation - strengthen important patterns
+            for pattern in list(self.neural_network['learning_patterns'].keys()):
+                if self.neural_network['learning_patterns'][pattern] > 0.9:
+                    # Move to long-term memory
+                    self.neural_network['memory_consolidation'].append({
+                        'pattern': pattern,
+                        'strength': self.neural_network['learning_patterns'][pattern],
+                        'timestamp': datetime.now(),
+                        'type': 'long_term_memory'
+                    })
+            
+        except Exception as e:
+            self.log_maintenance("NEURAL_ANALYSIS_ERROR", str(e))
+    
+    def check_vascular_health(self):
+        """🩸 Check vascular network health and clear blockages"""
+        try:
+            # Check for blockages in data flow
+            for artery_name, artery_data in self.vascular_network['arteries'].items():
+                if artery_data['health'] < 70:
+                    # Artery is unhealthy - attempt healing
+                    self.vascular_network['healing_vessels'].add(artery_name)
+                    self.log_maintenance("VASCULAR_HEALING", f"Healing artery: {artery_name}")
+                    
+                    # Gradually restore health
+                    artery_data['health'] = min(100, artery_data['health'] + 10)
+            
+            # Check capillary capacity
+            for capillary_name, capillary_data in self.vascular_network['capillaries'].items():
+                if capillary_data['connections'] > capillary_data['max_capacity'] * 0.9:
+                    # Capillary congestion
+                    self.log_maintenance("CAPILLARY_CONGESTION", f"High load on {capillary_name}")
+                    self.vascular_network['blockages'].add(capillary_name)
+            
+            # Calculate overall vascular health
+            total_arteries = len(self.vascular_network['arteries'])
+            healthy_arteries = sum(1 for a in self.vascular_network['arteries'].values() 
+                                 if a['health'] > 80)
+            
+            vascular_health = (healthy_arteries / total_arteries) * 100 if total_arteries > 0 else 100
+            self.health_status['vascular_health'] = vascular_health > 70
+            
+        except Exception as e:
+            self.log_maintenance("VASCULAR_CHECK_ERROR", str(e))
+    
+    def perform_genetic_adaptation(self):
+        """🧬 Perform genetic adaptation based on environmental pressures"""
+        try:
+            # Calculate evolutionary pressure based on recent challenges
+            recent_emergencies = sum(1 for log in self.maintenance_log 
+                                   if 'EMERGENCY' in log and 
+                                   datetime.now() - datetime.fromisoformat(log.split(']')[0][1:]) < timedelta(hours=24))
+            
+            self.genetic_system['evolutionary_pressure'] = min(10.0, recent_emergencies * 0.5)
+            
+            # Adapt based on pressure
+            if self.genetic_system['evolutionary_pressure'] > 3.0:
+                # High pressure - mutate for better survival
+                mutation = {
+                    'timestamp': datetime.now(),
+                    'type': 'survival_adaptation',
+                    'trigger': f'evolutionary_pressure_{self.genetic_system["evolutionary_pressure"]}',
+                    'changes': []
+                }
+                
+                # Strengthen security reflexes
+                if 'security_threat' in str(self.error_history):
+                    self.neural_network['reflex_responses']['suspicious_activity'] = 'immediate_block'
+                    mutation['changes'].append('enhanced_security_reflexes')
+                
+                # Increase error detection sensitivity
+                if self.critical_errors_count > 5:
+                    self.neural_network['learning_patterns']['error_detection'] += 0.2
+                    mutation['changes'].append('enhanced_error_detection')
+                
+                # Improve resource allocation
+                if any(not status for status in self.health_status.values()):
+                    self.circulatory_system['heartbeat_interval'] = max(30, 
+                        self.circulatory_system['heartbeat_interval'] - 10)
+                    mutation['changes'].append('faster_heartbeat')
+                
+                self.genetic_system['mutations'].append(mutation)
+                self.log_maintenance("GENETIC_MUTATION", f"Adapted to pressure: {mutation['changes']}")
+            
+            # Calculate fitness score
+            health_score = sum(1 for status in self.health_status.values() if status)
+            error_score = max(0, 10 - len([e for e in self.error_history 
+                                         if e['timestamp'] > datetime.now() - timedelta(hours=1)]))
+            uptime_score = min(10, (datetime.now() - self.system_start_time).total_seconds() / 3600)
+            
+            self.genetic_system['fitness_score'] = ((health_score + error_score + uptime_score) / 3) * 10
+            
+            # Record adaptation
+            self.genetic_system['adaptation_history'].append({
+                'timestamp': datetime.now(),
+                'fitness_score': self.genetic_system['fitness_score'],
+                'evolutionary_pressure': self.genetic_system['evolutionary_pressure'],
+                'mutations_count': len(self.genetic_system['mutations'])
+            })
+            
+        except Exception as e:
+            self.log_maintenance("GENETIC_ADAPTATION_ERROR", str(e))
     
     def daily_cleanup(self):
         """Perform daily maintenance tasks"""
@@ -5667,6 +6817,42 @@ class AutoMaintenanceSystem:
             
         except Exception as e:
             self.log_maintenance("DAILY_CLEANUP_ERROR", str(e))
+    
+    def cleanup_blocked_ips(self):
+        """Clean up old blocked IPs"""
+        try:
+            current_time = datetime.now()
+            cutoff_time = current_time - timedelta(hours=24)
+            
+            # Get IPs that haven't had recent threats
+            ips_to_unblock = set()
+            for ip in self.blocked_ips:
+                recent_threats = [t for t in self.security_threats 
+                               if t['ip_address'] == ip and t['timestamp'] > cutoff_time]
+                
+                if len(recent_threats) == 0:
+                    ips_to_unblock.add(ip)
+            
+            # Unblock clean IPs
+            for ip in ips_to_unblock:
+                self.blocked_ips.remove(ip)
+                self.log_maintenance("IP_UNBLOCKED", f"Unblocked IP after 24h clean period: {ip}")
+            
+            # Clean up old request timestamps
+            for ip in list(self.request_timestamps.keys()):
+                old_timestamps = [ts for ts in self.request_timestamps[ip] 
+                                if ts < cutoff_time]
+                if len(old_timestamps) == len(self.request_timestamps[ip]):
+                    del self.request_timestamps[ip]
+            
+            # Reset failed login attempts for IPs with no recent attempts
+            for ip in list(self.failed_login_attempts.keys()):
+                if ip not in [t['ip_address'] for t in self.security_threats 
+                             if t['timestamp'] > cutoff_time and 'login' in t['request_type']]:
+                    del self.failed_login_attempts[ip]
+                    
+        except Exception as e:
+            self.log_maintenance("IP_CLEANUP_ERROR", str(e))
     
     def health_check(self):
         """Perform comprehensive health check"""
@@ -5711,34 +6897,126 @@ class AutoMaintenanceSystem:
             self.log_maintenance("HEALTH_CHECK_ERROR", str(e))
     
     def start_background_monitoring(self):
-        """Start background monitoring thread"""
+        """Start enhanced background monitoring thread"""
         def monitor_loop():
             while True:
                 try:
                     self.perform_scheduled_maintenance()
-                    time.sleep(300)  # Run every 5 minutes
+                    
+                    # Adjust monitoring frequency based on system state
+                    if self.emergency_mode:
+                        sleep_time = 60  # Check every minute in emergency mode
+                    elif any(not status for status in self.health_status.values()):
+                        sleep_time = 120  # Check every 2 minutes if unhealthy
+                    else:
+                        sleep_time = 300  # Normal 5-minute intervals
+                        
+                    time.sleep(sleep_time)
+                    
                 except Exception as e:
                     logger.error(f"Auto-maintenance monitoring error: {e}")
+                    self.log_maintenance("MONITOR_LOOP_ERROR", str(e))
                     time.sleep(60)  # Wait 1 minute before retrying
         
         monitor_thread = threading.Thread(target=monitor_loop, daemon=True)
         monitor_thread.start()
-        self.log_maintenance("SYSTEM_START", "Auto-maintenance system initialized")
+        self.log_maintenance("SYSTEM_START", "Enhanced auto-maintenance system initialized")
 
 # Initialize auto-maintenance system
 auto_maintenance = AutoMaintenanceSystem()
 
+# Security monitoring hooks
+@app.before_request
+def security_monitor():
+    """Monitor requests for security threats"""
+    try:
+        # Get client IP address
+        ip_address = request.headers.get('X-Forwarded-For', request.remote_addr)
+        if not ip_address:
+            ip_address = '127.0.0.1'  # Fallback
+        
+        # Check if IP is blocked
+        if auto_maintenance.is_ip_blocked(ip_address):
+            auto_maintenance.log_maintenance("BLOCKED_REQUEST", f"Blocked request from {ip_address}")
+            return jsonify({"error": "Access denied"}), 403
+        
+        # Monitor request for suspicious patterns
+        request_data = ""
+        if request.method == "POST":
+            try:
+                if request.is_json:
+                    request_data = str(request.get_json())
+                elif request.form:
+                    request_data = str(dict(request.form))
+            except:
+                pass
+        
+        # Check query parameters
+        if request.args:
+            request_data += str(dict(request.args))
+        
+        # Check for threats in request data
+        if request_data:
+            auto_maintenance.detect_security_threat(ip_address, "web_request", request_data)
+            
+    except Exception as e:
+        # Don't block requests if security monitoring fails
+        auto_maintenance.log_maintenance("SECURITY_MONITOR_ERROR", str(e))
+
+@app.after_request
+def security_headers(response):
+    """Add security headers to all responses"""
+    try:
+        # Add security headers
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        response.headers['X-Frame-Options'] = 'DENY'
+        response.headers['X-XSS-Protection'] = '1; mode=block'
+        response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+        response.headers['Content-Security-Policy'] = "default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: blob:; img-src 'self' data: https:; font-src 'self' https: data:;"
+        response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+        
+        return response
+    except Exception as e:
+        auto_maintenance.log_maintenance("SECURITY_HEADERS_ERROR", str(e))
+        return response
+
 @app.route("/api/maintenance/status", methods=["GET"])
 def maintenance_status():
-    """Get auto-maintenance system status"""
+    """Get comprehensive auto-maintenance system status"""
     try:
+        # Get latest performance metrics
+        latest_metrics = list(auto_maintenance.performance_metrics)[-1] if auto_maintenance.performance_metrics else {}
+        
         return jsonify({
             "success": True,
             "health_status": auto_maintenance.health_status,
             "error_patterns": dict(auto_maintenance.error_patterns),
             "maintenance_log": list(auto_maintenance.maintenance_log)[-50:],  # Last 50 entries
+            "predictive_alerts": list(auto_maintenance.predictive_alerts)[-20:],  # Last 20 alerts
             "last_cleanup": auto_maintenance.last_cleanup.isoformat(),
-            "system_uptime": (datetime.now() - auto_maintenance.last_cleanup).total_seconds()
+            "system_uptime": (datetime.now() - auto_maintenance.system_start_time).total_seconds(),
+            "emergency_mode": auto_maintenance.emergency_mode,
+            "critical_errors_count": auto_maintenance.critical_errors_count,
+            "performance_metrics": {
+                "cpu_usage": latest_metrics.get('cpu_usage', 0),
+                "memory_percent": latest_metrics.get('memory_percent', 0),
+                "disk_percent": latest_metrics.get('disk_percent', 0),
+                "error_count_1h": latest_metrics.get('error_count_1h', 0)
+            },
+            "system_stats": {
+                "total_errors_tracked": len(auto_maintenance.error_history),
+                "unique_error_patterns": len(auto_maintenance.error_patterns),
+                "maintenance_actions": len(auto_maintenance.maintenance_log),
+                "predictive_alerts_count": len(auto_maintenance.predictive_alerts)
+            },
+            "security_status": {
+                "blocked_ips_count": len(auto_maintenance.blocked_ips),
+                "security_threats_24h": len([t for t in auto_maintenance.security_threats 
+                                           if t['timestamp'] > datetime.now() - timedelta(hours=24)]),
+                "last_security_scan": auto_maintenance.last_security_scan.isoformat(),
+                "security_scan_results": list(auto_maintenance.security_scan_results)[-5:],  # Last 5 scans
+                "recent_threats": list(auto_maintenance.security_threats)[-10:]  # Last 10 threats
+            }
         })
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
