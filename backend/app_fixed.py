@@ -6406,32 +6406,45 @@ class AutoMaintenanceSystem:
             return 7  # Default production
     
     def detect_security_threat(self, ip_address, request_type, details="", request_path=""):
-        """Detect and respond to security threats"""
+        """Detect and respond to security threats with context-aware filtering"""
         try:
             current_time = datetime.now()
             threat_detected = False
             threat_level = "low"
             
-            # Rate limiting check
+            # Define safe routes that bypass security scanning
+            SAFE_ROUTES = [
+                "/admin/watchdog", "/admin/trap-logs", "/admin/toggle-watchdog", 
+                "/admin/surveillance", "/admin/emergency-unblock", "/admin/whitelist-me",
+                "/health", "/static/"
+            ]
+            
+            # Define parameters to ignore during scanning (like admin keys)
+            IGNORED_PARAMS = {"key"}
+            
+            # Skip threat detection for safe admin routes
+            is_safe_route = any(request_path.startswith(route) for route in SAFE_ROUTES)
+            
+            # Rate limiting check (still apply to all routes)
             if self.check_rate_limiting(ip_address, current_time):
                 threat_detected = True
                 threat_level = "medium"
                 self.log_maintenance("RATE_LIMIT_VIOLATION", f"IP {ip_address} exceeded rate limits")
             
-            # SQL injection detection
-            if self.detect_sql_injection(details):
+            # SQL injection detection - skip for safe routes and filter safe params
+            if not is_safe_route and self.detect_sql_injection_filtered(details):
                 threat_detected = True
                 threat_level = "high"
                 self.log_threat(ip_address, f"SQL injection attempt detected in request data", "high")
             
-            # XSS detection
-            if self.detect_xss_attempt(details):
+            # XSS detection - skip for safe routes
+            if not is_safe_route and self.detect_xss_attempt(details):
                 threat_detected = True
                 threat_level = "high"
                 self.log_threat(ip_address, f"XSS attempt detected in request", "high")
             
-            # WordPress attack detection
-            if self.detect_wordpress_attack(request_path, details):
+            # WordPress attack detection - skip for safe routes
+            if not is_safe_route and self.detect_wordpress_attack(request_path, details):
                 threat_detected = True
                 threat_level = "medium"
                 self.log_threat(ip_address, f"WordPress attack attempt on {request_path}", "medium")
@@ -6492,6 +6505,39 @@ class AutoMaintenanceSystem:
             if re.search(pattern, content_lower):
                 return True
         return False
+        
+    def detect_sql_injection_filtered(self, content):
+        """Detect SQL injection attempts with parameter filtering"""
+        if not content:
+            return False
+            
+        # Define parameters to ignore during scanning
+        IGNORED_PARAMS = {"key"}
+        
+        try:
+            # Parse the content to extract individual parameters
+            import re
+            import urllib.parse
+            
+            # If content looks like a dictionary string, parse it
+            if "'" in content and ":" in content:
+                # Handle dictionary-like content from request data
+                # Look for individual parameter values, ignoring safe ones
+                content_filtered = content
+                for ignored_param in IGNORED_PARAMS:
+                    # Remove ignored parameter values from scanning
+                    param_pattern = rf"'{ignored_param}':\s*'[^']*'"
+                    content_filtered = re.sub(param_pattern, "", content_filtered)
+                    
+                # Use the original detection on filtered content
+                return self.detect_sql_injection(content_filtered)
+            else:
+                # For other content types, use original detection
+                return self.detect_sql_injection(content)
+                
+        except Exception:
+            # Fallback to original detection if filtering fails
+            return self.detect_sql_injection(content)
     
     def detect_xss_attempt(self, content):
         """Detect XSS attempts"""
