@@ -848,7 +848,7 @@
                 flex-wrap: wrap;
                 align-items: center;
             ">
-                <div onclick="toggleNavigationAssistant()" style="
+                <a href="/help" onclick="event.preventDefault(); toggleNavigationAssistant(); return false;" style="
                     font-size: 0.9rem;
                     padding: 0.5rem 1rem;
                     background: rgba(249, 115, 22, 0.2);
@@ -860,6 +860,7 @@
                     display: flex;
                     align-items: center;
                     gap: 0.5rem;
+                    text-decoration: none;
                 " onmouseover="this.style.background='rgba(249, 115, 22, 0.3)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(249, 115, 22, 0.2)'; this.style.transform='translateY(0)'">
                     <img src="/static/logos/Sapphire.png" alt="Sapphire" style="
                         width: 32px;
@@ -868,9 +869,9 @@
                     " onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
                     <span style="font-size: 1.2rem; display: none;">🔮</span>
                     <span>Need Help? Ask Sapphire</span>
-                </div>
+                </a>
                 
-                <div onclick="showCharacterSelect()" style="
+                <a href="#character-select" onclick="event.preventDefault(); showCharacterSelect(); return false;" style="
                     font-size: 1rem;
                     padding: 0.75rem 1.5rem;
                     background: none;
@@ -880,9 +881,11 @@
                     text-align: center;
                     font-weight: bold;
                     transition: all 0.3s ease;
+                    text-decoration: none;
+                    display: inline-block;
                 " data-translate="begin_journey">
                     Begin Your Journey ✨
-                </div>
+                </a>
                 
                 <a href="/subscription" style="
                     display: inline-block;
