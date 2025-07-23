@@ -7196,8 +7196,8 @@ def security_monitor():
         if not ip_address:
             ip_address = '127.0.0.1'  # Fallback
         
-        # Check if IP is blocked
-        if auto_maintenance.is_ip_blocked(ip_address):
+        # Check if IP is blocked (but allow emergency unblock route)
+        if auto_maintenance.is_ip_blocked(ip_address) and request.endpoint != 'emergency_unblock':
             auto_maintenance.log_maintenance("BLOCKED_REQUEST", f"Blocked request from {ip_address}")
             return jsonify({"error": "Access denied"}), 403
         
@@ -7808,6 +7808,25 @@ def admin_trap_logs():
         return "No trap logs available yet.", 200
     except Exception as e:
         return f"Error reading trap logs: {str(e)}", 500
+
+@app.route("/admin/emergency-unblock")
+def emergency_unblock():
+    """Emergency admin route to unblock IPs - bypasses security"""
+    key = request.args.get("key")
+    if key != ADMIN_DASH_KEY:
+        return jsonify({"error": "Unauthorized"}), 403
+    
+    # Clear all blocked IPs
+    blocked_count = len(auto_maintenance.blocked_ips)
+    auto_maintenance.blocked_ips.clear()
+    auto_maintenance.log_maintenance("EMERGENCY_UNBLOCK", f"Admin cleared {blocked_count} blocked IPs")
+    
+    return jsonify({
+        "success": True,
+        "message": f"Emergency unblock completed - cleared {blocked_count} IPs",
+        "cleared_ips": blocked_count,
+        "timestamp": datetime.now().isoformat()
+    })
 
 @app.route("/admin/system-status")
 def admin_system_status():
