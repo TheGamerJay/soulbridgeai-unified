@@ -40,7 +40,6 @@ if not secret_key:
 app.secret_key = secret_key
 
 # Session configuration for proper persistence
-from datetime import timedelta
 app.config['SESSION_PERMANENT'] = True
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
 app.config['SESSION_COOKIE_HTTPONLY'] = True
