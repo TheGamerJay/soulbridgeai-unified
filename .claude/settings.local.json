@@ -50,7 +50,9 @@
       "Bash(git ls-tree:*)",
       "Bash(rg:*)",
       "Bash(cd \"C:\\Users\\jaaye\\OneDrive\\Desktop\\soulbridgeai-unified\\backend\")",
-      "Bash(python -c \"import watchdog; print(''watchdog available'')\")"
+      "Bash(python -c \"import watchdog; print(''watchdog available'')\")",
+      "Bash(chmod:*)",
+      "Bash(gunicorn:*)"
     ],
     "deny": []
   }

@@ -24,6 +24,7 @@ from functools import wraps
 from datetime import datetime, timezone, timedelta
 from flask import Flask, jsonify, render_template, request, session, redirect, url_for, flash, make_response, has_request_context
 from flask_cors import CORS
+from flask_caching import Cache
 
 # Load environment variables from .env files
 try:
@@ -44,6 +45,14 @@ logger = logging.getLogger(__name__)
 
 # Create Flask app with secure session configuration
 app = Flask(__name__)
+
+# Configure Flask-Caching for performance optimization
+cache_config = {
+    'CACHE_TYPE': 'simple',  # In-memory cache for single process
+    'CACHE_DEFAULT_TIMEOUT': 300  # 5 minutes default timeout
+}
+app.config.update(cache_config)
+cache = Cache(app)
 
 # CRITICAL: Add health check IMMEDIATELY for Railway
 @app.route("/health")
@@ -1390,13 +1399,19 @@ def decoder():
 # ADDITIONAL ROUTES
 # ========================================
 
+@cache.memoize(timeout=600)  # Cache for 10 minutes
+def get_cached_help_template():
+    """Cached helper for help template rendering"""
+    return render_template("help.html")
+
 @app.route("/help")
 def help_page():
     """Help and support page"""
     try:
         if not is_logged_in():
             return redirect("/login")
-        return render_template("help.html")
+        # Cache the template rendering, not the entire response
+        return get_cached_help_template()
     except Exception as e:
         logger.error(f"Help page error: {e}")
         # Fallback to simple help content
@@ -4566,6 +4581,16 @@ def get_user_insights():
     """Get comprehensive user insights dashboard"""
     try:
         user_email = session.get("user_email", "test@soulbridgeai.com")
+        # Cache insights per user for 5 minutes to reduce database load
+        return get_cached_user_insights(user_email)
+    except Exception as e:
+        logger.error(f"Insights route error: {e}")
+        return jsonify({"success": False, "error": "Failed to load insights"}), 500
+
+@cache.memoize(timeout=300)  # Cache for 5 minutes
+def get_cached_user_insights(user_email):
+    """Cached helper for user insights to reduce database queries"""
+    try:
         
         if services["database"] and db:
             conn = db.get_connection()

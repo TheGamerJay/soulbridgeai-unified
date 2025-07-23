@@ -1,1 +1,1 @@
-web: cd backend && python app_fixed.py
+web: cd backend && waitress-serve --host=0.0.0.0 --port=$PORT --threads=8 --connection-limit=1000 app_fixed:app
