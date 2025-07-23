@@ -13,6 +13,7 @@ import sys
 import logging
 import time
 import secrets
+import json
 from datetime import datetime, timezone, timedelta
 from flask import Flask, jsonify, render_template, request, session, redirect, url_for, flash, make_response
 from flask_cors import CORS
@@ -898,6 +899,7 @@ def create_checkout_session():
         price_cents = plan_prices[plan_type]
         
         user_email = session.get("user_email")
+        user_id = session.get("user_id")  # Get user_id from session
         
         try:
             # Create Stripe checkout session
@@ -923,7 +925,9 @@ def create_checkout_session():
                 cancel_url=f"{request.host_url}payment/cancel?plan={plan_type}",
                 metadata={
                     'plan_type': plan_type,
-                    'user_email': user_email
+                    'user_email': user_email,
+                    'user_id': str(user_id) if user_id else None,  # Add user_id to metadata
+                    'plan': 'Growth' if plan_type == 'premium' else 'Transformation'  # Friendly plan name
                 }
             )
             
@@ -1700,6 +1704,144 @@ def stripe_webhook():
         logger.error(f"   Error type: {type(e).__name__}")
         logger.error(f"   Error details: {str(e)}")
         return "Webhook error", 400
+
+def update_user_subscription(user_id, new_status):
+    """Update user subscription status in database"""
+    try:
+        if not services.get("database"):
+            logger.error("❌ Database not available for subscription update")
+            return False
+            
+        database_obj = services["database"]
+        conn = database_obj.get_connection()
+        cursor = conn.cursor()
+        
+        logger.info(f"🔄 Updating user {user_id} subscription to {new_status}")
+        
+        # Update user subscription in both users table (if column exists) and subscriptions table
+        if database_obj.use_postgres:
+            # Try to update users table if it has a subscription column
+            try:
+                cursor.execute("UPDATE users SET subscription_status = %s WHERE id = %s", (new_status, user_id))
+                logger.info(f"Updated users table for user {user_id}")
+            except Exception as e:
+                logger.info(f"Users table may not have subscription_status column: {e}")
+            
+            # Update/Insert into subscriptions table
+            cursor.execute("""
+                INSERT INTO subscriptions (user_id, plan_type, status, created_at, updated_at)
+                VALUES (%s, %s, 'active', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                ON CONFLICT (user_id) DO UPDATE SET 
+                    plan_type = EXCLUDED.plan_type,
+                    status = 'active',
+                    updated_at = CURRENT_TIMESTAMP
+            """, (user_id, new_status))
+        else:
+            # SQLite version
+            try:
+                cursor.execute("UPDATE users SET subscription_status = ? WHERE id = ?", (new_status, user_id))
+                logger.info(f"Updated users table for user {user_id}")
+            except Exception as e:
+                logger.info(f"Users table may not have subscription_status column: {e}")
+                
+            # Update/Insert into subscriptions table
+            cursor.execute("""
+                INSERT OR REPLACE INTO subscriptions (user_id, plan_type, status, created_at, updated_at)
+                VALUES (?, ?, 'active', datetime('now'), datetime('now'))
+            """, (user_id, new_status))
+        
+        conn.commit()
+        conn.close()
+        logger.info(f"✅ Successfully updated subscription for user {user_id} to {new_status}")
+        return True
+        
+    except Exception as e:
+        logger.error(f"❌ Failed to update subscription for user {user_id}: {e}")
+        try:
+            conn.rollback()
+            conn.close()
+        except:
+            pass
+        return False
+
+@app.route('/api/stripe-webhook', methods=['POST'])
+def stripe_webhook_simple():
+    """Simplified Stripe webhook handler as requested"""
+    logger.info("🎯 Stripe Webhook Hit! (Simple Handler)")
+    
+    payload = request.data
+    sig_header = request.headers.get('Stripe-Signature')
+    webhook_secret = os.environ.get("STRIPE_WEBHOOK_SECRET")
+
+    try:
+        import stripe
+        stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
+        
+        # Verify webhook signature
+        if webhook_secret:
+            event = stripe.Webhook.construct_event(payload, sig_header, webhook_secret)
+            logger.info("✅ Webhook signature verified")
+        else:
+            logger.warning("⚠️ No webhook secret - parsing without verification")
+            event = stripe.Event.construct_from(json.loads(payload), stripe.api_key)
+            
+    except Exception as e:
+        logger.error(f"❌ Webhook verification failed: {str(e)}")
+        return '', 400
+
+    logger.info(f"📨 Webhook event type: {event['type']}")
+
+    if event['type'] == 'checkout.session.completed':
+        session_data = event['data']['object']
+        email = session_data.get('customer_email')
+        user_id = session_data.get('metadata', {}).get('user_id')
+        plan = session_data.get('metadata', {}).get('plan', 'Growth')
+        
+        logger.info(f"💳 Payment completed - Email: {email}, User ID: {user_id}, Plan: {plan}")
+        
+        if user_id:
+            # Map plan to subscription status
+            new_status = "premium" if plan == "Growth" else "enterprise"
+            success = update_user_subscription(user_id, new_status)
+            if success:
+                logger.info(f"🎉 Successfully upgraded user {user_id} to {new_status}")
+            else:
+                logger.error(f"❌ Failed to upgrade user {user_id}")
+        else:
+            logger.error("❌ No user_id in webhook metadata - cannot update subscription")
+
+    return '', 200
+
+@app.route('/api/stripe-webhook/test', methods=['POST'])
+def test_simple_webhook():
+    """Test the simple webhook with mock data"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+            
+        user_email = session.get("user_email")
+        user_id = session.get("user_id")
+        
+        logger.info(f"🧪 Testing webhook for user: {user_email} (ID: {user_id})")
+        
+        if user_id:
+            # Test subscription update
+            success = update_user_subscription(user_id, "premium")
+            if success:
+                return jsonify({
+                    "success": True,
+                    "message": f"Test webhook successful - upgraded user {user_id} to premium",
+                    "user_id": user_id,
+                    "user_email": user_email
+                })
+            else:
+                return jsonify({"success": False, "error": "Database update failed"}), 500
+        else:
+            return jsonify({"success": False, "error": "No user_id in session"}), 400
+            
+    except Exception as e:
+        logger.error(f"Webhook test error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route("/api/webhooks/stripe/test", methods=["POST"])
 def test_stripe_webhook():
