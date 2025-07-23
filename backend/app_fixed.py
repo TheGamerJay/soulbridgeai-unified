@@ -1282,7 +1282,7 @@ def payment_success():
         # Verify payment with Stripe
         stripe_secret_key = os.environ.get("STRIPE_SECRET_KEY")
         if stripe_secret_key:
-                stripe.api_key = stripe_secret_key
+            stripe.api_key = stripe_secret_key
             
             try:
                 checkout_session = stripe.checkout.Session.retrieve(session_id)
