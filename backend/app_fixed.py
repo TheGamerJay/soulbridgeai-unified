@@ -100,7 +100,7 @@ def maintain_session():
         session_cookie = request.cookies.get(app.config.get('SESSION_COOKIE_NAME', 'soulbridge_session'))
         
         # If there's no session but we're on a page that needs one, set up basic session
-        if not session.get("user_email") and request.endpoint in ['chat', 'profile', 'subscription', 'community_dashboard', 'library', 'decoder', 'export_user_conversations', 'insights_dashboard', 'referrals', 'api_users', 'check_switching_status', 'create_switching_payment', 'payment_success', 'payment_cancel', 'payment', 'api_referrals_dashboard', 'api_referrals_share_templates']:
+        if not session.get("user_email") and request.endpoint in ['chat', 'profile', 'subscription', 'community_dashboard', 'library', 'decoder', 'export_user_conversations', 'insights_dashboard', 'referrals', 'api_users', 'check_switching_status', 'create_switching_payment', 'payment_success', 'payment_cancel', 'payment', 'api_referrals_dashboard', 'api_referrals_share_templates', 'maintenance_status', 'trigger_maintenance', 'force_fix', 'maintenance_dashboard']:
             logger.info(f"Setting up session for {request.endpoint} page")
             session['user_email'] = 'test@soulbridgeai.com'
             session['user_id'] = 'temp_test_user'
@@ -127,6 +127,11 @@ def maintain_session():
             
     except Exception as e:
         logger.error(f"Session maintenance error: {e}")
+        # Report session maintenance errors to auto-maintenance system
+        try:
+            auto_maintenance.detect_error_pattern("SESSION_MAINTENANCE", str(e))
+        except:
+            pass
 openai_client = None
 email_service = None
 socketio = None
@@ -1362,6 +1367,28 @@ def help_page():
             <a href="/" style="color: #22d3ee;">← Back to Chat</a>
         </body></html>
         """
+
+@app.route("/maintenance")
+def maintenance_dashboard():
+    """Auto-maintenance dashboard page"""
+    try:
+        # Set up temporary session for testing
+        if not session.get('user_email'):
+            logger.info("Setting up session for maintenance dashboard")
+            session['user_email'] = 'test@soulbridgeai.com'
+            session['user_id'] = 'temp_test_user'
+            session['user_authenticated'] = True
+            session['login_timestamp'] = datetime.now().isoformat()
+            session['user_plan'] = 'foundation'
+            session['selected_companion'] = 'Blayzo'
+            session.permanent = True
+            session.modified = True
+        
+        return render_template("maintenance.html")
+        
+    except Exception as e:
+        logger.error(f"Maintenance dashboard error: {e}")
+        return redirect(url_for("home"))
 
 @app.route("/terms")
 def terms_page():
@@ -5454,8 +5481,328 @@ def api_chat():
         
     except Exception as e:
         logger.error(f"Chat API error: {e}")
+        # Report error to auto-maintenance system
+        try:
+            auto_maintenance.detect_error_pattern("CHAT_API_ERROR", str(e))
+        except:
+            pass
         return jsonify({"success": False, "response": "Sorry, I encountered an error."}), 500
 
+
+# ========================================
+# AUTO-MAINTENANCE SYSTEM
+# ========================================
+
+import threading
+from collections import defaultdict, deque
+from datetime import datetime, timedelta
+
+class AutoMaintenanceSystem:
+    def __init__(self):
+        self.error_patterns = defaultdict(int)
+        self.error_history = deque(maxlen=1000)
+        self.last_cleanup = datetime.now()
+        self.health_status = {
+            'database': True,
+            'sessions': True,
+            'api_endpoints': True,
+            'memory_usage': True
+        }
+        self.maintenance_log = deque(maxlen=500)
+        self.start_background_monitoring()
+    
+    def log_maintenance(self, action, details):
+        """Log maintenance actions"""
+        timestamp = datetime.now().isoformat()
+        log_entry = f"[{timestamp}] {action}: {details}"
+        self.maintenance_log.append(log_entry)
+        logger.info(f"🔧 AUTO-MAINTENANCE: {action} - {details}")
+    
+    def detect_error_pattern(self, error_type, error_msg):
+        """Detect if an error pattern is occurring frequently"""
+        pattern_key = f"{error_type}:{error_msg[:100]}"
+        self.error_patterns[pattern_key] += 1
+        self.error_history.append({
+            'timestamp': datetime.now(),
+            'pattern': pattern_key,
+            'count': self.error_patterns[pattern_key]
+        })
+        
+        # If error occurs more than 5 times in 10 minutes, trigger auto-fix
+        if self.error_patterns[pattern_key] >= 5:
+            recent_errors = [e for e in self.error_history 
+                           if e['pattern'] == pattern_key and 
+                           e['timestamp'] > datetime.now() - timedelta(minutes=10)]
+            if len(recent_errors) >= 5:
+                self.auto_fix_pattern(pattern_key)
+    
+    def auto_fix_pattern(self, pattern_key):
+        """Automatically fix common error patterns"""
+        try:
+            if "session" in pattern_key.lower():
+                self.fix_session_issues()
+            elif "database" in pattern_key.lower():
+                self.fix_database_issues()
+            elif "api" in pattern_key.lower():
+                self.fix_api_issues()
+            elif "memory" in pattern_key.lower():
+                self.fix_memory_issues()
+            
+            # Reset error count after fixing
+            self.error_patterns[pattern_key] = 0
+            self.log_maintenance("PATTERN_FIX", f"Auto-fixed recurring error: {pattern_key}")
+            
+        except Exception as e:
+            self.log_maintenance("FIX_FAILED", f"Failed to auto-fix {pattern_key}: {e}")
+    
+    def fix_session_issues(self):
+        """Auto-fix session-related problems"""
+        try:
+            # Clear corrupted sessions from memory
+            corrupted_sessions = []
+            for session_id in list(session.keys()) if hasattr(session, 'keys') else []:
+                try:
+                    # Test session validity
+                    if not session.get('user_email') and session.get('user_authenticated'):
+                        corrupted_sessions.append(session_id)
+                except:
+                    corrupted_sessions.append(session_id)
+            
+            for session_id in corrupted_sessions:
+                try:
+                    del session[session_id]
+                except:
+                    pass
+            
+            self.health_status['sessions'] = True
+            self.log_maintenance("SESSION_CLEANUP", f"Cleared {len(corrupted_sessions)} corrupted sessions")
+            
+        except Exception as e:
+            self.log_maintenance("SESSION_FIX_ERROR", str(e))
+    
+    def fix_database_issues(self):
+        """Auto-fix database connection problems"""
+        try:
+            global db
+            # Test database connection
+            if hasattr(db, 'test_connection'):
+                if not db.test_connection():
+                    # Reinitialize database connection
+                    db.initialize_connection()
+                    self.log_maintenance("DB_RECONNECT", "Database connection restored")
+            
+            self.health_status['database'] = True
+            
+        except Exception as e:
+            self.health_status['database'] = False
+            self.log_maintenance("DB_FIX_ERROR", str(e))
+    
+    def fix_api_issues(self):
+        """Auto-fix API endpoint problems"""
+        try:
+            # Clear any stuck API states
+            global openai_client
+            if openai_client is None:
+                # Reinitialize OpenAI client
+                try:
+                    import openai
+                    openai_client = openai.OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+                    self.log_maintenance("API_REINIT", "OpenAI client reinitialized")
+                except:
+                    pass
+            
+            self.health_status['api_endpoints'] = True
+            
+        except Exception as e:
+            self.log_maintenance("API_FIX_ERROR", str(e))
+    
+    def fix_memory_issues(self):
+        """Auto-fix memory-related problems"""
+        try:
+            import gc
+            gc.collect()  # Force garbage collection
+            self.log_maintenance("MEMORY_CLEANUP", "Forced garbage collection")
+            self.health_status['memory_usage'] = True
+            
+        except Exception as e:
+            self.log_maintenance("MEMORY_FIX_ERROR", str(e))
+    
+    def perform_scheduled_maintenance(self):
+        """Perform routine maintenance tasks"""
+        try:
+            current_time = datetime.now()
+            
+            # Daily cleanup (if more than 24 hours since last cleanup)
+            if current_time - self.last_cleanup > timedelta(hours=24):
+                self.daily_cleanup()
+                self.last_cleanup = current_time
+            
+            # Health checks every 5 minutes
+            self.health_check()
+            
+        except Exception as e:
+            self.log_maintenance("SCHEDULED_ERROR", str(e))
+    
+    def daily_cleanup(self):
+        """Perform daily maintenance tasks"""
+        try:
+            # Clear old error patterns (older than 24 hours)
+            old_patterns = []
+            for pattern in self.error_patterns:
+                # Reset counts older than 24 hours
+                recent_errors = [e for e in self.error_history 
+                               if e['pattern'] == pattern and 
+                               e['timestamp'] > datetime.now() - timedelta(hours=24)]
+                if len(recent_errors) == 0:
+                    old_patterns.append(pattern)
+            
+            for pattern in old_patterns:
+                del self.error_patterns[pattern]
+            
+            # Force garbage collection
+            import gc
+            gc.collect()
+            
+            self.log_maintenance("DAILY_CLEANUP", f"Cleared {len(old_patterns)} old error patterns")
+            
+        except Exception as e:
+            self.log_maintenance("DAILY_CLEANUP_ERROR", str(e))
+    
+    def health_check(self):
+        """Perform comprehensive health check"""
+        try:
+            # Check database connectivity
+            try:
+                if hasattr(db, 'test_connection'):
+                    self.health_status['database'] = db.test_connection()
+                else:
+                    self.health_status['database'] = True
+            except:
+                self.health_status['database'] = False
+                self.fix_database_issues()
+            
+            # Check session system
+            try:
+                test_session = session.get('test_key', None)
+                self.health_status['sessions'] = True
+            except:
+                self.health_status['sessions'] = False
+                self.fix_session_issues()
+            
+            # Check API endpoints
+            try:
+                global openai_client
+                self.health_status['api_endpoints'] = openai_client is not None
+            except:
+                self.health_status['api_endpoints'] = False
+                self.fix_api_issues()
+            
+            # Check memory usage
+            try:
+                import psutil
+                memory_percent = psutil.virtual_memory().percent
+                self.health_status['memory_usage'] = memory_percent < 90
+                if memory_percent > 90:
+                    self.fix_memory_issues()
+            except:
+                self.health_status['memory_usage'] = True
+            
+        except Exception as e:
+            self.log_maintenance("HEALTH_CHECK_ERROR", str(e))
+    
+    def start_background_monitoring(self):
+        """Start background monitoring thread"""
+        def monitor_loop():
+            while True:
+                try:
+                    self.perform_scheduled_maintenance()
+                    time.sleep(300)  # Run every 5 minutes
+                except Exception as e:
+                    logger.error(f"Auto-maintenance monitoring error: {e}")
+                    time.sleep(60)  # Wait 1 minute before retrying
+        
+        monitor_thread = threading.Thread(target=monitor_loop, daemon=True)
+        monitor_thread.start()
+        self.log_maintenance("SYSTEM_START", "Auto-maintenance system initialized")
+
+# Initialize auto-maintenance system
+auto_maintenance = AutoMaintenanceSystem()
+
+@app.route("/api/maintenance/status", methods=["GET"])
+def maintenance_status():
+    """Get auto-maintenance system status"""
+    try:
+        return jsonify({
+            "success": True,
+            "health_status": auto_maintenance.health_status,
+            "error_patterns": dict(auto_maintenance.error_patterns),
+            "maintenance_log": list(auto_maintenance.maintenance_log)[-50:],  # Last 50 entries
+            "last_cleanup": auto_maintenance.last_cleanup.isoformat(),
+            "system_uptime": (datetime.now() - auto_maintenance.last_cleanup).total_seconds()
+        })
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/api/maintenance/trigger", methods=["POST"])
+def trigger_maintenance():
+    """Manually trigger maintenance tasks"""
+    try:
+        data = request.get_json() or {}
+        task = data.get("task", "health_check")
+        
+        if task == "health_check":
+            auto_maintenance.health_check()
+            message = "Health check completed"
+        elif task == "daily_cleanup":
+            auto_maintenance.daily_cleanup()
+            message = "Daily cleanup completed"
+        elif task == "session_cleanup":
+            auto_maintenance.fix_session_issues()
+            message = "Session cleanup completed"
+        elif task == "database_check":
+            auto_maintenance.fix_database_issues()
+            message = "Database check completed"
+        else:
+            return jsonify({"success": False, "error": "Invalid task"}), 400
+        
+        return jsonify({
+            "success": True,
+            "message": message,
+            "health_status": auto_maintenance.health_status
+        })
+        
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/api/maintenance/force-fix", methods=["POST"])
+def force_fix():
+    """Force fix a specific error pattern"""
+    try:
+        data = request.get_json() or {}
+        pattern = data.get("pattern")
+        
+        if not pattern:
+            return jsonify({"success": False, "error": "Pattern required"}), 400
+        
+        auto_maintenance.auto_fix_pattern(pattern)
+        
+        return jsonify({
+            "success": True,
+            "message": f"Attempted to fix pattern: {pattern}",
+            "health_status": auto_maintenance.health_status
+        })
+        
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+# Enhanced error handling with auto-maintenance integration
+def handle_error_with_maintenance(error_type, error_msg, response_data, status_code=500):
+    """Handle errors and trigger auto-maintenance if needed"""
+    try:
+        auto_maintenance.detect_error_pattern(error_type, str(error_msg))
+        return response_data, status_code
+    except:
+        return response_data, status_code
 
 # ========================================
 # UTILITY ROUTES  
@@ -5465,15 +5812,26 @@ def api_chat():
 def favicon():
     return app.send_static_file('favicon.ico')
 
-# Error handlers
+# Enhanced Error handlers with auto-maintenance integration
 @app.errorhandler(404)
 def not_found(e):
-    return jsonify({"error": "Not found"}), 404
+    response, status = handle_error_with_maintenance("404_ERROR", str(e), 
+                                                   jsonify({"error": "Not found"}), 404)
+    return response, status
 
 @app.errorhandler(500)
 def server_error(e):
     logger.error(f"Server error: {e}")
-    return jsonify({"error": "Internal server error"}), 500
+    response, status = handle_error_with_maintenance("500_ERROR", str(e),
+                                                   jsonify({"error": "Internal server error"}), 500)
+    return response, status
+
+@app.errorhandler(Exception)
+def handle_exception(e):
+    logger.error(f"Unhandled exception: {e}")
+    response, status = handle_error_with_maintenance("UNHANDLED_EXCEPTION", str(e),
+                                                   jsonify({"error": "An unexpected error occurred"}), 500)
+    return response, status
 
 # ========================================
 # APPLICATION STARTUP
