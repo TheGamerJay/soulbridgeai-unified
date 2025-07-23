@@ -4722,30 +4722,13 @@ def export_user_conversations():
 def api_users():
     """Get or create user profile data"""
     try:
-        # TEMPORARY BYPASS: Skip auth check for Stripe testing
-        # TODO: Re-enable this after confirming Stripe functionality  
-        # if not is_logged_in():
-        #     return jsonify({"success": False, "error": "Authentication required"}), 401
+        # Authentication check
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
         
-        # Get user data from session - don't create fake session if not logged in
+        # Get user data from authenticated session
         user_email = session.get("user_email", "")
         user_id = session.get("user_id")
-        
-        # If no user session exists, set up a basic session for profile functionality
-        if not user_email:
-            logger.info("Setting up basic session for profile page")
-            session['user_email'] = 'test@soulbridgeai.com'
-            session['user_id'] = 'temp_test_user'
-            session['user_authenticated'] = True
-            session['login_timestamp'] = datetime.now().isoformat()
-            session['user_plan'] = 'foundation'
-            session['selected_companion'] = 'Blayzo'
-            session.permanent = True
-            session.modified = True
-            
-            user_email = 'test@soulbridgeai.com'
-            user_id = 'temp_test_user'
-            logger.info("Basic session setup complete for profile")
         
         # For POST requests (create/update profile)
         if request.method == "POST":

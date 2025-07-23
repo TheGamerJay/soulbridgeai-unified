@@ -397,7 +397,7 @@
 </head>
 <body>
     <!-- Back Button -->
-    <a href="/" style="
+    <a href="javascript:void(0)" onclick="goBackSafely()" style="
         position: fixed;
         top: 20px;
         right: 20px;
@@ -1217,6 +1217,17 @@
             });
         }
         
+        // Safe navigation back to intro
+        function goBackSafely() {
+            // Try to go to intro screen first
+            try {
+                window.location.href = '/?show_intro=true';
+            } catch (e) {
+                // Fallback to home
+                window.location.href = '/';
+            }
+        }
+
         // Load initial content
         document.addEventListener('DOMContentLoaded', function() {
             loadTabContent('my-communities');

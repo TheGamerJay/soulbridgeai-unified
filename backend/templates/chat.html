@@ -1791,14 +1791,26 @@
                 });
             } else {
                 // For all other users (including test accounts), clear any admin bypass
+                console.log('Non-developer account - clearing admin mode and purchased flags');
                 localStorage.removeItem('adminMode');
                 localStorage.removeItem('adminBypass');
+                localStorage.removeItem('switchingUnlocked');
                 var premiumChars = ['Blayzion', 'Blayzia', 'Violet', 'Crimson'];
                 premiumChars.forEach(char => {
                     localStorage.removeItem('purchased' + char);
                 });
                 isAdminMode = false;
                 adminBypass = false;
+                // Force update pricing display
+                setTimeout(() => {
+                    document.querySelectorAll('.premium-label').forEach(label => {
+                        if (label.textContent.includes('OWNED')) {
+                            label.textContent = '💎 Premium: $5.00';
+                            label.style.color = '';
+                            label.style.fontWeight = '';
+                        }
+                    });
+                }, 100);
             }
             
             console.log('=== ADMIN CHECK ===');
@@ -2138,6 +2150,12 @@
                                 var switchChoice = confirm('Switch to ' + characterName + '?');
                                 if (switchChoice) {
                                     localStorage.setItem('selectedCharacter', characterName);
+                                    // Reset greeting state for new character
+                                    if (window.GreetingManager) {
+                                        window.GreetingManager.resetForNewCharacter();
+                                    }
+                                    // Update premium features like voice chat button
+                                    checkPremiumFeatures();
                                     confirmChoice = confirm('Great! ' + characterName + ' is now your selected companion.\n\nWould you like to start chatting with ' + characterName + ' now?');
                                 }
                             } else {
@@ -2151,6 +2169,12 @@
                         if (isReferralCompanion) {
                             // Referral companions are free to switch to (earned through referrals)
                             localStorage.setItem('selectedCharacter', characterName);
+                            // Reset greeting state for new character
+                            if (window.GreetingManager) {
+                                window.GreetingManager.resetForNewCharacter();
+                            }
+                            // Update premium features like voice chat button
+                            checkPremiumFeatures();
                             confirmChoice = confirm('Great! ' + characterName + ' is now your selected companion.\n\nWould you like to start chatting with ' + characterName + ' now?');
                         } else {
                             // Premium characters require switching fee
@@ -2687,6 +2711,18 @@
             setTimeout(function() {
                 forceRainbowBackgrounds();
             }, 500);
+        },
+        
+        // Reset greeting state when character changes
+        resetForNewCharacter: function() {
+            console.log('🎭 GreetingManager: Resetting greeting state for new character');
+            this.hasGreetingBeenAdded = false;
+            this.isGreetingInProgress = false;
+            // Also reset NavigationController greeting state
+            if (window.NavigationController) {
+                window.NavigationController.state.greetingShown = false;
+            }
+        }
         }
         
         function showLibrary() {
@@ -5203,8 +5239,10 @@
                     // Show success message
                     alert(`🎉 Payment successful! You can now switch between Blayzo and Blayzica anytime for free!\n\nSwitched to ${pendingCharacter}!`);
                     
-                    // Refresh character selection
-                    location.reload();
+                    // Refresh character selection while preserving current screen
+                    const currentScreen = window.NavigationController?.state?.currentScreen || 'select';
+                    const refreshUrl = currentScreen === 'chat' ? '/' : '/?show_intro=false';
+                    window.location.href = refreshUrl;
                 } else {
                     alert('🎉 Payment successful! You can now switch between Blayzo and Blayzica anytime for free!');
                 }
