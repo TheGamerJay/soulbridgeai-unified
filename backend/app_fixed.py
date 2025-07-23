@@ -1764,30 +1764,64 @@ def update_user_subscription(user_id, new_status):
             pass
         return False
 
-@app.route('/api/stripe-webhook', methods=['POST'])
+@app.route('/api/stripe-webhook', methods=['GET', 'POST'])
 def stripe_webhook_simple():
     """Simplified Stripe webhook handler as requested"""
+    
+    # Handle GET requests for webhook endpoint testing
+    if request.method == 'GET':
+        logger.info("🔍 Webhook endpoint GET request received")
+        return jsonify({
+            "status": "webhook_endpoint_active",
+            "message": "Stripe webhook endpoint is reachable",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "stripe_key_configured": bool(os.environ.get("STRIPE_SECRET_KEY")),
+            "webhook_secret_configured": bool(os.environ.get("STRIPE_WEBHOOK_SECRET"))
+        }), 200
+    
+    # Handle POST requests (actual webhooks)
     logger.info("🎯 Stripe Webhook Hit! (Simple Handler)")
     
     payload = request.data
     sig_header = request.headers.get('Stripe-Signature')
     webhook_secret = os.environ.get("STRIPE_WEBHOOK_SECRET")
 
+    # Log webhook details for debugging
+    logger.info(f"🔍 Webhook Details:")
+    logger.info(f"   Payload size: {len(payload)} bytes")
+    logger.info(f"   Signature header: {'Present' if sig_header else 'Missing'}")
+    logger.info(f"   Webhook secret configured: {bool(webhook_secret)}")
+    logger.info(f"   Stripe key configured: {bool(os.environ.get('STRIPE_SECRET_KEY'))}")
+
     try:
         import stripe
         stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
         
+        if not stripe.api_key:
+            logger.error("❌ STRIPE_SECRET_KEY not configured")
+            return jsonify({"error": "Stripe not configured"}), 500
+        
         # Verify webhook signature
         if webhook_secret:
-            event = stripe.Webhook.construct_event(payload, sig_header, webhook_secret)
-            logger.info("✅ Webhook signature verified")
+            try:
+                event = stripe.Webhook.construct_event(payload, sig_header, webhook_secret)
+                logger.info("✅ Webhook signature verified")
+            except stripe.error.SignatureVerificationError as e:
+                logger.error(f"❌ Invalid webhook signature: {str(e)}")
+                return jsonify({"error": "Invalid signature"}), 400
         else:
-            logger.warning("⚠️ No webhook secret - parsing without verification")
-            event = stripe.Event.construct_from(json.loads(payload), stripe.api_key)
+            logger.warning("⚠️ No STRIPE_WEBHOOK_SECRET - parsing without verification (NOT RECOMMENDED)")
+            try:
+                event = stripe.Event.construct_from(json.loads(payload), stripe.api_key)
+                logger.info("⚠️ Webhook parsed without signature verification")
+            except Exception as parse_error:
+                logger.error(f"❌ Failed to parse webhook payload: {str(parse_error)}")
+                return jsonify({"error": "Invalid payload"}), 400
             
     except Exception as e:
-        logger.error(f"❌ Webhook verification failed: {str(e)}")
-        return '', 400
+        logger.error(f"❌ Webhook processing failed: {str(e)}")
+        logger.error(f"   Error type: {type(e).__name__}")
+        return jsonify({"error": "Webhook processing failed"}), 400
 
     logger.info(f"📨 Webhook event type: {event['type']}")
 
@@ -1810,7 +1844,27 @@ def stripe_webhook_simple():
         else:
             logger.error("❌ No user_id in webhook metadata - cannot update subscription")
 
-    return '', 200
+    return jsonify({"status": "success", "message": "Webhook processed"}), 200
+
+@app.route('/api/stripe-webhook/status', methods=['GET'])
+def webhook_status():
+    """Check webhook configuration status"""
+    return jsonify({
+        "webhook_endpoint": "/api/stripe-webhook",
+        "stripe_secret_key": "SET" if os.environ.get("STRIPE_SECRET_KEY") else "NOT SET", 
+        "stripe_publishable_key": "SET" if os.environ.get("STRIPE_PUBLISHABLE_KEY") else "NOT SET",
+        "stripe_webhook_secret": "SET" if os.environ.get("STRIPE_WEBHOOK_SECRET") else "NOT SET",
+        "database_available": bool(services.get("database")),
+        "expected_events": ["checkout.session.completed"],
+        "webhook_url_for_stripe": f"{request.host_url}api/stripe-webhook",
+        "test_url": f"{request.host_url}api/stripe-webhook/test",
+        "instructions": {
+            "1": "Add webhook URL to Stripe Dashboard: Developers → Webhooks → Add endpoint",
+            "2": "Set webhook URL to: your-domain.com/api/stripe-webhook", 
+            "3": "Listen for: checkout.session.completed",
+            "4": "Copy webhook signing secret to STRIPE_WEBHOOK_SECRET env var"
+        }
+    })
 
 @app.route('/api/stripe-webhook/test', methods=['POST'])
 def test_simple_webhook():
