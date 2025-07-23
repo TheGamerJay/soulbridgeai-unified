@@ -45,6 +45,11 @@ logger = logging.getLogger(__name__)
 # Create Flask app with secure session configuration
 app = Flask(__name__)
 
+# CRITICAL: Add health check IMMEDIATELY for Railway
+@app.route("/health")
+def health_check():
+    return "OK", 200
+
 # Security: Use strong secret key or generate one
 secret_key = os.environ.get("SECRET_KEY")
 if not secret_key:
@@ -73,6 +78,8 @@ ALLOWED_ORIGIN = os.environ.get("ALLOWED_ORIGIN", "*")
 
 # Create logs directory if it doesn't exist
 os.makedirs("logs", exist_ok=True)
+
+# Health check already defined above after Flask app creation
 
 # Configure Stripe
 stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
@@ -947,26 +954,7 @@ def initialize_services():
 # CORE ROUTES
 # ========================================
 
-@app.route("/health")
-def health():
-    """Production health check - always returns 200 for Railway"""
-    try:
-        # Simple health check that always succeeds for Railway
-        return jsonify({
-            "status": "healthy",
-            "service": "SoulBridge AI", 
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "message": "Service is running"
-        }), 200
-    except Exception as e:
-        logger.error(f"Health check failed: {e}")
-        # Still return 200 to pass Railway health check
-        return jsonify({
-            "status": "starting",
-            "service": "SoulBridge AI",
-            "error": str(e),
-            "timestamp": datetime.now(timezone.utc).isoformat()
-        }), 200
+# Health check route already defined above
 
 @app.route("/")
 def home():
