@@ -1346,6 +1346,89 @@ def test_stripe():
         logger.error(f"Stripe test error: {e}")
         return jsonify({"success": False, "error": "Test failed"}), 500
 
+@app.route("/api/test-checkout-no-auth", methods=["POST"])
+def test_checkout_no_auth():
+    """Test Stripe checkout without authentication (for debugging)"""
+    try:
+        logger.info("🧪 Testing Stripe checkout without auth")
+        
+        # Get Stripe key
+        stripe_secret_key = os.environ.get("STRIPE_SECRET_KEY")
+        if not stripe_secret_key:
+            return jsonify({
+                "success": False,
+                "error": "STRIPE_SECRET_KEY not configured"
+            }), 500
+        
+        import stripe
+        stripe.api_key = stripe_secret_key
+        
+        # Get plan from request or default to premium
+        data = request.get_json() or {}
+        plan_type = data.get("plan_type", "premium")
+        
+        # Plan configuration
+        plan_names = {"premium": "Growth Plan", "enterprise": "Transformation Plan"}
+        plan_prices = {"premium": 1299, "enterprise": 1999}  # cents
+        
+        plan_name = plan_names.get(plan_type, "Growth Plan")
+        price_cents = plan_prices.get(plan_type, 1299)
+        
+        logger.info(f"Creating test checkout for {plan_name} - ${price_cents/100}")
+        
+        # Create checkout session
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            customer_email="test@soulbridgeai.com",  # Test email
+            line_items=[{
+                'price_data': {
+                    'currency': 'usd',
+                    'product_data': {
+                        'name': f'SoulBridge AI - {plan_name} (TEST)',
+                        'description': f'Test subscription to {plan_name}',
+                    },
+                    'unit_amount': price_cents,
+                    'recurring': {'interval': 'month'}
+                },
+                'quantity': 1,
+            }],
+            mode='subscription',
+            success_url=f"{request.host_url}payment/success?session_id={{CHECKOUT_SESSION_ID}}&plan={plan_type}&test=true",
+            cancel_url=f"{request.host_url}payment/cancel?plan={plan_type}&test=true",
+            metadata={
+                'plan_type': plan_type,
+                'user_email': 'test@soulbridgeai.com',
+                'user_id': 'test_user',
+                'plan': 'Growth' if plan_type == 'premium' else 'Transformation',
+                'test_mode': 'true'
+            }
+        )
+        
+        logger.info(f"✅ Test checkout created: {checkout_session.id}")
+        
+        return jsonify({
+            "success": True,
+            "checkout_url": checkout_session.url,
+            "session_id": checkout_session.id,
+            "test_mode": True,
+            "plan": plan_type,
+            "message": "Test checkout created successfully - no auth required"
+        })
+        
+    except stripe.error.StripeError as e:
+        logger.error(f"Stripe error in test checkout: {e}")
+        return jsonify({
+            "success": False,
+            "error": f"Stripe error: {str(e)}"
+        }), 500
+        
+    except Exception as e:
+        logger.error(f"Test checkout error: {e}")
+        return jsonify({
+            "success": False,
+            "error": f"Checkout creation failed: {str(e)}"
+        }), 500
+
 @app.route("/api/test-stripe-key", methods=["GET"])
 def test_stripe_key():
     """Test if the current Stripe secret key works"""
@@ -1388,6 +1471,78 @@ def test_stripe_key():
     except Exception as e:
         logger.error(f"Stripe key test error: {e}")
         return jsonify({"success": False, "error": "Test failed"}), 500
+
+@app.route("/stripe-test", methods=["GET"])
+def stripe_test_page():
+    """Simple test page for Stripe checkout without authentication"""
+    return """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Stripe Test - SoulBridge AI</title>
+        <style>
+            body { font-family: Arial; padding: 40px; background: #0f172a; color: #e2e8f0; }
+            button { background: #22d3ee; color: #000; padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer; margin: 10px; font-weight: bold; }
+            button:hover { background: #0891b2; }
+            .status { margin: 20px 0; padding: 20px; background: #1e293b; border-radius: 8px; }
+        </style>
+    </head>
+    <body>
+        <h1>🧪 Stripe Test Page</h1>
+        <p>Test Stripe checkout functionality without authentication requirements</p>
+        
+        <button onclick="testStripeKey()">Test Stripe Key</button>
+        <button onclick="testCheckout('premium')">Test Premium Checkout</button>
+        <button onclick="testCheckout('enterprise')">Test Enterprise Checkout</button>
+        
+        <div id="status" class="status">Ready to test...</div>
+        
+        <script>
+            async function testStripeKey() {
+                const status = document.getElementById('status');
+                status.innerHTML = 'Testing Stripe key...';
+                
+                try {
+                    const response = await fetch('/api/test-stripe-key');
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        status.innerHTML = `✅ Stripe Key Valid: ${result.key_type} mode<br>Account: ${result.account_id}`;
+                    } else {
+                        status.innerHTML = `❌ Stripe Key Invalid: ${result.error}`;
+                    }
+                } catch (error) {
+                    status.innerHTML = `❌ Error: ${error.message}`;
+                }
+            }
+            
+            async function testCheckout(planType) {
+                const status = document.getElementById('status');
+                status.innerHTML = `Creating ${planType} checkout session...`;
+                
+                try {
+                    const response = await fetch('/api/test-checkout-no-auth', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ plan_type: planType })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        status.innerHTML = `✅ Checkout created! Redirecting to Stripe...`;
+                        window.location.href = result.checkout_url;
+                    } else {
+                        status.innerHTML = `❌ Checkout failed: ${result.error}`;
+                    }
+                } catch (error) {
+                    status.innerHTML = `❌ Error: ${error.message}`;
+                }
+            }
+        </script>
+    </body>
+    </html>
+    """
 
 @app.route("/api/database-status", methods=["GET"])
 def database_status():
