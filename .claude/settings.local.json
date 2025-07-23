@@ -47,7 +47,8 @@
       "Bash(cat:*)",
       "Bash(echo:*)",
       "Bash(git hash-object:*)",
-      "Bash(git ls-tree:*)"
+      "Bash(git ls-tree:*)",
+      "Bash(rg:*)"
     ],
     "deny": []
   }

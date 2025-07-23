@@ -15,6 +15,8 @@ import time
 import secrets
 import json
 import stripe
+import random
+import string
 from datetime import datetime, timezone, timedelta
 from flask import Flask, jsonify, render_template, request, session, redirect, url_for, flash, make_response
 from flask_cors import CORS
@@ -98,7 +100,7 @@ def maintain_session():
         session_cookie = request.cookies.get(app.config.get('SESSION_COOKIE_NAME', 'soulbridge_session'))
         
         # If there's no session but we're on a page that needs one, set up basic session
-        if not session.get("user_email") and request.endpoint in ['chat', 'profile', 'subscription', 'community_dashboard', 'library', 'decoder']:
+        if not session.get("user_email") and request.endpoint in ['chat', 'profile', 'subscription', 'community_dashboard', 'library', 'decoder', 'export_user_conversations', 'insights_dashboard', 'referrals', 'api_users', 'check_switching_status', 'create_switching_payment', 'payment_success', 'payment_cancel', 'payment', 'api_referrals_dashboard', 'api_referrals_share_templates']:
             logger.info(f"Setting up session for {request.endpoint} page")
             session['user_email'] = 'test@soulbridgeai.com'
             session['user_id'] = 'temp_test_user'
@@ -133,6 +135,12 @@ _service_lock = threading.RLock()
 # Constants
 VALID_CHARACTERS = ["Blayzo", "Sapphire", "Violet", "Crimson", "Blayzia", "Blayzica", "Blayzike", "Blayzion", "Blazelian", "BlayzoReferral"]
 VALID_PLANS = ["foundation", "premium", "enterprise"]
+
+def generate_referral_code(length=8):
+    """Generate a unique alphanumeric referral code"""
+    characters = string.ascii_uppercase + string.digits
+    code = ''.join(random.choices(characters, k=length))
+    return f"REF{code}"
 
 def is_logged_in():
     """Check if user is logged in"""
@@ -2570,10 +2578,13 @@ def api_referrals_dashboard():
         if remaining == 0 and successful >= next_milestone_count:
             next_reward = f"{milestone_rewards.get(next_milestone_count)} - Already Unlocked!"
         
+        # Generate a proper referral code for this user
+        referral_code = generate_referral_code()
+        
         return jsonify({
             "success": True,
             "stats": referral_stats,
-            "referral_link": f"https://soulbridgeai.com/register?ref={user_email}",
+            "referral_link": f"https://soulbridgeai.com/register?ref={referral_code}",
             "all_rewards": {
                 "2": {"type": "exclusive_companion", "description": "Blayzike - Exclusive Companion"},
                 "4": {"type": "exclusive_companion", "description": "Blazelian - Premium Companion"}, 
@@ -2607,7 +2618,8 @@ def api_referrals_share_templates():
             session.modified = True
             
         user_email = session.get("user_email", "")
-        referral_link = f"https://soulbridgeai.com/register?ref={user_email}"
+        referral_code = generate_referral_code()
+        referral_link = f"https://soulbridgeai.com/register?ref={referral_code}"
         
         return jsonify({
             "success": True,
