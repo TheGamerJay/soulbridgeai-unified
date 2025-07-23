@@ -1849,20 +1849,33 @@ def stripe_webhook_simple():
 @app.route('/api/stripe-webhook/status', methods=['GET'])
 def webhook_status():
     """Check webhook configuration status"""
+    webhook_secret = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
+    webhook_secret_preview = webhook_secret[:12] + "..." if len(webhook_secret) > 12 else webhook_secret if webhook_secret else "NOT SET"
+    
     return jsonify({
         "webhook_endpoint": "/api/stripe-webhook",
         "stripe_secret_key": "SET" if os.environ.get("STRIPE_SECRET_KEY") else "NOT SET", 
         "stripe_publishable_key": "SET" if os.environ.get("STRIPE_PUBLISHABLE_KEY") else "NOT SET",
-        "stripe_webhook_secret": "SET" if os.environ.get("STRIPE_WEBHOOK_SECRET") else "NOT SET",
+        "stripe_webhook_secret": webhook_secret_preview,
         "database_available": bool(services.get("database")),
         "expected_events": ["checkout.session.completed"],
         "webhook_url_for_stripe": f"{request.host_url}api/stripe-webhook",
         "test_url": f"{request.host_url}api/stripe-webhook/test",
+        "current_domain": request.host_url,
+        "webhook_reachable": True,  # If this endpoint works, webhook URL is reachable
         "instructions": {
-            "1": "Add webhook URL to Stripe Dashboard: Developers → Webhooks → Add endpoint",
-            "2": "Set webhook URL to: your-domain.com/api/stripe-webhook", 
-            "3": "Listen for: checkout.session.completed",
-            "4": "Copy webhook signing secret to STRIPE_WEBHOOK_SECRET env var"
+            "1": "Verify in Stripe Dashboard: Developers → Webhooks → Your webhook",
+            "2": f"Webhook URL should be: {request.host_url}api/stripe-webhook", 
+            "3": "Events to listen for: checkout.session.completed",
+            "4": "Click 'Send test webhook' in Stripe Dashboard to test connectivity"
+        },
+        "troubleshooting": {
+            "if_no_webhooks_received": [
+                "Check webhook URL in Stripe Dashboard matches this domain",
+                "Verify 'checkout.session.completed' event is selected",
+                "Try clicking 'Send test webhook' in Stripe Dashboard",
+                "Check Railway logs for webhook activity after test payment"
+            ]
         }
     })
 
@@ -1896,6 +1909,19 @@ def test_simple_webhook():
     except Exception as e:
         logger.error(f"Webhook test error: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/stripe-webhook/ping', methods=['POST'])
+def webhook_ping():
+    """Simple endpoint to test if Stripe can reach your server"""
+    logger.info("🏓 Webhook ping received from Stripe")
+    logger.info(f"   Headers: {dict(request.headers)}")
+    logger.info(f"   Data: {request.data[:100]}...")  # First 100 chars
+    
+    return jsonify({
+        "status": "pong",
+        "message": "Webhook endpoint is reachable",
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }), 200
 
 @app.route("/api/webhooks/stripe/test", methods=["POST"])
 def test_stripe_webhook():
