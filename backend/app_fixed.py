@@ -19,6 +19,8 @@ import threading
 import stripe
 import random
 import string
+import requests
+from functools import wraps
 from datetime import datetime, timezone, timedelta
 from flask import Flask, jsonify, render_template, request, session, redirect, url_for, flash, make_response, has_request_context
 from flask_cors import CORS
@@ -51,6 +53,26 @@ if not secret_key:
     logger.warning("Generated temporary secret key - set SECRET_KEY environment variable for production")
 
 app.secret_key = secret_key
+
+# ========================================
+# ENHANCED WATCHDOG CONFIGURATION
+# ========================================
+
+# File logging configuration
+THREAT_LOG_FILE = "logs/threat_log.txt"
+TRAP_LOG_FILE = "logs/trap_log.txt"
+MAINTENANCE_LOG_FILE = "logs/maintenance_log.txt"
+
+# Security configuration
+MAX_REQUESTS_PER_WINDOW = 10
+RATE_LIMIT_WINDOW = 5  # seconds
+ADMIN_DASH_KEY = os.environ.get("ADMIN_DASH_KEY", "soulbridge_admin_2024")
+DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL", "")
+ALLOWED_UPLOADS = {"png", "jpg", "jpeg", "pdf", "txt", "csv"}
+ALLOWED_ORIGIN = os.environ.get("ALLOWED_ORIGIN", "*")
+
+# Create logs directory if it doesn't exist
+os.makedirs("logs", exist_ok=True)
 
 # Configure Stripe
 stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
@@ -981,6 +1003,7 @@ def login_page():
         return jsonify({"error": "Login page temporarily unavailable"}), 200
 
 @app.route("/auth/login", methods=["GET", "POST"])
+@login_protect
 def auth_login():
     """Handle login authentication"""
     # Handle GET requests - show login form
@@ -5477,6 +5500,7 @@ def refresh_session():
         return jsonify({"success": False, "error": "Session refresh failed"}), 500
 
 @app.route("/api/chat", methods=["POST"])
+@abuse_protection(limit=20, window=60)  # 20 requests per minute for chat
 def api_chat():
     """Chat API endpoint"""
     try:
@@ -5650,11 +5674,78 @@ class AutoMaintenanceSystem:
         self.start_background_monitoring()
     
     def log_maintenance(self, action, details):
-        """Log maintenance actions"""
+        """Log maintenance actions with enhanced file logging"""
         timestamp = datetime.now().isoformat()
         log_entry = f"[{timestamp}] {action}: {details}"
         self.maintenance_log.append(log_entry)
         logger.info(f"🔧 AUTO-MAINTENANCE: {action} - {details}")
+        
+        # Also log to file for persistence
+        self.write_to_log_file(MAINTENANCE_LOG_FILE, f"[{timestamp}] 🔧 {action}: {details}")
+    
+    def log_threat(self, ip_address, reason, severity="medium"):
+        """Log security threats with file persistence and Discord alerts"""
+        timestamp = datetime.now().isoformat()
+        log_entry = f"[{timestamp}] ⚠️ THREAT - IP: {ip_address} - Reason: {reason} - Severity: {severity}"
+        
+        # Add to security threats deque
+        self.security_threats.append({
+            'timestamp': datetime.now(),
+            'ip_address': ip_address,
+            'reason': reason,
+            'severity': severity
+        })
+        
+        # Console logging
+        logger.warning(f"🚨 SECURITY THREAT: {reason} from {ip_address}")
+        
+        # File logging
+        self.write_to_log_file(THREAT_LOG_FILE, log_entry)
+        
+        # Discord alert for high severity threats
+        if severity == "high":
+            self.send_discord_alert(f"🚨 HIGH SEVERITY THREAT: {reason} from {ip_address}")
+    
+    def log_honeypot_trigger(self, ip_address, path):
+        """Log honeypot trap triggers"""
+        timestamp = datetime.now().isoformat()
+        log_entry = f"[{timestamp}] 🍯 HONEYPOT - IP: {ip_address} - Path: {path}"
+        
+        # Console logging
+        logger.warning(f"🍯 HONEYPOT TRIGGERED: {path} by {ip_address}")
+        
+        # File logging to both trap and threat logs
+        self.write_to_log_file(TRAP_LOG_FILE, log_entry)
+        self.write_to_log_file(THREAT_LOG_FILE, log_entry)
+        
+        # Discord alert
+        self.send_discord_alert(f"🍯 Honeypot triggered: {path} by {ip_address}")
+    
+    def write_to_log_file(self, filename, message):
+        """Write message to log file with error handling"""
+        try:
+            with open(filename, "a", encoding="utf-8") as f:
+                f.write(f"{message}\n")
+        except Exception as e:
+            logger.error(f"Failed to write to log file {filename}: {e}")
+    
+    def send_discord_alert(self, message):
+        """Send alert to Discord webhook if configured"""
+        if not DISCORD_WEBHOOK_URL:
+            return
+        
+        try:
+            payload = {
+                "content": f"🤖 **SoulBridge AI Alert**\n{message}",
+                "username": "SoulBridge Watchdog"
+            }
+            response = requests.post(DISCORD_WEBHOOK_URL, json=payload, timeout=5)
+            if response.status_code == 204:
+                logger.info(f"Discord alert sent successfully")
+            else:
+                logger.warning(f"Discord alert failed with status {response.status_code}")
+        except Exception as e:
+            logger.error(f"Failed to send Discord alert: {e}")
     
     def detect_error_pattern(self, error_type, error_msg):
         """Enhanced error pattern detection with predictive analysis"""
@@ -6338,19 +6429,19 @@ class AutoMaintenanceSystem:
             if self.detect_sql_injection(details):
                 threat_detected = True
                 threat_level = "high"
-                self.log_maintenance("SQL_INJECTION_ATTEMPT", f"SQL injection detected from {ip_address}")
+                self.log_threat(ip_address, f"SQL injection attempt detected in request data", "high")
             
             # XSS detection
             if self.detect_xss_attempt(details):
                 threat_detected = True
                 threat_level = "high"
-                self.log_maintenance("XSS_ATTEMPT", f"XSS attempt detected from {ip_address}")
+                self.log_threat(ip_address, f"XSS attempt detected in request", "high")
             
             # WordPress attack detection
             if self.detect_wordpress_attack(request_path, details):
                 threat_detected = True
                 threat_level = "medium"
-                self.log_maintenance("WORDPRESS_ATTACK", f"WordPress attack attempt from {ip_address} - path: {request_path}")
+                self.log_threat(ip_address, f"WordPress attack attempt on {request_path}", "medium")
             
             # Brute force detection
             if request_type == "login_failed":
@@ -7149,16 +7240,62 @@ def security_monitor():
         auto_maintenance.log_maintenance("SECURITY_MONITOR_ERROR", str(e))
 
 @app.after_request
-def security_headers(response):
-    """Add security headers to all responses"""
+def enhanced_security_headers(response):
+    """Add comprehensive security headers to all responses"""
     try:
-        # Add security headers
+        # Core security headers
         response.headers['X-Content-Type-Options'] = 'nosniff'
         response.headers['X-Frame-Options'] = 'DENY'
         response.headers['X-XSS-Protection'] = '1; mode=block'
-        response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
-        response.headers['Content-Security-Policy'] = "default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: blob:; img-src 'self' data: https:; font-src 'self' https: data:;"
+        
+        # HTTPS enforcement
+        response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains; preload'
+        
+        # Content Security Policy - Enhanced for better security
+        csp_policy = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://checkout.stripe.com; "
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+            "font-src 'self' https://fonts.gstatic.com data:; "
+            "img-src 'self' data: https: blob:; "
+            "connect-src 'self' https://api.stripe.com https://checkout.stripe.com; "
+            "frame-src https://js.stripe.com https://hooks.stripe.com; "
+            "object-src 'none'; "
+            "base-uri 'self'; "
+            "form-action 'self';"
+        )
+        response.headers['Content-Security-Policy'] = csp_policy
+        
+        # Privacy and referrer control
         response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+        response.headers['Permissions-Policy'] = 'camera=(), microphone=(), geolocation=(), payment=()'
+        
+        # CORS headers with origin validation
+        origin = request.headers.get('Origin')
+        if origin and (ALLOWED_ORIGIN == "*" or origin == ALLOWED_ORIGIN):
+            response.headers['Access-Control-Allow-Origin'] = origin
+        else:
+            response.headers['Access-Control-Allow-Origin'] = ALLOWED_ORIGIN
+        
+        response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-Requested-With'
+        response.headers['Access-Control-Allow-Credentials'] = 'true'
+        response.headers['Access-Control-Max-Age'] = '86400'  # 24 hours
+        
+        # Additional security headers
+        response.headers['X-Permitted-Cross-Domain-Policies'] = 'none'
+        response.headers['Cross-Origin-Embedder-Policy'] = 'require-corp'
+        response.headers['Cross-Origin-Opener-Policy'] = 'same-origin'
+        response.headers['Cross-Origin-Resource-Policy'] = 'same-origin'
+        
+        # Cache control for sensitive content
+        if request.endpoint in ['login_page', 'register_page', 'admin_watchdog_dashboard']:
+            response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate, private'
+            response.headers['Pragma'] = 'no-cache'
+            response.headers['Expires'] = '0'
+        
+        # Server identification (security through obscurity)
+        response.headers['Server'] = 'SoulBridge-AI/1.0'
         
         return response
     except Exception as e:
@@ -7306,6 +7443,284 @@ def watchdog_control():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
+@app.route("/admin/watchdog")
+def admin_watchdog_dashboard():
+    """Admin dashboard for viewing watchdog logs"""
+    key = request.args.get("key")
+    if key != ADMIN_DASH_KEY:
+        return jsonify({"error": "Unauthorized"}), 403
+    
+    try:
+        # Read maintenance logs
+        maintenance_logs = []
+        try:
+            with open(MAINTENANCE_LOG_FILE, "r", encoding="utf-8") as f:
+                maintenance_logs = f.readlines()[-100:]  # Last 100 entries
+        except FileNotFoundError:
+            maintenance_logs = ["No maintenance logs available yet."]
+        
+        # Read threat logs
+        threat_logs = []
+        try:
+            with open(THREAT_LOG_FILE, "r", encoding="utf-8") as f:
+                threat_logs = f.readlines()[-50:]  # Last 50 entries
+        except FileNotFoundError:
+            threat_logs = ["No threat logs available yet."]
+        
+        # Generate HTML dashboard
+        html = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>SoulBridge AI - Watchdog Dashboard</title>
+            <style>
+                body {{ font-family: Arial, sans-serif; background: #0f172a; color: #e2e8f0; padding: 20px; }}
+                .container {{ max-width: 1200px; margin: 0 auto; }}
+                .header {{ color: #22d3ee; text-align: center; margin-bottom: 30px; }}
+                .section {{ background: #1e293b; padding: 20px; margin: 20px 0; border-radius: 8px; }}
+                .log-entry {{ padding: 5px 0; border-bottom: 1px solid #374151; font-family: monospace; font-size: 12px; }}
+                .stats {{ display: flex; gap: 20px; flex-wrap: wrap; }}
+                .stat-box {{ background: #374151; padding: 15px; border-radius: 6px; min-width: 150px; }}
+                .threat {{ color: #ef4444; }}
+                .warning {{ color: #f59e0b; }}
+                .info {{ color: #10b981; }}
+                .refresh {{ margin: 10px 0; }}
+                .refresh a {{ color: #22d3ee; text-decoration: none; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>🛡️ SoulBridge AI Watchdog Dashboard</h1>
+                    <p>Real-time security monitoring and maintenance logs</p>
+                </div>
+                
+                <div class="stats">
+                    <div class="stat-box">
+                        <h3>🔍 System Status</h3>
+                        <p>Watchdog: {'🟢 Active' if auto_maintenance.watchdog_system['monitoring_enabled'] else '🔴 Inactive'}</p>
+                        <p>Blocked IPs: {len(auto_maintenance.blocked_ips)}</p>
+                    </div>
+                    <div class="stat-box">
+                        <h3>🚨 Recent Threats</h3>
+                        <p>Total: {len(auto_maintenance.security_threats)}</p>
+                        <p>Files Monitored: {len(auto_maintenance.watchdog_system['monitored_files'])}</p>
+                    </div>
+                </div>
+                
+                <div class="refresh">
+                    <a href="/admin/watchdog?key={ADMIN_DASH_KEY}">🔄 Refresh Dashboard</a> |
+                    <a href="/admin/trap-logs?key={ADMIN_DASH_KEY}">🍯 View Trap Logs</a> |
+                    <a href="/api/maintenance/status">📊 Maintenance API</a>
+                </div>
+                
+                <div class="section">
+                    <h2>🚨 Recent Threat Logs</h2>
+                    <div style="max-height: 400px; overflow-y: auto;">
+                        {''.join([f'<div class="log-entry threat">{log.strip()}</div>' for log in threat_logs[-20:]])}
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <h2>🔧 Recent Maintenance Logs</h2>
+                    <div style="max-height: 400px; overflow-y: auto;">
+                        {''.join([f'<div class="log-entry info">{log.strip()}</div>' for log in maintenance_logs[-20:]])}
+                    </div>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        return html
+        
+    except Exception as e:
+        return f"Dashboard error: {str(e)}", 500
+
+@app.route("/admin/trap-logs")
+def admin_trap_logs():
+    """Admin view for honeypot trap logs"""
+    key = request.args.get("key")
+    if key != ADMIN_DASH_KEY:
+        return jsonify({"error": "Unauthorized"}), 403
+    
+    try:
+        with open(TRAP_LOG_FILE, "r", encoding="utf-8") as f:
+            logs = f.readlines()[-100:]  # Last 100 entries
+        
+        html = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>SoulBridge AI - Honeypot Trap Logs</title>
+            <style>
+                body {{ font-family: Arial, sans-serif; background: #0f172a; color: #e2e8f0; padding: 20px; }}
+                .container {{ max-width: 1000px; margin: 0 auto; }}
+                .header {{ color: #22d3ee; text-align: center; margin-bottom: 30px; }}
+                .log-entry {{ padding: 8px; margin: 4px 0; background: #1e293b; border-radius: 4px; font-family: monospace; }}
+                .honeypot {{ border-left: 4px solid #f59e0b; }}
+                .back {{ margin: 20px 0; }}
+                .back a {{ color: #22d3ee; text-decoration: none; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>🍯 Honeypot Trap Logs</h1>
+                    <p>Attacks caught by our security traps</p>
+                </div>
+                
+                <div class="back">
+                    <a href="/admin/watchdog?key={ADMIN_DASH_KEY}">← Back to Dashboard</a>
+                </div>
+                
+                <div>
+                    {''.join([f'<div class="log-entry honeypot">{log.strip()}</div>' for log in logs]) if logs else '<p>No trap logs available yet.</p>'}
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        return html
+        
+    except FileNotFoundError:
+        return "No trap logs available yet.", 200
+    except Exception as e:
+        return f"Error reading trap logs: {str(e)}", 500
+
+@app.route("/admin/system-status")
+def admin_system_status():
+    """Comprehensive system status for administrators"""
+    key = request.args.get("key")
+    if key != ADMIN_DASH_KEY:
+        return jsonify({"error": "Unauthorized"}), 403
+    
+    try:
+        status = {
+            "timestamp": datetime.now().isoformat(),
+            "system_health": auto_maintenance.health_status,
+            "watchdog_status": {
+                "monitoring_enabled": auto_maintenance.watchdog_system['monitoring_enabled'],
+                "files_monitored": len(auto_maintenance.watchdog_system['monitored_files']),
+                "changes_detected": len(auto_maintenance.watchdog_system['changes_detected']),
+                "last_check": auto_maintenance.watchdog_system['last_check'].isoformat()
+            },
+            "security_status": {
+                "blocked_ips_count": len(auto_maintenance.blocked_ips),
+                "blocked_ips": list(auto_maintenance.blocked_ips)[-10:],  # Last 10 blocked IPs
+                "threat_count": len(auto_maintenance.security_threats),
+                "recent_threats": [
+                    {
+                        "timestamp": threat['timestamp'].isoformat(),
+                        "ip": threat['ip_address'],
+                        "reason": threat['reason'],
+                        "severity": threat['severity']
+                    } for threat in list(auto_maintenance.security_threats)[-10:]
+                ]
+            },
+            "maintenance_status": {
+                "emergency_mode": auto_maintenance.emergency_mode,
+                "system_uptime": (datetime.now() - auto_maintenance.system_start_time).total_seconds(),
+                "critical_errors": auto_maintenance.critical_errors_count,
+                "last_cleanup": auto_maintenance.last_cleanup.isoformat()
+            }
+        }
+        
+        return jsonify(status)
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# ========================================
+# SECURITY DECORATORS
+# ========================================
+
+def login_protect(f):
+    """Decorator to protect routes from brute force login attempts"""
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        ip_address = request.headers.get('X-Forwarded-For', request.remote_addr) or '127.0.0.1'
+        current_time = datetime.now()
+        
+        # Check login attempts for this IP
+        if ip_address not in auto_maintenance.failed_login_attempts:
+            auto_maintenance.failed_login_attempts[ip_address] = 0
+        
+        # Reset counter if more than 5 minutes have passed
+        auto_maintenance.request_timestamps[ip_address] = [
+            t for t in auto_maintenance.request_timestamps.get(ip_address, [])
+            if (current_time - t).total_seconds() < 300  # 5 minutes
+        ]
+        
+        # Check if too many attempts
+        if auto_maintenance.failed_login_attempts[ip_address] > 5:
+            auto_maintenance.log_threat(ip_address, "Login brute force attempt blocked", "high")
+            return jsonify({"error": "Too many login attempts. Please try again later."}), 429
+        
+        return f(*args, **kwargs)
+    return wrapper
+
+def abuse_protection(limit=5, window=60):
+    """Decorator to protect routes from abuse with configurable limits"""
+    def decorator(f):
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+            ip_address = request.headers.get('X-Forwarded-For', request.remote_addr) or '127.0.0.1'
+            current_time = datetime.now()
+            
+            # Initialize request tracking for this IP
+            if ip_address not in auto_maintenance.request_timestamps:
+                auto_maintenance.request_timestamps[ip_address] = []
+            
+            # Clean old requests outside the window
+            auto_maintenance.request_timestamps[ip_address] = [
+                t for t in auto_maintenance.request_timestamps[ip_address]
+                if (current_time - t).total_seconds() < window
+            ]
+            
+            # Add current request
+            auto_maintenance.request_timestamps[ip_address].append(current_time)
+            
+            # Check if limit exceeded
+            if len(auto_maintenance.request_timestamps[ip_address]) > limit:
+                auto_maintenance.log_threat(ip_address, f"Rate limit exceeded on {request.endpoint}", "medium")
+                return jsonify({"error": "Rate limit exceeded. Please slow down."}), 429
+            
+            return f(*args, **kwargs)
+        return wrapper
+    return decorator
+
+def admin_required(f):
+    """Decorator to require admin authentication"""
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        # Check if user is logged in
+        if not session.get('user_authenticated'):
+            return jsonify({"error": "Authentication required"}), 401
+        
+        # Check if user is admin (you can modify this logic as needed)
+        if not session.get('is_admin') and session.get('user_email') != 'admin@soulbridgeai.com':
+            return jsonify({"error": "Admin access required"}), 403
+        
+        return f(*args, **kwargs)
+    return wrapper
+
+def allowed_file(filename):
+    """Check if uploaded file has allowed extension"""
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_UPLOADS
+
+def validate_request_size(max_size_mb=10):
+    """Decorator to validate request content length"""
+    def decorator(f):
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+            if request.content_length and request.content_length > max_size_mb * 1024 * 1024:
+                ip_address = request.headers.get('X-Forwarded-For', request.remote_addr) or '127.0.0.1'
+                auto_maintenance.log_threat(ip_address, f"Large request rejected: {request.content_length} bytes", "medium")
+                return jsonify({"error": "Request too large"}), 413
+            return f(*args, **kwargs)
+        return wrapper
+    return decorator
+
 # Enhanced error handling with auto-maintenance integration
 def handle_error_with_maintenance(error_type, error_msg, response_data, status_code=500):
     """Handle errors and trigger auto-maintenance if needed"""
@@ -7375,14 +7790,13 @@ def trap_handler(subpath):
             ip_address = request.headers.get('X-Forwarded-For', request.remote_addr) or '127.0.0.1'
             reason = f"Honeypot trap triggered on {full_path}"
             
-            # Log the threat through auto-maintenance system
-            auto_maintenance.detect_security_threat(ip_address, "honeypot_trap", reason, full_path)
-            auto_maintenance.log_maintenance("HONEYPOT_TRIGGERED", f"Trap activated by {ip_address} on {full_path}")
+            # Log honeypot trigger with enhanced logging
+            auto_maintenance.log_honeypot_trigger(ip_address, full_path)
             
             # Block the IP if it's a high-threat pattern
             if any(pattern in full_path for pattern in ["/wp-admin/", "/wp-config", "/.env"]):
                 auto_maintenance.blocked_ips.add(ip_address)
-                auto_maintenance.log_maintenance("IP_BLOCKED", f"Auto-blocked {ip_address} for honeypot trigger")
+                auto_maintenance.log_threat(ip_address, f"Auto-blocked for honeypot trigger on {full_path}", "high")
             
             # Waste attacker's time with fake response and delay
             import time
