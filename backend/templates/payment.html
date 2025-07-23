@@ -226,6 +226,11 @@
     </div>
 
     <script>
+        // Initialize Stripe with publishable key
+        {% if stripe_publishable_key %}
+        const stripe = Stripe('{{ stripe_publishable_key }}');
+        {% endif %}
+        
         async function createCheckoutSession() {
             const btn = document.getElementById('paymentBtn');
             const loading = document.getElementById('loadingDiv');

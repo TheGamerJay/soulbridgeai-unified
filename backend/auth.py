@@ -33,6 +33,8 @@ logging.basicConfig(
     filemode="a",
 )
 
+logger = logging.getLogger(__name__)
+
 ENCRYPTION_KEY = os.environ.get("DATA_ENCRYPTION_KEY")
 
 

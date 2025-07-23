@@ -677,6 +677,16 @@ def debug_env():
         "current_db_url": os.environ.get("DATABASE_URL", "NOT SET")[:50] + "..." if os.environ.get("DATABASE_URL") else "NOT SET"
     })
 
+@app.route("/debug/session")
+def debug_session():
+    """Debug endpoint to check session status"""
+    return jsonify({
+        "session_data": dict(session),
+        "is_logged_in": is_logged_in(),
+        "session_permanent": session.permanent,
+        "session_keys": list(session.keys())
+    })
+
 
 @app.route("/auth/forgot-password")
 def forgot_password_page():
@@ -774,7 +784,8 @@ def payment_page():
         return render_template("payment.html", 
                              plan=plan,
                              plan_display=plan_display,
-                             price_display=price_display)
+                             price_display=price_display,
+                             stripe_publishable_key=os.environ.get("STRIPE_PUBLISHABLE_KEY"))
     except Exception as e:
         logger.error(f"Payment page error: {e}")
         return redirect("/subscription")
