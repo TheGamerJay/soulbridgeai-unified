@@ -1876,19 +1876,19 @@ def api_users():
     """Get or create user profile data"""
     try:
         # TEMPORARY BYPASS: Skip auth check for Stripe testing
-        # TODO: Re-enable this after confirming Stripe functionality
+        # TODO: Re-enable this after confirming Stripe functionality  
         # if not is_logged_in():
         #     return jsonify({"success": False, "error": "Authentication required"}), 401
-            
-        # Set up temporary session for testing
-        if not session.get('user_email'):
-            session['user_email'] = 'test@soulbridgeai.com'
-            session['user_id'] = 'temp_test_user'
-            session.permanent = True
-            session.modified = True
-            
+        
+        # Get user data from session - don't create fake session if not logged in
         user_email = session.get("user_email", "")
         user_id = session.get("user_id")
+        
+        # If no user session exists, provide basic fallback data
+        if not user_email:
+            user_email = 'test@soulbridgeai.com'
+            user_id = 'temp_test_user'
+            logger.info("Using fallback profile data for unauthenticated user")
         
         # For POST requests (create/update profile)
         if request.method == "POST":
@@ -1901,17 +1901,27 @@ def api_users():
             logger.info(f"Updated profile for {user_email}: companion={companion}")
         
         # Return user data from session and database
+        display_name = session.get("display_name")
+        if not display_name and user_email:
+            display_name = user_email.split('@')[0] if '@' in user_email else "User"
+        elif not display_name:
+            display_name = "User"
+            
         user_data = {
-            "id": user_id,
+            "id": user_id or "temp_test_user",
             "uid": f"user_{user_id}" if user_id else "user_temp",
-            "email": user_email,
-            "displayName": session.get("display_name", user_email.split('@')[0] if user_email else "User"),
+            "email": user_email or 'test@soulbridgeai.com',
+            "displayName": display_name,
             "plan": session.get("user_plan", "foundation"),
-            "subscription": session.get("user_plan", "free"),
+            "subscription": session.get("user_plan", "foundation"),  # Use 'foundation' instead of 'free'
             "email_verified": True,
-            "created_at": session.get("login_timestamp", "2025-01-01T00:00:00.000Z"),
-            "companionName": session.get("selected_companion", "Blayzo")
+            "created_at": session.get("login_timestamp", datetime.now().isoformat()),
+            "companionName": session.get("selected_companion", "Blayzo"),
+            "session_active": bool(session.get("user_authenticated")),
+            "last_activity": session.get("last_activity", datetime.now().isoformat())
         }
+        
+        logger.info(f"Profile data loaded for {user_email}: plan={user_data['plan']}, companion={user_data['companionName']}")
         
         return jsonify({
             "success": True,
@@ -1919,7 +1929,8 @@ def api_users():
         })
     except Exception as e:
         logger.error(f"Users API error: {e}")
-        return jsonify({"success": False, "error": str(e)}), 500
+        logger.error(f"Session data: {dict(session)}")
+        return jsonify({"success": False, "error": f"Failed to load profile data: {str(e)}"}), 500
 
 @app.route("/api/subscription/verify", methods=["GET"])
 def api_subscription_verify():
