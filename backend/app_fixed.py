@@ -1008,13 +1008,22 @@ def create_checkout_session():
 def create_addon_checkout():
     """Create checkout session for add-ons"""
     try:
+        logger.info("🛒 ADD-ON CHECKOUT DEBUG:")
+        logger.info(f"   Request method: {request.method}")
+        logger.info(f"   Content type: {request.content_type}")
+        logger.info(f"   Raw data: {request.get_data()}")
+        logger.info(f"   Session keys: {list(session.keys())}")
+        
         # TEMPORARY BYPASS: Skip auth check for Stripe testing
         # TODO: Re-enable this after confirming Stripe functionality
         # if not is_logged_in():
         #     return jsonify({"success": False, "error": "Authentication required"}), 401
             
         data = request.get_json()
+        logger.info(f"   Parsed JSON data: {data}")
+        
         if not data:
+            logger.error("   No JSON data received")
             return jsonify({"success": False, "error": "Invalid request data"}), 400
             
         addon_type = data.get("addon_type")
@@ -1103,7 +1112,13 @@ def create_addon_checkout():
         
     except Exception as e:
         logger.error(f"Add-on checkout error: {e}")
-        return jsonify({"success": False, "error": "Checkout failed"}), 500
+        logger.error(f"   Error type: {type(e).__name__}")
+        logger.error(f"   Add-on type: {data.get('addon_type') if 'data' in locals() else 'not set'}")
+        logger.error(f"   Session email: {session.get('user_email', 'not set')}")
+        logger.error(f"   Stripe key configured: {bool(os.environ.get('STRIPE_SECRET_KEY'))}")
+        import traceback
+        logger.error(f"   Full traceback: {traceback.format_exc()}")
+        return jsonify({"success": False, "error": f"Checkout failed: {str(e)}"}), 500
 
 @app.route("/payment/success")
 def payment_success():
