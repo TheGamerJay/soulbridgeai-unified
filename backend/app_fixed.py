@@ -98,7 +98,7 @@ def maintain_session():
         session_cookie = request.cookies.get(app.config.get('SESSION_COOKIE_NAME', 'soulbridge_session'))
         
         # If there's no session but we're on a page that needs one, set up basic session
-        if not session.get("user_email") and request.endpoint in ['chat', 'profile', 'subscription', 'community_dashboard', 'library']:
+        if not session.get("user_email") and request.endpoint in ['chat', 'profile', 'subscription', 'community_dashboard', 'library', 'decoder']:
             logger.info(f"Setting up session for {request.endpoint} page")
             session['user_email'] = 'test@soulbridgeai.com'
             session['user_id'] = 'temp_test_user'
@@ -1004,7 +1004,7 @@ def auth_login():
             import time
             time.sleep(0.1)
             logger.info("Developer login successful")
-            return jsonify({"success": True, "redirect": "/", "session_established": True})
+            return jsonify({"success": True, "redirect": "/?show_intro=true", "session_established": True})
         
         # For regular users, check database if available
         # Use services["database"] (Database object) directly instead of global db
@@ -1021,7 +1021,7 @@ def auth_login():
                     import time
                     time.sleep(0.1)
                     logger.info(f"User login successful: {email}")
-                    return jsonify({"success": True, "redirect": "/", "session_established": True})
+                    return jsonify({"success": True, "redirect": "/?show_intro=true", "session_established": True})
                 else:
                     # Check if user exists for better error messaging
                     user = User(database_obj)
