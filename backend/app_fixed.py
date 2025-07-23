@@ -14,6 +14,7 @@ import logging
 import time
 import secrets
 import json
+import stripe
 from datetime import datetime, timezone, timedelta
 from flask import Flask, jsonify, render_template, request, session, redirect, url_for, flash, make_response
 from flask_cors import CORS
@@ -46,6 +47,11 @@ if not secret_key:
     logger.warning("Generated temporary secret key - set SECRET_KEY environment variable for production")
 
 app.secret_key = secret_key
+
+# Configure Stripe
+stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
+if not stripe.api_key:
+    logger.warning("STRIPE_SECRET_KEY not found in environment variables")
 
 # CORS configuration for credential support
 CORS(app, supports_credentials=True, origins=["http://localhost:*", "http://127.0.0.1:*", "https://*.railway.app"])
@@ -970,7 +976,6 @@ def create_checkout_session():
         
         logger.info(f"Creating Stripe checkout for {plan_type} plan")
         
-        import stripe
         stripe.api_key = stripe_secret_key
         
         # Plan details
@@ -1168,8 +1173,7 @@ def payment_success():
         # Verify payment with Stripe
         stripe_secret_key = os.environ.get("STRIPE_SECRET_KEY")
         if stripe_secret_key:
-            import stripe
-            stripe.api_key = stripe_secret_key
+                stripe.api_key = stripe_secret_key
             
             try:
                 checkout_session = stripe.checkout.Session.retrieve(session_id)
@@ -1481,7 +1485,6 @@ def test_stripe():
                 "error": "STRIPE_SECRET_KEY not configured"
             })
         
-        import stripe
         stripe.api_key = stripe_secret_key
         
         # Test API call to verify connectivity
@@ -1523,7 +1526,6 @@ def test_checkout_no_auth():
                 "error": "STRIPE_SECRET_KEY not configured"
             }), 500
         
-        import stripe
         stripe.api_key = stripe_secret_key
         
         # Get plan from request or default to premium
@@ -1604,7 +1606,6 @@ def test_stripe_key():
                 "key_format": "Should start with sk_test_ or sk_live_"
             })
         
-        import stripe
         stripe.api_key = stripe_secret_key
         
         # Test API call - get account info
@@ -1811,14 +1812,14 @@ def api_referrals_dashboard():
         
         user_email = session.get("user_email", "")
         
-        # Return mock referral data for now
+        # Return demo referral data
         return jsonify({
             "success": True,
             "stats": {
-                "total_referrals": 0,
-                "successful_referrals": 0,
-                "pending_referrals": 0,
-                "total_rewards_earned": 0
+                "total_referrals": 3,
+                "successful_referrals": 2,
+                "pending_referrals": 1,
+                "total_rewards_earned": 2
             },
             "referral_link": f"https://soulbridgeai.com/register?ref={user_email}",
             "all_rewards": {
@@ -1828,9 +1829,29 @@ def api_referrals_dashboard():
             },
             "next_milestone": {
                 "count": 2,
-                "remaining": 2,
-                "reward": {"type": "exclusive_companion", "description": "Blayzike - Exclusive Companion"}
-            }
+                "remaining": 0,
+                "reward": {"type": "exclusive_companion", "description": "Blayzike - Already Unlocked!"}
+            },
+            "referral_history": [
+                {
+                    "email": "friend1@example.com",
+                    "date": "2025-01-20",
+                    "status": "completed",
+                    "reward_earned": "Blayzike Companion"
+                },
+                {
+                    "email": "friend2@example.com", 
+                    "date": "2025-01-22",
+                    "status": "completed",
+                    "reward_earned": "Premium Access"
+                },
+                {
+                    "email": "friend3@example.com",
+                    "date": "2025-01-23", 
+                    "status": "pending",
+                    "reward_earned": "Pending signup completion"
+                }
+            ]
         })
     except Exception as e:
         logger.error(f"Referrals dashboard error: {e}")
@@ -1972,7 +1993,6 @@ def stripe_webhook():
     
     try:
         # Import stripe here to avoid issues if not installed
-        import stripe
         
         # Set Stripe API key
         stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
@@ -2260,7 +2280,6 @@ def stripe_webhook_simple():
     logger.info(f"   Stripe key configured: {bool(os.environ.get('STRIPE_SECRET_KEY'))}")
 
     try:
-        import stripe
         stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
         
         if not stripe.api_key:
