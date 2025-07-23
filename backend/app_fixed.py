@@ -336,19 +336,23 @@ def auth_login():
             return jsonify({"success": True, "redirect": "/"})
         
         # For regular users, check database if available
-        if services["database"] and db:
+        # Use services["database"] (Database object) directly instead of global db
+        database_obj = services.get("database")
+        if database_obj:
             try:
                 # Use the authentication system from auth.py
                 from auth import User
-                user = User(db)
-                user_data = User.authenticate(db, email, password)
+                user_data = User.authenticate(database_obj, email, password)
                 
                 if user_data:
                     setup_user_session(email, user_id=user_data[0])
                     logger.info(f"User login successful: {email}")
                     return jsonify({"success": True, "redirect": "/"})
                 else:
-                    logger.warning(f"Failed login attempt for: {email} (user exists: {user.user_exists(email)})")
+                    # Check if user exists for better error messaging
+                    user = User(database_obj)
+                    user_exists = user.user_exists(email)
+                    logger.warning(f"Failed login attempt for: {email} (user exists: {user_exists})")
                     return jsonify({"success": False, "error": "Invalid email or password"}), 401
                     
             except Exception as db_error:
@@ -513,6 +517,8 @@ def profile():
 def subscription():
     """Subscription route"""
     try:
+        if not is_logged_in():
+            return redirect("/login")
         return render_template("subscription.html")
     except Exception as e:
         logger.error(f"Subscription template error: {e}")
@@ -1279,6 +1285,430 @@ def database_status():
     except Exception as e:
         logger.error(f"Database status error: {e}")
         return jsonify({"success": False, "error": "Status check failed"}), 500
+
+@app.route("/api/referrals/dashboard", methods=["GET"])
+def api_referrals_dashboard():
+    """Get referral dashboard data"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        user_email = session.get("user_email", "")
+        
+        # Return mock referral data for now
+        return jsonify({
+            "success": True,
+            "stats": {
+                "total_referrals": 0,
+                "successful_referrals": 0,
+                "pending_referrals": 0,
+                "total_rewards_earned": 0
+            },
+            "referral_link": f"https://soulbridgeai.com/register?ref={user_email}",
+            "all_rewards": {
+                "2": {"type": "exclusive_companion", "description": "Blayzike - Exclusive Companion"},
+                "4": {"type": "exclusive_companion", "description": "Blazelian - Premium Companion"}, 
+                "6": {"type": "premium_skin", "description": "Blayzo Special Skin"}
+            },
+            "next_milestone": {
+                "count": 2,
+                "remaining": 2,
+                "reward": {"type": "exclusive_companion", "description": "Blayzike - Exclusive Companion"}
+            }
+        })
+    except Exception as e:
+        logger.error(f"Referrals dashboard error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/api/referrals/share-templates", methods=["GET"])  
+def api_referrals_share_templates():
+    """Get referral share templates"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+            
+        user_email = session.get("user_email", "")
+        referral_link = f"https://soulbridgeai.com/register?ref={user_email}"
+        
+        return jsonify({
+            "success": True,
+            "templates": {
+                "generic": f"🌉 Join me on SoulBridge AI for amazing AI companions! {referral_link}",
+                "twitter": f"🤖 Discovered @SoulBridgeAI - incredible AI companions that actually remember our conversations! Join me: {referral_link} #AI #Companions",
+                "whatsapp": f"Hey! 🌉 I've been using SoulBridge AI and it's incredible - AI companions that feel real and remember everything! You should try it: {referral_link}",
+                "email": {
+                    "subject": "You'll love SoulBridge AI - AI companions that actually remember!",
+                    "body": f"Hi!\\n\\nI wanted to share something cool with you - SoulBridge AI! It's an AI companion platform that's actually incredible.\\n\\nWhat makes it special:\\n🤖 AI companions with real personalities\\n🧠 They remember all your conversations\\n💬 Meaningful, ongoing relationships\\n\\nI think you'd really enjoy it. Check it out here: {referral_link}\\n\\nLet me know what you think!\\n\\nBest regards"
+                }
+            }
+        })
+    except Exception as e:
+        logger.error(f"Referrals share templates error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/api/users", methods=["GET", "POST"])
+def api_users():
+    """Get or create user profile data"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+            
+        user_email = session.get("user_email", "")
+        user_id = session.get("user_id")
+        
+        # For POST requests (create/update profile)
+        if request.method == "POST":
+            data = request.get_json()
+            companion = data.get("companion", "Blayzo")
+            
+            # Update user session with companion choice
+            session["selected_companion"] = companion
+            
+            logger.info(f"Updated profile for {user_email}: companion={companion}")
+        
+        # Return user data from session and database
+        user_data = {
+            "id": user_id,
+            "uid": f"user_{user_id}" if user_id else "user_temp",
+            "email": user_email,
+            "displayName": session.get("display_name", user_email.split('@')[0] if user_email else "User"),
+            "plan": session.get("user_plan", "foundation"),
+            "subscription": session.get("user_plan", "free"),
+            "email_verified": True,
+            "created_at": session.get("login_timestamp", "2025-01-01T00:00:00.000Z"),
+            "companionName": session.get("selected_companion", "Blayzo")
+        }
+        
+        return jsonify({
+            "success": True,
+            "user": user_data
+        })
+    except Exception as e:
+        logger.error(f"Users API error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/api/subscription/verify", methods=["GET"])
+def api_subscription_verify():
+    """Verify user subscription status"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+            
+        user_email = session.get("user_email", "")
+        user_plan = session.get("user_plan", "foundation")
+        
+        # Return subscription status
+        return jsonify({
+            "success": True,
+            "subscription": {
+                "active": True,
+                "plan": user_plan,
+                "status": "active",
+                "expires_at": None,  # No expiration for now
+                "features": {
+                    "unlimited_messages": user_plan in ["premium", "growth"],
+                    "premium_companions": user_plan in ["premium", "growth"],
+                    "memory_enabled": user_plan in ["premium", "growth"],
+                    "sessions_per_day": 6 if user_plan == "growth" else 4 if user_plan == "premium" else 2
+                }
+            }
+        })
+    except Exception as e:
+        logger.error(f"Subscription verify error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/api/webhooks/stripe", methods=["POST"])
+def stripe_webhook():
+    """Handle Stripe webhooks"""
+    logger.info("✅ Stripe Webhook Hit!")
+    
+    payload = request.get_data()
+    sig_header = request.headers.get('Stripe-Signature')
+    
+    try:
+        # Import stripe here to avoid issues if not installed
+        import stripe
+        
+        # Set Stripe API key
+        stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
+        
+        # Verify webhook signature if endpoint secret is set
+        endpoint_secret = os.environ.get('STRIPE_WEBHOOK_SECRET')
+        if endpoint_secret:
+            try:
+                event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
+                logger.info("✅ Webhook signature verified")
+            except ValueError:
+                logger.error("❌ Invalid Stripe webhook payload")
+                return "Invalid payload", 400
+            except stripe.error.SignatureVerificationError:
+                logger.error("❌ Invalid Stripe webhook signature")
+                return "Invalid signature", 400
+        else:
+            # For development - parse without signature verification
+            logger.info("⚠️ Webhook signature verification SKIPPED (no STRIPE_WEBHOOK_SECRET)")
+            event = stripe.Event.construct_from(
+                json.loads(payload), stripe.api_key
+            )
+        
+        logger.info(f"✅ Stripe webhook received - Event type: {event['type']}")
+        logger.info(f"📋 Webhook payload keys: {list(event.get('data', {}).get('object', {}).keys())}")
+        
+        # Handle checkout session completed
+        if event['type'] == 'checkout.session.completed':
+            session_data = event['data']['object']
+            
+            # Extract payment information with detailed logging
+            customer_email = session_data.get('customer_email')
+            customer_id = session_data.get('customer')
+            subscription_id = session_data.get('subscription')
+            
+            # Get plan type from metadata or mode
+            plan_type = session_data.get('metadata', {}).get('plan_type', 'premium')
+            
+            logger.info(f"🎯 Processing checkout.session.completed:")
+            logger.info(f"   📧 Customer email: {customer_email}")
+            logger.info(f"   🆔 Customer ID: {customer_id}")
+            logger.info(f"   💳 Subscription ID: {subscription_id}")
+            logger.info(f"   📦 Plan type: {plan_type}")
+            
+            # Validate required fields
+            if not customer_email:
+                logger.error("❌ No customer_email in Stripe session - cannot process")
+                return "Missing customer email", 400
+            
+            # Find user by email
+            if services.get("database"):
+                try:
+                    database_obj = services["database"]
+                    conn = database_obj.get_connection()
+                    cursor = conn.cursor()
+                    
+                    logger.info(f"🔍 Looking up user by email: {customer_email}")
+                    
+                    # Get user_id from email
+                    if database_obj.use_postgres:
+                        cursor.execute("SELECT id, email, display_name FROM users WHERE email = %s", (customer_email,))
+                    else:
+                        cursor.execute("SELECT id, email, display_name FROM users WHERE email = ?", (customer_email,))
+                    
+                    user_result = cursor.fetchone()
+                    if user_result:
+                        user_id, user_email, display_name = user_result
+                        logger.info(f"✅ Found user: ID={user_id}, Name={display_name}")
+                        
+                        # Check if subscription already exists to avoid duplicates
+                        if database_obj.use_postgres:
+                            cursor.execute("SELECT id FROM subscriptions WHERE user_id = %s AND stripe_customer_id = %s", (user_id, customer_id))
+                        else:
+                            cursor.execute("SELECT id FROM subscriptions WHERE user_id = ? AND stripe_customer_id = ?", (user_id, customer_id))
+                        
+                        existing_sub = cursor.fetchone()
+                        if existing_sub:
+                            logger.info(f"⚠️ Subscription already exists for user {user_id}, skipping insert")
+                        else:
+                            # Insert into subscriptions table
+                            logger.info(f"💾 Inserting subscription record...")
+                            if database_obj.use_postgres:
+                                cursor.execute("""
+                                    INSERT INTO subscriptions 
+                                    (user_id, email, plan_type, status, stripe_customer_id, stripe_subscription_id, created_at, updated_at)
+                                    VALUES (%s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                                """, (user_id, customer_email, plan_type, 'active', customer_id, subscription_id))
+                            else:
+                                cursor.execute("""
+                                    INSERT INTO subscriptions 
+                                    (user_id, email, plan_type, status, stripe_customer_id, stripe_subscription_id, created_at, updated_at)
+                                    VALUES (?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+                                """, (user_id, customer_email, plan_type, 'active', customer_id, subscription_id))
+                            
+                            conn.commit()
+                            logger.info(f"🎉 Successfully created subscription record for user {user_id} ({customer_email})")
+                    else:
+                        logger.error(f"❌ No user found for email: {customer_email}")
+                        logger.info("💡 Available users in database:")
+                        cursor.execute("SELECT email FROM users LIMIT 5")
+                        users = cursor.fetchall()
+                        for user in users:
+                            logger.info(f"   - {user[0]}")
+                    
+                    conn.close()
+                    
+                except Exception as db_error:
+                    logger.error(f"💥 Database error in webhook: {db_error}")
+                    logger.error(f"   Error type: {type(db_error).__name__}")
+                    logger.error(f"   Error details: {str(db_error)}")
+                    try:
+                        conn.rollback()
+                        conn.close()
+                    except:
+                        pass
+            else:
+                logger.error("❌ Database service not available for webhook processing")
+        
+        # Handle invoice paid (for recurring subscriptions)
+        elif event['type'] == 'invoice.paid':
+            invoice = event['data']['object']
+            subscription_id = invoice.get('subscription')
+            customer_email = invoice.get('customer_email')
+            
+            logger.info(f"Processing paid invoice for {customer_email}")
+            
+            # Update subscription status to active
+            if services.get("database"):
+                try:
+                    database_obj = services["database"]
+                    conn = database_obj.get_connection()
+                    cursor = conn.cursor()
+                    
+                    if database_obj.use_postgres:
+                        cursor.execute("""
+                            UPDATE subscriptions 
+                            SET status = %s, updated_at = CURRENT_TIMESTAMP 
+                            WHERE stripe_subscription_id = %s
+                        """, ('active', subscription_id))
+                    else:
+                        cursor.execute("""
+                            UPDATE subscriptions 
+                            SET status = ?, updated_at = datetime('now') 
+                            WHERE stripe_subscription_id = ?
+                        """, ('active', subscription_id))
+                    
+                    conn.commit()
+                    conn.close()
+                    logger.info(f"Updated subscription status for {subscription_id}")
+                    
+                except Exception as db_error:
+                    logger.error(f"Database error updating subscription: {db_error}")
+                    conn.rollback()
+                    conn.close()
+        
+        # Handle subscription cancelled
+        elif event['type'] == 'customer.subscription.deleted':
+            subscription = event['data']['object']
+            subscription_id = subscription.get('id')
+            
+            logger.info(f"Processing cancelled subscription {subscription_id}")
+            
+            if services.get("database"):
+                try:
+                    database_obj = services["database"]
+                    conn = database_obj.get_connection()
+                    cursor = conn.cursor()
+                    
+                    if database_obj.use_postgres:
+                        cursor.execute("""
+                            UPDATE subscriptions 
+                            SET status = %s, updated_at = CURRENT_TIMESTAMP 
+                            WHERE stripe_subscription_id = %s
+                        """, ('cancelled', subscription_id))
+                    else:
+                        cursor.execute("""
+                            UPDATE subscriptions 
+                            SET status = ?, updated_at = datetime('now') 
+                            WHERE stripe_subscription_id = ?
+                        """, ('cancelled', subscription_id))
+                    
+                    conn.commit()
+                    conn.close()
+                    logger.info(f"Cancelled subscription {subscription_id}")
+                    
+                except Exception as db_error:
+                    logger.error(f"Database error cancelling subscription: {db_error}")
+                    conn.rollback()
+                    conn.close()
+        
+        return "Success", 200
+        
+    except Exception as e:
+        logger.error(f"💥 Stripe webhook error: {e}")
+        logger.error(f"   Error type: {type(e).__name__}")
+        logger.error(f"   Error details: {str(e)}")
+        return "Webhook error", 400
+
+@app.route("/api/webhooks/stripe/test", methods=["POST"])
+def test_stripe_webhook():
+    """Test webhook with mock data"""
+    if not is_logged_in():
+        return jsonify({"success": False, "error": "Authentication required"}), 401
+    
+    user_email = session.get("user_email", "")
+    
+    logger.info(f"🧪 Testing webhook simulation for {user_email}")
+    
+    # Simulate a successful checkout
+    mock_event = {
+        'type': 'checkout.session.completed',
+        'data': {
+            'object': {
+                'customer_email': user_email,
+                'customer': 'cus_test123',
+                'subscription': 'sub_test123',
+                'metadata': {
+                    'plan_type': 'premium'
+                }
+            }
+        }
+    }
+    
+    # Call the webhook logic directly
+    try:
+        # Process like real webhook
+        session_data = mock_event['data']['object']
+        customer_email = session_data.get('customer_email')
+        customer_id = session_data.get('customer')
+        subscription_id = session_data.get('subscription')
+        plan_type = session_data.get('metadata', {}).get('plan_type', 'premium')
+        
+        logger.info(f"🎯 Testing subscription creation for: {customer_email}")
+        
+        if services.get("database"):
+            database_obj = services["database"]
+            conn = database_obj.get_connection()
+            cursor = conn.cursor()
+            
+            # Get user_id from email
+            if database_obj.use_postgres:
+                cursor.execute("SELECT id, email, display_name FROM users WHERE email = %s", (customer_email,))
+            else:
+                cursor.execute("SELECT id, email, display_name FROM users WHERE email = ?", (customer_email,))
+            
+            user_result = cursor.fetchone()
+            if user_result:
+                user_id, user_email, display_name = user_result
+                
+                # Insert test subscription
+                if database_obj.use_postgres:
+                    cursor.execute("""
+                        INSERT INTO subscriptions 
+                        (user_id, email, plan_type, status, stripe_customer_id, stripe_subscription_id, created_at, updated_at)
+                        VALUES (%s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                    """, (user_id, customer_email, plan_type, 'active', customer_id, subscription_id))
+                else:
+                    cursor.execute("""
+                        INSERT INTO subscriptions 
+                        (user_id, email, plan_type, status, stripe_customer_id, stripe_subscription_id, created_at, updated_at)
+                        VALUES (?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+                    """, (user_id, customer_email, plan_type, 'active', customer_id, subscription_id))
+                
+                conn.commit()
+                conn.close()
+                
+                return jsonify({
+                    "success": True,
+                    "message": "Test subscription created successfully",
+                    "user_id": user_id,
+                    "plan_type": plan_type
+                })
+            else:
+                conn.close()
+                return jsonify({"success": False, "error": "User not found"}), 404
+        else:
+            return jsonify({"success": False, "error": "Database not available"}), 500
+            
+    except Exception as e:
+        logger.error(f"Test webhook error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route("/api/chat", methods=["POST"])
 def api_chat():

@@ -588,25 +588,30 @@
 
             async loadUserProfile() {
                 try {
-                    // Use session storage or default values since server already authenticated
-                    this.currentUser = { 
-                        uid: 'user_' + Date.now(), // Generate a simple uid
-                        email: 'GamerJay@gmail.com', 
-                        displayName: 'SoulBridge User' 
-                    };
+                    // Get user data from server session
+                    const response = await fetch('/api/users', {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
 
-                    // Since we have session-based auth, load user data directly from session
-                    // Skip API call and use fallback data
-                    this.userData = {
-                        email: this.currentUser.email,
-                        displayName: this.currentUser.displayName,
-                        uid: this.currentUser.uid,
-                        createdAt: new Date().toISOString(),
-                        subscription: localStorage.getItem('soulbridge_subscription') || 'free',
-                        companionName: localStorage.getItem('selectedCharacter') || 'Blayzo'
-                    };
-                    
-                    this.updateProfileDisplay();
+                    if (response.ok) {
+                        const result = await response.json();
+                        if (result.success) {
+                            this.userData = result.user;
+                            this.currentUser = {
+                                uid: result.user.uid,
+                                email: result.user.email,
+                                displayName: result.user.displayName
+                            };
+                            this.updateProfileDisplay();
+                        } else {
+                            throw new Error(result.error || 'Failed to load user data');
+                        }
+                    } else {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
                 } catch (error) {
                     console.error('Failed to load profile:', error);
                     this.showError('Failed to load profile data');
