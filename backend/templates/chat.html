@@ -2598,7 +2598,7 @@
                 const greetingHtml = `
                     <div class="message bot-message" style="opacity: 0; transform: translateY(20px); display: flex; align-items: flex-start; margin-bottom: 16px; max-width: 80%;">
                         <div class="avatar" style="width: 40px; height: 40px; flex-shrink: 0; margin-right: 12px;">
-                            <img src="${this.getCharacterAvatar(selectedCharacter)}" alt="${selectedCharacter}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" onerror="this.src='{{ url_for('static', filename='logos/Blayzo.png') }}'">
+                            <img src="${this.getCharacterAvatar(selectedCharacter)}" alt="${selectedCharacter}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: contain;" onerror="this.src='{{ url_for('static', filename='logos/Blayzo.png') }}'">
                         </div>
                         <div class="content" style="flex: 1; background: rgba(34, 211, 238, 0.1); padding: 12px; border-radius: 12px; border: 1px solid rgba(34, 211, 238, 0.3);">
                             <div class="name" style="font-weight: 600; color: #22d3ee; margin-bottom: 4px;">${selectedCharacter}</div>
@@ -3688,12 +3688,12 @@
                         </h3>
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
                             <div class="character-card character-violet" onclick="selectCompanion('Violet')" data-character="Violet">
-                                <img src="{{ url_for('static', filename='logos/Violet.png') }}" alt="Violet" style="width: 100%; height: 200px; object-fit: cover; border-radius: 10px;">
+                                <img src="{{ url_for('static', filename='logos/Violet.png') }}" alt="Violet" style="width: 100%; height: 200px; object-fit: contain; border-radius: 10px;">
                                 <h3 class="character-violet-label">Violet</h3>
                                 <p>Mystical spiritual guide</p>
                             </div>
                             <div class="character-card character-crimson" onclick="selectCompanion('Crimson')" data-character="Crimson">
-                                <img src="{{ url_for('static', filename='logos/Crimson.png') }}" alt="Crimson" style="width: 100%; height: 200px; object-fit: cover; border-radius: 10px;">
+                                <img src="{{ url_for('static', filename='logos/Crimson.png') }}" alt="Crimson" style="width: 100%; height: 200px; object-fit: contain; border-radius: 10px;">
                                 <h3 class="character-crimson-label">Crimson</h3>
                                 <p>Fierce protective warrior</p>
                             </div>
@@ -5275,7 +5275,7 @@
                     <img id="sapphireAvatar" src="/static/logos/Sapphire.png" alt="Sapphire" style="
                         width: 80px;
                         height: 80px;
-                        object-fit: cover;
+                        object-fit: contain;
                     " onerror="this.style.display='none'; document.getElementById('sapphireFallback').style.display='flex';">
                     <div id="sapphireFallback" style="
                         display: none;
