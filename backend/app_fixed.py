@@ -65,7 +65,11 @@ app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['SESSION_COOKIE_NAME'] = 'soulbridge_session'
 app.config['SESSION_COOKIE_PATH'] = '/'
 app.config['SESSION_COOKIE_DOMAIN'] = None  # Allow all domains for development
-app.config['SESSION_TYPE'] = 'filesystem'  # Use filesystem sessions for persistence
+
+# CRITICAL: Enhanced session persistence for Railway deployment
+app.config['SESSION_REFRESH_EACH_REQUEST'] = True
+app.config['SESSION_USE_SIGNER'] = True
+app.config['SESSION_KEY_PREFIX'] = 'soulbridge:'
 
 # Global variables for services
 services = {
@@ -83,8 +87,15 @@ db = None
 def maintain_session():
     """Maintain session persistence across requests"""
     try:
+        # Skip session maintenance for static files
+        if request.endpoint in ['static', 'favicon'] or request.path.startswith('/static/'):
+            return
+            
         # Force session to be permanent for all requests
         session.permanent = True
+        
+        # Get session cookie from request
+        session_cookie = request.cookies.get(app.config.get('SESSION_COOKIE_NAME', 'soulbridge_session'))
         
         if session.get("user_authenticated") and session.get("user_email"):
             # Update last activity timestamp
@@ -92,9 +103,14 @@ def maintain_session():
             # Force session to save
             session.modified = True
             
-            # Debug session state
-            if request.endpoint not in ['static', 'favicon']:
-                logger.info(f"🔐 Session maintained for {session.get('user_email')} - endpoint: {request.endpoint}")
+            # Debug session state for non-static requests
+            logger.debug(f"🔐 Session maintained for {session.get('user_email')} - endpoint: {request.endpoint}")
+        elif session_cookie:
+            # Session cookie exists but user not authenticated - possible session loss
+            logger.warning(f"⚠️ Session cookie exists but user not authenticated - endpoint: {request.endpoint}")
+            logger.warning(f"   Cookie value: {session_cookie[:20]}...")
+            logger.warning(f"   Session keys: {list(session.keys())}")
+            
     except Exception as e:
         logger.error(f"Session maintenance error: {e}")
 openai_client = None
@@ -2059,6 +2075,15 @@ def api_referrals_dashboard():
         
         user_email = session.get("user_email", "")
         
+        # Use actual user email for referrals (avoid test email in production)
+        if not user_email or user_email == "test@soulbridgeai.com":
+            # For authenticated users without proper email, generate a user-specific referral
+            if session.get("user_authenticated"):
+                user_id = session.get("user_id", "user")
+                user_email = f"user_{user_id}@soulbridgeai.com"
+            else:
+                user_email = "demo@soulbridgeai.com"
+        
         # Get real referral data from database
         referral_stats = {"total_referrals": 0, "successful_referrals": 0, "pending_referrals": 0, "total_rewards_earned": 0}
         referral_history = []
@@ -2416,17 +2441,29 @@ def get_user_insights():
             cursor = conn.cursor()
             placeholder = "%s" if hasattr(db, 'postgres_url') and db.postgres_url else "?"
             
-            # Get mood trends (last 30 days)
-            cursor.execute(f"""
-                SELECT AVG(mood_score) as avg_mood, COUNT(*) as mood_entries,
-                       DATE(created_at) as mood_date
-                FROM mood_tracking 
-                WHERE user_email = {placeholder} 
-                AND created_at >= NOW() - INTERVAL '30 days'
-                GROUP BY DATE(created_at)
-                ORDER BY mood_date DESC
-                LIMIT 30
-            """, (user_email,))
+            # Get mood trends (last 30 days) - fix PostgreSQL/SQLite compatibility
+            if hasattr(db, 'postgres_url') and db.postgres_url:
+                cursor.execute(f"""
+                    SELECT AVG(mood_score) as avg_mood, COUNT(*) as mood_entries,
+                           DATE(created_at) as mood_date
+                    FROM mood_tracking 
+                    WHERE user_email = {placeholder} 
+                    AND created_at >= NOW() - INTERVAL '30 days'
+                    GROUP BY DATE(created_at)
+                    ORDER BY mood_date DESC
+                    LIMIT 30
+                """, (user_email,))
+            else:
+                cursor.execute(f"""
+                    SELECT AVG(mood_score) as avg_mood, COUNT(*) as mood_entries,
+                           DATE(created_at) as mood_date
+                    FROM mood_tracking 
+                    WHERE user_email = {placeholder} 
+                    AND created_at >= datetime('now', '-30 days')
+                    GROUP BY DATE(created_at)
+                    ORDER BY mood_date DESC
+                    LIMIT 30
+                """, (user_email,))
             mood_data = cursor.fetchall()
             
             # Get conversation stats
@@ -3225,7 +3262,8 @@ def create_switching_payment():
         # if not is_logged_in():
         #     return jsonify({"success": False, "error": "Authentication required"}), 401
         
-        data = request.get_json()
+        # Accept both JSON and form data
+        data = request.get_json() or request.form.to_dict() or {}
         if not data:
             return jsonify({"success": False, "error": "No data provided"}), 400
             
