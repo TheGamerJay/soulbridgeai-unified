@@ -18,7 +18,7 @@ import stripe
 import random
 import string
 from datetime import datetime, timezone, timedelta
-from flask import Flask, jsonify, render_template, request, session, redirect, url_for, flash, make_response
+from flask import Flask, jsonify, render_template, request, session, redirect, url_for, flash, make_response, has_request_context
 from flask_cors import CORS
 
 # Load environment variables from .env files
@@ -5669,24 +5669,30 @@ class AutoMaintenanceSystem:
     def fix_session_issues(self):
         """Auto-fix session-related problems"""
         try:
-            # Clear corrupted sessions from memory
-            corrupted_sessions = []
-            for session_id in list(session.keys()) if hasattr(session, 'keys') else []:
-                try:
-                    # Test session validity
-                    if not session.get('user_email') and session.get('user_authenticated'):
+            # Only attempt session cleanup within request context
+            if has_request_context():
+                # Clear corrupted sessions from memory
+                corrupted_sessions = []
+                for session_id in list(session.keys()) if hasattr(session, 'keys') else []:
+                    try:
+                        # Test session validity
+                        if not session.get('user_email') and session.get('user_authenticated'):
+                            corrupted_sessions.append(session_id)
+                    except:
                         corrupted_sessions.append(session_id)
-                except:
-                    corrupted_sessions.append(session_id)
-            
-            for session_id in corrupted_sessions:
-                try:
-                    del session[session_id]
-                except:
-                    pass
+                
+                for session_id in corrupted_sessions:
+                    try:
+                        del session[session_id]
+                    except:
+                        pass
+                
+                self.log_maintenance("SESSION_CLEANUP", f"Cleared {len(corrupted_sessions)} corrupted sessions")
+            else:
+                # Skip session cleanup if no request context
+                self.log_maintenance("SESSION_SKIP", "Session cleanup skipped - no request context")
             
             self.health_status['sessions'] = True
-            self.log_maintenance("SESSION_CLEANUP", f"Cleared {len(corrupted_sessions)} corrupted sessions")
             
         except Exception as e:
             self.log_maintenance("SESSION_FIX_ERROR", str(e))
