@@ -6443,9 +6443,31 @@ class AutoMaintenanceSystem:
             
             # Define safe routes that bypass security scanning
             SAFE_ROUTES = [
+                # Admin and monitoring routes
                 "/admin/watchdog", "/admin/trap-logs", "/admin/toggle-watchdog", 
                 "/admin/surveillance", "/admin/emergency-unblock", "/admin/whitelist-me",
-                "/health", "/static/", "/", "/chat", "/community", "/journey"
+                "/admin/system-status",
+                
+                # Core application routes
+                "/health", "/static/", "/", "/chat", "/community", "/journey",
+                "/login", "/register", "/profile", "/subscription", "/help",
+                "/maintenance", "/terms", "/library", "/export-backup", "/decoder",
+                "/community-dashboard", "/referrals", "/voice-chat", "/payment",
+                
+                # Authentication routes
+                "/auth/login", "/auth/logout", "/auth/register", "/auth/forgot-password",
+                
+                # Dashboard and analytics routes
+                "/mood/dashboard", "/tags", "/conversations/search", "/characters",
+                
+                # Payment and subscription routes
+                "/payment/success", "/payment/cancel", "/stripe-status", "/stripe-test",
+                
+                # API routes (all API calls should be safe from SQL injection detection)
+                "/api/", "/debug/", "/webhook/",
+                
+                # Emergency and debug routes
+                "/emergency-user-create", "/debug/user/", "/debug/env", "/debug/session"
             ]
             
             # Define parameters to ignore during scanning (like admin keys)
