@@ -115,8 +115,10 @@ def is_logged_in():
         logger.warning(f"   Session keys: {list(session.keys())}")
         logger.warning(f"   Session permanent: {session.permanent}")
         logger.warning(f"   User email: {user_email or 'not set'}")
+        logger.warning(f"   User authenticated flag: {session.get('user_authenticated', 'NOT SET')}")
         logger.warning(f"   Login timestamp: {session.get('login_timestamp', 'not set')}")
         logger.warning(f"   Session ID: {request.cookies.get(app.config.get('SESSION_COOKIE_NAME', 'session'))}")
+        logger.warning(f"   All cookies: {dict(request.cookies)}")
     else:
         logger.info(f"✅ Authentication check passed for {user_email}")
         logger.info(f"   Session permanent: {session.permanent}")
@@ -787,14 +789,23 @@ def select_plan():
         # if not is_logged_in():
         #     return jsonify({"success": False, "error": "Authentication required"}), 401
         
+        # Debug current session state
+        logger.info(f"🔍 PLAN SELECTION DEBUG:")
+        logger.info(f"   Session keys at start: {list(session.keys())}")
+        logger.info(f"   User email at start: {session.get('user_email', 'NOT SET')}")
+        logger.info(f"   Session permanent: {session.permanent}")
+        logger.info(f"   Request cookies: {dict(request.cookies)}")
+        
         # Set up temporary session for testing
         if not session.get('user_email'):
             logger.warning("⚠️ TEMPORARY: Setting up test user session for plan selection")
             session['user_email'] = 'test@soulbridgeai.com'
             session['user_id'] = 'temp_test_user'
             session['user_authenticated'] = True
+            session['login_timestamp'] = datetime.now().isoformat()
             session.permanent = True
             session.modified = True
+            logger.info(f"✅ Session setup complete: {list(session.keys())}")
             
         data = request.get_json()
         if not data:
@@ -808,8 +819,12 @@ def select_plan():
         session["user_plan"] = plan_type
         session["plan_selected_at"] = time.time()
         session["first_time_user"] = False
+        session.modified = True  # Force session save
         
         logger.info(f"Plan selected: {plan_type} by {session.get('user_email')}")
+        logger.info(f"🔍 Session after plan selection: {list(session.keys())}")
+        logger.info(f"   User authenticated: {session.get('user_authenticated')}")
+        logger.info(f"   Session permanent: {session.permanent}")
         
         # Create appropriate success message and redirect
         if plan_type == "foundation":
