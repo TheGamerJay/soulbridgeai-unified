@@ -863,10 +863,27 @@ def create_checkout_session():
         logger.info(f"   Session keys: {list(session.keys())}")
         logger.info(f"   User authenticated: {session.get('user_authenticated', 'NOT SET')}")
         logger.info(f"   User email: {session.get('user_email', 'NOT SET')}")
+        logger.info(f"   Session permanent: {session.permanent}")
+        logger.info(f"   Request cookies: {dict(request.cookies)}")
+        logger.info(f"   Request headers: {dict(request.headers)}")
         
-        if not is_logged_in():
+        # Detailed authentication debugging
+        auth_result = is_logged_in()
+        logger.info(f"🔐 Authentication result: {auth_result}")
+        
+        if not auth_result:
             logger.error("❌ Authentication failed for checkout session")
-            return jsonify({"success": False, "error": "Authentication required"}), 401
+            return jsonify({
+                "success": False, 
+                "error": "Authentication required",
+                "debug": {
+                    "session_keys": list(session.keys()),
+                    "user_authenticated": session.get('user_authenticated'),
+                    "user_email": session.get('user_email'),
+                    "session_permanent": session.permanent,
+                    "cookies_received": len(request.cookies) > 0
+                }
+            }), 401
             
         data = request.get_json()
         if not data:
