@@ -474,8 +474,12 @@
         
         <div class="filter-options">
             <div class="filter-btn active" onclick="filterByType('all')" data-filter="all">All Conversations</div>
-            <div class="filter-btn" onclick="filterByType('Blayzo')" data-filter="Blayzo">🧙‍♂️ Blayzo</div>
-            <div class="filter-btn" onclick="filterByType('Blayzica')" data-filter="Blayzica">💖 Blayzica</div>
+            <div class="filter-btn" onclick="filterByType('Blayzo')" data-filter="Blayzo">
+                <img src="{{ url_for('static', filename='logos/Blayzo.png') }}" alt="Blayzo" style="width: 20px; height: 20px; border-radius: 50%; object-fit: contain; margin-right: 5px;"> Blayzo
+            </div>
+            <div class="filter-btn" onclick="filterByType('Blayzica')" data-filter="Blayzica">
+                <img src="{{ url_for('static', filename='logos/Blayzica.png') }}" alt="Blayzica" style="width: 20px; height: 20px; border-radius: 50%; object-fit: contain; margin-right: 5px;"> Blayzica
+            </div>
             <div class="filter-btn" onclick="filterByType('favorites')" data-filter="favorites">⭐ Favorites</div>
         </div>
 
@@ -553,7 +557,9 @@
 
         function createConversationCard(conv) {
             const preview = extractPreview(conv.content);
-            const characterIcon = conv.character === 'Blayzo' ? '🧙‍♂️' : '💖';
+            const characterIcon = conv.character === 'Blayzo' ? 
+                '<img src="/static/logos/Blayzo.png" alt="Blayzo" style="width: 16px; height: 16px; border-radius: 50%; object-fit: contain; margin-right: 4px;">' : 
+                '<img src="/static/logos/Blayzica.png" alt="Blayzica" style="width: 16px; height: 16px; border-radius: 50%; object-fit: contain; margin-right: 4px;">';
             
             return `
                 <div class="conversation-card ${conv.isFavorite ? 'favorite' : ''}" data-id="${conv.id}">
