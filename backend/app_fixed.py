@@ -79,7 +79,8 @@ ALLOWED_ORIGIN = os.environ.get("ALLOWED_ORIGIN", "*")
 # Admin IP whitelist (add your IP here to prevent auto-blocking)
 ADMIN_WHITELIST_IPS = set([
     "127.0.0.1",
-    "localhost", 
+    "localhost",
+    "24.61.80.239",  # Admin IP - permanent whitelist
     # Add more admin IPs here as needed
 ])
 
