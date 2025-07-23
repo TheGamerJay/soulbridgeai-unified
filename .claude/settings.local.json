@@ -45,7 +45,9 @@
       "Bash(wc:*)",
       "Bash(sqlite3:*)",
       "Bash(cat:*)",
-      "Bash(echo:*)"
+      "Bash(echo:*)",
+      "Bash(git hash-object:*)",
+      "Bash(git ls-tree:*)"
     ],
     "deny": []
   }
