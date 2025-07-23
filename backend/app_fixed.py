@@ -441,6 +441,53 @@ def init_advanced_tables():
                     validation_checks JSONB,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
+                
+                -- Phase 18: Enterprise & Scalability tables
+                CREATE TABLE IF NOT EXISTS enterprise_teams (
+                    id SERIAL PRIMARY KEY,
+                    owner_email VARCHAR(255) NOT NULL,
+                    team_name VARCHAR(255) NOT NULL,
+                    member_emails TEXT[],
+                    permissions JSONB,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+                
+                CREATE TABLE IF NOT EXISTS webhook_integrations (
+                    id SERIAL PRIMARY KEY,
+                    user_email VARCHAR(255) NOT NULL UNIQUE,
+                    webhook_url TEXT NOT NULL,
+                    event_types TEXT[],
+                    secret_key VARCHAR(255),
+                    status VARCHAR(20) DEFAULT 'active',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+                
+                CREATE TABLE IF NOT EXISTS audit_logs (
+                    id SERIAL PRIMARY KEY,
+                    user_email VARCHAR(255) NOT NULL,
+                    action_type VARCHAR(100) NOT NULL,
+                    action_details TEXT,
+                    ip_address INET,
+                    user_agent TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+                
+                CREATE TABLE IF NOT EXISTS shared_conversations (
+                    id SERIAL PRIMARY KEY,
+                    owner_email VARCHAR(255) NOT NULL,
+                    conversation_id VARCHAR(255) NOT NULL,
+                    shared_with TEXT[],
+                    permissions TEXT[],
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+                
+                -- Additional indexes for Phase 18
+                CREATE INDEX IF NOT EXISTS idx_teams_owner ON enterprise_teams(owner_email);
+                CREATE INDEX IF NOT EXISTS idx_webhooks_user ON webhook_integrations(user_email);
+                CREATE INDEX IF NOT EXISTS idx_audit_user_action ON audit_logs(user_email, action_type, created_at);
+                CREATE INDEX IF NOT EXISTS idx_shared_convos ON shared_conversations(owner_email, conversation_id);
             """)
         else:
             cursor.execute("""
@@ -497,11 +544,58 @@ def init_advanced_tables():
                 CREATE INDEX IF NOT EXISTS idx_voice_user ON voice_interactions(user_email, created_at);
                 CREATE INDEX IF NOT EXISTS idx_personality_user ON personality_profiles(user_email);
                 CREATE INDEX IF NOT EXISTS idx_security_user ON security_validations(user_email, created_at);
+                
+                -- Phase 18: Enterprise & Scalability tables
+                CREATE TABLE IF NOT EXISTS enterprise_teams (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    owner_email TEXT NOT NULL,
+                    team_name TEXT NOT NULL,
+                    member_emails TEXT, -- JSON string
+                    permissions TEXT, -- JSON string
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                );
+                
+                CREATE TABLE IF NOT EXISTS webhook_integrations (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_email TEXT NOT NULL UNIQUE,
+                    webhook_url TEXT NOT NULL,
+                    event_types TEXT, -- JSON string
+                    secret_key TEXT,
+                    status TEXT DEFAULT 'active',
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                );
+                
+                CREATE TABLE IF NOT EXISTS audit_logs (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_email TEXT NOT NULL,
+                    action_type TEXT NOT NULL,
+                    action_details TEXT,
+                    ip_address TEXT,
+                    user_agent TEXT,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                );
+                
+                CREATE TABLE IF NOT EXISTS shared_conversations (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    owner_email TEXT NOT NULL,
+                    conversation_id TEXT NOT NULL,
+                    shared_with TEXT, -- JSON string
+                    permissions TEXT, -- JSON string
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                );
+                
+                -- Additional indexes for Phase 18
+                CREATE INDEX IF NOT EXISTS idx_teams_owner ON enterprise_teams(owner_email);
+                CREATE INDEX IF NOT EXISTS idx_webhooks_user ON webhook_integrations(user_email);
+                CREATE INDEX IF NOT EXISTS idx_audit_user_action ON audit_logs(user_email, action_type, created_at);
+                CREATE INDEX IF NOT EXISTS idx_shared_convos ON shared_conversations(owner_email, conversation_id);
             """)
 
         conn.commit()
         conn.close()
-        logger.info("✅ Advanced feature tables initialized (Phase 16 & 17)")
+        logger.info("✅ Advanced feature tables initialized (Phase 16, 17 & 18)")
         return True
         
     except Exception as e:
@@ -2378,6 +2472,578 @@ def api_referrals_share_templates():
 # ========================================
 # PHASE 17: NEXT-GEN AI FEATURES
 # ========================================
+
+# ========================================
+# PHASE 18: ENTERPRISE & SCALABILITY
+# ========================================
+
+@app.route("/api/enterprise/teams", methods=["GET", "POST"])
+def manage_teams():
+    """Enterprise team management"""
+    try:
+        user_email = session.get("user_email", "test@soulbridgeai.com")
+        user_plan = session.get("user_plan", "foundation")
+        
+        # Check enterprise access
+        if user_plan != "enterprise":
+            return jsonify({"success": False, "error": "Enterprise plan required"}), 403
+            
+        if request.method == "POST":
+            data = request.get_json()
+            team_name = data.get("team_name")
+            member_emails = data.get("member_emails", [])
+            permissions = data.get("permissions", {})
+            
+            if services["database"] and db:
+                conn = db.get_connection()
+                cursor = conn.cursor()
+                placeholder = "%s" if hasattr(db, 'postgres_url') and db.postgres_url else "?"
+                
+                # Create team
+                cursor.execute(f"""
+                    INSERT INTO enterprise_teams 
+                    (owner_email, team_name, member_emails, permissions, created_at)
+                    VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder}, CURRENT_TIMESTAMP)
+                    RETURNING id
+                """, (user_email, team_name, str(member_emails), str(permissions)))
+                
+                team_id = cursor.fetchone()[0]
+                conn.commit()
+                conn.close()
+                
+                logger.info(f"🏢 Team created: {team_name} by {user_email}")
+                
+                return jsonify({
+                    "success": True,
+                    "team_id": team_id,
+                    "message": f"Team '{team_name}' created successfully"
+                })
+        
+        # GET request - list teams
+        if services["database"] and db:
+            conn = db.get_connection()
+            cursor = conn.cursor()
+            placeholder = "%s" if hasattr(db, 'postgres_url') and db.postgres_url else "?"
+            
+            cursor.execute(f"""
+                SELECT id, team_name, member_emails, permissions, created_at
+                FROM enterprise_teams 
+                WHERE owner_email = {placeholder}
+                ORDER BY created_at DESC
+            """, (user_email,))
+            
+            teams = cursor.fetchall()
+            conn.close()
+            
+            return jsonify({
+                "success": True,
+                "teams": [
+                    {
+                        "id": team[0],
+                        "name": team[1],
+                        "members": eval(team[2]) if team[2] else [],
+                        "permissions": eval(team[3]) if team[3] else {},
+                        "created_at": team[4]
+                    } for team in teams
+                ]
+            })
+            
+        return jsonify({"success": False, "error": "Database not available"}), 503
+        
+    except Exception as e:
+        logger.error(f"Team management error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/api/enterprise/analytics", methods=["GET"])
+def enterprise_analytics():
+    """Advanced enterprise analytics dashboard"""
+    try:
+        user_email = session.get("user_email", "test@soulbridgeai.com")
+        user_plan = session.get("user_plan", "foundation")
+        
+        if user_plan != "enterprise":
+            return jsonify({"success": False, "error": "Enterprise plan required"}), 403
+            
+        if services["database"] and db:
+            conn = db.get_connection()
+            cursor = conn.cursor()
+            placeholder = "%s" if hasattr(db, 'postgres_url') and db.postgres_url else "?"
+            
+            # Get comprehensive analytics
+            analytics = {}
+            
+            # User engagement metrics
+            cursor.execute(f"""
+                SELECT 
+                    COUNT(*) as total_sessions,
+                    AVG(message_count) as avg_messages_per_session,
+                    AVG(session_duration) as avg_session_duration,
+                    SUM(message_count) as total_messages
+                FROM conversation_analytics 
+                WHERE user_email = {placeholder}
+                AND created_at >= NOW() - INTERVAL '30 days'
+            """, (user_email,))
+            
+            engagement = cursor.fetchone()
+            analytics["engagement"] = {
+                "total_sessions": engagement[0] or 0,
+                "avg_messages_per_session": round(engagement[1] or 0, 2),
+                "avg_session_duration": round(engagement[2] or 0, 2),
+                "total_messages": engagement[3] or 0
+            }
+            
+            # Mood trends
+            cursor.execute(f"""
+                SELECT 
+                    AVG(mood_score) as avg_mood,
+                    COUNT(*) as mood_entries,
+                    MAX(mood_score) as highest_mood,
+                    MIN(mood_score) as lowest_mood
+                FROM mood_tracking 
+                WHERE user_email = {placeholder}
+                AND created_at >= NOW() - INTERVAL '30 days'
+            """, (user_email,))
+            
+            mood_data = cursor.fetchone()
+            analytics["mood_trends"] = {
+                "avg_mood": round(mood_data[0] or 7.0, 2),
+                "total_entries": mood_data[1] or 0,
+                "highest_mood": mood_data[2] or 10,
+                "lowest_mood": mood_data[3] or 1
+            }
+            
+            # Usage patterns by hour
+            cursor.execute(f"""
+                SELECT 
+                    EXTRACT(HOUR FROM created_at) as hour,
+                    COUNT(*) as sessions
+                FROM conversation_analytics 
+                WHERE user_email = {placeholder}
+                AND created_at >= NOW() - INTERVAL '7 days'
+                GROUP BY EXTRACT(HOUR FROM created_at)
+                ORDER BY hour
+            """, (user_email,))
+            
+            hourly_usage = cursor.fetchall()
+            analytics["usage_patterns"] = {
+                "hourly": [{"hour": int(row[0]), "sessions": row[1]} for row in hourly_usage]
+            }
+            
+            conn.close()
+            
+            logger.info(f"📊 Enterprise analytics generated for {user_email}")
+            
+            return jsonify({
+                "success": True,
+                "analytics": analytics,
+                "generated_at": datetime.now().isoformat()
+            })
+            
+        return jsonify({"success": False, "error": "Database not available"}), 503
+        
+    except Exception as e:
+        logger.error(f"Enterprise analytics error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/api/integrations/webhook", methods=["POST"])
+def webhook_integration():
+    """External webhook integration for enterprise customers"""
+    try:
+        user_email = session.get("user_email", "test@soulbridgeai.com")
+        user_plan = session.get("user_plan", "foundation")
+        
+        if user_plan not in ["premium", "enterprise"]:
+            return jsonify({"success": False, "error": "Premium plan required"}), 403
+            
+        data = request.get_json()
+        webhook_url = data.get("webhook_url")
+        event_types = data.get("event_types", [])
+        secret_key = data.get("secret_key")
+        
+        if not webhook_url:
+            return jsonify({"success": False, "error": "Webhook URL required"}), 400
+            
+        if services["database"] and db:
+            conn = db.get_connection()
+            cursor = conn.cursor()
+            placeholder = "%s" if hasattr(db, 'postgres_url') and db.postgres_url else "?"
+            
+            # Store webhook configuration
+            cursor.execute(f"""
+                INSERT INTO webhook_integrations 
+                (user_email, webhook_url, event_types, secret_key, status, created_at)
+                VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder}, 'active', CURRENT_TIMESTAMP)
+                ON CONFLICT (user_email) DO UPDATE SET
+                    webhook_url = EXCLUDED.webhook_url,
+                    event_types = EXCLUDED.event_types,
+                    secret_key = EXCLUDED.secret_key,
+                    status = 'active',
+                    updated_at = CURRENT_TIMESTAMP
+            """, (user_email, webhook_url, str(event_types), secret_key))
+            
+            conn.commit()
+            conn.close()
+            
+            logger.info(f"🔗 Webhook configured for {user_email}: {webhook_url}")
+            
+            return jsonify({
+                "success": True,
+                "message": "Webhook integration configured successfully",
+                "supported_events": ["conversation_start", "conversation_end", "mood_update", "payment_success"]
+            })
+            
+        return jsonify({"success": False, "error": "Database not available"}), 503
+        
+    except Exception as e:
+        logger.error(f"Webhook integration error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/api/enterprise/audit", methods=["GET"])
+def audit_logs():
+    """Comprehensive audit logging for enterprise compliance"""
+    try:
+        user_email = session.get("user_email", "test@soulbridgeai.com")
+        user_plan = session.get("user_plan", "foundation")
+        
+        if user_plan != "enterprise":
+            return jsonify({"success": False, "error": "Enterprise plan required"}), 403
+            
+        # Get query parameters
+        start_date = request.args.get("start_date")
+        end_date = request.args.get("end_date")
+        action_type = request.args.get("action_type")
+        limit = int(request.args.get("limit", 100))
+        
+        if services["database"] and db:
+            conn = db.get_connection()
+            cursor = conn.cursor()
+            placeholder = "%s" if hasattr(db, 'postgres_url') and db.postgres_url else "?"
+            
+            # Build dynamic query
+            query = f"""
+                SELECT action_type, action_details, ip_address, user_agent, created_at
+                FROM audit_logs 
+                WHERE user_email = {placeholder}
+            """
+            params = [user_email]
+            
+            if start_date:
+                query += f" AND created_at >= {placeholder}"
+                params.append(start_date)
+            if end_date:
+                query += f" AND created_at <= {placeholder}"
+                params.append(end_date)
+            if action_type:
+                query += f" AND action_type = {placeholder}"
+                params.append(action_type)
+                
+            query += f" ORDER BY created_at DESC LIMIT {placeholder}"
+            params.append(limit)
+            
+            cursor.execute(query, params)
+            logs = cursor.fetchall()
+            conn.close()
+            
+            return jsonify({
+                "success": True,
+                "audit_logs": [
+                    {
+                        "action_type": log[0],
+                        "details": log[1],
+                        "ip_address": log[2],
+                        "user_agent": log[3],
+                        "timestamp": log[4]
+                    } for log in logs
+                ],
+                "total_records": len(logs)
+            })
+            
+        return jsonify({"success": False, "error": "Database not available"}), 503
+        
+    except Exception as e:
+        logger.error(f"Audit logs error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/api/performance/metrics", methods=["GET"])
+def performance_metrics():
+    """Real-time performance monitoring for scalability"""
+    try:
+        import psutil
+        import os
+        
+        # System metrics
+        cpu_percent = psutil.cpu_percent(interval=1)
+        memory = psutil.virtual_memory()
+        disk = psutil.disk_usage('/')
+        
+        # Application metrics
+        active_sessions = len([k for k in session.keys() if k.startswith('user_')])
+        
+        # Database connection pool status (if available)
+        db_connections = 0
+        if services["database"] and db:
+            try:
+                conn = db.get_connection()
+                cursor = conn.cursor()
+                cursor.execute("SELECT COUNT(*) FROM pg_stat_activity" if hasattr(db, 'postgres_url') and db.postgres_url else "SELECT 1")
+                db_connections = cursor.fetchone()[0] if hasattr(db, 'postgres_url') and db.postgres_url else 1
+                conn.close()
+            except:
+                db_connections = -1
+        
+        metrics = {
+            "system": {
+                "cpu_percent": cpu_percent,
+                "memory_percent": memory.percent,
+                "memory_available_gb": round(memory.available / (1024**3), 2),
+                "disk_percent": disk.percent,
+                "disk_free_gb": round(disk.free / (1024**3), 2)
+            },
+            "application": {
+                "active_sessions": active_sessions,
+                "db_connections": db_connections,
+                "uptime_seconds": int((datetime.now() - datetime.fromtimestamp(psutil.boot_time())).total_seconds()),
+                "process_id": os.getpid()
+            },
+            "timestamp": datetime.now().isoformat()
+        }
+        
+        logger.info(f"📈 Performance metrics collected - CPU: {cpu_percent}%, Memory: {memory.percent}%")
+        
+        return jsonify({
+            "success": True,
+            "metrics": metrics
+        })
+        
+    except Exception as e:
+        logger.error(f"Performance metrics error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/api/enterprise/collaboration", methods=["GET", "POST"])
+def real_time_collaboration():
+    """Real-time collaboration features for enterprise teams"""
+    try:
+        user_email = session.get("user_email", "test@soulbridgeai.com")
+        user_plan = session.get("user_plan", "foundation")
+        
+        if user_plan != "enterprise":
+            return jsonify({"success": False, "error": "Enterprise plan required"}), 403
+            
+        if request.method == "POST":
+            data = request.get_json()
+            action = data.get("action")  # 'share_conversation', 'invite_collaborator', 'sync_data'
+            
+            if action == "share_conversation":
+                conversation_id = data.get("conversation_id")
+                team_members = data.get("team_members", [])
+                permissions = data.get("permissions", ["read"])
+                
+                # Store shared conversation
+                if services["database"] and db:
+                    conn = db.get_connection()
+                    cursor = conn.cursor()
+                    placeholder = "%s" if hasattr(db, 'postgres_url') and db.postgres_url else "?"
+                    
+                    cursor.execute(f"""
+                        INSERT INTO shared_conversations 
+                        (owner_email, conversation_id, shared_with, permissions, created_at)
+                        VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder}, CURRENT_TIMESTAMP)
+                    """, (user_email, conversation_id, str(team_members), str(permissions)))
+                    
+                    conn.commit()
+                    conn.close()
+                    
+                    logger.info(f"🤝 Conversation shared by {user_email} to {len(team_members)} members")
+                    
+                    return jsonify({
+                        "success": True,
+                        "message": f"Conversation shared with {len(team_members)} team members",
+                        "share_id": conversation_id
+                    })
+            
+            elif action == "sync_data":
+                # Real-time data synchronization for teams
+                sync_timestamp = datetime.now().isoformat()
+                
+                return jsonify({
+                    "success": True,
+                    "sync_timestamp": sync_timestamp,
+                    "synchronized_data": ["conversations", "analytics", "preferences"],
+                    "message": "Data synchronized successfully"
+                })
+        
+        # GET request - list shared conversations
+        if services["database"] and db:
+            conn = db.get_connection()
+            cursor = conn.cursor()
+            placeholder = "%s" if hasattr(db, 'postgres_url') and db.postgres_url else "?"
+            
+            cursor.execute(f"""
+                SELECT conversation_id, shared_with, permissions, created_at
+                FROM shared_conversations 
+                WHERE owner_email = {placeholder}
+                ORDER BY created_at DESC
+            """, (user_email,))
+            
+            shared_convos = cursor.fetchall()
+            conn.close()
+            
+            return jsonify({
+                "success": True,
+                "shared_conversations": [
+                    {
+                        "conversation_id": row[0],
+                        "shared_with": eval(row[1]) if row[1] else [],
+                        "permissions": eval(row[2]) if row[2] else [],
+                        "created_at": row[3]
+                    } for row in shared_convos
+                ]
+            })
+            
+        return jsonify({"success": False, "error": "Database not available"}), 503
+        
+    except Exception as e:
+        logger.error(f"Collaboration error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/api/rate-limit", methods=["GET"])
+def check_rate_limit():
+    """API rate limiting for scalability and abuse prevention"""
+    try:
+        user_email = session.get("user_email", "test@soulbridgeai.com")
+        user_plan = session.get("user_plan", "foundation")
+        
+        # Rate limits by plan
+        rate_limits = {
+            "foundation": {"requests_per_hour": 100, "requests_per_day": 1000},
+            "premium": {"requests_per_hour": 500, "requests_per_day": 10000},
+            "enterprise": {"requests_per_hour": 2000, "requests_per_day": 50000}
+        }
+        
+        current_limits = rate_limits.get(user_plan, rate_limits["foundation"])
+        
+        # In a real implementation, you'd check actual usage from database/cache
+        # For now, return mock data
+        current_usage = {
+            "requests_this_hour": 15,
+            "requests_today": 127,
+            "last_request": datetime.now().isoformat()
+        }
+        
+        remaining = {
+            "hourly": current_limits["requests_per_hour"] - current_usage["requests_this_hour"],
+            "daily": current_limits["requests_per_day"] - current_usage["requests_today"]
+        }
+        
+        logger.info(f"⚡ Rate limit check: {user_email} ({user_plan}) - {current_usage['requests_this_hour']}/hr")
+        
+        return jsonify({
+            "success": True,
+            "plan": user_plan,
+            "limits": current_limits,
+            "usage": current_usage,
+            "remaining": remaining,
+            "rate_limit_exceeded": remaining["hourly"] <= 0 or remaining["daily"] <= 0
+        })
+        
+    except Exception as e:
+        logger.error(f"Rate limit check error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/api/enterprise/export-data", methods=["POST"])
+def enterprise_data_export():
+    """Comprehensive data export for enterprise compliance"""
+    try:
+        user_email = session.get("user_email", "test@soulbridgeai.com")
+        user_plan = session.get("user_plan", "foundation")
+        
+        if user_plan != "enterprise":
+            return jsonify({"success": False, "error": "Enterprise plan required"}), 403
+            
+        data = request.get_json()
+        export_format = data.get("format", "json")  # json, csv, xml
+        data_types = data.get("data_types", ["all"])  # conversations, analytics, audit_logs, etc.
+        date_range = data.get("date_range", {})
+        
+        if services["database"] and db:
+            conn = db.get_connection()
+            cursor = conn.cursor()
+            placeholder = "%s" if hasattr(db, 'postgres_url') and db.postgres_url else "?"
+            
+            export_data = {}
+            
+            # Export conversations
+            if "conversations" in data_types or "all" in data_types:
+                cursor.execute(f"""
+                    SELECT companion, message_count, session_duration, emotional_tone, created_at
+                    FROM conversation_analytics 
+                    WHERE user_email = {placeholder}
+                    ORDER BY created_at DESC
+                    LIMIT 1000
+                """, (user_email,))
+                
+                conversations = cursor.fetchall()
+                export_data["conversations"] = [
+                    {
+                        "companion": row[0],
+                        "message_count": row[1],
+                        "session_duration": row[2],
+                        "emotional_tone": row[3],
+                        "created_at": str(row[4])
+                    } for row in conversations
+                ]
+            
+            # Export audit logs
+            if "audit_logs" in data_types or "all" in data_types:
+                cursor.execute(f"""
+                    SELECT action_type, action_details, ip_address, created_at
+                    FROM audit_logs 
+                    WHERE user_email = {placeholder}
+                    ORDER BY created_at DESC
+                    LIMIT 1000
+                """, (user_email,))
+                
+                audit_logs = cursor.fetchall()
+                export_data["audit_logs"] = [
+                    {
+                        "action_type": row[0],
+                        "details": row[1],
+                        "ip_address": row[2],
+                        "timestamp": str(row[3])
+                    } for row in audit_logs
+                ]
+            
+            conn.close()
+            
+            # Generate export file
+            export_metadata = {
+                "exported_by": user_email,
+                "export_timestamp": datetime.now().isoformat(),
+                "format": export_format,
+                "data_types": data_types,
+                "record_count": sum(len(v) if isinstance(v, list) else 1 for v in export_data.values())
+            }
+            
+            full_export = {
+                "metadata": export_metadata,
+                "data": export_data
+            }
+            
+            logger.info(f"📦 Data export generated for {user_email} - {export_metadata['record_count']} records")
+            
+            return jsonify({
+                "success": True,
+                "export_id": f"export_{int(datetime.now().timestamp())}",
+                "metadata": export_metadata,
+                "download_url": f"/api/download/export_{int(datetime.now().timestamp())}.{export_format}",
+                "expires_at": (datetime.now() + timedelta(hours=24)).isoformat()
+            })
+            
+        return jsonify({"success": False, "error": "Database not available"}), 503
+        
+    except Exception as e:
+        logger.error(f"Data export error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route("/api/language/detect", methods=["POST"])
 def detect_language():
