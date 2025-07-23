@@ -57,16 +57,22 @@ function MainApp() {
           {/* Back button on the left */}
           {step > 1 && (
             <button
-              className="px-6 py-2 rounded-lg bg-black text-white font-bold shadow hover:bg-gray-800 transition"
-              onClick={() => setStep(step - 1)}
+              className="px-6 py-3 rounded-lg bg-gradient-to-r from-gray-700 to-gray-900 text-white font-bold shadow-lg hover:from-gray-600 hover:to-gray-800 transform hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-gray-300 active:scale-95"
+              onClick={() => {
+                console.log('Back button clicked, going to step:', step - 1);
+                setStep(step - 1);
+              }}
+              tabIndex={0}
+              role="button"
+              aria-label="Go back to previous step"
             >
-              🔙
+              🔙 Back
             </button>
           )}
           {/* Night mode switch on the right */}
-          <label className="flex items-center cursor-pointer ml-auto">
+          <label className="flex items-center cursor-pointer ml-auto bg-gradient-to-r from-cyan-500/20 to-blue-500/20 px-4 py-2 rounded-lg border border-cyan-400/30 hover:border-cyan-400/60 transition-all duration-300">
             <span
-              className="mr-2 font-semibold"
+              className="mr-3 font-semibold"
               style={{
                 color: step === 3 && character === "Blayzo"
                   ? "#4169e1"
@@ -80,8 +86,12 @@ function MainApp() {
             <input
               type="checkbox"
               checked={darkMode}
-              onChange={() => setDarkMode(!darkMode)}
-              className="form-checkbox h-5 w-5 accent-cyan-600"
+              onChange={(e) => {
+                console.log('Theme toggle clicked, dark mode:', !darkMode);
+                setDarkMode(!darkMode);
+              }}
+              className="form-checkbox h-6 w-6 accent-cyan-600 cursor-pointer transform hover:scale-110 transition-transform duration-200"
+              aria-label="Toggle between dark and light mode"
             />
           </label>
         </div>
@@ -91,7 +101,7 @@ function MainApp() {
           className="font-bold mb-4"
           style={{
             fontSize: "1.125rem",
-            color: step === 3 && character === "BlayZo"
+            color: step === 3 && character === "Blayzo"
               ? "#4169e1"
               : step === 3 && character === "Blayzica"
               ? "#ff1a1a"
@@ -143,20 +153,38 @@ function MainApp() {
               <span className="ml-2 text-2xl" style={{ color: "#4169e1" }}>💬</span>
             </div>
             {/* Text box and Send button */}
-            <input
-              type="text"
-              value={message}
-              onChange={e => setMessage(e.target.value)}
-              placeholder="Type your message..."
-              className="w-full max-w-xl p-3 mb-[6rem] rounded-lg border border-cyan-400 bg-transparent"
-              style={{ fontSize: "1rem", color: "#4169e1" }}
-            />
-            <button
-              className="mb-[6rem] px-6 py-2 rounded-lg bg-black text-white font-bold shadow hover:bg-gray-800 transition"
-              onClick={handleSend}
-            >
-              Send
-            </button>
+            <div className="w-full max-w-xl flex flex-col gap-4 mb-[6rem]">
+              <input
+                type="text"
+                value={message}
+                onChange={e => setMessage(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSend();
+                  }
+                }}
+                placeholder="Type your message to Blayzo..."
+                className="w-full p-4 rounded-lg border-2 border-blue-400 bg-transparent text-white placeholder-blue-300 focus:outline-none focus:ring-4 focus:ring-blue-300 focus:border-blue-300 transition-all duration-300"
+                style={{ fontSize: "1rem", color: "#4169e1" }}
+                disabled={!message.trim() && false}
+                aria-label="Type your message to Blayzo"
+              />
+              <button
+                className="px-8 py-3 rounded-lg bg-gradient-to-r from-blue-600 to-blue-800 text-white font-bold shadow-lg hover:from-blue-500 hover:to-blue-700 transform hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-blue-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                onClick={(e) => {
+                  e.preventDefault();
+                  console.log('Send button clicked for Blayzo, message:', message);
+                  handleSend();
+                }}
+                disabled={!message.trim()}
+                tabIndex={0}
+                role="button"
+                aria-label="Send message to Blayzo"
+              >
+                💬 Send to Blayzo
+              </button>
+            </div>
             {/* Show chat history */}
             <div className="w-full max-w-xl mb-4">
               {chat.map((msg, idx) => (
@@ -203,20 +231,38 @@ function MainApp() {
               <span className="ml-2 text-2xl">💖</span>
             </div>
             {/* Text box and Send button */}
-            <input
-              type="text"
-              value={message}
-              onChange={e => setMessage(e.target.value)}
-              placeholder="Type your message..."
-              className="w-full max-w-xl p-3 mb-[6rem] rounded-lg border border-cyan-400 bg-transparent"
-              style={{ fontSize: "1rem", color: "#ff1a1a" }}
-            />
-            <button
-              className="mb-[6rem] px-6 py-2 rounded-lg bg-black text-white font-bold shadow hover:bg-gray-800 transition"
-              onClick={handleSend}
-            >
-              Send
-            </button>
+            <div className="w-full max-w-xl flex flex-col gap-4 mb-[6rem]">
+              <input
+                type="text"
+                value={message}
+                onChange={e => setMessage(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSend();
+                  }
+                }}
+                placeholder="Type your message to Blayzica..."
+                className="w-full p-4 rounded-lg border-2 border-pink-400 bg-transparent text-white placeholder-pink-300 focus:outline-none focus:ring-4 focus:ring-pink-300 focus:border-pink-300 transition-all duration-300"
+                style={{ fontSize: "1rem", color: "#ff1a1a" }}
+                disabled={!message.trim() && false}
+                aria-label="Type your message to Blayzica"
+              />
+              <button
+                className="px-8 py-3 rounded-lg bg-gradient-to-r from-pink-600 to-red-600 text-white font-bold shadow-lg hover:from-pink-500 hover:to-red-500 transform hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-pink-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                onClick={(e) => {
+                  e.preventDefault();
+                  console.log('Send button clicked for Blayzica, message:', message);
+                  handleSend();
+                }}
+                disabled={!message.trim()}
+                tabIndex={0}
+                role="button"
+                aria-label="Send message to Blayzica"
+              >
+                💖 Send to Blayzica
+              </button>
+            </div>
             {/* Show chat history */}
             <div className="w-full max-w-xl mb-4">
               {chat.map((msg, idx) => (
