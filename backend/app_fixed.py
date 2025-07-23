@@ -1721,6 +1721,58 @@ def test_stripe_webhook():
         logger.error(f"Test webhook error: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
 
+@app.route("/api/check-switching-status", methods=["GET"])
+def check_switching_status():
+    """Check character switching status"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        return jsonify({
+            "success": True,
+            "can_switch": True,
+            "current_character": session.get("selected_companion", "Blayzo"),
+            "available_characters": VALID_CHARACTERS
+        })
+    except Exception as e:
+        logger.error(f"Check switching status error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/api/create-switching-payment", methods=["POST"])
+def create_switching_payment():
+    """Create payment for character switching"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        data = request.get_json()
+        character = data.get("character")
+        
+        if character not in VALID_CHARACTERS:
+            return jsonify({"success": False, "error": "Invalid character"}), 400
+        
+        # For now, allow free switching
+        session["selected_companion"] = character
+        
+        return jsonify({
+            "success": True,
+            "message": f"Switched to {character}",
+            "character": character
+        })
+    except Exception as e:
+        logger.error(f"Create switching payment error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/debug/session", methods=["GET"])
+def debug_session():
+    """Debug session status - REMOVE IN PRODUCTION"""
+    return jsonify({
+        "session_data": dict(session),
+        "session_keys": list(session.keys()),
+        "is_logged_in": is_logged_in(),
+        "session_permanent": session.permanent if hasattr(session, 'permanent') else 'unknown'
+    })
+
 @app.route("/api/chat", methods=["POST"])
 def api_chat():
     """Chat API endpoint"""
