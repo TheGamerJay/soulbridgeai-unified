@@ -2742,13 +2742,27 @@
         
         // Navigation Assistant Functions
         function toggleNavigationAssistant() {
-            const modal = document.getElementById('navAssistantModal');
-            if (modal.style.display === 'none' || modal.style.display === '') {
-                modal.style.display = 'flex';
-                document.getElementById('navQuestion').focus();
-            } else {
-                modal.style.display = 'none';
-                document.getElementById('navResponse').style.display = 'none';
+            try {
+                console.log('🔍 Sapphire button clicked - opening navigation assistant');
+                const modal = document.getElementById('navAssistantModal');
+                if (!modal) {
+                    console.error('❌ Navigation assistant modal not found');
+                    return;
+                }
+                if (modal.style.display === 'none' || modal.style.display === '') {
+                    modal.style.display = 'flex';
+                    const questionInput = document.getElementById('navQuestion');
+                    if (questionInput) {
+                        questionInput.focus();
+                    }
+                    console.log('✅ Navigation assistant opened');
+                } else {
+                    modal.style.display = 'none';
+                    document.getElementById('navResponse').style.display = 'none';
+                    console.log('✅ Navigation assistant closed');
+                }
+            } catch (error) {
+                console.error('❌ Error in toggleNavigationAssistant:', error);
             }
         }
         
@@ -3318,10 +3332,12 @@
         
         // Theme toggle function
         function toggleTheme() {
-            document.body.classList.toggle('day-mode');
-            var themeText = document.getElementById('themeText');
-            var themeIcon = document.getElementById('themeIcon');
-            var themeToggle = document.getElementById('themeToggle');
+            try {
+                console.log('🌙 Theme toggle button clicked');
+                document.body.classList.toggle('day-mode');
+                var themeText = document.getElementById('themeText');
+                var themeIcon = document.getElementById('themeIcon');
+                var themeToggle = document.getElementById('themeToggle');
             
             if (document.body.classList.contains('day-mode')) {
                 themeText.textContent = 'Day Mode is ON';
@@ -3338,6 +3354,7 @@
                 setTimeout(function() {
                     forceUpdatePremiumText();
                 }, 100);
+                console.log('✅ Switched to day mode');
             } else {
                 themeText.textContent = 'Night Mode is ON';
                 themeIcon.textContent = '🌙';
@@ -3353,6 +3370,10 @@
                 setTimeout(function() {
                     forceUpdatePremiumText();
                 }, 100);
+                console.log('✅ Switched to night mode');
+            }
+            } catch (error) {
+                console.error('❌ Error in toggleTheme:', error);
             }
         }
         
@@ -3465,11 +3486,21 @@
 
         // User Menu Functions
         function openUserProfile() {
-            window.location.href = '/profile';
+            try {
+                console.log('👤 Profile button clicked - navigating to profile');
+                window.location.href = '/profile';
+            } catch (error) {
+                console.error('❌ Error in openUserProfile:', error);
+            }
         }
         
         function openCommunityDashboard() {
-            window.location.href = '/community-dashboard';
+            try {
+                console.log('🌟 Community button clicked - navigating to community dashboard');
+                window.location.href = '/community-dashboard';
+            } catch (error) {
+                console.error('❌ Error in openCommunityDashboard:', error);
+            }
         }
         
         // Social sharing function for AI messages
