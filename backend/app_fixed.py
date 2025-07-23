@@ -1329,6 +1329,49 @@ def test_stripe():
         logger.error(f"Stripe test error: {e}")
         return jsonify({"success": False, "error": "Test failed"}), 500
 
+@app.route("/api/test-stripe-key", methods=["GET"])
+def test_stripe_key():
+    """Test if the current Stripe secret key works"""
+    try:
+        stripe_secret_key = os.environ.get("STRIPE_SECRET_KEY")
+        if not stripe_secret_key:
+            return jsonify({
+                "success": False,
+                "error": "STRIPE_SECRET_KEY not set",
+                "key_format": "Should start with sk_test_ or sk_live_"
+            })
+        
+        import stripe
+        stripe.api_key = stripe_secret_key
+        
+        # Test API call - get account info
+        try:
+            account = stripe.Account.retrieve()
+            return jsonify({
+                "success": True,
+                "message": "Stripe key is valid and working",
+                "account_id": account.id,
+                "key_type": "TEST" if stripe_secret_key.startswith("sk_test_") else "LIVE",
+                "key_prefix": stripe_secret_key[:12] + "..." if len(stripe_secret_key) > 12 else stripe_secret_key
+            })
+        except stripe.error.AuthenticationError as e:
+            return jsonify({
+                "success": False,
+                "error": "Invalid Stripe secret key",
+                "details": str(e),
+                "key_prefix": stripe_secret_key[:12] + "..." if len(stripe_secret_key) > 12 else stripe_secret_key
+            })
+        except stripe.error.StripeError as e:
+            return jsonify({
+                "success": False,
+                "error": f"Stripe API error: {str(e)}",
+                "key_prefix": stripe_secret_key[:12] + "..." if len(stripe_secret_key) > 12 else stripe_secret_key
+            })
+            
+    except Exception as e:
+        logger.error(f"Stripe key test error: {e}")
+        return jsonify({"success": False, "error": "Test failed"}), 500
+
 @app.route("/api/database-status", methods=["GET"])
 def database_status():
     """Get database status and health"""
