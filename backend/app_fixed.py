@@ -97,7 +97,7 @@ socketio = None
 _service_lock = threading.RLock()
 
 # Constants
-VALID_CHARACTERS = ["Blayzo", "Sapphire", "Violet", "Crimson", "Blayzia", "Blayzica", "Blayzike", "Blayzion", "Blazelian"]
+VALID_CHARACTERS = ["Blayzo", "Sapphire", "Violet", "Crimson", "Blayzia", "Blayzica", "Blayzike", "Blayzion", "Blazelian", "BlayzoReferral"]
 VALID_PLANS = ["foundation", "premium", "enterprise"]
 
 def is_logged_in():
@@ -2454,8 +2454,15 @@ def create_switching_payment():
         data = request.get_json()
         character = data.get("character")
         
+        logger.info(f"🎭 COMPANION SWITCHING DEBUG:")
+        logger.info(f"   Character requested: '{character}'")
+        logger.info(f"   Character type: {type(character)}")
+        logger.info(f"   Valid characters: {VALID_CHARACTERS}")
+        logger.info(f"   Character in valid list: {character in VALID_CHARACTERS}")
+        
         if character not in VALID_CHARACTERS:
-            return jsonify({"success": False, "error": "Invalid character"}), 400
+            logger.error(f"   ❌ Invalid character: '{character}' not in {VALID_CHARACTERS}")
+            return jsonify({"success": False, "error": f"Invalid character: {character}"}), 400
         
         # Set up temporary session for testing
         if not session.get('user_email'):
