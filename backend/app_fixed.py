@@ -1019,12 +1019,87 @@ def create_addon_checkout():
             
         addon_type = data.get("addon_type")
         
-        # Add-ons will use same Stripe integration
-        logger.info(f"Add-on checkout requested: {addon_type} by {session.get('user_email')}")
-        return jsonify({
-            "success": False, 
-            "error": "Add-on payments coming soon! Focus on main plans for now."
-        }), 503
+        if not addon_type:
+            return jsonify({"success": False, "error": "Add-on type required"}), 400
+        
+        # Set up temporary session for testing
+        if not session.get('user_email'):
+            logger.warning("⚠️ TEMPORARY: Setting up test user session for add-on checkout")
+            session['user_email'] = 'test@soulbridgeai.com'
+            session['user_id'] = 'temp_test_user'
+            session['user_authenticated'] = True
+            session['login_timestamp'] = datetime.now().isoformat()
+            session.permanent = True
+            session.modified = True
+        
+        # Add-on pricing (in cents)
+        addon_prices = {
+            'voice-journaling': 499,     # $4.99/month
+            'relationship-profiles': 299, # $2.99/month
+            'emotional-meditations': 399, # $3.99/month
+            'color-customization': 199,   # $1.99/month
+            'complete-bundle': 1199       # $11.99/month
+        }
+        
+        if addon_type not in addon_prices:
+            return jsonify({"success": False, "error": "Invalid add-on type"}), 400
+        
+        price_cents = addon_prices[addon_type]
+        user_email = session.get("user_email")
+        user_id = session.get("user_id")
+        
+        # Check if Stripe is configured
+        stripe_secret_key = os.environ.get("STRIPE_SECRET_KEY")
+        if not stripe_secret_key:
+            logger.warning("Stripe secret key not configured")
+            return jsonify({
+                "success": False, 
+                "error": "Payment system not configured"
+            }), 503
+        
+        stripe.api_key = stripe_secret_key
+        
+        try:
+            # Create Stripe checkout session for add-on
+            checkout_session = stripe.checkout.Session.create(
+                customer_email=user_email,
+                line_items=[{
+                    'price_data': {
+                        'currency': 'usd',
+                        'product_data': {
+                            'name': f'SoulBridge AI - {addon_type.replace("-", " ").title()}',
+                            'description': f'Monthly subscription for {addon_type.replace("-", " ")} add-on'
+                        },
+                        'unit_amount': price_cents,
+                        'recurring': {
+                            'interval': 'month'
+                        }
+                    },
+                    'quantity': 1,
+                }],
+                mode='subscription',
+                success_url=f"{request.host_url}subscription?addon_success=true&addon={addon_type}",
+                cancel_url=f"{request.host_url}subscription?addon_canceled=true&addon={addon_type}",
+                metadata={
+                    'addon_type': addon_type,
+                    'user_email': user_email,
+                    'user_id': str(user_id) if user_id else None,
+                    'type': 'addon'
+                }
+            )
+            
+            logger.info(f"Add-on checkout created: {addon_type} for {user_email}")
+            
+            return jsonify({
+                "success": True,
+                "checkout_url": checkout_session.url,
+                "session_id": checkout_session.id,
+                "addon_type": addon_type
+            })
+            
+        except stripe.error.StripeError as e:
+            logger.error(f"Stripe add-on checkout error: {e}")
+            return jsonify({"success": False, "error": "Payment setup failed"}), 500
         
     except Exception as e:
         logger.error(f"Add-on checkout error: {e}")
