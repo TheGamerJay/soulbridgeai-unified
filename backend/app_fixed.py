@@ -1422,6 +1422,61 @@ def library_page():
         logger.error(f"Library page error: {e}")
         return redirect("/")
 
+@app.route("/export-backup")
+def export_backup_page():
+    """Export & Backup page"""
+    try:
+        if not is_logged_in():
+            return redirect("/login")
+        return jsonify({"message": "Export & Backup feature coming soon", "status": "success"})
+    except Exception as e:
+        logger.error(f"Export backup page error: {e}")
+        return jsonify({"error": "Export backup temporarily unavailable"}), 200
+
+@app.route("/mood/dashboard")
+def mood_dashboard_page():
+    """Mood Dashboard page"""
+    try:
+        if not is_logged_in():
+            return redirect("/login")
+        return jsonify({"message": "Mood Dashboard feature coming soon", "status": "success"})
+    except Exception as e:
+        logger.error(f"Mood dashboard page error: {e}")
+        return jsonify({"error": "Mood dashboard temporarily unavailable"}), 200
+
+@app.route("/tags")
+def tags_page():
+    """Tags page"""
+    try:
+        if not is_logged_in():
+            return redirect("/login")
+        return jsonify({"message": "Tags feature coming soon", "status": "success"})
+    except Exception as e:
+        logger.error(f"Tags page error: {e}")
+        return jsonify({"error": "Tags temporarily unavailable"}), 200
+
+@app.route("/conversations/search")
+def conversations_search_page():
+    """Conversations search page"""
+    try:
+        if not is_logged_in():
+            return redirect("/login")
+        return jsonify({"message": "Conversation search feature coming soon", "status": "success"})
+    except Exception as e:
+        logger.error(f"Conversations search page error: {e}")
+        return jsonify({"error": "Conversation search temporarily unavailable"}), 200
+
+@app.route("/characters")
+def characters_page():
+    """Characters page"""
+    try:
+        if not is_logged_in():
+            return redirect("/login")
+        return jsonify({"message": "Characters feature coming soon", "status": "success"})
+    except Exception as e:
+        logger.error(f"Characters page error: {e}")
+        return jsonify({"error": "Characters temporarily unavailable"}), 200
+
 @app.route("/voice-chat")
 def voice_chat_page():
     """Voice chat feature (coming soon)"""
@@ -6341,7 +6396,7 @@ class AutoMaintenanceSystem:
             return False
             
         sql_patterns = [
-            r"('|(\\')|(;)|(\-\-)|(\s(or|and)\s+[\w\s]*=)", 
+            r"('|(\\')|(;)|(\-\-)|(\s(or|and)\s+[\w\s]*=))", 
             r"union.*select", r"insert.*into", r"delete.*from",
             r"drop.*table", r"alter.*table", r"create.*table",
             r"exec.*\(", r"execute.*\(", r"sp_.*\("
