@@ -5391,6 +5391,32 @@
                 }
             });
             
+            ensureGlobalFunction('showCharacterSelect', function() {
+                try {
+                    console.log('✨ Begin Journey button clicked via backup handler');
+                    // Remove character theme classes when going to character select
+                    document.body.classList.remove('character-blayzo', 'character-blayzica', 'character-blayzion', 'character-blayzia', 'character-violet', 'character-crimson');
+                    
+                    localStorage.setItem('currentScreen', 'select');
+                    const introScreen = document.getElementById('introScreen');
+                    const characterSelect = document.getElementById('characterSelect');
+                    
+                    if (introScreen) introScreen.classList.add('hidden');
+                    if (characterSelect) characterSelect.classList.remove('hidden');
+                    
+                    // Update premium character displays and force rainbow backgrounds
+                    setTimeout(function() {
+                        if (typeof updatePremiumCharacters === 'function') {
+                            updatePremiumCharacters();
+                        }
+                    }, 100);
+                    
+                    console.log('✅ Character select shown via backup');
+                } catch (error) {
+                    console.error('❌ Error in backup showCharacterSelect:', error);
+                }
+            });
+            
             // Add event listeners as backup for onclick handlers
             function addBackupEventListeners() {
                 console.log('🔧 Adding backup event listeners...');
@@ -5416,11 +5442,58 @@
                 console.log('✅ Backup event listeners added to', elementsWithOnclick.length, 'elements');
             }
             
+            // Add SUPER AGGRESSIVE button targeting for known problematic buttons
+            function forceButtonFunctionality() {
+                console.log('💪 Force-fixing specific problematic buttons...');
+                
+                // Force fix "Need Help? Ask Sapphire" button
+                const sapphireButtons = document.querySelectorAll('div[onclick*="toggleNavigationAssistant"]');
+                sapphireButtons.forEach(btn => {
+                    if (btn.textContent.includes('Ask Sapphire')) {
+                        console.log('🔮 Force-fixing Sapphire button');
+                        btn.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log('🔮 Sapphire FORCE CLICK triggered');
+                            try {
+                                toggleNavigationAssistant();
+                            } catch (err) {
+                                console.error('Sapphire force click error:', err);
+                            }
+                        }, { capture: true });
+                    }
+                });
+                
+                // Force fix "Begin Your Journey" button
+                const journeyButtons = document.querySelectorAll('div[onclick*="showCharacterSelect"]');
+                journeyButtons.forEach(btn => {
+                    if (btn.textContent.includes('Journey') || btn.textContent.includes('✨')) {
+                        console.log('✨ Force-fixing Journey button');
+                        btn.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log('✨ Journey FORCE CLICK triggered');
+                            try {
+                                showCharacterSelect();
+                            } catch (err) {
+                                console.error('Journey force click error:', err);
+                            }
+                        }, { capture: true });
+                    }
+                });
+                
+                console.log('💪 Force button fixes applied');
+            }
+            
             // Initialize backup listeners after DOM is ready
             if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', addBackupEventListeners);
+                document.addEventListener('DOMContentLoaded', function() {
+                    addBackupEventListeners();
+                    setTimeout(forceButtonFunctionality, 500);
+                });
             } else {
                 addBackupEventListeners();
+                setTimeout(forceButtonFunctionality, 100);
             }
             
             console.log('✅ Button functionality fix complete');
@@ -5431,7 +5504,10 @@
         
         // Also initialize after page load as additional backup
         window.addEventListener('load', function() {
-            setTimeout(initializeButtonFunctionality, 1000);
+            setTimeout(function() {
+                console.log('🔄 Re-running button fix after full page load...');
+                initializeButtonFunctionality();
+            }, 1000);
         });
     </script>
     
