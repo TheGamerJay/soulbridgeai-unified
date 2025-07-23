@@ -168,11 +168,18 @@ def setup_user_session(email, user_id=None, is_admin=False, dev_mode=False):
         # Force session to be saved immediately
         session.modified = True
         
+        # CRITICAL: Ensure session is written immediately
+        # Force Flask to save the session cookie
+        from flask import g
+        g._session_interface_should_save_empty_session = False
+        
         # Log session setup for debugging
         logger.info(f"✅ Session setup complete for {email} (user_id: {user_id})")
         logger.info(f"   Session token: {session['session_token'][:8]}...")
         logger.info(f"   Session permanent: {session.permanent}")
         logger.info(f"   Session keys: {list(session.keys())}")
+        logger.info(f"   Session modified: {session.modified}")
+        logger.info(f"   Session cookie name: {app.config.get('SESSION_COOKIE_NAME')}")
         
         return True
     except Exception as e:
@@ -401,8 +408,11 @@ def auth_login():
         
         if is_developer:
             setup_user_session(email, is_admin=True, dev_mode=True)
+            # Small delay to ensure session is written
+            import time
+            time.sleep(0.1)
             logger.info("Developer login successful")
-            return jsonify({"success": True, "redirect": "/"})
+            return jsonify({"success": True, "redirect": "/", "session_established": True})
         
         # For regular users, check database if available
         # Use services["database"] (Database object) directly instead of global db
@@ -415,8 +425,11 @@ def auth_login():
                 
                 if user_data:
                     setup_user_session(email, user_id=user_data[0])
+                    # Small delay to ensure session is written
+                    import time
+                    time.sleep(0.1)
                     logger.info(f"User login successful: {email}")
-                    return jsonify({"success": True, "redirect": "/"})
+                    return jsonify({"success": True, "redirect": "/", "session_established": True})
                 else:
                     # Check if user exists for better error messaging
                     user = User(database_obj)
@@ -449,18 +462,27 @@ def auth_login():
                         else:
                             # Database authentication failed, but allow test user anyway
                             setup_user_session(email)
-                        return jsonify({"success": True, "redirect": "/"})
+                        # Small delay to ensure session is written
+                        import time
+                        time.sleep(0.1)
+                        return jsonify({"success": True, "redirect": "/", "session_established": True})
                 else:
                     # Database not available, use fallback
                     setup_user_session(email)
+                    # Small delay to ensure session is written
+                    import time
+                    time.sleep(0.1)
                     logger.warning("Database not available, using fallback test authentication")
-                    return jsonify({"success": True, "redirect": "/"})
+                    return jsonify({"success": True, "redirect": "/", "session_established": True})
             except Exception as e:
                 logger.error(f"Error with test user authentication: {e}")
                 # Even if there's an error, allow test credentials to work
                 setup_user_session(email)
+                # Small delay to ensure session is written
+                import time
+                time.sleep(0.1)
                 logger.warning("Using emergency fallback test authentication")
-                return jsonify({"success": True, "redirect": "/"})
+                return jsonify({"success": True, "redirect": "/", "session_established": True})
         
         # Authentication failed
         logger.warning(f"Authentication failed for user")  # Don't log email for security
