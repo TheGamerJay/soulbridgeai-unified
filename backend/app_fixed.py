@@ -681,16 +681,6 @@ def debug_env():
         "current_db_url": os.environ.get("DATABASE_URL", "NOT SET")[:50] + "..." if os.environ.get("DATABASE_URL") else "NOT SET"
     })
 
-@app.route("/debug/session")
-def debug_session():
-    """Debug endpoint to check session status"""
-    return jsonify({
-        "session_data": dict(session),
-        "is_logged_in": is_logged_in(),
-        "session_permanent": session.permanent,
-        "session_keys": list(session.keys())
-    })
-
 
 @app.route("/auth/forgot-password")
 def forgot_password_page():
