@@ -76,6 +76,13 @@ DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL", "")
 ALLOWED_UPLOADS = {"png", "jpg", "jpeg", "pdf", "txt", "csv"}
 ALLOWED_ORIGIN = os.environ.get("ALLOWED_ORIGIN", "*")
 
+# Admin IP whitelist (add your IP here to prevent auto-blocking)
+ADMIN_WHITELIST_IPS = set([
+    "127.0.0.1",
+    "localhost", 
+    # Add more admin IPs here as needed
+])
+
 # Create logs directory if it doesn't exist
 os.makedirs("logs", exist_ok=True)
 
@@ -7196,10 +7203,11 @@ def security_monitor():
         if not ip_address:
             ip_address = '127.0.0.1'  # Fallback
         
-        # Check if IP is blocked (but allow emergency unblock route)
+        # Check if IP is blocked (but allow admin whitelist and emergency unblock route)
         if ('auto_maintenance' in globals() and 
             auto_maintenance.is_ip_blocked(ip_address) and 
-            request.endpoint != 'emergency_unblock'):
+            request.endpoint != 'emergency_unblock' and
+            ip_address not in ADMIN_WHITELIST_IPS):
             auto_maintenance.log_maintenance("BLOCKED_REQUEST", f"Blocked request from {ip_address}")
             return jsonify({"error": "Access denied"}), 403
         
@@ -7836,6 +7844,38 @@ def emergency_unblock():
         return jsonify({
             "success": False,
             "error": f"Emergency unblock failed: {str(e)}",
+            "timestamp": datetime.now().isoformat()
+        }), 500
+
+@app.route("/admin/whitelist-me")
+def whitelist_current_ip():
+    """Add current IP to admin whitelist to prevent auto-blocking"""
+    key = request.args.get("key")
+    if key != ADMIN_DASH_KEY:
+        return jsonify({"error": "Unauthorized"}), 403
+    
+    try:
+        current_ip = request.headers.get('X-Forwarded-For', request.remote_addr) or '127.0.0.1'
+        
+        # Add to whitelist
+        ADMIN_WHITELIST_IPS.add(current_ip)
+        
+        # Also clear from blocked IPs if present
+        if 'auto_maintenance' in globals():
+            auto_maintenance.blocked_ips.discard(current_ip)
+            auto_maintenance.log_maintenance("ADMIN_WHITELISTED", f"Added {current_ip} to admin whitelist")
+        
+        return jsonify({
+            "success": True,
+            "message": f"IP {current_ip} added to admin whitelist",
+            "whitelisted_ip": current_ip,
+            "total_whitelist_ips": len(ADMIN_WHITELIST_IPS),
+            "timestamp": datetime.now().isoformat()
+        })
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": f"Whitelist failed: {str(e)}",
             "timestamp": datetime.now().isoformat()
         }), 500
 
