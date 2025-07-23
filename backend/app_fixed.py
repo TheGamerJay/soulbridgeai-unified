@@ -45,6 +45,8 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SECURE'] = bool(os.environ.get('RAILWAY_ENVIRONMENT'))  # HTTPS in production
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['SESSION_COOKIE_NAME'] = 'soulbridge_session'
+app.config['SESSION_COOKIE_PATH'] = '/'
 
 # Global variables for services
 services = {
@@ -1761,6 +1763,22 @@ def debug_session():
         "is_logged_in": is_logged_in(),
         "session_permanent": session.permanent if hasattr(session, 'permanent') else 'unknown'
     })
+
+@app.route("/api/session-refresh", methods=["POST"])
+def refresh_session():
+    """Refresh user session to maintain authentication"""
+    try:
+        if session.get("user_authenticated") and session.get("user_email"):
+            # Refresh session timestamp
+            session["login_timestamp"] = datetime.now().isoformat()
+            session.permanent = True
+            logger.info(f"Session refreshed for {session.get('user_email')}")
+            return jsonify({"success": True, "message": "Session refreshed"})
+        else:
+            return jsonify({"success": False, "error": "No active session"}), 401
+    except Exception as e:
+        logger.error(f"Session refresh error: {e}")
+        return jsonify({"success": False, "error": "Session refresh failed"}), 500
 
 @app.route("/api/chat", methods=["POST"])
 def api_chat():

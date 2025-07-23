@@ -240,6 +240,19 @@
             loading.style.display = 'block';
             
             try {
+                // First, refresh the session to ensure authentication is maintained
+                console.log('Refreshing session before payment...');
+                const sessionRefresh = await fetch('/api/session-refresh', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!sessionRefresh.ok) {
+                    console.warn('Session refresh failed, proceeding anyway...');
+                }
+                
                 const response = await fetch('/api/create-checkout-session', {
                     method: 'POST',
                     headers: {
