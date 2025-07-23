@@ -786,6 +786,15 @@ def select_plan():
         # TODO: Re-enable this after confirming Stripe functionality
         # if not is_logged_in():
         #     return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        # Set up temporary session for testing
+        if not session.get('user_email'):
+            logger.warning("⚠️ TEMPORARY: Setting up test user session for plan selection")
+            session['user_email'] = 'test@soulbridgeai.com'
+            session['user_id'] = 'temp_test_user'
+            session['user_authenticated'] = True
+            session.permanent = True
+            session.modified = True
             
         data = request.get_json()
         if not data:
@@ -831,6 +840,15 @@ def payment_page():
         # TODO: Re-enable this after confirming Stripe functionality
         # if not is_logged_in():
         #     return redirect("/login")
+        
+        # Set up temporary session for testing
+        if not session.get('user_email'):
+            logger.warning("⚠️ TEMPORARY: Setting up test user session for payment page")
+            session['user_email'] = 'test@soulbridgeai.com'
+            session['user_id'] = 'temp_test_user'
+            session['user_authenticated'] = True
+            session.permanent = True
+            session.modified = True
         
         plan = request.args.get("plan", "premium")
         # Only allow paid plans on payment page
