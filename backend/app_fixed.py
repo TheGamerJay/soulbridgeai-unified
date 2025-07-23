@@ -192,6 +192,55 @@ def setup_user_session(email, user_id=None, is_admin=False, dev_mode=False):
         logger.error(f"Session setup error: {e}")
         return False
 
+def init_referrals_table():
+    """Initialize referrals table for unique referral tracking"""
+    try:
+        if not db:
+            return False
+            
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        
+        # Create referrals table if it doesn't exist
+        if hasattr(db, 'postgres_url') and db.postgres_url:
+            # PostgreSQL syntax
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS referrals (
+                    id SERIAL PRIMARY KEY,
+                    referrer_email VARCHAR(255) NOT NULL,
+                    referred_email VARCHAR(255) NOT NULL UNIQUE,
+                    status VARCHAR(50) DEFAULT 'completed',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    CONSTRAINT unique_referred_user UNIQUE (referred_email)
+                );
+                
+                CREATE INDEX IF NOT EXISTS idx_referrals_referrer ON referrals(referrer_email);
+                CREATE INDEX IF NOT EXISTS idx_referrals_referred ON referrals(referred_email);
+            """)
+        else:
+            # SQLite syntax  
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS referrals (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    referrer_email TEXT NOT NULL,
+                    referred_email TEXT NOT NULL UNIQUE,
+                    status TEXT DEFAULT 'completed',
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                );
+                
+                CREATE INDEX IF NOT EXISTS idx_referrals_referrer ON referrals(referrer_email);
+                CREATE INDEX IF NOT EXISTS idx_referrals_referred ON referrals(referred_email);
+            """)
+        
+        conn.commit()
+        conn.close()
+        logger.info("✅ Referrals table initialized")
+        return True
+        
+    except Exception as e:
+        logger.error(f"❌ Referrals table initialization failed: {e}")
+        return False
+
 def init_database():
     """Initialize database with error handling and thread safety"""
     global db
@@ -211,6 +260,10 @@ def init_database():
             # Only update globals if successful
             db = temp_db
             services["database"] = temp_db
+            
+            # Initialize referrals table
+            init_referrals_table()
+            
             logger.info("✅ Database initialized successfully")
             return True
         except Exception as e:
@@ -541,6 +594,12 @@ def auth_register():
         if not display_name:
             display_name = email.split('@')[0]  # Use email prefix as default name
         
+        # Check for referral code
+        referrer_email = request.args.get('ref') or request.form.get('ref') or request.json.get('ref', '') if request.json else ''
+        if referrer_email:
+            referrer_email = referrer_email.lower().strip()
+            logger.info(f"Registration with referral from: {referrer_email}")
+        
         # Initialize database if needed
         if not services["database"]:
             init_database()
@@ -560,6 +619,51 @@ def auth_register():
                 
                 if result.get("success"):
                     user_id = result.get("user_id")
+                    
+                    # Handle referral tracking - one unique referral per user permanently
+                    if referrer_email and referrer_email != email:
+                        try:
+                            conn = db.get_connection()
+                            cursor = conn.cursor()
+                            placeholder = "%s" if hasattr(db, 'postgres_url') and db.postgres_url else "?"
+                            
+                            # Check if this user has EVER been referred before (unique referral per user)
+                            cursor.execute(f"""
+                                SELECT referrer_email FROM referrals 
+                                WHERE referred_email = {placeholder}
+                                LIMIT 1
+                            """, (email,))
+                            
+                            existing_referral = cursor.fetchone()
+                            
+                            if existing_referral:
+                                logger.warning(f"User {email} already has a referral from {existing_referral[0]}, ignoring new referral from {referrer_email}")
+                            else:
+                                # Check if referrer exists
+                                cursor.execute(f"""
+                                    SELECT id FROM users WHERE email = {placeholder}
+                                """, (referrer_email,))
+                                
+                                referrer_exists = cursor.fetchone()
+                                
+                                if referrer_exists:
+                                    # Create referral record - first and only referral for this user
+                                    cursor.execute(f"""
+                                        INSERT INTO referrals (referrer_email, referred_email, status, created_at)
+                                        VALUES ({placeholder}, {placeholder}, 'completed', NOW())
+                                    """, (referrer_email, email))
+                                    
+                                    conn.commit()
+                                    logger.info(f"✅ Referral recorded: {referrer_email} -> {email} (UNIQUE)")
+                                else:
+                                    logger.warning(f"Referrer {referrer_email} does not exist, skipping referral")
+                            
+                            conn.close()
+                            
+                        except Exception as referral_error:
+                            logger.error(f"Referral tracking error: {referral_error}")
+                            # Don't fail registration due to referral issues
+                    
                     # Auto-login after registration
                     setup_user_session(email, user_id=user_id)
                     logger.info(f"User registered and logged in: {email}")
@@ -1812,15 +1916,80 @@ def api_referrals_dashboard():
         
         user_email = session.get("user_email", "")
         
-        # Return demo referral data
+        # Get real referral data from database
+        referral_stats = {"total_referrals": 0, "successful_referrals": 0, "pending_referrals": 0, "total_rewards_earned": 0}
+        referral_history = []
+        
+        if services["database"] and db:
+            try:
+                conn = db.get_connection()
+                cursor = conn.cursor()
+                placeholder = "%s" if hasattr(db, 'postgres_url') and db.postgres_url else "?"
+                
+                # Get referral statistics
+                cursor.execute(f"""
+                    SELECT COUNT(*) as total,
+                           SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
+                           SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending
+                    FROM referrals 
+                    WHERE referrer_email = {placeholder}
+                """, (user_email,))
+                
+                stats = cursor.fetchone()
+                if stats:
+                    referral_stats = {
+                        "total_referrals": stats[0] or 0,
+                        "successful_referrals": stats[1] or 0, 
+                        "pending_referrals": stats[2] or 0,
+                        "total_rewards_earned": stats[1] or 0  # Rewards = successful referrals
+                    }
+                
+                # Get referral history
+                cursor.execute(f"""
+                    SELECT referred_email, created_at, status
+                    FROM referrals 
+                    WHERE referrer_email = {placeholder}
+                    ORDER BY created_at DESC
+                    LIMIT 10
+                """, (user_email,))
+                
+                history = cursor.fetchall()
+                for record in history:
+                    # Mask email for privacy
+                    masked_email = record[0][:3] + "***@" + record[0].split('@')[1] if '@' in record[0] else "***"
+                    referral_history.append({
+                        "email": masked_email,
+                        "date": record[1].strftime("%Y-%m-%d") if record[1] else "Unknown",
+                        "status": record[2] or "pending",
+                        "reward_earned": "Companion Access" if record[2] == 'completed' else "Pending signup"
+                    })
+                
+                conn.close()
+                
+            except Exception as db_error:
+                logger.error(f"Referral database query error: {db_error}")
+                # Fall back to demo data if database fails
+                referral_stats = {"total_referrals": 1, "successful_referrals": 1, "pending_referrals": 0, "total_rewards_earned": 1}
+                referral_history = [{"email": "dem***@example.com", "date": "2025-01-20", "status": "completed", "reward_earned": "Demo Companion"}]
+        
+        # Calculate next milestone
+        successful = referral_stats["successful_referrals"]
+        next_milestone_count = 2 if successful < 2 else (4 if successful < 4 else 6)
+        remaining = max(0, next_milestone_count - successful)
+        
+        milestone_rewards = {
+            2: "Blayzike - Exclusive Companion",
+            4: "Blazelian - Premium Companion", 
+            6: "Blayzo Special Skin"
+        }
+        
+        next_reward = milestone_rewards.get(next_milestone_count, "Max rewards reached!")
+        if remaining == 0 and successful >= next_milestone_count:
+            next_reward = f"{milestone_rewards.get(next_milestone_count)} - Already Unlocked!"
+        
         return jsonify({
             "success": True,
-            "stats": {
-                "total_referrals": 3,
-                "successful_referrals": 2,
-                "pending_referrals": 1,
-                "total_rewards_earned": 2
-            },
+            "stats": referral_stats,
             "referral_link": f"https://soulbridgeai.com/register?ref={user_email}",
             "all_rewards": {
                 "2": {"type": "exclusive_companion", "description": "Blayzike - Exclusive Companion"},
@@ -1828,30 +1997,11 @@ def api_referrals_dashboard():
                 "6": {"type": "premium_skin", "description": "Blayzo Special Skin"}
             },
             "next_milestone": {
-                "count": 2,
-                "remaining": 0,
-                "reward": {"type": "exclusive_companion", "description": "Blayzike - Already Unlocked!"}
+                "count": next_milestone_count,
+                "remaining": remaining,
+                "reward": {"type": "exclusive_companion", "description": next_reward}
             },
-            "referral_history": [
-                {
-                    "email": "friend1@example.com",
-                    "date": "2025-01-20",
-                    "status": "completed",
-                    "reward_earned": "Blayzike Companion"
-                },
-                {
-                    "email": "friend2@example.com", 
-                    "date": "2025-01-22",
-                    "status": "completed",
-                    "reward_earned": "Premium Access"
-                },
-                {
-                    "email": "friend3@example.com",
-                    "date": "2025-01-23", 
-                    "status": "pending",
-                    "reward_earned": "Pending signup completion"
-                }
-            ]
+            "referral_history": referral_history
         })
     except Exception as e:
         logger.error(f"Referrals dashboard error: {e}")
