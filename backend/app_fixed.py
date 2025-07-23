@@ -71,7 +71,12 @@ VALID_PLANS = ["foundation", "premium", "enterprise"]
 
 def is_logged_in():
     """Check if user is logged in"""
-    return session.get("user_authenticated", False)
+    authenticated = session.get("user_authenticated", False)
+    if not authenticated:
+        logger.warning(f"❌ Authentication check failed. Session keys: {list(session.keys())}")
+        logger.warning(f"   Session ID: {session.get('_permanent', 'not set')}")
+        logger.warning(f"   User email: {session.get('user_email', 'not set')}")
+    return authenticated
 
 def get_user_plan():
     """Get user's selected plan"""
@@ -772,7 +777,9 @@ def payment_page():
             return redirect("/login")
         
         plan = request.args.get("plan", "premium")
-        if plan not in VALID_PLANS or plan == "foundation":
+        # Only allow paid plans on payment page
+        if plan not in ["premium", "enterprise"]:
+            logger.warning(f"Invalid plan for payment page: {plan}")
             return redirect("/subscription")
             
         plan_names = {"premium": "Growth", "enterprise": "Transformation"}
@@ -800,7 +807,13 @@ def payment_page():
 def create_checkout_session():
     """Create Stripe checkout session for plan subscription"""
     try:
+        logger.info(f"🎯 Checkout session request received")
+        logger.info(f"   Session keys: {list(session.keys())}")
+        logger.info(f"   User authenticated: {session.get('user_authenticated', 'NOT SET')}")
+        logger.info(f"   User email: {session.get('user_email', 'NOT SET')}")
+        
         if not is_logged_in():
+            logger.error("❌ Authentication failed for checkout session")
             return jsonify({"success": False, "error": "Authentication required"}), 401
             
         data = request.get_json()
