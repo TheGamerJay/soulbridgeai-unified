@@ -284,8 +284,8 @@
 
   <!-- Pricing Toggle -->
   <div class="pricing-toggle">
-    <div class="toggle-option active" onclick="togglePricing('monthly')">Monthly</div>
-    <div class="toggle-option" onclick="togglePricing('yearly')">
+    <div class="toggle-option active" onclick="togglePricing('monthly', event)">Monthly</div>
+    <div class="toggle-option" onclick="togglePricing('yearly', event)">
       Yearly <span class="savings">Save 25%</span>
     </div>
   </div>
@@ -536,7 +536,7 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 
-function togglePricing(type) {
+function togglePricing(type, event) {
   currentPricing = type;
   
   // Update toggle buttons
