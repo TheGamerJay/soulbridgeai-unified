@@ -261,8 +261,12 @@ def init_database():
             db = temp_db
             services["database"] = temp_db
             
-            # Initialize referrals table
-            init_referrals_table()
+            # Initialize referrals table (non-blocking)
+            try:
+                init_referrals_table()
+            except Exception as ref_error:
+                logger.error(f"Referrals table initialization failed: {ref_error}")
+                # Continue without referrals table - it will be created later if needed
             
             logger.info("✅ Database initialized successfully")
             return True
@@ -383,12 +387,13 @@ def initialize_services():
 def health():
     """Production health check - always returns 200 for Railway"""
     try:
+        # Simple health check that always succeeds for Railway
         return jsonify({
             "status": "healthy",
             "service": "SoulBridge AI", 
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "message": "Service is running"
-        })
+        }), 200
     except Exception as e:
         logger.error(f"Health check failed: {e}")
         # Still return 200 to pass Railway health check
@@ -2871,14 +2876,23 @@ if __name__ == "__main__":
     logger.info(f"Starting SoulBridge AI on port {port}")
     logger.info(f"Environment: {'Production' if os.environ.get('RAILWAY_ENVIRONMENT') else 'Development'}")
     
-    # Initialize services for standalone execution
-    logger.info("🚀 Initializing services...")
-    try:
-        initialize_services()
-        logger.info("✅ Service initialization completed successfully")
-    except Exception as e:
-        logger.error(f"⚠️ Service initialization failed: {e}")
-        logger.info("🚀 Starting server anyway - services will initialize on first request")
+    # Initialize services for standalone execution (non-blocking)
+    logger.info("🚀 Starting server first, then initializing services...")
+    
+    # Don't let service initialization block server startup
+    def delayed_service_init():
+        try:
+            logger.info("🔧 Initializing services in background...")
+            initialize_services()
+            logger.info("✅ Service initialization completed successfully")
+        except Exception as e:
+            logger.error(f"⚠️ Service initialization failed: {e}")
+            logger.info("🚀 Server running - services will initialize on first request")
+    
+    # Start service initialization in background after server starts
+    import threading
+    service_thread = threading.Thread(target=delayed_service_init, daemon=True)
+    service_thread.start()
     
     # Start the server
     logger.info("🌟 Starting Flask server...")
