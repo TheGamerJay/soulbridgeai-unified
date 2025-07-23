@@ -12,14 +12,21 @@ import os
 import sys
 import logging
 import time
+import secrets
 from datetime import datetime, timezone, timedelta
 from flask import Flask, jsonify, render_template, request, session, redirect, url_for, flash, make_response
+from flask_cors import CORS
 
 # Load environment variables from .env files
 try:
     from dotenv import load_dotenv
-    load_dotenv('.env')
-    print("Environment variables loaded from .env file")
+    # Try parent directory first (where .env is located)
+    if load_dotenv('../.env'):
+        print("Environment variables loaded from ../.env file")
+    elif load_dotenv('.env'):
+        print("Environment variables loaded from .env file")
+    else:
+        print("No .env file found, using system environment variables only")
 except ImportError:
     print("python-dotenv not installed, using system environment variables only")
 
@@ -39,14 +46,19 @@ if not secret_key:
 
 app.secret_key = secret_key
 
+# CORS configuration for credential support
+CORS(app, supports_credentials=True, origins=["http://localhost:*", "http://127.0.0.1:*", "https://*.railway.app"])
+
 # Session configuration for proper persistence
 app.config['SESSION_PERMANENT'] = True
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
 app.config['SESSION_COOKIE_HTTPONLY'] = True
-app.config['SESSION_COOKIE_SECURE'] = bool(os.environ.get('RAILWAY_ENVIRONMENT'))  # HTTPS in production
+app.config['SESSION_COOKIE_SECURE'] = False  # Set to False for development/HTTP
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['SESSION_COOKIE_NAME'] = 'soulbridge_session'
 app.config['SESSION_COOKIE_PATH'] = '/'
+app.config['SESSION_COOKIE_DOMAIN'] = None  # Allow all domains for development
+app.config['SESSION_TYPE'] = 'filesystem'  # Use filesystem sessions for persistence
 
 # Global variables for services
 services = {
@@ -63,11 +75,21 @@ db = None
 @app.before_request
 def maintain_session():
     """Maintain session persistence across requests"""
-    if session.get("user_authenticated") and session.get("user_email"):
-        # Ensure session remains permanent
+    try:
+        # Force session to be permanent for all requests
         session.permanent = True
-        # Update last activity timestamp
-        session["last_activity"] = datetime.now().isoformat()
+        
+        if session.get("user_authenticated") and session.get("user_email"):
+            # Update last activity timestamp
+            session["last_activity"] = datetime.now().isoformat()
+            # Force session to save
+            session.modified = True
+            
+            # Debug session state
+            if request.endpoint not in ['static', 'favicon']:
+                logger.info(f"🔐 Session maintained for {session.get('user_email')} - endpoint: {request.endpoint}")
+    except Exception as e:
+        logger.error(f"Session maintenance error: {e}")
 openai_client = None
 email_service = None
 socketio = None
@@ -82,14 +104,22 @@ def is_logged_in():
     authenticated = session.get("user_authenticated", False)
     user_email = session.get("user_email", "")
     
+    # Force session to be permanent if user is authenticated
+    if authenticated:
+        session.permanent = True
+        session.modified = True
+    
     if not authenticated:
         logger.warning(f"❌ Authentication check failed for {user_email or 'unknown user'}")
         logger.warning(f"   Session keys: {list(session.keys())}")
         logger.warning(f"   Session permanent: {session.permanent}")
         logger.warning(f"   User email: {user_email or 'not set'}")
         logger.warning(f"   Login timestamp: {session.get('login_timestamp', 'not set')}")
+        logger.warning(f"   Session ID: {request.cookies.get(app.config.get('SESSION_COOKIE_NAME', 'session'))}")
     else:
         logger.info(f"✅ Authentication check passed for {user_email}")
+        logger.info(f"   Session permanent: {session.permanent}")
+        logger.info(f"   Session keys: {list(session.keys())}")
     
     return authenticated
 
@@ -109,22 +139,42 @@ def parse_request_data():
 
 def setup_user_session(email, user_id=None, is_admin=False, dev_mode=False):
     """Setup user session with security measures"""
-    # Security: Clear and regenerate session to prevent fixation attacks
-    session.clear()
-    session.permanent = True  # Use configured timeout
-    session["user_authenticated"] = True
-    session["user_email"] = email
-    session["login_timestamp"] = datetime.now().isoformat()
-    session["user_plan"] = "foundation"
-    if user_id:
-        session["user_id"] = user_id
-    
-    # Log session setup for debugging
-    logger.info(f"Session setup complete for {email} (user_id: {user_id})")
-    if is_admin:
-        session["is_admin"] = True
-    if dev_mode:
-        session["dev_mode"] = True
+    try:
+        # Store current session data before clearing
+        old_session_data = dict(session) if session else {}
+        
+        # Security: Clear and regenerate session to prevent fixation attacks
+        session.clear()
+        session.permanent = True  # Use configured timeout
+        
+        # Set all session data
+        session["user_authenticated"] = True
+        session["user_email"] = email
+        session["login_timestamp"] = datetime.now().isoformat()
+        session["user_plan"] = "foundation"
+        session["session_token"] = secrets.token_hex(32)  # Add unique session token
+        session["last_activity"] = datetime.now().isoformat()
+        
+        if user_id:
+            session["user_id"] = user_id
+        if is_admin:
+            session["is_admin"] = True
+        if dev_mode:
+            session["dev_mode"] = True
+        
+        # Force session to be saved immediately
+        session.modified = True
+        
+        # Log session setup for debugging
+        logger.info(f"✅ Session setup complete for {email} (user_id: {user_id})")
+        logger.info(f"   Session token: {session['session_token'][:8]}...")
+        logger.info(f"   Session permanent: {session.permanent}")
+        logger.info(f"   Session keys: {list(session.keys())}")
+        
+        return True
+    except Exception as e:
+        logger.error(f"Session setup error: {e}")
+        return False
 
 def init_database():
     """Initialize database with error handling and thread safety"""
@@ -1784,7 +1834,24 @@ def debug_session():
         "session_data": dict(session),
         "session_keys": list(session.keys()),
         "is_logged_in": is_logged_in(),
-        "session_permanent": session.permanent if hasattr(session, 'permanent') else 'unknown'
+        "session_permanent": session.permanent if hasattr(session, 'permanent') else 'unknown',
+        "secret_key_set": bool(app.secret_key),
+        "secret_key_source": "environment" if os.environ.get("SECRET_KEY") else "generated",
+        "secret_key_length": len(app.secret_key) if app.secret_key else 0,
+        "session_cookie_name": app.config.get('SESSION_COOKIE_NAME'),
+        "cookies_sent": dict(request.cookies),
+        "environment_vars": {
+            "SECRET_KEY": "SET" if os.environ.get("SECRET_KEY") else "NOT SET",
+            "STRIPE_SECRET_KEY": "SET" if os.environ.get("STRIPE_SECRET_KEY") else "NOT SET",
+            "DATABASE_URL": "SET" if os.environ.get("DATABASE_URL") else "NOT SET"
+        },
+        "session_config": {
+            "permanent": app.config.get('SESSION_PERMANENT'),
+            "lifetime": str(app.config.get('PERMANENT_SESSION_LIFETIME')),
+            "httponly": app.config.get('SESSION_COOKIE_HTTPONLY'),
+            "secure": app.config.get('SESSION_COOKIE_SECURE'),
+            "samesite": app.config.get('SESSION_COOKIE_SAMESITE')
+        }
     })
 
 @app.route("/api/session-refresh", methods=["POST"])

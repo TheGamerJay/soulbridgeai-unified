@@ -2714,6 +2714,7 @@
                 // Call the new API
                 const response = await fetch('/api/site-assistant', {
                     method: 'POST',
+                    credentials: 'include',
                     headers: {
                         'Content-Type': 'application/json'
                     },
@@ -4276,7 +4277,9 @@
 
         // Security: Verify subscription status periodically
         function verifySubscriptionStatus() {
-            fetch('/api/subscription/verify')
+            fetch('/api/subscription/verify', {
+                credentials: 'include'
+            })
                 .then(response => response.json())
                 .then(data => {
                     if (!data.success) {
@@ -4495,6 +4498,7 @@
             
             fetch('/api/referrals/process', {
                 method: 'POST',
+                credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -5101,6 +5105,7 @@
             try {
                 const response = await fetch('/api/create-switching-payment', {
                     method: 'POST',
+                    credentials: 'include',
                     headers: {
                         'Content-Type': 'application/json'
                     },
@@ -5137,7 +5142,9 @@
         // Check switching status from backend
         async function checkSwitchingStatus() {
             try {
-                const response = await fetch('/api/check-switching-status');
+                const response = await fetch('/api/check-switching-status', {
+                    credentials: 'include'
+                });
                 const result = await response.json();
                 return result.switching_unlocked || false;
             } catch (error) {

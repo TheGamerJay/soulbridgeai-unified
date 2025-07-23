@@ -135,6 +135,7 @@ async function sendMessage() {
         const response = await fetch('/api/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',  // ✅ Include session cookies
             body: JSON.stringify({ message: message })
         });
         

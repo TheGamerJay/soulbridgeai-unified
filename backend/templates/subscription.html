@@ -589,6 +589,7 @@ async function selectAddOn(addOnType) {
         headers: {
           'Content-Type': 'application/json'
         },
+        credentials: 'include',  // ✅ Include session cookies
         body: JSON.stringify({
           addon_type: addOnType
         })
@@ -612,7 +613,9 @@ async function selectAddOn(addOnType) {
 // Get user's active add-ons
 async function getUserAddons() {
   try {
-    const response = await fetch('/api/user-addons');
+    const response = await fetch('/api/user-addons', {
+      credentials: 'include'  // ✅ Include session cookies
+    });
     const result = await response.json();
     return result.success ? result.active_addons : [];
   } catch (error) {
@@ -700,6 +703,7 @@ async function selectPlanViaAPI(planType, billing) {
       headers: {
         'Content-Type': 'application/json'
       },
+      credentials: 'include',  // ✅ Include session cookies
       body: JSON.stringify({
         plan_type: planType,
         billing: billing
