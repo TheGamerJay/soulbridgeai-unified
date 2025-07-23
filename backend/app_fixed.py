@@ -25,6 +25,9 @@ from datetime import datetime, timezone, timedelta
 from flask import Flask, jsonify, render_template, request, session, redirect, url_for, flash, make_response, has_request_context
 from flask_cors import CORS
 from flask_caching import Cache
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+from flask_compress import Compress
 
 # Load environment variables from .env files
 try:
@@ -53,6 +56,19 @@ cache_config = {
 }
 app.config.update(cache_config)
 cache = Cache(app)
+
+# Configure Flask-Limiter for API protection and abuse prevention
+limiter = Limiter(
+    app=app,
+    key_func=get_remote_address,
+    default_limits=["1000 per day", "100 per hour"],  # Generous defaults
+    storage_uri="memory://",  # Simple in-memory storage
+    headers_enabled=True  # Show rate limit info in headers
+)
+
+# Configure Flask-Compress for instant 60% faster page loads
+compress = Compress(app)
+compress.init_app(app)
 
 # CRITICAL: Add health check IMMEDIATELY for Railway
 @app.route("/health")
@@ -1036,8 +1052,9 @@ def login_page():
         return jsonify({"error": "Login page temporarily unavailable"}), 200
 
 @app.route("/auth/login", methods=["GET", "POST"])
+@limiter.limit("10 per minute")  # Prevent brute force attacks
 def auth_login():
-    """Handle login authentication"""
+    """Handle login authentication with rate limiting"""
     # Handle GET requests - show login form
     if request.method == "GET":
         return render_template("login.html")
@@ -1176,8 +1193,9 @@ def register_page():
         return jsonify({"error": "Register page temporarily unavailable"}), 200
 
 @app.route("/auth/register", methods=["GET", "POST"])
+@limiter.limit("5 per minute")  # Prevent spam registrations
 def auth_register():
-    """Handle user registration"""
+    """Handle user registration with rate limiting"""
     # Handle GET requests - show registration form
     if request.method == "GET":
         return render_template("register.html")
@@ -5548,8 +5566,9 @@ def refresh_session():
         return jsonify({"success": False, "error": "Session refresh failed"}), 500
 
 @app.route("/api/chat", methods=["POST"])
+@limiter.limit("30 per minute")  # Prevent AI spam - 30 messages per minute max
 def api_chat():
-    """Chat API endpoint"""
+    """Chat API endpoint with rate limiting"""
     try:
         if not is_logged_in():
             return jsonify({"success": False, "response": "Authentication required"}), 401

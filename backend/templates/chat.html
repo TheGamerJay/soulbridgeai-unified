@@ -5514,6 +5514,52 @@
                 initializeButtonFunctionality();
             }, 1000);
         });
+        
+        // ========================================
+        // AUTO-LOGOUT ON IDLE (Security Feature)
+        // ========================================
+        
+        let idleTimer;
+        const IDLE_TIMEOUT = 30 * 60 * 1000; // 30 minutes in milliseconds
+        let warningShown = false;
+        
+        function resetIdleTimer() {
+            clearTimeout(idleTimer);
+            warningShown = false;
+            
+            idleTimer = setTimeout(() => {
+                if (!warningShown) {
+                    warningShown = true;
+                    const userResponse = confirm('⚠️ Your session will expire in 2 minutes due to inactivity. Click OK to stay logged in.');
+                    
+                    if (userResponse) {
+                        // User clicked OK, reset timer
+                        resetIdleTimer();
+                        console.log('🔒 Session extended by user action');
+                    } else {
+                        // User clicked Cancel or closed dialog, logout in 2 minutes
+                        setTimeout(() => {
+                            alert('🔒 Session expired due to inactivity. Redirecting to login...');
+                            window.location.href = '/auth/logout';
+                        }, 2 * 60 * 1000); // 2 more minutes
+                    }
+                } else {
+                    // Final timeout - logout immediately
+                    alert('🔒 Session expired due to inactivity. Redirecting to login...');
+                    window.location.href = '/auth/logout';
+                }
+            }, IDLE_TIMEOUT);
+        }
+        
+        // Track user activity
+        const activityEvents = ['click', 'keydown', 'mousemove', 'scroll', 'touchstart'];
+        activityEvents.forEach(event => {
+            document.addEventListener(event, resetIdleTimer, true);
+        });
+        
+        // Initialize idle timer
+        resetIdleTimer();
+        console.log('🔒 Auto-logout security feature initialized (30 min timeout)');
     </script>
     
     <!-- Version Footer -->
