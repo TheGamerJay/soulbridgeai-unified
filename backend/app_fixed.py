@@ -7197,7 +7197,9 @@ def security_monitor():
             ip_address = '127.0.0.1'  # Fallback
         
         # Check if IP is blocked (but allow emergency unblock route)
-        if auto_maintenance.is_ip_blocked(ip_address) and request.endpoint != 'emergency_unblock':
+        if ('auto_maintenance' in globals() and 
+            auto_maintenance.is_ip_blocked(ip_address) and 
+            request.endpoint != 'emergency_unblock'):
             auto_maintenance.log_maintenance("BLOCKED_REQUEST", f"Blocked request from {ip_address}")
             return jsonify({"error": "Access denied"}), 403
         
@@ -7816,17 +7818,26 @@ def emergency_unblock():
     if key != ADMIN_DASH_KEY:
         return jsonify({"error": "Unauthorized"}), 403
     
-    # Clear all blocked IPs
-    blocked_count = len(auto_maintenance.blocked_ips)
-    auto_maintenance.blocked_ips.clear()
-    auto_maintenance.log_maintenance("EMERGENCY_UNBLOCK", f"Admin cleared {blocked_count} blocked IPs")
-    
-    return jsonify({
-        "success": True,
-        "message": f"Emergency unblock completed - cleared {blocked_count} IPs",
-        "cleared_ips": blocked_count,
-        "timestamp": datetime.now().isoformat()
-    })
+    try:
+        # Clear all blocked IPs safely
+        blocked_count = len(auto_maintenance.blocked_ips) if 'auto_maintenance' in globals() else 0
+        if 'auto_maintenance' in globals():
+            auto_maintenance.blocked_ips.clear()
+            auto_maintenance.log_maintenance("EMERGENCY_UNBLOCK", f"Admin cleared {blocked_count} blocked IPs")
+        
+        return jsonify({
+            "success": True,
+            "message": f"Emergency unblock completed - cleared {blocked_count} IPs",
+            "cleared_ips": blocked_count,
+            "timestamp": datetime.now().isoformat(),
+            "auto_maintenance_available": 'auto_maintenance' in globals()
+        })
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": f"Emergency unblock failed: {str(e)}",
+            "timestamp": datetime.now().isoformat()
+        }), 500
 
 @app.route("/admin/system-status")
 def admin_system_status():
