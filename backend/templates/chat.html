@@ -5297,6 +5297,139 @@
             }
         `;
         document.head.appendChild(style);
+        
+        // ===== COMPREHENSIVE BUTTON FIX =====
+        // Ensure all buttons work regardless of CSP or event conflicts
+        function initializeButtonFunctionality() {
+            console.log('🔧 Initializing button functionality fix...');
+            
+            // Function to ensure a function exists in global scope
+            function ensureGlobalFunction(funcName, func) {
+                if (typeof window[funcName] !== 'function') {
+                    window[funcName] = func;
+                    console.log(`✅ Added ${funcName} to global scope`);
+                } else {
+                    console.log(`✅ ${funcName} already exists`);
+                }
+            }
+            
+            // Ensure all button functions are globally available
+            ensureGlobalFunction('toggleNavigationAssistant', function() {
+                try {
+                    console.log('🔍 Sapphire button clicked via backup handler');
+                    const modal = document.getElementById('navAssistantModal');
+                    if (!modal) {
+                        console.error('❌ Navigation assistant modal not found');
+                        return;
+                    }
+                    if (modal.style.display === 'none' || modal.style.display === '') {
+                        modal.style.display = 'flex';
+                        const questionInput = document.getElementById('navQuestion');
+                        if (questionInput) {
+                            questionInput.focus();
+                        }
+                        console.log('✅ Navigation assistant opened via backup');
+                    } else {
+                        modal.style.display = 'none';
+                        const navResponse = document.getElementById('navResponse');
+                        if (navResponse) navResponse.style.display = 'none';
+                        console.log('✅ Navigation assistant closed via backup');
+                    }
+                } catch (error) {
+                    console.error('❌ Error in backup toggleNavigationAssistant:', error);
+                }
+            });
+            
+            ensureGlobalFunction('toggleTheme', function() {
+                try {
+                    console.log('🌙 Theme toggle clicked via backup handler');
+                    document.body.classList.toggle('day-mode');
+                    const themeText = document.getElementById('themeText');
+                    const themeIcon = document.getElementById('themeIcon');
+                    const themeToggle = document.getElementById('themeToggle');
+                
+                    if (document.body.classList.contains('day-mode')) {
+                        if (themeText) themeText.textContent = 'Day Mode is ON';
+                        if (themeIcon) themeIcon.textContent = '☀️';
+                        if (themeToggle) {
+                            themeToggle.style.background = 'rgba(255, 193, 7, 0.8)';
+                            themeToggle.style.color = '#000';
+                        }
+                        console.log('✅ Switched to day mode via backup');
+                    } else {
+                        if (themeText) themeText.textContent = 'Night Mode is ON';
+                        if (themeIcon) themeIcon.textContent = '🌙';
+                        if (themeToggle) {
+                            themeToggle.style.background = 'rgba(34, 211, 238, 0.8)';
+                            themeToggle.style.color = '#000';
+                        }
+                        console.log('✅ Switched to night mode via backup');
+                    }
+                } catch (error) {
+                    console.error('❌ Error in backup toggleTheme:', error);
+                }
+            });
+            
+            ensureGlobalFunction('openUserProfile', function() {
+                try {
+                    console.log('👤 Profile button clicked via backup handler');
+                    window.location.href = '/profile';
+                } catch (error) {
+                    console.error('❌ Error in backup openUserProfile:', error);
+                }
+            });
+            
+            ensureGlobalFunction('openCommunityDashboard', function() {
+                try {
+                    console.log('🌟 Community button clicked via backup handler');
+                    window.location.href = '/community-dashboard';
+                } catch (error) {
+                    console.error('❌ Error in backup openCommunityDashboard:', error);
+                }
+            });
+            
+            // Add event listeners as backup for onclick handlers
+            function addBackupEventListeners() {
+                console.log('🔧 Adding backup event listeners...');
+                
+                // Get all elements with onclick attributes
+                const elementsWithOnclick = document.querySelectorAll('[onclick]');
+                elementsWithOnclick.forEach(element => {
+                    const onclickValue = element.getAttribute('onclick');
+                    if (onclickValue) {
+                        // Add event listener as backup
+                        element.addEventListener('click', function(e) {
+                            try {
+                                console.log('🔧 Backup click handler triggered for:', onclickValue);
+                                // Try to execute the onclick function
+                                eval(onclickValue);
+                            } catch (error) {
+                                console.error('❌ Backup click handler error:', error);
+                            }
+                        });
+                    }
+                });
+                
+                console.log('✅ Backup event listeners added to', elementsWithOnclick.length, 'elements');
+            }
+            
+            // Initialize backup listeners after DOM is ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', addBackupEventListeners);
+            } else {
+                addBackupEventListeners();
+            }
+            
+            console.log('✅ Button functionality fix complete');
+        }
+        
+        // Initialize button fix immediately
+        initializeButtonFunctionality();
+        
+        // Also initialize after page load as additional backup
+        window.addEventListener('load', function() {
+            setTimeout(initializeButtonFunctionality, 1000);
+        });
     </script>
     
     <!-- Version Footer -->
