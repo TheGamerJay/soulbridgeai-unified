@@ -543,7 +543,20 @@ function togglePricing(type, event) {
   document.querySelectorAll('.toggle-option').forEach(btn => {
     btn.classList.remove('active');
   });
-  event.target.classList.add('active');
+  
+  // Only try to set active class if event exists
+  if (event && event.target) {
+    event.target.classList.add('active');
+  } else {
+    // Fallback: set active based on type
+    const monthlyBtn = document.querySelector('.toggle-option');
+    const yearlyBtn = document.querySelectorAll('.toggle-option')[1];
+    if (type === 'monthly' && monthlyBtn) {
+      monthlyBtn.classList.add('active');
+    } else if (type === 'yearly' && yearlyBtn) {
+      yearlyBtn.classList.add('active');
+    }
+  }
   
   // Update pricing display
   const plans = pricing[type];

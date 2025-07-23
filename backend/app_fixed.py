@@ -1038,14 +1038,18 @@ def create_addon_checkout():
             return jsonify({"success": False, "error": "Add-on type required"}), 400
         
         # Set up temporary session for testing
-        if not session.get('user_email'):
-            logger.warning("⚠️ TEMPORARY: Setting up test user session for add-on checkout")
-            session['user_email'] = 'test@soulbridgeai.com'
-            session['user_id'] = 'temp_test_user'
-            session['user_authenticated'] = True
-            session['login_timestamp'] = datetime.now().isoformat()
-            session.permanent = True
-            session.modified = True
+        try:
+            if not session.get('user_email'):
+                logger.warning("⚠️ TEMPORARY: Setting up test user session for add-on checkout")
+                session['user_email'] = 'test@soulbridgeai.com'
+                session['user_id'] = 'temp_test_user'
+                session['user_authenticated'] = True
+                session['login_timestamp'] = datetime.now().isoformat()
+                session.permanent = True
+                session.modified = True
+        except Exception as session_error:
+            logger.error(f"Session setup error: {session_error}")
+            # Continue without session setup
         
         # Add-on pricing (in cents)
         addon_prices = {
