@@ -985,6 +985,34 @@ def home():
         logger.error(f"Home route error: {e}")
         return redirect("/login")
 
+@app.route("/chat")
+def chat_page():
+    """Chat page - same as home but with explicit route"""
+    try:
+        if not is_logged_in():
+            return redirect("/login")
+        return render_template("chat.html")
+    except Exception as e:
+        logger.error(f"Chat route error: {e}")
+        return redirect("/login")
+
+@app.route("/community")  
+def community_redirect():
+    """Community page - redirect to community dashboard"""
+    return redirect("/community-dashboard")
+
+@app.route("/journey")
+def journey_page():
+    """Journey page - start the journey (same as chat with intro)"""
+    try:
+        if not is_logged_in():
+            return redirect("/login")
+        # Redirect to chat with intro parameter
+        return redirect("/?show_intro=true")
+    except Exception as e:
+        logger.error(f"Journey route error: {e}")
+        return redirect("/login")
+
 # ========================================
 # AUTHENTICATION ROUTES
 # ========================================
