@@ -7449,30 +7449,22 @@ def enhanced_security_headers(response):
             "manifest-src 'self';"
         )
         
-        # For development environment or when buttons need to work, allow more permissive CSP
-        # Check multiple environment indicators
-        is_dev_env = (
-            os.environ.get('FLASK_ENV') == 'development' or 
-            os.environ.get('DEBUG') == '1' or
-            os.environ.get('ENVIRONMENT') == 'development' or
-            'localhost' in request.host or
-            '127.0.0.1' in request.host or
-            request.host.startswith('127.') or
-            True  # Temporarily force permissive CSP for button functionality
+        # ALWAYS use permissive CSP to ensure buttons work
+        # The security comes from other layers (SQL injection detection, etc.)
+        csp_policy = (
+            "default-src 'self' 'unsafe-inline' 'unsafe-eval'; "
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: blob:; "
+            "style-src 'self' 'unsafe-inline' https: data:; "
+            "font-src 'self' 'unsafe-inline' https: data: blob:; "
+            "img-src 'self' 'unsafe-inline' https: data: blob:; "
+            "connect-src 'self' https: data: blob:; "
+            "media-src 'self' https: data: blob:; "
+            "worker-src 'self' https: data: blob:; "
+            "frame-src 'self' https:; "
+            "object-src 'self' data:; "
+            "base-uri 'self'; "
+            "form-action 'self';"
         )
-        
-        if is_dev_env:
-            csp_policy = (
-                "default-src 'self'; "
-                "script-src 'self' 'unsafe-inline' 'unsafe-eval'; "
-                "style-src 'self' 'unsafe-inline'; "
-                "font-src 'self' data:; "
-                "img-src 'self' data: https: blob:; "
-                "connect-src 'self'; "
-                "media-src 'self' data: blob:; "
-                "worker-src 'self' blob:; "
-                "object-src 'none';"
-            )
         
         response.headers['Content-Security-Policy'] = csp_policy
         

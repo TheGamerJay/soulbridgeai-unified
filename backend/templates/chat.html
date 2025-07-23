@@ -437,8 +437,8 @@
         .rainbow-text {
             background: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b) !important;
             background-size: 400% 400% !important;
-            background-clip: text !important;
             -webkit-background-clip: text !important;
+            background-clip: text !important;
             -webkit-text-fill-color: transparent !important;
             color: transparent !important;
             animation: rainbow-text 3s ease-in-out infinite !important;
@@ -1031,12 +1031,12 @@
                 
                 <!-- Character Info -->
                 <div style="text-align: center; border: 5px solid #ff006e !important; border-radius: 15px !important; padding: 0.6rem !important; margin: 0.1rem auto 0.5rem auto !important; background: rgba(255, 0, 110, 0.1) !important; width: 90% !important; display: block !important; box-sizing: border-box !important; box-shadow: 0 0 25px rgba(255, 0, 110, 0.6) !important; position: relative; top: -0.5rem;">
-                    <div class="character-description" style="background: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b) !important; background-size: 400% 400% !important; background-clip: text !important; -webkit-background-clip: text !important; -webkit-text-fill-color: transparent !important; font-weight: bold !important;">Advanced AI with mystical wisdom and cosmic insights</div>
+                    <div class="character-description" style="background: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b) !important; background-size: 400% 400% !important; -webkit-background-clip: text !important; background-clip: text !important; -webkit-text-fill-color: transparent !important; font-weight: bold !important;">Advanced AI with mystical wisdom and cosmic insights</div>
                     <div class="character-greeting-single" style="
                         background: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b) !important;
                         background-size: 400% 400% !important;
-                        background-clip: text !important;
                         -webkit-background-clip: text !important;
+                        background-clip: text !important;
                         -webkit-text-fill-color: transparent !important;
                         font-size: 0.85rem;
                         line-height: 1.4;
@@ -1146,8 +1146,8 @@
                     <div class="character-greeting-single" style="
                         background: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b) !important;
                         background-size: 400% 400% !important;
-                        background-clip: text !important;
                         -webkit-background-clip: text !important;
+                        background-clip: text !important;
                         -webkit-text-fill-color: transparent !important;
                         font-size: 0.85rem;
                         line-height: 1.4;
@@ -1748,6 +1748,9 @@
     <!-- SoulBridge Firebase Integration -->
     <script src="{{ url_for('static', filename='js/firebase-config.js') }}"></script>
     <script src="{{ url_for('static', filename='js/firebase-integration.js') }}"></script>
+    
+    <!-- Universal Button Fix -->
+    <script src="{{ url_for('static', filename='js/universal-button-fix.js') }}"></script>
     
     <script>
         // Companion selection function
