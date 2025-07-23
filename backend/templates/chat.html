@@ -1908,9 +1908,28 @@
                         
                         // Show purchase prompt immediately with minimal delay
                         setTimeout(function() {
-                            // Simulate payment process
-                            alert('🎉 Payment successful! Welcome to ' + characterName + ' Premium!\n\nYou now have access to ' + characterName + ' and can select them anytime.');
-                            localStorage.setItem('purchased' + characterName, 'true');
+                            // REDIRECT TO ACTUAL STRIPE PAYMENT
+                            alert('🛒 Redirecting to secure payment for ' + characterName + ' companion switching...');
+                            fetch('/api/create-switching-payment', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                credentials: 'include',
+                                body: JSON.stringify({ character: characterName })
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success && data.checkout_url) {
+                                    window.location.href = data.checkout_url;
+                                } else {
+                                    alert('Payment setup failed: ' + (data.error || 'Unknown error'));
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Payment error:', error);
+                                alert('Payment setup failed. Please try again.');
+                            });
+                            // Removed fake localStorage setting
+                            // localStorage.setItem('purchased' + characterName, 'true');
                             justPurchased = true;
                             console.log('=== PURCHASE COMPLETED ===');
                             console.log('Character purchased:', characterName);
@@ -2031,9 +2050,28 @@
                         
                         // Show purchase prompt immediately with minimal delay
                         setTimeout(function() {
-                            // Simulate payment process
-                            alert('🎉 Payment successful! Welcome to ' + characterName + ' Premium!\n\nYou now have access to ' + characterName + ' and can select them anytime.');
-                            localStorage.setItem('purchased' + characterName, 'true');
+                            // REDIRECT TO ACTUAL STRIPE PAYMENT
+                            alert('🛒 Redirecting to secure payment for ' + characterName + ' companion switching...');
+                            fetch('/api/create-switching-payment', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                credentials: 'include',
+                                body: JSON.stringify({ character: characterName })
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success && data.checkout_url) {
+                                    window.location.href = data.checkout_url;
+                                } else {
+                                    alert('Payment setup failed: ' + (data.error || 'Unknown error'));
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Payment error:', error);
+                                alert('Payment setup failed. Please try again.');
+                            });
+                            // Removed fake localStorage setting
+                            // localStorage.setItem('purchased' + characterName, 'true');
                             justPurchased = true;
                             console.log('=== PURCHASE COMPLETED ===');
                             console.log('Character purchased:', characterName);
