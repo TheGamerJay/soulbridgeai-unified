@@ -14,6 +14,8 @@ import logging
 import time
 import secrets
 import json
+import hashlib
+import threading
 import stripe
 import random
 import string
@@ -158,14 +160,13 @@ def is_logged_in():
         session.modified = True
     
     if not authenticated:
-        logger.warning(f"❌ Authentication check failed for {user_email or 'unknown user'}")
-        logger.warning(f"   Session keys: {list(session.keys())}")
-        logger.warning(f"   Session permanent: {session.permanent}")
-        logger.warning(f"   User email: {user_email or 'not set'}")
-        logger.warning(f"   User authenticated flag: {session.get('user_authenticated', 'NOT SET')}")
-        logger.warning(f"   Login timestamp: {session.get('login_timestamp', 'not set')}")
-        logger.warning(f"   Session ID: {request.cookies.get(app.config.get('SESSION_COOKIE_NAME', 'session'))}")
-        logger.warning(f"   All cookies: {dict(request.cookies)}")
+        # Only log authentication failures if there's some session data (indicates partial login attempt)
+        # Skip logging for completely new visitors to reduce noise
+        if session.keys() and len(session.keys()) > 1:  # More than just '_permanent' key
+            logger.warning(f"❌ Authentication check failed for {user_email or 'unknown user'}")
+            logger.warning(f"   Session keys: {list(session.keys())}")
+            logger.warning(f"   User email: {user_email or 'not set'}")
+            logger.warning(f"   User authenticated flag: {session.get('user_authenticated', 'NOT SET')}")
     else:
         logger.info(f"✅ Authentication check passed for {user_email}")
         logger.info(f"   Session permanent: {session.permanent}")
@@ -1394,7 +1395,7 @@ def maintenance_dashboard():
 def terms_page():
     """Terms of service and privacy policy"""
     try:
-        return render_template("terms.html")
+        return render_template("terms_privacy.html")
     except Exception as e:
         logger.error(f"Terms page error: {e}")
         # Fallback to simple terms content
@@ -5635,6 +5636,16 @@ class AutoMaintenanceSystem:
             'fitness_score': 100.0
         }
         
+        # 👁️ WATCHDOG - File system monitoring
+        self.watchdog_system = {
+            'monitored_files': {},
+            'file_checksums': {},
+            'last_check': datetime.now(),
+            'changes_detected': deque(maxlen=100),
+            'critical_files': ['app_fixed.py', 'config.py', '.env'],
+            'monitoring_enabled': True
+        }
+        
         self.start_biological_systems()
         self.start_background_monitoring()
     
@@ -5727,8 +5738,8 @@ class AutoMaintenanceSystem:
                 
                 self.log_maintenance("SESSION_CLEANUP", f"Cleared {len(corrupted_sessions)} corrupted sessions")
             else:
-                # Skip session cleanup if no request context
-                self.log_maintenance("SESSION_SKIP", "Session cleanup skipped - no request context")
+                # Skip session cleanup if no request context (this is normal during background maintenance)
+                pass  # Don't log this as it's expected behavior
             
             self.health_status['sessions'] = True
             
@@ -6310,7 +6321,7 @@ class AutoMaintenanceSystem:
         except Exception:
             return 7  # Default production
     
-    def detect_security_threat(self, ip_address, request_type, details=""):
+    def detect_security_threat(self, ip_address, request_type, details="", request_path=""):
         """Detect and respond to security threats"""
         try:
             current_time = datetime.now()
@@ -6334,6 +6345,12 @@ class AutoMaintenanceSystem:
                 threat_detected = True
                 threat_level = "high"
                 self.log_maintenance("XSS_ATTEMPT", f"XSS attempt detected from {ip_address}")
+            
+            # WordPress attack detection
+            if self.detect_wordpress_attack(request_path, details):
+                threat_detected = True
+                threat_level = "medium"
+                self.log_maintenance("WORDPRESS_ATTACK", f"WordPress attack attempt from {ip_address} - path: {request_path}")
             
             # Brute force detection
             if request_type == "login_failed":
@@ -6425,6 +6442,51 @@ class AutoMaintenanceSystem:
             import re
             if re.search(pattern, content_lower):
                 return True
+        return False
+    
+    def detect_wordpress_attack(self, path, content=""):
+        """Detect WordPress-specific attack attempts"""
+        if not path:
+            return False
+            
+        path_lower = path.lower()
+        
+        # Common WordPress attack patterns
+        wordpress_attack_patterns = [
+            r"/wp-admin/",
+            r"/wp-content/",
+            r"/wp-includes/",
+            r"/wp-config\.php",
+            r"/wp-login\.php",
+            r"/xmlrpc\.php",
+            r"/wordpress/",
+            r"/wp/",
+            r"setup-config\.php",
+            r"install\.php",
+            r"wp-.*\.php"
+        ]
+        
+        # Check path patterns
+        import re
+        for pattern in wordpress_attack_patterns:
+            if re.search(pattern, path_lower):
+                return True
+        
+        # Check content for WordPress-specific attack signatures
+        if content:
+            content_lower = content.lower()
+            wordpress_content_patterns = [
+                r"wp_config",
+                r"wp_admin",
+                r"wordpress",
+                r"wp-content",
+                r"wp-includes"
+            ]
+            
+            for pattern in wordpress_content_patterns:
+                if re.search(pattern, content_lower):
+                    return True
+        
         return False
     
     def handle_security_threat(self, ip_address, threat_level, request_type, details):
@@ -6940,12 +7002,87 @@ class AutoMaintenanceSystem:
         except Exception as e:
             self.log_maintenance("HEALTH_CHECK_ERROR", str(e))
     
+    def calculate_file_checksum(self, filepath):
+        """Calculate MD5 checksum for a file"""
+        try:
+            hash_md5 = hashlib.md5()
+            with open(filepath, "rb") as f:
+                for chunk in iter(lambda: f.read(4096), b""):
+                    hash_md5.update(chunk)
+            return hash_md5.hexdigest()
+        except Exception as e:
+            self.log_maintenance("CHECKSUM_ERROR", f"Failed to calculate checksum for {filepath}: {e}")
+            return None
+    
+    def initialize_file_monitoring(self):
+        """Initialize file monitoring for critical files"""
+        try:
+            for filename in self.watchdog_system['critical_files']:
+                filepath = os.path.join(os.getcwd(), filename)
+                if os.path.exists(filepath):
+                    checksum = self.calculate_file_checksum(filepath)
+                    if checksum:
+                        self.watchdog_system['file_checksums'][filepath] = checksum
+                        self.watchdog_system['monitored_files'][filepath] = {
+                            'last_modified': os.path.getmtime(filepath),
+                            'size': os.path.getsize(filepath),
+                            'checksum': checksum
+                        }
+                        self.log_maintenance("FILE_MONITOR_INIT", f"Monitoring initialized for {filename}")
+        except Exception as e:
+            self.log_maintenance("WATCHDOG_INIT_ERROR", str(e))
+    
+    def check_file_changes(self):
+        """Check for changes in monitored files"""
+        try:
+            changes_detected = False
+            for filepath, file_info in self.watchdog_system['monitored_files'].items():
+                if os.path.exists(filepath):
+                    current_mtime = os.path.getmtime(filepath)
+                    current_size = os.path.getsize(filepath)
+                    
+                    # Check if file was modified
+                    if (current_mtime != file_info['last_modified'] or 
+                        current_size != file_info['size']):
+                        
+                        # Verify with checksum
+                        current_checksum = self.calculate_file_checksum(filepath)
+                        if current_checksum and current_checksum != file_info['checksum']:
+                            change_info = {
+                                'filepath': filepath,
+                                'timestamp': datetime.now(),
+                                'old_checksum': file_info['checksum'],
+                                'new_checksum': current_checksum,
+                                'size_change': current_size - file_info['size']
+                            }
+                            
+                            self.watchdog_system['changes_detected'].append(change_info)
+                            self.log_maintenance("FILE_CHANGE_DETECTED", 
+                                               f"File {os.path.basename(filepath)} modified")
+                            
+                            # Update monitoring info
+                            self.watchdog_system['monitored_files'][filepath] = {
+                                'last_modified': current_mtime,
+                                'size': current_size,
+                                'checksum': current_checksum
+                            }
+                            changes_detected = True
+            
+            return changes_detected
+        except Exception as e:
+            self.log_maintenance("WATCHDOG_CHECK_ERROR", str(e))
+            return False
+    
     def start_background_monitoring(self):
         """Start enhanced background monitoring thread"""
         def monitor_loop():
             while True:
                 try:
                     self.perform_scheduled_maintenance()
+                    
+                    # Check for file changes (watchdog functionality)
+                    if self.watchdog_system['monitoring_enabled']:
+                        self.check_file_changes()
                     
                     # Adjust monitoring frequency based on system state
                     if self.emergency_mode:
@@ -6962,9 +7099,12 @@ class AutoMaintenanceSystem:
                     self.log_maintenance("MONITOR_LOOP_ERROR", str(e))
                     time.sleep(60)  # Wait 1 minute before retrying
         
+        # Initialize file monitoring before starting monitoring thread
+        self.initialize_file_monitoring()
+        
         monitor_thread = threading.Thread(target=monitor_loop, daemon=True)
         monitor_thread.start()
-        self.log_maintenance("SYSTEM_START", "Enhanced auto-maintenance system initialized")
+        self.log_maintenance("SYSTEM_START", "Enhanced auto-maintenance system with watchdog initialized")
 
 # Initialize auto-maintenance system
 auto_maintenance = AutoMaintenanceSystem()
@@ -6999,9 +7139,10 @@ def security_monitor():
         if request.args:
             request_data += str(dict(request.args))
         
-        # Check for threats in request data
-        if request_data:
-            auto_maintenance.detect_security_threat(ip_address, "web_request", request_data)
+        # Check for threats in request data and path
+        request_path = request.path
+        if request_data or request_path:
+            auto_maintenance.detect_security_threat(ip_address, "web_request", request_data, request_path)
             
     except Exception as e:
         # Don't block requests if security monitoring fails
@@ -7117,6 +7258,54 @@ def force_fix():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
+@app.route("/api/maintenance/watchdog", methods=["GET", "POST"])
+def watchdog_control():
+    """Get watchdog status or control watchdog monitoring"""
+    try:
+        if request.method == "GET":
+            # Return watchdog status
+            return jsonify({
+                "success": True,
+                "watchdog_status": {
+                    "monitoring_enabled": auto_maintenance.watchdog_system['monitoring_enabled'],
+                    "monitored_files": list(auto_maintenance.watchdog_system['monitored_files'].keys()),
+                    "last_check": auto_maintenance.watchdog_system['last_check'].isoformat(),
+                    "changes_detected": len(auto_maintenance.watchdog_system['changes_detected']),
+                    "recent_changes": list(auto_maintenance.watchdog_system['changes_detected'])[-10:]
+                }
+            })
+        
+        elif request.method == "POST":
+            # Control watchdog
+            data = request.get_json() or {}
+            action = data.get("action")
+            
+            if action == "enable":
+                auto_maintenance.watchdog_system['monitoring_enabled'] = True
+                auto_maintenance.log_maintenance("WATCHDOG_ENABLED", "File monitoring enabled")
+                message = "Watchdog monitoring enabled"
+            elif action == "disable":
+                auto_maintenance.watchdog_system['monitoring_enabled'] = False
+                auto_maintenance.log_maintenance("WATCHDOG_DISABLED", "File monitoring disabled")
+                message = "Watchdog monitoring disabled"
+            elif action == "refresh":
+                auto_maintenance.initialize_file_monitoring()
+                message = "Watchdog file monitoring refreshed"
+            else:
+                return jsonify({"success": False, "error": "Invalid action"}), 400
+            
+            return jsonify({
+                "success": True,
+                "message": message,
+                "watchdog_status": {
+                    "monitoring_enabled": auto_maintenance.watchdog_system['monitoring_enabled'],
+                    "monitored_files": list(auto_maintenance.watchdog_system['monitored_files'].keys())
+                }
+            })
+        
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
 # Enhanced error handling with auto-maintenance integration
 def handle_error_with_maintenance(error_type, error_msg, response_data, status_code=500):
     """Handle errors and trigger auto-maintenance if needed"""
@@ -7154,6 +7343,73 @@ def handle_exception(e):
     response, status = handle_error_with_maintenance("UNHANDLED_EXCEPTION", str(e),
                                                    jsonify({"error": "An unexpected error occurred"}), 500)
     return response, status
+
+# ========================================
+# SECURITY HONEYPOT TRAP ROUTES
+# ========================================
+
+# WordPress and common attack paths honeypot traps
+trap_paths = [
+    "/wp-admin/setup-config.php",
+    "/wordpress/wp-admin/setup-config.php", 
+    "/wp-login.php",
+    "/wp-admin/",
+    "/wp-config.php",
+    "/xmlrpc.php",
+    "/.env",
+    "/admin.php",
+    "/wp/",
+    "/wordpress/",
+    "/wp-includes/",
+    "/wp-content/"
+]
+
+@app.route("/<path:subpath>")
+def trap_handler(subpath):
+    """Handle potential security threats with honeypot traps"""
+    full_path = f"/{subpath.lower()}"
+    
+    # Check if this matches a trap path
+    for trap_path in trap_paths:
+        if trap_path.lower() in full_path:
+            ip_address = request.headers.get('X-Forwarded-For', request.remote_addr) or '127.0.0.1'
+            reason = f"Honeypot trap triggered on {full_path}"
+            
+            # Log the threat through auto-maintenance system
+            auto_maintenance.detect_security_threat(ip_address, "honeypot_trap", reason, full_path)
+            auto_maintenance.log_maintenance("HONEYPOT_TRIGGERED", f"Trap activated by {ip_address} on {full_path}")
+            
+            # Block the IP if it's a high-threat pattern
+            if any(pattern in full_path for pattern in ["/wp-admin/", "/wp-config", "/.env"]):
+                auto_maintenance.blocked_ips.add(ip_address)
+                auto_maintenance.log_maintenance("IP_BLOCKED", f"Auto-blocked {ip_address} for honeypot trigger")
+            
+            # Waste attacker's time with fake response and delay
+            import time
+            time.sleep(2)  # 2 second delay to slow down automated attacks
+            
+            return """
+            <html>
+            <head><title>Database Configuration</title></head>
+            <body>
+                <h2>WordPress Database Setup</h2>
+                <p>Connecting to database server...</p>
+                <p>Please wait while we configure your installation.</p>
+                <div style="margin-top: 20px;">
+                    <form method="post">
+                        <input type="hidden" name="dbname" value="wordpress">
+                        <input type="hidden" name="uname" value="admin">
+                        <input type="hidden" name="pwd" value="">
+                        <input type="hidden" name="dbhost" value="localhost">
+                        <input type="submit" value="Continue Setup">
+                    </form>
+                </div>
+            </body>
+            </html>
+            """, 200
+    
+    # Not a trap path, return normal 404
+    return jsonify({"error": "Not Found"}), 404
 
 # ========================================
 # APPLICATION STARTUP
