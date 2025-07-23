@@ -5617,6 +5617,102 @@ def api_chat():
             pass
         return jsonify({"success": False, "response": "Sorry, I encountered an error."}), 500
 
+@app.route("/api/generate-image", methods=["POST"])
+@limiter.limit("3 per minute")  # Generous limit for premium feature
+def api_generate_image():
+    """AI Image Generation API - Premium Feature"""
+    try:
+        # Authentication check
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        # Check if OpenAI service is available
+        if not services.get("openai"):
+            return jsonify({"success": False, "error": "AI service temporarily unavailable"}), 503
+        
+        # Get user input
+        data = request.get_json()
+        if not data:
+            return jsonify({"success": False, "error": "No data provided"}), 400
+            
+        user_prompt = data.get("prompt", "").strip()
+        image_size = data.get("size", "512x512")  # Default size
+        
+        # Validate prompt
+        if not user_prompt:
+            return jsonify({"success": False, "error": "Prompt is required"}), 400
+            
+        if len(user_prompt) > 400:
+            return jsonify({"success": False, "error": "Prompt too long (max 400 characters)"}), 400
+            
+        if len(user_prompt) < 3:
+            return jsonify({"success": False, "error": "Prompt too short (min 3 characters)"}), 400
+        
+        # Comprehensive content filtering
+        banned_keywords = [
+            # Explicit content
+            "nsfw", "nude", "naked", "sex", "sexual", "porn", "erotic", "adult",
+            # Violence
+            "blood", "gore", "violence", "weapon", "gun", "knife", "murder", "kill",
+            # Harmful content  
+            "drug", "suicide", "self-harm", "racist", "hate", "nazi",
+            # Copyright issues
+            "disney", "marvel", "pokemon", "nintendo", "sony", "apple logo",
+            # AI/deepfake concerns
+            "deepfake", "fake person", "celebrity face"
+        ]
+        
+        prompt_lower = user_prompt.lower()
+        for banned in banned_keywords:
+            if banned in prompt_lower:
+                logger.warning(f"Blocked inappropriate image prompt: {user_prompt}")
+                return jsonify({
+                    "success": False, 
+                    "error": "Inappropriate content detected. Please use family-friendly prompts."
+                }), 403
+        
+        # Validate image size
+        allowed_sizes = ["256x256", "512x512", "1024x1024"]
+        if image_size not in allowed_sizes:
+            image_size = "512x512"  # Default fallback
+        
+        # Generate image with OpenAI DALL-E
+        try:
+            # Enhanced prompt for better results
+            enhanced_prompt = f"High quality digital art: {user_prompt}, professional illustration, clean background"
+            
+            response = openai.Image.create(
+                prompt=enhanced_prompt,
+                n=1,
+                size=image_size,
+                response_format="url"
+            )
+            
+            image_url = response['data'][0]['url']
+            
+            # Log successful generation
+            user_email = session.get("user_email", "unknown")
+            logger.info(f"✨ Image generated for {user_email}: '{user_prompt}' -> {image_url}")
+            
+            return jsonify({
+                "success": True,
+                "image_url": image_url,
+                "prompt": user_prompt,
+                "size": image_size,
+                "message": "Image generated successfully!"
+            })
+            
+        except Exception as openai_error:
+            logger.error(f"OpenAI DALL-E error: {openai_error}")
+            return jsonify({
+                "success": False, 
+                "error": "Failed to generate image. Please try a different prompt."
+            }), 500
+        
+    except Exception as e:
+        logger.error(f"Image generation API error: {e}")
+        return jsonify({"success": False, "error": "Internal server error"}), 500
+
 
 # ========================================
 # AUTO-MAINTENANCE SYSTEM
