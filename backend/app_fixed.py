@@ -2521,14 +2521,21 @@ def create_switching_payment():
         #     return jsonify({"success": False, "error": "Authentication required"}), 401
         
         data = request.get_json()
+        if not data:
+            return jsonify({"success": False, "error": "No data provided"}), 400
+            
         character = data.get("character")
         
         logger.info(f"🎭 COMPANION SWITCHING DEBUG:")
+        logger.info(f"   Raw request data: {data}")
         logger.info(f"   Character requested: '{character}'")
         logger.info(f"   Character type: {type(character)}")
         logger.info(f"   Valid characters: {VALID_CHARACTERS}")
         logger.info(f"   Character in valid list: {character in VALID_CHARACTERS}")
         
+        if not character:
+            return jsonify({"success": False, "error": "Character name is required"}), 400
+            
         if character not in VALID_CHARACTERS:
             logger.error(f"   ❌ Invalid character: '{character}' not in {VALID_CHARACTERS}")
             return jsonify({"success": False, "error": f"Invalid character: {character}"}), 400
