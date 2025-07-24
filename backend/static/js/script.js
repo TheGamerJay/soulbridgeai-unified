@@ -118,3 +118,134 @@ document.addEventListener("DOMContentLoaded", () => {
     micBtn.disabled = true; micBtn.title = "Voice input not supported";
   }
 });
+
+// ==========================
+// 🌐 SoulBridgeAI Community & Profile System
+// ==========================
+
+// ✅ Profile Enhancements
+const userProfile = {
+  displayName: "Jaay El Nene",
+  profilePicture: "/assets/profiles/default.png",
+  bio: "Hopeful dreamer building bridges with words",
+  checkInStreak: 14,
+  referralPoints: 25,
+  subscription: {
+    tier: "Growth",
+    startedOn: "2025-07-01",
+    renewsOn: "2025-08-01",
+    daysRemaining: 8
+  }
+};
+
+// ✅ Community Access Control
+function handleCommunityAccess(user) {
+  const btn = document.querySelector("#community-btn");
+
+  if (user.status.community_ban === true) {
+    btn.disabled = true;
+    btn.innerText = "Access Denied";
+    btn.addEventListener("click", () => {
+      alert("You have been banned from the community for violating our guidelines.");
+    });
+  }
+}
+
+// ✅ Community Moderation System
+const communityRules = {
+  profanityFilter: true,
+  toxicityDetection: true,
+  maxWarnings: 2,
+  actionsOnViolations: (user) => {
+    user.warnings++;
+    if (user.warnings === 1) {
+      notifyUser("Warning issued for inappropriate behavior.");
+    } else if (user.warnings >= 2) {
+      user.status.community_ban = true;
+      handleCommunityAccess(user);
+      notifyUser("You have been banned from the community.");
+    }
+  }
+};
+
+// Moderation queue for reports
+let moderationQueue = [];
+
+// ✅ User Reporting System
+function reportMessage(messageId, reason, reporterId) {
+  const validReasons = ["Inappropriate", "Hateful", "Harmful", "Crisis"];
+  if (!validReasons.includes(reason)) return;
+
+  moderationQueue.push({
+    messageId,
+    reason,
+    reporterId,
+    timestamp: Date.now(),
+    reviewed: false
+  });
+
+  // Optional: Auto-mute if too many flags on same message
+  const flaggedCount = moderationQueue.filter(r => r.messageId === messageId).length;
+  if (flaggedCount >= 3) autoMuteUser(messageId);
+
+  logEvent("Report filed for moderation.");
+}
+
+// ✅ Display Name + Avatar in Community
+function renderCommunityPost(post) {
+  return `
+    <div class="community-post">
+      <img src="${post.user.profilePicture}" class="avatar" />
+      <div class="content">
+        <strong>${post.user.displayName}</strong>
+        <p>${sanitize(post.content)}</p>
+      </div>
+    </div>
+  `;
+}
+
+// ✅ Referral + Rewards
+function updateReferralPoints(user, points) {
+  user.referralPoints += points;
+  notifyUser(`🎁 You earned ${points} Soul Points!`);
+}
+
+// ✅ Profile Panel UI Hook
+function renderUserProfile(user) {
+  return `
+    <div class="profile-panel">
+      <img src="${user.profilePicture}" class="avatar-lg" />
+      <h2>${user.displayName}</h2>
+      <p>${user.bio}</p>
+      <p>🔥 Streak: ${user.checkInStreak} days</p>
+      <p>🎁 Points: ${user.referralPoints}</p>
+      <p>📅 Subscription: ${user.subscription.tier}</p>
+      <p>🔄 Renews in ${user.subscription.daysRemaining} days</p>
+    </div>
+  `;
+}
+
+// ✅ Utility: Sanitize input
+function sanitize(text) {
+  return text.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+// Helper functions for community system
+function notifyUser(message) {
+  // Integration with existing notification system
+  if (typeof showNotification !== 'undefined') {
+    showNotification(message);
+  } else {
+    alert(message);
+  }
+}
+
+function autoMuteUser(messageId) {
+  // Auto-mute logic for flagged users
+  console.log(`Auto-muting user for message ${messageId}`);
+  // Implementation would connect to backend moderation API
+}
+
+function logEvent(event) {
+  console.log(`Community Event: ${event} at ${new Date().toISOString()}`);
+}

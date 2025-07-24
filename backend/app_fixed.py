@@ -627,6 +627,90 @@ def init_advanced_tables():
                 CREATE INDEX IF NOT EXISTS idx_routing_logs ON intelligent_routing_logs(request_type, created_at);
                 CREATE INDEX IF NOT EXISTS idx_ai_predictions ON ai_predictions(user_email, prediction_type, expires_at);
                 
+                -- Phase 19.5: Community & Profile System Enhancement
+                -- Add community profile fields to users table if they don't exist
+                DO $$ 
+                BEGIN
+                    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='bio') THEN
+                        ALTER TABLE users ADD COLUMN bio TEXT;
+                    END IF;
+                    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='check_in_streak') THEN
+                        ALTER TABLE users ADD COLUMN check_in_streak INTEGER DEFAULT 0;
+                    END IF;
+                    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='referral_points') THEN
+                        ALTER TABLE users ADD COLUMN referral_points INTEGER DEFAULT 0;
+                    END IF;
+                    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='community_ban') THEN
+                        ALTER TABLE users ADD COLUMN community_ban BOOLEAN DEFAULT FALSE;
+                    END IF;
+                    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='warnings') THEN
+                        ALTER TABLE users ADD COLUMN warnings INTEGER DEFAULT 0;
+                    END IF;
+                    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='last_check_in') THEN
+                        ALTER TABLE users ADD COLUMN last_check_in DATE;
+                    END IF;
+                END $$;
+                
+                -- Community posts table
+                CREATE TABLE IF NOT EXISTS community_posts (
+                    id SERIAL PRIMARY KEY,
+                    author_email VARCHAR(255) NOT NULL,
+                    content TEXT NOT NULL,
+                    post_type VARCHAR(50) DEFAULT 'general',
+                    likes_count INTEGER DEFAULT 0,
+                    reports_count INTEGER DEFAULT 0,
+                    is_moderated BOOLEAN DEFAULT FALSE,
+                    is_hidden BOOLEAN DEFAULT FALSE,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (author_email) REFERENCES users(email) ON DELETE CASCADE
+                );
+                
+                -- Moderation queue table
+                CREATE TABLE IF NOT EXISTS moderation_queue (
+                    id SERIAL PRIMARY KEY,
+                    content_type VARCHAR(50) NOT NULL, -- 'post', 'comment', 'message'
+                    content_id INTEGER NOT NULL,
+                    reported_by VARCHAR(255) NOT NULL,
+                    reason VARCHAR(100) NOT NULL,
+                    status VARCHAR(50) DEFAULT 'pending', -- 'pending', 'reviewed', 'resolved'
+                    moderator_action VARCHAR(100),
+                    reviewed_by VARCHAR(255),
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    reviewed_at TIMESTAMP,
+                    FOREIGN KEY (reported_by) REFERENCES users(email) ON DELETE CASCADE
+                );
+                
+                -- User reports table
+                CREATE TABLE IF NOT EXISTS user_reports (
+                    id SERIAL PRIMARY KEY,
+                    reporter_email VARCHAR(255) NOT NULL,
+                    reported_email VARCHAR(255) NOT NULL,
+                    reason VARCHAR(100) NOT NULL,
+                    details TEXT,
+                    status VARCHAR(50) DEFAULT 'pending',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (reporter_email) REFERENCES users(email) ON DELETE CASCADE,
+                    FOREIGN KEY (reported_email) REFERENCES users(email) ON DELETE CASCADE
+                );
+                
+                -- Soul points transactions table
+                CREATE TABLE IF NOT EXISTS soul_points_transactions (
+                    id SERIAL PRIMARY KEY,
+                    user_email VARCHAR(255) NOT NULL,
+                    points_amount INTEGER NOT NULL,
+                    transaction_type VARCHAR(50) NOT NULL, -- 'earned', 'spent', 'bonus'
+                    description TEXT,
+                    related_id INTEGER, -- referral_id, purchase_id, etc.
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (user_email) REFERENCES users(email) ON DELETE CASCADE
+                );
+                
+                CREATE INDEX IF NOT EXISTS idx_community_posts_author ON community_posts(author_email, created_at);
+                CREATE INDEX IF NOT EXISTS idx_moderation_status ON moderation_queue(status, created_at);
+                CREATE INDEX IF NOT EXISTS idx_user_reports_status ON user_reports(status, created_at);
+                CREATE INDEX IF NOT EXISTS idx_soul_points_user ON soul_points_transactions(user_email, created_at);
+
                 -- Phase 20: Quantum-ready and future-proofing tables
                 CREATE TABLE IF NOT EXISTS quantum_encryption_logs (
                     id SERIAL PRIMARY KEY,
@@ -810,6 +894,87 @@ def init_advanced_tables():
                 CREATE INDEX IF NOT EXISTS idx_routing_logs ON intelligent_routing_logs(request_type, created_at);
                 CREATE INDEX IF NOT EXISTS idx_ai_predictions ON ai_predictions(user_email, prediction_type, expires_at);
                 
+                -- Phase 19.5: Community & Profile System Enhancement (SQLite)
+            """)
+            
+            # Add community profile fields to users table (SQLite) - check existing columns first
+            cursor.execute("PRAGMA table_info(users)")
+            existing_columns = {row[1] for row in cursor.fetchall()}
+            
+            community_columns = [
+                ('bio', 'TEXT'),
+                ('check_in_streak', 'INTEGER DEFAULT 0'),
+                ('referral_points', 'INTEGER DEFAULT 0'), 
+                ('community_ban', 'INTEGER DEFAULT 0'),  # SQLite uses INTEGER for BOOLEAN
+                ('warnings', 'INTEGER DEFAULT 0'),
+                ('last_check_in', 'DATE')
+            ]
+            
+            for column_name, column_def in community_columns:
+                if column_name not in existing_columns:
+                    cursor.execute(f"ALTER TABLE users ADD COLUMN {column_name} {column_def}")
+            
+            cursor.execute("""
+                -- Community posts table
+                CREATE TABLE IF NOT EXISTS community_posts (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    author_email TEXT NOT NULL,
+                    content TEXT NOT NULL,
+                    post_type TEXT DEFAULT 'general',
+                    likes_count INTEGER DEFAULT 0,
+                    reports_count INTEGER DEFAULT 0,
+                    is_moderated INTEGER DEFAULT 0,
+                    is_hidden INTEGER DEFAULT 0,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (author_email) REFERENCES users(email) ON DELETE CASCADE
+                );
+                
+                -- Moderation queue table
+                CREATE TABLE IF NOT EXISTS moderation_queue (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    content_type TEXT NOT NULL,
+                    content_id INTEGER NOT NULL,
+                    reported_by TEXT NOT NULL,
+                    reason TEXT NOT NULL,
+                    status TEXT DEFAULT 'pending',
+                    moderator_action TEXT,
+                    reviewed_by TEXT,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    reviewed_at DATETIME,
+                    FOREIGN KEY (reported_by) REFERENCES users(email) ON DELETE CASCADE
+                );
+                
+                -- User reports table
+                CREATE TABLE IF NOT EXISTS user_reports (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    reporter_email TEXT NOT NULL,
+                    reported_email TEXT NOT NULL,
+                    reason TEXT NOT NULL,
+                    details TEXT,
+                    status TEXT DEFAULT 'pending',
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (reporter_email) REFERENCES users(email) ON DELETE CASCADE,
+                    FOREIGN KEY (reported_email) REFERENCES users(email) ON DELETE CASCADE
+                );
+                
+                -- Soul points transactions table
+                CREATE TABLE IF NOT EXISTS soul_points_transactions (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_email TEXT NOT NULL,
+                    points_amount INTEGER NOT NULL,
+                    transaction_type TEXT NOT NULL,
+                    description TEXT,
+                    related_id INTEGER,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (user_email) REFERENCES users(email) ON DELETE CASCADE
+                );
+                
+                CREATE INDEX IF NOT EXISTS idx_community_posts_author ON community_posts(author_email, created_at);
+                CREATE INDEX IF NOT EXISTS idx_moderation_status ON moderation_queue(status, created_at);
+                CREATE INDEX IF NOT EXISTS idx_user_reports_status ON user_reports(status, created_at);
+                CREATE INDEX IF NOT EXISTS idx_soul_points_user ON soul_points_transactions(user_email, created_at);
+
                 -- Phase 20: Quantum-ready and future-proofing tables
                 CREATE TABLE IF NOT EXISTS quantum_encryption_logs (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -5811,14 +5976,33 @@ class AutoMaintenanceSystem:
         
         # GeoIP botnet blocking
         self.geoip_database = None
-        self.blocked_countries = {'CN', 'RU', 'KP', 'IR'}  # High-risk countries
+        # Enhanced botnet country blocking based on threat intelligence
+        self.blocked_countries = {
+            'CN', 'RU', 'KP', 'IR',  # High-risk countries
+            'BY', 'MD', 'UA',        # Additional Eastern European threats
+            'VN', 'BD', 'PK',        # Southeast Asian botnet sources
+            'IN', 'TR', 'EG',        # Additional high-volume attack sources
+            'ID', 'TH', 'MY'         # Regional botnet hubs
+        }
+        # Enhanced ASN blocking for known botnet providers
         self.blocked_asns = {
-            4134,   # CHINANET-BACKBONE
-            4837,   # CHINA UNICOM
-            9808,   # CHINAMOBILE
-            8359,   # MTS (Russia)
-            12389,  # ROSTELECOM (Russia) 
-            20764,  # RASCOM (Russia)
+            # Chinese ISPs
+            4134, 4837, 9808, 17621, 23650,
+            
+            # Russian ISPs
+            8359, 12389, 20764, 31133, 8595,
+            
+            # VPS/Hosting providers commonly used by botnets
+            16276,  # OVH (abused)
+            14061,  # DigitalOcean (abused)
+            36351,  # SoftLayer (abused)
+            15169,  # Google (when abused)
+            
+            # Known botnet ASNs
+            197695, 203020, 209242, 212238,
+            
+            # Bulletproof hosting
+            44901, 201776, 207427
         }
         self.initialize_geoip()
         self.failed_login_attempts = defaultdict(int)
