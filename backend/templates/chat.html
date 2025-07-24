@@ -6156,6 +6156,82 @@
         document.body.appendChild(debugButton);
         
         console.log('🔧 Debug button added - click it to test JavaScript functionality');
+        
+        // === FORCE EVENT LISTENERS (CSP-Safe Alternative) ===
+        // Since inline onclick might be blocked by CSP, add event listeners
+        
+        function addButtonEventListeners() {
+            console.log('🔧 Adding CSP-safe event listeners...');
+            
+            // Theme toggle button
+            const themeToggle = document.getElementById('themeToggle');
+            if (themeToggle) {
+                themeToggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log('🌙 Theme toggle clicked via event listener');
+                    if (typeof toggleTheme === 'function') {
+                        toggleTheme();
+                    } else {
+                        console.error('toggleTheme function not found');
+                    }
+                });
+                console.log('✅ Theme toggle event listener added');
+            }
+            
+            // Logout button  
+            const signOutBtn = document.getElementById('signOutBtn');
+            if (signOutBtn) {
+                signOutBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log('🚪 Logout button clicked via event listener');
+                    if (typeof performRegularLogout === 'function') {
+                        performRegularLogout();
+                    } else {
+                        console.error('performRegularLogout function not found');
+                    }
+                });
+                console.log('✅ Logout button event listener added');
+            }
+            
+            // Sapphire button (multiple possible selectors)
+            const sapphireButtons = document.querySelectorAll('div[onclick*="toggleNavigationAssistant"]');
+            sapphireButtons.forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log('🔮 Sapphire button clicked via event listener');
+                    if (typeof toggleNavigationAssistant === 'function') {
+                        toggleNavigationAssistant();
+                    } else {
+                        console.error('toggleNavigationAssistant function not found');
+                    }
+                });
+            });
+            console.log(`✅ ${sapphireButtons.length} Sapphire button event listeners added`);
+            
+            // Begin Journey button
+            const beginButtons = document.querySelectorAll('div[onclick*="showCharacterSelect"]');
+            beginButtons.forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log('✨ Begin Journey button clicked via event listener');
+                    if (typeof showCharacterSelect === 'function') {
+                        showCharacterSelect();
+                    } else {
+                        console.error('showCharacterSelect function not found');
+                    }
+                });
+            });
+            console.log(`✅ ${beginButtons.length} Begin Journey button event listeners added`);
+        }
+        
+        // Add event listeners after DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', addButtonEventListeners);
+        } else {
+            addButtonEventListeners();
+        }
+        
+        console.log('🔧 CSP-safe event listeners system initialized');
     </script>
 </body>
 </html>
