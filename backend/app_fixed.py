@@ -2770,8 +2770,15 @@ def api_referrals_dashboard():
         if remaining == 0 and successful >= next_milestone_count:
             next_reward = f"{milestone_rewards.get(next_milestone_count)} - Already Unlocked!"
         
-        # Generate a proper referral code for this user
-        referral_code = generate_referral_code()
+        # Generate or retrieve permanent referral code for this user
+        user_email = session.get("user_email", "").lower().strip()
+        if user_email:
+            # Create a consistent referral code based on user email hash
+            import hashlib
+            email_hash = hashlib.md5(user_email.encode()).hexdigest()[:8].upper()
+            referral_code = f"REF{email_hash}"
+        else:
+            referral_code = generate_referral_code()
         
         return jsonify({
             "success": True,
@@ -2809,8 +2816,14 @@ def api_referrals_share_templates():
             session.permanent = True
             session.modified = True
             
-        user_email = session.get("user_email", "")
-        referral_code = generate_referral_code()
+        user_email = session.get("user_email", "").lower().strip()
+        if user_email:
+            # Create a consistent referral code based on user email hash
+            import hashlib
+            email_hash = hashlib.md5(user_email.encode()).hexdigest()[:8].upper()
+            referral_code = f"REF{email_hash}"
+        else:
+            referral_code = generate_referral_code()
         referral_link = f"https://soulbridgeai.com/register?ref={referral_code}"
         
         return jsonify({
