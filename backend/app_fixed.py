@@ -29,6 +29,15 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_compress import Compress
 
+# GeoIP imports for botnet blocking
+try:
+    import geoip2.database
+    import geoip2.errors
+    GEOIP_AVAILABLE = True
+except ImportError:
+    GEOIP_AVAILABLE = False
+    print("GeoIP2 not available - install with: pip install geoip2")
+
 # Load environment variables from .env files
 try:
     from dotenv import load_dotenv
@@ -5751,6 +5760,19 @@ class AutoMaintenanceSystem:
         self.blocked_ips = set()
         self.suspicious_requests = defaultdict(int)
         self.request_timestamps = defaultdict(list)
+        
+        # GeoIP botnet blocking
+        self.geoip_database = None
+        self.blocked_countries = {'CN', 'RU', 'KP', 'IR'}  # High-risk countries
+        self.blocked_asns = {
+            4134,   # CHINANET-BACKBONE
+            4837,   # CHINA UNICOM
+            9808,   # CHINAMOBILE
+            8359,   # MTS (Russia)
+            12389,  # ROSTELECOM (Russia) 
+            20764,  # RASCOM (Russia)
+        }
+        self.initialize_geoip()
         self.failed_login_attempts = defaultdict(int)
         self.security_scan_results = deque(maxlen=50)
         self.last_security_scan = datetime.now()
@@ -5828,7 +5850,7 @@ class AutoMaintenanceSystem:
             'file_checksums': {},
             'last_check': datetime.now(),
             'changes_detected': deque(maxlen=100),
-            'critical_files': ['app_fixed.py', 'config.py', '.env'],
+            'critical_files': ['app_fixed.py', 'requirements.txt', 'templates/chat.html', 'templates/profile.html', 'static/js/universal-button-fix.js', 'static/css/base.css', 'static/css/themes.css'],
             'monitoring_enabled': True
         }
         
@@ -5867,6 +5889,7 @@ class AutoMaintenanceSystem:
         # Discord alert for high severity threats
         if severity == "high":
             self.send_discord_alert(f"🚨 HIGH SEVERITY THREAT: {reason} from {ip_address}")
+            self.send_security_email_alert(ip_address, reason, severity)
     
     def log_honeypot_trigger(self, ip_address, path):
         """Log honeypot trap triggers"""
@@ -5908,6 +5931,117 @@ class AutoMaintenanceSystem:
                 logger.warning(f"Discord alert failed with status {response.status_code}")
         except Exception as e:
             logger.error(f"Failed to send Discord alert: {e}")
+    
+    def send_security_email_alert(self, ip_address, reason, severity):
+        """Send email alert for critical security threats"""
+        try:
+            security_email = os.environ.get('SECURITY_ALERT_EMAIL')
+            if not security_email:
+                return  # Skip if not configured
+            
+            subject = f"🚨 SoulBridge Security Alert - {severity.upper()}"
+            message = f"""
+CRITICAL SECURITY THREAT DETECTED
+
+IP Address: {ip_address}
+Threat: {reason}
+Severity: {severity.upper()}
+Timestamp: {datetime.now().isoformat()}
+Server: SoulBridge AI Production
+
+Action Required: Review logs and investigate potential security breach.
+
+This is an automated alert from SoulBridge AI Security Watchdog.
+            """
+            
+            # Use basic email sending
+            import smtplib
+            from email.mime.text import MIMEText
+            
+            smtp_server = os.environ.get('SMTP_SERVER', 'smtp.gmail.com')
+            smtp_port = int(os.environ.get('SMTP_PORT', 587))
+            smtp_username = os.environ.get('SMTP_USERNAME')
+            smtp_password = os.environ.get('SMTP_PASSWORD')
+            
+            if not all([smtp_username, smtp_password]):
+                return  # Skip if not configured
+            
+            msg = MIMEText(message)
+            msg['Subject'] = subject
+            msg['From'] = smtp_username
+            msg['To'] = security_email
+            
+            server = smtplib.SMTP(smtp_server, smtp_port)
+            server.starttls()
+            server.login(smtp_username, smtp_password)
+            server.send_message(msg)
+            server.quit()
+            
+            self.log_maintenance("EMAIL_ALERT_SENT", f"Security alert sent for {ip_address}")
+            
+        except Exception as e:
+            self.log_maintenance("EMAIL_ALERT_ERROR", str(e))
+    
+    def initialize_geoip(self):
+        """Initialize GeoIP database for botnet blocking"""
+        try:
+            if not GEOIP_AVAILABLE:
+                return
+            
+            # Try to load GeoLite2 database (free version)
+            geoip_paths = [
+                'GeoLite2-Country.mmdb',
+                'GeoLite2-ASN.mmdb',
+                '/usr/share/GeoIP/GeoLite2-Country.mmdb',
+                '/opt/maxmind/GeoLite2-Country.mmdb'
+            ]
+            
+            for path in geoip_paths:
+                if os.path.exists(path):
+                    self.geoip_database = geoip2.database.Reader(path)
+                    self.log_maintenance("GEOIP_LOADED", f"GeoIP database loaded from {path}")
+                    break
+            
+            if not self.geoip_database:
+                self.log_maintenance("GEOIP_WARNING", "GeoIP database not found - country blocking disabled")
+                
+        except Exception as e:
+            self.log_maintenance("GEOIP_ERROR", str(e))
+    
+    def check_geoip_threat(self, ip_address):
+        """Check if IP address is from blocked country/ASN"""
+        try:
+            if not self.geoip_database or not GEOIP_AVAILABLE:
+                return False, "geoip_unavailable"
+            
+            # Skip private/local IPs
+            if ip_address.startswith(('127.', '192.168.', '10.', '172.')):
+                return False, "private_ip"
+            
+            response = self.geoip_database.country(ip_address)
+            country_code = response.country.iso_code
+            
+            # Check if country is blocked
+            if country_code in self.blocked_countries:
+                return True, f"blocked_country_{country_code}"
+            
+            # Check ASN if available
+            try:
+                asn_response = self.geoip_database.asn(ip_address)
+                asn = asn_response.autonomous_system_number
+                
+                if asn in self.blocked_asns:
+                    return True, f"blocked_asn_{asn}"
+            except:
+                pass  # ASN check failed, continue
+            
+            return False, f"allowed_country_{country_code}"
+            
+        except geoip2.errors.AddressNotFoundError:
+            return False, "ip_not_found"
+        except Exception as e:
+            self.log_maintenance("GEOIP_CHECK_ERROR", str(e))
+            return False, "geoip_error"
     
     def detect_error_pattern(self, error_type, error_msg):
         """Enhanced error pattern detection with predictive analysis"""
@@ -7441,21 +7575,40 @@ class AutoMaintenanceSystem:
             self.log_maintenance("WATCHDOG_INIT_ERROR", str(e))
     
     def check_file_changes(self):
-        """Check for changes in monitored files"""
+        """Enhanced file integrity scanning with deep monitoring"""
         try:
             changes_detected = False
             for filepath, file_info in self.watchdog_system['monitored_files'].items():
                 if os.path.exists(filepath):
                     current_mtime = os.path.getmtime(filepath)
                     current_size = os.path.getsize(filepath)
+                    current_checksum = self.calculate_file_checksum(filepath)
                     
-                    # Check if file was modified
-                    if (current_mtime != file_info['last_modified'] or 
-                        current_size != file_info['size']):
+                    # Enhanced integrity checking
+                    integrity_compromised = False
+                    change_details = []
+                    
+                    # Check modification time
+                    if current_mtime != file_info['last_modified']:
+                        change_details.append("timestamp_changed")
+                        integrity_compromised = True
+                    
+                    # Check file size
+                    if current_size != file_info['size']:
+                        change_details.append(f"size_changed({current_size - file_info['size']})")
+                        integrity_compromised = True
+                    
+                    # Check checksum (most important)
+                    if current_checksum and current_checksum != file_info['checksum']:
+                        change_details.append("content_modified")
+                        integrity_compromised = True
                         
-                        # Verify with checksum
-                        current_checksum = self.calculate_file_checksum(filepath)
-                        if current_checksum and current_checksum != file_info['checksum']:
+                        # Critical file modification alert
+                        if filepath.endswith(('app_fixed.py', '.env', 'config.py')):
+                            self.log_threat(get_client_ip() if 'request' in globals() and request else '127.0.0.1',
+                                          f"Critical file integrity violation: {os.path.basename(filepath)}", "high")
+                    
+                    if integrity_compromised:
                             change_info = {
                                 'filepath': filepath,
                                 'timestamp': datetime.now(),
@@ -7534,6 +7687,17 @@ def security_monitor():
             ip_address not in ADMIN_WHITELIST_IPS):
             auto_maintenance.log_maintenance("BLOCKED_REQUEST", f"Blocked request from {ip_address}")
             return jsonify({"error": "Access denied"}), 403
+        
+        # GeoIP threat checking (skip for whitelisted IPs)
+        if ('auto_maintenance' in globals() and 
+            ip_address not in ADMIN_WHITELIST_IPS and
+            request.endpoint != 'emergency_unblock'):
+            is_threat, reason = auto_maintenance.check_geoip_threat(ip_address)
+            if is_threat:
+                auto_maintenance.blocked_ips.add(ip_address)
+                auto_maintenance.log_threat(ip_address, f"GeoIP threat: {reason}", "high")
+                logger.warning(f"🌍 GeoIP blocked: {ip_address} ({reason})")
+                return jsonify({"error": "Access denied - Geographic restriction"}), 403
         
         # Monitor request for suspicious patterns
         request_data = ""
@@ -7736,6 +7900,68 @@ def force_fix():
         
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
+
+# 🍯 HIDDEN TRAP ROUTES - Only bots and crawlers trigger these
+@app.route("/admin")
+@app.route("/wp-admin")  
+@app.route("/wp-admin/")
+@app.route("/wp-config.php")
+@app.route("/wp-config")
+@app.route("/.env")
+@app.route("/config.php")
+@app.route("/phpmyadmin")
+@app.route("/phpmyadmin/")
+@app.route("/administrator")
+@app.route("/administrator/")
+@app.route("/backup")
+@app.route("/backup/")
+@app.route("/sql")
+@app.route("/database")
+@app.route("/db")
+@app.route("/xmlrpc.php")
+@app.route("/sitemap.xml")
+@app.route("/robots.txt")
+def honeypot_trap():
+    """Hidden trap route that only malicious bots should trigger"""
+    try:
+        ip_address = get_client_ip()
+        user_agent = request.headers.get('User-Agent', 'Unknown')
+        full_path = request.full_path
+        
+        # Log the honeypot trigger
+        auto_maintenance.log_honeypot_trigger(ip_address, full_path)
+        
+        # Immediately block the IP for high-risk paths
+        high_risk_paths = ["/wp-admin", "/wp-config", "/.env", "/phpmyadmin", "/admin"]
+        if any(path in full_path for path in high_risk_paths):
+            auto_maintenance.blocked_ips.add(ip_address)
+            auto_maintenance.log_threat(ip_address, f"Honeypot trigger on {full_path}", "high")
+            return "Access Denied", 403
+        
+        # For other paths, mark as suspicious but don't block immediately
+        auto_maintenance.log_threat(ip_address, f"Bot behavior detected on {full_path}", "medium")
+        
+        # Return convincing fake response to waste bot's time
+        if "/robots.txt" in full_path:
+            return """User-agent: *
+Disallow: /admin/
+Disallow: /wp-admin/
+Disallow: /wp-config.php
+Disallow: /.env
+Crawl-delay: 10""", 200, {'Content-Type': 'text/plain'}
+        
+        if "/sitemap.xml" in full_path:
+            return """<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<url><loc>https://example.com/</loc><lastmod>2024-01-01</lastmod></url>
+</urlset>""", 200, {'Content-Type': 'application/xml'}
+        
+        # Default fake response
+        return "Page not found", 404
+        
+    except Exception as e:
+        logger.error(f"Error in honeypot trap: {e}")
+        return "Page not found", 404
 
 @app.route("/api/maintenance/watchdog", methods=["GET", "POST"])
 def watchdog_control():
