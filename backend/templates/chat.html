@@ -700,7 +700,7 @@
             display: flex;
             align-items: center;
             gap: 6px;
-        " onclick="toggleTheme()">
+        " onclick="console.log('🌙 Theme toggle clicked'); toggleTheme()">
             <span id="themeText" data-translate="night_mode_on">Night Mode is ON</span>
             <span id="themeIcon">🌙</span>
         </div>
@@ -760,7 +760,7 @@
             align-items: center;
             gap: 6px;
             z-index: 1000;
-        " onclick="performRegularLogout();">
+        " onclick="console.log('🚪 Logout button clicked'); performRegularLogout();">
             <span style="color: #fff !important;">Logout</span>
             <span>🚪</span>
         </div>
@@ -851,7 +851,7 @@
                 flex-wrap: wrap;
                 align-items: center;
             ">
-                <div onclick="toggleNavigationAssistant()" style="
+                <div onclick="console.log('🔮 Sapphire button clicked'); toggleNavigationAssistant()" style="
                     font-size: 0.9rem;
                     padding: 0.5rem 1rem;
                     background: rgba(249, 115, 22, 0.2);
@@ -873,7 +873,7 @@
                     <span>Need Help? Ask Sapphire</span>
                 </div>
                 
-                <div onclick="showCharacterSelect()" style="
+                <div onclick="console.log('✨ Begin Journey button clicked'); showCharacterSelect()" style="
                     font-size: 1rem;
                     padding: 0.75rem 1.5rem;
                     background: none;
@@ -5317,6 +5317,7 @@
         // Ensure all buttons work regardless of CSP or event conflicts
         function initializeButtonFunctionality() {
             console.log('🔧 Initializing button functionality fix...');
+            console.log('🔧 Admin bypass active:', is_admin_request ? 'YES' : 'NO');
             
             // Function to ensure a function exists in global scope
             function ensureGlobalFunction(funcName, func) {
@@ -6127,6 +6128,34 @@
         });
         
         console.log('🎨 AI Image Generation UI initialized');
+        
+        // === EMERGENCY BUTTON DEBUGGING ===
+        // Add a test button to check if JavaScript is working at all
+        const debugButton = document.createElement('div');
+        debugButton.innerHTML = '🔧 DEBUG TEST';
+        debugButton.style.cssText = `
+            position: fixed;
+            top: 150px;
+            right: 20px;
+            background: red;
+            color: white;
+            padding: 10px;
+            cursor: pointer;
+            z-index: 9999;
+            border-radius: 5px;
+        `;
+        debugButton.onclick = function() {
+            alert('🔧 DEBUG: JavaScript is working!');
+            console.log('🔧 All functions available:', {
+                toggleTheme: typeof toggleTheme,
+                toggleNavigationAssistant: typeof toggleNavigationAssistant,
+                showCharacterSelect: typeof showCharacterSelect,
+                performRegularLogout: typeof performRegularLogout
+            });
+        };
+        document.body.appendChild(debugButton);
+        
+        console.log('🔧 Debug button added - click it to test JavaScript functionality');
     </script>
 </body>
 </html>
