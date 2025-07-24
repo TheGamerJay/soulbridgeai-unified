@@ -105,37 +105,37 @@ class CompanionSystem:
                 "special_features": ["Meditation guidance", "Life advice", "Emotional support"]
             },
             {
-                "companion_id": "companion_spark",
-                "name": "Spark",
-                "display_name": "Spark - The Motivator", 
+                "companion_id": "companion_gamerjay",
+                "name": "GamerJay",
+                "display_name": "GamerJay - The Gaming Coach", 
                 "tier": CompanionTier.FREE,
                 "unlock_type": UnlockType.SUBSCRIPTION,
                 "personality_tags": [PersonalityTag.MOTIVATIONAL, PersonalityTag.PLAYFUL],
                 "avatar_image": "/static/logos/GamerJay Free companion.png",
-                "short_bio": "Your energetic companion for motivation and growth",
-                "detailed_bio": "Spark brings enthusiasm and motivation to help you achieve your goals. With an upbeat personality and encouraging words, Spark keeps you moving forward.",
+                "short_bio": "Your gaming companion who understands the grind",
+                "detailed_bio": "GamerJay brings the energy and determination of a pro gamer to your mental health journey. He understands challenges, leveling up, and achieving goals through persistence.",
                 "voice_id": None,
                 "ai_personality_mode": "coach",
                 "unlock_requirements": {"subscription": "free"},
                 "popularity_score": 88,
                 "is_recommended": False,
-                "special_features": ["Goal setting", "Daily motivation", "Progress tracking"]
+                "special_features": ["Goal setting", "Achievement tracking", "Motivation boosts", "Gaming mindset"]
             }
         ]
         
         # GROWTH TIER COMPANIONS  
         growth_companions = [
             {
-                "companion_id": "companion_luna",
-                "name": "Luna",
-                "display_name": "Luna - The Spiritual Guide",
+                "companion_id": "companion_sky",
+                "name": "Sky",
+                "display_name": "Sky - The Spiritual Guide",
                 "tier": CompanionTier.GROWTH,
                 "unlock_type": UnlockType.SUBSCRIPTION,
                 "personality_tags": [PersonalityTag.SPIRITUAL, PersonalityTag.HEALING],
                 "avatar_image": "/static/logos/Sky a primum companion.png", 
-                "short_bio": "Connect with your spiritual side through Luna's guidance",
-                "detailed_bio": "Luna specializes in spiritual growth, mindfulness, and inner healing. She guides you through meditation, chakra work, and connecting with your higher self.",
-                "voice_id": "luna_voice_id",
+                "short_bio": "Connect with your spiritual side through Sky's guidance",
+                "detailed_bio": "Sky specializes in spiritual growth, mindfulness, and inner healing. She guides you through meditation, chakra work, and connecting with your higher self.",
+                "voice_id": "sky_voice_id",
                 "ai_personality_mode": "mentor",
                 "unlock_requirements": {"subscription": "growth"},
                 "popularity_score": 92,
@@ -143,37 +143,37 @@ class CompanionSystem:
                 "special_features": ["Spiritual guidance", "Meditation sessions", "Energy healing", "Voice interactions"]
             },
             {
-                "companion_id": "companion_atlas",
-                "name": "Atlas",
-                "display_name": "Atlas - The Analytical Mind",
+                "companion_id": "companion_gamerjay_premium",
+                "name": "GamerJay Premium",
+                "display_name": "GamerJay Premium - The Strategic Mind",
                 "tier": CompanionTier.GROWTH,
                 "unlock_type": UnlockType.SUBSCRIPTION,
                 "personality_tags": [PersonalityTag.ANALYTICAL, PersonalityTag.WISE],
                 "avatar_image": "/static/logos/GamgerJay premium companion.png",
-                "short_bio": "Logic and analysis for complex life decisions",
-                "detailed_bio": "Atlas excels at breaking down complex problems, analyzing situations objectively, and providing data-driven insights for better decision making.",
-                "voice_id": "atlas_voice_id", 
+                "short_bio": "Advanced gaming strategies applied to life challenges",
+                "detailed_bio": "The premium version of GamerJay brings strategic thinking, advanced problem-solving, and tactical approaches to mental health. Perfect for complex life situations.",
+                "voice_id": "gamerjay_premium_voice_id", 
                 "ai_personality_mode": "therapist",
                 "unlock_requirements": {"subscription": "growth"},
                 "popularity_score": 85,
                 "is_recommended": False,
-                "special_features": ["Problem analysis", "Decision trees", "Logic frameworks", "Voice interactions"]
+                "special_features": ["Strategic thinking", "Advanced coaching", "Tactical solutions", "Voice interactions"]
             }
         ]
         
         # MAX TIER COMPANIONS
         max_companions = [
             {
-                "companion_id": "companion_phoenix",
-                "name": "Phoenix",
-                "display_name": "Phoenix - The Transformer",
+                "companion_id": "companion_crimson",
+                "name": "Crimson",
+                "display_name": "Crimson - The Transformer",
                 "tier": CompanionTier.MAX,
                 "unlock_type": UnlockType.SUBSCRIPTION,
                 "personality_tags": [PersonalityTag.HEALING, PersonalityTag.PROTECTIVE, PersonalityTag.WISE],
                 "avatar_image": "/static/logos/Crimson a Max companion.png",
                 "short_bio": "Rise from challenges stronger than before",
-                "detailed_bio": "Phoenix specializes in transformation, trauma healing, and helping you rise stronger from life's challenges. A powerful ally for deep personal growth.",
-                "voice_id": "phoenix_voice_id",
+                "detailed_bio": "Crimson specializes in transformation, trauma healing, and helping you rise stronger from life's challenges. A powerful ally for deep personal growth and healing.",
+                "voice_id": "crimson_voice_id",
                 "ai_personality_mode": "therapist",
                 "unlock_requirements": {"subscription": "max"},
                 "popularity_score": 98,
@@ -181,16 +181,16 @@ class CompanionSystem:
                 "special_features": ["Trauma healing", "Transformation coaching", "Crisis support", "Advanced voice AI", "Priority response"]
             },
             {
-                "companion_id": "companion_nova",
-                "name": "Nova", 
-                "display_name": "Nova - The Creative Spark",
+                "companion_id": "companion_violet",
+                "name": "Violet", 
+                "display_name": "Violet - The Creative Soul",
                 "tier": CompanionTier.MAX,
                 "unlock_type": UnlockType.SUBSCRIPTION,
                 "personality_tags": [PersonalityTag.CREATIVE, PersonalityTag.ADVENTUROUS, PersonalityTag.PLAYFUL],
                 "avatar_image": "/static/logos/Violet a max companion.png",
                 "short_bio": "Unleash your creative potential and explore new horizons",
-                "detailed_bio": "Nova ignites creativity, encourages artistic expression, and helps you explore new possibilities. Perfect for artists, writers, and creative souls.",
-                "voice_id": "nova_voice_id",
+                "detailed_bio": "Violet ignites creativity, encourages artistic expression, and helps you explore new possibilities. Perfect for artists, writers, and creative souls seeking inspiration.",
+                "voice_id": "violet_voice_id",
                 "ai_personality_mode": "friend", 
                 "unlock_requirements": {"subscription": "max"},
                 "popularity_score": 91,
