@@ -1950,6 +1950,7 @@ def create_addon_checkout():
             'relationship-profiles': 299, # $2.99/month
             'emotional-meditations': 399, # $3.99/month
             'color-customization': 199,   # $1.99/month
+            'ai-image-generation': 699,   # $6.99/month - Perfect price for DALL-E access
             'complete-bundle': 1199       # $11.99/month
         }
         
@@ -5654,6 +5655,20 @@ def api_generate_image():
         # Authentication check
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        # 💰 PAYMENT CHECK - AI Image Generation is a premium feature
+        user_plan = session.get("user_plan", "foundation")
+        has_ai_addon = session.get("ai_image_generation", False)
+        
+        # Check if user has access (premium plans or AI add-on)
+        if user_plan not in ["growth", "transformation"] and not has_ai_addon:
+            return jsonify({
+                "success": False, 
+                "error": "premium_required",
+                "message": "AI Image Generation requires a premium subscription or the AI Images add-on ($6.99/month)",
+                "upgrade_url": "/subscription",
+                "addon_price": "$6.99/month"
+            }), 402  # Payment Required
         
         # Check if OpenAI service is available
         if not services.get("openai"):

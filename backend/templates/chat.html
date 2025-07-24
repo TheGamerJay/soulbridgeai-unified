@@ -2917,7 +2917,7 @@
             
             // Upgrade/Subscription
             if (question.includes('upgrade') || question.includes('premium') || question.includes('subscription') || question.includes('plan') || question.includes('growth') || question.includes('transformation')) {
-                return "⭐ <strong>Subscription Plans</strong><br>• <strong>Foundation (Free):</strong> 50 messages/session, 2 sessions/day, basic AI<br>• <strong>Growth ($12.99/month):</strong> Unlimited messages, 4 sessions/day, memory-enabled AI, premium characters<br>• <strong>Transformation ($19.99/month):</strong> Everything in Growth + 6 sessions/day, full memory, custom prompts, advanced features<br>• <strong>Voice Chat:</strong> Included with premium plans<br>• <strong>Upgrade:</strong> Profile menu → 'Subscription & Billing'<br><br>Start your premium journey today!";
+                return "⭐ <strong>Subscription Plans</strong><br>• <strong>Foundation (Free):</strong> 50 messages/session, 2 sessions/day, basic AI<br>• <strong>Growth ($12.99/month):</strong> Unlimited messages, 4 sessions/day, memory-enabled AI, premium characters, AI images included<br>• <strong>Transformation ($19.99/month):</strong> Everything in Growth + 6 sessions/day, full memory, custom prompts, advanced features<br>• <strong>AI Images Add-on ($6.99/month):</strong> DALL-E image generation for any plan<br>• <strong>Voice Chat:</strong> Included with premium plans<br>• <strong>Upgrade:</strong> Profile menu → 'Subscription & Billing'<br><br>Start your premium journey today!";
             }
             
             // Voice features
@@ -2961,7 +2961,7 @@
             
             // Payment & Billing
             if (question.includes('payment') || question.includes('billing') || question.includes('card') || question.includes('pay') || question.includes('cost') || question.includes('price')) {
-                return "💳 <strong>Payment & Billing</strong><br>• <strong>View Plans:</strong> Profile menu → 'Subscription & Billing'<br>• <strong>Prices:</strong> Growth ($12.99/month), Transformation ($19.99/month)<br>• <strong>Payment:</strong> Secure Stripe processing<br>• <strong>Cancel:</strong> Manage subscription anytime<br>• <strong>Add-ons:</strong> Voice journaling, relationship profiles, meditations<br><br>All payments are secure and you can cancel anytime!";
+                return "💳 <strong>Payment & Billing</strong><br>• <strong>View Plans:</strong> Profile menu → 'Subscription & Billing'<br>• <strong>Prices:</strong> Growth ($12.99/month), Transformation ($19.99/month)<br>• <strong>Add-ons:</strong> AI Images ($6.99/month), Voice journaling ($4.99), Relationship profiles ($2.99)<br>• <strong>Payment:</strong> Secure Stripe processing<br>• <strong>Cancel:</strong> Manage subscription anytime<br><br>All payments are secure and you can cancel anytime!";
             }
             
             // Profile & Account
@@ -6034,6 +6034,9 @@
                     document.getElementById('generatedImage').src = data.image_url;
                     document.getElementById('generatedImageContainer').style.display = 'block';
                     console.log('✨ Image generated successfully:', data.image_url);
+                } else if (data.error === 'premium_required') {
+                    // Show premium upgrade prompt
+                    showImagePaymentPrompt(data);
                 } else {
                     showImageError(data.error || 'Failed to generate image. Please try again.');
                 }
@@ -6052,6 +6055,59 @@
         function showImageError(message) {
             document.getElementById('imageErrorMessage').textContent = message;
             document.getElementById('imageErrorContainer').style.display = 'block';
+            document.getElementById('generatedImageContainer').style.display = 'none';
+            document.getElementById('imageLoadingIndicator').style.display = 'none';
+        }
+        
+        function showImagePaymentPrompt(data) {
+            const errorContainer = document.getElementById('imageErrorContainer');
+            const errorMessage = document.getElementById('imageErrorMessage');
+            const price = data.addon_price || '$6.99/month';
+            
+            errorMessage.innerHTML = `
+                <div style="
+                    padding: 20px;
+                    background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
+                    border-radius: 12px;
+                    color: white;
+                    text-align: center;
+                    margin: 10px 0;
+                ">
+                    <div style="font-size: 1.5rem; margin-bottom: 10px;">🎨 AI Image Generation</div>
+                    <div style="font-size: 1.1rem; margin-bottom: 15px;">
+                        Create stunning AI-generated images with DALL-E!
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <strong>Only ${price}</strong> - Unlimited AI images per month
+                    </div>
+                    <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                        <button onclick="window.location.href='/subscription'" style="
+                            background: white;
+                            color: #333;
+                            border: none;
+                            padding: 12px 24px;
+                            border-radius: 6px;
+                            font-weight: bold;
+                            cursor: pointer;
+                            transition: all 0.3s ease;
+                        " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                            🚀 Upgrade Now
+                        </button>
+                        <button onclick="document.getElementById('imageErrorContainer').style.display='none'" style="
+                            background: rgba(255,255,255,0.2);
+                            color: white;
+                            border: 1px solid rgba(255,255,255,0.3);
+                            padding: 12px 24px;
+                            border-radius: 6px;
+                            cursor: pointer;
+                        ">
+                            Maybe Later
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            errorContainer.style.display = 'block';
             document.getElementById('generatedImageContainer').style.display = 'none';
             document.getElementById('imageLoadingIndicator').style.display = 'none';
         }
