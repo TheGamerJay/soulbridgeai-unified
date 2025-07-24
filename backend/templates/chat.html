@@ -2771,9 +2771,11 @@
                 console.log('🔍 Sapphire button clicked - opening navigation assistant');
                 const modal = document.getElementById('navAssistantModal');
                 if (!modal) {
-                    console.error('❌ Navigation assistant modal not found');
+                    console.error('❌ Navigation assistant modal not found in DOM');
+                    alert('❌ Error: Navigation assistant modal not found. Please refresh the page.');
                     return;
                 }
+                console.log('✅ Modal found, current display:', modal.style.display);
                 if (modal.style.display === 'none' || modal.style.display === '') {
                     modal.style.display = 'flex';
                     const questionInput = document.getElementById('navQuestion');
@@ -3355,11 +3357,17 @@
             }
         }
         
-        // Theme toggle function
+        // Enhanced theme toggle function with debugging
         function toggleTheme() {
             try {
-                console.log('🌙 Theme toggle button clicked');
+                console.log('🌙 Theme toggle button clicked - starting theme change');
+                
+                // Toggle the class
+                const wasDay = document.body.classList.contains('day-mode');
                 document.body.classList.toggle('day-mode');
+                const isNowDay = document.body.classList.contains('day-mode');
+                
+                console.log('🌙 Theme state changed:', wasDay ? 'was day' : 'was night', '->', isNowDay ? 'now day' : 'now night');
                 var themeText = document.getElementById('themeText');
                 var themeIcon = document.getElementById('themeIcon');
                 var themeToggle = document.getElementById('themeToggle');
@@ -5966,11 +5974,25 @@
         }
         
         async function generateImage() {
-            const prompt = document.getElementById('imagePromptInput').value.trim();
-            const size = document.getElementById('imageSizeSelect').value;
+            console.log('🎨 Generate Image button clicked - starting image generation');
+            
+            const promptElement = document.getElementById('imagePromptInput');
+            const sizeElement = document.getElementById('imageSizeSelect');
+            
+            if (!promptElement) {
+                console.error('❌ Image prompt input not found');
+                showImageError('Error: Image prompt input not found. Please refresh the page.');
+                return;
+            }
+            
+            const prompt = promptElement.value.trim();
+            const size = sizeElement ? sizeElement.value : '1024x1024';
+            
+            console.log('📝 Image prompt:', prompt, 'Size:', size);
             
             // Validate input
             if (!prompt) {
+                console.warn('⚠️ Empty prompt provided');
                 showImageError('Please enter a description for your image.');
                 return;
             }

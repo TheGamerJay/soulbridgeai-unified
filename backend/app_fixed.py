@@ -118,6 +118,26 @@ ADMIN_WHITELIST_IPS = set([
     # Add more admin IPs here as needed
 ])
 
+# 🛡️ Dev/Admin Bypass Logic for Testing
+ADMIN_TESTING_IPS = {'127.0.0.1', '::1', '10.250.14.240', '24.61.80.239'}
+
+def is_admin_request():
+    """Check if request is from admin/dev for bypassing security"""
+    try:
+        # Option 1: Trusted IP
+        client_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+        if client_ip and client_ip.split(',')[0].strip() in ADMIN_TESTING_IPS:
+            return True
+
+        # Option 2: Secret header key (add 'X-Admin-Key' to your test requests)
+        admin_key = request.headers.get('X-Admin-Key')
+        if admin_key and admin_key == os.getenv('ADMIN_KEY', 'dev_bypass_key_123'):
+            return True
+
+        return False
+    except:
+        return False
+
 # Create logs directory if it doesn't exist
 os.makedirs("logs", exist_ok=True)
 
@@ -7687,6 +7707,13 @@ def security_monitor():
             ip_address not in ADMIN_WHITELIST_IPS):
             auto_maintenance.log_maintenance("BLOCKED_REQUEST", f"Blocked request from {ip_address}")
             return jsonify({"error": "Access denied"}), 403
+        
+        # 🛡️ Skip security checks for admin/dev requests
+        if is_admin_request():
+            # Log admin bypass (for security audit)
+            if 'auto_maintenance' in globals():
+                auto_maintenance.log_maintenance("ADMIN_BYPASS", f"Security bypassed for admin request: {ip_address}")
+            return  # Skip all security checks for admin
         
         # GeoIP threat checking (skip for whitelisted IPs)
         if ('auto_maintenance' in globals() and 
