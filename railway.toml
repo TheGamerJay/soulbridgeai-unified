@@ -4,8 +4,9 @@ builder = "nixpacks"
 [deploy]
 startCommand = "cd backend && python app_fixed.py"
 healthcheckPath = "/health"
-healthcheckTimeout = 60
+healthcheckTimeout = 120
 restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 3
 
 # Persistent volume for database storage
 [volumes]
@@ -13,3 +14,4 @@ data = "/data"
 
 [build.env]
 NIXPACKS_PYTHON_VERSION = "3.11"
+NIXPACKS_INSTALL_CMD = "pip install -r backend/requirements.txt"
