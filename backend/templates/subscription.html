@@ -392,10 +392,18 @@
         <div style="font-weight: 600;">$1.99/month</div>
       </div>
       
+      <div class="add-on-card" onclick="selectAddOn('ai-image-generation')" style="cursor: pointer; transition: all 0.3s ease; border: 2px solid rgba(139, 92, 246, 0.4);" onmouseover="this.style.background='rgba(139, 92, 246, 0.15)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(34, 211, 238, 0.1)'; this.style.transform='translateY(0)'">
+        <h4>🤖 AI Image Generation</h4>
+        <p style="margin: 10px 0; color: #94a3b8;">Create stunning AI-generated images with DALL-E</p>
+        <div style="font-weight: 600; color: #8b5cf6; font-size: 1.1rem;">$6.99/month</div>
+        <div style="font-size: 0.8rem; color: #94a3b8; margin-top: 5px;">⭐ Most Popular Add-on</div>
+      </div>
+      
       <div class="add-on-card" onclick="selectAddOn('complete-bundle')" style="cursor: pointer; transition: all 0.3s ease;" onmouseover="this.style.background='rgba(16, 185, 129, 0.1)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(34, 211, 238, 0.1)'; this.style.transform='translateY(0)'">
         <h4>📦 Complete Bundle</h4>
         <p style="margin: 10px 0; color: #94a3b8;">All add-ons included (Save $2!)</p>
-        <div style="font-weight: 600; color: #10b981;">$11.99/month</div>
+        <div style="font-weight: 600; color: #10b981;">$16.99/month</div>
+        <div style="font-size: 0.8rem; color: #10b981; margin-top: 5px;">Includes AI Images!</div>
       </div>
     </div>
   </div>
@@ -590,7 +598,8 @@ async function selectAddOn(addOnType) {
     'relationship-profiles': 'Relationship Profiles ($2.99/month)',
     'emotional-meditations': 'Emotional Meditations ($3.99/month)', 
     'color-customization': 'Color Customization ($1.99/month)',
-    'complete-bundle': 'Complete Add-On Bundle ($11.99/month - Save $2!)'
+    'ai-image-generation': 'AI Image Generation ($6.99/month)',
+    'complete-bundle': 'Complete Add-On Bundle ($16.99/month - Save $2!)'
   };
   
   const confirm = window.confirm(`Purchase ${addonNames[addOnType]}?\n\nThis will be a monthly subscription that you can cancel anytime.`);

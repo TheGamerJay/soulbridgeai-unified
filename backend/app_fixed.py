@@ -1951,7 +1951,7 @@ def create_addon_checkout():
             'emotional-meditations': 399, # $3.99/month
             'color-customization': 199,   # $1.99/month
             'ai-image-generation': 699,   # $6.99/month - Perfect price for DALL-E access
-            'complete-bundle': 1199       # $11.99/month
+            'complete-bundle': 1699       # $16.99/month (was $18.95 individual, save $2)
         }
         
         if addon_type not in addon_prices:
