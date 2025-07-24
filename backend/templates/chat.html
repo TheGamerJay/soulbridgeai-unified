@@ -2451,6 +2451,20 @@
             var currentScreen = localStorage.getItem('currentScreen');
             var selectedCharacter = localStorage.getItem('selectedCharacter');
             
+            // Fix refresh issue: if user has selected character but no screen state, restore to select
+            if (!currentScreen && selectedCharacter) {
+                console.log('🔧 Fixing refresh issue: restoring to character select screen');
+                currentScreen = 'select';
+                localStorage.setItem('currentScreen', 'select');
+            }
+            
+            // If user has active chat session, restore to chat
+            if (selectedCharacter && sessionStorage.getItem('hasActiveChat') === 'true') {
+                console.log('🔧 Restoring active chat session');
+                currentScreen = 'chat';
+                localStorage.setItem('currentScreen', 'chat');
+            }
+            
             console.log('LocalStorage currentScreen:', currentScreen);
             console.log('LocalStorage selectedCharacter:', selectedCharacter);
             
@@ -6344,6 +6358,45 @@
                 });
             });
             console.log(`✅ ${companionButtons.length} Companion selection button event listeners added`);
+            
+            // Back button on companion select page
+            const backButtons = document.querySelectorAll('div[onclick*="showIntro"]');
+            console.log('🔧 Back buttons found:', backButtons.length);
+            backButtons.forEach((btn, index) => {
+                console.log(`🔧 Back button ${index + 1} text:`, btn.textContent?.trim());
+                
+                // Remove existing listeners by cloning
+                const newBtn = btn.cloneNode(true);
+                btn.parentNode.replaceChild(newBtn, btn);
+                
+                // Add multiple event types for better compatibility
+                ['click', 'touchstart'].forEach(eventType => {
+                    newBtn.addEventListener(eventType, function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('← Back button clicked via event listener');
+                        
+                        if (typeof showIntro === 'function') {
+                            showIntro();
+                        } else {
+                            console.error('showIntro function not found - attempting fallback');
+                            // Fallback navigation
+                            document.body.classList.remove('character-blayzo', 'character-blayzica', 'character-blayzion', 'character-blayzia', 'character-violet', 'character-crimson');
+                            sessionStorage.removeItem('hasActiveChat');
+                            localStorage.removeItem('currentScreen');
+                            
+                            const selectScreen = document.getElementById('characterSelect');
+                            const introScreen = document.getElementById('introScreen');
+                            
+                            if (selectScreen) selectScreen.classList.add('hidden');
+                            if (introScreen) introScreen.classList.remove('hidden');
+                            
+                            console.log('✅ Back button fallback navigation executed');
+                        }
+                    }, { passive: false });
+                });
+            });
+            console.log(`✅ ${backButtons.length} Back button event listeners added`);
             
             // Sapphire modal close button (X button)
             const modalCloseButtons = document.querySelectorAll('button[onclick*="toggleNavigationAssistant"]');

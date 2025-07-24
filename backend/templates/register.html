@@ -974,53 +974,7 @@
             alert('Google sign-up is temporarily unavailable. Please use email/password to create your account.');
         }
         
-        // Theme toggle function
-        function toggleTheme() {
-            document.body.classList.toggle('day-mode');
-            var themeText = document.getElementById('themeText');
-            var themeIcon = document.getElementById('themeIcon');
-            var themeToggle = document.getElementById('themeToggle');
-            
-            if (document.body.classList.contains('day-mode')) {
-                themeText.textContent = 'Day Mode is ON';
-                themeIcon.textContent = '☀️';
-                themeToggle.style.background = 'rgba(255, 193, 7, 0.8)';
-                themeToggle.style.color = '#000';
-                themeText.style.color = '#000';
-                localStorage.setItem('themeMode', 'day');
-            } else {
-                themeText.textContent = 'Night Mode is ON';
-                themeIcon.textContent = '🌙';
-                themeToggle.style.background = 'rgba(34, 211, 238, 0.8)';
-                themeToggle.style.color = '#000';
-                themeText.style.color = '#000';
-                localStorage.setItem('themeMode', 'night');
-            }
-        }
-
-        // Load saved theme from localStorage
-        function loadSavedTheme() {
-            var savedTheme = localStorage.getItem('themeMode');
-            var themeText = document.getElementById('themeText');
-            var themeIcon = document.getElementById('themeIcon');
-            var themeToggle = document.getElementById('themeToggle');
-            
-            if (savedTheme === 'day') {
-                document.body.classList.add('day-mode');
-                themeText.textContent = 'Day Mode is ON';
-                themeIcon.textContent = '☀️';
-                themeToggle.style.background = 'rgba(255, 193, 7, 0.8)';
-                themeToggle.style.color = '#000';
-                themeText.style.color = '#000';
-            } else {
-                document.body.classList.remove('day-mode');
-                themeText.textContent = 'Night Mode is ON';
-                themeIcon.textContent = '🌙';
-                themeToggle.style.background = 'rgba(34, 211, 238, 0.8)';
-                themeToggle.style.color = '#000';
-                themeText.style.color = '#000';
-            }
-        }
+        // Theme functionality handled by universal-button-fix.js
 
         // Language functions
         function toggleLanguageMenu() {

@@ -1,0 +1,1 @@
+[2025-07-24T12:06:52.852312] ⚠️ THREAT - IP: 127.0.0.1 - Reason: Critical file integrity violation: app_fixed.py - Severity: high
