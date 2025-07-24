@@ -750,20 +750,12 @@
                 }
             },
             
-            // Emergency journey start  
+            // Emergency journey start - REDIRECT TO NETFLIX-STYLE COMPANION SELECTOR
             forceStartJourney: function() {
                 try {
-                    console.log('✨ EMERGENCY Begin Journey activated');
-                    if (typeof showCharacterSelect === 'function') {
-                        showCharacterSelect();
-                    } else {
-                        // Force show character selection screen
-                        const introScreen = document.getElementById('intro-screen');
-                        const characterScreen = document.getElementById('character-selection-screen');
-                        if (introScreen) introScreen.style.display = 'none';
-                        if (characterScreen) characterScreen.style.display = 'block';
-                    }
-                    console.log('✅ EMERGENCY Begin Journey successful');
+                    console.log('✨ EMERGENCY Begin Journey activated - redirecting to companion selector');
+                    window.location.href = '/companions';
+                    console.log('✅ EMERGENCY Begin Journey redirect successful');
                 } catch (error) {
                     console.error('❌ EMERGENCY Begin Journey failed:', error);
                 }
@@ -2661,11 +2653,12 @@
             var currentScreen = localStorage.getItem('currentScreen');
             var selectedCharacter = localStorage.getItem('selectedCharacter');
             
-            // Fix refresh issue: if user has selected character but no screen state, restore to select
+            // Fix refresh issue: if user has selected character but no screen state, restore to chat
             if (!currentScreen && selectedCharacter) {
-                console.log('🔧 Fixing refresh issue: restoring to character select screen');
-                currentScreen = 'select';
-                localStorage.setItem('currentScreen', 'select');
+                console.log('🔧 Fixing refresh issue: restoring to chat screen with selected character');
+                currentScreen = 'chat';
+                localStorage.setItem('currentScreen', 'chat');
+                sessionStorage.setItem('hasActiveChat', 'true');
             }
             
             // If user has active chat session, restore to chat
@@ -2749,20 +2742,9 @@
                 }, 300);
                 
             } else if (currentScreen === 'select') {
-                // Show character select
-                document.getElementById('characterSelect').classList.remove('hidden');
-                // Update premium character displays and force rainbow backgrounds
-                setTimeout(function() {
-                    updatePremiumCharacters();
-                    forceUpdatePremiumText();
-                    forceRainbowBackgrounds();
-                }, 200);
-                
-                // Also try again after a longer delay to ensure everything is loaded
-                setTimeout(function() {
-                    forceUpdatePremiumText();
-                    forceRainbowBackgrounds();
-                }, 1000);
+                // Redirect to Netflix-style companion selector instead of old character select
+                console.log('🎬 Redirecting to Netflix-style companion selector');
+                window.location.href = '/companions';
             } else {
                 // Show intro by default
                 document.getElementById('introScreen').classList.remove('hidden');
@@ -5636,27 +5618,10 @@
             
             ensureGlobalFunction('showCharacterSelect', function() {
                 try {
-                    console.log('✨ Begin Journey button clicked via backup handler');
-                    // Remove character theme classes when going to character select
-                    document.body.classList.remove('character-blayzo', 'character-blayzica', 'character-blayzion', 'character-blayzia', 'character-violet', 'character-crimson');
-                    
-                    localStorage.setItem('currentScreen', 'select');
-                    const introScreen = document.getElementById('introScreen');
-                    const characterSelect = document.getElementById('characterSelect');
-                    
-                    if (introScreen) introScreen.classList.add('hidden');
-                    if (characterSelect) characterSelect.classList.remove('hidden');
-                    
-                    // Update premium character displays and force rainbow backgrounds
-                    setTimeout(function() {
-                        if (typeof updatePremiumCharacters === 'function') {
-                            updatePremiumCharacters();
-                        }
-                    }, 100);
-                    
-                    console.log('✅ Character select shown via backup');
+                    console.log('✨ Begin Journey button clicked - redirecting to Netflix companion selector');
+                    window.location.href = '/companions';
                 } catch (error) {
-                    console.error('❌ Error in backup showCharacterSelect:', error);
+                    console.error('❌ Error redirecting to companion selector:', error);
                 }
             });
             
