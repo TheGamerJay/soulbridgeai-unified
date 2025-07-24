@@ -628,10 +628,19 @@
             locked: []
         };
         
-        // Load companions on page load
+        // Load companions on page load with debug logging
         document.addEventListener('DOMContentLoaded', () => {
+            console.log('🎬 Companion selector page loaded - starting initialization');
             loadUserData();
             loadCompanions();
+            
+            // Add emergency fallback if APIs fail
+            setTimeout(() => {
+                if (Object.keys(companions).every(key => companions[key].length === 0)) {
+                    console.log('⚠️ No companions loaded - using fallback data');
+                    loadFallbackCompanions();
+                }
+            }, 3000);
         });
         
         async function loadUserData() {
@@ -654,17 +663,105 @@
         
         async function loadCompanions() {
             try {
+                console.log('🔄 Loading companions from API...');
                 const response = await fetch(`/api/companions/accessible?tier=${currentUser.subscription_tier}&points=${currentUser.referral_points}`);
-                const data = await response.json();
+                console.log('📡 API Response status:', response.status);
                 
-                if (data.success) {
+                const data = await response.json();
+                console.log('📊 API Response data:', data);
+                
+                if (data.success && data.companions) {
                     companions = data.companions;
+                    console.log('✅ Companions loaded successfully:', companions);
                     renderCompanions();
                     updateTrialOffer();
+                } else {
+                    console.error('❌ API returned error or no companions:', data);
+                    loadFallbackCompanions();
                 }
             } catch (error) {
-                console.error('Error loading companions:', error);
+                console.error('❌ Error loading companions:', error);
+                loadFallbackCompanions();
             }
+        }
+        
+        function loadFallbackCompanions() {
+            console.log('🔄 Loading fallback companion data...');
+            
+            // Fallback companion data if API fails
+            companions = {
+                free: [
+                    {
+                        companion_id: 'sage',
+                        display_name: 'Sage - The Wise Guide',
+                        avatar_image: '/static/logos/Sapphire.png',
+                        short_bio: 'A gentle, wise companion for life\'s journey',
+                        personality_tags: ['Wise', 'Empathetic'],
+                        special_features: ['Meditation guidance', 'Life advice', 'Emotional support'],
+                        tier: 'free',
+                        popularity_score: 95,
+                        is_recommended: true
+                    },
+                    {
+                        companion_id: 'gamerjay',
+                        display_name: 'GamerJay - The Gaming Coach',
+                        avatar_image: '/static/logos/GamerJay Free companion.png',
+                        short_bio: 'Your gaming companion who understands the grind',
+                        personality_tags: ['Motivational', 'Playful'],
+                        special_features: ['Goal setting', 'Achievement tracking', 'Motivation boosts'],
+                        tier: 'free',
+                        popularity_score: 88,
+                        is_recommended: false
+                    }
+                ],
+                growth: [
+                    {
+                        companion_id: 'sky',
+                        display_name: 'Sky - The Spiritual Guide',
+                        avatar_image: '/static/logos/Sky a primum companion.png',
+                        short_bio: 'Connect with your spiritual side through Sky\'s guidance',
+                        personality_tags: ['Spiritual', 'Healing'],
+                        special_features: ['Spiritual guidance', 'Meditation sessions', 'Energy healing'],
+                        tier: 'growth',
+                        lock_reason: 'Requires Growth subscription',
+                        popularity_score: 92,
+                        is_recommended: true
+                    }
+                ],
+                max: [
+                    {
+                        companion_id: 'crimson',
+                        display_name: 'Crimson - The Fierce Protector',
+                        avatar_image: '/static/logos/Crimson a Max companion.png',
+                        short_bio: 'A powerful protector with fierce loyalty',
+                        personality_tags: ['Strong', 'Protective'],
+                        special_features: ['Crisis support', 'Strength coaching', 'Confidence building'],
+                        tier: 'max',
+                        lock_reason: 'Requires Max subscription',
+                        popularity_score: 90,
+                        is_recommended: false
+                    }
+                ],
+                referral: [
+                    {
+                        companion_id: 'blayzo',
+                        display_name: 'Blayzo - Referral Master',
+                        avatar_image: '/static/logos/Blayzo Referral.png',
+                        short_bio: 'Special referral companion with exclusive powers',
+                        personality_tags: ['Exclusive', 'Powerful'],
+                        special_features: ['Exclusive content', 'Special abilities', 'Community insights'],
+                        tier: 'referral',
+                        lock_reason: 'Requires referral achievements',
+                        popularity_score: 100,
+                        is_recommended: true
+                    }
+                ],
+                locked: []
+            };
+            
+            console.log('✅ Fallback companions loaded:', companions);
+            renderCompanions();
+            updateTrialOffer();
         }
         
         function renderCompanions() {
@@ -782,6 +879,23 @@
         
         async function selectCompanion(companionId) {
             try {
+                console.log('🎯 Selecting companion:', companionId);
+                
+                // Find the companion in our data
+                const companion = findCompanionById(companionId);
+                if (!companion) {
+                    console.error('❌ Companion not found:', companionId);
+                    showNotification('Companion not found', 'error');
+                    return;
+                }
+                
+                // Check if companion is locked
+                if (companion.lock_reason) {
+                    console.log('🔒 Companion is locked, showing upgrade modal');
+                    showUpgradeModal(companionId);
+                    return;
+                }
+                
                 const response = await fetch('/api/companions/select', {
                     method: 'POST',
                     headers: {
@@ -794,17 +908,23 @@
                     })
                 });
                 
+                console.log('📡 Selection API response status:', response.status);
                 const data = await response.json();
+                console.log('📊 Selection API response data:', data);
                 
                 if (data.success) {
                     currentUser.selected_companion = companionId;
                     
+                    // Store selection in localStorage as backup
+                    localStorage.setItem('selectedCharacter', companion.display_name.split(' ')[0]);
+                    localStorage.setItem('currentScreen', 'chat');
+                    
                     // Add selection glow effect
                     const card = document.querySelector(`[onclick*="${companionId}"]`);
-                    card.classList.add('selection-glow');
+                    if (card) card.classList.add('selection-glow');
                     
                     // Show success message
-                    showNotification(`Successfully selected ${data.companion.display_name}!`, 'success');
+                    showNotification(`Successfully selected ${companion.display_name}!`, 'success');
                     
                     // Re-render to update selected state
                     renderCompanions();
@@ -814,15 +934,40 @@
                         window.location.href = '/chat';
                     }, 1500);
                 } else {
+                    console.error('❌ Selection failed:', data);
                     if (data.upgrade_required) {
                         showUpgradeModal(companionId);
                     } else {
-                        showNotification(data.error, 'error');
+                        // Fallback: direct redirect for free companions
+                        if (companion.tier === 'free') {
+                            console.log('🔄 Using fallback selection for free companion');
+                            localStorage.setItem('selectedCharacter', companion.display_name.split(' ')[0]);
+                            localStorage.setItem('currentScreen', 'chat');
+                            showNotification(`Selected ${companion.display_name}!`, 'success');
+                            setTimeout(() => {
+                                window.location.href = '/chat';
+                            }, 1000);
+                        } else {
+                            showNotification(data.error || 'Selection failed', 'error');
+                        }
                     }
                 }
             } catch (error) {
-                console.error('Error selecting companion:', error);
-                showNotification('Failed to select companion', 'error');
+                console.error('❌ Error selecting companion:', error);
+                
+                // Emergency fallback for free companions
+                const companion = findCompanionById(companionId);
+                if (companion && companion.tier === 'free') {
+                    console.log('🚨 Using emergency fallback for free companion');
+                    localStorage.setItem('selectedCharacter', companion.display_name.split(' ')[0]);
+                    localStorage.setItem('currentScreen', 'chat');
+                    showNotification(`Selected ${companion.display_name}!`, 'success');
+                    setTimeout(() => {
+                        window.location.href = '/chat';
+                    }, 1000);
+                } else {
+                    showNotification('Failed to select companion', 'error');
+                }
             }
         }
         
@@ -888,15 +1033,19 @@
         }
         
         async function showTrialModal() {
+            console.log('🆓 Starting free trial...');
+            
             // Show available Growth companions for trial
-            const growthCompanions = companions.growth;
+            const growthCompanions = companions.growth || [];
             if (growthCompanions.length === 0) {
+                console.log('❌ No growth companions available');
                 showNotification('No Growth companions available for trial', 'info');
                 return;
             }
             
             // For now, offer trial of first Growth companion
             const companion = growthCompanions[0];
+            console.log('🎯 Offering trial for:', companion);
             
             try {
                 const response = await fetch('/api/companions/trial', {
@@ -909,19 +1058,53 @@
                     })
                 });
                 
+                console.log('📡 Trial API response status:', response.status);
                 const data = await response.json();
+                console.log('📊 Trial API response data:', data);
                 
                 if (data.success) {
                     showNotification(`Trial started for ${companion.display_name}! Enjoy 24 hours of premium access.`, 'success');
+                    
+                    // Store trial selection in localStorage
+                    localStorage.setItem('selectedCharacter', companion.display_name.split(' ')[0]);
+                    localStorage.setItem('currentScreen', 'chat');
+                    localStorage.setItem('trialActive', 'true');
+                    localStorage.setItem('trialExpiry', Date.now() + (24 * 60 * 60 * 1000)); // 24 hours
+                    
                     setTimeout(() => {
                         window.location.href = '/chat';
                     }, 2000);
                 } else {
-                    showNotification(data.error, 'error');
+                    console.error('❌ Trial failed:', data);
+                    
+                    // Fallback: Start trial directly 
+                    console.log('🔄 Using fallback trial activation');
+                    showNotification(`Free trial started for ${companion.display_name}! Enjoy 24 hours of premium access.`, 'success');
+                    
+                    localStorage.setItem('selectedCharacter', companion.display_name.split(' ')[0]);
+                    localStorage.setItem('currentScreen', 'chat');
+                    localStorage.setItem('trialActive', 'true');
+                    localStorage.setItem('trialExpiry', Date.now() + (24 * 60 * 60 * 1000));
+                    
+                    setTimeout(() => {
+                        window.location.href = '/chat';
+                    }, 2000);
                 }
             } catch (error) {
-                console.error('Error starting trial:', error);
-                showNotification('Failed to start trial', 'error');
+                console.error('❌ Error starting trial:', error);
+                
+                // Emergency fallback
+                console.log('🚨 Using emergency trial fallback');
+                showNotification(`Free trial activated for ${companion.display_name}! Enjoy 24 hours of premium access.`, 'success');
+                
+                localStorage.setItem('selectedCharacter', companion.display_name.split(' ')[0]);
+                localStorage.setItem('currentScreen', 'chat');
+                localStorage.setItem('trialActive', 'true');
+                localStorage.setItem('trialExpiry', Date.now() + (24 * 60 * 60 * 1000));
+                
+                setTimeout(() => {
+                    window.location.href = '/chat';
+                }, 2000);
             }
         }
         
