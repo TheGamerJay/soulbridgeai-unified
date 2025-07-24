@@ -292,21 +292,22 @@
 
   <!-- Plans Grid -->
   <div class="plans-grid">
-    <!-- Foundation Plan (Free) -->
+    <!-- Free Tier -->
     <div class="plan-card" onclick="selectPlan('foundation')">
-      <div class="plan-icon">🌱</div>
-      <div class="plan-name">Foundation</div>
+      <div class="plan-icon">🆓</div>
+      <div class="plan-name">Free Tier</div>
       <div class="plan-price">Free</div>
       <div class="plan-period">Forever</div>
       
       <ul class="plan-features">
-        <li><span class="feature-icon">✅</span> 50 messages per session</li>
-        <li><span class="feature-icon">✅</span> 2 sessions per day</li>
-        <li><span class="feature-icon">✅</span> Basic AI companion</li>
-        <li><span class="feature-icon">✅</span> Light emotional check-ins</li>
-        <li><span class="feature-icon none">❌</span> No guided journaling</li>
-        <li><span class="feature-icon none">❌</span> No memory between sessions</li>
+        <li><span class="feature-icon">✅</span> 5 journaling sessions per day</li>
+        <li><span class="feature-icon">✅</span> 1 short poem per day</li>
+        <li><span class="feature-icon">✅</span> Basic empathetic responses</li>
+        <li><span class="feature-icon">✅</span> 15 companion messages per session</li>
+        <li><span class="feature-icon">✅</span> Basic security</li>
+        <li><span class="feature-icon none">❌</span> No history saved</li>
         <li><span class="feature-icon none">❌</span> No premium companions</li>
+        <li><span class="feature-icon none">❌</span> No voice narration</li>
       </ul>
       
       <button class="select-btn free">Get Started Free</button>
@@ -315,44 +316,48 @@
     <!-- Growth Plan (Recommended) -->
     <div class="plan-card recommended" onclick="selectPlan('premium')">
       <div class="badge">Most Popular</div>
-      <div class="plan-icon">🌉</div>
-      <div class="plan-name">Growth</div>
-      <div class="plan-price" id="premium-price">$12.99</div>
+      <div class="plan-icon">🌱</div>
+      <div class="plan-name">Growth Plan</div>
+      <div class="plan-price" id="premium-price">$7.99</div>
       <div class="plan-period" id="premium-period">/month</div>
       
       <ul class="plan-features">
-        <li><span class="feature-icon">✅</span> Unlimited messages</li>
-        <li><span class="feature-icon">✅</span> 4 sessions per day</li>
-        <li><span class="feature-icon">✅</span> Memory-enabled AI</li>
-        <li><span class="feature-icon">✅</span> Guided journaling</li>
-        <li><span class="feature-icon">✅</span> Weekly emotional insights</li>
-        <li><span class="feature-icon">✅</span> 2-3 session memory</li>
-        <li><span class="feature-icon">✅</span> Basic premium companions</li>
+        <li><span class="feature-icon">✅</span> 20 journaling sessions per day</li>
+        <li><span class="feature-icon">✅</span> 3 longer poems per day</li>
+        <li><span class="feature-icon">✅</span> Smarter insight, session recall</li>
+        <li><span class="feature-icon">✅</span> 7-day memory vault</li>
+        <li><span class="feature-icon">✅</span> 1 basic premium companion option</li>
+        <li><span class="feature-icon">✅</span> Secured + session-based locking</li>
+        <li><span class="feature-icon">✅</span> View and clear security threats</li>
+        <li><span class="feature-icon limited">🔒</span> Voice narration (add-on $2.99)</li>
       </ul>
       
       <button class="select-btn paid">Choose Growth</button>
     </div>
 
-    <!-- Transformation Plan (Premium) -->
+    <!-- Max Plan (Premium) -->
     <div class="plan-card" onclick="selectPlan('enterprise')">
-      <div class="plan-icon">💎</div>
-      <div class="plan-name">Transformation</div>
-      <div class="plan-price" id="enterprise-price">$19.99</div>
+      <div class="plan-icon">🚀</div>
+      <div class="plan-name">Max Plan</div>
+      <div class="plan-price" id="enterprise-price">$14.99</div>
       <div class="plan-period" id="enterprise-period">/month</div>
       
       <ul class="plan-features">
-        <li><span class="feature-icon">✅</span> Everything in Growth</li>
-        <li><span class="feature-icon">✅</span> 6 sessions per day</li>
-        <li><span class="feature-icon">✅</span> Full conversation memory</li>
-        <li><span class="feature-icon">✅</span> Custom journaling prompts</li>
-        <li><span class="feature-icon">✅</span> Complete mood mapping</li>
-        <li><span class="feature-icon">✅</span> Multiple AI personality tones</li>
-        <li><span class="feature-icon">✅</span> Letter writing mode</li>
-        <li><span class="feature-icon">✅</span> Relationship insights</li>
-        <li><span class="feature-icon">✅</span> Emotion alerts & suggestions</li>
+        <li><span class="feature-icon">✅</span> Unlimited journaling sessions</li>
+        <li><span class="feature-icon">✅</span> Unlimited custom-tone poems + voice/poster</li>
+        <li><span class="feature-icon">✅</span> Tuned memory, adapts to your growth</li>
+        <li><span class="feature-icon">✅</span> 30+ day deep memory with bookmarks</li>
+        <li><span class="feature-icon">✅</span> Weekly/monthly progress reports</li>
+        <li><span class="feature-icon">✅</span> All premium companion skins + AI voices</li>
+        <li><span class="feature-icon">✅</span> Voice narration included (choice of styles)</li>
+        <li><span class="feature-icon">✅</span> Guided journal templates included</li>
+        <li><span class="feature-icon">✅</span> 5 emotion-to-posters per month</li>
+        <li><span class="feature-icon">✅</span> Enhanced AI firewalled + local cache guard</li>
+        <li><span class="feature-icon">✅</span> Full security watchdog control</li>
+        <li><span class="feature-icon">✅</span> $5 worth of add-ons per month</li>
       </ul>
       
-      <button class="select-btn premium">Choose Transformation</button>
+      <button class="select-btn premium">Choose Max Plan</button>
     </div>
   </div>
 
@@ -493,12 +498,12 @@ let selectedPlan = null;
 
 const pricing = {
   monthly: {
-    premium: { price: '$12.99', period: '/month' },
-    enterprise: { price: '$19.99', period: '/month' }
+    premium: { price: '$7.99', period: '/month' },
+    enterprise: { price: '$14.99', period: '/month' }
   },
   yearly: {
-    premium: { price: '$99', period: '/year', savings: 'Save $56' },
-    enterprise: { price: '$179', period: '/year', savings: 'Save $60' }
+    premium: { price: '$79', period: '/year', savings: 'Save $17' },
+    enterprise: { price: '$149', period: '/year', savings: 'Save $30' }
   }
 };
 
