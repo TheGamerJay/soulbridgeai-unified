@@ -74,7 +74,7 @@ try:
     from ml_threat_detection import MLThreatDetector
     ml_threat_detector = None  # Will be initialized later
 except ImportError:
-    logger.warning("ML Threat Detection System not available")
+    print("Warning: ML Threat Detection System not available - missing dependencies")
     MLThreatDetector = None
     ml_threat_detector = None
 
