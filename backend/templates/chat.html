@@ -876,15 +876,17 @@
                 <div onclick="console.log('✨ Begin Journey button clicked'); showCharacterSelect()" style="
                     font-size: 1rem;
                     padding: 0.75rem 1.5rem;
-                    background: none;
-                    border: none;
-                    color: #22d3ee;
+                    background: linear-gradient(135deg, #22d3ee, #0891b2);
+                    border: 2px solid #22d3ee;
+                    border-radius: 12px;
+                    color: #000;
                     cursor: pointer;
                     text-align: center;
                     font-weight: bold;
                     transition: all 0.3s ease;
                     display: inline-block;
-                " data-translate="begin_journey">
+                    box-shadow: 0 4px 15px rgba(34, 211, 238, 0.3);
+                " data-translate="begin_journey" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 25px rgba(34, 211, 238, 0.5)'" onmouseout="this.style.transform='translateY(0px)'; this.style.boxShadow='0 4px 15px rgba(34, 211, 238, 0.3)'">
                     Begin Your Journey ✨
                 </div>
                 
@@ -6178,19 +6180,63 @@
                 console.log('✅ Theme toggle event listener added');
             }
             
-            // Logout button  
-            const signOutBtn = document.getElementById('signOutBtn');
-            if (signOutBtn) {
-                signOutBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    console.log('🚪 Logout button clicked via event listener');
-                    if (typeof performRegularLogout === 'function') {
-                        performRegularLogout();
-                    } else {
-                        console.error('performRegularLogout function not found');
+            // Logout button with multiple attempts
+            let signOutBtn = document.getElementById('signOutBtn');
+            console.log('🔧 Logout button element found:', !!signOutBtn);
+            
+            // Wait a bit and try again if not found initially
+            if (!signOutBtn) {
+                setTimeout(() => {
+                    signOutBtn = document.getElementById('signOutBtn');
+                    console.log('🔧 Logout button found on retry:', !!signOutBtn);
+                    if (signOutBtn) {
+                        attachLogoutHandler(signOutBtn);
                     }
+                }, 500);
+            } else {
+                attachLogoutHandler(signOutBtn);
+            }
+            
+            function attachLogoutHandler(btn) {
+                if (!btn) return;
+                
+                // Remove any existing listeners by cloning the element
+                const newSignOutBtn = btn.cloneNode(true);
+                btn.parentNode.replaceChild(newSignOutBtn, btn);
+                
+                // Add both click and pointer events for better compatibility
+                ['click', 'touchstart'].forEach(eventType => {
+                    newSignOutBtn.addEventListener(eventType, function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('🚪 Logout button clicked via event listener');
+                        console.log('🔧 performRegularLogout function type:', typeof performRegularLogout);
+                        
+                        // Multiple fallback methods
+                        if (typeof performRegularLogout === 'function') {
+                            console.log('🔧 Using performRegularLogout function');
+                            performRegularLogout();
+                        } else if (typeof signOut === 'function') {
+                            console.log('🔧 Using signOut function');
+                            signOut();
+                        } else {
+                            console.log('🔧 Using direct logout fallback');
+                            // Direct logout fallback
+                            localStorage.clear();
+                            sessionStorage.clear();
+                            
+                            // Clear all cookies
+                            document.cookie.split(";").forEach(function(c) {
+                                document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+                            });
+                            
+                            // Force redirect with cache busting
+                            window.location.replace('/auth/logout?_=' + Date.now());
+                        }
+                    }, { passive: false });
                 });
-                console.log('✅ Logout button event listener added');
+                
+                console.log('✅ Logout button event listeners added (click + touchstart)');
             }
             
             // Sapphire button (multiple possible selectors)
@@ -6210,25 +6256,112 @@
             
             // Begin Journey button
             const beginButtons = document.querySelectorAll('div[onclick*="showCharacterSelect"]');
-            beginButtons.forEach(btn => {
+            console.log('🔧 Begin Journey buttons found:', beginButtons.length);
+            beginButtons.forEach((btn, index) => {
+                console.log(`🔧 Begin Journey button ${index + 1} text:`, btn.textContent?.trim());
+                
+                // Remove existing listeners by cloning
+                const newBtn = btn.cloneNode(true);
+                btn.parentNode.replaceChild(newBtn, btn);
+                
+                // Add multiple event types for better compatibility
+                ['click', 'touchstart'].forEach(eventType => {
+                    newBtn.addEventListener(eventType, function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('✨ Begin Journey button clicked via event listener');
+                        console.log('🔧 showCharacterSelect function type:', typeof showCharacterSelect);
+                        
+                        if (typeof showCharacterSelect === 'function') {
+                            showCharacterSelect();
+                        } else {
+                            console.error('showCharacterSelect function not found - attempting fallback');
+                            // Enhanced fallback navigation
+                            document.body.classList.remove('character-blayzo', 'character-blayzica', 'character-blayzion', 'character-blayzia', 'character-violet', 'character-crimson');
+                            localStorage.setItem('currentScreen', 'select');
+                            
+                            // Try multiple possible element IDs
+                            const introElements = ['introScreen', 'intro', 'introSection'];
+                            const selectElements = ['selectScreen', 'characterSelect', 'selectSection'];
+                            
+                            introElements.forEach(id => {
+                                const elem = document.getElementById(id);
+                                if (elem) {
+                                    elem.classList.add('hidden');
+                                    console.log(`✅ Hidden element: ${id}`);
+                                }
+                            });
+                            
+                            selectElements.forEach(id => {
+                                const elem = document.getElementById(id);
+                                if (elem) {
+                                    elem.classList.remove('hidden');
+                                    console.log(`✅ Shown element: ${id}`);
+                                }
+                            });
+                            
+                            console.log('✅ Begin Journey fallback navigation executed');
+                        }
+                    }, { passive: false });
+                });
+            });
+            console.log(`✅ ${beginButtons.length} Begin Journey button event listeners added (with clones)`);
+            
+            // Sapphire modal close button (X button)
+            const modalCloseButtons = document.querySelectorAll('button[onclick*="toggleNavigationAssistant"]');
+            modalCloseButtons.forEach(btn => {
                 btn.addEventListener('click', function(e) {
                     e.preventDefault();
-                    console.log('✨ Begin Journey button clicked via event listener');
-                    if (typeof showCharacterSelect === 'function') {
-                        showCharacterSelect();
+                    e.stopPropagation();
+                    console.log('❌ Sapphire modal close button clicked via event listener');
+                    const modal = document.getElementById('navAssistantModal');
+                    if (modal) {
+                        modal.style.display = 'none';
+                        const navResponse = document.getElementById('navResponse');
+                        if (navResponse) navResponse.style.display = 'none';
+                        console.log('✅ Sapphire modal closed successfully');
                     } else {
-                        console.error('showCharacterSelect function not found');
+                        console.error('navAssistantModal not found');
                     }
                 });
             });
-            console.log(`✅ ${beginButtons.length} Begin Journey button event listeners added`);
+            console.log(`✅ ${modalCloseButtons.length} Sapphire modal close button event listeners added`);
+            
+            // Also add click-outside-to-close for modal
+            const navModal = document.getElementById('navAssistantModal');
+            if (navModal) {
+                navModal.addEventListener('click', function(e) {
+                    if (e.target === navModal) {
+                        navModal.style.display = 'none';
+                        const navResponse = document.getElementById('navResponse');
+                        if (navResponse) navResponse.style.display = 'none';
+                        console.log('✅ Sapphire modal closed by clicking outside');
+                    }
+                });
+                console.log('✅ Click-outside-to-close added for Sapphire modal');
+            }
         }
         
-        // Add event listeners after DOM is ready
+        // Add event listeners after DOM is ready AND functions are loaded
+        function initializeEventListeners() {
+            console.log('🔧 Initializing event listeners with delay...');
+            setTimeout(() => {
+                addButtonEventListeners();
+                
+                // Double-check that functions exist
+                console.log('🔧 Function availability check:', {
+                    toggleTheme: typeof toggleTheme,
+                    performRegularLogout: typeof performRegularLogout,
+                    toggleNavigationAssistant: typeof toggleNavigationAssistant,
+                    showCharacterSelect: typeof showCharacterSelect
+                });
+            }, 500); // Give functions time to load
+        }
+        
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', addButtonEventListeners);
+            document.addEventListener('DOMContentLoaded', initializeEventListeners);
         } else {
-            addButtonEventListeners();
+            initializeEventListeners();
         }
         
         console.log('🔧 CSP-safe event listeners system initialized');
