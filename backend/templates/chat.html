@@ -809,22 +809,83 @@
                 });
                 console.log('✅', sapphireBtns.length, 'Sapphire buttons FORCE-FIXED');
                 
-                // FORCE REFRESH BUTTON STYLING
+                // ULTRA-FORCE REFRESH BUTTON STYLING - Make them look like actual buttons
                 const sapphireBtn = document.querySelector('div[onclick*="toggleNavigationAssistant"]');
                 const journeyBtn = document.querySelector('div[onclick*="showCharacterSelect"]');
                 
                 if (sapphireBtn) {
-                    sapphireBtn.style.background = 'linear-gradient(135deg, rgba(249, 115, 22, 0.9), rgba(234, 88, 12, 0.9))';
-                    sapphireBtn.style.border = '2px solid #f97316';
-                    sapphireBtn.style.boxShadow = '0 4px 15px rgba(249, 115, 22, 0.3)';
-                    console.log('✅ Sapphire button styling FORCE-APPLIED');
+                    // Force all button properties
+                    const sapphireStyle = {
+                        background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.9), rgba(234, 88, 12, 0.9))',
+                        border: '2px solid #f97316',
+                        borderRadius: '12px',
+                        color: '#fff',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.5rem',
+                        boxShadow: '0 4px 15px rgba(249, 115, 22, 0.3)',
+                        fontWeight: '600',
+                        textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)',
+                        padding: '0.75rem 1.25rem',
+                        fontSize: '1rem',
+                        minHeight: '50px',
+                        minWidth: '200px',
+                        textDecoration: 'none',
+                        transition: 'all 0.3s ease'
+                    };
+                    Object.assign(sapphireBtn.style, sapphireStyle);
+                    console.log('✅ Sapphire button styling ULTRA-FORCE-APPLIED');
                 }
                 
                 if (journeyBtn) {
-                    journeyBtn.style.background = 'linear-gradient(135deg, #22d3ee, #0891b2)';
-                    journeyBtn.style.border = '2px solid #22d3ee';
-                    journeyBtn.style.boxShadow = '0 4px 15px rgba(34, 211, 238, 0.3)';
-                    console.log('✅ Journey button styling FORCE-APPLIED');
+                    // Force all button properties
+                    const journeyStyle = {
+                        background: 'linear-gradient(135deg, #22d3ee, #0891b2)',
+                        border: '2px solid #22d3ee',
+                        borderRadius: '12px',
+                        color: '#000',
+                        cursor: 'pointer',
+                        textAlign: 'center',
+                        fontWeight: 'bold',
+                        display: 'inline-block',
+                        boxShadow: '0 4px 15px rgba(34, 211, 238, 0.3)',
+                        padding: '0.75rem 1.5rem',
+                        fontSize: '1rem',
+                        minHeight: '50px',
+                        minWidth: '200px',
+                        textDecoration: 'none',
+                        transition: 'all 0.3s ease'
+                    };
+                    Object.assign(journeyBtn.style, journeyStyle);
+                    console.log('✅ Journey button styling ULTRA-FORCE-APPLIED');
+                }
+                
+                // FORCE-FIX SAPPHIRE BUTTON FUNCTIONALITY
+                if (sapphireBtn) {
+                    // Remove existing onclick and add fresh event listeners
+                    sapphireBtn.onclick = null;
+                    sapphireBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('🔮 SAPPHIRE ULTRA-FORCE: Button clicked');
+                        
+                        const modal = document.getElementById('navAssistantModal');
+                        if (modal) {
+                            if (modal.style.display === 'none' || modal.style.display === '') {
+                                modal.style.display = 'flex';
+                                console.log('✅ SAPPHIRE: Modal opened');
+                            } else {
+                                modal.style.display = 'none';
+                                console.log('✅ SAPPHIRE: Modal closed');
+                            }
+                        } else {
+                            console.error('❌ SAPPHIRE: Modal not found');
+                            alert('🔮 Sapphire: How can I help you navigate SoulBridge AI?');
+                        }
+                    });
+                    console.log('✅ Sapphire button functionality ULTRA-FORCE-FIXED');
                 }
                 
                 console.log('🎯 ALL CRITICAL BUTTONS FORCE-FIXED AND FUNCTIONAL');
@@ -834,10 +895,12 @@
         console.log('🎯 CRITICAL FUNCTIONALITY FIX LOADED SUCCESSFULLY');
     </script>
     
-    <!-- 🎨 FORCE BUTTON STYLING - Ensures buttons always have their cool backgrounds -->
+    <!-- 🎨 ULTRA-FORCE BUTTON STYLING - Guarantees buttons look like actual buttons -->
     <style>
-        /* CRITICAL: Force button styling to always work */
-        div[onclick*="toggleNavigationAssistant"] {
+        /* CRITICAL: Ultra-force button styling with maximum specificity */
+        div[onclick*="toggleNavigationAssistant"],
+        div[onclick*="toggleNavigationAssistant"][style],
+        #introScreen div[onclick*="toggleNavigationAssistant"] {
             background: linear-gradient(135deg, rgba(249, 115, 22, 0.9), rgba(234, 88, 12, 0.9)) !important;
             border: 2px solid #f97316 !important;
             color: #fff !important;
@@ -853,15 +916,22 @@
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
             padding: 0.75rem 1.25rem !important;
             font-size: 1rem !important;
+            min-height: 50px !important;
+            min-width: 200px !important;
+            text-decoration: none !important;
         }
         
-        div[onclick*="toggleNavigationAssistant"]:hover {
+        div[onclick*="toggleNavigationAssistant"]:hover,
+        div[onclick*="toggleNavigationAssistant"][style]:hover,
+        #introScreen div[onclick*="toggleNavigationAssistant"]:hover {
             background: linear-gradient(135deg, #f97316, #ea580c) !important;
             transform: translateY(-2px) !important;
             box-shadow: 0 8px 25px rgba(249, 115, 22, 0.5) !important;
         }
         
-        div[onclick*="showCharacterSelect"] {
+        div[onclick*="showCharacterSelect"],
+        div[onclick*="showCharacterSelect"][style],
+        #introScreen div[onclick*="showCharacterSelect"] {
             background: linear-gradient(135deg, #22d3ee, #0891b2) !important;
             border: 2px solid #22d3ee !important;
             border-radius: 12px !important;
@@ -874,17 +944,33 @@
             box-shadow: 0 4px 15px rgba(34, 211, 238, 0.3) !important;
             padding: 0.75rem 1.5rem !important;
             font-size: 1rem !important;
+            min-height: 50px !important;
+            min-width: 200px !important;
+            text-decoration: none !important;
         }
         
-        div[onclick*="showCharacterSelect"]:hover {
+        div[onclick*="showCharacterSelect"]:hover,
+        div[onclick*="showCharacterSelect"][style]:hover,
+        #introScreen div[onclick*="showCharacterSelect"]:hover {
             transform: translateY(-2px) !important;
             box-shadow: 0 8px 25px rgba(34, 211, 238, 0.5) !important;
         }
         
-        /* Ensure no other styles can override these buttons */
-        .intro-actions div[onclick*="toggleNavigationAssistant"],
-        .intro-actions div[onclick*="showCharacterSelect"] {
-            background: inherit !important;
+        /* BUTTON APPEARANCE ENFORCEMENT - Makes them look like actual buttons */
+        div[onclick*="toggleNavigationAssistant"],
+        div[onclick*="showCharacterSelect"] {
+            -webkit-appearance: button !important;
+            -moz-appearance: button !important;
+            appearance: button !important;
+            user-select: none !important;
+            outline: none !important;
+        }
+        
+        /* Remove any conflicting text styles */
+        div[onclick*="toggleNavigationAssistant"] *,
+        div[onclick*="showCharacterSelect"] * {
+            color: inherit !important;
+            text-decoration: none !important;
         }
     </style>
 </head>
