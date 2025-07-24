@@ -127,7 +127,20 @@ compress.init_app(app)
 # CRITICAL: Add health check IMMEDIATELY for Railway
 @app.route("/health")
 def health_check():
-    return "OK", 200
+    try:
+        # Return detailed health status
+        health_status = {
+            "status": "healthy",
+            "timestamp": datetime.now().isoformat(),
+            "services": {
+                "database": "connected" if 'DATABASE_URL' in os.environ else "not_configured",
+                "ai_model": "initialized" if 'ai_model_manager' in globals() and ai_model_manager else "pending",
+                "server": "running"
+            }
+        }
+        return health_status, 200
+    except Exception as e:
+        return {"status": "unhealthy", "error": str(e)}, 503
 
 # Security: Use strong secret key or generate one
 secret_key = os.environ.get("SECRET_KEY")

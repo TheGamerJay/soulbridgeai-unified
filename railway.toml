@@ -2,7 +2,7 @@
 builder = "nixpacks"
 
 [deploy]
-startCommand = "cd backend && python app_fixed.py"
+startCommand = "cd backend && gunicorn --bind 0.0.0.0:$PORT --workers 2 --timeout 120 --keep-alive 2 --max-requests 1000 --max-requests-jitter 100 app_fixed:app"
 healthcheckPath = "/health"
 healthcheckTimeout = 120
 restartPolicyType = "on_failure"
