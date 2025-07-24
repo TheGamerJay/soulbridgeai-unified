@@ -504,6 +504,41 @@
     </style>
 </head>
 <body>
+    <!-- Theme Toggle (Left Side) -->
+    <div style="position: fixed; top: 20px; left: 20px; z-index: 100;">
+        <div id="themeToggle" style="
+            background: rgba(34, 211, 238, 0.8);
+            color: #000;
+            padding: 10px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        " onclick="toggleTheme()">
+            <span id="themeText">Night Mode is ON</span>
+            <span id="themeIcon">🌙</span>
+        </div>
+    </div>
+
+    <!-- Back Button (Right Side) -->
+    <div style="position: fixed; top: 20px; right: 20px; z-index: 100;">
+        <div style="
+            background: linear-gradient(135deg, #22d3ee, #0891b2);
+            color: #000;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(34, 211, 238, 0.3);
+            transition: all 0.3s ease;
+        " onclick="window.history.back()" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0px)'">
+            ← Back
+        </div>
+    </div>
+
     <div class="companion-selector">
         <div class="companion-header">
             <h1><i class="fas fa-robot"></i> Choose Your AI Companion</h1>
@@ -631,16 +666,31 @@
         // Load companions on page load with debug logging
         document.addEventListener('DOMContentLoaded', () => {
             console.log('🎬 Companion selector page loaded - starting initialization');
-            loadUserData();
-            loadCompanions();
             
-            // Add emergency fallback if APIs fail
+            // IMMEDIATE FALLBACK - Load companions right away
+            console.log('🚨 Loading fallback companions immediately to ensure content displays');
+            loadFallbackCompanions();
+            
+            // Then try to load from API (will override if successful)
+            loadUserData();
             setTimeout(() => {
-                if (Object.keys(companions).every(key => companions[key].length === 0)) {
-                    console.log('⚠️ No companions loaded - using fallback data');
-                    loadFallbackCompanions();
+                loadCompanions();
+            }, 500);
+            
+            // Emergency debug check
+            setTimeout(() => {
+                console.log('🔍 DEBUG: Checking if any companions loaded...');
+                console.log('🔍 Current companions state:', companions);
+                
+                // Count total companions
+                const totalCompanions = Object.values(companions).reduce((total, tier) => total + tier.length, 0);
+                console.log('🔍 Total companions loaded:', totalCompanions);
+                
+                if (totalCompanions === 0) {
+                    console.error('🚨 CRITICAL: No companions loaded at all - forcing emergency load');
+                    forceEmergencyCompanions();
                 }
-            }, 3000);
+            }, 2000);
         });
         
         async function loadUserData() {
@@ -692,17 +742,6 @@
             companions = {
                 free: [
                     {
-                        companion_id: 'sage',
-                        display_name: 'Sage - The Wise Guide',
-                        avatar_image: '/static/logos/Sapphire.png',
-                        short_bio: 'A gentle, wise companion for life\'s journey',
-                        personality_tags: ['Wise', 'Empathetic'],
-                        special_features: ['Meditation guidance', 'Life advice', 'Emotional support'],
-                        tier: 'free',
-                        popularity_score: 95,
-                        is_recommended: true
-                    },
-                    {
                         companion_id: 'gamerjay',
                         display_name: 'GamerJay - The Gaming Coach',
                         avatar_image: '/static/logos/GamerJay Free companion.png',
@@ -711,7 +750,7 @@
                         special_features: ['Goal setting', 'Achievement tracking', 'Motivation boosts'],
                         tier: 'free',
                         popularity_score: 88,
-                        is_recommended: false
+                        is_recommended: true
                     }
                 ],
                 growth: [
@@ -762,6 +801,98 @@
             console.log('✅ Fallback companions loaded:', companions);
             renderCompanions();
             updateTrialOffer();
+        }
+        
+        function forceEmergencyCompanions() {
+            console.log('🚨 EMERGENCY: Force-loading companions directly into DOM');
+            
+            // Directly inject companion cards into the containers
+            const freeContainer = document.getElementById('free-companions');
+            const growthContainer = document.getElementById('growth-companions');
+            const maxContainer = document.getElementById('max-companions');
+            const referralContainer = document.getElementById('referral-companions');
+            
+            if (freeContainer) {
+                freeContainer.innerHTML = `
+                    <div class="companion-card" onclick="selectCompanion('gamerjay')" style="min-width: 280px; background: rgba(255,255,255,0.95); border-radius: 16px; padding: 0; cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.1); border: 2px solid transparent;">
+                        <div class="companion-avatar" style="width: 100%; height: 180px; position: relative; overflow: hidden;">
+                            <img src="/static/logos/GamerJay Free companion.png" alt="GamerJay" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='/static/logos/IntroLogo.png'">
+                            <div class="companion-badges" style="position: absolute; top: 12px; right: 12px; display: flex; flex-direction: column; gap: 6px;">
+                                <span style="padding: 4px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; backdrop-filter: blur(10px); background: rgba(76, 175, 80, 0.9); color: white;">Recommended</span>
+                            </div>
+                        </div>
+                        <div class="companion-info" style="padding: 20px;">
+                            <h3 style="font-size: 1.3rem; font-weight: 700; margin-bottom: 8px;">GamerJay - The Gaming Coach</h3>
+                            <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 15px;">Your gaming companion who understands the grind</p>
+                            <div class="companion-actions" style="display: flex; gap: 10px;">
+                                <button style="flex: 1; padding: 12px; background: #673ab7; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Select</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            if (growthContainer) {
+                growthContainer.innerHTML = `
+                    <div class="companion-card locked" onclick="showUpgradeModal('sky')" style="min-width: 280px; background: rgba(255,255,255,0.95); border-radius: 16px; padding: 0; cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.1); border: 2px solid transparent; opacity: 0.7;">
+                        <div class="companion-avatar" style="width: 100%; height: 180px; position: relative; overflow: hidden;">
+                            <img src="/static/logos/Sky a primum companion.png" alt="Sky" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='/static/logos/IntroLogo.png'">
+                            <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-lock" style="font-size: 2rem; color: white;"></i>
+                            </div>
+                        </div>
+                        <div class="companion-info" style="padding: 20px;">
+                            <h3 style="font-size: 1.3rem; font-weight: 700; margin-bottom: 8px;">Sky - The Spiritual Guide</h3>
+                            <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 15px;">Connect with your spiritual side through Sky's guidance</p>
+                            <div class="companion-actions" style="display: flex; gap: 10px;">
+                                <button style="flex: 1; padding: 12px; background: #ccc; color: #666; border: none; border-radius: 8px; font-weight: 600; cursor: not-allowed;" disabled>🔒 Requires Growth</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            if (maxContainer) {
+                maxContainer.innerHTML = `
+                    <div class="companion-card locked" onclick="showUpgradeModal('crimson')" style="min-width: 280px; background: rgba(255,255,255,0.95); border-radius: 16px; padding: 0; cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.1); border: 2px solid transparent; opacity: 0.7;">
+                        <div class="companion-avatar" style="width: 100%; height: 180px; position: relative; overflow: hidden;">
+                            <img src="/static/logos/Crimson a Max companion.png" alt="Crimson" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='/static/logos/IntroLogo.png'">
+                            <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-lock" style="font-size: 2rem; color: white;"></i>
+                            </div>
+                        </div>
+                        <div class="companion-info" style="padding: 20px;">
+                            <h3 style="font-size: 1.3rem; font-weight: 700; margin-bottom: 8px;">Crimson - The Fierce Protector</h3>
+                            <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 15px;">A powerful protector with fierce loyalty</p>
+                            <div class="companion-actions" style="display: flex; gap: 10px;">
+                                <button style="flex: 1; padding: 12px; background: #ccc; color: #666; border: none; border-radius: 8px; font-weight: 600; cursor: not-allowed;" disabled>🔒 Requires Max</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            if (referralContainer) {
+                referralContainer.innerHTML = `
+                    <div class="companion-card locked" onclick="showUpgradeModal('blayzo')" style="min-width: 280px; background: rgba(255,255,255,0.95); border-radius: 16px; padding: 0; cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.1); border: 2px solid transparent; opacity: 0.7;">
+                        <div class="companion-avatar" style="width: 100%; height: 180px; position: relative; overflow: hidden;">
+                            <img src="/static/logos/Blayzo Referral.png" alt="Blayzo" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='/static/logos/IntroLogo.png'">
+                            <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-lock" style="font-size: 2rem; color: white;"></i>
+                            </div>
+                        </div>
+                        <div class="companion-info" style="padding: 20px;">
+                            <h3 style="font-size: 1.3rem; font-weight: 700; margin-bottom: 8px;">Blayzo - Referral Master</h3>
+                            <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 15px;">Special referral companion with exclusive powers</p>
+                            <div class="companion-actions" style="display: flex; gap: 10px;">
+                                <button style="flex: 1; padding: 12px; background: #ccc; color: #666; border: none; border-radius: 8px; font-weight: 600; cursor: not-allowed;" disabled>🔒 Requires Referrals</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            console.log('✅ Emergency companions injected directly into DOM');
         }
         
         function renderCompanions() {
@@ -1173,6 +1304,73 @@
             if (e.target === e.currentTarget) {
                 closeUpgradeModal();
             }
+        });
+        
+        // Theme Toggle Functionality
+        function toggleTheme() {
+            console.log('🎨 Theme toggle clicked');
+            
+            const body = document.body;
+            const themeToggle = document.getElementById('themeToggle');
+            const themeText = document.getElementById('themeText');
+            const themeIcon = document.getElementById('themeIcon');
+            
+            // Check current theme
+            const isDayMode = body.classList.contains('day-theme');
+            
+            if (isDayMode) {
+                // Switch to night mode
+                body.classList.remove('day-theme');
+                body.classList.add('night-theme');
+                themeText.textContent = 'Night Mode is ON';
+                themeIcon.textContent = '🌙';
+                themeToggle.style.background = 'rgba(34, 211, 238, 0.8)';
+                localStorage.setItem('theme', 'night');
+                console.log('🌙 Switched to night mode');
+            } else {
+                // Switch to day mode
+                body.classList.remove('night-theme');
+                body.classList.add('day-theme');
+                themeText.textContent = 'Day Mode is ON';
+                themeIcon.textContent = '☀️';
+                themeToggle.style.background = 'rgba(255, 193, 7, 0.8)';
+                localStorage.setItem('theme', 'day');
+                console.log('☀️ Switched to day mode');
+            }
+        }
+        
+        // Initialize theme on page load
+        function initializeTheme() {
+            console.log('🎨 Initializing theme...');
+            
+            const savedTheme = localStorage.getItem('theme') || 'night';
+            const body = document.body;
+            const themeToggle = document.getElementById('themeToggle');
+            const themeText = document.getElementById('themeText');
+            const themeIcon = document.getElementById('themeIcon');
+            
+            console.log('💾 Saved theme:', savedTheme);
+            
+            if (savedTheme === 'day') {
+                body.classList.add('day-theme');
+                body.classList.remove('night-theme');
+                themeText.textContent = 'Day Mode is ON';
+                themeIcon.textContent = '☀️';
+                themeToggle.style.background = 'rgba(255, 193, 7, 0.8)';
+            } else {
+                body.classList.add('night-theme');
+                body.classList.remove('day-theme');
+                themeText.textContent = 'Night Mode is ON';
+                themeIcon.textContent = '🌙';
+                themeToggle.style.background = 'rgba(34, 211, 238, 0.8)';
+            }
+            
+            console.log('✅ Theme initialized to:', savedTheme);
+        }
+        
+        // Initialize theme when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeTheme();
         });
     </script>
 </body>

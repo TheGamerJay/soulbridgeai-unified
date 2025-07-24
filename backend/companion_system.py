@@ -88,23 +88,6 @@ class CompanionSystem:
         # FREE TIER COMPANIONS
         free_companions = [
             {
-                "companion_id": "companion_sage",
-                "name": "Sage", 
-                "display_name": "Sage - The Wise Guide",
-                "tier": CompanionTier.FREE,
-                "unlock_type": UnlockType.SUBSCRIPTION,
-                "personality_tags": [PersonalityTag.WISE, PersonalityTag.EMPATHETIC],
-                "avatar_image": "/static/logos/Sapphire.png",
-                "short_bio": "A gentle, wise companion for life's journey",
-                "detailed_bio": "Sage offers thoughtful guidance and emotional support through life's challenges. With deep wisdom and empathetic understanding, Sage helps you find clarity and peace.",
-                "voice_id": None,
-                "ai_personality_mode": "therapist",
-                "unlock_requirements": {"subscription": "free"},
-                "popularity_score": 95,
-                "is_recommended": True,
-                "special_features": ["Meditation guidance", "Life advice", "Emotional support"]
-            },
-            {
                 "companion_id": "companion_gamerjay",
                 "name": "GamerJay",
                 "display_name": "GamerJay - The Gaming Coach", 
