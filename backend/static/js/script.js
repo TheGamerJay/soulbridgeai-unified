@@ -44,7 +44,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // AI welcome
   bubble(
     "ai",
-    'Hey, I’m <strong>SoulBridgeAI</strong> — your emotional support companion. 💙<br>What’s on your mind today?'
+    'Hey, I'm <strong>SoulBridgeAI</strong> — your emotional support companion. 💙<br>What's on your mind today?<br><br>💡 <em>New:</em> <a href="/companions" style="color: var(--primary); text-decoration: none;">Choose a different companion</a> or <a href="/group-therapy" style="color: var(--primary); text-decoration: none;">join group therapy</a>!'
   );
 
   // Speech synthesis for AI replies

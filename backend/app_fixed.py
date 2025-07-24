@@ -96,6 +96,15 @@ except ImportError:
     CreativeTherapySystem = None
     creative_therapy_system = None
 
+# Import companion system
+try:
+    from companion_system import CompanionSystem
+    companion_system = None  # Will be initialized later
+except ImportError:
+    logger.warning("Companion System not available")
+    CompanionSystem = None
+    companion_system = None
+
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
@@ -1320,6 +1329,25 @@ def init_creative_therapy_system():
         services["creative_therapy"] = None
         return False
 
+def init_companion_system():
+    """Initialize companion system with error handling"""
+    global companion_system
+    try:
+        if CompanionSystem is None:
+            logger.warning("Companion System class not available")
+            services["companion"] = None
+            return False
+            
+        logger.info("Initializing Companion System...")
+        companion_system = CompanionSystem()
+        services["companion"] = companion_system
+        logger.info("✅ Companion System initialized successfully")
+        return True
+    except Exception as e:
+        logger.error(f"❌ Companion System initialization failed: {e}")
+        services["companion"] = None
+        return False
+
 def init_email():
     """Initialize email service with error handling"""
     global email_service
@@ -1377,6 +1405,7 @@ def initialize_services():
         ("ML Threat Detector", init_ml_threat_detector),
         ("Group Therapy System", init_group_therapy_system),
         ("Creative Therapy System", init_creative_therapy_system),
+        ("Companion System", init_companion_system),
         ("Email", init_email),
         ("SocketIO", init_socketio),
     ]
@@ -6578,6 +6607,183 @@ def creative_therapy_page():
     except Exception as e:
         logger.error(f"Creative therapy page error: {e}")
         return "Page unavailable", 500
+
+# ==================================================================================
+# 🤖 COMPANION SYSTEM API ENDPOINTS
+# ==================================================================================
+
+@app.route("/companions")
+def companion_selector_page():
+    """Companion selector interface"""
+    try:
+        if not is_logged_in():
+            return redirect(url_for('login_page'))
+            
+        return render_template('companion_selector.html')
+    except Exception as e:
+        logger.error(f"Companion selector page error: {e}")
+        return "Page unavailable", 500
+
+@app.route("/api/companions/accessible", methods=["GET"])
+def api_get_accessible_companions():
+    """Get companions accessible to the user based on their subscription tier"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+            
+        if not companion_system or not services.get("companion"):
+            return jsonify({"success": False, "error": "Companion system not available"}), 503
+        
+        user_id = session.get('user_id', 'anonymous')
+        
+        # Get user's subscription info
+        subscription_tier = request.args.get('tier', 'free')
+        referral_points = request.args.get('points', 0, type=int)
+        
+        # Get user's achievements (placeholder - would integrate with actual user data)
+        achievements = []
+        
+        companions = companion_system.get_user_accessible_companions(
+            user_id, subscription_tier, referral_points, achievements
+        )
+        
+        return jsonify({
+            "success": True,
+            "companions": companions
+        })
+        
+    except Exception as e:
+        logger.error(f"Get accessible companions API error: {e}")
+        return jsonify({"success": False, "error": "Failed to fetch companions"}), 500
+
+@app.route("/api/companions/select", methods=["POST"])
+def api_select_companion():
+    """Select a companion for the user"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+            
+        if not companion_system or not services.get("companion"):
+            return jsonify({"success": False, "error": "Companion system not available"}), 503
+        
+        data = request.get_json()
+        if not data or not data.get("companion_id"):
+            return jsonify({"success": False, "error": "Companion ID required"}), 400
+        
+        user_id = session.get('user_id', 'anonymous')
+        companion_id = data.get("companion_id")
+        subscription_tier = data.get("subscription_tier", "free")
+        referral_points = data.get("referral_points", 0)
+        
+        result = companion_system.select_companion(
+            user_id, companion_id, subscription_tier, referral_points
+        )
+        
+        if result["success"]:
+            # Update session with selected companion
+            session['selected_companion'] = companion_id
+            return jsonify(result)
+        else:
+            return jsonify(result), 400 if result.get("upgrade_required") else 500
+        
+    except Exception as e:
+        logger.error(f"Select companion API error: {e}")
+        return jsonify({"success": False, "error": "Failed to select companion"}), 500
+
+@app.route("/api/companions/trial", methods=["POST"])
+def api_start_companion_trial():
+    """Start a trial for a premium companion"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+            
+        if not companion_system or not services.get("companion"):
+            return jsonify({"success": False, "error": "Companion system not available"}), 503
+        
+        data = request.get_json()
+        if not data or not data.get("companion_id"):
+            return jsonify({"success": False, "error": "Companion ID required"}), 400
+        
+        user_id = session.get('user_id', 'anonymous')
+        companion_id = data.get("companion_id")
+        
+        result = companion_system.get_trial_companion(user_id, companion_id)
+        
+        if result["success"]:
+            # Set trial companion in session
+            session['trial_companion'] = companion_id
+            session['trial_expires'] = (datetime.now() + timedelta(hours=24)).isoformat()
+            return jsonify(result)
+        else:
+            return jsonify(result), 400
+        
+    except Exception as e:
+        logger.error(f"Start companion trial API error: {e}")
+        return jsonify({"success": False, "error": "Failed to start trial"}), 500
+
+@app.route("/api/companions/<companion_id>", methods=["GET"])
+def api_get_companion_details(companion_id):
+    """Get detailed information about a specific companion"""
+    try:
+        if not companion_system or not services.get("companion"):
+            return jsonify({"success": False, "error": "Companion system not available"}), 503
+        
+        companion = companion_system.get_companion_details(companion_id)
+        
+        if companion:
+            return jsonify({
+                "success": True,
+                "companion": companion
+            })
+        else:
+            return jsonify({"success": False, "error": "Companion not found"}), 404
+        
+    except Exception as e:
+        logger.error(f"Get companion details API error: {e}")
+        return jsonify({"success": False, "error": "Failed to fetch companion details"}), 500
+
+@app.route("/api/companions/popular", methods=["GET"])
+def api_get_popular_companions():
+    """Get most popular companions"""
+    try:
+        if not companion_system or not services.get("companion"):
+            return jsonify({"success": False, "error": "Companion system not available"}), 503
+        
+        limit = request.args.get('limit', 3, type=int)
+        popular = companion_system.get_popular_companions(limit)
+        
+        return jsonify({
+            "success": True,
+            "companions": popular
+        })
+        
+    except Exception as e:
+        logger.error(f"Get popular companions API error: {e}")
+        return jsonify({"success": False, "error": "Failed to fetch popular companions"}), 500
+
+@app.route("/api/companions/recommended", methods=["GET"])
+def api_get_recommended_companions():
+    """Get recommended companions for the user"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+            
+        if not companion_system or not services.get("companion"):
+            return jsonify({"success": False, "error": "Companion system not available"}), 503
+        
+        user_id = session.get('user_id', 'anonymous')
+        subscription_tier = request.args.get('tier', 'free')
+        
+        recommended = companion_system.get_recommended_companions(user_id, subscription_tier)
+        
+        return jsonify({
+            "success": True,
+            "companions": recommended
+        })
+        
+    except Exception as e:
+        logger.error(f"Get recommended companions API error: {e}")
+        return jsonify({"success": False, "error": "Failed to fetch recommendations"}), 500
 
 @app.route("/api/generate-image", methods=["POST"])
 @limiter.limit("3 per minute")  # Generous limit for premium feature

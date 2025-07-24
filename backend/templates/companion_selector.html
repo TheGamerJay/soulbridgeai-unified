@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Choose Your Companion - SoulBridge AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/themes.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .companion-selector {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px 0;
+        }
+        
+        .companion-header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+        
+        .companion-header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        
+        .companion-header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .companion-sections {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .companion-section {
+            margin-bottom: 50px;
+        }
+        
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            color: white;
+        }
+        
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .section-title i {
+            font-size: 1.4rem;
+        }
+        
+        .tier-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .tier-free { background: #4CAF50; color: white; }
+        .tier-growth { background: #FF9800; color: white; }
+        .tier-max { background: #9C27B0; color: white; }
+        .tier-referral { background: #FFD700; color: #333; }
+        
+        .companions-scroll {
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+            padding: 10px 0 20px 0;
+            scroll-behavior: smooth;
+        }
+        
+        .companions-scroll::-webkit-scrollbar {
+            height: 8px;
+        }
+        
+        .companions-scroll::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+        }
+        
+        .companions-scroll::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.3);
+            border-radius: 4px;
+        }
+        
+        .companions-scroll::-webkit-scrollbar-thumb:hover {
+            background: rgba(255,255,255,0.5);
+        }
+        
+        .companion-card {
+            min-width: 280px;
+            background: rgba(255,255,255,0.95);
+            border-radius: 16px;
+            padding: 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            border: 2px solid transparent;
+        }
+        
+        .companion-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 16px 48px rgba(0,0,0,0.2);
+            border-color: var(--primary);
+        }
+        
+        .companion-card.locked {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        
+        .companion-card.locked:hover {
+            transform: translateY(-4px);
+            border-color: #f44336;
+        }
+        
+        .companion-card.selected {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(103, 58, 183, 0.3);
+        }
+        
+        .companion-avatar {
+            width: 100%;
+            height: 180px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .companion-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+        
+        .companion-card:hover .companion-avatar img {
+            transform: scale(1.05);
+        }
+        
+        .companion-badges {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        
+        .badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .badge-popular {
+            background: rgba(255, 193, 7, 0.9);
+            color: #333;
+        }
+        
+        .badge-recommended {
+            background: rgba(76, 175, 80, 0.9);
+            color: white;
+        }
+        
+        .badge-new {
+            background: rgba(244, 67, 54, 0.9);
+            color: white;
+        }
+        
+        .lock-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .companion-card.locked .lock-overlay {
+            opacity: 1;
+        }
+        
+        .lock-icon {
+            font-size: 2rem;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .companion-info {
+            padding: 20px;
+        }
+        
+        .companion-name {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 8px;
+            line-height: 1.2;
+        }
+        
+        .companion-tags {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .personality-tag {
+            padding: 3px 8px;
+            background: var(--primary-alpha);
+            color: var(--primary);
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+        
+        .companion-bio {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.4;
+            margin-bottom: 15px;
+        }
+        
+        .companion-features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .feature-icon {
+            width: 24px;
+            height: 24px;
+            background: var(--primary-alpha);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-size: 0.7rem;
+        }
+        
+        .companion-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn-select {
+            flex: 1;
+            padding: 12px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-select:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+        
+        .btn-select:disabled {
+            background: var(--border);
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn-preview {
+            padding: 12px;
+            background: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+        
+        .btn-preview:hover {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .trial-offer {
+            background: linear-gradient(45deg, #FF6B6B, #FF8E53);
+            color: white;
+            padding: 15px;
+            border-radius: 12px;
+            margin: 20px;
+            text-align: center;
+        }
+        
+        .trial-offer h3 {
+            margin: 0 0 8px 0;
+            font-size: 1.1rem;
+        }
+        
+        .trial-offer p {
+            margin: 0 0 15px 0;
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+        
+        .btn-trial {
+            background: white;
+            color: #FF6B6B;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        
+        .btn-trial:hover {
+            transform: translateY(-2px);
+        }
+        
+        .upgrade-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow: auto;
+            position: relative;
+            animation: modalSlideIn 0.3s ease;
+        }
+        
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        
+        .modal-header {
+            padding: 30px 30px 20px 30px;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .modal-header h2 {
+            margin: 0 0 10px 0;
+            color: var(--text);
+        }
+        
+        .modal-body {
+            padding: 30px;
+        }
+        
+        .companion-preview {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .companion-preview img {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 15px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+        }
+        
+        .upgrade-plans {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .plan-card {
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .plan-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .plan-card.recommended {
+            border-color: var(--primary);
+            background: var(--primary-alpha);
+        }
+        
+        .plan-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .plan-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+        
+        .plan-price {
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        
+        .close-modal:hover {
+            background: var(--border);
+            color: var(--text);
+        }
+        
+        .selection-glow {
+            animation: selectionGlow 0.6s ease;
+        }
+        
+        @keyframes selectionGlow {
+            0% { box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
+            50% { box-shadow: 0 0 30px rgba(103, 58, 183, 0.6); }
+            100% { box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
+        }
+        
+        @media (max-width: 768px) {
+            .companion-card {
+                min-width: 250px;
+            }
+            
+            .section-title {
+                font-size: 1.4rem;
+            }
+            
+            .companion-header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="companion-selector">
+        <div class="companion-header">
+            <h1><i class="fas fa-robot"></i> Choose Your AI Companion</h1>
+            <p>Select the perfect companion to guide you on your mental health journey</p>
+        </div>
+        
+        <div class="companion-sections">
+            <!-- Free Companions Section -->
+            <div class="companion-section" id="free-section">
+                <div class="section-header">
+                    <div class="section-title">
+                        <i class="fas fa-heart"></i>
+                        <span>Free Companions</span>
+                        <span class="tier-badge tier-free">Free</span>
+                    </div>
+                </div>
+                <div class="companions-scroll" id="free-companions">
+                    <!-- Free companions will be loaded here -->
+                </div>
+            </div>
+            
+            <!-- Premium Trial Offer -->
+            <div class="trial-offer" id="trial-offer">
+                <h3><i class="fas fa-star"></i> Try Premium Free!</h3>
+                <p>Experience a Growth companion for 24 hours - no commitment required</p>
+                <button class="btn-trial" onclick="showTrialModal()">Start Free Trial</button>
+            </div>
+            
+            <!-- Growth Companions Section -->
+            <div class="companion-section" id="growth-section">
+                <div class="section-header">
+                    <div class="section-title">
+                        <i class="fas fa-seedling"></i>
+                        <span>Growth Companions</span>
+                        <span class="tier-badge tier-growth">Growth</span>
+                    </div>
+                </div>
+                <div class="companions-scroll" id="growth-companions">
+                    <!-- Growth companions will be loaded here -->
+                </div>
+            </div>
+            
+            <!-- Max Companions Section -->
+            <div class="companion-section" id="max-section">
+                <div class="section-header">
+                    <div class="section-title">
+                        <i class="fas fa-crown"></i>
+                        <span>Max Companions</span>
+                        <span class="tier-badge tier-max">Max</span>
+                    </div>
+                </div>
+                <div class="companions-scroll" id="max-companions">
+                    <!-- Max companions will be loaded here -->
+                </div>
+            </div>
+            
+            <!-- Referral Companions Section -->
+            <div class="companion-section" id="referral-section">
+                <div class="section-header">
+                    <div class="section-title">
+                        <i class="fas fa-users"></i>
+                        <span>Community Champions</span>
+                        <span class="tier-badge tier-referral">Referral</span>
+                    </div>
+                </div>
+                <div class="companions-scroll" id="referral-companions">
+                    <!-- Referral companions will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Upgrade Modal -->
+    <div class="upgrade-modal" id="upgrade-modal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeUpgradeModal()">&times;</button>
+            <div class="modal-header">
+                <h2>Unlock Premium Companion</h2>
+                <p>This companion requires a subscription upgrade</p>
+            </div>
+            <div class="modal-body">
+                <div class="companion-preview" id="modal-companion-preview">
+                    <!-- Companion preview will be inserted here -->
+                </div>
+                
+                <div class="upgrade-plans">
+                    <div class="plan-card" onclick="selectPlan('growth')">
+                        <div class="plan-header">
+                            <span class="plan-name">Growth Plan</span>
+                            <span class="plan-price">$9.99/month</span>
+                        </div>
+                        <p>Access to Growth companions, advanced features, and priority support</p>
+                    </div>
+                    
+                    <div class="plan-card recommended" onclick="selectPlan('max')">
+                        <div class="plan-header">
+                            <span class="plan-name">Max Plan</span>
+                            <span class="plan-price">$19.99/month</span>
+                        </div>
+                        <p>All companions, advanced AI, voice interactions, and premium features</p>
+                        <div style="margin-top: 10px; color: var(--primary); font-weight: 600;">
+                            <i class="fas fa-star"></i> Most Popular
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let currentUser = {
+            subscription_tier: 'free', // Will be loaded from backend
+            referral_points: 0,
+            selected_companion: null
+        };
+        
+        let companions = {
+            free: [],
+            growth: [],
+            max: [],
+            referral: [],
+            locked: []
+        };
+        
+        // Load companions on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadUserData();
+            loadCompanions();
+        });
+        
+        async function loadUserData() {
+            try {
+                const response = await fetch('/api/user/profile');
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentUser.subscription_tier = data.user.subscription_tier || 'free';
+                    currentUser.referral_points = data.user.referral_points || 0;
+                    currentUser.selected_companion = data.user.selected_companion;
+                }
+            } catch (error) {
+                console.error('Error loading user data:', error);
+            }
+        }
+        
+        async function loadCompanions() {
+            try {
+                const response = await fetch(`/api/companions/accessible?tier=${currentUser.subscription_tier}&points=${currentUser.referral_points}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    companions = data.companions;
+                    renderCompanions();
+                    updateTrialOffer();
+                }
+            } catch (error) {
+                console.error('Error loading companions:', error);
+            }
+        }
+        
+        function renderCompanions() {
+            renderSection('free', companions.free);
+            renderSection('growth', companions.growth.concat(companions.locked.filter(c => c.tier === 'growth')));
+            renderSection('max', companions.max.concat(companions.locked.filter(c => c.tier === 'max')));
+            renderSection('referral', companions.referral.concat(companions.locked.filter(c => c.tier === 'referral')));
+        }
+        
+        function renderSection(sectionId, companionList) {
+            const container = document.getElementById(`${sectionId}-companions`);
+            
+            if (companionList.length === 0) {
+                container.innerHTML = '<p style="color: rgba(255,255,255,0.7); text-align: center; padding: 40px;">No companions in this tier</p>';
+                return;
+            }
+            
+            container.innerHTML = companionList.map(companion => {
+                const isLocked = companion.lock_reason;
+                const isSelected = currentUser.selected_companion === companion.companion_id;
+                
+                return `
+                    <div class="companion-card ${isLocked ? 'locked' : ''} ${isSelected ? 'selected' : ''}" 
+                         onclick="${isLocked ? `showUpgradeModal('${companion.companion_id}')` : `selectCompanion('${companion.companion_id}')`}">
+                        
+                        <div class="companion-avatar">
+                            <img src="${companion.avatar_image}" alt="${companion.display_name}" onerror="this.src='/static/images/default-companion.png'">
+                            
+                            <div class="companion-badges">
+                                ${companion.popularity_score >= 95 ? '<span class="badge badge-popular">Most Popular</span>' : ''}
+                                ${companion.is_recommended ? '<span class="badge badge-recommended">Recommended</span>' : ''}
+                            </div>
+                            
+                            ${isLocked ? `
+                                <div class="lock-overlay">
+                                    <i class="fas fa-lock lock-icon"></i>
+                                </div>
+                            ` : ''}
+                        </div>
+                        
+                        <div class="companion-info">
+                            <h3 class="companion-name">${companion.display_name}</h3>
+                            
+                            <div class="companion-tags">
+                                ${companion.personality_tags.map(tag => `<span class="personality-tag">${tag}</span>`).join('')}
+                            </div>
+                            
+                            <p class="companion-bio">${companion.short_bio}</p>
+                            
+                            <div class="companion-features">
+                                ${companion.special_features.slice(0, 4).map(feature => `
+                                    <div class="feature-icon" title="${feature}">
+                                        <i class="fas fa-${getFeatureIcon(feature)}"></i>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            
+                            <div class="companion-actions">
+                                ${!isLocked ? `
+                                    <button class="btn-select ${isSelected ? 'selected' : ''}" 
+                                            ${isSelected ? 'disabled' : ''}>
+                                        ${isSelected ? 'Selected' : 'Select'}
+                                    </button>
+                                ` : `
+                                    <button class="btn-select" disabled>
+                                        🔒 ${companion.lock_reason}
+                                    </button>
+                                `}
+                                
+                                ${companion.voice_id ? `
+                                    <button class="btn-preview" onclick="event.stopPropagation(); previewVoice('${companion.companion_id}')">
+                                        <i class="fas fa-play"></i>
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function getFeatureIcon(feature) {
+            const iconMap = {
+                'Meditation guidance': 'leaf',
+                'Life advice': 'lightbulb',
+                'Emotional support': 'heart',
+                'Goal setting': 'target',
+                'Daily motivation': 'bolt',
+                'Progress tracking': 'chart-line',
+                'Spiritual guidance': 'om',
+                'Meditation sessions': 'moon',
+                'Energy healing': 'hand-sparkles',
+                'Voice interactions': 'microphone',
+                'Problem analysis': 'brain',
+                'Decision trees': 'project-diagram',
+                'Logic frameworks': 'cogs',
+                'Trauma healing': 'shield-alt',
+                'Transformation coaching': 'phoenix',
+                'Crisis support': 'ambulance',
+                'Advanced voice AI': 'robot',
+                'Priority response': 'star',
+                'Creative exercises': 'palette',
+                'Art therapy': 'paint-brush',
+                'Inspiration sessions': 'magic',
+                'Custom personality modes': 'user-cog',
+                'Community insights': 'users',
+                'Exclusive content': 'crown',
+                'Advanced features': 'rocket',
+                'Priority support': 'headset',
+                'Special voice interactions': 'comment-dots'
+            };
+            
+            return iconMap[feature] || 'star';
+        }
+        
+        async function selectCompanion(companionId) {
+            try {
+                const response = await fetch('/api/companions/select', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        companion_id: companionId,
+                        subscription_tier: currentUser.subscription_tier,
+                        referral_points: currentUser.referral_points
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentUser.selected_companion = companionId;
+                    
+                    // Add selection glow effect
+                    const card = document.querySelector(`[onclick*="${companionId}"]`);
+                    card.classList.add('selection-glow');
+                    
+                    // Show success message
+                    showNotification(`Successfully selected ${data.companion.display_name}!`, 'success');
+                    
+                    // Re-render to update selected state
+                    renderCompanions();
+                    
+                    // Redirect to chat after a brief delay
+                    setTimeout(() => {
+                        window.location.href = '/chat';
+                    }, 1500);
+                } else {
+                    if (data.upgrade_required) {
+                        showUpgradeModal(companionId);
+                    } else {
+                        showNotification(data.error, 'error');
+                    }
+                }
+            } catch (error) {
+                console.error('Error selecting companion:', error);
+                showNotification('Failed to select companion', 'error');
+            }
+        }
+        
+        function showUpgradeModal(companionId) {
+            const companion = findCompanionById(companionId);
+            if (!companion) return;
+            
+            const modal = document.getElementById('upgrade-modal');
+            const preview = document.getElementById('modal-companion-preview');
+            
+            preview.innerHTML = `
+                <img src="${companion.avatar_image}" alt="${companion.display_name}">
+                <h3>${companion.display_name}</h3>
+                <p>${companion.detailed_bio}</p>
+                <div style="margin-top: 15px;">
+                    <strong>Special Features:</strong>
+                    <ul style="text-align: left; margin-top: 8px;">
+                        ${companion.special_features.map(feature => `<li>${feature}</li>`).join('')}
+                    </ul>
+                </div>
+            `;
+            
+            modal.style.display = 'flex';
+        }
+        
+        function closeUpgradeModal() {
+            document.getElementById('upgrade-modal').style.display = 'none';
+        }
+        
+        async function selectPlan(planType) {
+            try {
+                const response = await fetch('/api/subscription/upgrade', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        plan: planType
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success && data.checkout_url) {
+                    window.location.href = data.checkout_url;
+                } else {
+                    showNotification('Failed to start upgrade process', 'error');
+                }
+            } catch (error) {
+                console.error('Error upgrading:', error);
+                showNotification('Failed to upgrade subscription', 'error');
+            }
+        }
+        
+        function updateTrialOffer() {
+            const trialOffer = document.getElementById('trial-offer');
+            
+            if (currentUser.subscription_tier !== 'free') {
+                trialOffer.style.display = 'none';
+            } else {
+                trialOffer.style.display = 'block';
+            }
+        }
+        
+        async function showTrialModal() {
+            // Show available Growth companions for trial
+            const growthCompanions = companions.growth;
+            if (growthCompanions.length === 0) {
+                showNotification('No Growth companions available for trial', 'info');
+                return;
+            }
+            
+            // For now, offer trial of first Growth companion
+            const companion = growthCompanions[0];
+            
+            try {
+                const response = await fetch('/api/companions/trial', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        companion_id: companion.companion_id
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification(`Trial started for ${companion.display_name}! Enjoy 24 hours of premium access.`, 'success');
+                    setTimeout(() => {
+                        window.location.href = '/chat';
+                    }, 2000);
+                } else {
+                    showNotification(data.error, 'error');
+                }
+            } catch (error) {
+                console.error('Error starting trial:', error);
+                showNotification('Failed to start trial', 'error');
+            }
+        }
+        
+        async function previewVoice(companionId) {
+            // Placeholder for voice preview functionality
+            showNotification('Voice preview coming soon!', 'info');
+        }
+        
+        function findCompanionById(companionId) {
+            const allCompanions = [
+                ...companions.free,
+                ...companions.growth,
+                ...companions.max,
+                ...companions.referral,
+                ...companions.locked
+            ];
+            
+            return allCompanions.find(c => c.companion_id === companionId);
+        }
+        
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 20px;
+                background: ${type === 'success' ? '#4CAF50' : type === 'error' ? '#f44336' : '#2196F3'};
+                color: white;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                z-index: 10000;
+                max-width: 300px;
+                font-weight: 500;
+                animation: slideInRight 0.3s ease;
+            `;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOutRight 0.3s ease';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 4000);
+        }
+        
+        // Add CSS animations for notifications
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideInRight {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOutRight {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Close modal when clicking outside
+        document.getElementById('upgrade-modal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) {
+                closeUpgradeModal();
+            }
+        });
+    </script>
+</body>
+</html>
