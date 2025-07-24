@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Group Therapy Sessions - SoulBridge AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/themes.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .therapy-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 20px;
+            height: calc(100vh - 40px);
+        }
+        
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .session-card {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 15px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .session-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .session-card.active {
+            border-color: var(--primary);
+            background: var(--primary-alpha);
+        }
+        
+        .session-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: var(--text);
+        }
+        
+        .session-type {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+        
+        .session-status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        
+        .status-active { background: #4CAF50; color: white; }
+        .status-scheduled { background: #FF9800; color: white; }
+        .status-completed { background: #9E9E9E; color: white; }
+        
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            background: var(--surface);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+        
+        .session-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            background: var(--background);
+        }
+        
+        .session-info h2 {
+            margin: 0 0 10px 0;
+            color: var(--text);
+        }
+        
+        .session-meta {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+        
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .message {
+            display: flex;
+            gap: 10px;
+            max-width: 80%;
+        }
+        
+        .message.own {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+        
+        .message.system {
+            align-self: center;
+            max-width: 90%;
+        }
+        
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        
+        .message-content {
+            background: var(--background);
+            padding: 12px 16px;
+            border-radius: 18px;
+            border: 1px solid var(--border);
+        }
+        
+        .message.own .message-content {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .message.system .message-content {
+            background: var(--warning);
+            color: #333;
+            text-align: center;
+            font-style: italic;
+        }
+        
+        .message-header {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+        
+        .message.own .message-header {
+            color: rgba(255,255,255,0.8);
+        }
+        
+        .emotion-checkin {
+            background: linear-gradient(135deg, #6B73FF, #9F7AEA);
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        
+        .input-area {
+            padding: 20px;
+            border-top: 1px solid var(--border);
+            background: var(--background);
+        }
+        
+        .input-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .emotion-btn, .activity-btn {
+            padding: 8px 16px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .emotion-btn:hover, .activity-btn:hover {
+            background: var(--primary-dark);
+        }
+        
+        .message-input-container {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+        
+        .message-input {
+            flex: 1;
+            min-height: 40px;
+            max-height: 120px;
+            padding: 10px 15px;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            background: var(--surface);
+            color: var(--text);
+            resize: none;
+            font-family: inherit;
+        }
+        
+        .send-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .send-btn:hover {
+            background: var(--primary-dark);
+        }
+        
+        .send-btn:disabled {
+            background: var(--border);
+            cursor: not-allowed;
+        }
+        
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--text-secondary);
+        }
+        
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+        
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: var(--background);
+            border-radius: 12px;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow: auto;
+            padding: 20px;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .modal-header h3 {
+            margin: 0;
+            color: var(--text);
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text);
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: var(--text);
+        }
+        
+        .form-group select,
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--surface);
+            color: var(--text);
+        }
+        
+        .emotion-scale {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+        }
+        
+        .scale-number {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .scale-number.selected {
+            background: var(--primary);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="therapy-container">
+        <div class="sidebar">
+            <div>
+                <h3 style="color: var(--text); margin-bottom: 15px;">
+                    <i class="fas fa-users"></i> Group Sessions
+                </h3>
+                <div id="sessions-list">
+                    <div class="empty-state">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Loading sessions...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="btn" onclick="showCreateSessionModal()">
+                <i class="fas fa-plus"></i> Create Session
+            </button>
+        </div>
+        
+        <div class="main-content">
+            <div id="empty-state" class="empty-state">
+                <i class="fas fa-comments"></i>
+                <h3>Welcome to Group Therapy</h3>
+                <p>Select a session to join or create a new one to get started.</p>
+            </div>
+            
+            <div id="session-view" style="display: none; height: 100%; flex-direction: column;">
+                <div class="session-header">
+                    <div class="session-info">
+                        <h2 id="current-session-title">Session Title</h2>
+                        <div class="session-meta">
+                            <span id="current-session-type">Session Type</span>
+                            <span id="current-session-participants">0 participants</span>
+                            <span id="current-session-status">Status</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="chat-area">
+                    <div class="messages-container" id="messages-container">
+                        <!-- Messages will be loaded here -->
+                    </div>
+                    
+                    <div class="input-area">
+                        <div class="input-controls">
+                            <button class="emotion-btn" onclick="showEmotionCheckin()">
+                                <i class="fas fa-heart"></i> Emotion Check-in
+                            </button>
+                            <button class="activity-btn" onclick="showActivities()">
+                                <i class="fas fa-puzzle-piece"></i> Activities
+                            </button>
+                        </div>
+                        
+                        <div class="message-input-container">
+                            <textarea 
+                                id="message-input" 
+                                class="message-input" 
+                                placeholder="Share your thoughts in this safe space..."
+                                rows="1"
+                            ></textarea>
+                            <button id="send-btn" class="send-btn" onclick="sendMessage()">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Create Session Modal -->
+    <div id="create-session-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create Group Therapy Session</h3>
+                <button class="close-btn" onclick="closeModal('create-session-modal')">&times;</button>
+            </div>
+            
+            <form id="create-session-form">
+                <div class="form-group">
+                    <label>Session Title</label>
+                    <input type="text" name="title" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Session Type</label>
+                    <select name="session_type" required>
+                        <option value="peer_support">Peer Support</option>
+                        <option value="anxiety_support">Anxiety Support</option>
+                        <option value="depression_support">Depression Support</option>
+                        <option value="grief_support">Grief Support</option>
+                        <option value="addiction_recovery">Addiction Recovery</option>
+                        <option value="trauma_healing">Trauma Healing</option>
+                        <option value="mindfulness">Mindfulness</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Description</label>
+                    <input type="text" name="description">
+                </div>
+                
+                <div class="form-group">
+                    <label>Start Date/Time</label>
+                    <input type="datetime-local" name="scheduled_start" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>End Date/Time</label>
+                    <input type="datetime-local" name="scheduled_end" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Max Participants</label>
+                    <select name="max_participants">
+                        <option value="4">4 people</option>
+                        <option value="6">6 people</option>
+                        <option value="8" selected>8 people</option>
+                        <option value="12">12 people</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="btn">Create Session</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Emotion Check-in Modal -->
+    <div id="emotion-checkin-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Emotion Check-in</h3>
+                <button class="close-btn" onclick="closeModal('emotion-checkin-modal')">&times;</button>
+            </div>
+            
+            <form id="emotion-checkin-form">
+                <div class="form-group">
+                    <label>How are you feeling right now?</label>
+                    <select name="emotion_before" required>
+                        <option value="">Select emotion...</option>
+                        <option value="happy">Happy</option>
+                        <option value="sad">Sad</option>
+                        <option value="anxious">Anxious</option>
+                        <option value="angry">Angry</option>
+                        <option value="peaceful">Peaceful</option>
+                        <option value="overwhelmed">Overwhelmed</option>
+                        <option value="hopeful">Hopeful</option>
+                        <option value="frustrated">Frustrated</option>
+                        <option value="grateful">Grateful</option>
+                        <option value="confused">Confused</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Intensity (1-10)</label>
+                    <div class="emotion-scale" id="intensity-before-scale">
+                        <span>1</span>
+                        <div style="display: flex; gap: 5px;">
+                            <div class="scale-number" data-value="1">1</div>
+                            <div class="scale-number" data-value="2">2</div>
+                            <div class="scale-number" data-value="3">3</div>
+                            <div class="scale-number" data-value="4">4</div>
+                            <div class="scale-number" data-value="5">5</div>
+                            <div class="scale-number" data-value="6">6</div>
+                            <div class="scale-number" data-value="7">7</div>
+                            <div class="scale-number" data-value="8">8</div>
+                            <div class="scale-number" data-value="9">9</div>
+                            <div class="scale-number" data-value="10">10</div>
+                        </div>
+                        <span>10</span>
+                    </div>
+                    <input type="hidden" name="intensity_before" id="intensity-before-value">
+                </div>
+                
+                <div class="form-group">
+                    <label>Any notes about what's affecting your mood?</label>
+                    <input type="text" name="notes" placeholder="Optional...">
+                </div>
+                
+                <button type="submit" class="btn">Record Check-in</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let currentSessionId = null;
+        let messagePolling = null;
+        
+        // Load sessions on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSessions();
+            setupEventListeners();
+        });
+        
+        function setupEventListeners() {
+            // Message input auto-resize
+            const messageInput = document.getElementById('message-input');
+            messageInput.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+            });
+            
+            // Send message on Enter (but not Shift+Enter)
+            messageInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+            
+            // Emotion scale selection
+            document.querySelectorAll('.emotion-scale .scale-number').forEach(number => {
+                number.addEventListener('click', function() {
+                    const scale = this.parentElement;
+                    scale.querySelectorAll('.scale-number').forEach(n => n.classList.remove('selected'));
+                    this.classList.add('selected');
+                    
+                    const hiddenInput = document.getElementById('intensity-before-value');
+                    hiddenInput.value = this.dataset.value;
+                });
+            });
+            
+            // Form submissions
+            document.getElementById('create-session-form').addEventListener('submit', createSession);
+            document.getElementById('emotion-checkin-form').addEventListener('submit', submitEmotionCheckin);
+        }
+        
+        async function loadSessions() {
+            try {
+                const response = await fetch('/api/group-therapy/sessions');
+                const data = await response.json();
+                
+                if (data.success) {
+                    displaySessions(data.sessions);
+                } else {
+                    console.error('Failed to load sessions:', data.error);
+                }
+            } catch (error) {
+                console.error('Error loading sessions:', error);
+            }
+        }
+        
+        function displaySessions(sessions) {
+            const container = document.getElementById('sessions-list');
+            
+            if (sessions.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-calendar-plus"></i>
+                        <p>No sessions yet.<br>Create one to get started!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = sessions.map(session => `
+                <div class="session-card" onclick="selectSession('${session.session_id}')">
+                    <div class="session-title">${session.title}</div>
+                    <div class="session-type">${session.session_type.replace(/_/g, ' ')}</div>
+                    <span class="session-status status-${session.status}">${session.status}</span>
+                </div>
+            `).join('');
+        }
+        
+        async function selectSession(sessionId) {
+            currentSessionId = sessionId;
+            
+            // Update UI
+            document.querySelectorAll('.session-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            event.target.closest('.session-card').classList.add('active');
+            
+            // Load session details
+            await loadSessionMessages();
+            
+            // Show session view
+            document.getElementById('empty-state').style.display = 'none';
+            document.getElementById('session-view').style.display = 'flex';
+            
+            // Start polling for new messages
+            startMessagePolling();
+        }
+        
+        async function loadSessionMessages() {
+            if (!currentSessionId) return;
+            
+            try {
+                const response = await fetch(`/api/group-therapy/sessions/${currentSessionId}/messages`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const session = data.session.session;
+                    
+                    // Update session info
+                    document.getElementById('current-session-title').textContent = session.title;
+                    document.getElementById('current-session-type').textContent = session.session_type.replace(/_/g, ' ');
+                    document.getElementById('current-session-participants').textContent = `${data.session.participant_count} participants`;
+                    document.getElementById('current-session-status').textContent = session.status;
+                    
+                    // Display messages
+                    displayMessages(session.messages);
+                } else {
+                    console.error('Failed to load session:', data.error);
+                }
+            } catch (error) {
+                console.error('Error loading session:', error);
+            }
+        }
+        
+        function displayMessages(messages) {
+            const container = document.getElementById('messages-container');
+            
+            container.innerHTML = messages.map(message => {
+                const isOwn = message.user_id === 'current_user'; // Would get from session
+                const isSystem = message.user_id === 'system' || message.user_id === 'ai_facilitator';
+                
+                let messageClass = 'message';
+                if (isOwn) messageClass += ' own';
+                if (isSystem) messageClass += ' system';
+                
+                return `
+                    <div class="${messageClass}">
+                        <div class="message-avatar">
+                            ${isSystem ? '🤖' : (isOwn ? 'Y' : message.display_name[0].toUpperCase())}
+                        </div>
+                        <div class="message-content">
+                            ${!isSystem && !isOwn ? `<div class="message-header">${message.display_name}</div>` : ''}
+                            <div>${message.content}</div>
+                            ${message.message_type === 'emotion_check' ? '<div class="emotion-checkin">Emotion Check-in</div>' : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            // Scroll to bottom
+            container.scrollTop = container.scrollHeight;
+        }
+        
+        function startMessagePolling() {
+            if (messagePolling) clearInterval(messagePolling);
+            
+            messagePolling = setInterval(() => {
+                if (currentSessionId) {
+                    loadSessionMessages();
+                }
+            }, 3000); // Poll every 3 seconds
+        }
+        
+        async function sendMessage() {
+            const input = document.getElementById('message-input');
+            const content = input.value.trim();
+            
+            if (!content || !currentSessionId) return;
+            
+            try {
+                const response = await fetch(`/api/group-therapy/sessions/${currentSessionId}/messages`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        content: content,
+                        message_type: 'chat'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    input.value = '';
+                    input.style.height = 'auto';
+                    loadSessionMessages(); // Refresh messages
+                } else {
+                    alert('Failed to send message: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error sending message:', error);
+                alert('Failed to send message');
+            }
+        }
+        
+        function showCreateSessionModal() {
+            document.getElementById('create-session-modal').style.display = 'flex';
+        }
+        
+        function showEmotionCheckin() {
+            if (!currentSessionId) {
+                alert('Please select a session first');
+                return;
+            }
+            document.getElementById('emotion-checkin-modal').style.display = 'flex';
+        }
+        
+        function showActivities() {
+            alert('Therapeutic activities feature coming soon!');
+        }
+        
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+        
+        async function createSession(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const sessionData = Object.fromEntries(formData.entries());
+            
+            try {
+                const response = await fetch('/api/group-therapy/sessions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(sessionData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    closeModal('create-session-modal');
+                    loadSessions(); // Refresh sessions list
+                    alert('Session created successfully!');
+                } else {
+                    alert('Failed to create session: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error creating session:', error);
+                alert('Failed to create session');
+            }
+        }
+        
+        async function submitEmotionCheckin(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const checkinData = Object.fromEntries(formData.entries());
+            
+            try {
+                const response = await fetch(`/api/group-therapy/sessions/${currentSessionId}/emotion-checkin`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(checkinData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    closeModal('emotion-checkin-modal');
+                    loadSessionMessages(); // Refresh to show check-in
+                    alert('Emotion check-in recorded!');
+                } else {
+                    alert('Failed to record check-in: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error submitting check-in:', error);
+                alert('Failed to record check-in');
+            }
+        }
+        
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (messagePolling) clearInterval(messagePolling);
+        });
+    </script>
+</body>
+</html>

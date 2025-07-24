@@ -51,6 +51,51 @@ try:
 except ImportError:
     print("python-dotenv not installed, using system environment variables only")
 
+# Import AI model manager for personality modes
+try:
+    from ai_model_manager import AIModelManager
+    ai_model_manager = None  # Will be initialized later
+except ImportError:
+    logger.warning("AI Model Manager not available")
+    AIModelManager = None
+    ai_model_manager = None
+
+# Import gamification system for badges and achievements
+try:
+    from gamification_system import GamificationSystem
+    gamification_system = None  # Will be initialized later
+except ImportError:
+    logger.warning("Gamification System not available")
+    GamificationSystem = None
+    gamification_system = None
+
+# Import ML threat detection system
+try:
+    from ml_threat_detection import MLThreatDetector
+    ml_threat_detector = None  # Will be initialized later
+except ImportError:
+    logger.warning("ML Threat Detection System not available")
+    MLThreatDetector = None
+    ml_threat_detector = None
+
+# Import group therapy system
+try:
+    from group_therapy_system import GroupTherapySystem
+    group_therapy_system = None  # Will be initialized later
+except ImportError:
+    logger.warning("Group Therapy System not available")
+    GroupTherapySystem = None
+    group_therapy_system = None
+
+# Import creative therapy tools
+try:
+    from creative_therapy_tools import CreativeTherapySystem
+    creative_therapy_system = None  # Will be initialized later
+except ImportError:
+    logger.warning("Creative Therapy System not available")
+    CreativeTherapySystem = None
+    creative_therapy_system = None
+
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
@@ -225,6 +270,72 @@ def maintain_session():
             auto_maintenance.detect_error_pattern("SESSION_MAINTENANCE", str(e))
         except:
             pass
+
+@app.before_request
+def ml_threat_analysis():
+    """ML-based threat analysis for all requests"""
+    try:
+        # Skip threat analysis for static files and internal routes
+        if (request.endpoint in ['static', 'favicon'] or 
+            request.path.startswith('/static/') or
+            request.path.startswith('/_')):
+            return
+            
+        # Skip if ML threat detector not available
+        if not ml_threat_detector or not services.get("ml_threat_detector"):
+            return
+            
+        # Extract request data for analysis
+        request_data = {
+            "ip_address": get_remote_address(),
+            "user_id": session.get('user_id'),
+            "user_agent": request.headers.get('User-Agent', ''),
+            "method": request.method,
+            "path": request.path,
+            "url": request.url,
+            "headers": dict(request.headers),
+            "content": request.get_data(as_text=True) if request.method in ['POST', 'PUT'] else '',
+            "parameters": dict(request.args),
+            "timestamp": datetime.now()
+        }
+        
+        # Analyze request for threats
+        threat_event = ml_threat_detector.analyze_request(request_data)
+        
+        # Take action based on threat level
+        if ml_threat_detector.should_block_request(threat_event):
+            logger.warning(f"🚨 ML THREAT BLOCKED: {threat_event.threat_type.name} "
+                         f"from {threat_event.ip_address} (Score: {threat_event.confidence_score:.2f})")
+            
+            # Log to existing threat system
+            try:
+                auto_maintenance.log_threat(
+                    threat_event.ip_address,
+                    f"ML detected {threat_event.threat_type.name}: {threat_event.evidence}",
+                    "high" if threat_event.threat_level.name == "HIGH" else "critical"
+                )
+            except Exception as log_error:
+                logger.warning(f"Failed to log threat: {log_error}")
+            
+            # Return block response
+            return jsonify({
+                "success": False,
+                "error": "Request blocked due to security policy",
+                "reference": threat_event.event_id
+            }), 403
+        
+        # Log high-confidence threats (but don't block)
+        elif threat_event.confidence_score > 0.7:
+            logger.info(f"🔍 ML THREAT DETECTED: {threat_event.threat_type.name} "
+                       f"from {threat_event.ip_address} (Score: {threat_event.confidence_score:.2f})")
+            
+        # Store threat event in request context for further analysis
+        request.ml_threat_event = threat_event
+        
+    except Exception as e:
+        logger.error(f"ML threat analysis error: {e}")
+        # Don't block requests if threat analysis fails
+
 openai_client = None
 email_service = None
 socketio = None
@@ -1106,6 +1217,96 @@ def init_openai():
             services["openai"] = None
             return False
 
+def init_ai_model_manager():
+    """Initialize AI Model Manager for personality modes"""
+    global ai_model_manager
+    try:
+        if not AIModelManager:
+            logger.warning("AI Model Manager class not available")
+            return False
+            
+        logger.info("Initializing AI Model Manager...")
+        ai_model_manager = AIModelManager()
+        services["ai_model_manager"] = ai_model_manager
+        logger.info("✅ AI Model Manager initialized successfully")
+        return True
+    except Exception as e:
+        logger.error(f"❌ AI Model Manager initialization failed: {e}")
+        services["ai_model_manager"] = None
+        return False
+
+def init_gamification_system():
+    """Initialize Gamification System for badges and achievements"""
+    global gamification_system
+    try:
+        if not GamificationSystem:
+            logger.warning("Gamification System class not available")
+            return False
+            
+        logger.info("Initializing Gamification System...")
+        gamification_system = GamificationSystem()
+        services["gamification"] = gamification_system
+        logger.info("✅ Gamification System initialized successfully")
+        return True
+    except Exception as e:
+        logger.error(f"❌ Gamification System initialization failed: {e}")
+        services["gamification"] = None
+        return False
+
+def init_ml_threat_detector():
+    """Initialize ML-based Threat Detection System"""
+    global ml_threat_detector
+    try:
+        if not MLThreatDetector:
+            logger.warning("ML Threat Detector class not available")
+            return False
+            
+        logger.info("Initializing ML Threat Detection System...")
+        ml_threat_detector = MLThreatDetector()
+        services["ml_threat_detector"] = ml_threat_detector
+        logger.info("✅ ML Threat Detection System initialized successfully")
+        return True
+    except Exception as e:
+        logger.error(f"❌ ML Threat Detection System initialization failed: {e}")
+        services["ml_threat_detector"] = None
+        return False
+
+def init_group_therapy_system():
+    """Initialize Group Therapy System for real-time sessions"""
+    global group_therapy_system
+    try:
+        if not GroupTherapySystem:
+            logger.warning("Group Therapy System class not available")
+            return False
+            
+        logger.info("Initializing Group Therapy System...")
+        group_therapy_system = GroupTherapySystem()
+        services["group_therapy"] = group_therapy_system
+        logger.info("✅ Group Therapy System initialized successfully")
+        return True
+    except Exception as e:
+        logger.error(f"❌ Group Therapy System initialization failed: {e}")
+        services["group_therapy"] = None
+        return False
+
+def init_creative_therapy_system():
+    """Initialize Creative Therapy System for art, music, and journaling"""
+    global creative_therapy_system
+    try:
+        if not CreativeTherapySystem:
+            logger.warning("Creative Therapy System class not available")
+            return False
+            
+        logger.info("Initializing Creative Therapy System...")
+        creative_therapy_system = CreativeTherapySystem()
+        services["creative_therapy"] = creative_therapy_system
+        logger.info("✅ Creative Therapy System initialized successfully")
+        return True
+    except Exception as e:
+        logger.error(f"❌ Creative Therapy System initialization failed: {e}")
+        services["creative_therapy"] = None
+        return False
+
 def init_email():
     """Initialize email service with error handling"""
     global email_service
@@ -1158,6 +1359,11 @@ def initialize_services():
     init_functions = [
         ("Database", init_database),
         ("OpenAI", init_openai), 
+        ("AI Model Manager", init_ai_model_manager),
+        ("Gamification System", init_gamification_system),
+        ("ML Threat Detector", init_ml_threat_detector),
+        ("Group Therapy System", init_group_therapy_system),
+        ("Creative Therapy System", init_creative_therapy_system),
         ("Email", init_email),
         ("SocketIO", init_socketio),
     ]
@@ -5790,6 +5996,7 @@ def api_chat():
             
         message = data.get("message", "").strip()
         character = data.get("character", "Blayzo")
+        personality_mode = data.get("personality_mode", None)
         
         if not message or len(message) > 1000:
             return jsonify({"success": False, "response": "Message is required and must be under 1000 characters"}), 400
@@ -5798,22 +6005,58 @@ def api_chat():
         if character not in VALID_CHARACTERS:
             character = "Blayzo"  # Default fallback
         
-        # Use OpenAI for actual AI response
+        # Use AI Model Manager for personality modes if available, fallback to OpenAI
         try:
-            response = openai_client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": f"You are {character}, a helpful AI companion from SoulBridge AI."},
-                    {"role": "user", "content": message}
-                ],
-                max_tokens=150,
-                temperature=0.7
-            )
-            ai_response = response.choices[0].message.content
+            if ai_model_manager and services.get("ai_model_manager"):
+                # Get user subscription tier (simplified for now)
+                user_tier = "free"  # Could be enhanced to check actual user tier
+                user_id = session.get('user_id', 'anonymous')
+                
+                # Use AI Model Manager with personality mode support
+                response_data = ai_model_manager.get_companion_response(
+                    companion_name=character,
+                    user_message=message,
+                    user_tier=user_tier,
+                    user_id=user_id,
+                    personality_mode=personality_mode
+                )
+                
+                if response_data.get("success"):
+                    ai_response = response_data["response"]
+                else:
+                    raise Exception(response_data.get("error", "AI Model Manager failed"))
+            else:
+                # Fallback to direct OpenAI call
+                response = openai_client.chat.completions.create(
+                    model="gpt-3.5-turbo",
+                    messages=[
+                        {"role": "system", "content": f"You are {character}, a helpful AI companion from SoulBridge AI."},
+                        {"role": "user", "content": message}
+                    ],
+                    max_tokens=150,
+                    temperature=0.7
+                )
+                ai_response = response.choices[0].message.content
         except Exception as ai_error:
-            logger.warning(f"OpenAI API error: {ai_error}")
+            logger.warning(f"AI response error: {ai_error}")
             ai_response = f"Hello! I'm {character}. Thanks for your message: '{message}'. How can I help you today?"
         
+        # Track user activity for gamification
+        if gamification_system and services.get("gamification"):
+            try:
+                user_id = session.get('user_id', 'anonymous')
+                activity_data = {
+                    "messages_sent": 1,  # This would be cumulative in a real system
+                    "last_activity": datetime.now()
+                }
+                
+                # Check for new achievements (non-blocking)
+                newly_earned = gamification_system.check_achievements(user_id, activity_data)
+                if newly_earned:
+                    logger.info(f"User {user_id} earned new achievements: {newly_earned}")
+            except Exception as gamification_error:
+                logger.warning(f"Gamification tracking error: {gamification_error}")
+
         return jsonify({"success": True, "response": ai_response})
         
     except Exception as e:
@@ -5824,6 +6067,504 @@ def api_chat():
         except:
             pass
         return jsonify({"success": False, "response": "Sorry, I encountered an error."}), 500
+
+@app.route("/api/personality-modes", methods=["GET"])
+def api_personality_modes():
+    """Get available AI personality modes"""
+    try:
+        if ai_model_manager and services.get("ai_model_manager"):
+            modes = ai_model_manager.get_personality_modes()
+            return jsonify({"success": True, "modes": modes})
+        else:
+            return jsonify({"success": False, "error": "AI Model Manager not available"}), 503
+    except Exception as e:
+        logger.error(f"Personality modes API error: {e}")
+        return jsonify({"success": False, "error": "Failed to fetch personality modes"}), 500
+
+@app.route("/api/achievements", methods=["GET"])
+def api_achievements():
+    """Get user achievements and available badges"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+            
+        if not gamification_system or not services.get("gamification"):
+            return jsonify({"success": False, "error": "Gamification system not available"}), 503
+            
+        user_id = session.get('user_id', 'anonymous')
+        
+        # Get user profile and achievements
+        user_profile = gamification_system.get_user_profile(user_id)
+        available_achievements = gamification_system.get_available_achievements(user_id)
+        
+        return jsonify({
+            "success": True,
+            "profile": user_profile,
+            "achievements": available_achievements
+        })
+    except Exception as e:
+        logger.error(f"Achievements API error: {e}")
+        return jsonify({"success": False, "error": "Failed to fetch achievements"}), 500
+
+@app.route("/api/leaderboard", methods=["GET"])
+def api_leaderboard():
+    """Get gamification leaderboard"""
+    try:
+        if not gamification_system or not services.get("gamification"):
+            return jsonify({"success": False, "error": "Gamification system not available"}), 503
+            
+        limit = request.args.get('limit', 50, type=int)
+        leaderboard = gamification_system.get_leaderboard(limit)
+        
+        return jsonify({
+            "success": True,
+            "leaderboard": leaderboard
+        })
+    except Exception as e:
+        logger.error(f"Leaderboard API error: {e}")
+        return jsonify({"success": False, "error": "Failed to fetch leaderboard"}), 500
+
+@app.route("/api/check-achievements", methods=["POST"])
+def api_check_achievements():
+    """Check and award achievements based on user activity"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+            
+        if not gamification_system or not services.get("gamification"):
+            return jsonify({"success": False, "error": "Gamification system not available"}), 503
+            
+        user_id = session.get('user_id', 'anonymous')
+        data = request.get_json() or {}
+        
+        # Check for new achievements
+        newly_earned = gamification_system.check_achievements(user_id, data)
+        updated_profile = gamification_system.get_user_profile(user_id)
+        
+        return jsonify({
+            "success": True,
+            "newly_earned": newly_earned,
+            "profile": updated_profile
+        })
+    except Exception as e:
+        logger.error(f"Check achievements API error: {e}")
+        return jsonify({"success": False, "error": "Failed to check achievements"}), 500
+
+@app.route("/api/threat-intelligence", methods=["GET"])
+def api_threat_intelligence():
+    """Get ML threat intelligence dashboard"""
+    try:
+        if not ml_threat_detector or not services.get("ml_threat_detector"):
+            return jsonify({"success": False, "error": "ML threat detection not available"}), 503
+            
+        hours = request.args.get('hours', 24, type=int)
+        intelligence = ml_threat_detector.get_threat_intelligence(hours)
+        
+        return jsonify({
+            "success": True,
+            "intelligence": intelligence,
+            "timeframe_hours": hours
+        })
+    except Exception as e:
+        logger.error(f"Threat intelligence API error: {e}")
+        return jsonify({"success": False, "error": "Failed to fetch threat intelligence"}), 500
+
+@app.route("/api/user-risk", methods=["GET"])
+def api_user_risk():
+    """Get current user's risk score"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+            
+        if not ml_threat_detector or not services.get("ml_threat_detector"):
+            return jsonify({"success": False, "error": "ML threat detection not available"}), 503
+            
+        user_id = session.get('user_id', 'anonymous')
+        risk_score = ml_threat_detector.get_user_risk_score(user_id)
+        
+        return jsonify({
+            "success": True,
+            "risk_score": risk_score,
+            "risk_level": "high" if risk_score > 0.7 else "medium" if risk_score > 0.3 else "low"
+        })
+    except Exception as e:
+        logger.error(f"User risk API error: {e}")
+        return jsonify({"success": False, "error": "Failed to fetch user risk"}), 500
+
+@app.route("/admin/threat-dashboard")
+def admin_threat_dashboard():
+    """Admin dashboard for ML threat intelligence"""
+    try:
+        # Simple admin check (you might want to enhance this)
+        if not is_logged_in() or session.get('user_email') != 'admin@soulbridgeai.com':
+            return redirect(url_for('login_page'))
+            
+        return render_template('admin_threat_dashboard.html')
+    except Exception as e:
+        logger.error(f"Admin threat dashboard error: {e}")
+        return "Dashboard unavailable", 500
+
+@app.route("/api/group-therapy/sessions", methods=["GET", "POST"])
+def api_group_therapy_sessions():
+    """Manage group therapy sessions"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+            
+        if not group_therapy_system or not services.get("group_therapy"):
+            return jsonify({"success": False, "error": "Group therapy system not available"}), 503
+        
+        if request.method == "GET":
+            # Get user's session history
+            user_id = session.get('user_id', 'anonymous')
+            sessions = group_therapy_system.get_user_session_history(user_id)
+            
+            return jsonify({
+                "success": True,
+                "sessions": sessions
+            })
+            
+        elif request.method == "POST":
+            # Create new session (facilitator only)
+            data = request.get_json()
+            if not data:
+                return jsonify({"success": False, "error": "Invalid request data"}), 400
+            
+            # Add facilitator ID
+            data["facilitator_id"] = session.get('user_id', 'anonymous')
+            
+            session_id = group_therapy_system.create_session(data)
+            
+            return jsonify({
+                "success": True,
+                "session_id": session_id
+            })
+            
+    except Exception as e:
+        logger.error(f"Group therapy sessions API error: {e}")
+        return jsonify({"success": False, "error": "Session management failed"}), 500
+
+@app.route("/api/group-therapy/sessions/<session_id>/join", methods=["POST"])
+def api_join_therapy_session(session_id):
+    """Join a group therapy session"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+            
+        if not group_therapy_system or not services.get("group_therapy"):
+            return jsonify({"success": False, "error": "Group therapy system not available"}), 503
+        
+        user_id = session.get('user_id', 'anonymous')
+        data = request.get_json() or {}
+        
+        # Add user info
+        user_data = {
+            "display_name": data.get("display_name", f"User{user_id[-4:]}"),
+            "role": data.get("role", "participant")
+        }
+        
+        success = group_therapy_system.join_session(session_id, user_id, user_data)
+        
+        if success:
+            return jsonify({"success": True, "message": "Joined session successfully"})
+        else:
+            return jsonify({"success": False, "error": "Failed to join session"}), 400
+            
+    except Exception as e:
+        logger.error(f"Join therapy session API error: {e}")
+        return jsonify({"success": False, "error": "Failed to join session"}), 500
+
+@app.route("/api/group-therapy/sessions/<session_id>/messages", methods=["GET", "POST"])
+def api_therapy_session_messages(session_id):
+    """Get or send messages in therapy session"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+            
+        if not group_therapy_system or not services.get("group_therapy"):
+            return jsonify({"success": False, "error": "Group therapy system not available"}), 503
+        
+        if request.method == "GET":
+            # Get session info including messages
+            session_info = group_therapy_system.get_session_info(session_id)
+            
+            if not session_info:
+                return jsonify({"success": False, "error": "Session not found"}), 404
+            
+            return jsonify({
+                "success": True,
+                "session": session_info
+            })
+            
+        elif request.method == "POST":
+            # Send message to session
+            data = request.get_json()
+            if not data or not data.get("content"):
+                return jsonify({"success": False, "error": "Message content required"}), 400
+            
+            user_id = session.get('user_id', 'anonymous')
+            success = group_therapy_system.send_message(session_id, user_id, data)
+            
+            if success:
+                return jsonify({"success": True, "message": "Message sent"})
+            else:
+                return jsonify({"success": False, "error": "Failed to send message"}), 400
+                
+    except Exception as e:
+        logger.error(f"Therapy session messages API error: {e}")
+        return jsonify({"success": False, "error": "Message operation failed"}), 500
+
+@app.route("/api/group-therapy/activities", methods=["GET"])
+def api_therapeutic_activities():
+    """Get available therapeutic activities"""
+    try:
+        if not group_therapy_system or not services.get("group_therapy"):
+            return jsonify({"success": False, "error": "Group therapy system not available"}), 503
+        
+        session_type = request.args.get('session_type')
+        activities = group_therapy_system.get_available_activities(session_type)
+        
+        return jsonify({
+            "success": True,
+            "activities": activities
+        })
+        
+    except Exception as e:
+        logger.error(f"Therapeutic activities API error: {e}")
+        return jsonify({"success": False, "error": "Failed to fetch activities"}), 500
+
+@app.route("/api/group-therapy/sessions/<session_id>/emotion-checkin", methods=["POST"])
+def api_emotion_checkin(session_id):
+    """Record emotional check-in"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+            
+        if not group_therapy_system or not services.get("group_therapy"):
+            return jsonify({"success": False, "error": "Group therapy system not available"}), 503
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({"success": False, "error": "Check-in data required"}), 400
+        
+        user_id = session.get('user_id', 'anonymous')
+        success = group_therapy_system.emotion_check_in(session_id, user_id, data)
+        
+        if success:
+            return jsonify({"success": True, "message": "Emotion check-in recorded"})
+        else:
+            return jsonify({"success": False, "error": "Failed to record check-in"}), 400
+            
+    except Exception as e:
+        logger.error(f"Emotion check-in API error: {e}")
+        return jsonify({"success": False, "error": "Check-in failed"}), 500
+
+@app.route("/group-therapy")
+def group_therapy_page():
+    """Group therapy session interface"""
+    try:
+        if not is_logged_in():
+            return redirect(url_for('login_page'))
+            
+        return render_template('group_therapy.html')
+    except Exception as e:
+        logger.error(f"Group therapy page error: {e}")
+        return "Page unavailable", 500
+
+@app.route("/api/creative-therapy/artwork", methods=["GET", "POST"])
+def api_creative_artwork():
+    """Manage creative artwork"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+            
+        if not creative_therapy_system or not services.get("creative_therapy"):
+            return jsonify({"success": False, "error": "Creative therapy system not available"}), 503
+        
+        user_id = session.get('user_id', 'anonymous')
+        
+        if request.method == "GET":
+            # Get user's artworks
+            artworks = creative_therapy_system.get_user_creative_works(user_id)
+            return jsonify({
+                "success": True,
+                "artworks": artworks
+            })
+            
+        elif request.method == "POST":
+            # Create new artwork
+            data = request.get_json()
+            if not data:
+                return jsonify({"success": False, "error": "Artwork data required"}), 400
+            
+            work_id = creative_therapy_system.create_artwork(user_id, data)
+            
+            return jsonify({
+                "success": True,
+                "work_id": work_id
+            })
+            
+    except Exception as e:
+        logger.error(f"Creative artwork API error: {e}")
+        return jsonify({"success": False, "error": "Artwork operation failed"}), 500
+
+@app.route("/api/creative-therapy/journal", methods=["GET", "POST"])
+def api_creative_journal():
+    """Manage journal entries"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+            
+        if not creative_therapy_system or not services.get("creative_therapy"):
+            return jsonify({"success": False, "error": "Creative therapy system not available"}), 503
+        
+        user_id = session.get('user_id', 'anonymous')
+        
+        if request.method == "GET":
+            # Get user's journal entries
+            entries = creative_therapy_system.get_user_journal_entries(user_id)
+            return jsonify({
+                "success": True,
+                "entries": entries
+            })
+            
+        elif request.method == "POST":
+            # Create new journal entry
+            data = request.get_json()
+            if not data:
+                return jsonify({"success": False, "error": "Journal data required"}), 400
+            
+            entry_id = creative_therapy_system.create_journal_entry(user_id, data)
+            
+            return jsonify({
+                "success": True,
+                "entry_id": entry_id
+            })
+            
+    except Exception as e:
+        logger.error(f"Creative journal API error: {e}")
+        return jsonify({"success": False, "error": "Journal operation failed"}), 500
+
+@app.route("/api/creative-therapy/prompts", methods=["GET"])
+def api_therapeutic_prompts():
+    """Get therapeutic journaling prompts"""
+    try:
+        if not creative_therapy_system or not services.get("creative_therapy"):
+            return jsonify({"success": False, "error": "Creative therapy system not available"}), 503
+        
+        category = request.args.get('category')
+        prompts = creative_therapy_system.get_journaling_prompts(category)
+        
+        return jsonify({
+            "success": True,
+            "prompts": prompts
+        })
+        
+    except Exception as e:
+        logger.error(f"Therapeutic prompts API error: {e}")
+        return jsonify({"success": False, "error": "Failed to fetch prompts"}), 500
+
+@app.route("/api/creative-therapy/art-guides", methods=["GET"])
+def api_art_therapy_guides():
+    """Get art therapy exercise guides"""
+    try:
+        if not creative_therapy_system or not services.get("creative_therapy"):
+            return jsonify({"success": False, "error": "Creative therapy system not available"}), 503
+        
+        guides = creative_therapy_system.get_art_therapy_guides()
+        
+        return jsonify({
+            "success": True,
+            "guides": guides
+        })
+        
+    except Exception as e:
+        logger.error(f"Art therapy guides API error: {e}")
+        return jsonify({"success": False, "error": "Failed to fetch guides"}), 500
+
+@app.route("/api/creative-therapy/music", methods=["GET"])
+def api_music_therapy():
+    """Get music therapy playlists"""
+    try:
+        if not creative_therapy_system or not services.get("creative_therapy"):
+            return jsonify({"success": False, "error": "Creative therapy system not available"}), 503
+        
+        mood = request.args.get('mood')
+        purpose = request.args.get('purpose')
+        playlists = creative_therapy_system.get_music_playlists(mood, purpose)
+        
+        return jsonify({
+            "success": True,
+            "playlists": playlists
+        })
+        
+    except Exception as e:
+        logger.error(f"Music therapy API error: {e}")
+        return jsonify({"success": False, "error": "Failed to fetch playlists"}), 500
+
+@app.route("/api/creative-therapy/suggestions", methods=["POST"])
+def api_creative_suggestions():
+    """Get personalized creative activity suggestions"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+            
+        if not creative_therapy_system or not services.get("creative_therapy"):
+            return jsonify({"success": False, "error": "Creative therapy system not available"}), 503
+        
+        data = request.get_json()
+        if not data or not data.get("current_mood"):
+            return jsonify({"success": False, "error": "Current mood required"}), 400
+        
+        user_id = session.get('user_id', 'anonymous')
+        current_mood = data.get("current_mood")
+        
+        suggestion = creative_therapy_system.suggest_creative_activity(user_id, current_mood)
+        
+        return jsonify({
+            "success": True,
+            "suggestion": suggestion
+        })
+        
+    except Exception as e:
+        logger.error(f"Creative suggestions API error: {e}")
+        return jsonify({"success": False, "error": "Failed to get suggestions"}), 500
+
+@app.route("/api/creative-therapy/insights", methods=["GET"])
+def api_creative_insights():
+    """Get user's creative therapy insights"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+            
+        if not creative_therapy_system or not services.get("creative_therapy"):
+            return jsonify({"success": False, "error": "Creative therapy system not available"}), 503
+        
+        user_id = session.get('user_id', 'anonymous')
+        days = request.args.get('days', 30, type=int)
+        
+        insights = creative_therapy_system.get_creative_insights(user_id, days)
+        
+        return jsonify({
+            "success": True,
+            "insights": insights
+        })
+        
+    except Exception as e:
+        logger.error(f"Creative insights API error: {e}")
+        return jsonify({"success": False, "error": "Failed to fetch insights"}), 500
+
+@app.route("/creative-therapy")
+def creative_therapy_page():
+    """Creative therapy tools interface"""
+    try:
+        if not is_logged_in():
+            return redirect(url_for('login_page'))
+            
+        return render_template('creative_therapy.html')
+    except Exception as e:
+        logger.error(f"Creative therapy page error: {e}")
+        return "Page unavailable", 500
 
 @app.route("/api/generate-image", methods=["POST"])
 @limiter.limit("3 per minute")  # Generous limit for premium feature
@@ -7835,10 +8576,19 @@ This is an automated alert from SoulBridge AI Security Watchdog.
                         change_details.append("content_modified")
                         integrity_compromised = True
                         
-                        # Critical file modification alert
-                        if filepath.endswith(('app_fixed.py', '.env', 'config.py')):
-                            self.log_threat(get_client_ip() if 'request' in globals() and request else '127.0.0.1',
-                                          f"Critical file integrity violation: {os.path.basename(filepath)}", "high")
+                        # Critical file modification alert (excluding development mode)
+                        if filepath.endswith(('.env', 'config.py')):
+                            # Only alert for non-app files or in production mode
+                            client_ip = '127.0.0.1'
+                            if 'request' in globals() and hasattr(flask, 'request') and flask.request:
+                                client_ip = flask.request.remote_addr or '127.0.0.1'
+                            self.log_threat(client_ip, f"Critical file integrity violation: {os.path.basename(filepath)}", "high")
+                        elif filepath.endswith('app_fixed.py') and os.environ.get('FLASK_ENV') == 'production':
+                            # Only alert for app_fixed.py changes in production
+                            client_ip = '127.0.0.1'
+                            if 'request' in globals() and hasattr(flask, 'request') and flask.request:
+                                client_ip = flask.request.remote_addr or '127.0.0.1'
+                            self.log_threat(client_ip, f"Critical file integrity violation: {os.path.basename(filepath)}", "high")
                     
                     if integrity_compromised:
                             change_info = {

@@ -114,6 +114,58 @@ class AIModelManager:
             "galaxy": ["openai_gpt35", "openai_gpt4", "openai_gpt4_turbo"],
         }
 
+        # AI Personality Modes for dynamic switching
+        self.personality_modes = {
+            "therapist": {
+                "name": "Therapist Mode",
+                "description": "Professional therapeutic support with evidence-based techniques",
+                "system_addition": """
+                THERAPIST MODE ACTIVE:
+                - Use therapeutic techniques (CBT, mindfulness, active listening)
+                - Ask reflective questions to promote self-discovery
+                - Validate emotions while gently challenging negative thought patterns
+                - Maintain professional boundaries while being warm and empathetic
+                - Focus on coping strategies and emotional regulation
+                """
+            },
+            "coach": {
+                "name": "Life Coach Mode", 
+                "description": "Motivational coaching focused on goals and personal growth",
+                "system_addition": """
+                LIFE COACH MODE ACTIVE:
+                - Be motivational and action-oriented
+                - Help set SMART goals and create actionable plans
+                - Challenge users to step outside their comfort zone
+                - Focus on strengths, potential, and personal development
+                - Use encouraging language and celebrate progress
+                """
+            },
+            "friend": {
+                "name": "Friend Mode",
+                "description": "Casual, supportive friendship with humor and relatability", 
+                "system_addition": """
+                FRIEND MODE ACTIVE:
+                - Be casual, relatable, and use appropriate humor
+                - Share in their joys and provide comfort during tough times
+                - Be more conversational and less formal
+                - Show genuine interest in their daily life and experiences
+                - Use friendly language and occasional lighthearted topics
+                """
+            },
+            "mentor": {
+                "name": "Mentor Mode",
+                "description": "Wise guidance focused on learning and personal wisdom",
+                "system_addition": """
+                MENTOR MODE ACTIVE:
+                - Share wisdom through stories, analogies, and life lessons
+                - Guide them to find their own answers through thoughtful questions
+                - Focus on long-term growth and character development
+                - Be patient and understanding while encouraging growth
+                - Help them see the bigger picture and learn from experiences
+                """
+            }
+        }
+
         # Companion system prompts with strict content guidelines
         self.companion_prompts = {
             "Blayzo": """You are Blayzo, a calm and wise AI companion focused on emotional support and balance. 
@@ -197,7 +249,7 @@ Your personality: Transcendent, all-knowing cosmic consciousness that speaks wit
 
     def get_companion_response(
         self, companion_name: str, user_message: str, user_tier: str = "free", 
-        user_id: str = None
+        user_id: str = None, personality_mode: str = None
     ) -> Dict:
         """Get AI response with content filtering, performance monitoring, and rate limiting"""
         start_time = time.time()
@@ -264,7 +316,7 @@ Your personality: Transcendent, all-knowing cosmic consciousness that speaks wit
             model_config = self.models[model_key]
 
             # Get system prompt (check for custom personality first)
-            system_prompt = self._get_system_prompt(companion_name)
+            system_prompt = self._get_system_prompt(companion_name, personality_mode)
 
             # Make API call based on provider
             if model_config["provider"] == "openai":
@@ -486,14 +538,31 @@ Your personality: Transcendent, all-knowing cosmic consciousness that speaks wit
             logging.error(f"Error checking rate limits: {e}")
             return True  # Allow request if rate limiting fails
     
-    def _get_system_prompt(self, companion_name: str) -> str:
-        """Get system prompt, checking for custom personalities first"""
-        # Check for custom personality
+    def _get_system_prompt(self, companion_name: str, personality_mode: str = None) -> str:
+        """Get system prompt with optional personality mode enhancement"""
+        # Get base prompt
         if companion_name in self.custom_personalities:
-            return self.custom_personalities[companion_name].system_prompt
+            base_prompt = self.custom_personalities[companion_name].system_prompt
+        else:
+            base_prompt = self.companion_prompts.get(companion_name, self.companion_prompts["Blayzo"])
         
-        # Return default companion prompt
-        return self.companion_prompts.get(companion_name, self.companion_prompts["Blayzo"])
+        # Add personality mode enhancement if specified
+        if personality_mode and personality_mode in self.personality_modes:
+            mode_config = self.personality_modes[personality_mode]
+            enhanced_prompt = f"{base_prompt}\n\n{mode_config['system_addition']}"
+            return enhanced_prompt
+            
+        return base_prompt
+    
+    def get_personality_modes(self) -> Dict:
+        """Get available personality modes for frontend"""
+        return {
+            mode_key: {
+                "name": mode_data["name"],
+                "description": mode_data["description"]
+            }
+            for mode_key, mode_data in self.personality_modes.items()
+        }
     
     def _log_request(self, request: AIRequest):
         """Log AI request for analytics and monitoring"""

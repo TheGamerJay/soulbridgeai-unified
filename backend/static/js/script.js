@@ -249,3 +249,301 @@ function autoMuteUser(messageId) {
 function logEvent(event) {
   console.log(`Community Event: ${event} at ${new Date().toISOString()}`);
 }
+
+// ==========================
+// 🎭 AI Personality Modes System
+// ==========================
+
+let personalityModes = {};
+let currentPersonalityMode = null;
+
+// Load personality modes on page load
+async function loadPersonalityModes() {
+  try {
+    const response = await fetch('/api/personality-modes');
+    const data = await response.json();
+    
+    if (data.success) {
+      personalityModes = data.modes;
+      renderPersonalityModeSelector();
+    } else {
+      console.warn('Personality modes not available:', data.error);
+    }
+  } catch (error) {
+    console.error('Failed to load personality modes:', error);
+  }
+}
+
+// Render personality mode selector in chat interface
+function renderPersonalityModeSelector() {
+  const chatContainer = document.querySelector('#chat-messages').parentElement;
+  
+  // Create personality mode selector if it doesn't exist
+  let selector = document.querySelector('#personality-mode-selector');
+  if (!selector) {
+    selector = document.createElement('div');
+    selector.id = 'personality-mode-selector';
+    selector.className = 'personality-mode-selector';
+    selector.innerHTML = `
+      <div class="mode-header">
+        <span>🎭 Personality Mode:</span>
+        <select id="personality-mode-select">
+          <option value="">Default</option>
+        </select>
+      </div>
+    `;
+    
+    // Insert before chat form
+    const chatForm = document.querySelector('#chat-form');
+    chatForm.parentElement.insertBefore(selector, chatForm);
+  }
+  
+  // Populate options
+  const select = selector.querySelector('#personality-mode-select');
+  select.innerHTML = '<option value="">Default</option>';
+  
+  Object.entries(personalityModes).forEach(([key, mode]) => {
+    const option = document.createElement('option');
+    option.value = key;
+    option.textContent = `${mode.name} - ${mode.description}`;
+    select.appendChild(option);
+  });
+  
+  // Add change handler
+  select.addEventListener('change', (e) => {
+    currentPersonalityMode = e.target.value || null;
+    console.log('Personality mode changed to:', currentPersonalityMode);
+  });
+}
+
+// Modify the send function to include personality mode
+const originalSend = window.send || function() {};
+window.send = function(message) {
+  if (typeof originalSend === 'function') {
+    // If there's an existing send function, call it with personality mode
+    return originalSend(message, currentPersonalityMode);
+  }
+  
+  // Fallback send implementation with personality mode
+  fetch('/api/chat', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      message: message,
+      character: window.selectedCharacter || 'Blayzo',
+      personality_mode: currentPersonalityMode
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      bubble('ai', data.response);
+    } else {
+      bubble('ai', 'Sorry, I encountered an error. Please try again.');
+    }
+  })
+  .catch(error => {
+    console.error('Chat error:', error);
+    bubble('ai', 'Sorry, I encountered an error. Please try again.');
+  });
+};
+
+// Initialize personality modes when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(loadPersonalityModes, 1000); // Load after main chat interface
+});
+
+// ==========================
+// 🏆 Gamification & Achievement System
+// ==========================
+
+let userProfile = null;
+let achievements = [];
+
+// Load user achievements and profile
+async function loadAchievements() {
+  try {
+    const response = await fetch('/api/achievements');
+    const data = await response.json();
+    
+    if (data.success) {
+      userProfile = data.profile;
+      achievements = data.achievements;
+      displayUserLevel();
+    } else {
+      console.warn('Achievements not available:', data.error);
+    }
+  } catch (error) {
+    console.error('Failed to load achievements:', error);
+  }
+}
+
+// Display user level and progress
+function displayUserLevel() {
+  if (!userProfile) return;
+
+  // Create or update level display
+  let levelDisplay = document.querySelector('#user-level-display');
+  if (!levelDisplay) {
+    levelDisplay = document.createElement('div');
+    levelDisplay.id = 'user-level-display';
+    levelDisplay.className = 'user-level-display';
+    
+    // Insert at top of chat interface
+    const chatContainer = document.querySelector('#chat-messages').parentElement;
+    chatContainer.insertBefore(levelDisplay, chatContainer.firstChild);
+  }
+  
+  levelDisplay.innerHTML = `
+    <div class="level-info">
+      <div class="level-badge">
+        <span class="level-number">${userProfile.level}</span>
+        <span class="level-title">${userProfile.title}</span>
+      </div>
+      <div class="level-progress">
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: ${calculateProgressPercentage()}%"></div>
+        </div>
+        <span class="progress-text">${userProfile.total_points} points</span>
+      </div>
+      <button class="achievements-btn" onclick="showAchievementsModal()">
+        🏆 Achievements (${achievements.filter(a => a.earned).length})
+      </button>
+    </div>
+  `;
+}
+
+// Calculate progress percentage to next level
+function calculateProgressPercentage() {
+  if (!userProfile || userProfile.progress_to_next_level === 0) return 100;
+  
+  const currentLevelPoints = userProfile.total_points - userProfile.progress_to_next_level;
+  const nextLevelPoints = userProfile.total_points;
+  const totalForLevel = nextLevelPoints - currentLevelPoints;
+  
+  return Math.min(100, ((userProfile.total_points - currentLevelPoints) / totalForLevel) * 100);
+}
+
+// Show achievements modal
+function showAchievementsModal() {
+  let modal = document.querySelector('#achievements-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'achievements-modal';
+    modal.className = 'achievements-modal';
+    document.body.appendChild(modal);
+  }
+  
+  modal.innerHTML = `
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>🏆 Your Achievements</h2>
+        <button class="close-btn" onclick="closeAchievementsModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="achievements-grid">
+          ${achievements.map(achievement => `
+            <div class="achievement-card ${achievement.earned ? 'earned' : 'locked'}">
+              <div class="achievement-icon">${achievement.icon}</div>
+              <div class="achievement-info">
+                <h3>${achievement.name}</h3>
+                <p>${achievement.description}</p>
+                <div class="rarity ${achievement.rarity.toLowerCase()}">${achievement.rarity_info.name}</div>
+                ${achievement.earned ? 
+                  '<div class="earned-badge">✓ Earned</div>' : 
+                  '<div class="locked-badge">🔒 Locked</div>'
+                }
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+  
+  modal.style.display = 'flex';
+}
+
+// Close achievements modal
+function closeAchievementsModal() {
+  const modal = document.querySelector('#achievements-modal');
+  if (modal) {
+    modal.style.display = 'none';
+  }
+}
+
+// Show achievement notification
+function showAchievementNotification(achievementId) {
+  const achievement = achievements.find(a => a.badge_id === achievementId);
+  if (!achievement) return;
+  
+  const notification = document.createElement('div');
+  notification.className = 'achievement-notification';
+  notification.innerHTML = `
+    <div class="notification-content">
+      <div class="notification-icon">🏆</div>
+      <div class="notification-text">
+        <strong>Achievement Unlocked!</strong>
+        <br>${achievement.icon} ${achievement.name}
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(notification);
+  
+  // Auto-remove after 5 seconds
+  setTimeout(() => {
+    notification.remove();
+  }, 5000);
+}
+
+// Check for new achievements after user activity
+async function checkForNewAchievements(activityData = {}) {
+  try {
+    const response = await fetch('/api/check-achievements', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(activityData)
+    });
+    
+    const data = await response.json();
+    if (data.success && data.newly_earned.length > 0) {
+      // Show notifications for new achievements
+      data.newly_earned.forEach(achievementId => {
+        showAchievementNotification(achievementId);
+      });
+      
+      // Reload achievements and update display
+      await loadAchievements();
+    }
+  } catch (error) {
+    console.error('Failed to check achievements:', error);
+  }
+}
+
+// Initialize gamification system
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    loadAchievements();
+    
+    // Check achievements after first message
+    const originalSend = window.send;
+    if (originalSend) {
+      window.send = function(message, personalityMode) {
+        const result = originalSend.call(this, message, personalityMode);
+        
+        // Track activity for achievements
+        checkForNewAchievements({
+          messages_sent: 1,
+          last_activity: new Date().toISOString()
+        });
+        
+        return result;
+      };
+    }
+  }, 1500);
+});
