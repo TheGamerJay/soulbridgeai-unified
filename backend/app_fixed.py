@@ -6612,6 +6612,64 @@ def creative_therapy_page():
 # 🤖 COMPANION SYSTEM API ENDPOINTS
 # ==================================================================================
 
+@app.route("/debug/routes")
+def debug_routes():
+    """Debug endpoint to show all registered routes"""
+    try:
+        routes = []
+        for rule in app.url_map.iter_rules():
+            methods = ','.join(sorted(rule.methods - {'HEAD', 'OPTIONS'}))
+            routes.append({
+                'endpoint': rule.endpoint,
+                'methods': methods,
+                'path': str(rule)
+            })
+        
+        # Sort by path for easier reading
+        routes.sort(key=lambda x: x['path'])
+        
+        # Check companion system status
+        companion_service = services.get("companion")
+        companion_status = "✅ Active" if companion_service else "❌ Not initialized"
+        
+        html = f"""
+        <!DOCTYPE html>
+        <html>
+        <head><title>Route Debug - SoulBridge AI</title>
+        <style>
+            body {{ font-family: monospace; background: #0f172a; color: #e2e8f0; padding: 20px; }}
+            table {{ border-collapse: collapse; width: 100%; }}
+            th, td {{ border: 1px solid #334155; padding: 8px; text-align: left; }}
+            th {{ background: #1e293b; }}
+            .companion {{ background: #065f46; }}
+            .status {{ margin: 20px 0; padding: 15px; background: #1e293b; border-radius: 8px; }}
+        </style>
+        </head>
+        <body>
+            <h1>🔍 Route Debug Information</h1>
+            <div class="status">
+                <strong>Companion System Status:</strong> {companion_status}<br>
+                <strong>Total Routes:</strong> {len(routes)}<br>
+                <strong>Companion Routes:</strong> {len([r for r in routes if 'companion' in r['path']])}
+            </div>
+            <table>
+                <tr><th>Path</th><th>Methods</th><th>Endpoint</th></tr>
+        """
+        
+        for route in routes:
+            row_class = 'companion' if 'companion' in route['path'] else ''
+            html += f"<tr class='{row_class}'><td>{route['path']}</td><td>{route['methods']}</td><td>{route['endpoint']}</td></tr>"
+        
+        html += """
+            </table>
+        </body>
+        </html>
+        """
+        return html
+        
+    except Exception as e:
+        return f"Debug error: {e}", 500
+
 @app.route("/companions")
 def companion_selector_page():
     """Companion selector interface"""
@@ -9825,6 +9883,12 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     logger.info(f"Starting SoulBridge AI on port {port}")
     logger.info(f"Environment: {'Production' if os.environ.get('RAILWAY_ENVIRONMENT') else 'Development'}")
+    
+    # Log registered routes for debugging
+    logger.info("Registered routes:")
+    for rule in app.url_map.iter_rules():
+        if "/companions" in rule.rule or "/health" in rule.rule:
+            logger.info(f"  {rule.rule} -> {rule.endpoint}")
     
     # Initialize services for standalone execution (non-blocking)
     logger.info("🚀 Starting server first, then initializing services...")
