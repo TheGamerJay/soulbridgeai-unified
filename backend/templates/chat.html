@@ -817,12 +817,84 @@
                 });
                 console.log('✅', sapphireBtns.length, 'Sapphire buttons FORCE-FIXED');
                 
+                // FORCE REFRESH BUTTON STYLING
+                const sapphireBtn = document.querySelector('div[onclick*="toggleNavigationAssistant"]');
+                const journeyBtn = document.querySelector('div[onclick*="showCharacterSelect"]');
+                
+                if (sapphireBtn) {
+                    sapphireBtn.style.background = 'linear-gradient(135deg, rgba(249, 115, 22, 0.9), rgba(234, 88, 12, 0.9))';
+                    sapphireBtn.style.border = '2px solid #f97316';
+                    sapphireBtn.style.boxShadow = '0 4px 15px rgba(249, 115, 22, 0.3)';
+                    console.log('✅ Sapphire button styling FORCE-APPLIED');
+                }
+                
+                if (journeyBtn) {
+                    journeyBtn.style.background = 'linear-gradient(135deg, #22d3ee, #0891b2)';
+                    journeyBtn.style.border = '2px solid #22d3ee';
+                    journeyBtn.style.boxShadow = '0 4px 15px rgba(34, 211, 238, 0.3)';
+                    console.log('✅ Journey button styling FORCE-APPLIED');
+                }
+                
                 console.log('🎯 ALL CRITICAL BUTTONS FORCE-FIXED AND FUNCTIONAL');
             }, 1000);
         });
         
         console.log('🎯 CRITICAL FUNCTIONALITY FIX LOADED SUCCESSFULLY');
     </script>
+    
+    <!-- 🎨 FORCE BUTTON STYLING - Ensures buttons always have their cool backgrounds -->
+    <style>
+        /* CRITICAL: Force button styling to always work */
+        div[onclick*="toggleNavigationAssistant"] {
+            background: linear-gradient(135deg, rgba(249, 115, 22, 0.9), rgba(234, 88, 12, 0.9)) !important;
+            border: 2px solid #f97316 !important;
+            color: #fff !important;
+            border-radius: 12px !important;
+            cursor: pointer !important;
+            transition: all 0.3s ease !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 0.5rem !important;
+            box-shadow: 0 4px 15px rgba(249, 115, 22, 0.3) !important;
+            font-weight: 600 !important;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+            padding: 0.75rem 1.25rem !important;
+            font-size: 1rem !important;
+        }
+        
+        div[onclick*="toggleNavigationAssistant"]:hover {
+            background: linear-gradient(135deg, #f97316, #ea580c) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 8px 25px rgba(249, 115, 22, 0.5) !important;
+        }
+        
+        div[onclick*="showCharacterSelect"] {
+            background: linear-gradient(135deg, #22d3ee, #0891b2) !important;
+            border: 2px solid #22d3ee !important;
+            border-radius: 12px !important;
+            color: #000 !important;
+            cursor: pointer !important;
+            text-align: center !important;
+            font-weight: bold !important;
+            transition: all 0.3s ease !important;
+            display: inline-block !important;
+            box-shadow: 0 4px 15px rgba(34, 211, 238, 0.3) !important;
+            padding: 0.75rem 1.5rem !important;
+            font-size: 1rem !important;
+        }
+        
+        div[onclick*="showCharacterSelect"]:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 8px 25px rgba(34, 211, 238, 0.5) !important;
+        }
+        
+        /* Ensure no other styles can override these buttons */
+        .intro-actions div[onclick*="toggleNavigationAssistant"],
+        .intro-actions div[onclick*="showCharacterSelect"] {
+            background: inherit !important;
+        }
+    </style>
 </head>
 <body onload="initializeScreen()">
     <!-- Theme Toggle (Left Side) -->
