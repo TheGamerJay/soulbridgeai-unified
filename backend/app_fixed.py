@@ -6631,7 +6631,8 @@ def api_get_accessible_companions():
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
             
-        if not companion_system or not services.get("companion"):
+        companion_service = services.get("companion")
+        if not companion_service:
             return jsonify({"success": False, "error": "Companion system not available"}), 503
         
         user_id = session.get('user_id', 'anonymous')
@@ -6643,7 +6644,7 @@ def api_get_accessible_companions():
         # Get user's achievements (placeholder - would integrate with actual user data)
         achievements = []
         
-        companions = companion_system.get_user_accessible_companions(
+        companions = companion_service.get_user_accessible_companions(
             user_id, subscription_tier, referral_points, achievements
         )
         
@@ -6663,7 +6664,8 @@ def api_select_companion():
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
             
-        if not companion_system or not services.get("companion"):
+        companion_service = services.get("companion")
+        if not companion_service:
             return jsonify({"success": False, "error": "Companion system not available"}), 503
         
         data = request.get_json()
@@ -6675,7 +6677,7 @@ def api_select_companion():
         subscription_tier = data.get("subscription_tier", "free")
         referral_points = data.get("referral_points", 0)
         
-        result = companion_system.select_companion(
+        result = companion_service.select_companion(
             user_id, companion_id, subscription_tier, referral_points
         )
         
@@ -6697,7 +6699,8 @@ def api_start_companion_trial():
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
             
-        if not companion_system or not services.get("companion"):
+        companion_service = services.get("companion")
+        if not companion_service:
             return jsonify({"success": False, "error": "Companion system not available"}), 503
         
         data = request.get_json()
@@ -6707,7 +6710,7 @@ def api_start_companion_trial():
         user_id = session.get('user_id', 'anonymous')
         companion_id = data.get("companion_id")
         
-        result = companion_system.get_trial_companion(user_id, companion_id)
+        result = companion_service.get_trial_companion(user_id, companion_id)
         
         if result["success"]:
             # Set trial companion in session
@@ -6725,10 +6728,11 @@ def api_start_companion_trial():
 def api_get_companion_details(companion_id):
     """Get detailed information about a specific companion"""
     try:
-        if not companion_system or not services.get("companion"):
+        companion_service = services.get("companion")
+        if not companion_service:
             return jsonify({"success": False, "error": "Companion system not available"}), 503
         
-        companion = companion_system.get_companion_details(companion_id)
+        companion = companion_service.get_companion_details(companion_id)
         
         if companion:
             return jsonify({
@@ -6746,11 +6750,12 @@ def api_get_companion_details(companion_id):
 def api_get_popular_companions():
     """Get most popular companions"""
     try:
-        if not companion_system or not services.get("companion"):
+        companion_service = services.get("companion")
+        if not companion_service:
             return jsonify({"success": False, "error": "Companion system not available"}), 503
         
         limit = request.args.get('limit', 3, type=int)
-        popular = companion_system.get_popular_companions(limit)
+        popular = companion_service.get_popular_companions(limit)
         
         return jsonify({
             "success": True,
@@ -6768,13 +6773,14 @@ def api_get_recommended_companions():
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
             
-        if not companion_system or not services.get("companion"):
+        companion_service = services.get("companion")
+        if not companion_service:
             return jsonify({"success": False, "error": "Companion system not available"}), 503
         
         user_id = session.get('user_id', 'anonymous')
         subscription_tier = request.args.get('tier', 'free')
         
-        recommended = companion_system.get_recommended_companions(user_id, subscription_tier)
+        recommended = companion_service.get_recommended_companions(user_id, subscription_tier)
         
         return jsonify({
             "success": True,

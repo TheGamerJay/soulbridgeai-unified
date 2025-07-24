@@ -643,9 +643,12 @@
                     currentUser.subscription_tier = data.user.subscription_tier || 'free';
                     currentUser.referral_points = data.user.referral_points || 0;
                     currentUser.selected_companion = data.user.selected_companion;
+                } else {
+                    console.log('Using default user settings');
                 }
             } catch (error) {
                 console.error('Error loading user data:', error);
+                console.log('Using default user settings');
             }
         }
         
