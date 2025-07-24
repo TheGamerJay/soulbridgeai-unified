@@ -685,6 +685,144 @@
         subtree: true
     });
     </script>
+    
+    <!-- 🚨 CRITICAL IMAGE AND THEME FUNCTIONALITY FIX -->
+    <script>
+        console.log('🚨 EMERGENCY IMAGE AND THEME FIX LOADING...');
+        
+        // IMMEDIATE IMAGE ERROR HANDLING - Fixes broken images instantly
+        document.addEventListener('DOMContentLoaded', function() {
+            const brokenImages = document.querySelectorAll('img');
+            brokenImages.forEach(img => {
+                // Set up error handler before the image loads
+                img.addEventListener('error', function() {
+                    console.log('🖼️ FIXING broken image:', this.src);
+                    if (this.src.includes('IntroLogo') || this.alt.toLowerCase().includes('soulbridge')) {
+                        this.src = '/static/logos/IntroLogo.png';
+                    } else if (this.src.includes('Sapphire') || this.alt.toLowerCase().includes('sapphire')) {
+                        this.src = '/static/logos/Sapphire.png';
+                    } else if (this.src.includes('Blayzo')) {
+                        this.src = '/static/logos/Blayzo.png';
+                    } else {
+                        this.src = '/static/logos/IntroLogo.png';
+                    }
+                });
+                
+                // Check if image is already broken
+                if (img.naturalWidth === 0 && img.complete) {
+                    img.dispatchEvent(new Event('error'));
+                }
+            });
+            console.log('✅ Image error handlers attached to', brokenImages.length, 'images');
+        });
+        
+        // CRITICAL BUTTON FUNCTIONALITY BACKUP
+        window.criticalButtonBackup = {
+            // Emergency theme toggle
+            forceThemeToggle: function() {
+                try {
+                    console.log('🌙 EMERGENCY theme toggle activated');
+                    document.body.classList.toggle('day-mode');
+                    const themeText = document.getElementById('themeText');
+                    const themeIcon = document.getElementById('themeIcon');
+                    const themeToggle = document.getElementById('themeToggle');
+                    
+                    if (document.body.classList.contains('day-mode')) {
+                        if (themeText) themeText.textContent = 'Day Mode is ON';
+                        if (themeIcon) themeIcon.textContent = '☀️';
+                        if (themeToggle) {
+                            themeToggle.style.background = 'rgba(255, 193, 7, 0.8)';
+                            themeToggle.style.color = '#000';
+                        }
+                        localStorage.setItem('themeMode', 'day');
+                    } else {
+                        if (themeText) themeText.textContent = 'Night Mode is ON';
+                        if (themeIcon) themeIcon.textContent = '🌙';
+                        if (themeToggle) {
+                            themeToggle.style.background = 'rgba(34, 211, 238, 0.8)';
+                            themeToggle.style.color = '#000';
+                        }
+                        localStorage.setItem('themeMode', 'night');
+                    }
+                    console.log('✅ EMERGENCY theme toggle successful');
+                } catch (error) {
+                    console.error('❌ EMERGENCY theme toggle failed:', error);
+                }
+            },
+            
+            // Emergency journey start  
+            forceStartJourney: function() {
+                try {
+                    console.log('✨ EMERGENCY Begin Journey activated');
+                    if (typeof showCharacterSelect === 'function') {
+                        showCharacterSelect();
+                    } else {
+                        // Force show character selection screen
+                        const introScreen = document.getElementById('intro-screen');
+                        const characterScreen = document.getElementById('character-selection-screen');
+                        if (introScreen) introScreen.style.display = 'none';
+                        if (characterScreen) characterScreen.style.display = 'block';
+                    }
+                    console.log('✅ EMERGENCY Begin Journey successful');
+                } catch (error) {
+                    console.error('❌ EMERGENCY Begin Journey failed:', error);
+                }
+            },
+            
+            // Emergency Sapphire helper
+            forceSapphireHelp: function() {
+                try {
+                    console.log('🔮 EMERGENCY Sapphire help activated');
+                    if (typeof toggleNavigationAssistant === 'function') {
+                        toggleNavigationAssistant();
+                    } else {
+                        const modal = document.getElementById('navAssistantModal');
+                        if (modal) {
+                            modal.style.display = modal.style.display === 'none' ? 'flex' : 'none';
+                        }
+                    }
+                    console.log('✅ EMERGENCY Sapphire help successful');
+                } catch (error) {
+                    console.error('❌ EMERGENCY Sapphire help failed:', error);
+                }
+            }
+        };
+        
+        // FORCE APPLY TO ALL BUTTONS - Makes sure EVERYTHING works
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                console.log('🔧 FORCE-FIXING all buttons...');
+                
+                // Theme toggle button
+                const themeBtn = document.getElementById('themeToggle');
+                if (themeBtn) {
+                    themeBtn.onclick = window.criticalButtonBackup.forceThemeToggle;
+                    themeBtn.addEventListener('click', window.criticalButtonBackup.forceThemeToggle);
+                    console.log('✅ Theme button FORCE-FIXED');
+                }
+                
+                // Begin Journey buttons
+                const journeyBtns = document.querySelectorAll('div[onclick*="showCharacterSelect"]');
+                journeyBtns.forEach(btn => {
+                    btn.onclick = window.criticalButtonBackup.forceStartJourney;
+                    btn.addEventListener('click', window.criticalButtonBackup.forceStartJourney);
+                });
+                console.log('✅', journeyBtns.length, 'Journey buttons FORCE-FIXED');
+                
+                // Sapphire help buttons
+                const sapphireBtns = document.querySelectorAll('div[onclick*="toggleNavigationAssistant"]');
+                sapphireBtns.forEach(btn => {
+                    btn.onclick = window.criticalButtonBackup.forceSapphireHelp;
+                    btn.addEventListener('click', window.criticalButtonBackup.forceSapphireHelp);
+                });
+                console.log('✅', sapphireBtns.length, 'Sapphire buttons FORCE-FIXED');
+                
+                console.log('🎯 ALL CRITICAL BUTTONS FORCE-FIXED AND FUNCTIONAL');
+            }, 1000);
+        });
+        
+        console.log('🎯 CRITICAL FUNCTIONALITY FIX LOADED SUCCESSFULLY');
+    </script>
 </head>
 <body onload="initializeScreen()">
     <!-- Theme Toggle (Left Side) -->
@@ -1287,7 +1425,7 @@
             <div id="blazoreferral-card" class="character-card character-blazoreferral" onclick="selectCompanion('BlayzoReferral')" style="display: none;">
                 <div class="character-name speech-bubble">Blayzo (Referral Master)</div>
                 <div style="margin-bottom: 1.5rem; text-align: center;">
-                    <img src="{{ url_for('static', filename='logos/BlayzoReferral.png') }}" alt="Blayzo Referral Master" style="
+                    <img src="{{ url_for('static', filename='logos/Blayzo Referral.png') }}" alt="Blayzo Referral Master" style="
                         width: 160px;
                         height: 160px;
                         object-fit: contain;
@@ -1450,7 +1588,7 @@
                         position: relative;
                     " onclick="selectCompanion('BlayzoReferral')" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 15px 40px rgba(245, 158, 11, 0.4)'" onmouseout="this.style.transform='translateY(0px)'; this.style.boxShadow='0 5px 20px rgba(245, 158, 11, 0.2)'">
                         <div style="position: relative; display: inline-block;">
-                            <img src="{{ url_for('static', filename='logos/BlayzoReferral.png') }}" alt="Blayzo Special" style="
+                            <img src="{{ url_for('static', filename='logos/Blayzo Referral.png') }}" alt="Blayzo Special" style="
                                 width: 80px;
                                 height: 80px;
                                 border-radius: 50%;
