@@ -688,7 +688,7 @@
                          onclick="${isLocked ? `showUpgradeModal('${companion.companion_id}')` : `selectCompanion('${companion.companion_id}')`}">
                         
                         <div class="companion-avatar">
-                            <img src="${companion.avatar_image}" alt="${companion.display_name}" onerror="this.src='/static/images/default-companion.png'">
+                            <img src="${companion.avatar_image}" alt="${companion.display_name}" onerror="this.src='/static/logos/IntroLogo.png'">
                             
                             <div class="companion-badges">
                                 ${companion.popularity_score >= 95 ? '<span class="badge badge-popular">Most Popular</span>' : ''}
@@ -831,7 +831,7 @@
             const preview = document.getElementById('modal-companion-preview');
             
             preview.innerHTML = `
-                <img src="${companion.avatar_image}" alt="${companion.display_name}">
+                <img src="${companion.avatar_image}" alt="${companion.display_name}" onerror="this.src='/static/logos/IntroLogo.png'">
                 <h3>${companion.display_name}</h3>
                 <p>${companion.detailed_bio}</p>
                 <div style="margin-top: 15px;">
