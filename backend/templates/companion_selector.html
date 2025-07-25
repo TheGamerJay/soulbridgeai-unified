@@ -488,6 +488,12 @@
             100% { box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
         }
         
+        @keyframes pulse {
+            0% { transform: translateX(-50%) scale(1); }
+            50% { transform: translateX(-50%) scale(1.02); }
+            100% { transform: translateX(-50%) scale(1); }
+        }
+        
         @media (max-width: 768px) {
             .companion-card {
                 min-width: 250px;
@@ -536,6 +542,34 @@
             transition: all 0.3s ease;
         " onclick="window.history.back()" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0px)'">
             ← Back
+        </div>
+    </div>
+
+    <!-- Trial Timer (Top Center) -->
+    <div id="trialTimer" style="
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 100;
+        background: linear-gradient(45deg, #FF6B6B, #FF8E53);
+        color: white;
+        padding: 12px 20px;
+        border-radius: 25px;
+        font-weight: bold;
+        box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+        display: none;
+        text-align: center;
+        min-width: 200px;
+        animation: pulse 2s infinite;
+    ">
+        <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <i class="fas fa-clock"></i>
+            <span>Trial Time: </span>
+            <span id="trialTimeDisplay" style="font-family: monospace; font-size: 1.1rem;">--:--:--</span>
+        </div>
+        <div style="font-size: 0.8rem; opacity: 0.9; margin-top: 2px;">
+            Premium Access Active
         </div>
     </div>
 
@@ -655,6 +689,11 @@
             selected_companion: null
         };
         
+        // Trial Timer Management
+        let trialTimer = null;
+        let trialTimeRemaining = 0;
+        let isPageVisible = true;
+        
         let companions = {
             free: [],
             growth: [],
@@ -666,6 +705,9 @@
         // Load companions on page load with debug logging
         document.addEventListener('DOMContentLoaded', () => {
             console.log('🎬 Companion selector page loaded - starting initialization');
+            
+            // Initialize trial timer system
+            initializeTrialTimer();
             
             // IMMEDIATE FALLBACK - Load companions right away
             console.log('🚨 Loading fallback companions immediately to ensure content displays');
@@ -687,8 +729,8 @@
                 console.log('🔍 Total companions loaded:', totalCompanions);
                 
                 if (totalCompanions === 0) {
-                    console.error('🚨 CRITICAL: No companions loaded at all - forcing emergency load');
-                    forceEmergencyCompanions();
+                    console.error('🚨 CRITICAL: No companions loaded at all - trying fallback again');
+                    loadFallbackCompanions();
                 }
             }, 2000);
         });
@@ -738,16 +780,16 @@
         function loadFallbackCompanions() {
             console.log('🔄 Loading fallback companion data...');
             
-            // Fallback companion data if API fails
+            // Fallback companion data if API fails - matches backend companion IDs
             companions = {
                 free: [
                     {
-                        companion_id: 'gamerjay',
+                        companion_id: 'companion_gamerjay',
                         display_name: 'GamerJay - The Gaming Coach',
                         avatar_image: '/static/logos/GamerJay Free companion.png',
                         short_bio: 'Your gaming companion who understands the grind',
                         personality_tags: ['Motivational', 'Playful'],
-                        special_features: ['Goal setting', 'Achievement tracking', 'Motivation boosts'],
+                        special_features: ['Goal setting', 'Achievement tracking', 'Motivation boosts', 'Gaming mindset'],
                         tier: 'free',
                         popularity_score: 88,
                         is_recommended: true
@@ -755,42 +797,66 @@
                 ],
                 growth: [
                     {
-                        companion_id: 'sky',
+                        companion_id: 'companion_sky',
                         display_name: 'Sky - The Spiritual Guide',
                         avatar_image: '/static/logos/Sky a primum companion.png',
                         short_bio: 'Connect with your spiritual side through Sky\'s guidance',
                         personality_tags: ['Spiritual', 'Healing'],
-                        special_features: ['Spiritual guidance', 'Meditation sessions', 'Energy healing'],
+                        special_features: ['Spiritual guidance', 'Meditation sessions', 'Energy healing', 'Voice interactions'],
                         tier: 'growth',
-                        lock_reason: 'Requires Growth subscription',
+                        lock_reason: 'Requires Growth or Max subscription',
                         popularity_score: 92,
                         is_recommended: true
+                    },
+                    {
+                        companion_id: 'companion_gamerjay_premium',
+                        display_name: 'GamerJay Premium - The Strategic Mind',
+                        avatar_image: '/static/logos/GamgerJay premium companion.png',
+                        short_bio: 'Advanced gaming strategies applied to life challenges',
+                        personality_tags: ['Analytical', 'Wise'],
+                        special_features: ['Strategic thinking', 'Advanced coaching', 'Tactical solutions', 'Voice interactions'],
+                        tier: 'growth',
+                        lock_reason: 'Requires Growth or Max subscription',
+                        popularity_score: 85,
+                        is_recommended: false
                     }
                 ],
                 max: [
                     {
-                        companion_id: 'crimson',
-                        display_name: 'Crimson - The Fierce Protector',
+                        companion_id: 'companion_crimson',
+                        display_name: 'Crimson - The Transformer',
                         avatar_image: '/static/logos/Crimson a Max companion.png',
-                        short_bio: 'A powerful protector with fierce loyalty',
-                        personality_tags: ['Strong', 'Protective'],
-                        special_features: ['Crisis support', 'Strength coaching', 'Confidence building'],
+                        short_bio: 'Rise from challenges stronger than before',
+                        personality_tags: ['Healing', 'Protective', 'Wise'],
+                        special_features: ['Trauma healing', 'Transformation coaching', 'Crisis support', 'Advanced voice AI', 'Priority response'],
                         tier: 'max',
                         lock_reason: 'Requires Max subscription',
-                        popularity_score: 90,
+                        popularity_score: 98,
+                        is_recommended: true
+                    },
+                    {
+                        companion_id: 'companion_violet',
+                        display_name: 'Violet - The Creative Soul',
+                        avatar_image: '/static/logos/Violet a max companion.png',
+                        short_bio: 'Unleash your creative potential and explore new horizons',
+                        personality_tags: ['Creative', 'Adventurous', 'Playful'],
+                        special_features: ['Creative exercises', 'Art therapy', 'Inspiration sessions', 'Advanced voice AI', 'Custom personality modes'],
+                        tier: 'max',
+                        lock_reason: 'Requires Max subscription',
+                        popularity_score: 91,
                         is_recommended: false
                     }
                 ],
                 referral: [
                     {
-                        companion_id: 'blayzo',
-                        display_name: 'Blayzo - Referral Master',
+                        companion_id: 'companion_blayzo',
+                        display_name: 'Blayzo - The Community Champion',
                         avatar_image: '/static/logos/Blayzo Referral.png',
-                        short_bio: 'Special referral companion with exclusive powers',
-                        personality_tags: ['Exclusive', 'Powerful'],
-                        special_features: ['Exclusive content', 'Special abilities', 'Community insights'],
+                        short_bio: 'Exclusive companion for our community champions',
+                        personality_tags: ['Empathetic', 'Motivational', 'Wise'],
+                        special_features: ['Community insights', 'Exclusive content', 'Advanced features', 'Priority support', 'Special voice interactions'],
                         tier: 'referral',
-                        lock_reason: 'Requires referral achievements',
+                        lock_reason: 'Requires 1000 referral points',
                         popularity_score: 100,
                         is_recommended: true
                     }
@@ -799,6 +865,14 @@
             };
             
             console.log('✅ Fallback companions loaded:', companions);
+            
+            // Force render companions with debug info
+            console.log('🎬 Rendering companions...');
+            console.log('🎬 Free companions:', companions.free.length);
+            console.log('🎬 Growth companions:', companions.growth.length);
+            console.log('🎬 Max companions:', companions.max.length);
+            console.log('🎬 Referral companions:', companions.referral.length);
+            
             renderCompanions();
             updateTrialOffer();
         }
@@ -814,7 +888,7 @@
             
             if (freeContainer) {
                 freeContainer.innerHTML = `
-                    <div class="companion-card" onclick="selectCompanion('gamerjay')" style="min-width: 280px; background: rgba(255,255,255,0.95); border-radius: 16px; padding: 0; cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.1); border: 2px solid transparent;">
+                    <div class="companion-card" onclick="selectCompanion('companion_gamerjay')" style="min-width: 280px; background: rgba(255,255,255,0.95); border-radius: 16px; padding: 0; cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.1); border: 2px solid transparent;">
                         <div class="companion-avatar" style="width: 100%; height: 180px; position: relative; overflow: hidden;">
                             <img src="/static/logos/GamerJay Free companion.png" alt="GamerJay" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='/static/logos/IntroLogo.png'">
                             <div class="companion-badges" style="position: absolute; top: 12px; right: 12px; display: flex; flex-direction: column; gap: 6px;">
@@ -834,9 +908,12 @@
             
             if (growthContainer) {
                 growthContainer.innerHTML = `
-                    <div class="companion-card locked" onclick="showUpgradeModal('sky')" style="min-width: 280px; background: rgba(255,255,255,0.95); border-radius: 16px; padding: 0; cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.1); border: 2px solid transparent; opacity: 0.7;">
+                    <div class="companion-card locked" onclick="showUpgradeModal('companion_sky')" style="min-width: 280px; background: rgba(255,255,255,0.95); border-radius: 16px; padding: 0; cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.1); border: 2px solid transparent; opacity: 0.7;">
                         <div class="companion-avatar" style="width: 100%; height: 180px; position: relative; overflow: hidden;">
                             <img src="/static/logos/Sky a primum companion.png" alt="Sky" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='/static/logos/IntroLogo.png'">
+                            <div class="companion-badges" style="position: absolute; top: 12px; right: 12px; display: flex; flex-direction: column; gap: 6px;">
+                                <span style="padding: 4px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; backdrop-filter: blur(10px); background: rgba(76, 175, 80, 0.9); color: white;">Recommended</span>
+                            </div>
                             <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center;">
                                 <i class="fas fa-lock" style="font-size: 2rem; color: white;"></i>
                             </div>
@@ -849,21 +926,55 @@
                             </div>
                         </div>
                     </div>
-                `;
-            }
-            
-            if (maxContainer) {
-                maxContainer.innerHTML = `
-                    <div class="companion-card locked" onclick="showUpgradeModal('crimson')" style="min-width: 280px; background: rgba(255,255,255,0.95); border-radius: 16px; padding: 0; cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.1); border: 2px solid transparent; opacity: 0.7;">
+                    <div class="companion-card locked" onclick="showUpgradeModal('companion_gamerjay_premium')" style="min-width: 280px; background: rgba(255,255,255,0.95); border-radius: 16px; padding: 0; cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.1); border: 2px solid transparent; opacity: 0.7;">
                         <div class="companion-avatar" style="width: 100%; height: 180px; position: relative; overflow: hidden;">
-                            <img src="/static/logos/Crimson a Max companion.png" alt="Crimson" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='/static/logos/IntroLogo.png'">
+                            <img src="/static/logos/GamgerJay premium companion.png" alt="GamerJay Premium" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='/static/logos/IntroLogo.png'">
                             <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center;">
                                 <i class="fas fa-lock" style="font-size: 2rem; color: white;"></i>
                             </div>
                         </div>
                         <div class="companion-info" style="padding: 20px;">
-                            <h3 style="font-size: 1.3rem; font-weight: 700; margin-bottom: 8px;">Crimson - The Fierce Protector</h3>
-                            <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 15px;">A powerful protector with fierce loyalty</p>
+                            <h3 style="font-size: 1.3rem; font-weight: 700; margin-bottom: 8px;">GamerJay Premium - Strategic Mind</h3>
+                            <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 15px;">Advanced gaming strategies applied to life challenges</p>
+                            <div class="companion-actions" style="display: flex; gap: 10px;">
+                                <button style="flex: 1; padding: 12px; background: #ccc; color: #666; border: none; border-radius: 8px; font-weight: 600; cursor: not-allowed;" disabled>🔒 Requires Growth</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            if (maxContainer) {
+                maxContainer.innerHTML = `
+                    <div class="companion-card locked" onclick="showUpgradeModal('companion_crimson')" style="min-width: 280px; background: rgba(255,255,255,0.95); border-radius: 16px; padding: 0; cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.1); border: 2px solid transparent; opacity: 0.7;">
+                        <div class="companion-avatar" style="width: 100%; height: 180px; position: relative; overflow: hidden;">
+                            <img src="/static/logos/Crimson a Max companion.png" alt="Crimson" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='/static/logos/IntroLogo.png'">
+                            <div class="companion-badges" style="position: absolute; top: 12px; right: 12px; display: flex; flex-direction: column; gap: 6px;">
+                                <span style="padding: 4px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; backdrop-filter: blur(10px); background: rgba(255, 193, 7, 0.9); color: #333;">Most Popular</span>
+                                <span style="padding: 4px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; backdrop-filter: blur(10px); background: rgba(76, 175, 80, 0.9); color: white;">Recommended</span>
+                            </div>
+                            <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-lock" style="font-size: 2rem; color: white;"></i>
+                            </div>
+                        </div>
+                        <div class="companion-info" style="padding: 20px;">
+                            <h3 style="font-size: 1.3rem; font-weight: 700; margin-bottom: 8px;">Crimson - The Transformer</h3>
+                            <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 15px;">Rise from challenges stronger than before</p>
+                            <div class="companion-actions" style="display: flex; gap: 10px;">
+                                <button style="flex: 1; padding: 12px; background: #ccc; color: #666; border: none; border-radius: 8px; font-weight: 600; cursor: not-allowed;" disabled>🔒 Requires Max</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="companion-card locked" onclick="showUpgradeModal('companion_violet')" style="min-width: 280px; background: rgba(255,255,255,0.95); border-radius: 16px; padding: 0; cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.1); border: 2px solid transparent; opacity: 0.7;">
+                        <div class="companion-avatar" style="width: 100%; height: 180px; position: relative; overflow: hidden;">
+                            <img src="/static/logos/Violet a max companion.png" alt="Violet" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='/static/logos/IntroLogo.png'">
+                            <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-lock" style="font-size: 2rem; color: white;"></i>
+                            </div>
+                        </div>
+                        <div class="companion-info" style="padding: 20px;">
+                            <h3 style="font-size: 1.3rem; font-weight: 700; margin-bottom: 8px;">Violet - The Creative Soul</h3>
+                            <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 15px;">Unleash your creative potential and explore new horizons</p>
                             <div class="companion-actions" style="display: flex; gap: 10px;">
                                 <button style="flex: 1; padding: 12px; background: #ccc; color: #666; border: none; border-radius: 8px; font-weight: 600; cursor: not-allowed;" disabled>🔒 Requires Max</button>
                             </div>
@@ -1070,10 +1181,11 @@
                         showUpgradeModal(companionId);
                     } else {
                         // Fallback: direct redirect for free companions
-                        if (companion.tier === 'free') {
+                        if (companion.tier === 'free' || !companion.lock_reason) {
                             console.log('🔄 Using fallback selection for free companion');
                             localStorage.setItem('selectedCharacter', companion.display_name.split(' ')[0]);
                             localStorage.setItem('currentScreen', 'chat');
+                            localStorage.setItem('hasActiveChat', 'true'); // Ensure chat session is marked as active
                             showNotification(`Selected ${companion.display_name}!`, 'success');
                             setTimeout(() => {
                                 window.location.href = '/chat';
@@ -1088,10 +1200,11 @@
                 
                 // Emergency fallback for free companions
                 const companion = findCompanionById(companionId);
-                if (companion && companion.tier === 'free') {
+                if (companion && (companion.tier === 'free' || !companion.lock_reason)) {
                     console.log('🚨 Using emergency fallback for free companion');
                     localStorage.setItem('selectedCharacter', companion.display_name.split(' ')[0]);
                     localStorage.setItem('currentScreen', 'chat');
+                    localStorage.setItem('hasActiveChat', 'true'); // Ensure chat session is marked as active
                     showNotification(`Selected ${companion.display_name}!`, 'success');
                     setTimeout(() => {
                         window.location.href = '/chat';
@@ -1201,6 +1314,10 @@
                     localStorage.setItem('currentScreen', 'chat');
                     localStorage.setItem('trialActive', 'true');
                     localStorage.setItem('trialExpiry', Date.now() + (24 * 60 * 60 * 1000)); // 24 hours
+                    localStorage.setItem('trialStartTime', Date.now()); // Track when trial started
+                    
+                    // Start the trial timer
+                    startTrialTimer();
                     
                     setTimeout(() => {
                         window.location.href = '/chat';
@@ -1216,6 +1333,10 @@
                     localStorage.setItem('currentScreen', 'chat');
                     localStorage.setItem('trialActive', 'true');
                     localStorage.setItem('trialExpiry', Date.now() + (24 * 60 * 60 * 1000));
+                    localStorage.setItem('trialStartTime', Date.now());
+                    
+                    // Start the trial timer
+                    startTrialTimer();
                     
                     setTimeout(() => {
                         window.location.href = '/chat';
@@ -1232,6 +1353,10 @@
                 localStorage.setItem('currentScreen', 'chat');
                 localStorage.setItem('trialActive', 'true');
                 localStorage.setItem('trialExpiry', Date.now() + (24 * 60 * 60 * 1000));
+                localStorage.setItem('trialStartTime', Date.now());
+                
+                // Start the trial timer
+                startTrialTimer();
                 
                 setTimeout(() => {
                     window.location.href = '/chat';
@@ -1372,6 +1497,195 @@
         document.addEventListener('DOMContentLoaded', () => {
             initializeTheme();
         });
+        
+        // ==================== TRIAL TIMER SYSTEM ====================
+        
+        function initializeTrialTimer() {
+            console.log('⏰ Initializing trial timer system...');
+            
+            // Set up page visibility detection
+            document.addEventListener('visibilitychange', handleVisibilityChange);
+            window.addEventListener('focus', handlePageFocus);
+            window.addEventListener('blur', handlePageBlur);
+            
+            // Check if there's an active trial
+            const trialActive = localStorage.getItem('trialActive');
+            const trialExpiry = localStorage.getItem('trialExpiry');
+            
+            if (trialActive === 'true' && trialExpiry) {
+                const expiryTime = parseInt(trialExpiry);
+                const currentTime = Date.now();
+                
+                if (currentTime < expiryTime) {
+                    // Trial is still active
+                    trialTimeRemaining = Math.floor((expiryTime - currentTime) / 1000);
+                    console.log('⏰ Active trial found, time remaining:', formatTime(trialTimeRemaining));
+                    showTrialTimer();
+                    startTrialCountdown();
+                } else {
+                    // Trial has expired
+                    console.log('⏰ Trial has expired');
+                    endTrial();
+                }
+            } else {
+                console.log('⏰ No active trial found');
+            }
+        }
+        
+        function startTrialTimer() {
+            console.log('⏰ Starting new trial timer...');
+            
+            const expiryTime = parseInt(localStorage.getItem('trialExpiry'));
+            const currentTime = Date.now();
+            
+            if (expiryTime && currentTime < expiryTime) {
+                trialTimeRemaining = Math.floor((expiryTime - currentTime) / 1000);
+                showTrialTimer();
+                startTrialCountdown();
+                console.log('⏰ Trial timer started with', formatTime(trialTimeRemaining), 'remaining');
+            }
+        }
+        
+        function startTrialCountdown() {
+            if (trialTimer) {
+                clearInterval(trialTimer);
+            }
+            
+            trialTimer = setInterval(() => {
+                if (isPageVisible && trialTimeRemaining > 0) {
+                    trialTimeRemaining--;
+                    updateTrialDisplay();
+                    
+                    // Check if trial expired
+                    if (trialTimeRemaining <= 0) {
+                        endTrial();
+                    }
+                    
+                    // Update localStorage with current time
+                    const newExpiryTime = Date.now() + (trialTimeRemaining * 1000);
+                    localStorage.setItem('trialExpiry', newExpiryTime.toString());
+                }
+            }, 1000);
+        }
+        
+        function showTrialTimer() {
+            const timerElement = document.getElementById('trialTimer');
+            if (timerElement) {
+                timerElement.style.display = 'block';
+                updateTrialDisplay();
+                console.log('⏰ Trial timer display shown');
+            }
+        }
+        
+        function hideTrialTimer() {
+            const timerElement = document.getElementById('trialTimer');
+            if (timerElement) {
+                timerElement.style.display = 'none';
+                console.log('⏰ Trial timer display hidden');
+            }
+        }
+        
+        function updateTrialDisplay() {
+            const displayElement = document.getElementById('trialTimeDisplay');
+            if (displayElement) {
+                displayElement.textContent = formatTime(trialTimeRemaining);
+                
+                // Change color as time runs out
+                const timerElement = document.getElementById('trialTimer');
+                if (trialTimeRemaining < 300) { // Last 5 minutes
+                    timerElement.style.background = 'linear-gradient(45deg, #FF4444, #CC0000)';
+                    timerElement.style.animation = 'pulse 1s infinite';
+                } else if (trialTimeRemaining < 3600) { // Last hour
+                    timerElement.style.background = 'linear-gradient(45deg, #FF8800, #FF6600)';
+                }
+            }
+        }
+        
+        function formatTime(seconds) {
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
+            
+            return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+        
+        function endTrial() {
+            console.log('⏰ Trial ended');
+            
+            // Clear timer
+            if (trialTimer) {
+                clearInterval(trialTimer);
+                trialTimer = null;
+            }
+            
+            // Clear localStorage
+            localStorage.removeItem('trialActive');
+            localStorage.removeItem('trialExpiry');
+            localStorage.removeItem('trialStartTime');
+            
+            // Hide timer
+            hideTrialTimer();
+            
+            // Show expiry notification
+            showNotification('Your free trial has expired! Upgrade to continue with premium companions.', 'info');
+            
+            // Update UI to reflect free tier
+            currentUser.subscription_tier = 'free';
+            setTimeout(() => {
+                loadCompanions(); // Reload to show free companions only
+            }, 1000);
+        }
+        
+        function handleVisibilityChange() {
+            isPageVisible = !document.hidden;
+            console.log('👀 Page visibility changed:', isPageVisible ? 'visible' : 'hidden');
+            
+            if (isPageVisible) {
+                // Page became visible - check if trial is still valid
+                const trialExpiry = localStorage.getItem('trialExpiry');
+                if (trialExpiry) {
+                    const expiryTime = parseInt(trialExpiry);
+                    const currentTime = Date.now();
+                    
+                    if (currentTime >= expiryTime) {
+                        // Trial expired while away
+                        endTrial();
+                    } else {
+                        // Update remaining time
+                        trialTimeRemaining = Math.floor((expiryTime - currentTime) / 1000);
+                        updateTrialDisplay();
+                    }
+                }
+            }
+        }
+        
+        function handlePageFocus() {
+            isPageVisible = true;
+            console.log('🎯 Page focused - timer active');
+        }
+        
+        function handlePageBlur() {
+            isPageVisible = false;
+            console.log('😴 Page blurred - timer paused');
+        }
+        
+        // Add test function for trial (for debugging)
+        function startTestTrial() {
+            console.log('🧪 Starting test trial (2 minutes)...');
+            
+            const testExpiry = Date.now() + (2 * 60 * 1000); // 2 minutes for testing
+            localStorage.setItem('trialActive', 'true');
+            localStorage.setItem('trialExpiry', testExpiry.toString());
+            localStorage.setItem('trialStartTime', Date.now().toString());
+            
+            trialTimeRemaining = 120; // 2 minutes
+            showTrialTimer();
+            startTrialCountdown();
+            
+            showNotification('Test trial started! 2 minutes for testing.', 'success');
+        }
+        
+        // ==================== END TRIAL TIMER SYSTEM ====================
     </script>
 </body>
 </html>
