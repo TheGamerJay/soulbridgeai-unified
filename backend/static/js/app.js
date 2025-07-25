@@ -1,40 +1,13 @@
 // SoulBridge AI - Login/Register System
 console.log('SoulBridge AI Loading...');
 
-// Enhanced password toggle function
-function togglePassword(inputId = 'password') {
-    console.log('Toggle password called for:', inputId);
-    
-    const input = document.getElementById(inputId);
-    if (!input) {
-        console.log('Input not found:', inputId);
-        return;
-    }
-    
-    // Find the toggle button that's in the same container as this input
-    const container = input.closest('.password-container');
-    const toggleBtn = container ? container.querySelector('.password-toggle') : null;
-    
-    if (!toggleBtn) {
-        console.log('Toggle button not found for input:', inputId);
-        return;
-    }
-    
-    if (input.type === 'password') {
-        input.type = 'text';
-        toggleBtn.innerHTML = '🙈'; // Closed eye
-        toggleBtn.setAttribute('aria-label', 'Hide password');
-        console.log('Password shown for:', inputId);
-    } else {
-        input.type = 'password';
-        toggleBtn.innerHTML = '👁️'; // Open eye
-        toggleBtn.setAttribute('aria-label', 'Show password');
-        console.log('Password hidden for:', inputId);
-    }
-}
+// Password toggle function DISABLED - Universal Button Fix handles this
+// function togglePassword(inputId = 'password') {
+//     // Disabled to prevent conflicts with Universal Button Fix
+//     console.log('app.js togglePassword disabled - Universal Button Fix handling');
+// }
 
-// Make function global
-window.togglePassword = togglePassword;
+// togglePassword function moved to Universal Button Fix to prevent conflicts
 
 // Trial and message limit management
 function initializeMessageLimit() {
@@ -196,9 +169,9 @@ document.addEventListener('DOMContentLoaded', function() {
     updateMessageCount(messageLimit);
     checkTrialStatus();
     
-    // Initialize password toggle buttons
-    const passwordToggles = document.querySelectorAll('.password-toggle');
-    console.log('Found', passwordToggles.length, 'password toggle buttons');
+    // Password toggle initialization DISABLED - Universal Button Fix handles this
+    // const passwordToggles = document.querySelectorAll('.password-toggle');
+    console.log('Password toggle handling moved to Universal Button Fix');
     
     // Focus management
     const usernameInput = document.getElementById('username') || document.getElementById('username_or_email');

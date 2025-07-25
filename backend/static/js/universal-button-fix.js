@@ -185,8 +185,62 @@ window.UniversalButtonFix = {
                 window.togglePassword('confirm_password');
             },
             'loginBtn': (e) => {
-                // Let form submit naturally
                 console.log('🔧 Login button clicked via universal fix');
+                e.preventDefault(); // Prevent default behavior
+                
+                // Get form data
+                const email = document.getElementById('email')?.value;
+                const password = document.getElementById('password')?.value;
+                
+                console.log('📧 Email:', email);
+                console.log('🔑 Password length:', password?.length);
+                
+                // Validate fields
+                if (!email || !password) {
+                    alert('Please fill in both email and password');
+                    return;
+                }
+                
+                // Get button element
+                const loginBtn = document.getElementById('loginBtn');
+                if (loginBtn) {
+                    loginBtn.disabled = true;
+                    loginBtn.textContent = 'Signing In...';
+                }
+                
+                // Submit login via AJAX
+                fetch('/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        password: password
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log('✅ Login successful!');
+                        window.location.href = data.redirect || '/';
+                    } else {
+                        console.log('❌ Login failed:', data.error);
+                        alert(data.error || 'Login failed');
+                        if (loginBtn) {
+                            loginBtn.disabled = false;
+                            loginBtn.textContent = 'Sign In';
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('❌ Login error:', error);
+                    alert('Login failed. Please try again.');
+                    if (loginBtn) {
+                        loginBtn.disabled = false;
+                        loginBtn.textContent = 'Sign In';
+                    }
+                });
             }
         };
         
