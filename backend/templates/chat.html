@@ -28,6 +28,38 @@
             validateStorageState: function() {
                 console.log('🔍 Validating storage state...');
                 
+                // CRITICAL: Check authentication first - redirect to login if not authenticated
+                // Check both client-side storage AND server-side session by making a quick API call
+                const clientSideAuth = localStorage.getItem('user_authenticated') === 'true' || 
+                                      sessionStorage.getItem('user_authenticated') === 'true';
+                
+                // If no client-side auth, check server session
+                if (!clientSideAuth) {
+                    try {
+                        // Make a synchronous check to server to verify session
+                        const xhr = new XMLHttpRequest();
+                        xhr.open('GET', '/test-session', false); // synchronous
+                        xhr.send();
+                        
+                        if (xhr.status === 200) {
+                            const result = JSON.parse(xhr.responseText);
+                            if (!result.user_authenticated) {
+                                console.log('❌ User not authenticated - redirecting to login');
+                                window.location.href = '/login';
+                                return { screen: 'login', character: null, hasActiveChat: false };
+                            }
+                        } else {
+                            console.log('❌ Cannot verify authentication - redirecting to login');
+                            window.location.href = '/login';
+                            return { screen: 'login', character: null, hasActiveChat: false };
+                        }
+                    } catch (error) {
+                        console.log('❌ Authentication check failed - redirecting to login');
+                        window.location.href = '/login';
+                        return { screen: 'login', character: null, hasActiveChat: false };
+                    }
+                }
+                
                 // Get values from different storage locations
                 const localScreen = localStorage.getItem('currentScreen');
                 const localCharacter = localStorage.getItem('selectedCharacter');
