@@ -55,11 +55,20 @@
                     validated.hasActiveChat = true;
                     console.log('🔍 Rule 1: Character + active session = chat screen');
                 }
-                // Rule 2: If we have a selected character but no active session, go to character select
+                // Rule 2: After fresh login, always show intro first (regardless of saved character)
                 else if (localCharacter && sessionActive !== 'true') {
-                    validated.screen = 'select';
-                    validated.character = localCharacter;
-                    console.log('🔍 Rule 2: Character but no session = character select');
+                    // Check if this is a fresh login
+                    var urlParams = new URLSearchParams(window.location.search);
+                    var showIntro = urlParams.get('show_intro');
+                    
+                    if (showIntro === 'true' || !showIntro) {
+                        validated.screen = 'intro';
+                        console.log('🔍 Rule 2: Fresh login = show intro first');
+                    } else {
+                        validated.screen = 'select';
+                        validated.character = localCharacter;
+                        console.log('🔍 Rule 2: Character but no session = character select');
+                    }
                 }
                 // Rule 3: If local screen is explicitly set to select, honor it
                 else if (localScreen === 'select') {
