@@ -1890,15 +1890,6 @@ def help_page():
         </body></html>
         """
 
-@app.route("/debug")
-def debug_dashboard():
-    """Human-readable problem monitoring dashboard"""
-    try:
-        return render_template("debug_dashboard.html")
-    except Exception as e:
-        logger.error(f"Debug dashboard error: {e}")
-        return jsonify({"error": "Debug dashboard temporarily unavailable"}), 200
-
 @app.route("/maintenance")
 def maintenance_dashboard():
     """Auto-maintenance dashboard page"""
@@ -9641,6 +9632,17 @@ def unified_surveillance_room():
                             {''.join([f'<div class="log-entry info">{log.strip()}</div>' for log in maintenance_logs[-25:]]) if maintenance_logs and maintenance_logs[0] != "No maintenance logs available yet." else '<div class="log-entry warning">⚠️ No maintenance logs available</div>'}
                         </div>
                     </div>
+                    
+                    <div class="panel full-width">
+                        <h2>🐛 HUMAN READABLE PROBLEMS</h2>
+                        <div id="problemsContainer">
+                            <div class="log-entry info">✅ All systems operational - analyzing for issues...</div>
+                        </div>
+                        <div style="margin-top: 15px;">
+                            <button onclick="copyProblems()" style="background: #22d3ee; color: #000; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold;">📋 Copy Problem Report</button>
+                            <span id="copyStatus" style="margin-left: 10px; color: #10b981;"></span>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="panel">
@@ -9658,10 +9660,121 @@ def unified_surveillance_room():
             </div>
             
             <script>
-                // Auto-refresh every 30 seconds
+                let problemsData = '';
+                
+                // Fetch and display human-readable problems
+                function loadProblems() {{
+                    fetch('/api/debug/recent-errors')
+                        .then(response => response.json())
+                        .then(data => {{
+                            displayProblems(data);
+                        }})
+                        .catch(error => {{
+                            console.error('Error loading problems:', error);
+                            document.getElementById('problemsContainer').innerHTML = 
+                                '<div class="log-entry warning">⚠️ Could not load problem analysis</div>';
+                        }});
+                }}
+                
+                function displayProblems(data) {{
+                    const container = document.getElementById('problemsContainer');
+                    const problems = analyzeProblems(data);
+                    
+                    if (problems.length === 0) {{
+                        container.innerHTML = '<div class="log-entry info">✅ No problems detected - all systems healthy!</div>';
+                        problemsData = `SoulBridge AI Problem Report - {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}\\n` +
+                                     `=================================================\\n\\n` +
+                                     `✅ All systems operational - no problems detected!`;
+                    }} else {{
+                        let html = '';
+                        let report = `SoulBridge AI Problem Report - {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}\\n` +
+                                   `=================================================\\n\\n`;
+                        
+                        problems.forEach((problem, index) => {{
+                            html += `<div class="log-entry warning">
+                                <strong>❌ ${{problem.title}}</strong><br>
+                                ${{problem.description}}<br>
+                                <em style="color: #22d3ee;">💡 ${{problem.action}}</em>
+                            </div>`;
+                            
+                            report += `Problem ${{index + 1}}: ${{problem.title}}\\n`;
+                            report += `Description: ${{problem.description}}\\n`;
+                            report += `Action: ${{problem.action}}\\n\\n`;
+                        }});
+                        
+                        container.innerHTML = html;
+                        problemsData = report;
+                    }}
+                }}
+                
+                function analyzeProblems(data) {{
+                    const problems = [];
+                    const errors = data.errors || [];
+                    
+                    // Analyze error patterns for common issues
+                    const patterns = [
+                        {{
+                            test: /login.*form|submit.*error|fetch.*auth/i,
+                            title: "Login Form Issues",
+                            description: "Users may be experiencing problems submitting the login form",
+                            action: "Check JavaScript console errors, verify form validation, test login flow"
+                        }},
+                        {{
+                            test: /theme.*toggle|toggleTheme.*undefined/i,
+                            title: "Theme Toggle Broken",
+                            description: "Day/night mode button is not working properly",
+                            action: "Verify theme toggle function is loaded and event handlers are attached"
+                        }},
+                        {{
+                            test: /language.*menu|toggleLanguage/i,
+                            title: "Language Selector Issues", 
+                            description: "Language dropdown menu may not be responding",
+                            action: "Check language menu JavaScript functions and dropdown HTML structure"
+                        }},
+                        {{
+                            test: /undefined.*function|not.*defined/i,
+                            title: "Missing JavaScript Functions",
+                            description: "Required JavaScript functions are not loading properly",
+                            action: "Check script loading order, verify universal-button-fix.js is loaded"
+                        }}
+                    ];
+                    
+                    errors.forEach(error => {{
+                        const message = error.message || '';
+                        for (const pattern of patterns) {{
+                            if (pattern.test.test(message)) {{
+                                problems.push({{
+                                    title: pattern.title,
+                                    description: pattern.description,
+                                    action: pattern.action
+                                }});
+                                break;
+                            }}
+                        }}
+                    }});
+                    
+                    return problems;
+                }}
+                
+                function copyProblems() {{
+                    navigator.clipboard.writeText(problemsData).then(() => {{
+                        const status = document.getElementById('copyStatus');
+                        status.textContent = '✅ Copied!';
+                        setTimeout(() => status.textContent = '', 3000);
+                    }}).catch(err => {{
+                        console.error('Copy failed:', err);
+                        alert('Copy failed. Please select and copy manually.');
+                    }});
+                }}
+                
+                // Load problems immediately and every 30 seconds
+                loadProblems();
+                setInterval(loadProblems, 30000);
+                
+                // Auto-refresh entire page every 5 minutes
                 setTimeout(function() {{
                     window.location.reload();
-                }}, 30000);
+                }}, 300000);
             </script>
         </body>
         </html>
