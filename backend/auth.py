@@ -318,7 +318,7 @@ class Database:
     def _cleanup_conflicting_schema(self, cursor):
         """Clean up conflicting table schemas from previous deployments"""
         try:
-            print("🧹 Checking for conflicting table schemas...")
+            print("CLEANUP: Checking for conflicting table schemas...")
             
             # Simple approach: check if users table has user_id column (old schema)
             cursor.execute("""
@@ -328,7 +328,7 @@ class Database:
             """)
             
             if cursor.fetchone():
-                print("🔧 Found old users table with user_id column. Cleaning up schema...")
+                print("CLEANUP: Found old users table with user_id column. Cleaning up schema...")
                 
                 # Drop all tables that might have conflicts - they'll be recreated
                 tables_to_drop = [
@@ -349,12 +349,12 @@ class Database:
                 
                 # Commit the drops before creating new tables
                 cursor.connection.commit()
-                print("✅ Schema cleanup completed - old tables dropped")
+                print("SUCCESS: Schema cleanup completed - old tables dropped")
             else:
-                print("✅ No conflicting schema found")
+                print("SUCCESS: No conflicting schema found")
                 
         except Exception as e:
-            print(f"⚠️  Schema cleanup failed (will continue): {e}")
+            print(f"WARNING: Schema cleanup failed (will continue): {e}")
             try:
                 # Rollback on error to clear failed transaction
                 cursor.connection.rollback()
