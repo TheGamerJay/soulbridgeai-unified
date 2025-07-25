@@ -21,7 +21,7 @@ Your `.env` files have been updated with the new Railway PostgreSQL configuratio
 PGHOST=shinkansen.proxy.rlwy.net
 PGPORT=15522
 PGUSER=postgres
-PGPASSWORD=bTBUxRMkVsyxCCzRItbwPcifbNQxRgUq  # ✅ CONFIGURED
+PGPASSWORD=your_actual_railway_password  # ✅ UPDATE WITH YOUR PASSWORD
 PGDATABASE=railway
 ```
 
@@ -48,7 +48,7 @@ For production deployment, make sure these environment variables are set in your
 PGHOST=shinkansen.proxy.rlwy.net
 PGPORT=15522
 PGUSER=postgres
-PGPASSWORD=bTBUxRMkVsyxCCzRItbwPcifbNQxRgUq
+PGPASSWORD=your_actual_railway_password
 PGDATABASE=railway
 ```
 
