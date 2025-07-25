@@ -1630,9 +1630,9 @@ def auth_login():
         
         if is_developer:
             setup_user_session(email, is_admin=True, dev_mode=True)
-            # Small delay to ensure session is written
+            # Longer delay to ensure session is written
             import time
-            time.sleep(0.1)
+            time.sleep(0.3)
             logger.info("Developer login successful")
             return jsonify({"success": True, "redirect": "/?show_intro=true", "session_established": True})
         
@@ -1647,9 +1647,9 @@ def auth_login():
                 
                 if user_data:
                     setup_user_session(email, user_id=user_data[0])
-                    # Small delay to ensure session is written
+                    # Longer delay to ensure session is written
                     import time
-                    time.sleep(0.1)
+                    time.sleep(0.3)
                     logger.info(f"User login successful: {email}")
                     return jsonify({"success": True, "redirect": "/?show_intro=true", "session_established": True})
                 else:
@@ -1691,9 +1691,9 @@ def auth_login():
                 else:
                     # Database not available, use fallback
                     setup_user_session(email)
-                    # Small delay to ensure session is written
+                    # Longer delay to ensure session is written
                     import time
-                    time.sleep(0.1)
+                    time.sleep(0.3)
                     logger.warning("Database not available, using fallback test authentication")
                     return jsonify({"success": True, "redirect": "/?show_intro=true", "session_established": True})
             except Exception as e:

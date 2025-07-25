@@ -708,8 +708,12 @@
                             
                             if (result.success) {
                                 console.log('✅ Login successful, redirecting to:', result.redirect);
-                                // Redirect to the page indicated by server
-                                window.location.href = result.redirect || '/';
+                                
+                                // Small delay to ensure session is fully established on server
+                                setTimeout(() => {
+                                    console.log('🚀 Redirecting after session establishment delay...');
+                                    window.location.href = result.redirect || '/';
+                                }, 200); // 200ms delay
                             } else {
                                 console.log('❌ Login failed:', result.error);
                                 alert(result.error || 'Login failed.');
