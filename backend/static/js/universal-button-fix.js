@@ -294,28 +294,48 @@ window.UniversalButtonFix = {
                     loginBtn.textContent = 'Signing In...';
                 }
                 
-                // Submit login via AJAX
+                // Submit login via AJAX using FormData (matches Flask form expectations)
+                const formData = new FormData();
+                formData.append('email', email);
+                formData.append('password', password);
+                
                 fetch('/auth/login', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        email: email,
-                        password: password
-                    })
+                    body: formData
                 })
-                .then(response => response.json())
+                .then(response => {
+                    console.log('🔍 Login response status:', response.status);
+                    
+                    // Handle redirect response (302/301)
+                    if (response.redirected || response.status === 302 || response.status === 301) {
+                        console.log('✅ Login successful - redirecting to:', response.url);
+                        window.location.href = response.url || '/';
+                        return;
+                    }
+                    
+                    // Try to parse JSON response
+                    return response.json().catch(() => {
+                        // If not JSON, handle as HTML redirect
+                        if (response.ok) {
+                            console.log('✅ Login successful - redirecting to dashboard');
+                            window.location.href = '/';
+                        } else {
+                            throw new Error('Login failed with status ' + response.status);
+                        }
+                    });
+                })
                 .then(data => {
-                    if (data.success) {
-                        console.log('✅ Login successful!');
-                        window.location.href = data.redirect || '/';
-                    } else {
-                        console.log('❌ Login failed:', data.error);
-                        alert(data.error || 'Login failed');
-                        if (loginBtn) {
-                            loginBtn.disabled = false;
-                            loginBtn.textContent = 'Sign In';
+                    if (data) {
+                        if (data.success) {
+                            console.log('✅ Login successful!');
+                            window.location.href = data.redirect || '/';
+                        } else {
+                            console.log('❌ Login failed:', data.error || data.message);
+                            alert(data.error || data.message || 'Login failed');
+                            if (loginBtn) {
+                                loginBtn.disabled = false;
+                                loginBtn.textContent = 'Sign In';
+                            }
                         }
                     }
                 })

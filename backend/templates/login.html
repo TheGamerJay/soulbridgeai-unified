@@ -1061,19 +1061,10 @@
             loadSavedLanguage();
         });
         
-        // Password toggle function
-        function togglePassword(fieldId) {
-            const passwordField = document.getElementById(fieldId);
-            const toggleBtn = document.getElementById('toggleBtn');
-            
-            if (passwordField.type === 'password') {
-                passwordField.type = 'text';
-                toggleBtn.textContent = '🙈';
-            } else {
-                passwordField.type = 'password';
-                toggleBtn.textContent = '👁️';
-            }
-        }
+        // Password toggle function - DISABLED - Universal Button Fix handles this
+        // function togglePassword(fieldId) {
+        //     console.log('❌ Local togglePassword disabled - Universal Button Fix handling');
+        // }
         
         // SECURITY: Clear session when user closes browser/tab
         window.addEventListener('beforeunload', function(e) {
