@@ -3017,23 +3017,57 @@
         
         // Navigation functions
         function showIntro() {
-            // Remove character theme classes when going to intro
-            document.body.classList.remove('character-blayzo', 'character-blayzica', 'character-blayzion', 'character-blayzia', 'character-violet', 'character-crimson');
-            
-            // Clear active chat session when going back to intro
-            sessionStorage.removeItem('hasActiveChat');
-            localStorage.removeItem('currentScreen');
-            document.getElementById('characterSelect').classList.add('hidden');
-            document.getElementById('introScreen').classList.remove('hidden');
+            try {
+                // Remove character theme classes when going to intro
+                document.body.classList.remove('character-blayzo', 'character-blayzica', 'character-blayzion', 'character-blayzia', 'character-violet', 'character-crimson');
+                
+                // Clear active chat session when going back to intro
+                sessionStorage.removeItem('hasActiveChat');
+                localStorage.removeItem('currentScreen');
+                
+                const selectScreen = document.getElementById('characterSelect');
+                const introScreen = document.getElementById('introScreen');
+                
+                if (selectScreen) {
+                    selectScreen.classList.add('hidden');
+                } else {
+                    console.error('❌ characterSelect element not found');
+                }
+                
+                if (introScreen) {
+                    introScreen.classList.remove('hidden');
+                } else {
+                    console.error('❌ introScreen element not found');
+                }
+            } catch (error) {
+                console.error('❌ Error in showIntro:', error);
+            }
         }
         
         function showCharacterSelect() {
-            // Remove character theme classes when going to character select
-            document.body.classList.remove('character-blayzo', 'character-blayzica', 'character-blayzion', 'character-blayzia', 'character-violet', 'character-crimson');
-            
-            localStorage.setItem('currentScreen', 'select');
-            document.getElementById('introScreen').classList.add('hidden');
-            document.getElementById('characterSelect').classList.remove('hidden');
+            try {
+                // Remove character theme classes when going to character select
+                document.body.classList.remove('character-blayzo', 'character-blayzica', 'character-blayzion', 'character-blayzia', 'character-violet', 'character-crimson');
+                
+                localStorage.setItem('currentScreen', 'select');
+                
+                const introScreen = document.getElementById('introScreen');
+                const selectScreen = document.getElementById('characterSelect');
+                
+                if (introScreen) {
+                    introScreen.classList.add('hidden');
+                } else {
+                    console.error('❌ introScreen element not found');
+                }
+                
+                if (selectScreen) {
+                    selectScreen.classList.remove('hidden');
+                } else {
+                    console.error('❌ characterSelect element not found');
+                }
+            } catch (error) {
+                console.error('❌ Error in showCharacterSelect:', error);
+            }
             
             // Update premium character displays and force rainbow backgrounds
             setTimeout(function() {
