@@ -205,20 +205,34 @@ window.UniversalButtonFix = {
     }
 };
 
-// Auto-initialize when script loads
+// Only auto-initialize if not manually controlled
+window.UniversalButtonFix.autoInit = function() {
+    if (!this.initialized) {
+        console.log('🔧 Auto-initializing Universal Button Fix');
+        this.init();
+    }
+};
+
+// Auto-initialize when script loads (but allow manual override)
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function() {
-        window.UniversalButtonFix.init();
+        setTimeout(function() {
+            window.UniversalButtonFix.autoInit();
+        }, 100);
     });
 } else {
-    window.UniversalButtonFix.init();
+    setTimeout(function() {
+        window.UniversalButtonFix.autoInit();
+    }, 100);
 }
 
-// Also initialize after window load
+// Also reinitialize after window load
 window.addEventListener('load', function() {
     setTimeout(function() {
-        window.UniversalButtonFix.reinitialize();
-    }, 500);
+        if (window.UniversalButtonFix.initialized) {
+            window.UniversalButtonFix.reinitialize();
+        }
+    }, 800);
 });
 
 console.log('🔧 Universal Button Fix script loaded');
