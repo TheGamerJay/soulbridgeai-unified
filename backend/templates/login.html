@@ -700,6 +700,7 @@
             submitBtn.textContent = 'Signing In...';
             
             // Submit via AJAX
+            console.log('🚀 Sending login request to /auth/login');
             fetch('/auth/login', {
                 method: 'POST',
                 headers: {
@@ -710,19 +711,39 @@
                     password: password
                 })
             })
-            .then(response => response.json())
+            .then(response => {
+                console.log('📡 Raw response received:', response);
+                console.log('📊 Response status:', response.status);
+                console.log('📊 Response ok:', response.ok);
+                console.log('📊 Response headers:', response.headers);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                return response.json();
+            })
             .then(data => {
-                console.log('🔍 Login response received:', data);
+                console.log('🔍 Parsed JSON response:', data);
+                console.log('🔍 Success field:', data.success);
+                console.log('🔍 Error field:', data.error);
+                console.log('🔍 Redirect field:', data.redirect);
+                
                 if (data.success) {
-                    console.log('✅ Login successful! Redirect URL:', data.redirect || '/');
+                    console.log('✅ Login marked as successful! Processing redirect...');
+                    const redirectUrl = data.redirect || '/';
+                    console.log('🎯 Target redirect URL:', redirectUrl);
+                    
                     // Force a proper redirect with slight delay to ensure session is set
                     setTimeout(() => {
-                        console.log('🔄 Redirecting now...');
-                        window.location.replace(data.redirect || '/');
+                        console.log('🔄 Executing redirect now to:', redirectUrl);
+                        window.location.replace(redirectUrl);
                     }, 100);
                 } else {
-                    console.log('❌ Login failed:', data.error);
-                    alert(data.error || 'Login failed');
+                    console.log('❌ Login failed according to response');
+                    const errorMsg = data.error || 'Login failed - no error message provided';
+                    console.log('❌ Error message:', errorMsg);
+                    alert(errorMsg);
                     submitBtn.disabled = false;
                     submitBtn.textContent = 'Sign In';
                 }
