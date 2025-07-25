@@ -291,20 +291,7 @@ window.UniversalButtonFix = {
                 window.event = e; // Pass event context
                 window.togglePassword('confirm_password');
             },
-            'loginBtn': (e) => {
-                console.log('🔧 Login button clicked via universal fix');
-                
-                // Let the form submit naturally instead of intercepting
-                const loginForm = document.getElementById('loginForm');
-                if (loginForm) {
-                    console.log('✅ Allowing natural form submission to:', loginForm.action);
-                    // Don't prevent default - let form submit naturally
-                    return true;
-                } else {
-                    console.log('❌ Login form not found, preventing submission');
-                    e.preventDefault();
-                }
-            }
+            // 'loginBtn' - REMOVED - Let form handle login naturally without any interception
         };
         
         // Add direct listeners to known buttons
