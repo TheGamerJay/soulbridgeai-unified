@@ -154,7 +154,9 @@ window.UniversalButtonFix = {
         const buttonMappings = {
             'themeToggle': () => window.toggleTheme(),
             'languageSelector': () => window.toggleLanguageMenu(),
-            'toggleBtn': () => window.togglePassword('password'),
+            'loginToggleBtn': () => window.togglePassword('password'),
+            'registerToggleBtn': () => window.togglePassword('password'),
+            'toggleBtn': () => window.togglePassword('confirm_password'), // For confirm password
             'loginBtn': (e) => {
                 // Let form submit naturally
                 console.log('🔧 Login button clicked via universal fix');

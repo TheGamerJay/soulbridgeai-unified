@@ -568,7 +568,7 @@
                             autocomplete="current-password"
                             style="padding-right: 45px;"
                         >
-                        <button type="button" class="password-toggle" id="toggleBtn" onclick="togglePassword('password')" aria-label="Toggle password visibility">
+                        <button type="button" class="password-toggle" id="loginToggleBtn" onclick="togglePassword('password')" aria-label="Toggle password visibility">
                             👁️
                         </button>
                     </div>
@@ -728,8 +728,9 @@
                 }
             })
             .catch(error => {
-                console.error('Login error:', error);
-                alert('Login failed. Please try again.');
+                console.error('🚨 Login fetch error:', error);
+                console.error('🚨 Error details:', error.message, error.stack);
+                alert(`Login failed: ${error.message}. Please try again.`);
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Sign In';
                 
