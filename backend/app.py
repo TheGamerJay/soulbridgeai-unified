@@ -15,9 +15,17 @@ import time
 from datetime import datetime, timezone, timedelta
 from flask import Flask, jsonify, render_template, request, session, redirect, url_for, flash, make_response
 
-# Configure logging
+# Configure logging first
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
+
+# Load environment variables from .env file
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+    logger.info("Environment variables loaded from .env file")
+except ImportError:
+    logger.warning("python-dotenv not installed, relying on system environment variables")
 
 # Create Flask app with secure session configuration
 app = Flask(__name__)
