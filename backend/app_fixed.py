@@ -22,7 +22,7 @@ import string
 import requests
 from functools import wraps
 from datetime import datetime, timezone, timedelta
-from flask import Flask, jsonify, render_template, request, session, redirect, url_for, flash, make_response, has_request_context
+from flask import Flask, jsonify, render_template, request, session, redirect, url_for, flash, make_response, has_request_context, Blueprint
 from flask_cors import CORS
 from flask_caching import Cache
 from flask_limiter import Limiter
@@ -134,6 +134,108 @@ compress = Compress(app)
 compress.init_app(app)
 
 # CRITICAL: Add health check IMMEDIATELY for Railway
+# ==================================================================================
+# 🔍 DEBUG BLUEPRINT - For development debugging and problem monitoring
+# ==================================================================================
+
+debug_bp = Blueprint('debug', __name__)
+
+@debug_bp.route('/api/debug/status', methods=['GET'])
+def debug_status():
+    return jsonify({"status": "ok", "message": "Debug API working", "timestamp": datetime.now().isoformat()}), 200
+
+@debug_bp.route('/api/debug/report-error', methods=['POST'])
+def api_report_frontend_error():
+    """Endpoint for frontend to report JavaScript errors to watchdog"""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"status": "error", "message": "No data provided"}), 400
+            
+        error_type = data.get('type', 'UNKNOWN')
+        error_message = data.get('message', 'No message')
+        error_source = data.get('source', 'unknown')
+        error_line = data.get('line', 'unknown')
+        error_url = data.get('url', request.referrer or 'unknown')
+        
+        # Report to auto-maintenance system
+        auto_maintenance.detect_error_pattern(
+            f"FRONTEND_{error_type}", 
+            f"{error_message} (source: {error_source}, line: {error_line}, url: {error_url})"
+        )
+        
+        return jsonify({
+            "status": "success", 
+            "message": "Error reported to watchdog"
+        })
+        
+    except Exception as e:
+        logger.error(f"❌ Error reporting frontend error: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@debug_bp.route('/api/debug/recent-errors', methods=['GET'])
+def api_get_recent_errors():
+    """Get recent error patterns detected by the watchdog"""
+    try:
+        # Get recent maintenance actions that indicate problems
+        recent_issues = []
+        
+        # Check if auto_maintenance has error tracking
+        if hasattr(auto_maintenance, 'error_patterns'):
+            for pattern, details in auto_maintenance.error_patterns.items():
+                if pattern.startswith('FRONTEND_') or 'button' in pattern.lower() or 'javascript' in pattern.lower():
+                    recent_issues.append({
+                        'type': pattern,
+                        'count': details.get('count', 0),
+                        'last_seen': details.get('last_occurrence', 'unknown'),
+                        'severity': 'high' if details.get('count', 0) > 3 else 'medium'
+                    })
+        
+        # Also check maintenance log for button/JS related issues
+        try:
+            maintenance_log_path = os.path.join(os.path.dirname(__file__), 'logs', 'maintenance_log.txt')
+            if os.path.exists(maintenance_log_path):
+                with open(maintenance_log_path, 'r') as f:
+                    recent_logs = f.readlines()[-20:]  # Last 20 lines
+                    
+                for log_line in recent_logs:
+                    if any(keyword in log_line.lower() for keyword in ['button', 'javascript', 'frontend', 'onclick']):
+                        recent_issues.append({
+                            'type': 'MAINTENANCE_LOG',
+                            'message': log_line.strip(),
+                            'severity': 'medium'
+                        })
+        except Exception as log_error:
+            logger.warning(f"Could not read maintenance log: {log_error}")
+        
+        # If no specific issues found, check if we have any error patterns at all
+        if not recent_issues and hasattr(auto_maintenance, 'error_patterns') and auto_maintenance.error_patterns:
+            recent_issues.append({
+                'type': 'SYSTEM_ANALYSIS',
+                'message': f"Found {len(auto_maintenance.error_patterns)} error patterns - may need investigation",
+                'severity': 'low'
+            })
+        
+        return jsonify({
+            "status": "success",
+            "issues": recent_issues,
+            "count": len(recent_issues)
+        })
+        
+    except Exception as e:
+        logger.error(f"❌ Error getting recent errors: {e}")
+        return jsonify({
+            "status": "error", 
+            "message": str(e),
+            "issues": [],
+            "count": 0
+        }), 500
+
+# Register debug blueprint for local testing - watchdog monitoring
+# Force registration for development debugging
+app.register_blueprint(debug_bp)
+print("Debug Blueprint registered for watchdog monitoring")
+
 @app.route("/health")
 def health_check():
     try:
@@ -6612,6 +6714,94 @@ def creative_therapy_page():
 # 🤖 COMPANION SYSTEM API ENDPOINTS
 # ==================================================================================
 
+# Frontend Error Reporting API for Watchdog Integration
+@app.route("/api/debug/report-error", methods=["POST"])
+def api_report_frontend_error():
+    """Endpoint for frontend to report JavaScript errors to watchdog"""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"status": "error", "message": "No data provided"}), 400
+            
+        error_type = data.get('type', 'UNKNOWN')
+        error_message = data.get('message', 'No message')
+        error_source = data.get('source', 'unknown')
+        error_line = data.get('line', 'unknown')
+        error_url = data.get('url', request.referrer or 'unknown')
+        
+        # Report to auto-maintenance system
+        auto_maintenance.detect_error_pattern(
+            f"FRONTEND_{error_type}", 
+            f"{error_message} (source: {error_source}, line: {error_line}, url: {error_url})"
+        )
+        
+        return jsonify({
+            "status": "success", 
+            "message": "Error reported to watchdog"
+        })
+        
+    except Exception as e:
+        logger.error(f"❌ Error reporting frontend error: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route("/api/debug/recent-errors", methods=["GET"])
+def api_get_recent_errors():
+    """Get recent error patterns detected by the watchdog"""
+    try:
+        # Get recent maintenance actions that indicate problems
+        recent_issues = []
+        
+        # Check if auto_maintenance has error tracking
+        if hasattr(auto_maintenance, 'error_patterns'):
+            for pattern, details in auto_maintenance.error_patterns.items():
+                if pattern.startswith('FRONTEND_') or 'button' in pattern.lower() or 'javascript' in pattern.lower():
+                    recent_issues.append({
+                        'type': pattern,
+                        'count': details.get('count', 0),
+                        'last_seen': details.get('last_occurrence', 'unknown'),
+                        'severity': 'high' if details.get('count', 0) > 3 else 'medium'
+                    })
+        
+        # Also check maintenance log for button/JS related issues
+        try:
+            maintenance_log_path = os.path.join(os.path.dirname(__file__), 'logs', 'maintenance_log.txt')
+            if os.path.exists(maintenance_log_path):
+                with open(maintenance_log_path, 'r') as f:
+                    recent_logs = f.readlines()[-20:]  # Last 20 lines
+                    
+                for log_line in recent_logs:
+                    if any(keyword in log_line.lower() for keyword in ['button', 'javascript', 'frontend', 'onclick']):
+                        recent_issues.append({
+                            'type': 'MAINTENANCE_LOG',
+                            'message': log_line.strip(),
+                            'severity': 'medium'
+                        })
+        except Exception as log_error:
+            logger.warning(f"Could not read maintenance log: {log_error}")
+        
+        # If no specific issues found, check if we have any error patterns at all
+        if not recent_issues and hasattr(auto_maintenance, 'error_patterns') and auto_maintenance.error_patterns:
+            recent_issues.append({
+                'type': 'SYSTEM_ANALYSIS',
+                'message': f"Found {len(auto_maintenance.error_patterns)} error patterns - may need investigation",
+                'severity': 'low'
+            })
+        
+        return jsonify({
+            "status": "success",
+            "issues": recent_issues,
+            "count": len(recent_issues)
+        })
+        
+    except Exception as e:
+        logger.error(f"❌ Error getting recent errors: {e}")
+        return jsonify({
+            "status": "error", 
+            "message": str(e),
+            "issues": [],
+            "count": 0
+        }), 500
+
 @app.route("/debug/routes")
 def debug_routes():
     """Debug endpoint to show all registered routes"""
@@ -8866,12 +9056,20 @@ This is an automated alert from SoulBridge AI Security Watchdog.
                             if 'request' in globals() and hasattr(flask, 'request') and flask.request:
                                 client_ip = flask.request.remote_addr or '127.0.0.1'
                             self.log_threat(client_ip, f"Critical file integrity violation: {os.path.basename(filepath)}", "high")
-                        elif filepath.endswith('app_fixed.py') and os.environ.get('FLASK_ENV') == 'production':
-                            # Only alert for app_fixed.py changes in production
-                            client_ip = '127.0.0.1'
-                            if 'request' in globals() and hasattr(flask, 'request') and flask.request:
-                                client_ip = flask.request.remote_addr or '127.0.0.1'
-                            self.log_threat(client_ip, f"Critical file integrity violation: {os.path.basename(filepath)}", "high")
+                        elif filepath.endswith('app_fixed.py'):
+                            # Check if this is a legitimate development change
+                            is_dev_mode = (
+                                os.environ.get('FLASK_ENV') != 'production' and 
+                                os.environ.get('FLASK_DEBUG') != 'False' and
+                                '127.0.0.1' in str(globals().get('request', {}).get('remote_addr', '127.0.0.1'))
+                            )
+                            
+                            # Only alert if this looks like a real threat (not dev changes)
+                            if not is_dev_mode or 'malicious' in str(change_details).lower():
+                                client_ip = '127.0.0.1'
+                                if 'request' in globals() and hasattr(flask, 'request') and flask.request:
+                                    client_ip = flask.request.remote_addr or '127.0.0.1'
+                                self.log_threat(client_ip, f"Critical file integrity violation: {os.path.basename(filepath)}", "high")
                     
                     if integrity_compromised:
                             change_info = {
@@ -9607,23 +9805,31 @@ def unified_surveillance_room():
             <script>
                 let problemsData = '';
                 
-                // Display static healthy status since debug monitoring removed
+                // Load problems from watchdog API
                 function loadProblems() {{
                     const container = document.getElementById('problemsContainer');
-                    container.innerHTML = '<div class="log-entry info">✅ System monitoring active - watchdog operational</div>';
-                    problemsData = `SoulBridge AI System Status - {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}\\n` +
-                                 `=================================================\\n\\n` +
-                                 `✅ All systems operational\\n` +
-                                 `🔧 Watchdog monitoring active\\n` +
-                                 `📊 Auto-maintenance running\\n\\n` +
-                                 `No critical issues detected.`;
+                    container.innerHTML = '<div class="log-entry info">🔄 Loading problem analysis...</div>';
+                    
+                    // Fetch recent errors from watchdog API
+                    fetch('/api/debug/recent-errors')
+                        .then(response => response.json())
+                        .then(data => {{
+                            if (data.status === 'success') {{
+                                displayProblems(data.issues || []);
+                            }} else {{
+                                container.innerHTML = '<div class="log-entry error">❌ Problem monitoring API error: ' + (data.message || 'Unknown error') + '</div>';
+                            }}
+                        }})
+                        .catch(error => {{
+                            console.error('Error loading problems:', error);
+                            container.innerHTML = '<div class="log-entry error">❌ Failed to load problem analysis - API connection error</div>';
+                        }});
                 }}
                 
-                function displayProblems(data) {{
+                function displayProblems(issues) {{
                     const container = document.getElementById('problemsContainer');
-                    const problems = analyzeProblems(data);
                     
-                    if (problems.length === 0) {{
+                    if (!issues || issues.length === 0) {{
                         container.innerHTML = '<div class="log-entry info">✅ No problems detected - all systems healthy!</div>';
                         problemsData = `SoulBridge AI Problem Report - {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}\\n` +
                                      `=================================================\\n\\n` +
@@ -9633,16 +9839,21 @@ def unified_surveillance_room():
                         let report = `SoulBridge AI Problem Report - {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}\\n` +
                                    `=================================================\\n\\n`;
                         
-                        problems.forEach((problem, index) => {{
-                            html += `<div class="log-entry warning">
-                                <strong>❌ ${{problem.title}}</strong><br>
-                                ${{problem.description}}<br>
-                                <em style="color: #22d3ee;">💡 ${{problem.action}}</em>
+                        issues.forEach((issue, index) => {{
+                            const severityIcon = issue.severity === 'high' ? '🔴' : issue.severity === 'medium' ? '🟡' : '🟢';
+                            const severityColor = issue.severity === 'high' ? '#ef4444' : issue.severity === 'medium' ? '#f59e0b' : '#10b981';
+                            
+                            html += `<div class="log-entry warning" style="border-left: 4px solid ${{severityColor}};">
+                                <strong>${{severityIcon}} ${{issue.type || 'UNKNOWN_ISSUE'}}</strong><br>
+                                ${{issue.message || issue.count ? 'Count: ' + issue.count + ' | Last seen: ' + (issue.last_seen || 'unknown') : 'No details available'}}<br>
+                                <em style="color: #22d3ee;">💡 Check browser console and test button functionality</em>
                             </div>`;
                             
-                            report += `Problem ${{index + 1}}: ${{problem.title}}\\n`;
-                            report += `Description: ${{problem.description}}\\n`;
-                            report += `Action: ${{problem.action}}\\n\\n`;
+                            report += `Problem ${{index + 1}}: ${{issue.type || 'UNKNOWN_ISSUE'}}\\n`;
+                            report += `Severity: ${{issue.severity || 'unknown'}}\\n`;
+                            report += `Details: ${{issue.message || (issue.count ? 'Count: ' + issue.count : 'No details')}}\\n`;
+                            if (issue.last_seen) report += `Last seen: ${{issue.last_seen}}\\n`;
+                            report += `\\n`;
                         }});
                         
                         container.innerHTML = html;

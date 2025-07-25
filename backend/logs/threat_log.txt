@@ -17,3 +17,6 @@
 [2025-07-25T00:21:56.370703] ⚠️ THREAT - IP: 127.0.0.1 - Reason: Critical file integrity violation: app_fixed.py - Severity: high
 [2025-07-25T00:31:56.394726] ⚠️ THREAT - IP: 127.0.0.1 - Reason: Critical file integrity violation: app_fixed.py - Severity: high
 [2025-07-25T00:36:56.424341] ⚠️ THREAT - IP: 127.0.0.1 - Reason: Critical file integrity violation: app_fixed.py - Severity: high
+[2025-07-25T12:00:52.324827] ⚠️ THREAT - IP: 127.0.0.1 - Reason: Critical file integrity violation: app_fixed.py - Severity: high
+[2025-07-25T12:05:52.342424] ⚠️ THREAT - IP: 127.0.0.1 - Reason: Critical file integrity violation: app_fixed.py - Severity: high
+[2025-07-25T12:10:52.365312] ⚠️ THREAT - IP: 127.0.0.1 - Reason: Critical file integrity violation: app_fixed.py - Severity: high

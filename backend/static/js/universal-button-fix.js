@@ -58,17 +58,31 @@ window.UniversalButtonFix = {
         if (typeof window.togglePassword !== 'function') {
             window.togglePassword = function(fieldId) {
                 try {
-                    console.log('👁️ Password toggle via universal fix');
+                    console.log('👁️ Password toggle via universal fix for field:', fieldId);
                     const passwordField = document.getElementById(fieldId);
+                    console.log('🔍 Found password field:', passwordField);
+                    
+                    if (!passwordField) {
+                        console.error('❌ Password field not found:', fieldId);
+                        return;
+                    }
+                    
                     const toggleBtn = document.getElementById('toggleBtn') || 
+                                     document.getElementById('loginToggleBtn') ||
+                                     document.getElementById('registerToggleBtn') ||
+                                     document.getElementById('confirmToggleBtn') ||
                                      document.querySelector(`[onclick*="${fieldId}"]`);
                     
-                    if (passwordField && passwordField.type === 'password') {
+                    console.log('🔍 Found toggle button:', toggleBtn);
+                    
+                    if (passwordField.type === 'password') {
                         passwordField.type = 'text';
                         if (toggleBtn) toggleBtn.textContent = '🙈';
-                    } else if (passwordField) {
+                        console.log('✅ Password shown');
+                    } else {
                         passwordField.type = 'password';
                         if (toggleBtn) toggleBtn.textContent = '👁️';
+                        console.log('✅ Password hidden');
                     }
                 } catch (error) {
                     console.error('❌ Universal togglePassword error:', error);
@@ -163,6 +177,10 @@ window.UniversalButtonFix = {
                 window.togglePassword('password');
             },
             'toggleBtn': () => {
+                console.log('👁️ Password toggle clicked via Universal Button Fix');
+                window.togglePassword('password');
+            },
+            'confirmToggleBtn': () => {
                 console.log('👁️ Confirm password toggle clicked via Universal Button Fix');
                 window.togglePassword('confirm_password');
             },

@@ -52,7 +52,8 @@
       "Bash(cd \"C:\\Users\\jaaye\\OneDrive\\Desktop\\soulbridgeai-unified\\backend\")",
       "Bash(python -c \"import watchdog; print(''watchdog available'')\")",
       "Bash(chmod:*)",
-      "Bash(gunicorn:*)"
+      "Bash(gunicorn:*)",
+      "mcp__ide__getDiagnostics"
     ],
     "deny": []
   }

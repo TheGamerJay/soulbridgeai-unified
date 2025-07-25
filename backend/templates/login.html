@@ -667,113 +667,82 @@
             // Let Universal Button Fix handle everything - no double initialization
             console.log('✅ DOM ready - Universal Button Fix will handle button events');
             
+            // Add click listeners for debugging
+            const loginBtn = document.getElementById('loginBtn');
+            const themeToggle = document.getElementById('themeToggle');
+            const languageSelector = document.getElementById('languageSelector');
             
-            // Form submission handling with AJAX
-            const loginForm = document.getElementById('loginForm');
-            if (!loginForm) {
-                console.error('❌ Login form not found!');
-                return;
-            }
-            
-            console.log('🔧 Attaching submit listener to form:', loginForm);
-            loginForm.addEventListener('submit', function(e) {
-            e.preventDefault(); // Prevent default form submission
-            console.log('🚀 FORM SUBMIT TRIGGERED! Event:', e);
-            
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            
-            console.log('📧 Email:', email);
-            console.log('🔑 Password length:', password.length);
-            console.log('🌐 Submitting to:', '/auth/login');
-            
-            // Check if fields are filled
-            if (!email || !password) {
-                console.log('Empty fields detected');
-                alert('Please fill in both email and password');
-                return false;
-            }
-            
-            console.log('Form validation passed, submitting...');
-            
-            const submitBtn = document.getElementById('loginBtn');
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Signing In...';
-            
-            // Submit via AJAX
-            console.log('🚀 Sending login request to /auth/login');
-            fetch('/auth/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    email: email,
-                    password: password
-                })
-            })
-            .then(response => {
-                console.log('📡 Raw response received:', response);
-                console.log('📊 Response status:', response.status);
-                console.log('📊 Response ok:', response.ok);
-                console.log('📊 Response headers:', response.headers);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                
-                return response.json();
-            })
-            .then(data => {
-                console.log('🔍 Parsed JSON response:', data);
-                console.log('🔍 Success field:', data.success);
-                console.log('🔍 Error field:', data.error);
-                console.log('🔍 Redirect field:', data.redirect);
-                
-                if (data.success) {
-                    console.log('✅ Login marked as successful! Processing redirect...');
-                    const redirectUrl = data.redirect || '/';
-                    console.log('🎯 Target redirect URL:', redirectUrl);
+            if (loginBtn) {
+                loginBtn.addEventListener('click', function(e) {
+                    console.log('🔘 Login button clicked directly');
+                    e.preventDefault(); // Prevent default button behavior
                     
-                    // Force a proper redirect with slight delay to ensure session is set
-                    setTimeout(() => {
-                        console.log('🔄 Executing redirect now to:', redirectUrl);
-                        window.location.replace(redirectUrl);
-                    }, 100);
-                } else {
-                    console.log('❌ Login failed according to response');
-                    const errorMsg = data.error || 'Login failed - no error message provided';
-                    console.log('❌ Error message:', errorMsg);
-                    alert(errorMsg);
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = 'Sign In';
-                }
-            })
-            .catch(error => {
-                console.error('🚨 Login fetch error:', error);
-                console.error('🚨 Error details:', error.message, error.stack);
-                alert(`Login failed: ${error.message}. Please try again.`);
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Sign In';
-                
-            });
-            });
+                    // Get form data
+                    const email = document.getElementById('email').value;
+                    const password = document.getElementById('password').value;
+                    
+                    console.log('📧 Email:', email);
+                    console.log('🔑 Password length:', password.length);
+                    
+                    // Validate fields
+                    if (!email || !password) {
+                        alert('Please fill in both email and password');
+                        return;
+                    }
+                    
+                    // Disable button and show loading
+                    loginBtn.disabled = true;
+                    loginBtn.textContent = 'Signing In...';
+                    
+                    // Submit login via AJAX
+                    fetch('/auth/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            email: email,
+                            password: password
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            console.log('✅ Login successful!');
+                            window.location.href = data.redirect || '/';
+                        } else {
+                            console.log('❌ Login failed:', data.error);
+                            alert(data.error || 'Login failed');
+                            loginBtn.disabled = false;
+                            loginBtn.textContent = 'Sign In';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('❌ Login error:', error);
+                        alert('Login failed. Please try again.');
+                        loginBtn.disabled = false;
+                        loginBtn.textContent = 'Sign In';
+                    });
+                });
+            }
+            
+            if (themeToggle) {
+                themeToggle.addEventListener('click', function(e) {
+                    console.log('🌙 Theme toggle clicked directly');
+                });
+            }
+            
+            if (languageSelector) {
+                languageSelector.addEventListener('click', function(e) {
+                    console.log('🌐 Language selector clicked directly');
+                });
+            }
+            
             
             // Auto-focus first input
             const emailInput = document.getElementById('email');
             if (emailInput) {
                 emailInput.focus();
-            }
-            
-            // ALSO add direct click listener to login button for debugging
-            const loginBtn = document.getElementById('loginBtn');
-            if (loginBtn) {
-                console.log('🔧 Adding direct click listener to login button');
-                loginBtn.addEventListener('click', function(e) {
-                    console.log('🔘 LOGIN BUTTON CLICKED DIRECTLY!', e);
-                    console.log('🔘 Button type:', loginBtn.type);
-                    console.log('🔘 Form element:', loginBtn.form);
-                });
             }
             
             // Debug form setup
