@@ -32,6 +32,7 @@ window.UniversalButtonFix = {
                     const themeToggle = document.getElementById('themeToggle');
                     
                     if (document.body.classList.contains('day-mode')) {
+                        localStorage.setItem('theme', 'day');
                         if (themeText) themeText.textContent = 'Day Mode is ON';
                         if (themeIcon) themeIcon.textContent = '☀️';
                         if (themeToggle) {
@@ -39,6 +40,7 @@ window.UniversalButtonFix = {
                             themeToggle.style.color = '#000';
                         }
                     } else {
+                        localStorage.setItem('theme', 'night');
                         if (themeText) themeText.textContent = 'Night Mode is ON';
                         if (themeIcon) themeIcon.textContent = '🌙';
                         if (themeToggle) {

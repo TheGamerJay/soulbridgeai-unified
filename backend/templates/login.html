@@ -993,6 +993,24 @@
             updateLanguageDisplay(savedLang);
             applyTranslations(savedLang);
         }
+        
+        // Load saved theme on page load
+        function loadSavedTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'night';
+            if (savedTheme === 'day') {
+                document.body.classList.add('day-mode');
+                const themeText = document.getElementById('themeText');
+                const themeIcon = document.getElementById('themeIcon');
+                const themeToggle = document.getElementById('themeToggle');
+                
+                if (themeText) themeText.textContent = 'Day Mode is ON';
+                if (themeIcon) themeIcon.textContent = '☀️';
+                if (themeToggle) {
+                    themeToggle.style.background = 'rgba(255, 193, 7, 0.8)';
+                    themeToggle.style.color = '#000';
+                }
+            }
+        }
 
         // Load theme on page load
         window.addEventListener('load', function() {
