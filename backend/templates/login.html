@@ -53,7 +53,7 @@
             right: 0;
             bottom: 0;
             background-image: url('/static/logos/IntroLogo.png?v=2025');
-            background-size: 380px 380px !important;
+            background-size: 320px 320px !important;
             background-repeat: no-repeat;
             background-position: center 25px;
             opacity: 0.9;
@@ -65,7 +65,7 @@
         /* Day mode logo - positioned under header text */
         body.day-mode .auth-card::before {
             background-image: url('/static/logos/BlackIntroLogo.png?v=2025');
-            background-size: 380px 380px !important;
+            background-size: 320px 320px !important;
             background-position: center 25px;
             opacity: 1;
             filter: contrast(2) brightness(0.5);
@@ -705,17 +705,38 @@
                         if (contentType && contentType.includes('application/json')) {
                             const result = await response.json();
                             console.log('📦 JSON response:', result);
+                            console.log('📦 Response object keys:', Object.keys(result));
+                            console.log('📦 Success property:', result.success, 'type:', typeof result.success);
+                            console.log('📦 Redirect property:', result.redirect);
                             
                             if (result.success) {
                                 console.log('✅ Login successful, redirecting to:', result.redirect);
+                                console.log('✅ Current URL before redirect:', window.location.href);
                                 
-                                // Small delay to ensure session is fully established on server
+                                // Enhanced redirect with multiple methods
+                                const redirectUrl = result.redirect || '/';
+                                console.log('🎯 Final redirect URL:', redirectUrl);
+                                
+                                // Try multiple redirect methods for reliability
                                 setTimeout(() => {
-                                    console.log('🚀 Redirecting after session establishment delay...');
-                                    window.location.href = result.redirect || '/';
-                                }, 200); // 200ms delay
+                                    console.log('🚀 Method 1: window.location.href redirect...');
+                                    window.location.href = redirectUrl;
+                                    
+                                    // Backup method after short delay
+                                    setTimeout(() => {
+                                        console.log('🚀 Method 2: window.location.replace backup...');
+                                        window.location.replace(redirectUrl);
+                                        
+                                        // Final backup method
+                                        setTimeout(() => {
+                                            console.log('🚀 Method 3: Hard refresh backup...');
+                                            window.location.reload();
+                                        }, 500);
+                                    }, 300);
+                                }, 100);
                             } else {
                                 console.log('❌ Login failed:', result.error);
+                                console.log('❌ Error details:', result);
                                 alert(result.error || 'Login failed.');
                                 
                                 // Reset button state
