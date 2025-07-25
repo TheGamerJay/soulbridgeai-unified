@@ -12,6 +12,7 @@
     console.log(`✅ Found form '${id}', adding event listener`);
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
+      console.log(`🚀 FORM SUBMITTED: ${id}`);
 
       const formData = new FormData(form);
       const action = form.getAttribute("action") || opts.action;
