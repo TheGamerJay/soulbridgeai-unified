@@ -495,7 +495,7 @@
 
     <!-- Theme Toggle -->
     <div style="position: fixed; top: 20px; right: 20px; z-index: 100;">
-        <div id="themeToggle" style="
+        <button type="button" id="themeToggle" style="
             background: rgba(34, 211, 238, 0.8);
             color: #000;
             padding: 10px 16px;
@@ -506,10 +506,12 @@
             display: flex;
             align-items: center;
             gap: 6px;
-        " onclick="toggleTheme()">
+            border: none;
+            pointer-events: auto;
+        ">
             <span id="themeText" style="color: #000 !important;" data-translate="night_mode_on">Night Mode is ON</span>
             <span id="themeIcon">🌙</span>
-        </div>
+        </button>
     </div>
 
     <div class="auth-container content-overlay">
@@ -591,7 +593,7 @@
             
             <!-- Language Selector (Below Sign-In) -->
             <div style="margin-top: 20px; display: flex; justify-content: center; position: relative;">
-                <div id="languageSelector" style="
+                <button type="button" id="languageSelector" style="
                     background: rgba(34, 211, 238, 0.8);
                     color: #000;
                     padding: 8px 12px;
@@ -603,10 +605,12 @@
                     align-items: center;
                     gap: 6px;
                     position: relative;
-                " onclick="toggleLanguageMenu()">
+                    border: none;
+                    pointer-events: auto;
+                ">
                     <span>🌐</span>
                     <span id="currentLanguage" data-translate="language_en">EN</span>
-                </div>
+                </button>
                 
                 <!-- Language Dropdown -->
                 <div id="languageMenu" style="
@@ -653,122 +657,15 @@
         </div>
     </div>
 
-    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/universal-button-fix.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/universal-button-fix.js') }}?v=20250725" defer></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}?v=20250725" defer></script>
     <script>
         // Wait for DOM to be ready before attaching event listeners
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🔧 DOM loaded - setting up login form');
             
-            // Force attach button listeners immediately (bypass CSP)
-            setTimeout(() => {
-                console.log('🔧 Force-attaching button listeners...');
-                
-                // Theme toggle
-                const themeBtn = document.getElementById('themeToggle');
-                if (themeBtn) {
-                    themeBtn.removeAttribute('onclick'); // Remove CSP-blocked onclick
-                    themeBtn.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        console.log('🌙 Theme toggle clicked!');
-                        document.body.classList.toggle('day-mode');
-                        const themeText = document.getElementById('themeText');
-                        const themeIcon = document.getElementById('themeIcon');
-                        
-                        if (document.body.classList.contains('day-mode')) {
-                            localStorage.setItem('theme', 'day');
-                            if (themeText) themeText.textContent = 'Day Mode is ON';
-                            if (themeIcon) themeIcon.textContent = '☀️';
-                            themeBtn.style.background = 'rgba(255, 193, 7, 0.8)';
-                        } else {
-                            localStorage.setItem('theme', 'night');
-                            if (themeText) themeText.textContent = 'Night Mode is ON';
-                            if (themeIcon) themeIcon.textContent = '🌙';
-                            themeBtn.style.background = 'rgba(34, 211, 238, 0.8)';
-                        }
-                    });
-                    console.log('✅ Theme button listener attached');
-                }
-                
-                // Language selector
-                const langBtn = document.getElementById('languageSelector');
-                if (langBtn) {
-                    langBtn.removeAttribute('onclick');
-                    langBtn.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        console.log('🌐 Language selector clicked!');
-                        const menu = document.getElementById('languageMenu');
-                        if (menu) {
-                            menu.style.display = menu.style.display === 'none' || !menu.style.display ? 'block' : 'none';
-                        }
-                    });
-                    console.log('✅ Language button listener attached');
-                }
-                
-                // Language options
-                const langOptions = document.querySelectorAll('.language-option');
-                langOptions.forEach(option => {
-                    option.removeAttribute('onclick');
-                    const onclick = option.getAttribute('data-lang') || option.textContent.toLowerCase().trim();
-                    const langCode = option.textContent.includes('EN') ? 'en' : 
-                                   option.textContent.includes('ES') ? 'es' :
-                                   option.textContent.includes('FR') ? 'fr' :
-                                   option.textContent.includes('DE') ? 'de' :
-                                   option.textContent.includes('PT') ? 'pt' :
-                                   option.textContent.includes('ZH') ? 'zh' :
-                                   option.textContent.includes('JA') ? 'ja' :
-                                   option.textContent.includes('RU') ? 'ru' : 'en';
-                    
-                    option.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        console.log(`🌐 Language changed to: ${langCode}`);
-                        localStorage.setItem('selectedLanguage', langCode);
-                        document.getElementById('languageMenu').style.display = 'none';
-                        location.reload();
-                    });
-                });
-                console.log(`✅ ${langOptions.length} language options attached`);
-                
-                // Password toggle - use the same approach as working confirm password
-                const passwordToggle = document.getElementById('toggleBtn');
-                if (passwordToggle) {
-                    passwordToggle.removeAttribute('onclick');
-                    passwordToggle.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        console.log('👁️ Password toggle clicked - using app.js approach!');
-                        
-                        // Use the same logic as the working app.js function
-                        const inputId = 'password';
-                        const input = document.getElementById(inputId);
-                        if (!input) {
-                            console.log('Input not found:', inputId);
-                            return;
-                        }
-                        
-                        // Find the toggle button that's in the same container as this input
-                        const container = input.closest('.password-container');
-                        const toggleBtn = container ? container.querySelector('.password-toggle') : null;
-                        
-                        if (!toggleBtn) {
-                            console.log('Toggle button not found for input:', inputId);
-                            return;
-                        }
-                        
-                        if (input.type === 'password') {
-                            input.type = 'text';
-                            toggleBtn.innerHTML = '🙈'; // Closed eye
-                            toggleBtn.setAttribute('aria-label', 'Hide password');
-                            console.log('Password shown for:', inputId);
-                        } else {
-                            input.type = 'password';
-                            toggleBtn.innerHTML = '👁️'; // Open eye
-                            toggleBtn.setAttribute('aria-label', 'Show password');
-                            console.log('Password hidden for:', inputId);
-                        }
-                    });
-                    console.log('✅ Password toggle listener attached with app.js approach');
-                }
-            }, 500);
+            // Let Universal Button Fix handle everything - no double initialization
+            console.log('✅ DOM ready - Universal Button Fix will handle button events');
             
             
             // Form submission handling with AJAX
