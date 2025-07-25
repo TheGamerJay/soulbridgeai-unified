@@ -517,11 +517,14 @@ def parse_request_data():
 def setup_user_session(email, user_id=None, is_admin=False, dev_mode=False):
     """Setup user session with security measures"""
     try:
+        logger.info(f"🔧 Setting up session for: {email}")
+        
         # Store current session data before clearing
         old_session_data = dict(session) if session else {}
+        logger.info(f"🔍 Old session data: {old_session_data}")
         
-        # Security: Clear and regenerate session to prevent fixation attacks
-        session.clear()
+        # DON'T clear session - just update required fields for persistence
+        # session.clear()  # This was causing the redirect loop!
         session.permanent = True  # Use configured timeout
         
         # Set all session data
@@ -541,6 +544,10 @@ def setup_user_session(email, user_id=None, is_admin=False, dev_mode=False):
         
         # Force session to be saved immediately
         session.modified = True
+        
+        logger.info(f"✅ Session setup complete - keys: {list(session.keys())}")
+        logger.info(f"🔍 Session authenticated flag: {session.get('user_authenticated')}")
+        logger.info(f"🔍 Session email: {session.get('user_email')}")
         
         # CRITICAL: Ensure session is written immediately
         # Force Flask to save the session cookie
@@ -1537,10 +1544,20 @@ def initialize_services():
 def home():
     """Home route - redirect to login for security"""
     try:
+        # Debug the session and login state
+        logger.info(f"🏠 Home route accessed")
+        logger.info(f"🔍 Session keys: {list(session.keys()) if session else 'No session'}")
+        logger.info(f"🔍 User authenticated: {session.get('user_authenticated', 'NOT SET')}")
+        logger.info(f"🔍 User email: {session.get('user_email', 'NOT SET')}")
+        logger.info(f"🔍 Show intro param: {request.args.get('show_intro', 'NOT SET')}")
+        
         # Always require authentication for home page
         if not is_logged_in():
+            logger.warning(f"❌ User not logged in, redirecting to login")
             return redirect("/login")
             
+        logger.info(f"✅ User is logged in, proceeding to main app")
+        
         # Ensure services are initialized for authenticated users
         if not services["database"]:
             initialize_services()
@@ -1629,12 +1646,19 @@ def auth_login():
             logger.info(f"Developer login attempt: {is_developer}")
         
         if is_developer:
+            logger.info("🔧 Setting up developer session...")
             setup_user_session(email, is_admin=True, dev_mode=True)
             # Longer delay to ensure session is written
             import time
-            time.sleep(0.3)
-            logger.info("Developer login successful")
-            return jsonify({"success": True, "redirect": "/?show_intro=true", "session_established": True})
+            time.sleep(0.5)  # Increased delay
+            
+            # Verify session was created properly
+            logger.info(f"🔍 Session after setup - authenticated: {session.get('user_authenticated', 'NOT SET')}")
+            logger.info(f"🔍 Session after setup - email: {session.get('user_email', 'NOT SET')}")
+            logger.info(f"🔍 Session after setup - keys: {list(session.keys())}")
+            
+            logger.info("✅ Developer login successful")
+            return jsonify({"success": True, "redirect": "/", "session_established": True})
         
         # For regular users, check database if available
         # Use services["database"] (Database object) directly instead of global db
@@ -1646,12 +1670,18 @@ def auth_login():
                 user_data = User.authenticate(database_obj, email, password)
                 
                 if user_data:
+                    logger.info(f"🔧 Setting up user session for: {email}")
                     setup_user_session(email, user_id=user_data[0])
                     # Longer delay to ensure session is written
                     import time
-                    time.sleep(0.3)
-                    logger.info(f"User login successful: {email}")
-                    return jsonify({"success": True, "redirect": "/?show_intro=true", "session_established": True})
+                    time.sleep(0.5)  # Increased delay
+                    
+                    # Verify session was created properly
+                    logger.info(f"🔍 Session after setup - authenticated: {session.get('user_authenticated', 'NOT SET')}")
+                    logger.info(f"🔍 Session after setup - email: {session.get('user_email', 'NOT SET')}")
+                    
+                    logger.info(f"✅ User login successful: {email}")
+                    return jsonify({"success": True, "redirect": "/", "session_established": True})
                 else:
                     # Check if user exists for better error messaging
                     user = User(database_obj)
@@ -1687,7 +1717,7 @@ def auth_login():
                         # Small delay to ensure session is written
                         import time
                         time.sleep(0.1)
-                        return jsonify({"success": True, "redirect": "/?show_intro=true", "session_established": True})
+                        return jsonify({"success": True, "redirect": "/", "session_established": True})
                 else:
                     # Database not available, use fallback
                     setup_user_session(email)
@@ -1695,7 +1725,7 @@ def auth_login():
                     import time
                     time.sleep(0.3)
                     logger.warning("Database not available, using fallback test authentication")
-                    return jsonify({"success": True, "redirect": "/?show_intro=true", "session_established": True})
+                    return jsonify({"success": True, "redirect": "/", "session_established": True})
             except Exception as e:
                 logger.error(f"Error with test user authentication: {e}")
                 # Even if there's an error, allow test credentials to work
