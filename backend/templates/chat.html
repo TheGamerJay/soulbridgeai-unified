@@ -81,7 +81,11 @@
                     var urlParams = new URLSearchParams(window.location.search);
                     var showIntro = urlParams.get('show_intro');
                     
-                    if (showIntro === 'true') {
+                    // Don't override if we already determined this should be intro
+                    if (localScreen === 'intro' && showIntro !== 'false') {
+                        validated.screen = 'intro';
+                        console.log('🔍 Rule 4: Preserving intro screen decision');
+                    } else if (showIntro === 'true') {
                         validated.screen = 'intro';
                         console.log('🔍 Rule 4: Fresh login = intro screen');
                     } else if (showIntro === 'false') {
