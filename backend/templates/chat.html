@@ -32,7 +32,7 @@
                 const localScreen = localStorage.getItem('currentScreen');
                 const localCharacter = localStorage.getItem('selectedCharacter');
                 const sessionActive = sessionStorage.getItem('hasActiveChat');
-                const bodyPrefs = document.body.className;
+                const bodyPrefs = document.body ? document.body.className : '';
                 
                 console.log('🔍 Storage state:', {
                     localScreen,
@@ -679,11 +679,15 @@
         }
     });
     
-    // Start observing
-    observer.observe(document.body, {
-        childList: true,
-        subtree: true
-    });
+    // Start observing (only if document.body exists)
+    if (document.body) {
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+    } else {
+        console.warn('⚠️ document.body not ready yet, skipping observer setup');
+    }
     </script>
     
     <!-- 🚨 CRITICAL IMAGE AND THEME FUNCTIONALITY FIX -->
