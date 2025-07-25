@@ -53,7 +53,7 @@
             right: 0;
             bottom: 0;
             background-image: url('/static/logos/IntroLogo.png?v=2025');
-            background-size: 467px 467px !important;
+            background-size: 380px 380px !important;
             background-repeat: no-repeat;
             background-position: center 45px;
             opacity: 0.9;
@@ -65,7 +65,7 @@
         /* Day mode logo - positioned under header text */
         body.day-mode .auth-card::before {
             background-image: url('/static/logos/BlackIntroLogo.png?v=2025');
-            background-size: 467px 467px !important;
+            background-size: 380px 380px !important;
             background-position: center 45px;
             opacity: 1;
             filter: contrast(2) brightness(0.5);
@@ -709,15 +709,35 @@
                             password: password
                         })
                     })
-                    .then(response => response.json())
+                    .then(response => {
+                        console.log('🔍 Response status:', response.status);
+                        console.log('🔍 Response headers:', response.headers);
+                        if (!response.ok) {
+                            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                        }
+                        return response.json();
+                    })
                     .then(data => {
-                        console.log('📦 Login response:', data);
-                        if (data.success) {
-                            console.log('✅ Login successful - redirecting');
-                            window.location.href = data.redirect || '/';
+                        console.log('📦 Login response data:', data);
+                        console.log('📦 Success field:', data.success);
+                        console.log('📦 Error field:', data.error);
+                        console.log('📦 Redirect field:', data.redirect);
+                        
+                        if (data.success === true || data.success === 'true') {
+                            console.log('✅ Login successful - attempting redirect');
+                            const redirectUrl = data.redirect || '/';
+                            console.log('🎯 Redirecting to:', redirectUrl);
+                            
+                            // Try multiple redirect methods
+                            try {
+                                window.location.href = redirectUrl;
+                            } catch (e) {
+                                console.log('🔄 Primary redirect failed, trying replace');
+                                window.location.replace(redirectUrl);
+                            }
                         } else {
-                            console.log('❌ Login failed:', data.error);
-                            alert(data.error || 'Login failed');
+                            console.log('❌ Login failed - success field is:', data.success);
+                            alert(data.error || data.message || 'Login failed - invalid credentials');
                             newLoginBtn.disabled = false;
                             newLoginBtn.textContent = 'Sign In';
                         }
