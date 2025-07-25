@@ -1890,6 +1890,15 @@ def help_page():
         </body></html>
         """
 
+@app.route("/debug")
+def debug_dashboard():
+    """Human-readable problem monitoring dashboard"""
+    try:
+        return render_template("debug_dashboard.html")
+    except Exception as e:
+        logger.error(f"Debug dashboard error: {e}")
+        return jsonify({"error": "Debug dashboard temporarily unavailable"}), 200
+
 @app.route("/maintenance")
 def maintenance_dashboard():
     """Auto-maintenance dashboard page"""
@@ -9079,6 +9088,62 @@ def enhanced_security_headers(response):
     except Exception as e:
         auto_maintenance.log_maintenance("SECURITY_HEADERS_ERROR", str(e))
         return response
+
+@app.route("/api/debug/report-error", methods=["POST"])
+def debug_report_error():
+    """Accept frontend JavaScript errors for tracking"""
+    try:
+        data = request.get_json()
+        error_type = data.get('type', 'FRONTEND_ERROR')
+        error_message = data.get('message', 'Unknown frontend error')
+        error_source = data.get('source', 'unknown')
+        error_line = data.get('line', 0)
+        
+        # Report to auto-maintenance system
+        if 'auto_maintenance' in globals():
+            auto_maintenance.detect_error_pattern(
+                f"FRONTEND_{error_type}", 
+                f"{error_message} (source: {error_source}, line: {error_line})"
+            )
+        
+        logger.warning(f"Frontend error reported: {error_type} - {error_message}")
+        
+        return jsonify({"success": True, "message": "Error reported successfully"})
+        
+    except Exception as e:
+        logger.error(f"Error reporting endpoint error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/api/debug/recent-errors", methods=["GET"])
+def debug_recent_errors():
+    """Get recent errors in human-readable format for debug dashboard"""
+    try:
+        recent_errors = []
+        
+        # Get recent error patterns from auto-maintenance
+        if 'auto_maintenance' in globals():
+            error_patterns = auto_maintenance.error_patterns
+            error_history = list(auto_maintenance.error_history)[-20:]  # Last 20 errors
+            
+            for error in error_history:
+                recent_errors.append({
+                    'timestamp': error.get('timestamp', '').isoformat() if hasattr(error.get('timestamp', ''), 'isoformat') else str(error.get('timestamp', '')),
+                    'type': error.get('error_type', 'unknown'),
+                    'message': error.get('message', ''),
+                    'severity': error.get('severity', 'normal'),
+                    'count': error.get('count', 1)
+                })
+        
+        return jsonify({
+            "success": True,
+            "errors": recent_errors,
+            "total_errors": len(recent_errors),
+            "timestamp": datetime.now().isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"Debug recent errors error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route("/api/maintenance/status", methods=["GET"])
 def maintenance_status():
