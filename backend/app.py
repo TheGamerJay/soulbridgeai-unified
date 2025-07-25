@@ -319,8 +319,8 @@ def auth_login():
         if is_developer:
             setup_user_session(email, is_admin=True, dev_mode=True)
             logger.info("Developer login successful")
-            # Always redirect for form submissions - simpler approach
-            return redirect("/?show_intro=true")
+            # Return JSON for AJAX requests
+            return jsonify({"success": True, "redirect": "/"})
         
         # For regular users, check database if available
         if services["database"] and db:
@@ -334,8 +334,8 @@ def auth_login():
                     setup_user_session(email, user_id=user_data[0])
                     logger.info(f"User login successful: {email}")
                     
-                    # Always redirect for form submissions - simpler approach
-                    return redirect("/?show_intro=true")
+                    # Return JSON for AJAX requests
+                    return jsonify({"success": True, "redirect": "/"})
                 else:
                     logger.warning(f"Failed login attempt for: {email} (user exists: {user.user_exists(email)})")
                     return jsonify({"success": False, "error": "Invalid email or password"}), 401
@@ -357,11 +357,8 @@ def auth_login():
                         logger.info("Created test user in database")
                         setup_user_session(email, user_id=user_id)
                         
-                        # Check if this is an AJAX request or form submission
-                        if request.headers.get('Content-Type') == 'application/json' or request.is_json:
-                            return jsonify({"success": True, "redirect": "/"})
-                        else:
-                            return redirect("/?show_intro=true")
+                        # Always return JSON for consistency
+                        return jsonify({"success": True, "redirect": "/"})
                     else:
                         # Test user exists, try to authenticate with database
                         user_data = User.authenticate(db, email, password)
@@ -371,32 +368,23 @@ def auth_login():
                             # Database authentication failed, but allow test user anyway
                             setup_user_session(email)
                         
-                        # Check if this is an AJAX request or form submission
-                        if request.headers.get('Content-Type') == 'application/json' or request.is_json:
-                            return jsonify({"success": True, "redirect": "/"})
-                        else:
-                            return redirect("/?show_intro=true")
+                        # Always return JSON for consistency
+                        return jsonify({"success": True, "redirect": "/"})
                 else:
                     # Database not available, use fallback
                     setup_user_session(email)
                     logger.warning("Database not available, using fallback test authentication")
                     
-                    # Check if this is an AJAX request or form submission
-                    if request.headers.get('Content-Type') == 'application/json' or request.is_json:
-                        return jsonify({"success": True, "redirect": "/"})
-                    else:
-                        return redirect("/?show_intro=true")
+                    # Always return JSON for consistency
+                    return jsonify({"success": True, "redirect": "/"})
             except Exception as e:
                 logger.error(f"Error with test user authentication: {e}")
                 # Even if there's an error, allow test credentials to work
                 setup_user_session(email)
                 logger.warning("Using emergency fallback test authentication")
                 
-                # Check if this is an AJAX request or form submission
-                if request.headers.get('Content-Type') == 'application/json' or request.is_json:
-                    return jsonify({"success": True, "redirect": "/"})
-                else:
-                    return redirect("/?show_intro=true")
+                # Always return JSON for consistency
+                return jsonify({"success": True, "redirect": "/"})
         
         # Authentication failed
         logger.warning(f"Authentication failed for user")  # Don't log email for security
