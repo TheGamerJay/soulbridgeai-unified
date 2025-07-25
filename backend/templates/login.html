@@ -690,25 +690,54 @@
                     }
                     
                     try {
+                        console.log('🔄 Submitting login form...');
+                        
                         const response = await fetch('/auth/login', {
                             method: 'POST',
                             body: formData
                         });
                         
-                        const result = await response.json();
+                        console.log('📡 Response status:', response.status);
+                        console.log('📡 Response headers:', response.headers.get('content-type'));
                         
-                        if (result.success) {
-                            console.log('✅ Login successful, redirecting to:', result.redirect);
-                            // Redirect to the page indicated by server
-                            window.location.href = result.redirect || '/';
-                        } else {
-                            console.log('❌ Login failed:', result.error);
-                            alert(result.error || 'Login failed.');
+                        // Check if response is JSON
+                        const contentType = response.headers.get('content-type');
+                        if (contentType && contentType.includes('application/json')) {
+                            const result = await response.json();
+                            console.log('📦 JSON response:', result);
                             
-                            // Reset button state
-                            if (loginBtn) {
-                                loginBtn.disabled = false;
-                                loginBtn.textContent = 'Sign In';
+                            if (result.success) {
+                                console.log('✅ Login successful, redirecting to:', result.redirect);
+                                // Redirect to the page indicated by server
+                                window.location.href = result.redirect || '/';
+                            } else {
+                                console.log('❌ Login failed:', result.error);
+                                alert(result.error || 'Login failed.');
+                                
+                                // Reset button state
+                                if (loginBtn) {
+                                    loginBtn.disabled = false;
+                                    loginBtn.textContent = 'Sign In';
+                                }
+                            }
+                        } else {
+                            // Response is not JSON - might be a redirect or HTML
+                            console.log('📄 Non-JSON response received');
+                            const text = await response.text();
+                            console.log('📄 Response text (first 200 chars):', text.substring(0, 200));
+                            
+                            if (response.ok) {
+                                console.log('✅ Login appears successful, redirecting to dashboard');
+                                window.location.href = '/';
+                            } else {
+                                console.log('❌ Login failed with status:', response.status);
+                                alert('Login failed. Please check your credentials.');
+                                
+                                // Reset button state
+                                if (loginBtn) {
+                                    loginBtn.disabled = false;
+                                    loginBtn.textContent = 'Sign In';
+                                }
                             }
                         }
                     } catch (error) {

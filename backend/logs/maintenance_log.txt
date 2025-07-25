@@ -972,3 +972,27 @@ information about how to avoid this problem.
 [2025-07-25T16:10:53.346245] 🔧 FILE_CHANGE_DETECTED: File app_fixed.py modified
 [2025-07-25T16:10:53.361190] 🔧 FILE_CHANGE_DETECTED: File app_fixed.py modified
 [2025-07-25T16:10:53.365302] 🔧 FILE_CHANGE_DETECTED: File app_fixed.py modified
+[2025-07-25T16:13:05.051165] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-07-25T16:13:29.132556] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-07-25T16:14:06.407101] 🔧 FILE_CHANGE_DETECTED: File app_fixed.py modified
+[2025-07-25T16:15:53.374421] 🔧 FILE_CHANGE_DETECTED: File app_fixed.py modified
+[2025-07-25T16:15:53.388885] 🔧 FILE_CHANGE_DETECTED: File app_fixed.py modified
+[2025-07-25T16:15:53.391267] 🔧 FILE_CHANGE_DETECTED: File app_fixed.py modified
+[2025-07-25T16:18:05.065017] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-07-25T16:18:29.148434] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.

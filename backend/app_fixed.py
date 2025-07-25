@@ -1634,7 +1634,7 @@ def auth_login():
             import time
             time.sleep(0.1)
             logger.info("Developer login successful")
-            return redirect("/?show_intro=true")
+            return jsonify({"success": True, "redirect": "/?show_intro=true", "session_established": True})
         
         # For regular users, check database if available
         # Use services["database"] (Database object) directly instead of global db
@@ -1651,7 +1651,7 @@ def auth_login():
                     import time
                     time.sleep(0.1)
                     logger.info(f"User login successful: {email}")
-                    return redirect("/?show_intro=true")
+                    return jsonify({"success": True, "redirect": "/?show_intro=true", "session_established": True})
                 else:
                     # Check if user exists for better error messaging
                     user = User(database_obj)
@@ -1687,7 +1687,7 @@ def auth_login():
                         # Small delay to ensure session is written
                         import time
                         time.sleep(0.1)
-                        return redirect("/?show_intro=true")
+                        return jsonify({"success": True, "redirect": "/?show_intro=true", "session_established": True})
                 else:
                     # Database not available, use fallback
                     setup_user_session(email)
@@ -1695,7 +1695,7 @@ def auth_login():
                     import time
                     time.sleep(0.1)
                     logger.warning("Database not available, using fallback test authentication")
-                    return redirect("/?show_intro=true")
+                    return jsonify({"success": True, "redirect": "/?show_intro=true", "session_established": True})
             except Exception as e:
                 logger.error(f"Error with test user authentication: {e}")
                 # Even if there's an error, allow test credentials to work
