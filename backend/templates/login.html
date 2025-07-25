@@ -672,29 +672,33 @@
             const themeToggle = document.getElementById('themeToggle');
             const languageSelector = document.getElementById('languageSelector');
             
+            // Login button handler - BACKUP in case Universal Button Fix fails
             if (loginBtn) {
-                loginBtn.addEventListener('click', function(e) {
-                    console.log('🔘 Login button clicked directly');
-                    e.preventDefault(); // Prevent default button behavior
+                console.log('🔧 Adding backup login button handler');
+                
+                // Remove any existing listeners to prevent conflicts
+                const newLoginBtn = loginBtn.cloneNode(true);
+                loginBtn.parentNode.replaceChild(newLoginBtn, loginBtn);
+                
+                newLoginBtn.addEventListener('click', function(e) {
+                    console.log('🔘 BACKUP Login button clicked');
+                    e.preventDefault();
+                    e.stopPropagation();
                     
-                    // Get form data
                     const email = document.getElementById('email').value;
                     const password = document.getElementById('password').value;
                     
                     console.log('📧 Email:', email);
-                    console.log('🔑 Password length:', password.length);
+                    console.log('🔑 Password length:', password?.length);
                     
-                    // Validate fields
                     if (!email || !password) {
                         alert('Please fill in both email and password');
                         return;
                     }
                     
-                    // Disable button and show loading
-                    loginBtn.disabled = true;
-                    loginBtn.textContent = 'Signing In...';
+                    newLoginBtn.disabled = true;
+                    newLoginBtn.textContent = 'Signing In...';
                     
-                    // Submit login via AJAX
                     fetch('/auth/login', {
                         method: 'POST',
                         headers: {
@@ -707,21 +711,22 @@
                     })
                     .then(response => response.json())
                     .then(data => {
+                        console.log('📦 Login response:', data);
                         if (data.success) {
-                            console.log('✅ Login successful!');
+                            console.log('✅ Login successful - redirecting');
                             window.location.href = data.redirect || '/';
                         } else {
                             console.log('❌ Login failed:', data.error);
                             alert(data.error || 'Login failed');
-                            loginBtn.disabled = false;
-                            loginBtn.textContent = 'Sign In';
+                            newLoginBtn.disabled = false;
+                            newLoginBtn.textContent = 'Sign In';
                         }
                     })
                     .catch(error => {
                         console.error('❌ Login error:', error);
                         alert('Login failed. Please try again.');
-                        loginBtn.disabled = false;
-                        loginBtn.textContent = 'Sign In';
+                        newLoginBtn.disabled = false;
+                        newLoginBtn.textContent = 'Sign In';
                     });
                 });
             }

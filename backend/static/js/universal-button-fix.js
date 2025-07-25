@@ -54,10 +54,11 @@ window.UniversalButtonFix = {
                         }
                     }
                     
-                    // Force update all themed elements with inline styles
-                    document.querySelectorAll('[style*="color"]').forEach(el => {
-                        if (el.id !== 'themeToggle' && el.id !== 'themeText') {
-                            // Update other elements that might have theme conflicts
+                    // Only update main UI elements, not buttons with specific styling
+                    const excludedElements = ['themeToggle', 'themeText', 'languageSelector', 'loginBtn', 'registerBtn'];
+                    document.querySelectorAll('[style*="color"]:not(button), .auth-card, .form-input').forEach(el => {
+                        if (!excludedElements.includes(el.id) && !el.closest('button')) {
+                            // Update only main content elements, not navigation buttons
                             const computedStyle = window.getComputedStyle(el);
                             if (isDayMode) {
                                 if (computedStyle.color === 'rgb(34, 211, 238)') {
@@ -97,22 +98,29 @@ window.UniversalButtonFix = {
                         return;
                     }
                     
-                    // Find toggle button more reliably
+                    // Find toggle button more reliably - FIXED for login page
                     let toggleBtn = null;
                     
-                    // First try specific IDs
-                    if (fieldId === 'password') {
-                        toggleBtn = document.getElementById('loginToggleBtn') || 
-                                   document.getElementById('registerToggleBtn') ||
-                                   document.getElementById('toggleBtn');
-                    } else if (fieldId === 'confirm_password') {
-                        toggleBtn = document.getElementById('confirmToggleBtn');
-                    }
-                    
-                    // Fallback: find button in same container
-                    if (!toggleBtn) {
-                        const container = passwordField.closest('.password-container') || passwordField.parentElement;
-                        toggleBtn = container?.querySelector('.password-toggle');
+                    // Get the exact button that was clicked (if called from button handler)
+                    const clickedButton = window.event?.target || window.event?.currentTarget;
+                    if (clickedButton && clickedButton.classList.contains('password-toggle')) {
+                        toggleBtn = clickedButton;
+                        console.log('🎯 Using clicked button directly:', toggleBtn.id);
+                    } else {
+                        // First try specific IDs based on field
+                        if (fieldId === 'password') {
+                            toggleBtn = document.getElementById('loginToggleBtn') || 
+                                       document.getElementById('registerToggleBtn') ||
+                                       document.getElementById('toggleBtn');
+                        } else if (fieldId === 'confirm_password') {
+                            toggleBtn = document.getElementById('confirmToggleBtn');
+                        }
+                        
+                        // Fallback: find button in same container
+                        if (!toggleBtn) {
+                            const container = passwordField.closest('.password-container') || passwordField.parentElement;
+                            toggleBtn = container?.querySelector('.password-toggle');
+                        }
                     }
                     
                     console.log('🔍 Found toggle button:', toggleBtn, 'current text:', toggleBtn?.textContent);
@@ -229,20 +237,24 @@ window.UniversalButtonFix = {
         const buttonMappings = {
             'themeToggle': () => window.toggleTheme(),
             'languageSelector': () => window.toggleLanguageMenu(),
-            'loginToggleBtn': () => {
+            'loginToggleBtn': (e) => {
                 console.log('👁️ Login password toggle clicked via Universal Button Fix');
+                window.event = e; // Pass event context
                 window.togglePassword('password');
             },
-            'registerToggleBtn': () => {
+            'registerToggleBtn': (e) => {
                 console.log('👁️ Register password toggle clicked via Universal Button Fix');
+                window.event = e; // Pass event context
                 window.togglePassword('password');
             },
-            'toggleBtn': () => {
+            'toggleBtn': (e) => {
                 console.log('👁️ Password toggle clicked via Universal Button Fix');
+                window.event = e; // Pass event context
                 window.togglePassword('password');
             },
-            'confirmToggleBtn': () => {
+            'confirmToggleBtn': (e) => {
                 console.log('👁️ Confirm password toggle clicked via Universal Button Fix');
+                window.event = e; // Pass event context
                 window.togglePassword('confirm_password');
             },
             'loginBtn': (e) => {
