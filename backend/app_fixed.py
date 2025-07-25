@@ -1634,7 +1634,7 @@ def auth_login():
             import time
             time.sleep(0.1)
             logger.info("Developer login successful")
-            return jsonify({"success": True, "redirect": "/?show_intro=true", "session_established": True})
+            return redirect("/?show_intro=true")
         
         # For regular users, check database if available
         # Use services["database"] (Database object) directly instead of global db
@@ -1651,7 +1651,7 @@ def auth_login():
                     import time
                     time.sleep(0.1)
                     logger.info(f"User login successful: {email}")
-                    return jsonify({"success": True, "redirect": "/?show_intro=true", "session_established": True})
+                    return redirect("/?show_intro=true")
                 else:
                     # Check if user exists for better error messaging
                     user = User(database_obj)
@@ -1687,7 +1687,7 @@ def auth_login():
                         # Small delay to ensure session is written
                         import time
                         time.sleep(0.1)
-                        return jsonify({"success": True, "redirect": "/", "session_established": True})
+                        return redirect("/?show_intro=true")
                 else:
                     # Database not available, use fallback
                     setup_user_session(email)
@@ -1695,7 +1695,7 @@ def auth_login():
                     import time
                     time.sleep(0.1)
                     logger.warning("Database not available, using fallback test authentication")
-                    return jsonify({"success": True, "redirect": "/", "session_established": True})
+                    return redirect("/?show_intro=true")
             except Exception as e:
                 logger.error(f"Error with test user authentication: {e}")
                 # Even if there's an error, allow test credentials to work
@@ -2173,13 +2173,62 @@ def forgot_password_page():
     """Forgot password page (coming soon)"""
     try:
         return """
-        <html><head><title>Forgot Password - SoulBridge AI</title></head>
-        <body style="font-family: Arial; padding: 20px; background: #0f172a; color: #e2e8f0;">
-            <h1 style="color: #22d3ee;">Password Reset</h1>
-            <p>Password reset functionality is coming soon!</p>
-            <p>For now, please try logging in with your existing credentials.</p>
-            <a href="/login" style="color: #22d3ee;">← Back to Login</a>
-        </body></html>
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Password Reset - SoulBridge AI</title>
+            <style>
+                body { 
+                    font-family: system-ui, -apple-system, sans-serif; 
+                    padding: 40px 20px; 
+                    background: linear-gradient(135deg, #000000 0%, #0f172a 50%, #1e293b 100%); 
+                    color: #e2e8f0; 
+                    min-height: 100vh;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    margin: 0;
+                }
+                .container {
+                    max-width: 500px;
+                    text-align: center;
+                    background: rgba(0,0,0,0.8);
+                    padding: 3rem;
+                    border-radius: 16px;
+                    border: 2px solid #22d3ee;
+                    backdrop-filter: blur(15px);
+                }
+                h1 { color: #22d3ee; margin-bottom: 1.5rem; }
+                p { margin: 1rem 0; line-height: 1.6; }
+                .back-link { 
+                    display: inline-block;
+                    margin-top: 2rem;
+                    padding: 12px 24px;
+                    background: rgba(34, 211, 238, 0.1);
+                    border: 2px solid #22d3ee;
+                    color: #22d3ee; 
+                    text-decoration: none;
+                    border-radius: 8px;
+                    font-weight: 600;
+                    transition: all 0.3s ease;
+                }
+                .back-link:hover {
+                    background: rgba(34, 211, 238, 0.2);
+                    transform: translateY(-2px);
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>🔐 Password Reset</h1>
+                <p><strong>Password reset functionality is currently being developed!</strong></p>
+                <p>For now, please try logging in with your existing credentials or contact support if you need assistance.</p>
+                <a href="/login" class="back-link">← Back to Login</a>
+            </div>
+        </body>
+        </html>
         """
     except Exception as e:
         logger.error(f"Forgot password page error: {e}")

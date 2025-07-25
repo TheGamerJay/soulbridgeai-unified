@@ -672,9 +672,56 @@
             const themeToggle = document.getElementById('themeToggle');
             const languageSelector = document.getElementById('languageSelector');
             
-            // Login button handled by Universal Button Fix - no backup needed
-            if (loginBtn) {
-                console.log('✅ Login button found - Universal Button Fix will handle it');
+            // Add form submission handler to handle JSON response
+            const loginForm = document.getElementById('loginForm');
+            if (loginForm) {
+                console.log('✅ Adding login form submission handler');
+                
+                loginForm.addEventListener('submit', async function(event) {
+                    event.preventDefault(); // Prevent normal form submit
+                    
+                    const formData = new FormData(event.target);
+                    const loginBtn = document.getElementById('loginBtn');
+                    
+                    // Show loading state
+                    if (loginBtn) {
+                        loginBtn.disabled = true;
+                        loginBtn.textContent = 'Signing In...';
+                    }
+                    
+                    try {
+                        const response = await fetch('/auth/login', {
+                            method: 'POST',
+                            body: formData
+                        });
+                        
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            console.log('✅ Login successful, redirecting to:', result.redirect);
+                            // Redirect to the page indicated by server
+                            window.location.href = result.redirect || '/';
+                        } else {
+                            console.log('❌ Login failed:', result.error);
+                            alert(result.error || 'Login failed.');
+                            
+                            // Reset button state
+                            if (loginBtn) {
+                                loginBtn.disabled = false;
+                                loginBtn.textContent = 'Sign In';
+                            }
+                        }
+                    } catch (error) {
+                        console.error('❌ Login error:', error);
+                        alert('Login failed. Please try again.');
+                        
+                        // Reset button state
+                        if (loginBtn) {
+                            loginBtn.disabled = false;
+                            loginBtn.textContent = 'Sign In';
+                        }
+                    }
+                });
             }
             
             if (themeToggle) {
