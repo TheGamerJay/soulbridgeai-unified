@@ -677,105 +677,8 @@
             if (loginForm) {
                 console.log('✅ Adding login form submission handler');
                 
-                loginForm.addEventListener('submit', async function(event) {
-                    event.preventDefault(); // Prevent normal form submit
-                    
-                    const formData = new FormData(event.target);
-                    const loginBtn = document.getElementById('loginBtn');
-                    
-                    // Show loading state
-                    if (loginBtn) {
-                        loginBtn.disabled = true;
-                        loginBtn.textContent = 'Signing In...';
-                    }
-                    
-                    try {
-                        console.log('🔄 Submitting login form...');
-                        
-                        const response = await fetch('/auth/login', {
-                            method: 'POST',
-                            body: formData
-                        });
-                        
-                        console.log('📡 Response status:', response.status);
-                        console.log('📡 Response headers:', response.headers.get('content-type'));
-                        
-                        // Check if response is JSON
-                        const contentType = response.headers.get('content-type');
-                        if (contentType && contentType.includes('application/json')) {
-                            const result = await response.json();
-                            console.log('📦 JSON response:', result);
-                            console.log('📦 Response object keys:', Object.keys(result));
-                            console.log('📦 Success property:', result.success, 'type:', typeof result.success);
-                            console.log('📦 Redirect property:', result.redirect);
-                            
-                            if (result.success) {
-                                console.log('✅ Login successful, redirecting to:', result.redirect);
-                                console.log('✅ Current URL before redirect:', window.location.href);
-                                
-                                // Enhanced redirect with multiple methods
-                                const redirectUrl = result.redirect || '/';
-                                console.log('🎯 Final redirect URL:', redirectUrl);
-                                
-                                // Try multiple redirect methods for reliability
-                                setTimeout(() => {
-                                    console.log('🚀 Method 1: window.location.href redirect...');
-                                    window.location.href = redirectUrl;
-                                    
-                                    // Backup method after short delay
-                                    setTimeout(() => {
-                                        console.log('🚀 Method 2: window.location.replace backup...');
-                                        window.location.replace(redirectUrl);
-                                        
-                                        // Final backup method
-                                        setTimeout(() => {
-                                            console.log('🚀 Method 3: Hard refresh backup...');
-                                            window.location.reload();
-                                        }, 500);
-                                    }, 300);
-                                }, 100);
-                            } else {
-                                console.log('❌ Login failed:', result.error);
-                                console.log('❌ Error details:', result);
-                                alert(result.error || 'Login failed.');
-                                
-                                // Reset button state
-                                if (loginBtn) {
-                                    loginBtn.disabled = false;
-                                    loginBtn.textContent = 'Sign In';
-                                }
-                            }
-                        } else {
-                            // Response is not JSON - might be a redirect or HTML
-                            console.log('📄 Non-JSON response received');
-                            const text = await response.text();
-                            console.log('📄 Response text (first 200 chars):', text.substring(0, 200));
-                            
-                            if (response.ok) {
-                                console.log('✅ Login appears successful, redirecting to dashboard');
-                                window.location.href = '/';
-                            } else {
-                                console.log('❌ Login failed with status:', response.status);
-                                alert('Login failed. Please check your credentials.');
-                                
-                                // Reset button state
-                                if (loginBtn) {
-                                    loginBtn.disabled = false;
-                                    loginBtn.textContent = 'Sign In';
-                                }
-                            }
-                        }
-                    } catch (error) {
-                        console.error('❌ Login error:', error);
-                        alert('Login failed. Please try again.');
-                        
-                        // Reset button state
-                        if (loginBtn) {
-                            loginBtn.disabled = false;
-                            loginBtn.textContent = 'Sign In';
-                        }
-                    }
-                });
+                // Login form now handled by auth.js
+                console.log('✅ Login form setup - handled by auth.js');
             }
             
             if (themeToggle) {
@@ -1133,5 +1036,8 @@
             }, 300); // Give extra time for all scripts to load
         });
     </script>
+    
+    <!-- Unified authentication handler -->
+    <script src="/static/js/auth.js?v=20250725" defer></script>
 </body>
 </html>

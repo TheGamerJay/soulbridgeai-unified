@@ -609,7 +609,7 @@
             {% endwith %}
             
             <!-- Registration Form -->
-            <form id="registerForm" onsubmit="return false;">
+            <form id="registerForm" method="POST" action="/auth/register">
                 <div class="form-group">
                     <label for="display_name" class="form-label" data-translate="display_name">Display Name</label>
                     <input 
@@ -1224,5 +1224,8 @@
         });
     </script>
     <script src="{{ url_for('static', filename='js/app.js') }}?v=20250725" defer></script>
+    
+    <!-- Unified authentication handler -->
+    <script src="/static/js/auth.js?v=20250725" defer></script>
 </body>
 </html>

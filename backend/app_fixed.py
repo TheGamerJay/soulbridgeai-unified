@@ -321,19 +321,21 @@ if not stripe.api_key:
 CORS(app, supports_credentials=True, origins=["http://localhost:*", "http://127.0.0.1:*", "https://*.railway.app"])
 
 # Session configuration for proper persistence
-app.config['SESSION_PERMANENT'] = True
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
-app.config['SESSION_COOKIE_HTTPONLY'] = True
-app.config['SESSION_COOKIE_SECURE'] = False  # Set to False for development/HTTP
-app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-app.config['SESSION_COOKIE_NAME'] = 'soulbridge_session'
-app.config['SESSION_COOKIE_PATH'] = '/'
-app.config['SESSION_COOKIE_DOMAIN'] = None  # Allow all domains for development
-
-# CRITICAL: Enhanced session persistence for Railway deployment
-app.config['SESSION_REFRESH_EACH_REQUEST'] = True
-app.config['SESSION_USE_SIGNER'] = True
-app.config['SESSION_KEY_PREFIX'] = 'soulbridge:'
+app.config.update({
+    'SESSION_PERMANENT': True,
+    'PERMANENT_SESSION_LIFETIME': timedelta(days=14),  # Extended to 14 days
+    'SESSION_COOKIE_HTTPONLY': True,
+    'SESSION_COOKIE_SECURE': True,  # HTTPS required for live site
+    'SESSION_COOKIE_SAMESITE': 'Lax',
+    'SESSION_COOKIE_NAME': 'soulbridge_session',
+    'SESSION_COOKIE_PATH': '/',
+    'SESSION_COOKIE_DOMAIN': None,
+    
+    # Enhanced session persistence
+    'SESSION_REFRESH_EACH_REQUEST': True,
+    'SESSION_USE_SIGNER': True,
+    'SESSION_KEY_PREFIX': 'soulbridge:'
+})
 
 # Global variables for services
 services = {
@@ -1655,7 +1657,12 @@ def auth_login():
             logger.info(f"🔍 Session after setup - keys: {list(session.keys())}")
             
             logger.info("✅ Developer login successful")
-            return jsonify({"success": True, "redirect": "/", "session_established": True})
+            
+            # Handle AJAX vs form submission
+            if request.is_json or request.headers.get("X-Requested-With") == "XMLHttpRequest" or request.headers.get("Content-Type", "").startswith("application/"):
+                return jsonify({"success": True, "redirect": "/", "session_established": True})
+            else:
+                return redirect("/")
         
         # For regular users, check database if available
         # Use services["database"] (Database object) directly instead of global db
@@ -1678,7 +1685,16 @@ def auth_login():
                     logger.info(f"🔍 Session after setup - email: {session.get('user_email', 'NOT SET')}")
                     
                     logger.info(f"✅ User login successful: {email}")
-                    return jsonify({"success": True, "redirect": "/", "session_established": True})
+                    
+                    # Handle AJAX vs form submission
+                    if request.is_json or request.headers.get("X-Requested-With") == "XMLHttpRequest" or request.headers.get("Content-Type", "").startswith("application/"):
+                        # Handle AJAX vs form submission
+                        if request.is_json or request.headers.get("X-Requested-With") == "XMLHttpRequest" or request.headers.get("Content-Type", "").startswith("application/"):
+                            return jsonify({"success": True, "redirect": "/", "session_established": True})
+                        else:
+                            return redirect("/")
+                    else:
+                        return redirect("/")
                 else:
                     # Check if user exists for better error messaging
                     user = User(database_obj)
@@ -1714,7 +1730,11 @@ def auth_login():
                         # Small delay to ensure session is written
                         import time
                         time.sleep(0.1)
-                        return jsonify({"success": True, "redirect": "/", "session_established": True})
+                        # Handle AJAX vs form submission
+                        if request.is_json or request.headers.get("X-Requested-With") == "XMLHttpRequest" or request.headers.get("Content-Type", "").startswith("application/"):
+                            return jsonify({"success": True, "redirect": "/", "session_established": True})
+                        else:
+                            return redirect("/")
                 else:
                     # Database not available, use fallback
                     setup_user_session(email)
