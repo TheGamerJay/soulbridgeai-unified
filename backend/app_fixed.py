@@ -1545,11 +1545,8 @@ def home():
     """Home route - redirect to login for security"""
     try:
         # Debug the session and login state
-        logger.info(f"🏠 Home route accessed")
-        logger.info(f"🔍 Session keys: {list(session.keys()) if session else 'No session'}")
-        logger.info(f"🔍 User authenticated: {session.get('user_authenticated', 'NOT SET')}")
-        logger.info(f"🔍 User email: {session.get('user_email', 'NOT SET')}")
-        logger.info(f"🔍 Show intro param: {request.args.get('show_intro', 'NOT SET')}")
+        logger.info(f"🏠 Home route accessed by {session.get('user_email', 'anonymous')}")
+        logger.info(f"🔍 User authenticated: {session.get('user_authenticated', False)}")
         
         # Always require authentication for home page
         if not is_logged_in():
