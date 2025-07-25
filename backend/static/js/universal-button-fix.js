@@ -134,29 +134,12 @@ window.UniversalButtonFix = {
                     // Update field type
                     passwordField.type = newType;
                     
-                    // Update button appearance - ENHANCED for login page
+                    // Update button appearance - SIMPLIFIED for reliability
                     if (toggleBtn) {
-                        // Multiple update methods to ensure it works
+                        // Simple, reliable update method
                         toggleBtn.textContent = newIcon;
-                        toggleBtn.innerHTML = newIcon;
-                        toggleBtn.innerText = newIcon;
                         toggleBtn.setAttribute('aria-label', newLabel);
-                        
-                        // Force DOM update with multiple techniques
-                        toggleBtn.style.visibility = 'hidden';
-                        toggleBtn.offsetHeight; // Force reflow
-                        toggleBtn.style.visibility = 'visible';
-                        
-                        // Also try updating parent container to trigger refresh
-                        const parent = toggleBtn.parentElement;
-                        if (parent) {
-                            parent.style.transform = 'translateZ(0)'; // Force repaint
-                            setTimeout(() => {
-                                parent.style.transform = '';
-                            }, 1);
-                        }
-                        
-                        console.log(`🔄 Button text forcibly updated to: ${newIcon}`);
+                        console.log(`🔄 Button text updated to: ${newIcon}`);
                     }
                     
                     // Verify changes took effect

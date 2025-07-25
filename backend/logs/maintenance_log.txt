@@ -561,3 +561,264 @@ information about how to avoid this problem.
 This typically means that you attempted to use functionality that needed
 an active HTTP request. Consult the documentation on testing for
 information about how to avoid this problem.
+[2025-07-25T13:13:04.469143] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-07-25T13:13:28.551194] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-07-25T13:18:04.484701] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-07-25T13:18:28.563346] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-07-25T13:23:04.493967] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-07-25T13:23:28.569738] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-07-25T13:25:52.698905] 🔧 SECURITY_SCAN_COMPLETE: Scanned system - 5 findings
+[2025-07-25T13:25:52.699300] 🔧 SECURITY_SCAN_COMPLETE: Scanned system - 5 findings
+[2025-07-25T13:28:04.510507] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-07-25T13:28:28.580806] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-07-25T13:29:05.798584] 🔧 SECURITY_SCAN_COMPLETE: Scanned system - 5 findings
+[2025-07-25T13:33:04.516233] 🔧 SECURITY_SCAN_COMPLETE: Scanned system - 5 findings
+[2025-07-25T13:33:04.522800] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-07-25T13:33:28.596415] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-07-25T13:38:04.539393] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-07-25T13:38:28.603876] 🔧 SECURITY_SCAN_COMPLETE: Scanned system - 5 findings
+[2025-07-25T13:38:28.608250] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-07-25T13:43:04.548033] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-07-25T13:43:28.621422] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-07-25T13:48:04.559690] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-07-25T13:48:28.639482] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-07-25T13:53:04.569167] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-07-25T13:53:28.651382] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-07-25T13:55:52.804022] 🔧 SECURITY_SCAN_COMPLETE: Scanned system - 5 findings
+[2025-07-25T13:55:52.817461] 🔧 SECURITY_SCAN_COMPLETE: Scanned system - 5 findings
+[2025-07-25T13:55:52.818011] 🔧 SECURITY_SCAN_COMPLETE: Scanned system - 5 findings
+[2025-07-25T13:58:04.591033] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-07-25T13:58:28.663180] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-07-25T13:59:05.902202] 🔧 SECURITY_SCAN_COMPLETE: Scanned system - 5 findings
+[2025-07-25T14:03:04.600770] 🔧 SECURITY_SCAN_COMPLETE: Scanned system - 5 findings
+[2025-07-25T14:03:04.606528] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-07-25T14:03:28.673918] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-07-25T14:08:04.620622] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-07-25T14:08:28.690330] 🔧 SECURITY_SCAN_COMPLETE: Scanned system - 5 findings
+[2025-07-25T14:08:28.697304] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-07-25T14:13:04.637375] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-07-25T14:13:28.712741] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-07-25T14:18:04.658808] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-07-25T14:18:28.720818] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-07-25T14:23:04.678113] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-07-25T14:23:28.731949] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-07-25T14:25:52.912506] 🔧 SECURITY_SCAN_COMPLETE: Scanned system - 5 findings
+[2025-07-25T14:28:04.696558] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-07-25T14:28:28.749768] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-07-25T14:29:05.981989] 🔧 SECURITY_SCAN_COMPLETE: Scanned system - 5 findings
+[2025-07-25T14:33:04.702777] 🔧 SECURITY_SCAN_COMPLETE: Scanned system - 5 findings
+[2025-07-25T14:33:04.708214] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-07-25T14:33:28.766760] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-07-25T14:38:04.728702] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-07-25T14:38:28.782477] 🔧 SECURITY_SCAN_COMPLETE: Scanned system - 5 findings
+[2025-07-25T14:38:28.787028] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-07-25T14:43:04.746476] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-07-25T14:43:28.794556] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-07-25T14:48:04.753501] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-07-25T14:48:28.808660] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-07-25T14:53:04.761592] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-07-25T14:53:28.826926] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-07-25T14:55:53.013238] 🔧 SECURITY_SCAN_COMPLETE: Scanned system - 5 findings
+[2025-07-25T14:55:53.028245] 🔧 SECURITY_SCAN_COMPLETE: Scanned system - 5 findings
+[2025-07-25T14:55:53.028858] 🔧 SECURITY_SCAN_COMPLETE: Scanned system - 5 findings
+[2025-07-25T14:58:04.779651] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-07-25T14:58:28.847816] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-07-25T14:59:06.076920] 🔧 SECURITY_SCAN_COMPLETE: Scanned system - 5 findings
+[2025-07-25T15:03:04.795666] 🔧 SECURITY_SCAN_COMPLETE: Scanned system - 5 findings
+[2025-07-25T15:03:04.800717] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-07-25T15:03:28.856368] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-07-25T15:08:04.812859] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-07-25T15:08:28.862706] 🔧 SECURITY_SCAN_COMPLETE: Scanned system - 5 findings
+[2025-07-25T15:08:28.868030] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
