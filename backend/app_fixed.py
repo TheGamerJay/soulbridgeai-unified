@@ -1614,8 +1614,6 @@ def login_page():
 @app.route("/auth/login", methods=["GET", "POST"])
 @limiter.limit("10 per minute")  # Prevent brute force attacks
 def auth_login():
-    """Handle login authentication with rate limiting"""
-    # Handle GET requests - show login form
     if request.method == "GET":
         return render_template("login.html")
     
@@ -1625,7 +1623,7 @@ def auth_login():
         email, password, _ = parse_request_data()
         
         if not email or not password:
-            return jsonify({"success": False, "error": "Email and password required"}), 400
+            return jsonify({"success": False, "message": "Email and password required"}), 400
         
         # Normalize email to lowercase for consistency
         email = email.lower().strip()
@@ -1700,7 +1698,7 @@ def auth_login():
                     user = User(database_obj)
                     user_exists = user.user_exists(email)
                     logger.warning(f"Failed login attempt for: {email} (user exists: {user_exists})")
-                    return jsonify({"success": False, "error": "Invalid email or password"}), 401
+                    return jsonify({"success": False, "message": "Invalid email or password"}), 401
                     
             except Exception as db_error:
                 logger.error(f"Database authentication error: {db_error}")
@@ -1757,12 +1755,12 @@ def auth_login():
         logger.warning(f"Authentication failed for user")  # Don't log email for security
         return jsonify({
             "success": False, 
-            "error": "Invalid email or password"
+            "message": "Invalid email or password"
         }), 401
         
     except Exception as e:
         logger.error(f"Login error: {e}")
-        return jsonify({"success": False, "error": "Login failed"}), 500
+        return jsonify({"success": False, "message": "Login failed"}), 500
 
 @app.route("/auth/logout", methods=["GET", "POST"])
 def logout():
@@ -1797,7 +1795,7 @@ def auth_register():
         email, password, display_name = parse_request_data()
         
         if not email or not password:
-            return jsonify({"success": False, "error": "Email and password required"}), 400
+            return jsonify({"success": False, "message": "Email and password required"}), 400
         
         # Normalize email to lowercase for consistency
         email = email.lower().strip()
@@ -2215,10 +2213,13 @@ def debug_env():
     })
 
 
-@app.route("/auth/forgot-password")
+@app.route("/auth/forgot-password", methods=["GET"])
 def forgot_password_page():
-    """Forgot password page (coming soon)"""
+    """Password reset page"""
     try:
+        return render_template("reset.html")
+    except Exception as e:
+        logger.error(f"Reset template error: {e}")
         return """
         <!DOCTYPE html>
         <html lang="en">
@@ -2280,6 +2281,27 @@ def forgot_password_page():
     except Exception as e:
         logger.error(f"Forgot password page error: {e}")
         return redirect("/login")
+
+@app.route("/auth/reset", methods=["POST"])
+def auth_reset():
+    """Handle password reset requests"""
+    email = request.form.get("email", "").strip()
+    logger.info(f"[RESET] Request for {email}")
+
+    try:
+        if services.get("database"):
+            from auth import User
+            # For now, just return success - implement actual email sending later
+            logger.info(f"[RESET] Sending reset link to {email} (stub)")
+            return jsonify({
+                "success": True,
+                "message": "If this email exists, a password reset link was sent."
+            })
+        else:
+            return jsonify({"success": False, "message": "Password reset temporarily unavailable."}), 503
+    except Exception as e:
+        logger.error(f"Reset error: {e}")
+        return jsonify({"success": False, "message": "Password reset failed."}), 500
 
 # ========================================
 # OAUTH ROUTES
