@@ -21,33 +21,63 @@ window.UniversalButtonFix = {
     },
     
     ensureGlobalFunctions: function() {
-        // Theme toggle (common across many pages)
+        // Theme toggle (common across many pages) - Fixed inline style conflicts
         if (typeof window.toggleTheme !== 'function') {
             window.toggleTheme = function() {
                 try {
                     console.log('🌙 Theme toggle via universal fix');
+                    
+                    // Toggle body class
                     document.body.classList.toggle('day-mode');
+                    const isDayMode = document.body.classList.contains('day-mode');
+                    
+                    // Get elements
                     const themeText = document.getElementById('themeText');
                     const themeIcon = document.getElementById('themeIcon');
                     const themeToggle = document.getElementById('themeToggle');
                     
-                    if (document.body.classList.contains('day-mode')) {
-                        localStorage.setItem('theme', 'day');
-                        if (themeText) themeText.textContent = 'Day Mode is ON';
-                        if (themeIcon) themeIcon.textContent = '☀️';
-                        if (themeToggle) {
+                    // Update localStorage
+                    localStorage.setItem('theme', isDayMode ? 'day' : 'night');
+                    
+                    // Update text and icon
+                    if (themeText) themeText.textContent = isDayMode ? 'Day Mode is ON' : 'Night Mode is ON';
+                    if (themeIcon) themeIcon.textContent = isDayMode ? '☀️' : '🌙';
+                    
+                    // Force update inline styles to match theme
+                    if (themeToggle) {
+                        if (isDayMode) {
                             themeToggle.style.background = 'rgba(255, 193, 7, 0.8)';
                             themeToggle.style.color = '#000';
-                        }
-                    } else {
-                        localStorage.setItem('theme', 'night');
-                        if (themeText) themeText.textContent = 'Night Mode is ON';
-                        if (themeIcon) themeIcon.textContent = '🌙';
-                        if (themeToggle) {
+                        } else {
                             themeToggle.style.background = 'rgba(34, 211, 238, 0.8)';
                             themeToggle.style.color = '#000';
                         }
                     }
+                    
+                    // Force update all themed elements with inline styles
+                    document.querySelectorAll('[style*="color"]').forEach(el => {
+                        if (el.id !== 'themeToggle' && el.id !== 'themeText') {
+                            // Update other elements that might have theme conflicts
+                            const computedStyle = window.getComputedStyle(el);
+                            if (isDayMode) {
+                                if (computedStyle.color === 'rgb(34, 211, 238)') {
+                                    el.style.color = '#000';
+                                }
+                                if (computedStyle.backgroundColor.includes('0, 0, 0')) {
+                                    el.style.backgroundColor = 'rgba(255, 255, 255, 0.9)';
+                                }
+                            } else {
+                                if (computedStyle.color === 'rgb(0, 0, 0)') {
+                                    el.style.color = '#22d3ee';
+                                }
+                                if (computedStyle.backgroundColor.includes('255, 255, 255')) {
+                                    el.style.backgroundColor = 'rgba(0, 0, 0, 0.9)';
+                                }
+                            }
+                        }
+                    });
+                    
+                    console.log(`✅ Theme switched to: ${isDayMode ? 'Day' : 'Night'} mode`);
                 } catch (error) {
                     console.error('❌ Universal toggleTheme error:', error);
                 }
@@ -60,30 +90,61 @@ window.UniversalButtonFix = {
                 try {
                     console.log('👁️ Password toggle via universal fix for field:', fieldId);
                     const passwordField = document.getElementById(fieldId);
-                    console.log('🔍 Found password field:', passwordField);
+                    console.log('🔍 Found password field:', passwordField, 'type:', passwordField?.type);
                     
                     if (!passwordField) {
                         console.error('❌ Password field not found:', fieldId);
                         return;
                     }
                     
-                    const toggleBtn = document.getElementById('toggleBtn') || 
-                                     document.getElementById('loginToggleBtn') ||
-                                     document.getElementById('registerToggleBtn') ||
-                                     document.getElementById('confirmToggleBtn') ||
-                                     document.querySelector(`[onclick*="${fieldId}"]`);
+                    // Find toggle button more reliably
+                    let toggleBtn = null;
                     
-                    console.log('🔍 Found toggle button:', toggleBtn);
-                    
-                    if (passwordField.type === 'password') {
-                        passwordField.type = 'text';
-                        if (toggleBtn) toggleBtn.textContent = '🙈';
-                        console.log('✅ Password shown');
-                    } else {
-                        passwordField.type = 'password';
-                        if (toggleBtn) toggleBtn.textContent = '👁️';
-                        console.log('✅ Password hidden');
+                    // First try specific IDs
+                    if (fieldId === 'password') {
+                        toggleBtn = document.getElementById('loginToggleBtn') || 
+                                   document.getElementById('registerToggleBtn') ||
+                                   document.getElementById('toggleBtn');
+                    } else if (fieldId === 'confirm_password') {
+                        toggleBtn = document.getElementById('confirmToggleBtn');
                     }
+                    
+                    // Fallback: find button in same container
+                    if (!toggleBtn) {
+                        const container = passwordField.closest('.password-container') || passwordField.parentElement;
+                        toggleBtn = container?.querySelector('.password-toggle');
+                    }
+                    
+                    console.log('🔍 Found toggle button:', toggleBtn, 'current text:', toggleBtn?.textContent);
+                    
+                    // Toggle password visibility
+                    const isCurrentlyPassword = passwordField.type === 'password';
+                    const newType = isCurrentlyPassword ? 'text' : 'password';
+                    const newIcon = isCurrentlyPassword ? '🙈' : '👁️';
+                    const newLabel = isCurrentlyPassword ? 'Hide password' : 'Show password';
+                    
+                    // Update field type
+                    passwordField.type = newType;
+                    
+                    // Update button appearance
+                    if (toggleBtn) {
+                        toggleBtn.textContent = newIcon;
+                        toggleBtn.innerHTML = newIcon; // Force innerHTML update too
+                        toggleBtn.setAttribute('aria-label', newLabel);
+                        
+                        // Force visual refresh
+                        toggleBtn.style.display = 'none';
+                        toggleBtn.offsetHeight; // Trigger reflow
+                        toggleBtn.style.display = '';
+                    }
+                    
+                    // Verify changes took effect
+                    console.log(`✅ Password field type changed: ${passwordField.type}`);
+                    console.log(`✅ Button text changed: ${toggleBtn?.textContent}`);
+                    
+                    // Trigger visual update events
+                    passwordField.dispatchEvent(new Event('input', { bubbles: true }));
+                    
                 } catch (error) {
                     console.error('❌ Universal togglePassword error:', error);
                 }
@@ -320,34 +381,28 @@ window.UniversalButtonFix = {
     }
 };
 
-// Only auto-initialize if not manually controlled
+// Auto-initialization with duplicate prevention
 window.UniversalButtonFix.autoInit = function() {
-    if (!this.initialized) {
+    if (!this.initialized && !document.body.hasAttribute('data-universal-button-fix-loaded')) {
         console.log('🔧 Auto-initializing Universal Button Fix');
+        document.body.setAttribute('data-universal-button-fix-loaded', 'true');
         this.init();
+    } else if (this.initialized) {
+        console.log('🔧 Universal Button Fix already initialized - skipping');
     }
 };
 
-// Auto-initialize when script loads (but allow manual override)
+// Single initialization point - prevent duplicates
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function() {
         setTimeout(function() {
             window.UniversalButtonFix.autoInit();
-        }, 100);
+        }, 150); // Slightly longer delay to ensure DOM is ready
     });
 } else {
     setTimeout(function() {
         window.UniversalButtonFix.autoInit();
-    }, 100);
+    }, 150);
 }
-
-// Also reinitialize after window load
-window.addEventListener('load', function() {
-    setTimeout(function() {
-        if (window.UniversalButtonFix.initialized) {
-            window.UniversalButtonFix.reinitialize();
-        }
-    }, 800);
-});
 
 console.log('🔧 Universal Button Fix script loaded');
