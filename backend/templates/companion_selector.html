@@ -1015,8 +1015,15 @@
         
         function renderSection(sectionId, companionList) {
             const container = document.getElementById(`${sectionId}-companions`);
+            console.log(`🎬 Rendering ${sectionId} section with ${companionList.length} companions:`, companionList);
+            
+            if (!container) {
+                console.error(`❌ Container not found: ${sectionId}-companions`);
+                return;
+            }
             
             if (companionList.length === 0) {
+                console.log(`📭 No companions for ${sectionId} tier`);
                 container.innerHTML = '<p style="color: rgba(255,255,255,0.7); text-align: center; padding: 40px;">No companions in this tier</p>';
                 return;
             }

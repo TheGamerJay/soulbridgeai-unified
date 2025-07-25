@@ -720,17 +720,6 @@
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Sign In';
                 
-                // Report login failure to watchdog
-                fetch('/api/debug/report-error', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        type: 'LOGIN_FORM_ERROR',
-                        message: `Login request failed: ${error.message}`,
-                        source: 'login_form',
-                        line: 0
-                    })
-                }).catch(() => {});
             });
             });
             
@@ -778,22 +767,6 @@
             console.error('Error filename:', e.filename);
             console.error('Error line:', e.lineno);
             
-            // Report error to watchdog system
-            fetch('/api/debug/report-error', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    type: 'JAVASCRIPT_ERROR',
-                    message: e.message,
-                    source: e.filename,
-                    line: e.lineno,
-                    stack: e.error ? e.error.stack : null
-                })
-            }).catch(err => {
-                console.log('Could not report error to watchdog:', err);
-            });
         });
         
         // Theme functionality handled by universal-button-fix.js
