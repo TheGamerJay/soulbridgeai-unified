@@ -1202,6 +1202,25 @@
         }
 
 
+        // Load saved theme function
+        function loadSavedTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'night';
+            if (savedTheme === 'day') {
+                document.body.classList.add('day-mode');
+                const themeText = document.getElementById('themeText');
+                const themeIcon = document.getElementById('themeIcon');
+                const themeToggle = document.getElementById('themeToggle');
+                if (themeText) themeText.textContent = 'Day Mode is ON';
+                if (themeIcon) themeIcon.textContent = '☀️';
+                if (themeToggle) themeToggle.style.background = 'rgba(255, 193, 7, 0.8)';
+            }
+        }
+
+        function loadSavedLanguage() {
+            const savedLang = localStorage.getItem('selectedLanguage') || 'en';
+            // Language loading logic would go here
+        }
+
         // Load theme on page load
         window.addEventListener('load', function() {
             loadSavedTheme();
