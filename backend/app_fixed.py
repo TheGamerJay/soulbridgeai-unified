@@ -28,6 +28,7 @@ from flask_caching import Cache
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_compress import Compress
+from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
 
 # GeoIP imports for botnet blocking
 try:
@@ -2282,26 +2283,206 @@ def forgot_password_page():
         logger.error(f"Forgot password page error: {e}")
         return redirect("/login")
 
-@app.route("/auth/reset", methods=["POST"])
-def auth_reset():
-    """Handle password reset requests"""
-    email = request.form.get("email", "").strip()
-    logger.info(f"[RESET] Request for {email}")
+# ================================
+# PASSWORD RESET SYSTEM
+# ================================
+
+# Add at top of file if not present:
+# import os, hmac, hashlib, secrets, logging
+# from datetime import datetime, timedelta
+# from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
+
+try:
+    import resend
+    resend.api_key = os.getenv("RESEND_API_KEY", "")
+except Exception as e:
+    logger.warning(f"[RESET] Resend import/init failed: {e}")
+
+def _signer():
+    """Create URL safe timed serializer for password reset tokens"""
+    return URLSafeTimedSerializer(
+        secret_key=app.config["SECRET_KEY"],
+        salt=os.getenv("SECURITY_PASSWORD_SALT", "soulbridge-reset-salt-2025")
+    )
+
+def _generate_reset_token(user_email: str) -> str:
+    """Generate a secure password reset token"""
+    s = _signer()
+    return s.dumps(user_email)
+
+def _verify_reset_token(token: str, max_age_seconds: int = 1800) -> str:
+    """Verify password reset token and return email if valid"""
+    s = _signer()
+    try:
+        email = s.loads(token, max_age=max_age_seconds)
+        return email
+    except SignatureExpired:
+        return None
+    except BadSignature:
+        return None
+
+def _send_reset_email_resend(to_email: str, reset_link: str):
+    """Send password reset email using Resend"""
+    if not resend.api_key:
+        logger.error("[RESET] RESEND_API_KEY not configured")
+        return False, "Email service not configured"
+
+    subject = "Reset your SoulBridge AI password"
+    html = f"""
+    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #22d3ee; margin-bottom: 10px;">SoulBridge AI</h1>
+            <h2 style="color: #333; margin-top: 0;">Password Reset Request</h2>
+        </div>
+        
+        <p style="color: #555; font-size: 16px; line-height: 1.5;">
+            We received a request to reset your SoulBridge AI password.
+        </p>
+        
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="{reset_link}" 
+               style="display: inline-block; background: #22d3ee; color: #000; 
+                      padding: 12px 30px; text-decoration: none; border-radius: 8px; 
+                      font-weight: bold; font-size: 16px;">
+                Reset Your Password
+            </a>
+        </div>
+        
+        <p style="color: #777; font-size: 14px; line-height: 1.5;">
+            This link is valid for 30 minutes. If you did not request this password reset, 
+            you can safely ignore this email.
+        </p>
+        
+        <p style="color: #999; font-size: 12px; margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px;">
+            If the button doesn't work, copy and paste this link into your browser:<br>
+            <a href="{reset_link}" style="color: #22d3ee; word-break: break-all;">{reset_link}</a>
+        </p>
+    </div>
+    """
 
     try:
+        resend.Emails.send({
+            "from": "SoulBridge AI <noreply@soulbridgeai.com>",
+            "to": [to_email],
+            "subject": subject,
+            "html": html
+        })
+        return True, None
+    except Exception as e:
+        logger.exception(f"[RESET] Resend send failed: {e}")
+        return False, str(e)
+
+@app.route("/auth/reset", methods=["POST"])
+@limiter.limit("5 per minute")
+def auth_reset():
+    """Handle password reset requests"""
+    email = request.form.get("email", "").strip().lower()
+    logger.info(f"[RESET] Request for {email} from {request.remote_addr}")
+
+    if not email:
+        return jsonify({"success": False, "message": "Email is required."}), 400
+
+    try:
+        # Check if user exists
+        user_exists = False
         if services.get("database"):
             from auth import User
-            # For now, just return success - implement actual email sending later
-            logger.info(f"[RESET] Sending reset link to {email} (stub)")
+            user = User(services["database"])
+            user_exists = user.user_exists(email)
+        
+        if not user_exists:
+            # Don't leak user existence - always return success
             return jsonify({
                 "success": True,
                 "message": "If this email exists, a password reset link was sent."
-            })
+            }), 200
+
+        # Generate secure token
+        reset_token = _generate_reset_token(email)
+        
+        # Build reset link
+        base_url = os.getenv("FRONTEND_BASE_URL", "https://www.soulbridgeai.com")
+        reset_link = f"{base_url}/auth/reset/{reset_token}"
+
+        # Send email
+        success, error = _send_reset_email_resend(email, reset_link)
+        
+        if success:
+            logger.info(f"[RESET] Reset email sent successfully to {email}")
         else:
-            return jsonify({"success": False, "message": "Password reset temporarily unavailable."}), 503
+            logger.error(f"[RESET] Failed to send email to {email}: {error}")
+
+        # Always return success to prevent email enumeration
+        return jsonify({
+            "success": True,
+            "message": "If this email exists, a password reset link was sent."
+        }), 200
+
     except Exception as e:
-        logger.error(f"Reset error: {e}")
+        logger.error(f"[RESET] Error processing reset request: {e}")
         return jsonify({"success": False, "message": "Password reset failed."}), 500
+
+@app.route("/auth/reset/<token>", methods=["GET"])
+def auth_reset_form(token):
+    """Show password reset form"""
+    # Verify token is valid
+    email = _verify_reset_token(token, max_age_seconds=1800)  # 30 minutes
+    if not email:
+        return render_template("reset_invalid.html"), 400
+    
+    return render_template("reset_set_password.html", token=token, email=email)
+
+@app.route("/auth/reset/confirm", methods=["POST"])
+@limiter.limit("10 per minute")
+def auth_reset_confirm():
+    """Confirm password reset with new password"""
+    token = request.form.get("token", "")
+    new_password = request.form.get("password", "")
+    confirm = request.form.get("confirm_password", "")
+
+    if not token or not new_password or not confirm:
+        return jsonify({"success": False, "message": "Missing fields."}), 400
+
+    if new_password != confirm:
+        return jsonify({"success": False, "message": "Passwords do not match."}), 400
+
+    if len(new_password) < 8:
+        return jsonify({"success": False, "message": "Password must be at least 8 characters."}), 400
+
+    # Verify token
+    email = _verify_reset_token(token, max_age_seconds=1800)
+    if not email:
+        return jsonify({"success": False, "message": "Invalid or expired token."}), 400
+
+    try:
+        # Update password in database
+        if services.get("database"):
+            from auth import User
+            user = User(services["database"])
+            
+            # Hash the new password
+            import bcrypt
+            password_hash = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+            
+            # Update password in database
+            cursor = services["database"].cursor()
+            query = user._format_query("UPDATE users SET password_hash = ? WHERE email = ?")
+            cursor.execute(query, (password_hash, email))
+            services["database"].commit()
+            cursor.close()
+            
+            logger.info(f"[RESET] Password updated successfully for {email}")
+            
+            return jsonify({
+                "success": True, 
+                "message": "Password updated successfully. Please log in with your new password."
+            }), 200
+        else:
+            return jsonify({"success": False, "message": "Database not available."}), 503
+            
+    except Exception as e:
+        logger.error(f"[RESET] Password update failed for {email}: {e}")
+        return jsonify({"success": False, "message": "Failed to update password."}), 500
 
 # ========================================
 # OAUTH ROUTES
