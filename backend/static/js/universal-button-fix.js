@@ -150,24 +150,54 @@ window.UniversalButtonFix = {
     },
     
     addBackupEventListeners: function() {
-        // Add backup event listeners to all elements with onclick
-        const elementsWithOnclick = document.querySelectorAll('[onclick]');
-        elementsWithOnclick.forEach(element => {
-            const onclickValue = element.getAttribute('onclick');
-            if (onclickValue && !element.hasAttribute('data-backup-listener')) {
-                element.setAttribute('data-backup-listener', 'true');
-                element.addEventListener('click', function(e) {
+        // Force add event listeners to specific button IDs that CSP might block
+        const buttonMappings = {
+            'themeToggle': () => window.toggleTheme(),
+            'languageSelector': () => window.toggleLanguageMenu(),
+            'toggleBtn': () => window.togglePassword('password'),
+            'loginBtn': (e) => {
+                // Let form submit naturally
+                console.log('🔧 Login button clicked via universal fix');
+            }
+        };
+        
+        // Add direct listeners to known buttons
+        Object.keys(buttonMappings).forEach(buttonId => {
+            const button = document.getElementById(buttonId);
+            if (button && !button.hasAttribute('data-universal-fixed')) {
+                button.setAttribute('data-universal-fixed', 'true');
+                button.addEventListener('click', function(e) {
+                    console.log(`🔧 Universal fix handling: ${buttonId}`);
                     try {
-                        console.log('🔧 Universal backup click for:', onclickValue);
-                        eval(onclickValue);
+                        buttonMappings[buttonId](e);
                     } catch (error) {
-                        console.error('❌ Universal backup click error:', error);
+                        console.error(`❌ Universal fix error for ${buttonId}:`, error);
                     }
                 });
+                console.log(`✅ Added universal listener to: ${buttonId}`);
             }
         });
         
-        console.log(`✅ Added backup listeners to ${elementsWithOnclick.length} elements`);
+        // Also add listeners to language menu options
+        const languageOptions = document.querySelectorAll('.language-option');
+        languageOptions.forEach((option, index) => {
+            if (!option.hasAttribute('data-universal-fixed')) {
+                option.setAttribute('data-universal-fixed', 'true');
+                const onclick = option.getAttribute('onclick');
+                if (onclick) {
+                    const langMatch = onclick.match(/changeLanguage\('([^']+)'\)/);
+                    if (langMatch) {
+                        const lang = langMatch[1];
+                        option.addEventListener('click', function(e) {
+                            console.log(`🌐 Language change via universal fix: ${lang}`);
+                            window.changeLanguage(lang);
+                        });
+                    }
+                }
+            }
+        });
+        
+        console.log(`✅ Universal Button Fix setup complete`);
     },
     
     fixFormSubmissions: function() {
