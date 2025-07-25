@@ -672,83 +672,9 @@
             const themeToggle = document.getElementById('themeToggle');
             const languageSelector = document.getElementById('languageSelector');
             
-            // Login button handler - BACKUP in case Universal Button Fix fails
+            // Login button handled by Universal Button Fix - no backup needed
             if (loginBtn) {
-                console.log('🔧 Adding backup login button handler');
-                
-                // Remove any existing listeners to prevent conflicts
-                const newLoginBtn = loginBtn.cloneNode(true);
-                loginBtn.parentNode.replaceChild(newLoginBtn, loginBtn);
-                
-                newLoginBtn.addEventListener('click', function(e) {
-                    console.log('🔘 BACKUP Login button clicked');
-                    e.preventDefault();
-                    e.stopPropagation();
-                    
-                    const email = document.getElementById('email').value;
-                    const password = document.getElementById('password').value;
-                    
-                    console.log('📧 Email:', email);
-                    console.log('🔑 Password length:', password?.length);
-                    
-                    if (!email || !password) {
-                        alert('Please fill in both email and password');
-                        return;
-                    }
-                    
-                    newLoginBtn.disabled = true;
-                    newLoginBtn.textContent = 'Signing In...';
-                    
-                    fetch('/auth/login', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            email: email,
-                            password: password
-                        })
-                    })
-                    .then(response => {
-                        console.log('🔍 Response status:', response.status);
-                        console.log('🔍 Response headers:', response.headers);
-                        if (!response.ok) {
-                            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        console.log('📦 Login response data:', data);
-                        console.log('📦 Success field:', data.success);
-                        console.log('📦 Error field:', data.error);
-                        console.log('📦 Redirect field:', data.redirect);
-                        
-                        if (data.success === true || data.success === 'true') {
-                            console.log('✅ Login successful - attempting redirect');
-                            const redirectUrl = data.redirect || '/';
-                            console.log('🎯 Redirecting to:', redirectUrl);
-                            
-                            // Try multiple redirect methods
-                            try {
-                                window.location.href = redirectUrl;
-                            } catch (e) {
-                                console.log('🔄 Primary redirect failed, trying replace');
-                                window.location.replace(redirectUrl);
-                            }
-                        } else {
-                            console.log('❌ Login failed - success field is:', data.success);
-                            alert(data.error || data.message || 'Login failed - invalid credentials');
-                            newLoginBtn.disabled = false;
-                            newLoginBtn.textContent = 'Sign In';
-                        }
-                    })
-                    .catch(error => {
-                        console.error('❌ Login error:', error);
-                        alert('Login failed. Please try again.');
-                        newLoginBtn.disabled = false;
-                        newLoginBtn.textContent = 'Sign In';
-                    });
-                });
+                console.log('✅ Login button found - Universal Button Fix will handle it');
             }
             
             if (themeToggle) {
