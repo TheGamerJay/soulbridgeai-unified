@@ -729,25 +729,44 @@
                 });
                 console.log(`✅ ${langOptions.length} language options attached`);
                 
-                // Password toggle 
+                // Password toggle - use the same approach as working confirm password
                 const passwordToggle = document.getElementById('toggleBtn');
                 if (passwordToggle) {
                     passwordToggle.removeAttribute('onclick');
                     passwordToggle.addEventListener('click', function(e) {
                         e.preventDefault();
-                        console.log('👁️ Password toggle clicked!');
-                        const passwordField = document.getElementById('password');
-                        if (passwordField) {
-                            if (passwordField.type === 'password') {
-                                passwordField.type = 'text';
-                                passwordToggle.textContent = '🙈';
-                            } else {
-                                passwordField.type = 'password';
-                                passwordToggle.textContent = '👁️';
-                            }
+                        console.log('👁️ Password toggle clicked - using app.js approach!');
+                        
+                        // Use the same logic as the working app.js function
+                        const inputId = 'password';
+                        const input = document.getElementById(inputId);
+                        if (!input) {
+                            console.log('Input not found:', inputId);
+                            return;
+                        }
+                        
+                        // Find the toggle button that's in the same container as this input
+                        const container = input.closest('.password-container');
+                        const toggleBtn = container ? container.querySelector('.password-toggle') : null;
+                        
+                        if (!toggleBtn) {
+                            console.log('Toggle button not found for input:', inputId);
+                            return;
+                        }
+                        
+                        if (input.type === 'password') {
+                            input.type = 'text';
+                            toggleBtn.innerHTML = '🙈'; // Closed eye
+                            toggleBtn.setAttribute('aria-label', 'Hide password');
+                            console.log('Password shown for:', inputId);
+                        } else {
+                            input.type = 'password';
+                            toggleBtn.innerHTML = '👁️'; // Open eye
+                            toggleBtn.setAttribute('aria-label', 'Show password');
+                            console.log('Password hidden for:', inputId);
                         }
                     });
-                    console.log('✅ Password toggle listener attached');
+                    console.log('✅ Password toggle listener attached with app.js approach');
                 }
             }, 500);
             
