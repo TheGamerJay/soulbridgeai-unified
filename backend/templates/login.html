@@ -656,8 +656,18 @@
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
     <script src="{{ url_for('static', filename='js/universal-button-fix.js') }}"></script>
     <script>
-        // Form submission handling with AJAX
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
+        // Wait for DOM to be ready before attaching event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🔧 DOM loaded - setting up login form');
+            
+            // Form submission handling with AJAX
+            const loginForm = document.getElementById('loginForm');
+            if (!loginForm) {
+                console.error('❌ Login form not found!');
+                return;
+            }
+            
+            loginForm.addEventListener('submit', function(e) {
             e.preventDefault(); // Prevent default form submission
             console.log('Form submission started');
             
@@ -710,17 +720,44 @@
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Sign In';
             });
+            });
+            
+            // Auto-focus first input
+            const emailInput = document.getElementById('email');
+            if (emailInput) {
+                emailInput.focus();
+            }
+            
+            // Debug form setup
+            console.log('✅ Login form setup complete');
+            console.log('Form action:', loginForm.action);
+            console.log('Form method:', loginForm.method);
+            
+            // Test button functions
+            setTimeout(function() {
+                console.log('🔧 Testing button functions:');
+                console.log('  toggleTheme:', typeof window.toggleTheme);
+                console.log('  toggleLanguageMenu:', typeof window.toggleLanguageMenu);
+                console.log('  changeLanguage:', typeof window.changeLanguage);
+                console.log('  togglePassword:', typeof window.togglePassword);
+                
+                // Test if theme toggle button exists and has onclick
+                const themeBtn = document.getElementById('themeToggle');
+                if (themeBtn) {
+                    console.log('✅ Theme button found, onclick:', themeBtn.getAttribute('onclick'));
+                } else {
+                    console.error('❌ Theme button not found');
+                }
+                
+                // Test if language button exists
+                const langBtn = document.querySelector('[onclick*="toggleLanguageMenu"]');
+                if (langBtn) {
+                    console.log('✅ Language button found');
+                } else {
+                    console.error('❌ Language button not found');
+                }
+            }, 1000);
         });
-        
-        // Auto-focus first input
-        document.getElementById('email').focus();
-        
-        
-        // Debug form setup
-        console.log('Login form setup complete');
-        const form = document.getElementById('loginForm');
-        console.log('Form action:', form.action);
-        console.log('Form method:', form.method);
         
         // Global error handler
         window.addEventListener('error', function(e) {
