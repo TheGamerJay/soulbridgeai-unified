@@ -319,13 +319,8 @@ def auth_login():
         if is_developer:
             setup_user_session(email, is_admin=True, dev_mode=True)
             logger.info("Developer login successful")
-            
-            # Check if this is an AJAX request or form submission
-            if request.headers.get('Content-Type') == 'application/json' or request.is_json:
-                return jsonify({"success": True, "redirect": "/"})
-            else:
-                # Direct form submission - redirect directly
-                return redirect("/?show_intro=true")
+            # Always redirect for form submissions - simpler approach
+            return redirect("/?show_intro=true")
         
         # For regular users, check database if available
         if services["database"] and db:
@@ -339,12 +334,8 @@ def auth_login():
                     setup_user_session(email, user_id=user_data[0])
                     logger.info(f"User login successful: {email}")
                     
-                    # Check if this is an AJAX request or form submission
-                    if request.headers.get('Content-Type') == 'application/json' or request.is_json:
-                        return jsonify({"success": True, "redirect": "/"})
-                    else:
-                        # Direct form submission - redirect directly
-                        return redirect("/?show_intro=true")
+                    # Always redirect for form submissions - simpler approach
+                    return redirect("/?show_intro=true")
                 else:
                     logger.warning(f"Failed login attempt for: {email} (user exists: {user.user_exists(email)})")
                     return jsonify({"success": False, "error": "Invalid email or password"}), 401
