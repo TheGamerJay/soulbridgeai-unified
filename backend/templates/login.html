@@ -568,7 +568,7 @@
                             autocomplete="current-password"
                             style="padding-right: 45px;"
                         >
-                        <button type="button" class="password-toggle" id="loginToggleBtn" onclick="togglePassword('password')" aria-label="Toggle password visibility">
+                        <button type="button" class="password-toggle" id="loginToggleBtn" aria-label="Toggle password visibility">
                             👁️
                         </button>
                     </div>
@@ -675,9 +675,10 @@
                 return;
             }
             
+            console.log('🔧 Attaching submit listener to form:', loginForm);
             loginForm.addEventListener('submit', function(e) {
             e.preventDefault(); // Prevent default form submission
-            console.log('🔧 Form submission started');
+            console.log('🚀 FORM SUBMIT TRIGGERED! Event:', e);
             
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
@@ -762,6 +763,17 @@
             const emailInput = document.getElementById('email');
             if (emailInput) {
                 emailInput.focus();
+            }
+            
+            // ALSO add direct click listener to login button for debugging
+            const loginBtn = document.getElementById('loginBtn');
+            if (loginBtn) {
+                console.log('🔧 Adding direct click listener to login button');
+                loginBtn.addEventListener('click', function(e) {
+                    console.log('🔘 LOGIN BUTTON CLICKED DIRECTLY!', e);
+                    console.log('🔘 Button type:', loginBtn.type);
+                    console.log('🔘 Form element:', loginBtn.form);
+                });
             }
             
             // Debug form setup
