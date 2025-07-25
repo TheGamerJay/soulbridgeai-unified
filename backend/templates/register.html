@@ -551,14 +551,14 @@
             }
         }
     </style>
-    <script src="{{ url_for('static', filename='js/universal-button-fix.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/universal-button-fix.js') }}?v=20250725" defer></script>
 </head>
 <body>
     <!-- Language Selector moved below Create Account button -->
 
     <!-- Theme Toggle -->
     <div style="position: fixed; top: 20px; right: 110px; z-index: 100;">
-        <div id="themeToggle" style="
+        <button type="button" id="themeToggle" style="
             background: rgba(34, 211, 238, 0.8);
             color: #000;
             padding: 10px 16px;
@@ -570,10 +570,12 @@
             align-items: center;
             gap: 6px;
             margin-bottom: 10px;
-        " onclick="toggleTheme()">
+            border: none;
+            pointer-events: auto;
+        ">
             <span id="themeText" style="color: #000 !important;" data-translate="night_mode_on">Night Mode is ON</span>
             <span id="themeIcon">🌙</span>
-        </div>
+        </button>
         
         <!-- Back Button -->
         <a href="/login" style="
@@ -735,7 +737,7 @@
             
             <!-- Language Selector (Below Create Account) -->
             <div style="margin-top: 20px; display: flex; justify-content: center; position: relative;">
-                <div id="languageSelector" style="
+                <button type="button" id="languageSelector" style="
                     background: rgba(34, 211, 238, 0.8);
                     color: #000;
                     padding: 8px 12px;
@@ -747,10 +749,12 @@
                     align-items: center;
                     gap: 6px;
                     position: relative;
-                " onclick="toggleLanguageMenu()">
+                    border: none;
+                    pointer-events: auto;
+                ">
                     <span>🌐</span>
                     <span id="currentLanguage" data-translate="language_en">EN</span>
-                </div>
+                </button>
                 
                 <!-- Language Dropdown -->
                 <div id="languageMenu" style="
@@ -1227,6 +1231,6 @@
             loadSavedLanguage();
         });
     </script>
-    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}?v=20250725" defer></script>
 </body>
 </html>
