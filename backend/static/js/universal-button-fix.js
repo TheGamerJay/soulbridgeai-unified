@@ -226,6 +226,44 @@ window.UniversalButtonFix = {
                 }
             };
         }
+        
+        // Admin functions for admin panel
+        if (typeof window.adminLogin !== 'function') {
+            window.adminLogin = function() {
+                try {
+                    console.log('🔐 Admin login via universal fix');
+                    // Add admin login logic here
+                } catch (error) {
+                    console.error('❌ Universal adminLogin error:', error);
+                }
+            };
+        }
+        
+        if (typeof window.searchUser !== 'function') {
+            window.searchUser = function() {
+                try {
+                    console.log('🔍 Search user via universal fix');
+                    // Add search user logic here
+                } catch (error) {
+                    console.error('❌ Universal searchUser error:', error);
+                }
+            };
+        }
+        
+        // Notification functions
+        if (typeof window.toggleNotificationPanel !== 'function') {
+            window.toggleNotificationPanel = function() {
+                try {
+                    console.log('🔔 Toggle notifications via universal fix');
+                    const panel = document.getElementById('notification-panel');
+                    if (panel) {
+                        panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+                    }
+                } catch (error) {
+                    console.error('❌ Universal toggleNotificationPanel error:', error);
+                }
+            };
+        }
     },
     
     addBackupEventListeners: function() {
