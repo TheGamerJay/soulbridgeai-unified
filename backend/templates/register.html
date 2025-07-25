@@ -53,7 +53,7 @@
             right: 0;
             bottom: 0;
             background-image: url('/static/logos/IntroLogo.png?v=2025');
-            background-size: 350px 350px !important;
+            background-size: 300px 300px !important;
             background-repeat: no-repeat;
             background-position: center 15px;
             opacity: 0.9;
@@ -65,7 +65,7 @@
         /* Day mode logo - bigger and positioned higher up with contrast */
         body.day-mode .auth-card::before {
             background-image: url('/static/logos/BlackIntroLogo.png?v=2025');
-            background-size: 350px 350px !important;
+            background-size: 300px 300px !important;
             background-position: center 15px;
             opacity: 1;
             filter: contrast(2) brightness(0.5);
@@ -172,9 +172,9 @@
         .back-btn {
             width: 100%;
             padding: 8px 16px;
-            background: rgba(34, 211, 238, 0.1);
-            border: 2px solid #22d3ee;
-            color: #22d3ee;
+            background: rgba(34, 211, 238, 0.1) !important;
+            border: 2px solid #22d3ee !important;
+            color: #22d3ee !important;
             border-radius: 8px;
             text-decoration: none;
             font-weight: 600;
@@ -188,19 +188,21 @@
         }
         
         .back-btn:hover {
-            background: rgba(34, 211, 238, 0.2);
+            background: rgba(34, 211, 238, 0.2) !important;
+            color: #22d3ee !important;
             transform: translateY(-2px);
             box-shadow: 0 4px 15px rgba(34, 211, 238, 0.3);
         }
         
         body.day-mode .back-btn {
-            background: rgba(34, 211, 238, 0.8);
-            border-color: #22d3ee;
-            color: #000;
+            background: rgba(34, 211, 238, 0.8) !important;
+            border-color: #22d3ee !important;
+            color: #000 !important;
         }
         
         body.day-mode .back-btn:hover {
-            background: rgba(34, 211, 238, 1);
+            background: rgba(34, 211, 238, 1) !important;
+            color: #000 !important;
             transform: translateY(-2px);
             box-shadow: 0 4px 15px rgba(34, 211, 238, 0.3);
         }

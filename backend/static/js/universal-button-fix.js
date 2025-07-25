@@ -293,81 +293,17 @@ window.UniversalButtonFix = {
             },
             'loginBtn': (e) => {
                 console.log('🔧 Login button clicked via universal fix');
-                e.preventDefault(); // Prevent default behavior
                 
-                // Get form data
-                const email = document.getElementById('email')?.value;
-                const password = document.getElementById('password')?.value;
-                
-                console.log('📧 Email:', email);
-                console.log('🔑 Password length:', password?.length);
-                
-                // Validate fields
-                if (!email || !password) {
-                    alert('Please fill in both email and password');
-                    return;
+                // Let the form submit naturally instead of intercepting
+                const loginForm = document.getElementById('loginForm');
+                if (loginForm) {
+                    console.log('✅ Allowing natural form submission to:', loginForm.action);
+                    // Don't prevent default - let form submit naturally
+                    return true;
+                } else {
+                    console.log('❌ Login form not found, preventing submission');
+                    e.preventDefault();
                 }
-                
-                // Get button element
-                const loginBtn = document.getElementById('loginBtn');
-                if (loginBtn) {
-                    loginBtn.disabled = true;
-                    loginBtn.textContent = 'Signing In...';
-                }
-                
-                // Submit login via AJAX using FormData (matches Flask form expectations)
-                const formData = new FormData();
-                formData.append('email', email);
-                formData.append('password', password);
-                
-                fetch('/auth/login', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => {
-                    console.log('🔍 Login response status:', response.status);
-                    
-                    // Handle redirect response (302/301)
-                    if (response.redirected || response.status === 302 || response.status === 301) {
-                        console.log('✅ Login successful - redirecting to:', response.url);
-                        window.location.href = response.url || '/';
-                        return;
-                    }
-                    
-                    // Try to parse JSON response
-                    return response.json().catch(() => {
-                        // If not JSON, handle as HTML redirect
-                        if (response.ok) {
-                            console.log('✅ Login successful - redirecting to dashboard');
-                            window.location.href = '/';
-                        } else {
-                            throw new Error('Login failed with status ' + response.status);
-                        }
-                    });
-                })
-                .then(data => {
-                    if (data) {
-                        if (data.success) {
-                            console.log('✅ Login successful!');
-                            window.location.href = data.redirect || '/';
-                        } else {
-                            console.log('❌ Login failed:', data.error || data.message);
-                            alert(data.error || data.message || 'Login failed');
-                            if (loginBtn) {
-                                loginBtn.disabled = false;
-                                loginBtn.textContent = 'Sign In';
-                            }
-                        }
-                    }
-                })
-                .catch(error => {
-                    console.error('❌ Login error:', error);
-                    alert('Login failed. Please try again.');
-                    if (loginBtn) {
-                        loginBtn.disabled = false;
-                        loginBtn.textContent = 'Sign In';
-                    }
-                });
             }
         };
         
