@@ -597,7 +597,7 @@ def debug_session():
     })
 
 @app.route("/admin/init-database")
-def init_database():
+def admin_init_database():
     """Admin endpoint to initialize database tables and data"""
     try:
         import psycopg2
