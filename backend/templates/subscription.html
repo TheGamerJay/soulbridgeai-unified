@@ -322,7 +322,7 @@
       <div class="badge">Most Popular</div>
       <div class="plan-icon">🌱</div>
       <div class="plan-name">Growth Plan</div>
-      <div class="plan-price" id="premium-price">$7.99</div>
+      <div class="plan-price" id="premium-price">$12.99</div>
       <div class="plan-period" id="premium-period">/month</div>
       
       <ul class="plan-features">
@@ -343,7 +343,7 @@
     <div class="plan-card" onclick="selectPlan('enterprise')">
       <div class="plan-icon">🚀</div>
       <div class="plan-name">Max Plan</div>
-      <div class="plan-price" id="enterprise-price">$14.99</div>
+      <div class="plan-price" id="enterprise-price">$19.99</div>
       <div class="plan-period" id="enterprise-period">/month</div>
       
       <ul class="plan-features">
@@ -410,7 +410,7 @@
       
       <div class="add-on-card" onclick="selectAddOn('complete-bundle')" style="cursor: pointer; transition: all 0.3s ease;" onmouseover="this.style.background='rgba(16, 185, 129, 0.1)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(34, 211, 238, 0.1)'; this.style.transform='translateY(0)'">
         <h4>📦 Complete Bundle</h4>
-        <p style="margin: 10px 0; color: #94a3b8;">All add-ons included (Save $2!)</p>
+        <p style="margin: 10px 0; color: #94a3b8;">All add-ons included (Save $4!)</p>
         <div style="font-weight: 600; color: #10b981;">$16.99/month</div>
         <div style="font-size: 0.8rem; color: #10b981; margin-top: 5px;">Includes AI Images!</div>
       </div>
@@ -502,12 +502,12 @@ let selectedPlan = null;
 
 const pricing = {
   monthly: {
-    premium: { price: '$7.99', period: '/month' },
-    enterprise: { price: '$14.99', period: '/month' }
+    premium: { price: '$12.99', period: '/month' },
+    enterprise: { price: '$19.99', period: '/month' }
   },
   yearly: {
-    premium: { price: '$79', period: '/year', savings: 'Save $17' },
-    enterprise: { price: '$149', period: '/year', savings: 'Save $30' }
+    premium: { price: '$129', period: '/year', savings: 'Save $27' },
+    enterprise: { price: '$199', period: '/year', savings: 'Save $40' }
   }
 };
 
