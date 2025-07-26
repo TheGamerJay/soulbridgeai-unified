@@ -43,6 +43,7 @@ app.secret_key = secret_key
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SECURE'] = bool(os.environ.get('RAILWAY_ENVIRONMENT'))  # HTTPS in production
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['SESSION_COOKIE_PATH'] = '/'  # Ensure cookie works for all paths
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=2)
 
 # Global variables for services
@@ -1659,7 +1660,9 @@ def admin_surveillance():
 def select_plan():
     """Plan selection API"""
     try:
+        logger.info(f"Plan selection request - Session data: {dict(session)}")
         if not is_logged_in():
+            logger.error(f"Plan selection failed - User not authenticated. Session: {dict(session)}")
             return jsonify({"success": False, "error": "Authentication required"}), 401
             
         data = request.get_json()
@@ -1674,8 +1677,10 @@ def select_plan():
         session["user_plan"] = plan_type
         session["plan_selected_at"] = time.time()
         session["first_time_user"] = False
+        session.permanent = True  # Ensure session is saved
         
         logger.info(f"Plan selected: {plan_type} by {session.get('user_email')}")
+        logger.info(f"Session after plan selection: {dict(session)}")
         
         # Create appropriate success message and redirect
         if plan_type == "foundation":
