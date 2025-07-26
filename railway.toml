@@ -6,7 +6,7 @@ builder = "nixpacks"
 startCommand = "cd backend && python app.py"
 
 [deploy.env]
-DATABASE_URL = "${{Postgres.DATABASE_URL}}"
+# DATABASE_URL = "${{Postgres.DATABASE_URL}}"  # Commented out - using manual override
 PGHOST = "${{Postgres.PGHOST}}"  
 PGPORT = "${{Postgres.PGPORT}}"
 PGUSER = "${{Postgres.PGUSER}}"
