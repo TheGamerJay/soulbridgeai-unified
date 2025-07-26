@@ -1796,6 +1796,334 @@ def database_reconnect():
             "details": str(e)
         }), 500
 
+@app.route("/admin/database")
+def database_admin():
+    """Database administration interface - admin only"""
+    key = request.args.get("key")
+    if key != ADMIN_DASH_KEY:
+        return jsonify({"error": "Unauthorized"}), 403
+    
+    return """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>🗄️ Database Admin - SoulBridge AI</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { 
+                font-family: 'Courier New', monospace; 
+                background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+                color: #e2e8f0; 
+                padding: 20px;
+            }
+            
+            .admin-header {
+                text-align: center;
+                margin-bottom: 30px;
+                border-bottom: 3px solid #22d3ee;
+                padding-bottom: 20px;
+            }
+            
+            .admin-header h1 {
+                color: #22d3ee;
+                font-size: 2.5em;
+                text-shadow: 0 0 10px #22d3ee;
+            }
+            
+            .query-container {
+                background: rgba(30, 41, 59, 0.95);
+                border: 2px solid #374151;
+                border-radius: 10px;
+                padding: 20px;
+                margin-bottom: 20px;
+            }
+            
+            .query-textarea {
+                width: 100%;
+                height: 200px;
+                background: #0f172a;
+                border: 1px solid #374151;
+                border-radius: 5px;
+                color: #e2e8f0;
+                font-family: 'Courier New', monospace;
+                font-size: 14px;
+                padding: 15px;
+                resize: vertical;
+            }
+            
+            .btn {
+                background: #22d3ee;
+                color: #0f172a;
+                border: none;
+                padding: 12px 24px;
+                border-radius: 5px;
+                cursor: pointer;
+                font-weight: bold;
+                margin: 5px;
+                transition: all 0.3s;
+            }
+            
+            .btn:hover {
+                background: #06b6d4;
+                transform: translateY(-2px);
+            }
+            
+            .btn-danger {
+                background: #ef4444;
+                color: white;
+            }
+            
+            .btn-danger:hover {
+                background: #dc2626;
+            }
+            
+            .results-container {
+                background: #0f172a;
+                border: 1px solid #374151;
+                border-radius: 5px;
+                padding: 15px;
+                margin-top: 20px;
+                max-height: 400px;
+                overflow-y: auto;
+            }
+            
+            .results-table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 12px;
+            }
+            
+            .results-table th, .results-table td {
+                border: 1px solid #374151;
+                padding: 8px;
+                text-align: left;
+            }
+            
+            .results-table th {
+                background: #374151;
+                color: #22d3ee;
+                font-weight: bold;
+            }
+            
+            .quick-queries {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 10px;
+                margin: 20px 0;
+            }
+            
+            .error { color: #ef4444; }
+            .success { color: #10b981; }
+            
+            pre {
+                background: #1e293b;
+                padding: 10px;
+                border-radius: 5px;
+                overflow-x: auto;
+                white-space: pre-wrap;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="admin-header">
+            <h1>🗄️ DATABASE ADMIN</h1>
+            <p>PostgreSQL Query Interface</p>
+        </div>
+        
+        <div class="query-container">
+            <h2 style="color: #22d3ee; margin-bottom: 15px;">SQL Query</h2>
+            <textarea id="queryText" class="query-textarea" placeholder="Enter your SQL query here...
+Example: SELECT * FROM users LIMIT 10;"></textarea>
+            
+            <div style="margin-top: 15px;">
+                <button class="btn" onclick="executeQuery()">🔍 Execute Query</button>
+                <button class="btn" onclick="clearQuery()">🧹 Clear</button>
+                <button class="btn btn-danger" onclick="confirmDangerous()" style="margin-left: 20px;">⚠️ Execute Dangerous</button>
+            </div>
+        </div>
+        
+        <div class="query-container">
+            <h3 style="color: #22d3ee; margin-bottom: 15px;">Quick Queries</h3>
+            <div class="quick-queries">
+                <button class="btn" onclick="quickQuery('SELECT * FROM users ORDER BY created_at DESC LIMIT 10;')">📋 Recent Users</button>
+                <button class="btn" onclick="quickQuery('SELECT COUNT(*) as user_count FROM users;')">👥 User Count</button>
+                <button class="btn" onclick="quickQuery('SELECT * FROM subscriptions ORDER BY created_at DESC LIMIT 10;')">💳 Subscriptions</button>
+                <button class="btn" onclick="quickQuery('SELECT table_name FROM information_schema.tables WHERE table_schema = \\'public\\';')">📊 Show Tables</button>
+                <button class="btn" onclick="quickQuery('SELECT column_name, data_type FROM information_schema.columns WHERE table_name = \\'users\\';')">🔍 User Columns</button>
+                <button class="btn" onclick="quickQuery('SELECT email, display_name, created_at FROM users WHERE created_at > NOW() - INTERVAL \\'7 days\\';')">📅 Recent 7 Days</button>
+            </div>
+        </div>
+        
+        <div id="results" class="results-container" style="display: none;">
+            <h3 style="color: #22d3ee; margin-bottom: 15px;">Query Results</h3>
+            <div id="resultsContent"></div>
+        </div>
+        
+        <script>
+            function executeQuery(dangerous = false) {
+                const query = document.getElementById('queryText').value.trim();
+                if (!query) {
+                    alert('Please enter a query');
+                    return;
+                }
+                
+                const resultsDiv = document.getElementById('results');
+                const resultsContent = document.getElementById('resultsContent');
+                
+                resultsContent.innerHTML = '<p style="color: #f59e0b;">Executing query...</p>';
+                resultsDiv.style.display = 'block';
+                
+                fetch('/api/database-query', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        query: query,
+                        dangerous: dangerous
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        displayResults(data);
+                    } else {
+                        resultsContent.innerHTML = `<p class="error">Error: ${data.error}</p>`;
+                    }
+                })
+                .catch(error => {
+                    resultsContent.innerHTML = `<p class="error">Network Error: ${error.message}</p>`;
+                });
+            }
+            
+            function displayResults(data) {
+                const resultsContent = document.getElementById('resultsContent');
+                
+                if (data.rows && data.rows.length > 0) {
+                    let html = `<p class="success">Query executed successfully. ${data.row_count} rows returned.</p>`;
+                    
+                    if (data.columns && data.columns.length > 0) {
+                        html += '<table class="results-table"><thead><tr>';
+                        data.columns.forEach(col => {
+                            html += `<th>${col}</th>`;
+                        });
+                        html += '</tr></thead><tbody>';
+                        
+                        data.rows.forEach(row => {
+                            html += '<tr>';
+                            row.forEach(cell => {
+                                html += `<td>${cell !== null ? String(cell) : '<i>NULL</i>'}</td>`;
+                            });
+                            html += '</tr>';
+                        });
+                        html += '</tbody></table>';
+                    } else {
+                        html += '<pre>' + JSON.stringify(data.rows, null, 2) + '</pre>';
+                    }
+                    
+                    resultsContent.innerHTML = html;
+                } else if (data.affected_rows !== undefined) {
+                    resultsContent.innerHTML = `<p class="success">Query executed successfully. ${data.affected_rows} rows affected.</p>`;
+                } else {
+                    resultsContent.innerHTML = '<p class="success">Query executed successfully.</p>';
+                }
+            }
+            
+            function quickQuery(query) {
+                document.getElementById('queryText').value = query;
+                executeQuery();
+            }
+            
+            function clearQuery() {
+                document.getElementById('queryText').value = '';
+                document.getElementById('results').style.display = 'none';
+            }
+            
+            function confirmDangerous() {
+                if (confirm('⚠️ WARNING: This will execute potentially dangerous queries (UPDATE, DELETE, DROP, etc.)\\n\\nAre you absolutely sure?')) {
+                    executeQuery(true);
+                }
+            }
+        </script>
+    </body>
+    </html>
+    """
+
+@app.route("/api/database-query", methods=["POST"])
+def database_query():
+    """Execute database query - admin only"""
+    try:
+        if not is_logged_in() or not session.get("is_admin"):
+            return jsonify({"success": False, "error": "Admin access required"}), 403
+        
+        data = request.get_json()
+        if not data or not data.get("query"):
+            return jsonify({"success": False, "error": "Query required"}), 400
+        
+        query = data["query"].strip()
+        dangerous = data.get("dangerous", False)
+        
+        # Safety check for dangerous operations
+        dangerous_keywords = ['DROP', 'DELETE', 'UPDATE', 'INSERT', 'ALTER', 'TRUNCATE', 'CREATE']
+        is_dangerous = any(keyword in query.upper() for keyword in dangerous_keywords)
+        
+        if is_dangerous and not dangerous:
+            return jsonify({
+                "success": False,
+                "error": "Dangerous query detected. Use 'Execute Dangerous' button to proceed.",
+                "dangerous_detected": True
+            }), 400
+        
+        if not services["database"] or not db:
+            return jsonify({"success": False, "error": "Database not available"}), 503
+        
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        
+        # Execute query
+        cursor.execute(query)
+        
+        # Handle different types of queries
+        if query.upper().strip().startswith('SELECT') or query.upper().strip().startswith('WITH'):
+            # SELECT queries - fetch results
+            rows = cursor.fetchall()
+            columns = [desc[0] for desc in cursor.description] if cursor.description else []
+            
+            result = {
+                "success": True,
+                "rows": rows,
+                "columns": columns,
+                "row_count": len(rows),
+                "query_type": "SELECT"
+            }
+        else:
+            # INSERT, UPDATE, DELETE queries - get affected rows
+            conn.commit()
+            affected_rows = cursor.rowcount
+            
+            result = {
+                "success": True,
+                "affected_rows": affected_rows,
+                "query_type": "MODIFY"
+            }
+        
+        cursor.close()
+        conn.close()
+        
+        # Log the query for security audit
+        surveillance_system.log_maintenance("DATABASE_QUERY", f"Admin executed: {query[:100]}...")
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"Database query error: {e}")
+        return jsonify({
+            "success": False,
+            "error": str(e),
+            "error_type": type(e).__name__
+        }), 500
+
 @app.route("/api/chat", methods=["POST"])
 def api_chat():
     """Chat API endpoint"""
