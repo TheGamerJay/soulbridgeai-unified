@@ -1803,6 +1803,9 @@ def database_admin():
     if key != ADMIN_DASH_KEY:
         return jsonify({"error": "Unauthorized"}), 403
     
+    # For database admin, allow direct key access without login requirement
+    # This bypasses the normal admin session check since you have the admin key
+    
     return """
     <!DOCTYPE html>
     <html>
@@ -1974,10 +1977,11 @@ Example: SELECT * FROM users LIMIT 10;"></textarea>
                 resultsContent.innerHTML = '<p style="color: #f59e0b;">Executing query...</p>';
                 resultsDiv.style.display = 'block';
                 
-                fetch('/api/database-query', {
+                fetch('/api/database-query?key={ADMIN_DASH_KEY}', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'X-Admin-Key': '{ADMIN_DASH_KEY}'
                     },
                     body: JSON.stringify({ 
                         query: query,
@@ -2054,7 +2058,11 @@ Example: SELECT * FROM users LIMIT 10;"></textarea>
 def database_query():
     """Execute database query - admin only"""
     try:
-        if not is_logged_in() or not session.get("is_admin"):
+        # Allow access with admin key or admin session
+        admin_key = request.headers.get('X-Admin-Key') or request.args.get('key')
+        has_admin_session = is_logged_in() and session.get("is_admin")
+        
+        if not (admin_key == ADMIN_DASH_KEY or has_admin_session):
             return jsonify({"success": False, "error": "Admin access required"}), 403
         
         data = request.get_json()
