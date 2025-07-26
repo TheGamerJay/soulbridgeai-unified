@@ -101,12 +101,14 @@ def setup_user_session(email, user_id=None, is_admin=False, dev_mode=False):
 
 def login_success_response(redirect_to="/"):
     """Return appropriate response for successful login (JSON for AJAX, redirect for forms)"""
-    # Simple check: if browser sent form data, redirect. If AJAX, return JSON.
-    user_agent = request.headers.get('User-Agent', '')
-    # Regular browsers doing form submission vs AJAX fetch calls
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or 'fetch' in user_agent.lower():
+    # Check if request expects JSON response (AJAX/fetch) vs HTML redirect (form)
+    accept_header = request.headers.get('Accept', '')
+    
+    # If Accept header includes application/json, it's likely an AJAX request
+    if 'application/json' in accept_header:
         return jsonify({"success": True, "redirect": redirect_to})
     else:
+        # Regular form submission - browser expects redirect
         return redirect(redirect_to)
 
 def init_database():
