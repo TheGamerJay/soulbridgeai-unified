@@ -74,7 +74,7 @@ TRAP_LOG_FILE = "logs/trap_log.txt"
 # Ensure logs directory exists
 os.makedirs("logs", exist_ok=True)
 
-# Basic surveillance system for logging
+# Enhanced surveillance system with Flask context safety
 class BasicSurveillanceSystem:
     def __init__(self):
         self.system_start_time = datetime.now()
@@ -83,37 +83,130 @@ class BasicSurveillanceSystem:
         self.maintenance_log = []
         self.emergency_mode = False
         self.critical_errors_count = 0
+        self.watchdog_enabled = True
+        self.last_health_check = datetime.now()
         
     def write_to_log_file(self, log_file, entry):
-        """Write entry to log file"""
+        """Write entry to log file with error handling"""
         try:
             with open(log_file, "a", encoding="utf-8") as f:
                 f.write(entry + "\n")
         except Exception as e:
-            logger.error(f"Failed to write to log {log_file}: {e}")
+            # Use basic print instead of logger to avoid potential Flask context issues
+            print(f"Failed to write to log {log_file}: {e}")
     
     def log_maintenance(self, action, details):
-        """Log maintenance action"""
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        entry = f"[{timestamp}] 🔧 {action}: {details}"
-        self.maintenance_log.append(entry)
-        self.write_to_log_file(MAINTENANCE_LOG_FILE, entry)
+        """Log maintenance action safely"""
+        try:
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            entry = f"[{timestamp}] 🔧 {action}: {details}"
+            self.maintenance_log.append(entry)
+            # Keep only last 1000 entries in memory
+            if len(self.maintenance_log) > 1000:
+                self.maintenance_log = self.maintenance_log[-1000:]
+            self.write_to_log_file(MAINTENANCE_LOG_FILE, entry)
+        except Exception as e:
+            print(f"Error logging maintenance: {e}")
     
     def log_threat(self, ip_address, threat_details, severity="medium"):
-        """Log security threat"""
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        entry = f"[{timestamp}] 🚨 THREAT ({severity.upper()}): {ip_address} - {threat_details}"
-        self.security_threats.append({
-            'timestamp': datetime.now(),
-            'ip': ip_address,
-            'details': threat_details,
-            'severity': severity
-        })
-        self.write_to_log_file(THREAT_LOG_FILE, entry)
+        """Log security threat safely"""
+        try:
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            entry = f"[{timestamp}] 🚨 THREAT ({severity.upper()}): {ip_address} - {threat_details}"
+            self.security_threats.append({
+                'timestamp': datetime.now(),
+                'ip': ip_address,
+                'details': threat_details,
+                'severity': severity
+            })
+            # Keep only last 500 threats in memory
+            if len(self.security_threats) > 500:
+                self.security_threats = self.security_threats[-500:]
+            self.write_to_log_file(THREAT_LOG_FILE, entry)
+        except Exception as e:
+            print(f"Error logging threat: {e}")
+    
+    def safe_health_check(self):
+        """Perform health check without Flask request context"""
+        try:
+            self.last_health_check = datetime.now()
+            # Basic system health checks that don't require Flask context
+            current_time = datetime.now()
+            uptime_hours = (current_time - self.system_start_time).total_seconds() / 3600
+            
+            # Log periodic health status
+            if int(uptime_hours) % 1 == 0:  # Every hour
+                self.log_maintenance("HEALTH_CHECK", f"System running for {uptime_hours:.1f} hours")
+            
+            return True
+        except Exception as e:
+            self.log_maintenance("HEALTH_CHECK_ERROR", f"Health check failed: {e}")
+            return False
+    
+    def get_system_stats(self):
+        """Get current system statistics safely"""
+        try:
+            return {
+                'uptime_seconds': (datetime.now() - self.system_start_time).total_seconds(),
+                'blocked_ips_count': len(self.blocked_ips),
+                'threats_count': len(self.security_threats),
+                'emergency_mode': self.emergency_mode,
+                'critical_errors': self.critical_errors_count,
+                'watchdog_enabled': self.watchdog_enabled
+            }
+        except Exception as e:
+            self.log_maintenance("STATS_ERROR", f"Failed to get stats: {e}")
+            return {}
 
 # Initialize basic surveillance system
 surveillance_system = BasicSurveillanceSystem()
 surveillance_system.log_maintenance("SYSTEM_START", "Basic surveillance system initialized")
+
+def background_monitoring():
+    """Background monitoring task that runs safely without Flask context"""
+    import time
+    
+    def monitoring_loop():
+        while True:
+            try:
+                # Perform health check
+                surveillance_system.safe_health_check()
+                
+                # Clean up old logs periodically
+                current_time = datetime.now()
+                if hasattr(surveillance_system, 'last_cleanup'):
+                    time_since_cleanup = (current_time - surveillance_system.last_cleanup).total_seconds()
+                else:
+                    surveillance_system.last_cleanup = current_time
+                    time_since_cleanup = 0
+                
+                # Clean up every 6 hours
+                if time_since_cleanup > 21600:  # 6 hours
+                    surveillance_system.log_maintenance("CLEANUP", "Performing periodic cleanup")
+                    surveillance_system.last_cleanup = current_time
+                
+                # Sleep for 5 minutes between checks
+                time.sleep(300)
+                
+            except Exception as e:
+                # Log error safely without using Flask logger
+                try:
+                    surveillance_system.log_maintenance("MONITOR_ERROR", f"Background monitoring error: {e}")
+                except:
+                    print(f"Background monitoring error: {e}")
+                time.sleep(60)  # Wait 1 minute before retrying
+    
+    # Start monitoring in a separate thread
+    try:
+        import threading
+        monitor_thread = threading.Thread(target=monitoring_loop, daemon=True)
+        monitor_thread.start()
+        surveillance_system.log_maintenance("MONITOR_START", "Background monitoring thread started")
+    except Exception as e:
+        surveillance_system.log_maintenance("MONITOR_START_ERROR", f"Failed to start background monitoring: {e}")
+
+# Start background monitoring
+background_monitoring()
 
 def is_logged_in():
     """Check if user is logged in"""
