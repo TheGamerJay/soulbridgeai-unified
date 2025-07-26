@@ -929,19 +929,80 @@ def forgot_password():
         
         if services["database"] and db:
             from auth import User
+            import secrets
             user = User(db)
             
             # Check if user exists
             if user.user_exists(email):
-                # For now, just log the reset request
-                logger.info(f"Password reset requested for: {email}")
-                surveillance_system.log_maintenance("PASSWORD_RESET_REQUEST", f"Reset requested for {email}")
-                
-                # In a real implementation, you'd generate a token and send email
-                return jsonify({
-                    "success": True, 
-                    "message": "If an account with that email exists, password reset instructions have been sent."
-                })
+                try:
+                    # Generate secure reset token
+                    reset_token = secrets.token_urlsafe(32)
+                    
+                    # Store token in database with expiration
+                    conn = db.get_connection()
+                    cursor = conn.cursor()
+                    
+                    # Get user details
+                    if db.use_postgres:
+                        cursor.execute("SELECT display_name FROM users WHERE email = %s", (email,))
+                    else:
+                        cursor.execute("SELECT display_name FROM users WHERE email = ?", (email,))
+                    user_data = cursor.fetchone()
+                    display_name = user_data[0] if user_data else "User"
+                    
+                    # Store reset token (expires in 1 hour)
+                    from datetime import datetime, timedelta
+                    expires_at = datetime.now() + timedelta(hours=1)
+                    
+                    if db.use_postgres:
+                        cursor.execute("""
+                            INSERT INTO password_reset_tokens (email, token, expires_at, created_at)
+                            VALUES (%s, %s, %s, %s)
+                            ON CONFLICT (email) DO UPDATE SET
+                            token = EXCLUDED.token,
+                            expires_at = EXCLUDED.expires_at,
+                            created_at = EXCLUDED.created_at
+                        """, (email, reset_token, expires_at, datetime.now()))
+                    else:
+                        cursor.execute("""
+                            INSERT OR REPLACE INTO password_reset_tokens (email, token, expires_at, created_at)
+                            VALUES (?, ?, ?, ?)
+                        """, (email, reset_token, expires_at, datetime.now()))
+                    
+                    conn.commit()
+                    conn.close()
+                    
+                    # Send reset email
+                    if not services["email"]:
+                        init_email()
+                    
+                    if services["email"] and email_service:
+                        base_url = request.host_url.rstrip('/')
+                        result = email_service.send_password_reset_email(
+                            email, display_name, reset_token, base_url
+                        )
+                        
+                        if result.get("success"):
+                            logger.info(f"Password reset email sent to: {email}")
+                            surveillance_system.log_maintenance("PASSWORD_RESET_EMAIL_SENT", f"Reset email sent to {email}")
+                        else:
+                            logger.error(f"Failed to send reset email to {email}: {result.get('error')}")
+                            surveillance_system.log_maintenance("PASSWORD_RESET_EMAIL_FAILED", f"Failed to send reset email to {email}")
+                    else:
+                        logger.error("Email service not available for password reset")
+                        surveillance_system.log_maintenance("PASSWORD_RESET_EMAIL_SERVICE_UNAVAILABLE", f"Email service unavailable for {email}")
+                    
+                    return jsonify({
+                        "success": True, 
+                        "message": "If an account with that email exists, password reset instructions have been sent."
+                    })
+                    
+                except Exception as e:
+                    logger.error(f"Password reset token generation failed: {e}")
+                    return jsonify({
+                        "success": False, 
+                        "message": "Failed to process reset request. Please try again."
+                    }), 500
             else:
                 # Don't reveal if email exists or not for security
                 return jsonify({
@@ -954,6 +1015,324 @@ def forgot_password():
     except Exception as e:
         logger.error(f"Password reset error: {e}")
         return jsonify({"success": False, "message": "Reset request failed"}), 500
+
+@app.route("/auth/reset-password", methods=["GET", "POST"])
+def reset_password():
+    """Handle password reset with token"""
+    if request.method == "GET":
+        token = request.args.get("token")
+        if not token:
+            return redirect("/auth/forgot-password")
+        
+        # Verify token exists and is not expired
+        if not services["database"]:
+            init_database()
+        
+        if services["database"] and db:
+            conn = db.get_connection()
+            cursor = conn.cursor()
+            
+            if db.use_postgres:
+                cursor.execute("""
+                    SELECT email, expires_at FROM password_reset_tokens 
+                    WHERE token = %s AND expires_at > NOW()
+                """, (token,))
+            else:
+                cursor.execute("""
+                    SELECT email, expires_at FROM password_reset_tokens 
+                    WHERE token = ? AND expires_at > DATETIME('now')
+                """, (token,))
+            
+            token_data = cursor.fetchone()
+            conn.close()
+            
+            if not token_data:
+                return """
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Invalid Reset Link - SoulBridge AI</title>
+                    <style>
+                        body { 
+                            font-family: system-ui, -apple-system, sans-serif; 
+                            padding: 40px 20px; 
+                            background: linear-gradient(135deg, #000000 0%, #0f172a 50%, #1e293b 100%); 
+                            color: #e2e8f0; 
+                            min-height: 100vh;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            margin: 0;
+                        }
+                        .container {
+                            max-width: 500px;
+                            text-align: center;
+                            background: rgba(0,0,0,0.8);
+                            padding: 3rem;
+                            border-radius: 16px;
+                            border: 2px solid #ef4444;
+                            backdrop-filter: blur(15px);
+                        }
+                        h1 { color: #ef4444; margin-bottom: 1.5rem; }
+                        .btn { 
+                            display: inline-block;
+                            margin-top: 2rem;
+                            padding: 12px 24px;
+                            background: #22d3ee;
+                            color: #000;
+                            text-decoration: none;
+                            border-radius: 8px;
+                            font-weight: 600;
+                            transition: all 0.3s ease;
+                        }
+                        .btn:hover { background: #06b6d4; transform: translateY(-2px); }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <h1>⚠️ Invalid or Expired Link</h1>
+                        <p>This password reset link is invalid or has expired.</p>
+                        <p>Reset links expire after 1 hour for security.</p>
+                        <a href="/auth/forgot-password" class="btn">Request New Reset Link</a>
+                    </div>
+                </body>
+                </html>
+                """
+            
+            email = token_data[0]
+            
+            return f"""
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Set New Password - SoulBridge AI</title>
+                <style>
+                    body {{ 
+                        font-family: system-ui, -apple-system, sans-serif; 
+                        padding: 40px 20px; 
+                        background: linear-gradient(135deg, #000000 0%, #0f172a 50%, #1e293b 100%); 
+                        color: #e2e8f0; 
+                        min-height: 100vh;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        margin: 0;
+                    }}
+                    .container {{
+                        max-width: 500px;
+                        background: rgba(0,0,0,0.8);
+                        padding: 3rem;
+                        border-radius: 16px;
+                        border: 2px solid #22d3ee;
+                        backdrop-filter: blur(15px);
+                    }}
+                    h1 {{ color: #22d3ee; margin-bottom: 1.5rem; text-align: center; }}
+                    .form-group {{ margin-bottom: 1.5rem; }}
+                    label {{ display: block; margin-bottom: 0.5rem; color: #22d3ee; font-weight: 600; }}
+                    input {{ 
+                        width: 100%; 
+                        padding: 12px; 
+                        border: 2px solid #374151; 
+                        border-radius: 8px; 
+                        background: rgba(0,0,0,0.5);
+                        color: #e2e8f0;
+                        font-size: 16px;
+                    }}
+                    input:focus {{ border-color: #22d3ee; outline: none; }}
+                    .btn {{ 
+                        width: 100%;
+                        padding: 12px 24px;
+                        background: #22d3ee;
+                        color: #000;
+                        border: none;
+                        border-radius: 8px;
+                        font-weight: 600;
+                        font-size: 16px;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                    }}
+                    .btn:hover {{ background: #06b6d4; transform: translateY(-2px); }}
+                    .btn:disabled {{ background: #374151; cursor: not-allowed; }}
+                    .message {{ padding: 1rem; margin: 1rem 0; border-radius: 8px; text-align: center; }}
+                    .error {{ background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #fca5a5; }}
+                    .success {{ background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #6ee7b7; }}
+                    .password-requirements {{
+                        font-size: 14px;
+                        color: #94a3b8;
+                        margin-top: 0.5rem;
+                    }}
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <h1>🔐 Set New Password</h1>
+                    <p style="text-align: center; margin-bottom: 2rem; color: #94a3b8;">
+                        Setting password for: <strong style="color: #22d3ee;">{email}</strong>
+                    </p>
+                    <form id="resetForm">
+                        <input type="hidden" id="token" value="{token}">
+                        <div class="form-group">
+                            <label for="password">New Password</label>
+                            <input type="password" id="password" name="password" required 
+                                   placeholder="Enter new password" minlength="8">
+                            <div class="password-requirements">
+                                Password must be at least 8 characters long
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="confirmPassword">Confirm Password</label>
+                            <input type="password" id="confirmPassword" name="confirmPassword" required 
+                                   placeholder="Confirm new password">
+                        </div>
+                        <button type="submit" class="btn" id="resetBtn">Update Password</button>
+                    </form>
+                    
+                    <script>
+                    document.getElementById('resetForm').addEventListener('submit', async function(e) {{
+                        e.preventDefault();
+                        const btn = document.getElementById('resetBtn');
+                        const password = document.getElementById('password').value;
+                        const confirmPassword = document.getElementById('confirmPassword').value;
+                        const token = document.getElementById('token').value;
+                        
+                        // Clear any existing messages
+                        const existingMessages = document.querySelectorAll('.message');
+                        existingMessages.forEach(msg => msg.remove());
+                        
+                        if (password !== confirmPassword) {{
+                            const message = document.createElement('div');
+                            message.className = 'message error';
+                            message.textContent = 'Passwords do not match';
+                            document.querySelector('.container').insertBefore(message, document.getElementById('resetForm'));
+                            return;
+                        }}
+                        
+                        if (password.length < 8) {{
+                            const message = document.createElement('div');
+                            message.className = 'message error';
+                            message.textContent = 'Password must be at least 8 characters long';
+                            document.querySelector('.container').insertBefore(message, document.getElementById('resetForm'));
+                            return;
+                        }}
+                        
+                        btn.disabled = true;
+                        btn.textContent = 'Updating...';
+                        
+                        try {{
+                            const response = await fetch('/auth/reset-password', {{
+                                method: 'POST',
+                                headers: {{ 'Content-Type': 'application/json' }},
+                                body: JSON.stringify({{ token, password }})
+                            }});
+                            
+                            const data = await response.json();
+                            
+                            const message = document.createElement('div');
+                            message.className = data.success ? 'message success' : 'message error';
+                            message.textContent = data.message;
+                            
+                            document.querySelector('.container').insertBefore(message, document.getElementById('resetForm'));
+                            
+                            if (data.success) {{
+                                document.getElementById('resetForm').style.display = 'none';
+                                setTimeout(() => {{
+                                    window.location.href = '/login';
+                                }}, 3000);
+                            }}
+                        }} catch (error) {{
+                            const message = document.createElement('div');
+                            message.className = 'message error';
+                            message.textContent = 'Network error. Please try again.';
+                            document.querySelector('.container').insertBefore(message, document.getElementById('resetForm'));
+                        }}
+                        
+                        btn.disabled = false;
+                        btn.textContent = 'Update Password';
+                    }});
+                    </script>
+                </div>
+            </body>
+            </html>
+            """
+        else:
+            return redirect("/auth/forgot-password")
+    
+    # Handle POST request (actual password update)
+    try:
+        data = request.get_json()
+        token = data.get("token")
+        new_password = data.get("password")
+        
+        if not token or not new_password:
+            return jsonify({"success": False, "message": "Token and password required"}), 400
+        
+        if len(new_password) < 8:
+            return jsonify({"success": False, "message": "Password must be at least 8 characters long"}), 400
+        
+        if not services["database"]:
+            init_database()
+        
+        if services["database"] and db:
+            conn = db.get_connection()
+            cursor = conn.cursor()
+            
+            # Verify token and get email
+            if db.use_postgres:
+                cursor.execute("""
+                    SELECT email FROM password_reset_tokens 
+                    WHERE token = %s AND expires_at > NOW()
+                """, (token,))
+            else:
+                cursor.execute("""
+                    SELECT email FROM password_reset_tokens 
+                    WHERE token = ? AND expires_at > DATETIME('now')
+                """, (token,))
+            
+            token_data = cursor.fetchone()
+            
+            if not token_data:
+                conn.close()
+                return jsonify({"success": False, "message": "Invalid or expired token"}), 400
+            
+            email = token_data[0]
+            
+            # Hash the new password
+            import bcrypt
+            password_hash = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+            
+            # Update user password
+            if db.use_postgres:
+                cursor.execute("UPDATE users SET password_hash = %s WHERE email = %s", (password_hash, email))
+            else:
+                cursor.execute("UPDATE users SET password_hash = ? WHERE email = ?", (password_hash, email))
+            
+            # Delete the used token
+            if db.use_postgres:
+                cursor.execute("DELETE FROM password_reset_tokens WHERE token = %s", (token,))
+            else:
+                cursor.execute("DELETE FROM password_reset_tokens WHERE token = ?", (token,))
+            
+            conn.commit()
+            conn.close()
+            
+            # Log the password reset
+            logger.info(f"Password reset completed for: {email}")
+            surveillance_system.log_maintenance("PASSWORD_RESET_COMPLETED", f"Password updated for {email}")
+            
+            return jsonify({
+                "success": True,
+                "message": "Password updated successfully! Redirecting to login..."
+            })
+        else:
+            return jsonify({"success": False, "message": "Service temporarily unavailable"}), 503
+            
+    except Exception as e:
+        logger.error(f"Password reset completion error: {e}")
+        return jsonify({"success": False, "message": "Failed to update password"}), 500
 
 # ========================================
 # OAUTH ROUTES
