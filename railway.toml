@@ -1,6 +1,6 @@
 [build]
 builder = "nixpacks" 
-# Force redeploy: companion system fixes applied
+# Force redeploy: use Railway internal PostgreSQL connection
 
 [deploy]
 startCommand = "cd backend && python app.py"
