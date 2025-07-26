@@ -265,17 +265,19 @@ def init_database():
             
         try:
             logger.info("Initializing database...")
-            from auth import Database
-            temp_db = Database()
-            # Test database connectivity
-            temp_conn = temp_db.get_connection()
-            temp_conn.close()
-            
-            # Only update globals if successful
-            db = temp_db
-            services["database"] = temp_db
-            logger.info("✅ Database initialized successfully")
-            return True
+            # Use application context for database initialization
+            with app.app_context():
+                from auth import Database
+                temp_db = Database()
+                # Test database connectivity
+                temp_conn = temp_db.get_connection()
+                temp_conn.close()
+                
+                # Only update globals if successful
+                db = temp_db
+                services["database"] = temp_db
+                logger.info("✅ Database initialized successfully")
+                return True
         except Exception as e:
             logger.error(f"❌ Database initialization failed: {e}")
             # Ensure consistent failure state
