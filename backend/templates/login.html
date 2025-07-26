@@ -657,7 +657,8 @@
         </div>
     </div>
 
-    <script src="{{ url_for('static', filename='js/universal-button-fix.js') }}?v=20250725" defer></script>
+    <!-- Universal button fix disabled on login page to prevent conflicts -->
+    <!-- <script src="{{ url_for('static', filename='js/universal-button-fix.js') }}?v=20250725" defer></script> -->
     <script src="{{ url_for('static', filename='js/app.js') }}?v=20250725" defer></script>
     <script>
         // Wait for DOM to be ready before attaching event listeners
@@ -1038,5 +1039,8 @@
     </script>
     
     <!-- AUTH.JS COMPLETELY REMOVED FOR PLAIN FORM SUBMISSION -->
+    
+    <!-- Drop-in safe login script for debugging -->
+    <script src="{{ url_for('static', filename='js/login.debug.js') }}" defer></script>
 </body>
 </html>
