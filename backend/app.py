@@ -415,48 +415,6 @@ def logout():
         logger.error(f"Logout error: {e}")
         return redirect("/login")
 
-@app.route("/admin/update-password/<email>/<password>")
-def admin_update_password(email, password):
-    """Temporary admin endpoint to update user password"""
-    try:
-        import bcrypt
-        from auth import Database
-        
-        # Initialize database
-        db = Database()
-        if not db.use_postgres:
-            return jsonify({"error": "PostgreSQL not connected"}), 500
-            
-        # Generate password hash
-        salt = bcrypt.gensalt(rounds=12)
-        password_hash = bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
-        
-        # Update password
-        conn = db.get_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute("UPDATE users SET password_hash = %s WHERE email = %s", 
-                      (password_hash, email))
-        conn.commit()
-        rows_updated = cursor.rowcount
-        
-        # Verify update
-        cursor.execute("SELECT password_hash FROM users WHERE email = %s", (email,))
-        updated_hash = cursor.fetchone()[0]
-        is_valid = bcrypt.checkpw(password.encode('utf-8'), updated_hash.encode('utf-8'))
-        
-        cursor.close()
-        conn.close()
-        
-        return jsonify({
-            "success": True,
-            "updated_rows": rows_updated,
-            "password_verified": is_valid,
-            "message": f"Password updated for {email}"
-        })
-        
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
 
 @app.route("/register")  
 def register_page():
