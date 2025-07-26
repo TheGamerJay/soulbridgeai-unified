@@ -584,6 +584,45 @@ def debug_session():
         "user_email": session.get("user_email", "not_set")
     })
 
+@app.route("/admin/fix-postgres-password")
+def fix_postgres_password():
+    """Admin endpoint to fix PostgreSQL password"""
+    try:
+        import psycopg2
+        from psycopg2 import sql
+        
+        # Get the DATABASE_URL from environment
+        database_url = os.environ.get('DATABASE_URL')
+        
+        if not database_url:
+            return jsonify({"error": "No DATABASE_URL found"})
+            
+        # Try to connect and change password
+        conn = psycopg2.connect(database_url)
+        conn.autocommit = True
+        cursor = conn.cursor()
+        
+        # Change the postgres user password
+        new_password = "Yar1el_2025_Secure!"
+        cursor.execute(
+            sql.SQL("ALTER USER postgres PASSWORD %s"),
+            [new_password]
+        )
+        
+        cursor.close()
+        conn.close()
+        
+        return jsonify({
+            "success": True,
+            "message": "PostgreSQL password updated successfully!"
+        })
+        
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        })
+
 
 @app.route("/register")  
 def register_page():
