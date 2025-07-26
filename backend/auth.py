@@ -66,11 +66,11 @@ class Database:
             self.postgres_url = f"postgresql://{user}:{password}@{host}:{port}/{database}"
             print(f"Using PostgreSQL private endpoint: {host}")
         
-        # Fallback to provided URLs 
+        # Fallback to provided URLs (Railway provides DATABASE_URL automatically)
         if not self.postgres_url:
             self.postgres_url = os.environ.get('DATABASE_URL') or os.environ.get('POSTGRES_URL')
-            if self.postgres_url and 'railway.app' in self.postgres_url:
-                print("Warning: Using public endpoint - may incur egress fees")
+            if self.postgres_url:
+                print(f"Using Railway DATABASE_URL: {self.postgres_url[:50]}...")
         
         self.use_postgres = bool(self.postgres_url and POSTGRES_AVAILABLE)
         
