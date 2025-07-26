@@ -4,6 +4,14 @@ builder = "nixpacks"
 
 [deploy]
 startCommand = "cd backend && python app.py"
+
+[deploy.env]
+DATABASE_URL = "${{Postgres.DATABASE_URL}}"
+PGHOST = "${{Postgres.PGHOST}}"  
+PGPORT = "${{Postgres.PGPORT}}"
+PGUSER = "${{Postgres.PGUSER}}"
+PGPASSWORD = "${{Postgres.PGPASSWORD}}"
+PGDATABASE = "${{Postgres.PGDATABASE}}"
 healthcheckPath = "/health"
 healthcheckTimeout = 120
 restartPolicyType = "on_failure"
