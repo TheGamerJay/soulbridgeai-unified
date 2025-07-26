@@ -415,6 +415,16 @@ def logout():
         logger.error(f"Logout error: {e}")
         return redirect("/login")
 
+@app.route("/debug/session")
+def debug_session():
+    """Debug endpoint to check session state"""
+    return jsonify({
+        "session_data": dict(session),
+        "is_logged_in": is_logged_in(),
+        "user_authenticated": session.get("user_authenticated", False),
+        "user_email": session.get("user_email", "not_set")
+    })
+
 
 @app.route("/register")  
 def register_page():
