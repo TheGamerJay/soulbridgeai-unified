@@ -99,6 +99,16 @@ def setup_user_session(email, user_id=None, is_admin=False, dev_mode=False):
     if dev_mode:
         session["dev_mode"] = True
 
+def login_success_response(redirect_to="/"):
+    """Return appropriate response for successful login (JSON for AJAX, redirect for forms)"""
+    # Simple check: if browser sent form data, redirect. If AJAX, return JSON.
+    user_agent = request.headers.get('User-Agent', '')
+    # Regular browsers doing form submission vs AJAX fetch calls
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or 'fetch' in user_agent.lower():
+        return jsonify({"success": True, "redirect": redirect_to})
+    else:
+        return redirect(redirect_to)
+
 def init_database():
     """Initialize database with error handling and thread safety"""
     global db
@@ -342,8 +352,7 @@ def auth_login():
                     setup_user_session(email, user_id=user_data[0])
                     logger.info(f"User login successful: {email}")
                     
-                    # Return JSON for AJAX requests
-                    return jsonify({"success": True, "redirect": "/"})
+                    return login_success_response()
                 else:
                     logger.warning(f"Failed login attempt for: {email} (user exists: {user.user_exists(email)})")
                     return jsonify({"success": False, "error": "Invalid email or password"}), 401
