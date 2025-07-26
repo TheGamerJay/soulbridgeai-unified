@@ -108,8 +108,8 @@ def login_success_response(redirect_to="/"):
     if 'application/json' in accept_header:
         return jsonify({"success": True, "redirect": redirect_to})
     else:
-        # Regular form submission - browser expects redirect
-        return redirect(redirect_to)
+        # Regular form submission - browser expects redirect with 303 See Other for proper GET
+        return redirect(redirect_to, code=303)
 
 def init_database():
     """Initialize database with error handling and thread safety"""
