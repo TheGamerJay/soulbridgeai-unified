@@ -418,8 +418,19 @@ def home():
     """Home route - redirect to login for security"""
     try:
         # Always require authentication for home page
+        # Add logging to debug session issues
+        logger.info(f"Home route accessed - Session data: {dict(session)}")
+        
+        # Check if user has a valid session or just completed plan selection
+        plan_just_selected = request.args.get('show_intro') == 'true'
         if not is_logged_in():
-            return redirect("/login")
+            if plan_just_selected:
+                logger.warning(f"Home route: Plan just selected but session lost. Session: {dict(session)}")
+                # Give user a chance to re-authenticate instead of hard redirect
+                return redirect("/login?message=Session expired, please login again")
+            else:
+                logger.warning(f"Home route: User not authenticated, redirecting to login. Session: {dict(session)}")
+                return redirect("/login")
             
         # Ensure services are initialized for authenticated users
         if not services["database"]:
@@ -1685,7 +1696,8 @@ def select_plan():
         # Create appropriate success message and redirect
         if plan_type == "foundation":
             message = "Welcome to SoulBridge AI! Your free plan is now active."
-            redirect_url = "/?show_intro=true"
+            # Redirect back to subscription page with success message
+            redirect_url = "/subscription?plan_selected=foundation"
         else:
             plan_names = {"premium": "Growth", "enterprise": "Transformation"}
             plan_display = plan_names.get(plan_type, plan_type.title())
