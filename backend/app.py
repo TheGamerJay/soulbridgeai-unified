@@ -1722,26 +1722,79 @@ def database_status():
             cursor.execute("SELECT COUNT(*) FROM users")
             user_count = cursor.fetchone()[0]
             
-            # Get subscription count
+            # Get subscription count  
             cursor.execute("SELECT COUNT(*) FROM subscriptions")
             subscription_count = cursor.fetchone()[0]
             
             conn.close()
             
-            return jsonify({
+            db_info = {
                 "success": True,
-                "database_path": db.db_path,
-                "database_exists": os.path.exists(db.db_path),
                 "user_count": user_count,
                 "subscription_count": subscription_count,
-                "timestamp": datetime.now(timezone.utc).isoformat()
-            })
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "database_type": "PostgreSQL" if db.use_postgres else "SQLite"
+            }
+            
+            if db.use_postgres:
+                db_info["postgres_url_masked"] = db.postgres_url[:30] + "..." if db.postgres_url else None
+            else:
+                db_info["database_path"] = db.db_path
+                db_info["database_exists"] = os.path.exists(db.db_path)
+            
+            return jsonify(db_info)
         else:
-            return jsonify({"success": False, "error": "Database unavailable"}), 503
+            return jsonify({
+                "success": False, 
+                "error": "Database unavailable",
+                "services_database": bool(services["database"]),
+                "db_object": bool(db)
+            }), 503
             
     except Exception as e:
         logger.error(f"Database status error: {e}")
-        return jsonify({"success": False, "error": "Status check failed"}), 500
+        return jsonify({
+            "success": False, 
+            "error": "Status check failed",
+            "error_details": str(e),
+            "error_type": type(e).__name__
+        }), 500
+
+@app.route("/api/database-reconnect", methods=["POST"])
+def database_reconnect():
+    """Force reconnect to database - admin only"""
+    try:
+        if not is_logged_in() or not session.get("is_admin"):
+            return jsonify({"success": False, "error": "Admin access required"}), 403
+        
+        global db, services
+        
+        # Clear current database connection
+        db = None
+        services["database"] = None
+        
+        # Force reinitialize
+        success = init_database()
+        
+        if success:
+            return jsonify({
+                "success": True,
+                "message": "Database reconnected successfully",
+                "database_type": "PostgreSQL" if db.use_postgres else "SQLite"
+            })
+        else:
+            return jsonify({
+                "success": False,
+                "error": "Database reconnection failed"
+            }), 500
+            
+    except Exception as e:
+        logger.error(f"Database reconnect error: {e}")
+        return jsonify({
+            "success": False,
+            "error": "Reconnection failed",
+            "details": str(e)
+        }), 500
 
 @app.route("/api/chat", methods=["POST"])
 def api_chat():
