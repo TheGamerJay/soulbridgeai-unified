@@ -269,7 +269,7 @@ def health():
             "timestamp": datetime.now(timezone.utc).isoformat()
         }), 500
 
-@app.route("/")
+@app.route("/", methods=["GET", "POST"])
 def home():
     """Home route - redirect to login for security"""
     try:
