@@ -65,6 +65,56 @@ _service_lock = threading.RLock()
 VALID_CHARACTERS = ["Blayzo", "Sapphire", "Violet", "Crimson", "Blayzia", "Blayzica", "Blayzike", "Blayzion", "Blazelian"]
 VALID_PLANS = ["foundation", "premium", "enterprise"]
 
+# Admin and surveillance constants
+ADMIN_DASH_KEY = os.environ.get("ADMIN_DASH_KEY", "soulbridge_admin_2024")
+MAINTENANCE_LOG_FILE = "logs/maintenance_log.txt"
+THREAT_LOG_FILE = "logs/threat_log.txt"
+TRAP_LOG_FILE = "logs/trap_log.txt"
+
+# Ensure logs directory exists
+os.makedirs("logs", exist_ok=True)
+
+# Basic surveillance system for logging
+class BasicSurveillanceSystem:
+    def __init__(self):
+        self.system_start_time = datetime.now()
+        self.blocked_ips = set()
+        self.security_threats = []
+        self.maintenance_log = []
+        self.emergency_mode = False
+        self.critical_errors_count = 0
+        
+    def write_to_log_file(self, log_file, entry):
+        """Write entry to log file"""
+        try:
+            with open(log_file, "a", encoding="utf-8") as f:
+                f.write(entry + "\n")
+        except Exception as e:
+            logger.error(f"Failed to write to log {log_file}: {e}")
+    
+    def log_maintenance(self, action, details):
+        """Log maintenance action"""
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        entry = f"[{timestamp}] 🔧 {action}: {details}"
+        self.maintenance_log.append(entry)
+        self.write_to_log_file(MAINTENANCE_LOG_FILE, entry)
+    
+    def log_threat(self, ip_address, threat_details, severity="medium"):
+        """Log security threat"""
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        entry = f"[{timestamp}] 🚨 THREAT ({severity.upper()}): {ip_address} - {threat_details}"
+        self.security_threats.append({
+            'timestamp': datetime.now(),
+            'ip': ip_address,
+            'details': threat_details,
+            'severity': severity
+        })
+        self.write_to_log_file(THREAT_LOG_FILE, entry)
+
+# Initialize basic surveillance system
+surveillance_system = BasicSurveillanceSystem()
+surveillance_system.log_maintenance("SYSTEM_START", "Basic surveillance system initialized")
+
 def is_logged_in():
     """Check if user is logged in"""
     return session.get("user_authenticated", False)
@@ -720,6 +770,317 @@ def forgot_password_page():
 # ========================================
 
 # Google OAuth routes removed - was causing issues
+
+# ========================================
+# ADMIN SURVEILLANCE ROUTES
+# ========================================
+
+@app.route("/admin/surveillance")
+def admin_surveillance():
+    """🚨 SURVEILLANCE COMMAND CENTER - Complete Security Dashboard"""
+    key = request.args.get("key")
+    if key != ADMIN_DASH_KEY:
+        return jsonify({"error": "Unauthorized"}), 403
+    
+    try:
+        # Read all log files
+        maintenance_logs = []
+        threat_logs = []
+        trap_logs = []
+        
+        try:
+            with open(MAINTENANCE_LOG_FILE, "r", encoding="utf-8") as f:
+                maintenance_logs = f.readlines()[-50:]
+        except FileNotFoundError:
+            maintenance_logs = ["No maintenance logs available yet."]
+            
+        try:
+            with open(THREAT_LOG_FILE, "r", encoding="utf-8") as f:
+                threat_logs = f.readlines()[-30:]
+        except FileNotFoundError:
+            threat_logs = ["No threat logs available yet."]
+            
+        try:
+            with open(TRAP_LOG_FILE, "r", encoding="utf-8") as f:
+                trap_logs = f.readlines()[-20:]
+        except FileNotFoundError:
+            trap_logs = ["No trap logs available yet."]
+        
+        # Calculate system metrics
+        uptime = int((datetime.now() - surveillance_system.system_start_time).total_seconds())
+        uptime_str = f"{uptime//3600}h {(uptime%3600)//60}m {uptime%60}s"
+        
+        # Generate comprehensive surveillance dashboard
+        html = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>🚨 SoulBridge AI - SURVEILLANCE COMMAND CENTER</title>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <style>
+                * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+                body {{ 
+                    font-family: 'Courier New', monospace; 
+                    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+                    color: #e2e8f0; 
+                    overflow-x: auto;
+                }}
+                
+                .command-center {{
+                    min-height: 100vh;
+                    padding: 20px;
+                    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="%23374151" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>') repeat;
+                }}
+                
+                .header {{
+                    text-align: center;
+                    margin-bottom: 30px;
+                    border-bottom: 3px solid #22d3ee;
+                    padding-bottom: 20px;
+                }}
+                
+                .header h1 {{
+                    color: #22d3ee;
+                    font-size: 2.5em;
+                    text-shadow: 0 0 10px #22d3ee;
+                    animation: pulse 2s infinite;
+                }}
+                
+                @keyframes pulse {{
+                    0%, 100% {{ opacity: 1; }}
+                    50% {{ opacity: 0.7; }}
+                }}
+                
+                .status-bar {{
+                    background: #1e293b;
+                    border: 2px solid #374151;
+                    border-radius: 10px;
+                    padding: 15px;
+                    margin-bottom: 20px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    flex-wrap: wrap;
+                }}
+                
+                .status-indicator {{
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    font-weight: bold;
+                }}
+                
+                .status-light {{
+                    width: 12px;
+                    height: 12px;
+                    border-radius: 50%;
+                    animation: blink 1.5s infinite;
+                }}
+                
+                .green {{ background: #10b981; }}
+                .red {{ background: #ef4444; }}
+                .yellow {{ background: #f59e0b; }}
+                
+                @keyframes blink {{
+                    0%, 50% {{ opacity: 1; }}
+                    51%, 100% {{ opacity: 0.3; }}
+                }}
+                
+                .grid-container {{
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 20px;
+                    margin-bottom: 20px;
+                }}
+                
+                .panel {{
+                    background: rgba(30, 41, 59, 0.95);
+                    border: 2px solid #374151;
+                    border-radius: 10px;
+                    padding: 20px;
+                    backdrop-filter: blur(10px);
+                }}
+                
+                .panel h2 {{
+                    color: #22d3ee;
+                    margin-bottom: 15px;
+                    border-bottom: 1px solid #374151;
+                    padding-bottom: 10px;
+                }}
+                
+                .metrics-grid {{
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                    gap: 15px;
+                    margin-bottom: 20px;
+                }}
+                
+                .metric-card {{
+                    background: #374151;
+                    padding: 15px;
+                    border-radius: 8px;
+                    border-left: 4px solid #22d3ee;
+                    text-align: center;
+                }}
+                
+                .metric-value {{
+                    font-size: 2em;
+                    font-weight: bold;
+                    color: #22d3ee;
+                }}
+                
+                .metric-label {{
+                    font-size: 0.9em;
+                    color: #94a3b8;
+                    margin-top: 5px;
+                }}
+                
+                .log-container {{
+                    max-height: 300px;
+                    overflow-y: auto;
+                    background: #0f172a;
+                    border: 1px solid #374151;
+                    border-radius: 5px;
+                    padding: 10px;
+                    font-family: 'Courier New', monospace;
+                    font-size: 11px;
+                }}
+                
+                .log-entry {{
+                    padding: 3px 0;
+                    border-bottom: 1px solid #1e293b;
+                    word-wrap: break-word;
+                }}
+                
+                .threat {{ color: #ef4444; background: rgba(239, 68, 68, 0.1); }}
+                .warning {{ color: #f59e0b; background: rgba(245, 158, 11, 0.1); }}
+                .info {{ color: #10b981; background: rgba(16, 185, 129, 0.1); }}
+                .honeypot {{ color: #f59e0b; background: rgba(245, 158, 11, 0.2); border-left: 3px solid #f59e0b; }}
+                
+                .controls {{
+                    text-align: center;
+                    margin: 20px 0;
+                }}
+                
+                .control-btn {{
+                    background: #374151;
+                    color: #22d3ee;
+                    border: 2px solid #22d3ee;
+                    padding: 10px 20px;
+                    margin: 0 10px;
+                    border-radius: 5px;
+                    text-decoration: none;
+                    display: inline-block;
+                    transition: all 0.3s;
+                }}
+                
+                .control-btn:hover {{
+                    background: #22d3ee;
+                    color: #0f172a;
+                }}
+                
+                @media (max-width: 768px) {{
+                    .grid-container {{ grid-template-columns: 1fr; }}
+                    .metrics-grid {{ grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }}
+                    .status-bar {{ flex-direction: column; gap: 10px; }}
+                }}
+            </style>
+        </head>
+        <body>
+            <div class="command-center">
+                <div class="header">
+                    <h1>🚨 SURVEILLANCE COMMAND CENTER</h1>
+                    <p>SoulBridge AI Security Operations Center</p>
+                </div>
+                
+                <div class="status-bar">
+                    <div class="status-indicator">
+                        <div class="status-light green"></div>
+                        WATCHDOG: ACTIVE
+                    </div>
+                    <div class="status-indicator">
+                        <div class="status-light {'green' if not surveillance_system.emergency_mode else 'red'}"></div>
+                        SYSTEM: {'NORMAL' if not surveillance_system.emergency_mode else 'EMERGENCY'}
+                    </div>
+                    <div class="status-indicator">
+                        <div class="status-light {'yellow' if len(surveillance_system.blocked_ips) > 0 else 'green'}"></div>
+                        THREATS: {'DETECTED' if len(surveillance_system.blocked_ips) > 0 else 'CLEAR'}
+                    </div>
+                    <div class="status-indicator">
+                        UPTIME: {uptime_str}
+                    </div>
+                </div>
+                
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-value">{len(surveillance_system.blocked_ips)}</div>
+                        <div class="metric-label">🚫 BLOCKED IPs</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">{len(surveillance_system.security_threats)}</div>
+                        <div class="metric-label">⚠️ TOTAL THREATS</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">{len(maintenance_logs)}</div>
+                        <div class="metric-label">🔧 MAINTENANCE LOGS</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">{surveillance_system.critical_errors_count}</div>
+                        <div class="metric-label">🔥 CRITICAL ERRORS</div>
+                    </div>
+                </div>
+                
+                <div class="controls">
+                    <a href="/admin/surveillance?key={ADMIN_DASH_KEY}" class="control-btn">🔄 REFRESH</a>
+                    <a href="/health" class="control-btn">💓 HEALTH CHECK</a>
+                </div>
+                
+                <div class="grid-container">
+                    <div class="panel">
+                        <h2>🔧 MAINTENANCE LOG</h2>
+                        <div class="log-container">
+                            {''.join([f'<div class="log-entry info">{log.strip()}</div>' for log in maintenance_logs[-30:]])}
+                        </div>
+                    </div>
+                    
+                    <div class="panel">
+                        <h2>🚨 THREAT LOG</h2>
+                        <div class="log-container">
+                            {''.join([f'<div class="log-entry threat">{log.strip()}</div>' for log in threat_logs[-20:]])}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="panel">
+                    <h2>🛡️ BLOCKED IP ADDRESSES</h2>
+                    <div style="display: flex; flex-wrap: wrap; gap: 10px; padding: 10px;">
+                        {' '.join([f'<span style="background: #374151; padding: 5px 10px; border-radius: 3px; font-family: monospace; color: #ef4444;">{ip}</span>' for ip in list(surveillance_system.blocked_ips)[-20:]]) if surveillance_system.blocked_ips else '<span style="color: #10b981;">✅ No blocked IPs - System secure</span>'}
+                    </div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 30px; padding: 20px; background: rgba(30, 41, 59, 0.5); border-radius: 10px;">
+                    <p style="color: #94a3b8; font-size: 0.9em;">
+                        🔒 SoulBridge AI Security System - Real-time monitoring active<br>
+                        System uptime: {uptime_str} | Last refresh: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+                    </p>
+                </div>
+            </div>
+            
+            <script>
+                // Auto-refresh every 30 seconds
+                setTimeout(function() {{
+                    window.location.reload();
+                }}, 30000);
+            </script>
+        </body>
+        </html>
+        """
+        
+        return html
+        
+    except Exception as e:
+        logger.error(f"Surveillance dashboard error: {e}")
+        return jsonify({"error": "Surveillance system error", "details": str(e)}), 500
 
 # ========================================
 # API ROUTES
