@@ -6,12 +6,12 @@ builder = "nixpacks"
 startCommand = "cd backend && python app.py"
 
 [deploy.env]
-# DATABASE_URL = "${{Postgres.DATABASE_URL}}"  # Commented out - using manual override
-PGHOST = "${{Postgres.PGHOST}}"  
-PGPORT = "${{Postgres.PGPORT}}"
-PGUSER = "${{Postgres.PGUSER}}"
-PGPASSWORD = "${{Postgres.PGPASSWORD}}"
-PGDATABASE = "${{Postgres.PGDATABASE}}"
+DATABASE_URL = "${{Postgres-wJ-8.DATABASE_URL}}"
+PGHOST = "${{Postgres-wJ-8.PGHOST}}"  
+PGPORT = "${{Postgres-wJ-8.PGPORT}}"
+PGUSER = "${{Postgres-wJ-8.PGUSER}}"
+PGPASSWORD = "${{Postgres-wJ-8.PGPASSWORD}}"
+PGDATABASE = "${{Postgres-wJ-8.PGDATABASE}}"
 healthcheckPath = "/health"
 healthcheckTimeout = 120
 restartPolicyType = "on_failure"
