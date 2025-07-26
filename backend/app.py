@@ -415,35 +415,30 @@ def health():
 
 @app.route("/", methods=["GET", "POST"])
 def home():
-    """Home route - redirect to login for security"""
+    """Home route - show intro without requiring login"""
     try:
-        # Always require authentication for home page
-        # Add logging to debug session issues
-        logger.info(f"Home route accessed - Session data: {dict(session)}")
+        # Skip authentication - allow direct access to intro
+        show_intro = request.args.get('show_intro', 'false').lower() == 'true'
         
-        # Check if user has a valid session or just completed plan selection
-        plan_just_selected = request.args.get('show_intro') == 'true'
-        if not is_logged_in():
-            if plan_just_selected:
-                logger.warning(f"Home route: Plan just selected but session lost. Session: {dict(session)}")
-                # Give user a chance to re-authenticate instead of hard redirect
-                return redirect("/login?message=Session expired, please login again")
-            else:
-                logger.warning(f"Home route: User not authenticated, redirecting to login. Session: {dict(session)}")
-                return redirect("/login")
-            
-        # Ensure services are initialized for authenticated users
+        if not show_intro:
+            # First visit - redirect to show intro
+            logger.info(f"Home route: First visit, showing intro")
+            return redirect("/?show_intro=true")
+        
+        # Show intro page without authentication requirement
+        logger.info(f"Home route: Showing intro page directly")
+        
+        # Initialize services if needed
         if not services["database"]:
             initialize_services()
         
-        user_plan = get_user_plan()
-        
-        # Allow all authenticated users to access the main app
-        # Foundation plan users get access to basic features
+        # Render chat page with intro enabled (no auth required)
         return render_template("chat.html")
+        
     except Exception as e:
         logger.error(f"Home route error: {e}")
-        return redirect("/login")
+        # On error, show a simple welcome page instead of forcing login
+        return "<h1>Welcome to SoulBridge AI</h1><p><a href='/register'>Get Started</a></p>"
 
 # ========================================
 # AUTHENTICATION ROUTES
