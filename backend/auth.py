@@ -62,12 +62,9 @@ class Database:
             database = os.environ.get('PGDATABASE')
             port = os.environ.get('PGPORT', '5432')
             
-            # Check if this is a Railway private domain
-            if 'railway.internal' in host or not host.endswith('.railway.app'):
-                self.postgres_url = f"postgresql://{user}:{password}@{host}:{port}/{database}"
-                print(f"Using PostgreSQL private endpoint: {host}")
-            else:
-                print(f"Host {host} appears to be public endpoint, checking for alternatives...")
+            # Use PostgreSQL connection if all components are available
+            self.postgres_url = f"postgresql://{user}:{password}@{host}:{port}/{database}"
+            print(f"Using PostgreSQL private endpoint: {host}")
         
         # Fallback to provided URLs 
         if not self.postgres_url:
