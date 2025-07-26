@@ -1964,6 +1964,10 @@ Example: SELECT * FROM users LIMIT 10;"></textarea>
         </div>
         
         <script>
+            // Get admin key from URL params
+            const urlParams = new URLSearchParams(window.location.search);
+            const adminKey = urlParams.get('key') || 'soulbridge_admin_2024';
+            
             function executeQuery(dangerous = false) {
                 const query = document.getElementById('queryText').value.trim();
                 if (!query) {
@@ -1977,11 +1981,11 @@ Example: SELECT * FROM users LIMIT 10;"></textarea>
                 resultsContent.innerHTML = '<p style="color: #f59e0b;">Executing query...</p>';
                 resultsDiv.style.display = 'block';
                 
-                fetch('/api/database-query?key={ADMIN_DASH_KEY}', {
+                fetch(`/api/database-query?key=${adminKey}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-Admin-Key': '{ADMIN_DASH_KEY}'
+                        'X-Admin-Key': adminKey
                     },
                     body: JSON.stringify({ 
                         query: query,
