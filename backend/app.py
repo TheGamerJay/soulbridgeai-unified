@@ -256,7 +256,7 @@ def login_success_response(redirect_to="/"):
         return redirect(redirect_to, code=303)
 
 def init_database():
-    """Initialize database with error handling and thread safety"""
+    """Initialize database with error handling and thread safety - LAZY LOADING"""
     global db
     with _service_lock:
         # Double-check pattern with lock
@@ -264,26 +264,36 @@ def init_database():
             return True
             
         try:
-            logger.info("Initializing database...")
-            # Use application context for database initialization
-            with app.app_context():
-                from auth import Database
-                temp_db = Database()
-                # Test database connectivity
-                temp_conn = temp_db.get_connection()
-                temp_conn.close()
-                
-                # Only update globals if successful
-                db = temp_db
-                services["database"] = temp_db
-                logger.info("✅ Database initialized successfully")
-                return True
+            logger.info("Skipping database initialization at startup (will initialize on first request)")
+            # Don't initialize at startup - wait for first request
+            # This avoids Flask context issues during app startup
+            services["database"] = "lazy_init"  # Mark as lazy
+            logger.info("✅ Database marked for lazy initialization")
+            return True
         except Exception as e:
             logger.error(f"❌ Database initialization failed: {e}")
             # Ensure consistent failure state
             db = None
             services["database"] = None
             return False
+
+def get_database():
+    """Get database instance, initializing if needed"""
+    global db
+    if db is None and services.get("database") == "lazy_init":
+        try:
+            from auth import Database
+            db = Database()
+            # Test connection
+            temp_conn = db.get_connection()
+            temp_conn.close()
+            services["database"] = db
+            logger.info("✅ Database lazy initialization successful")
+        except Exception as e:
+            logger.error(f"❌ Database lazy initialization failed: {e}")
+            db = None
+            services["database"] = None
+    return db
 
 def init_openai():
     """Initialize OpenAI with error handling and thread safety"""
@@ -703,14 +713,12 @@ def auth_register():
         if not display_name:
             display_name = email.split('@')[0]  # Use email prefix as default name
         
-        # Initialize database if needed
-        if not services["database"]:
-            init_database()
-        
-        if services["database"] and db:
+        # Get database instance (lazy initialization)
+        database = get_database()
+        if database:
             try:
                 from auth import User
-                user = User(db)
+                user = User(database)
                 
                 # Check if user already exists
                 if user.user_exists(email):
