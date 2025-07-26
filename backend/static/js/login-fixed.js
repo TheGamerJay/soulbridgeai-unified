@@ -50,7 +50,10 @@ document.addEventListener("DOMContentLoaded", function() {
                 console.log("📥 Login response:", data);
                 
                 if (data.success) {
-                    console.log("✅ Login successful, redirecting...");
+                    console.log("✅ Login successful, setting authentication and redirecting...");
+                    // Set client-side authentication flags
+                    localStorage.setItem('user_authenticated', 'true');
+                    sessionStorage.setItem('user_authenticated', 'true');
                     window.location.href = data.redirect || "/";
                 } else {
                     console.error("❌ Login failed:", data.error);

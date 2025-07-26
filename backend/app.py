@@ -415,22 +415,28 @@ def health():
 
 @app.route("/", methods=["GET", "POST"])
 def home():
-    """Home route - show intro directly without login"""
+    """Home route - require login then show intro"""
     try:
-        # NO AUTHENTICATION REQUIRED - Direct intro access
-        logger.info(f"Home route: Showing intro directly (no auth required)")
+        # Require authentication for main app access
+        logger.info(f"Home route: Checking authentication - Session: {dict(session)}")
+        
+        if not is_logged_in():
+            logger.info(f"Home route: User not authenticated, redirecting to login")
+            return redirect("/login")
+        
+        # User is authenticated - show the intro/chat interface
+        logger.info(f"Home route: User authenticated, showing chat interface")
         
         # Initialize services if needed
         if not services["database"]:
             initialize_services()
         
-        # Always show chat page with intro - no redirects, no auth checks
+        # Show chat page with proper authentication
         return render_template("chat.html")
         
     except Exception as e:
         logger.error(f"Home route error: {e}")
-        # On error, show simple welcome instead of login redirect
-        return "<h1>Welcome to SoulBridge AI</h1><p><a href='/register'>Get Started</a> | <a href='/login'>Sign In</a></p>"
+        return redirect("/login")
 
 # ========================================
 # AUTHENTICATION ROUTES
