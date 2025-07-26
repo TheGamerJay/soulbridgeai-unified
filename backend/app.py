@@ -231,7 +231,7 @@ def setup_user_session(email, user_id=None, is_admin=False, dev_mode=False):
     """Setup user session with security measures"""
     # Security: Clear and regenerate session to prevent fixation attacks
     session.clear()
-    session.permanent = True  # Use configured timeout
+    session.permanent = False  # Session expires when browser closes
     session["user_authenticated"] = True
     session["user_email"] = email
     session["login_timestamp"] = datetime.now().isoformat()
@@ -1681,7 +1681,7 @@ def select_plan():
         session["user_plan"] = plan_type
         session["plan_selected_at"] = time.time()
         session["first_time_user"] = False
-        session.permanent = True  # Ensure session is saved
+        session.permanent = False  # Session expires when browser closes
         
         logger.info(f"Plan selected: {plan_type} by {session.get('user_email')}")
         logger.info(f"Session after plan selection: {dict(session)}")

@@ -31,9 +31,8 @@
                 // PROPER Authentication flow - login → intro → companion selection
                 console.log('🔍 Checking user authentication properly...');
                 
-                // Check both client-side storage AND server-side session
-                const clientSideAuth = localStorage.getItem('user_authenticated') === 'true' || 
-                                      sessionStorage.getItem('user_authenticated') === 'true';
+                // Check sessionStorage only (expires when browser closes)
+                const clientSideAuth = sessionStorage.getItem('user_authenticated') === 'true';
                 
                 // If no client-side auth, check server session
                 if (!clientSideAuth) {
@@ -51,8 +50,8 @@
                                 return { screen: 'login', character: null, hasActiveChat: false };
                             } else {
                                 console.log('✅ User authenticated via server session');
-                                // Set client-side auth to avoid future checks
-                                localStorage.setItem('user_authenticated', 'true');
+                                // Set sessionStorage auth (expires when browser closes)
+                                sessionStorage.setItem('user_authenticated', 'true');
                             }
                         } else {
                             console.log('❌ Cannot verify authentication - redirecting to login');
@@ -4092,7 +4091,7 @@
 
         function performRegularLogout() {
             console.log('Performing logout...');
-            // Clear local storage
+            // Clear all client-side storage
             localStorage.clear();
             sessionStorage.clear();
             
@@ -5366,10 +5365,10 @@
             });
             
             // Clear only sensitive session data - PRESERVE user preferences
+            sessionStorage.clear(); // Clear all session data
             localStorage.removeItem('user_authenticated');
             localStorage.removeItem('session_token');
             localStorage.removeItem('auth_timestamp');
-            sessionStorage.clear(); // Clear all session storage
             
             // PRESERVE these user preferences for better UX:
             // - selectedCharacter (so user doesn't lose their companion choice)
@@ -5382,6 +5381,7 @@
         
         // Also clear on page unload
         window.addEventListener('unload', function(e) {
+            sessionStorage.clear(); // Clear session data
             fetch('/auth/logout', {
                 method: 'POST',
                 keepalive: true
