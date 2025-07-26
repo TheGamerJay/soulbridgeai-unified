@@ -1,6 +1,6 @@
 [build]
 builder = "nixpacks" 
-# Force redeploy: use Railway internal PostgreSQL connection
+# Force redeploy: refresh DATABASE_URL connections - 2025-07-26
 
 [deploy]
 startCommand = "cd backend && python app.py"
