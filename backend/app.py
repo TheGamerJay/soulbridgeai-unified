@@ -584,37 +584,77 @@ def debug_session():
         "user_email": session.get("user_email", "not_set")
     })
 
-@app.route("/admin/fix-postgres-password")
-def fix_postgres_password():
-    """Admin endpoint to fix PostgreSQL password"""
+@app.route("/admin/init-database")
+def init_database():
+    """Admin endpoint to initialize database tables and data"""
     try:
         import psycopg2
-        from psycopg2 import sql
         
-        # Get the DATABASE_URL from environment
         database_url = os.environ.get('DATABASE_URL')
-        
         if not database_url:
             return jsonify({"error": "No DATABASE_URL found"})
             
-        # Try to connect and change password
         conn = psycopg2.connect(database_url)
         conn.autocommit = True
         cursor = conn.cursor()
         
-        # Change the postgres user password
-        new_password = "Yar1el_2025_Secure!"
-        cursor.execute(
-            sql.SQL("ALTER USER postgres PASSWORD %s"),
-            [new_password]
-        )
+        # Create users table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                id SERIAL PRIMARY KEY,
+                email VARCHAR(255) UNIQUE NOT NULL,
+                password_hash VARCHAR(255) NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                plan_type VARCHAR(50) DEFAULT 'foundation',
+                is_admin BOOLEAN DEFAULT FALSE
+            )
+        """)
+        
+        # Create companions table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS companions (
+                id SERIAL PRIMARY KEY,
+                name VARCHAR(100) NOT NULL,
+                character_type VARCHAR(50) NOT NULL,
+                description TEXT,
+                is_premium BOOLEAN DEFAULT FALSE,
+                is_active BOOLEAN DEFAULT TRUE
+            )
+        """)
+        
+        # Insert companions
+        companions = [
+            ('Blayzion', 'warrior', 'A brave warrior companion', False),
+            ('Blayzia', 'healer', 'A wise healer companion', False),
+            ('Violet', 'mage', 'A powerful mage companion', True),
+            ('Crimson', 'rogue', 'A cunning rogue companion', True)
+        ]
+        
+        for name, ctype, desc, premium in companions:
+            cursor.execute("""
+                INSERT INTO companions (name, character_type, description, is_premium)
+                VALUES (%s, %s, %s, %s)
+                ON CONFLICT DO NOTHING
+            """, (name, ctype, desc, premium))
+        
+        # Create dev account
+        cursor.execute("""
+            INSERT INTO users (email, password_hash, plan_type, is_admin)
+            VALUES (%s, %s, %s, %s)
+            ON CONFLICT (email) DO UPDATE SET
+                is_admin = EXCLUDED.is_admin,
+                plan_type = EXCLUDED.plan_type
+        """, ('dagamerjay13@gmail.com', 'dev_hash_123', 'transformation', True))
         
         cursor.close()
         conn.close()
         
         return jsonify({
             "success": True,
-            "message": "PostgreSQL password updated successfully!"
+            "message": "Database initialized successfully!",
+            "tables_created": ["users", "companions"],
+            "companions_added": ["Blayzion", "Blayzia", "Violet", "Crimson"],
+            "dev_account": "dagamerjay13@gmail.com"
         })
         
     except Exception as e:
