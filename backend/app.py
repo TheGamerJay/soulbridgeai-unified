@@ -644,12 +644,13 @@ def init_database():
         
         # Create dev account
         cursor.execute("""
-            INSERT INTO users (email, password_hash, plan_type, is_admin)
-            VALUES (%s, %s, %s, %s)
+            INSERT INTO users (email, password_hash, plan_type, is_admin, display_name)
+            VALUES (%s, %s, %s, %s, %s)
             ON CONFLICT (email) DO UPDATE SET
                 is_admin = EXCLUDED.is_admin,
-                plan_type = EXCLUDED.plan_type
-        """, ('dagamerjay13@gmail.com', 'dev_hash_123', 'transformation', True))
+                plan_type = EXCLUDED.plan_type,
+                display_name = EXCLUDED.display_name
+        """, ('dagamerjay13@gmail.com', 'dev_hash_123', 'transformation', True, 'Dev Admin'))
         
         cursor.close()
         conn.close()
