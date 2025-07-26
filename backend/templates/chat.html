@@ -28,6 +28,9 @@
             validateStorageState: function() {
                 console.log('🔍 Validating storage state...');
                 
+                // AUTHENTICATION DISABLED - Allow direct intro access without login
+                console.log('🎉 Authentication check disabled - showing intro directly');
+                /*
                 // CRITICAL: Check authentication first - redirect to login if not authenticated
                 // Check both client-side storage AND server-side session by making a quick API call
                 const clientSideAuth = localStorage.getItem('user_authenticated') === 'true' || 
@@ -59,6 +62,7 @@
                         return { screen: 'login', character: null, hasActiveChat: false };
                     }
                 }
+                */
                 
                 // Get values from different storage locations
                 const localScreen = localStorage.getItem('currentScreen');
