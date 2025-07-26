@@ -42,10 +42,12 @@
 
         if (data.success) {
           const to = data.redirect || opts.onSuccessRedirect || "/";
-          // multi-try redirect (some browsers can be picky after fetch)
-          try { window.location.href = to; return; } catch (e) {}
-          try { window.location.replace(to); return; } catch (e) {}
-          window.location.reload();
+          console.log(`🚀 Login successful! Redirecting to: ${to}`);
+          
+          // Force a small delay to ensure session is saved
+          setTimeout(() => {
+            window.location.href = to;
+          }, 100);
         } else {
           const msg = data.message || data.error || opts.failMessage || "Something went wrong.";
           
