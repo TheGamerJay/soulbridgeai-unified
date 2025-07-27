@@ -731,12 +731,32 @@ def api_companions():
         companions = {
             "free": [
                 {
+                    "companion_id": "blayzo_free",
+                    "display_name": "Blayzo",
+                    "description": "Your creative and fun AI companion",
+                    "avatar_image": "/static/logos/Blayzo.png",
+                    "tier": "free",
+                    "is_recommended": True,
+                    "popularity_score": 90,
+                    "lock_reason": None
+                },
+                {
+                    "companion_id": "blayzica_free",
+                    "display_name": "Blayzica",
+                    "description": "Your empathetic and caring AI companion",
+                    "avatar_image": "/static/logos/Blayzica.png",
+                    "tier": "free",
+                    "is_recommended": True,
+                    "popularity_score": 88,
+                    "lock_reason": None
+                },
+                {
                     "companion_id": "companion_gamerjay",
                     "display_name": "GamerJay",
                     "description": "Your friendly gaming companion",
                     "avatar_image": "/static/logos/GamerJay Free companion.png",
                     "tier": "free",
-                    "is_recommended": True,
+                    "is_recommended": False,
                     "popularity_score": 85,
                     "lock_reason": None
                 }
@@ -753,6 +773,26 @@ def api_companions():
                     "lock_reason": "Requires Growth Plan" if user_plan == 'foundation' else None
                 },
                 {
+                    "companion_id": "blayzo_growth",
+                    "display_name": "Blayzo Pro",
+                    "description": "Advanced Blayzo with enhanced creativity and memory",
+                    "avatar_image": "/static/logos/Blayzo.png",
+                    "tier": "growth",
+                    "is_recommended": True,
+                    "popularity_score": 92,
+                    "lock_reason": "Requires Growth Plan" if user_plan == 'foundation' else None
+                },
+                {
+                    "companion_id": "blayzica_growth",
+                    "display_name": "Blayzica Pro",
+                    "description": "Enhanced Blayzica with deeper emotional intelligence",
+                    "avatar_image": "/static/logos/Blayzica.png",
+                    "tier": "growth",
+                    "is_recommended": True,
+                    "popularity_score": 91,
+                    "lock_reason": "Requires Growth Plan" if user_plan == 'foundation' else None
+                },
+                {
                     "companion_id": "companion_gamerjay_premium",
                     "display_name": "GamerJay Premium",
                     "description": "Enhanced GamerJay with premium features",
@@ -760,6 +800,26 @@ def api_companions():
                     "tier": "growth",
                     "is_recommended": False,
                     "popularity_score": 88,
+                    "lock_reason": "Requires Growth Plan" if user_plan == 'foundation' else None
+                },
+                {
+                    "companion_id": "companion_luna",
+                    "display_name": "Luna",
+                    "description": "Mystical companion with spiritual wisdom",
+                    "avatar_image": "/static/logos/Luna companion.png",
+                    "tier": "growth",
+                    "is_recommended": False,
+                    "popularity_score": 87,
+                    "lock_reason": "Requires Growth Plan" if user_plan == 'foundation' else None
+                },
+                {
+                    "companion_id": "companion_phoenix",
+                    "display_name": "Phoenix",
+                    "description": "Inspiring companion focused on personal transformation",
+                    "avatar_image": "/static/logos/Phoenix companion.png",
+                    "tier": "growth",
+                    "is_recommended": False,
+                    "popularity_score": 89,
                     "lock_reason": "Requires Growth Plan" if user_plan == 'foundation' else None
                 }
             ],
