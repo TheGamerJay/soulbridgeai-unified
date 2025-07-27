@@ -2489,6 +2489,41 @@ def debug_delete_users():
             "error": str(e)
         }), 500
 
+@app.route("/debug/raw-sql", methods=["GET"])
+def debug_raw_sql():
+    """Raw SQL to check users - bypass all connection issues"""
+    try:
+        import os
+        import psycopg2
+        
+        # Connect directly to PostgreSQL
+        postgres_url = os.environ.get('DATABASE_URL') or os.environ.get('POSTGRES_URL')
+        if not postgres_url:
+            return jsonify({"error": "No database URL found"})
+        
+        conn = psycopg2.connect(postgres_url)
+        cursor = conn.cursor()
+        
+        # Get all users
+        cursor.execute("SELECT id, email, display_name, created_at FROM users ORDER BY created_at")
+        users = cursor.fetchall()
+        
+        # Also try to delete the specific problematic users
+        cursor.execute("DELETE FROM users WHERE email IN ('aceelnene@gmail.com', 'dagamerjay13@gmail.com', 'mynewaccount@gmail.com')")
+        deleted_count = cursor.rowcount
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({
+            "users_before_delete": [{"id": u[0], "email": u[1], "name": u[2], "created": str(u[3])} for u in users],
+            "deleted_count": deleted_count,
+            "message": "Direct database access and cleanup"
+        })
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route("/stripe-status", methods=["GET"])
 def stripe_status():
     """Check Stripe configuration status - public endpoint for debugging"""
