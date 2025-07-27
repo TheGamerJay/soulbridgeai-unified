@@ -415,7 +415,8 @@
                         <img id="userProfileImage" src="/static/logos/Sapphire.png" alt="Profile Picture" 
                              style="max-width: 200px; max-height: 200px; width: auto; height: auto;
                                     box-shadow: 0 4px 20px rgba(34, 211, 238, 0.3); display: block; margin: 0 auto;
-                                    border-radius: 8px;">
+                                    border-radius: 8px;"
+                             onerror="this.src='/static/logos/Sapphire.png'; console.log('⚠️ Profile image failed to load, using default')">
                     </div>
                     <div style="margin-bottom: 15px;">
                         <input type="file" id="profileImageInput" accept="image/*" style="display: none;" onchange="handleProfileImageUpload()">
@@ -1150,12 +1151,16 @@
             formData.append('profileImage', file);
             
             try {
+                console.log('📤 Uploading profile image...', file.name, file.size);
                 const response = await fetch('/api/upload-profile-image', {
                     method: 'POST',
                     body: formData
                 });
                 
+                console.log('📡 Upload response status:', response.status);
                 const result = await response.json();
+                console.log('📊 Upload result:', result);
+                
                 if (result.success) {
                     // Update the profile image immediately
                     const profileImg = document.getElementById('userProfileImage');
@@ -1167,13 +1172,15 @@
                         profileImg.style.boxShadow = '0 4px 20px rgba(34, 211, 238, 0.3)';
                     }, 2000);
                     
-                    console.log('✅ Profile image updated successfully');
+                    console.log('✅ Profile image updated successfully:', result.profileImage);
+                    alert('Profile image uploaded successfully!');
                 } else {
+                    console.error('❌ Upload failed:', result.error);
                     alert('Upload failed: ' + result.error);
                 }
             } catch (error) {
-                console.error('Upload error:', error);
-                alert('Upload failed. Please try again.');
+                console.error('💥 Upload error:', error);
+                alert('Upload failed. Please try again. Error: ' + error.message);
             }
         };
 
