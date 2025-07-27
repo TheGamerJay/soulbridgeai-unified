@@ -2355,6 +2355,58 @@ def debug_create_user():
             "error": str(e)
         }), 500
 
+@app.route("/debug/reset-password", methods=["POST"])
+def debug_reset_password():
+    """Debug endpoint to reset password for aceelnene@gmail.com"""
+    try:
+        if not services["database"]:
+            init_database()
+        
+        from auth import User
+        import bcrypt
+        
+        email = "aceelnene@gmail.com"
+        new_password = "admin123"  # New password you can remember
+        
+        # Hash the new password
+        password_hash = bcrypt.hashpw(new_password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+        
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        
+        # Use appropriate placeholder for database type
+        placeholder = "%s" if hasattr(db, 'postgres_url') and db.postgres_url else "?"
+        
+        # Update the password directly
+        cursor.execute(
+            f"UPDATE users SET password_hash = {placeholder} WHERE email = {placeholder}",
+            (password_hash, email)
+        )
+        
+        if cursor.rowcount > 0:
+            conn.commit()
+            conn.close()
+            logger.info(f"Password reset for: {email}")
+            return jsonify({
+                "status": "Password reset successfully",
+                "email": email,
+                "new_password": new_password,
+                "message": "You can now log in with the new password"
+            })
+        else:
+            conn.close()
+            return jsonify({
+                "status": "User not found",
+                "email": email
+            }), 404
+            
+    except Exception as e:
+        logger.error(f"Debug reset password error: {e}")
+        return jsonify({
+            "status": "Error",
+            "error": str(e)
+        }), 500
+
 @app.route("/stripe-status", methods=["GET"])
 def stripe_status():
     """Check Stripe configuration status - public endpoint for debugging"""
