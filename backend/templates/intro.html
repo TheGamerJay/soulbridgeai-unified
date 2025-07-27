@@ -165,7 +165,6 @@
             <a href="/profile" class="btn-secondary">Profile</a>
         </div>
         <div style="display: flex; gap: 15px; align-items: center;">
-            <span id="sessionTimer" style="color: #22d3ee; font-size: 0.9rem;">🔒 Session: Active</span>
             <a href="/auth/logout" class="btn-danger">Logout</a>
         </div>
     </div>
@@ -236,41 +235,6 @@
     
     <script src="{{ url_for('static', filename='js/login-fixed.js') }}"></script>
     <script>
-        // Session timer for security awareness
-        let sessionTimeout = 30 * 60 * 1000;
-        let lastActivity = Date.now();
-        
-        function updateSessionTimer() {
-            const timeLeft = sessionTimeout - (Date.now() - lastActivity);
-            const minutesLeft = Math.floor(timeLeft / (60 * 1000));
-            const sessionIndicator = document.getElementById('sessionTimer');
-            
-            if (timeLeft <= 0) {
-                sessionIndicator.textContent = '🔒 Session: Expired';
-                sessionIndicator.style.color = '#ef4444';
-                alert('Your session has expired for security. Please log in again.');
-                window.location.href = '/auth/logout';
-            } else if (minutesLeft <= 5) {
-                sessionIndicator.textContent = `⚠️ Session: ${minutesLeft}min left`;
-                sessionIndicator.style.color = '#f59e0b';
-            } else {
-                sessionIndicator.textContent = `🔒 Session: ${minutesLeft}min`;
-                sessionIndicator.style.color = '#22d3ee';
-            }
-        }
-        
-        function resetActivity() {
-            lastActivity = Date.now();
-        }
-        
-        ['click', 'keypress', 'scroll', 'mousemove'].forEach(event => {
-            document.addEventListener(event, resetActivity, true);
-        });
-        
-        // Update session timer every 30 seconds
-        setInterval(updateSessionTimer, 30000);
-        // Update immediately on load
-        updateSessionTimer();
         
         // AGGRESSIVE intro page styling enforcement
         function forceIntroStyling() {
