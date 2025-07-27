@@ -413,7 +413,7 @@
                 <div style="text-align: center; margin-bottom: 25px; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 12px;">
                     <div style="margin-bottom: 15px;">
                         <img id="userProfileImage" src="/static/logos/Sapphire.png" alt="Profile Picture" 
-                             style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid #22d3ee; box-shadow: 0 4px 20px rgba(34, 211, 238, 0.3);">
+                             style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; object-position: center; border: 3px solid #22d3ee; box-shadow: 0 4px 20px rgba(34, 211, 238, 0.3); display: block; margin: 0 auto;">
                     </div>
                     <div style="margin-bottom: 15px;">
                         <input type="file" id="profileImageInput" accept="image/*" style="display: none;">
@@ -486,13 +486,13 @@
                     </div>
                 </div>
 
-                <a href="/#select" class="profile-btn" style="text-decoration: none; display: inline-block; text-align: center;">
+                <a href="/companion-selection" class="profile-btn" style="text-decoration: none; display: inline-block; text-align: center;">
                     🔄 Change Companion
                 </a>
 
-                <a href="/analytics" class="profile-btn secondary" style="text-decoration: none; display: inline-block; text-align: center;">
+                <button onclick="showCompanionStats()" class="profile-btn secondary" style="border: none; cursor: pointer; width: 100%; text-decoration: none; display: inline-block; text-align: center;">
                     📊 View Companion Stats
-                </a>
+                </button>
             </div>
 
             <!-- Upgrade & Referrals Panel -->
@@ -1065,8 +1065,8 @@
             }
         };
 
-        // Profile image upload functionality
-        document.getElementById('profileImageInput').addEventListener('change', async function(e) {
+        // Profile image upload functionality with cropping
+        document.getElementById('profileImageInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
             
@@ -1083,32 +1083,174 @@
                 return;
             }
             
-            const formData = new FormData();
-            formData.append('profileImage', file);
-            
-            try {
-                const response = await fetch('/api/upload-profile-image', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                const result = await response.json();
-                if (result.success) {
-                    document.getElementById('userProfileImage').src = result.profileImage;
-                    // Show success message briefly
-                    const img = document.getElementById('userProfileImage');
-                    img.style.border = '3px solid #10b981';
-                    setTimeout(() => {
-                        img.style.border = '3px solid #22d3ee';
-                    }, 2000);
-                } else {
-                    alert('Upload failed: ' + result.error);
-                }
-            } catch (error) {
-                alert('Upload failed. Please try again.');
-                console.error('Upload error:', error);
-            }
+            // Show cropping modal
+            showImageCropper(file);
         });
+
+        function showImageCropper(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imageData = e.target.result;
+                
+                // Create adjustment modal
+                const modal = document.createElement('div');
+                modal.id = 'imageCropperModal';
+                modal.style.cssText = `
+                    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                    background: rgba(0,0,0,0.9); display: flex; justify-content: center; align-items: center;
+                    z-index: 10000; backdrop-filter: blur(5px);
+                `;
+                
+                modal.innerHTML = `
+                    <div style="background: linear-gradient(135deg, #0a0e1a 0%, #1a202c 100%); 
+                               padding: 30px; border-radius: 15px; max-width: 500px; width: 90%;
+                               border: 2px solid rgba(34, 211, 238, 0.3); text-align: center;">
+                        <h3 style="color: #22d3ee; margin-bottom: 20px;">📷 Adjust Your Profile Picture</h3>
+                        
+                        <!-- Preview Circle -->
+                        <div style="width: 200px; height: 200px; border-radius: 50%; overflow: hidden; 
+                                    margin: 0 auto 20px auto; border: 3px solid #22d3ee;
+                                    position: relative; background: #000;">
+                            <img id="previewImage" src="${imageData}" 
+                                 style="width: 100%; height: 100%; object-fit: cover; object-position: center;
+                                        transform-origin: center center; transition: transform 0.2s ease;">
+                        </div>
+                        
+                        <div style="margin-bottom: 20px;">
+                            <label style="color: #94a3b8; margin-right: 10px;">Zoom:</label>
+                            <input type="range" id="zoomSlider" min="0.5" max="3" step="0.1" value="1" 
+                                   style="width: 200px; margin: 0 10px;">
+                            <span id="zoomValue" style="color: #22d3ee;">100%</span>
+                        </div>
+                        
+                        <div style="margin-bottom: 20px;">
+                            <label style="color: #94a3b8; margin-right: 10px;">Position:</label><br>
+                            <button onclick="moveImage('up')" style="margin: 2px; padding: 8px 12px; background: rgba(34,211,238,0.2); border: 1px solid #22d3ee; color: #22d3ee; border-radius: 4px; cursor: pointer;">↑</button><br>
+                            <button onclick="moveImage('left')" style="margin: 2px; padding: 8px 12px; background: rgba(34,211,238,0.2); border: 1px solid #22d3ee; color: #22d3ee; border-radius: 4px; cursor: pointer;">←</button>
+                            <button onclick="resetPosition()" style="margin: 2px; padding: 8px 12px; background: rgba(34,211,238,0.3); border: 1px solid #22d3ee; color: #22d3ee; border-radius: 4px; cursor: pointer;">⌂</button>
+                            <button onclick="moveImage('right')" style="margin: 2px; padding: 8px 12px; background: rgba(34,211,238,0.2); border: 1px solid #22d3ee; color: #22d3ee; border-radius: 4px; cursor: pointer;">→</button><br>
+                            <button onclick="moveImage('down')" style="margin: 2px; padding: 8px 12px; background: rgba(34,211,238,0.2); border: 1px solid #22d3ee; color: #22d3ee; border-radius: 4px; cursor: pointer;">↓</button>
+                        </div>
+                        
+                        <div style="display: flex; gap: 15px; justify-content: center;">
+                            <button onclick="acceptAdjustedImage()" 
+                                    style="background: linear-gradient(135deg, #22d3ee 0%, #0891b2 100%);
+                                           padding: 12px 24px; border: none; border-radius: 8px; 
+                                           color: #000; font-weight: 600; cursor: pointer;">
+                                ✓ Accept & Upload
+                            </button>
+                            <button onclick="closeCropper()" 
+                                    style="background: rgba(255,255,255,0.1); padding: 12px 24px; 
+                                           border: 2px solid rgba(255,255,255,0.2); border-radius: 8px;
+                                           color: #94a3b8; cursor: pointer;">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(modal);
+                
+                // Initialize adjustment variables
+                window.imageAdjustment = {
+                    scale: 1,
+                    translateX: 0,
+                    translateY: 0,
+                    imageData: imageData,
+                    file: file
+                };
+                
+                // Add zoom functionality
+                document.getElementById('zoomSlider').addEventListener('input', function() {
+                    const scale = parseFloat(this.value);
+                    window.imageAdjustment.scale = scale;
+                    updateImageStyle();
+                    document.getElementById('zoomValue').textContent = Math.round(scale * 100) + '%';
+                });
+            };
+            reader.readAsDataURL(file);
+        }
+
+        window.moveImage = function(direction) {
+            const step = 20;
+            switch(direction) {
+                case 'up': window.imageAdjustment.translateY -= step; break;
+                case 'down': window.imageAdjustment.translateY += step; break;
+                case 'left': window.imageAdjustment.translateX -= step; break;
+                case 'right': window.imageAdjustment.translateX += step; break;
+            }
+            updateImageStyle();
+        };
+
+        window.resetPosition = function() {
+            window.imageAdjustment.translateX = 0;
+            window.imageAdjustment.translateY = 0;
+            updateImageStyle();
+        };
+
+        function updateImageStyle() {
+            const img = document.getElementById('previewImage');
+            if (img) {
+                const { scale, translateX, translateY } = window.imageAdjustment;
+                img.style.transform = `scale(${scale}) translate(${translateX}px, ${translateY}px)`;
+            }
+        }
+
+        window.acceptAdjustedImage = async function() {
+            try {
+                // Simply upload the original file with the adjustment settings saved
+                const formData = new FormData();
+                formData.append('profileImage', window.imageAdjustment.file);
+                
+                // Add adjustment data as metadata
+                formData.append('imageSettings', JSON.stringify({
+                    scale: window.imageAdjustment.scale,
+                    translateX: window.imageAdjustment.translateX,
+                    translateY: window.imageAdjustment.translateY
+                }));
+                
+                try {
+                    const response = await fetch('/api/upload-profile-image', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const result = await response.json();
+                    if (result.success) {
+                        // Apply the same styling to the profile image
+                        const profileImg = document.getElementById('userProfileImage');
+                        profileImg.src = result.profileImage;
+                        profileImg.style.transform = `scale(${window.imageAdjustment.scale}) translate(${window.imageAdjustment.translateX}px, ${window.imageAdjustment.translateY}px)`;
+                        
+                        // Show success message briefly
+                        profileImg.style.border = '3px solid #10b981';
+                        setTimeout(() => {
+                            profileImg.style.border = '3px solid #22d3ee';
+                        }, 2000);
+                        
+                        closeCropper();
+                    } else {
+                        alert('Upload failed: ' + result.error);
+                    }
+                } catch (error) {
+                    alert('Upload failed. Please try again.');
+                    console.error('Upload error:', error);
+                }
+                
+            } catch (error) {
+                alert('Error processing image. Please try again.');
+                console.error('Adjustment error:', error);
+            }
+        };
+
+        window.closeCropper = function() {
+            const modal = document.getElementById('imageCropperModal');
+            if (modal) {
+                modal.remove();
+            }
+            // Clear the file input
+            document.getElementById('profileImageInput').value = '';
+        };
 
         window.removeProfileImage = async () => {
             if (confirm('Remove your profile picture?')) {
@@ -1211,6 +1353,57 @@
 
         window.openHelp = () => {
             window.location.href = '/help';
+        };
+
+        window.showCompanionStats = () => {
+            const companion = profile.userData?.companion || 'Blayzo';
+            const messageCount = profile.userData?.chatHistory?.length || 0;
+            const totalSessions = Math.ceil(messageCount / 10) || 1;
+            
+            const statsHtml = `
+                <div style="text-align: center; padding: 20px;">
+                    <h3 style="color: #22d3ee; margin-bottom: 20px;">📊 ${companion} Stats</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
+                        <div style="background: rgba(34, 211, 238, 0.1); padding: 15px; border-radius: 8px;">
+                            <div style="font-size: 1.5rem; font-weight: bold; color: #22d3ee;">${messageCount}</div>
+                            <div style="color: #94a3b8; font-size: 0.9rem;">Total Messages</div>
+                        </div>
+                        <div style="background: rgba(34, 211, 238, 0.1); padding: 15px; border-radius: 8px;">
+                            <div style="font-size: 1.5rem; font-weight: bold; color: #22d3ee;">${totalSessions}</div>
+                            <div style="color: #94a3b8; font-size: 0.9rem;">Conversations</div>
+                        </div>
+                        <div style="background: rgba(34, 211, 238, 0.1); padding: 15px; border-radius: 8px;">
+                            <div style="font-size: 1.5rem; font-weight: bold; color: #22d3ee;">${companion}</div>
+                            <div style="color: #94a3b8; font-size: 0.9rem;">Current Companion</div>
+                        </div>
+                    </div>
+                    <p style="color: #94a3b8; margin-top: 15px; font-size: 0.9rem;">More detailed analytics coming soon!</p>
+                </div>
+            `;
+            
+            // Show in a simple modal/alert for now
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center;
+                z-index: 10000; backdrop-filter: blur(5px);
+            `;
+            
+            modal.innerHTML = `
+                <div style="background: linear-gradient(135deg, #0a0e1a 0%, #1a202c 100%); 
+                           padding: 30px; border-radius: 15px; max-width: 500px; width: 90%;
+                           border: 2px solid rgba(34, 211, 238, 0.3);">
+                    ${statsHtml}
+                    <button onclick="this.closest('div').parentElement.remove()" 
+                            style="width: 100%; margin-top: 20px; padding: 12px; 
+                                   background: linear-gradient(135deg, #22d3ee 0%, #0891b2 100%);
+                                   border: none; border-radius: 8px; color: #000; font-weight: 600; cursor: pointer;">
+                        Close
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
         };
         
         // ========================================
