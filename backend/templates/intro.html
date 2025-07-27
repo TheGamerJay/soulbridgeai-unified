@@ -102,7 +102,7 @@
         }
     </style>
 </head>
-<body>
+<body style="background: linear-gradient(135deg, #0a0e1a 0%, #1a202c 25%, #2d3748 50%, #1a202c 75%, #0a0e1a 100%) !important; background-attachment: fixed !important; background-size: 100% 100% !important;">
     <!-- Navigation -->
     <div class="top-nav" style="position: fixed; top: 0; left: 0; right: 0; z-index: 1000; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;">
         <div style="display: flex; gap: 15px; align-items: center;">
@@ -190,6 +190,20 @@
         
         setInterval(updateSessionTimer, 30000);
         updateSessionTimer();
+        
+        // Force intro page background styling
+        function forceIntroStyling() {
+            document.body.style.background = 'linear-gradient(135deg, #0a0e1a 0%, #1a202c 25%, #2d3748 50%, #1a202c 75%, #0a0e1a 100%)';
+            document.body.style.backgroundAttachment = 'fixed';
+            document.body.style.backgroundSize = '100% 100%';
+            document.body.style.minHeight = '100vh';
+            console.log('🎨 Intro page background forced');
+        }
+        
+        // Apply on load and focus
+        document.addEventListener('DOMContentLoaded', forceIntroStyling);
+        window.addEventListener('focus', forceIntroStyling);
+        forceIntroStyling(); // Apply immediately
         
         // Intro page uses default night mode - no theme switching needed
         console.log('📄 Intro page loaded - using default styling');
