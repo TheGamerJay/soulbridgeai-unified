@@ -6,7 +6,9 @@
     <title>Welcome to SoulBridge AI</title>
     <!-- CRITICAL: Block rendering until intro styles are ready -->
     <style>
-        /* Allow normal rendering with intro background */
+        /* Prevent flash during loading */
+        html { opacity: 0; transition: opacity 0.3s ease; }
+        html.ready { opacity: 1; }
         
         /* ULTRA CRITICAL: Override base.css background */
         html, body {
@@ -264,12 +266,46 @@
         // Apply immediately - before DOM is even ready
         forceIntroStyling();
         
-        // Apply intro styling on load and focus
-        document.addEventListener('DOMContentLoaded', forceIntroStyling);
-        window.addEventListener('focus', forceIntroStyling);
+        // Show page when everything is truly ready
+        function showIntroWhenReady() {
+            forceIntroStyling();
+            document.documentElement.classList.add('ready');
+            console.log('✅ Intro page fully ready - showing with fade-in');
+        }
         
-        // Apply immediately as well
-        setTimeout(forceIntroStyling, 100);
+        // Wait for both DOM and all scripts to load
+        let domReady = false;
+        let scriptsReady = false;
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            domReady = true;
+            console.log('📄 DOM ready');
+            checkIfFullyReady();
+        });
+        
+        window.addEventListener('load', function() {
+            scriptsReady = true;
+            console.log('📜 Scripts ready');
+            checkIfFullyReady();
+        });
+        
+        function checkIfFullyReady() {
+            if (domReady && scriptsReady) {
+                // Small delay to ensure all dynamic content is added
+                setTimeout(showIntroWhenReady, 200);
+            }
+        }
+        
+        // Emergency fallback - show after 2 seconds regardless
+        setTimeout(() => {
+            if (!document.documentElement.classList.contains('ready')) {
+                console.log('⚠️ Emergency: Showing intro page after timeout');
+                showIntroWhenReady();
+            }
+        }, 2000);
+        
+        // Apply styling on focus when navigating back
+        window.addEventListener('focus', forceIntroStyling);
         
         // Intro page uses default night mode - no theme switching needed
         console.log('📄 Intro page loaded - using default styling');
