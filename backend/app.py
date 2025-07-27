@@ -462,8 +462,8 @@ def home():
         if not services["database"]:
             initialize_services()
         
-        # Redirect to intro page instead of showing chat
-        return redirect("/intro")
+        # Show your original beautiful chat page
+        return render_template("chat.html")
         
     except Exception as e:
         logger.error(f"Home route error: {e}")
@@ -879,7 +879,7 @@ def api_companions_select():
             "success": True,
             "message": f"Successfully selected companion",
             "companion_id": companion_id,
-            "redirect_url": "/chat"
+            "redirect_url": "/"
         })
         
     except Exception as e:

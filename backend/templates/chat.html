@@ -379,28 +379,34 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
     <meta name="theme-color" content="#22d3ee">
     
-    <!-- INTRO STYLING FIX: Apply intro page styling to chat page -->
+    <!-- INTRO STYLING FIX: Apply same intro styling as intro.html -->
     <style>
-        /* Prevent flash of unstyled content */
-        html { visibility: hidden; opacity: 0; transition: opacity 0.1s; }
-        html.loaded { visibility: visible; opacity: 1; }
+        /* Prevent flash during loading */
+        html { opacity: 0; transition: opacity 0.3s ease; }
+        html.ready { opacity: 1; }
         
-        /* Override base.css background with intro styling */
+        /* ULTRA CRITICAL: Override base.css background */
         html, body {
             background: linear-gradient(135deg, #0a0e1a 0%, #1a202c 25%, #2d3748 50%, #1a202c 75%, #0a0e1a 100%) !important;
             background-attachment: fixed !important;
             background-size: 100% 100% !important;
         }
         
-        /* Enhanced background for intro-like appearance */
+        /* CRITICAL: Chat page styling MUST match intro */
         body {
             background: linear-gradient(135deg, #0a0e1a 0%, #1a202c 25%, #2d3748 50%, #1a202c 75%, #0a0e1a 100%) !important;
             background-attachment: fixed !important;
             background-size: 100% 100% !important;
             min-height: 100vh !important;
             margin: 0 !important;
+            padding: 0 !important;
             font-family: system-ui, -apple-system, sans-serif !important;
             color: #22d3ee !important;
+        }
+        
+        /* Force override any conflicting CSS */
+        .chat-page {
+            background: linear-gradient(135deg, #0a0e1a 0%, #1a202c 25%, #2d3748 50%, #1a202c 75%, #0a0e1a 100%) !important;
         }
     </style>
     
@@ -1079,7 +1085,7 @@
         }
     </style>
 </head>
-<body onload="initializeScreen()">
+<body class="chat-page" style="background: linear-gradient(135deg, #0a0e1a 0%, #1a202c 25%, #2d3748 50%, #1a202c 75%, #0a0e1a 100%) !important; background-attachment: fixed !important; background-size: 100% 100% !important; min-height: 100vh !important; margin: 0 !important; font-family: system-ui, -apple-system, sans-serif !important; color: #22d3ee !important;" onload="initializeScreen()">
 
     <!-- User Menu and Controls (Right Side) -->
     <div style="position: fixed; top: 20px; right: 20px; z-index: 100; display: flex; gap: 10px; flex-wrap: wrap;">
@@ -6861,8 +6867,8 @@
         
         console.log('🔧 CSP-safe event listeners system initialized');
         
-        // INTRO STYLING: Show page when ready with proper intro background
-        function showChatPageWithIntroStyling() {
+        // INTRO STYLING: Apply same approach as intro.html
+        function forceChatIntroStyling() {
             const body = document.body;
             const html = document.documentElement;
             
@@ -6877,27 +6883,82 @@
             body.style.backgroundAttachment = 'fixed';
             body.style.backgroundSize = '100% 100%';
             body.style.minHeight = '100vh';
+            body.style.margin = '0';
+            body.style.padding = '0';
+            body.style.fontFamily = 'system-ui, -apple-system, sans-serif';
             body.style.color = '#22d3ee';
             
-            // Show the page
-            document.documentElement.className = 'loaded';
-            console.log('✅ Chat page with intro styling fully loaded');
+            // Override any existing classes
+            body.className = 'chat-page';
+            
+            console.log('🎨 AGGRESSIVE chat page intro styling applied');
         }
         
-        // Apply intro styling on load
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', showChatPageWithIntroStyling);
-        } else {
-            showChatPageWithIntroStyling();
+        // Apply immediately - before DOM is even ready
+        forceChatIntroStyling();
+        
+        // Show page when everything is truly ready
+        function showChatWhenReady() {
+            forceChatIntroStyling();
+            document.documentElement.classList.add('ready');
+            console.log('✅ Chat page fully ready - showing with intro styling');
         }
         
-        // Emergency fallback
+        // Wait for both DOM and all scripts to load
+        let domReady = false;
+        let scriptsReady = false;
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            domReady = true;
+            console.log('📄 Chat DOM ready');
+            checkIfChatFullyReady();
+        });
+        
+        window.addEventListener('load', function() {
+            scriptsReady = true;
+            console.log('📜 Chat Scripts ready');
+            checkIfChatFullyReady();
+        });
+        
+        function checkIfChatFullyReady() {
+            if (domReady && scriptsReady) {
+                // Small delay to ensure all dynamic content is added
+                setTimeout(showChatWhenReady, 200);
+            }
+        }
+        
+        // Multiple emergency fallbacks to ensure page always shows
         setTimeout(() => {
-            if (!document.documentElement.classList.contains('loaded')) {
-                console.log('⚠️ Emergency: Showing chat page after timeout');
-                showChatPageWithIntroStyling();
+            if (!document.documentElement.classList.contains('ready')) {
+                console.log('⚠️ Emergency fallback 1: Showing chat page after 1s');
+                showChatWhenReady();
             }
         }, 1000);
+        
+        setTimeout(() => {
+            if (!document.documentElement.classList.contains('ready')) {
+                console.log('🚨 Emergency fallback 2: Force showing chat page after 2s');
+                document.documentElement.style.opacity = '1';
+                document.documentElement.classList.add('ready');
+            }
+        }, 2000);
+        
+        // Ultimate safety: ensure page is ALWAYS visible after 3 seconds
+        setTimeout(() => {
+            document.documentElement.style.opacity = '1';
+            document.documentElement.style.visibility = 'visible';
+            console.log('🛡️ Ultimate safety: Chat page is now guaranteed visible');
+        }, 3000);
+        
+        // Show page immediately on any user interaction
+        ['click', 'keydown', 'touchstart', 'mousemove'].forEach(event => {
+            document.addEventListener(event, function() {
+                if (!document.documentElement.classList.contains('ready')) {
+                    console.log('👆 User interaction detected - showing chat page immediately');
+                    showChatWhenReady();
+                }
+            }, { once: true });
+        });
     </script>
 </body>
 </html>
