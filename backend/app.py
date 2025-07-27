@@ -480,12 +480,19 @@ def auth_login():
             return jsonify({"success": False, "error": "Email and password required"}), 400
         
         # Initialize database if needed
-        if not services["database"]:
+        if not services["database"] or not db:
             init_database()
+        
+        # Create database connection directly if needed
+        from auth import Database
+        if not db:
+            temp_db = Database()
+        else:
+            temp_db = db
         
         # Use clean authentication system
         from simple_auth import SimpleAuth
-        auth = SimpleAuth(db)
+        auth = SimpleAuth(temp_db)
         
         # Try to authenticate
         result = auth.authenticate(email, password)
@@ -638,12 +645,19 @@ def auth_register():
             display_name = email.split('@')[0]  # Use email prefix as default name
         
         # Initialize database if needed
-        if not services["database"]:
+        if not services["database"] or not db:
             init_database()
+        
+        # Create database connection directly if needed
+        from auth import Database
+        if not db:
+            temp_db = Database()
+        else:
+            temp_db = db
         
         # Use clean authentication system
         from simple_auth import SimpleAuth
-        auth = SimpleAuth(db)
+        auth = SimpleAuth(temp_db)
         
         # Check if user already exists
         if auth.user_exists(email):
