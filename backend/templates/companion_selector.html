@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Choose Your Companion - SoulBridge AI</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/themes.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}?v={{ range(1000000) | random }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/themes.css') }}?v={{ range(1000000) | random }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}?v={{ range(1000000) | random }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         .companion-selector {
@@ -1730,6 +1730,33 @@
             
             showNotification('Test trial started! 2 minutes for testing.', 'success');
         }
+        
+        // ==================== END TRIAL TIMER SYSTEM ====================
+        
+        // Force style reapplication when page loads (fixes back navigation styling issues)
+        function forceStyleReapplication() {
+            // Remove and re-add the main stylesheet to force refresh
+            const body = document.body;
+            const companionSelector = document.querySelector('.companion-selector');
+            
+            if (companionSelector) {
+                // Force reflow by temporarily changing a style
+                companionSelector.style.display = 'none';
+                companionSelector.offsetHeight; // trigger reflow
+                companionSelector.style.display = '';
+                
+                // Ensure background is properly applied
+                body.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                companionSelector.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+            }
+            
+            console.log('🎨 Styles reapplied for companion selector');
+        }
+        
+        // Apply on page load and when user returns to page
+        document.addEventListener('DOMContentLoaded', forceStyleReapplication);
+        window.addEventListener('pageshow', forceStyleReapplication);
+        window.addEventListener('focus', forceStyleReapplication);
         
         // ==================== END TRIAL TIMER SYSTEM ====================
     </script>
