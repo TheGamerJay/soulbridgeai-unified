@@ -644,27 +644,38 @@ def auth_register():
         if not display_name:
             display_name = email.split('@')[0]  # Use email prefix as default name
         
-        # Initialize database if needed
-        if not services["database"] or not db:
-            init_database()
+        # Use direct PostgreSQL connection to avoid cache issues
+        import os
+        import psycopg2
+        import bcrypt
         
-        # Create database connection directly if needed
-        from auth import Database
-        if not db:
-            temp_db = Database()
-        else:
-            temp_db = db
+        postgres_url = os.environ.get('DATABASE_URL') or os.environ.get('POSTGRES_URL')
+        if not postgres_url:
+            return jsonify({"success": False, "error": "Database not available"}), 500
         
-        # Use clean authentication system
-        from simple_auth import SimpleAuth
-        auth = SimpleAuth(temp_db)
+        conn = psycopg2.connect(postgres_url)
+        conn.autocommit = True
+        cursor = conn.cursor()
         
-        # Check if user already exists
-        if auth.user_exists(email):
+        # Check if user exists
+        cursor.execute("SELECT id FROM users WHERE email = %s", (email.lower().strip(),))
+        if cursor.fetchone():
+            conn.close()
             return jsonify({"success": False, "error": "User already exists"}), 409
         
-        # Create new user
-        result = auth.create_user(email, password, display_name)
+        # Hash password and create user
+        password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt(rounds=12)).decode('utf-8')
+        
+        cursor.execute("""
+            INSERT INTO users (email, password_hash, display_name, email_verified, created_at)
+            VALUES (%s, %s, %s, 1, CURRENT_TIMESTAMP)
+            RETURNING id
+        """, (email.lower().strip(), password_hash, display_name))
+        
+        user_id = cursor.fetchone()[0]
+        conn.close()
+        
+        result = {"success": True, "user_id": user_id}
         
         if result["success"]:
             # Auto-login after registration
@@ -2376,10 +2387,11 @@ def debug_check_user():
         conn.close()
         
         return jsonify({
-            "status": "FORCE DELETE COMPLETE",
+            "status": "FORCE DELETE COMPLETE", 
             "remaining_count": count,
             "remaining_users": [{"id": r[0], "email": r[1]} for r in remaining],
-            "message": "Multi-connection force delete executed"
+            "message": "Multi-connection force delete executed",
+            "try_signup_now": "Database should be clean"
         })
             
     except Exception as e:
