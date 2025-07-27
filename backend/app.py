@@ -2359,7 +2359,8 @@ def debug_create_user():
 def debug_reset_password():
     """Debug endpoint to reset password for aceelnene@gmail.com"""
     try:
-        if not services["database"]:
+        # Ensure database is initialized
+        if not services["database"] or not db:
             init_database()
         
         from auth import User
@@ -2411,7 +2412,8 @@ def debug_reset_password():
 def debug_check_user():
     """Debug endpoint to check user account details"""
     try:
-        if not services["database"]:
+        # Ensure database is initialized
+        if not services["database"] or not db:
             init_database()
         
         email = "aceelnene@gmail.com"
