@@ -1312,9 +1312,9 @@
                     // Re-render to update selected state
                     renderCompanions();
                     
-                    // Redirect to chat after a brief delay
+                    // Redirect using the URL from API response
                     setTimeout(() => {
-                        window.location.href = '/chat';
+                        window.location.href = data.redirect_url || '/';
                     }, 1500);
                 } else {
                     console.error('❌ Selection failed:', data);

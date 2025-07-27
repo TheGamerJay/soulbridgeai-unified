@@ -10,15 +10,28 @@
         html { visibility: hidden; opacity: 0; transition: opacity 0.1s; }
         html.loaded { visibility: visible; opacity: 1; }
         
+        /* ULTRA CRITICAL: Override base.css background */
+        html, body {
+            background: linear-gradient(135deg, #0a0e1a 0%, #1a202c 25%, #2d3748 50%, #1a202c 75%, #0a0e1a 100%) !important;
+            background-attachment: fixed !important;
+            background-size: 100% 100% !important;
+        }
+        
         /* CRITICAL: Intro page styling MUST load first */
-        body {
+        body, body.intro-page {
             background: linear-gradient(135deg, #0a0e1a 0%, #1a202c 25%, #2d3748 50%, #1a202c 75%, #0a0e1a 100%) !important;
             background-attachment: fixed !important;
             background-size: 100% 100% !important;
             min-height: 100vh !important;
             margin: 0 !important;
+            padding: 0 !important;
             font-family: system-ui, -apple-system, sans-serif !important;
             color: #22d3ee !important;
+        }
+        
+        /* Force override any conflicting CSS */
+        .intro-page {
+            background: linear-gradient(135deg, #0a0e1a 0%, #1a202c 25%, #2d3748 50%, #1a202c 75%, #0a0e1a 100%) !important;
         }
     </style>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
@@ -119,7 +132,7 @@
         }
     </style>
 </head>
-<body style="background: linear-gradient(135deg, #0a0e1a 0%, #1a202c 25%, #2d3748 50%, #1a202c 75%, #0a0e1a 100%) !important; background-attachment: fixed !important; background-size: 100% 100% !important;">
+<body class="intro-page" style="background: linear-gradient(135deg, #0a0e1a 0%, #1a202c 25%, #2d3748 50%, #1a202c 75%, #0a0e1a 100%) !important; background-attachment: fixed !important; background-size: 100% 100% !important; min-height: 100vh !important; margin: 0 !important; font-family: system-ui, -apple-system, sans-serif !important; color: #22d3ee !important;">
     <!-- Navigation -->
     <div class="top-nav" style="position: fixed; top: 0; left: 0; right: 0; z-index: 1000; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;">
         <div style="display: flex; gap: 15px; align-items: center;">
