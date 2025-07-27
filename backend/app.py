@@ -2276,14 +2276,45 @@ def api_users():
         if request.method == "GET":
             # Return current user data with proper defaults
             user_email = session.get('user_email') or session.get('email', 'user@soulbridgeai.com')
+            user_id = session.get('user_id')
+            
+            # Try to get actual account creation date from database
+            join_date = '2024-01-01'  # fallback
+            try:
+                if user_id and services.get("database"):
+                    conn = services["database"].get_connection()
+                    cursor = conn.cursor()
+                    
+                    placeholder = "%s" if hasattr(services["database"], 'postgres_url') and services["database"].postgres_url else "?"
+                    cursor.execute(f"SELECT created_at FROM users WHERE id = {placeholder}", (user_id,))
+                    result = cursor.fetchone()
+                    
+                    if result and result[0]:
+                        # Convert database timestamp to readable date
+                        if isinstance(result[0], str):
+                            # Parse string timestamp
+                            try:
+                                created_dt = datetime.fromisoformat(result[0].replace('Z', '+00:00'))
+                                join_date = created_dt.strftime('%Y-%m-%d')
+                            except:
+                                join_date = result[0][:10] if len(result[0]) >= 10 else '2024-01-01'
+                        else:
+                            # Handle datetime object
+                            join_date = result[0].strftime('%Y-%m-%d')
+                    
+                    conn.close()
+            except Exception as e:
+                logger.warning(f"Could not fetch account creation date: {e}")
+            
             user_data = {
-                "uid": session.get('user_id', 'user_' + str(hash(user_email))[:8]),
+                "uid": user_id or ('user_' + str(hash(user_email))[:8]),
                 "email": user_email,
                 "displayName": session.get('display_name') or session.get('user_name', 'SoulBridge User'),
                 "plan": session.get('user_plan', 'foundation'),
                 "addons": session.get('user_addons', []),
                 "profileImage": session.get('profile_image', '/static/logos/Sapphire.png'),
-                "joinDate": session.get('join_date', '2024-01-01'),
+                "joinDate": join_date,
+                "createdDate": join_date,  # Add both for compatibility
                 "isActive": True
             }
             

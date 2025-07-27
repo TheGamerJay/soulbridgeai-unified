@@ -763,8 +763,26 @@
                     displayNameInput.value = this.userData.displayName;
                 }
                 
-                const createdDate = this.userData.createdDate ? 
-                    new Date(this.userData.createdDate).toLocaleDateString() : 'Unknown';
+                // Handle account creation date with better fallbacks
+                let createdDate = 'Unknown';
+                const dateSource = this.userData.createdDate || this.userData.joinDate;
+                
+                if (dateSource && dateSource !== '2024-01-01') {
+                    try {
+                        const date = new Date(dateSource);
+                        if (!isNaN(date.getTime())) {
+                            createdDate = date.toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: 'long', 
+                                day: 'numeric'
+                            });
+                        }
+                    } catch (e) {
+                        console.log('Date parsing error:', e);
+                        createdDate = dateSource; // Use raw date if parsing fails
+                    }
+                }
+                
                 const accountCreatedElement = document.getElementById('accountCreated');
                 if (accountCreatedElement) {
                     accountCreatedElement.textContent = createdDate;
@@ -785,8 +803,22 @@
                     totalSessionsElement.textContent = Math.ceil(messageCount / 10) || 1;
                 }
                 
-                const daysSinceCreation = this.userData.createdDate ? 
-                    Math.ceil((Date.now() - new Date(this.userData.createdDate)) / (1000 * 60 * 60 * 24)) : 1;
+                // Calculate days active more accurately
+                let daysSinceCreation = 1; // Default to 1 day
+                const creationDateSource = this.userData.createdDate || this.userData.joinDate;
+                
+                if (creationDateSource && creationDateSource !== '2024-01-01') {
+                    try {
+                        const creationDate = new Date(creationDateSource);
+                        if (!isNaN(creationDate.getTime())) {
+                            const diffTime = Date.now() - creationDate.getTime();
+                            daysSinceCreation = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+                        }
+                    } catch (e) {
+                        console.log('Days calculation error:', e);
+                    }
+                }
+                
                 const daysActiveElement = document.getElementById('daysActive');
                 if (daysActiveElement) {
                     daysActiveElement.textContent = daysSinceCreation;
