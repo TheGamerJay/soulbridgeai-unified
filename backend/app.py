@@ -44,7 +44,7 @@ app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SECURE'] = bool(os.environ.get('RAILWAY_ENVIRONMENT'))  # HTTPS in production
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['SESSION_COOKIE_PATH'] = '/'  # Ensure cookie works for all paths
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=2)
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=30)  # Sessions last 30 days
 
 # Global variables for services
 services = {
@@ -466,7 +466,7 @@ def login_page():
 
 @app.route("/auth/login", methods=["GET", "POST"])
 def auth_login():
-    """Handle login authentication"""
+    """Clean, simple login authentication"""
     # Handle GET requests - show login form
     if request.method == "GET":
         return render_template("login.html")
@@ -479,98 +479,25 @@ def auth_login():
         if not email or not password:
             return jsonify({"success": False, "error": "Email and password required"}), 400
         
-        # Normalize email to lowercase for consistency
-        email = email.lower().strip()
-        
         # Initialize database if needed
         if not services["database"]:
             init_database()
         
-        # Developer credentials from environment (secure)
-        DEV_EMAIL = os.environ.get("DEV_EMAIL")
-        DEV_PASSWORD = os.environ.get("DEV_PASSWORD")
+        # Use clean authentication system
+        from simple_auth import SimpleAuth
+        auth = SimpleAuth(db)
         
-        # Check if this is the developer account
-        is_developer = False
-        if DEV_EMAIL and DEV_PASSWORD and email == DEV_EMAIL:
-            is_developer = password == DEV_PASSWORD
-            logger.info(f"Developer login attempt: {is_developer}")
+        # Try to authenticate
+        result = auth.authenticate(email, password)
         
-        if is_developer:
-            setup_user_session(email, is_admin=True, dev_mode=True)
-            logger.info("Developer login successful")
-            # Return JSON for AJAX requests
+        if result["success"]:
+            # Create session
+            auth.create_session(result)
+            logger.info(f"Login successful: {email}")
             return jsonify({"success": True, "redirect": "/"})
-        
-        # For regular users, check database if available
-        if services["database"] and db:
-            try:
-                # Use the authentication system from auth.py
-                from auth import User
-                user = User(db)
-                user_data = User.authenticate(db, email, password)
-                
-                if user_data:
-                    setup_user_session(email, user_id=user_data[0])
-                    logger.info(f"User login successful: {email}")
-                    
-                    return login_success_response()
-                else:
-                    logger.warning(f"Failed login attempt for: {email} (user exists: {user.user_exists(email)})")
-                    return jsonify({"success": False, "error": "Invalid email or password"}), 401
-                    
-            except Exception as db_error:
-                logger.error(f"Database authentication error: {db_error}")
-                # Fall through to basic auth if database fails
-        
-        # Fallback: Basic authentication for testing and initial setup
-        if email == "test@example.com" and password == "test123":
-            # Always allow test credentials and create user if needed
-            try:
-                if services["database"] and db:
-                    from auth import User
-                    user = User(db)
-                    if not user.user_exists(email):
-                        # Create the test user if it doesn't exist
-                        user_id = user.create_user(email, password, "Test User")
-                        logger.info("Created test user in database")
-                        setup_user_session(email, user_id=user_id)
-                        
-                        # Always return JSON for consistency
-                        return jsonify({"success": True, "redirect": "/"})
-                    else:
-                        # Test user exists, try to authenticate with database
-                        user_data = User.authenticate(db, email, password)
-                        if user_data:
-                            setup_user_session(email, user_id=user_data[0])
-                        else:
-                            # Database authentication failed, but allow test user anyway
-                            setup_user_session(email)
-                        
-                        # Always return JSON for consistency
-                        return jsonify({"success": True, "redirect": "/"})
-                else:
-                    # Database not available, use fallback
-                    setup_user_session(email)
-                    logger.warning("Database not available, using fallback test authentication")
-                    
-                    # Always return JSON for consistency
-                    return jsonify({"success": True, "redirect": "/"})
-            except Exception as e:
-                logger.error(f"Error with test user authentication: {e}")
-                # Even if there's an error, allow test credentials to work
-                setup_user_session(email)
-                logger.warning("Using emergency fallback test authentication")
-                
-                # Always return JSON for consistency
-                return jsonify({"success": True, "redirect": "/"})
-        
-        # Authentication failed
-        logger.warning(f"Authentication failed for user")  # Don't log email for security
-        return jsonify({
-            "success": False, 
-            "error": "Invalid email or password"
-        }), 401
+        else:
+            logger.warning(f"Login failed: {email}")
+            return jsonify({"success": False, "error": result["error"]}), 401
         
     except Exception as e:
         logger.error(f"Login error: {e}")
@@ -2308,29 +2235,30 @@ def debug_info():
 
 @app.route("/debug/create-user", methods=["POST"])
 def debug_create_user():
-    """Debug endpoint to create a user account"""
+    """Create user account with clean system"""
     try:
         if not services["database"]:
             init_database()
         
-        from auth import User
-        user = User(db)
+        from simple_auth import SimpleAuth
+        auth = SimpleAuth(db)
         
         # Create aceelnene@gmail.com account
         email = "aceelnene@gmail.com"
-        password = "password123"  # You can change this
-        display_name = "Admin User"
+        password = "Yariel13"  # Your actual password
+        display_name = "GamerJay"
         
         # Check if user already exists
-        if user.user_exists(email):
+        if auth.user_exists(email):
             return jsonify({
                 "status": "User already exists",
                 "email": email,
-                "action": "Try logging in with existing password"
+                "password": password,
+                "action": "Try logging in with this password"
             })
         
         # Create the user
-        result = user.create_user(email, password, display_name)
+        result = auth.create_user(email, password, display_name)
         
         if result["success"]:
             logger.info(f"Created user account: {email}")
