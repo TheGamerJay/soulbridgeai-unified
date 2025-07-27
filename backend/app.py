@@ -628,66 +628,46 @@ def register_page():
 
 @app.route("/auth/register", methods=["GET", "POST"])
 def auth_register():
-    """Clean, simple user registration"""
-    # Handle GET requests - show registration form
+    """ULTRA SIMPLE SIGNUP"""
     if request.method == "GET":
         return render_template("register.html")
     
-    # Handle POST requests - process registration
     try:
-        # Parse request data
-        email, password, display_name = parse_request_data()
+        # Get data
+        data = request.get_json() or {}
+        email = data.get('email', '').strip().lower()
+        password = data.get('password', '')
+        name = data.get('display_name', '') or email.split('@')[0]
         
         if not email or not password:
             return jsonify({"success": False, "error": "Email and password required"}), 400
         
-        if not display_name:
-            display_name = email.split('@')[0]  # Use email prefix as default name
-        
-        # Use direct PostgreSQL connection to avoid cache issues
-        import os
-        import psycopg2
-        import bcrypt
-        
-        postgres_url = os.environ.get('DATABASE_URL') or os.environ.get('POSTGRES_URL')
-        if not postgres_url:
-            return jsonify({"success": False, "error": "Database not available"}), 500
-        
-        conn = psycopg2.connect(postgres_url)
+        # Direct database
+        import os, psycopg2, bcrypt
+        conn = psycopg2.connect(os.environ.get('DATABASE_URL'))
         conn.autocommit = True
         cursor = conn.cursor()
         
-        # Check if user exists
-        cursor.execute("SELECT id FROM users WHERE email = %s", (email.lower().strip(),))
+        # Check exists
+        cursor.execute("SELECT 1 FROM users WHERE email = %s", (email,))
         if cursor.fetchone():
-            conn.close()
-            return jsonify({"success": False, "error": "User already exists"}), 409
+            return jsonify({"success": False, "error": "Email already exists"}), 409
         
-        # Hash password and create user
-        password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt(rounds=12)).decode('utf-8')
-        
-        cursor.execute("""
-            INSERT INTO users (email, password_hash, display_name, email_verified, created_at)
-            VALUES (%s, %s, %s, 1, CURRENT_TIMESTAMP)
-            RETURNING id
-        """, (email.lower().strip(), password_hash, display_name))
-        
+        # Create user
+        hash_pw = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+        cursor.execute("INSERT INTO users (email, password_hash, display_name, email_verified) VALUES (%s, %s, %s, 1) RETURNING id", (email, hash_pw, name))
         user_id = cursor.fetchone()[0]
         conn.close()
         
-        # Create session manually
-        session.permanent = True
+        # Login
         session['user_id'] = user_id
         session['email'] = email
-        session['display_name'] = display_name
         session['authenticated'] = True
         
-        logger.info(f"User registered and logged in: {email}")
         return jsonify({"success": True, "redirect": "/"})
-            
+        
     except Exception as e:
-        logger.error(f"Registration error: {e}")
-        return jsonify({"success": False, "error": "Registration failed"}), 500
+        return jsonify({"success": False, "error": f"Error: {str(e)}"}), 500
 
 # ========================================
 # MAIN APP ROUTES
