@@ -436,15 +436,9 @@ def home():
             logger.info(f"Home route: User not authenticated, redirecting to login")
             return redirect("/login")
         
-        # User is authenticated - show the intro/chat interface
-        logger.info(f"Home route: User authenticated, showing chat interface")
-        
-        # Initialize services if needed
-        if not services["database"]:
-            initialize_services()
-        
-        # Show chat page with proper authentication
-        return render_template("chat.html")
+        # User is authenticated - redirect to intro
+        logger.info(f"Home route: User authenticated, redirecting to intro")
+        return redirect("/intro")
         
     except Exception as e:
         logger.error(f"Home route error: {e}")
@@ -501,7 +495,7 @@ def auth_login():
             # Create session
             auth.create_session(result)
             logger.info(f"Login successful: {email}")
-            return jsonify({"success": True, "redirect": "/"})
+            return jsonify({"success": True, "redirect": "/intro"})
         else:
             logger.warning(f"Login failed: {email}")
             return jsonify({"success": False, "error": result["error"]}), 401
@@ -667,10 +661,35 @@ def auth_register():
         session['email'] = email
         session['authenticated'] = True
         
-        return jsonify({"success": True, "redirect": "/"})
+        return jsonify({"success": True, "redirect": "/plan-selection"})
         
     except Exception as e:
         return jsonify({"success": False, "error": f"Error: {str(e)}"}), 500
+
+# ========================================
+# USER FLOW ROUTES
+# ========================================
+
+@app.route("/plan-selection")
+def plan_selection():
+    """Plan selection page for new users"""
+    if not is_logged_in():
+        return redirect("/login")
+    return render_template("plan_selection.html")
+
+@app.route("/intro")
+def intro():
+    """Intro page for all authenticated users"""
+    if not is_logged_in():
+        return redirect("/login")
+    return render_template("intro.html")
+
+@app.route("/companion-selection")
+def companion_selection():
+    """Companion selection page"""
+    if not is_logged_in():
+        return redirect("/login")
+    return render_template("companion_selector.html")
 
 # ========================================
 # MAIN APP ROUTES

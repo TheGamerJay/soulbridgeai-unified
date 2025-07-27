@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Choose Your Plan - SoulBridge AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/themes.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+    <style>
+        .plan-container {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #000000 0%, #0f172a 50%, #1e293b 100%);
+            padding: 40px 20px;
+        }
+        
+        .plan-header {
+            text-align: center;
+            margin-bottom: 50px;
+            color: #e2e8f0;
+        }
+        
+        .plan-title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #22d3ee, #06b6d4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .plan-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+        
+        .plan-card {
+            background: rgba(0,0,0,0.8);
+            border: 2px solid #374151;
+            border-radius: 16px;
+            padding: 40px 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            backdrop-filter: blur(15px);
+        }
+        
+        .plan-card:hover {
+            border-color: #22d3ee;
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(34, 211, 238, 0.2);
+        }
+        
+        .plan-card.popular {
+            border-color: #22d3ee;
+            background: rgba(34, 211, 238, 0.1);
+        }
+        
+        .plan-badge {
+            background: #22d3ee;
+            color: #000;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .plan-name {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #22d3ee;
+        }
+        
+        .plan-price {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #e2e8f0;
+        }
+        
+        .plan-features {
+            list-style: none;
+            margin-bottom: 30px;
+            text-align: left;
+        }
+        
+        .plan-features li {
+            margin-bottom: 12px;
+            color: #94a3b8;
+            display: flex;
+            align-items: center;
+        }
+        
+        .plan-features li::before {
+            content: "✓";
+            color: #22d3ee;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
+        .plan-btn {
+            background: linear-gradient(135deg, #22d3ee, #06b6d4);
+            color: #000;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+        
+        .plan-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(34, 211, 238, 0.3);
+        }
+        
+        .plan-btn.selected {
+            background: #22d3ee;
+        }
+    </style>
+</head>
+<body>
+    <div class="plan-container">
+        <div class="plan-header">
+            <h1 class="plan-title">Choose Your SoulBridge Plan</h1>
+            <p>Select the perfect plan for your AI companion journey</p>
+        </div>
+        
+        <div class="plan-grid">
+            <!-- Free Plan -->
+            <div class="plan-card">
+                <h3 class="plan-name">Foundation</h3>
+                <div class="plan-price">Free</div>
+                <ul class="plan-features">
+                    <li>Basic AI companions</li>
+                    <li>Limited daily conversations</li>
+                    <li>Standard responses</li>
+                    <li>Community support</li>
+                </ul>
+                <button class="plan-btn" onclick="selectPlan('foundation')">Get Started Free</button>
+            </div>
+            
+            <!-- Pro Plan -->
+            <div class="plan-card popular">
+                <div class="plan-badge">Most Popular</div>
+                <h3 class="plan-name">Growth</h3>
+                <div class="plan-price">$12.99<span style="font-size: 1rem; color: #94a3b8;">/month</span></div>
+                <ul class="plan-features">
+                    <li>Premium AI companions</li>
+                    <li>Unlimited conversations</li>
+                    <li>Advanced personality traits</li>
+                    <li>Priority support</li>
+                    <li>Custom companion training</li>
+                </ul>
+                <button class="plan-btn" onclick="selectPlan('premium')">Choose Growth</button>
+            </div>
+            
+            <!-- Max Plan -->
+            <div class="plan-card">
+                <h3 class="plan-name">Transformation</h3>
+                <div class="plan-price">$19.99<span style="font-size: 1rem; color: #94a3b8;">/month</span></div>
+                <ul class="plan-features">
+                    <li>All Growth features</li>
+                    <li>Exclusive elite companions</li>
+                    <li>Voice chat capabilities</li>
+                    <li>Advanced analytics</li>
+                    <li>Early access to new features</li>
+                    <li>1-on-1 onboarding session</li>
+                </ul>
+                <button class="plan-btn" onclick="selectPlan('enterprise')">Choose Transformation</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        async function selectPlan(planType) {
+            try {
+                const response = await fetch('/api/select-plan', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ plan_type: planType })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // For free plan, go directly to intro
+                    if (planType === 'foundation') {
+                        window.location.href = '/intro';
+                    } else {
+                        // For paid plans, go to payment
+                        window.location.href = data.redirect_url || `/payment?plan=${planType}`;
+                    }
+                } else {
+                    alert(data.error || 'Failed to select plan');
+                }
+            } catch (error) {
+                console.error('Plan selection error:', error);
+                alert('Error selecting plan. Please try again.');
+            }
+        }
+    </script>
+</body>
+</html>
