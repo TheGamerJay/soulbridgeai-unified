@@ -641,16 +641,23 @@
 
             async loadUserProfile() {
                 try {
+                    console.log('🔄 Loading user profile...');
+                    
                     // Get user data from server session
                     const response = await fetch('/api/users', {
                         method: 'GET',
                         headers: {
                             'Content-Type': 'application/json'
-                        }
+                        },
+                        credentials: 'same-origin' // Ensure cookies are sent
                     });
+
+                    console.log(`📡 Profile API response: ${response.status} ${response.statusText}`);
 
                     if (response.ok) {
                         const result = await response.json();
+                        console.log('📊 Profile API result:', result);
+                        
                         if (result.success) {
                             this.userData = result.user;
                             this.currentUser = {
@@ -658,16 +665,51 @@
                                 email: result.user.email,
                                 displayName: result.user.displayName
                             };
+                            console.log('✅ Profile loaded successfully:', this.userData);
                             this.updateProfileDisplay();
                         } else {
+                            console.error('❌ Profile API returned error:', result.error);
                             throw new Error(result.error || 'Failed to load user data');
                         }
+                    } else if (response.status === 401) {
+                        console.error('🔒 Authentication required - redirecting to login');
+                        this.showError('Session expired. Redirecting to login...');
+                        setTimeout(() => {
+                            window.location.href = '/login';
+                        }, 2000);
+                        return;
                     } else {
+                        const errorText = await response.text();
+                        console.error(`🚨 HTTP Error ${response.status}:`, errorText);
                         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                     }
                 } catch (error) {
-                    console.error('Failed to load profile:', error);
-                    this.showError('Failed to load profile data');
+                    console.error('💥 Profile loading failed:', error);
+                    
+                    // Check if it's a network/auth error
+                    if (error.message.includes('401') || error.message.includes('Authentication')) {
+                        this.showError('Session expired. Please log in again.');
+                        setTimeout(() => {
+                            window.location.href = '/login';
+                        }, 3000);
+                        return;
+                    }
+                    
+                    this.showError(`Failed to load profile data: ${error.message}`);
+                    
+                    // Try to provide fallback data for display purposes
+                    console.log('🔄 Using fallback data for display');
+                    this.userData = {
+                        uid: 'user_fallback',
+                        email: 'user@soulbridgeai.com',
+                        displayName: 'SoulBridge User',
+                        plan: 'foundation',
+                        addons: [],
+                        profileImage: '/static/logos/Sapphire.png',
+                        joinDate: '2024-01-01',
+                        isActive: true
+                    };
+                    this.updateProfileDisplay();
                 }
             }
 
