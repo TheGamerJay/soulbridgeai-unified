@@ -2524,6 +2524,46 @@ def debug_raw_sql():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route("/clean-users", methods=["GET"])
+def clean_users():
+    """Clean problematic users from database"""
+    try:
+        import os
+        import psycopg2
+        
+        postgres_url = os.environ.get('DATABASE_URL') or os.environ.get('POSTGRES_URL')
+        if not postgres_url:
+            return jsonify({"error": "No database URL found"})
+        
+        conn = psycopg2.connect(postgres_url)
+        cursor = conn.cursor()
+        
+        # Get count before
+        cursor.execute("SELECT COUNT(*) FROM users")
+        count_before = cursor.fetchone()[0]
+        
+        # Delete problematic users
+        cursor.execute("DELETE FROM users WHERE email IN ('aceelnene@gmail.com', 'dagamerjay13@gmail.com', 'mynewaccount@gmail.com')")
+        deleted_count = cursor.rowcount
+        
+        # Get count after
+        cursor.execute("SELECT COUNT(*) FROM users")
+        count_after = cursor.fetchone()[0]
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({
+            "success": True,
+            "users_before": count_before,
+            "users_after": count_after,
+            "deleted_count": deleted_count,
+            "message": "Users cleaned successfully"
+        })
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route("/stripe-status", methods=["GET"])
 def stripe_status():
     """Check Stripe configuration status - public endpoint for debugging"""

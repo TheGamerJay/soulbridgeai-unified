@@ -58,7 +58,8 @@
       "Bash(railway:*)",
       "Bash(npm uninstall:*)",
       "Bash(git check-ignore:*)",
-      "Bash(git branch:*)"
+      "Bash(git branch:*)",
+      "WebFetch(domain:soulbridgeai-unified-production.up.railway.app)"
     ],
     "deny": []
   }
