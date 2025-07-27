@@ -379,7 +379,44 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
     <meta name="theme-color" content="#22d3ee">
     
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}?v={{ range(1000, 9999) | random }}">
+    <!-- INTRO STYLING FIX: Apply intro page styling to chat page -->
+    <style>
+        /* Prevent flash of unstyled content */
+        html { visibility: hidden; opacity: 0; transition: opacity 0.1s; }
+        html.loaded { visibility: visible; opacity: 1; }
+        
+        /* Override base.css background with intro styling */
+        html, body {
+            background: linear-gradient(135deg, #0a0e1a 0%, #1a202c 25%, #2d3748 50%, #1a202c 75%, #0a0e1a 100%) !important;
+            background-attachment: fixed !important;
+            background-size: 100% 100% !important;
+        }
+        
+        /* Enhanced background for intro-like appearance */
+        body {
+            background: linear-gradient(135deg, #0a0e1a 0%, #1a202c 25%, #2d3748 50%, #1a202c 75%, #0a0e1a 100%) !important;
+            background-attachment: fixed !important;
+            background-size: 100% 100% !important;
+            min-height: 100vh !important;
+            margin: 0 !important;
+            font-family: system-ui, -apple-system, sans-serif !important;
+            color: #22d3ee !important;
+        }
+    </style>
+    
+    <!-- IMMEDIATE styling script - runs before anything else -->
+    <script>
+        (function() {
+            const gradient = 'linear-gradient(135deg, #0a0e1a 0%, #1a202c 25%, #2d3748 50%, #1a202c 75%, #0a0e1a 100%)';
+            document.documentElement.style.background = gradient + ' !important';
+            document.documentElement.style.backgroundAttachment = 'fixed';
+            document.documentElement.style.backgroundSize = '100% 100%';
+            console.log('🚀 IMMEDIATE chat page intro styling applied');
+        })();
+    </script>
+    
+    <!-- Load external CSS after intro styles are established -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}?v={{ range(1000, 9999) | random }}" media="none" onload="this.media='all'; this.onload=null;">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}?v={{ range(1000, 9999) | random }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/animations.css') }}?v={{ range(1000, 9999) | random }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/themes.css') }}?v={{ range(1000, 9999) | random }}">
@@ -6823,6 +6860,44 @@
         }
         
         console.log('🔧 CSP-safe event listeners system initialized');
+        
+        // INTRO STYLING: Show page when ready with proper intro background
+        function showChatPageWithIntroStyling() {
+            const body = document.body;
+            const html = document.documentElement;
+            
+            // Force intro-style background
+            const gradient = 'linear-gradient(135deg, #0a0e1a 0%, #1a202c 25%, #2d3748 50%, #1a202c 75%, #0a0e1a 100%)';
+            
+            html.style.background = gradient;
+            html.style.backgroundAttachment = 'fixed';
+            html.style.backgroundSize = '100% 100%';
+            
+            body.style.background = gradient;
+            body.style.backgroundAttachment = 'fixed';
+            body.style.backgroundSize = '100% 100%';
+            body.style.minHeight = '100vh';
+            body.style.color = '#22d3ee';
+            
+            // Show the page
+            document.documentElement.className = 'loaded';
+            console.log('✅ Chat page with intro styling fully loaded');
+        }
+        
+        // Apply intro styling on load
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', showChatPageWithIntroStyling);
+        } else {
+            showChatPageWithIntroStyling();
+        }
+        
+        // Emergency fallback
+        setTimeout(() => {
+            if (!document.documentElement.classList.contains('loaded')) {
+                console.log('⚠️ Emergency: Showing chat page after timeout');
+                showChatPageWithIntroStyling();
+            }
+        }, 1000);
     </script>
 </body>
 </html>
