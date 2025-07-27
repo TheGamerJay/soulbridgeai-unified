@@ -2235,7 +2235,10 @@ def payment_cancel():
 def api_users():
     """User profile API endpoint"""
     try:
+        logger.info(f"API Users: Session data: {dict(session)}")
+        
         if not is_logged_in():
+            logger.warning(f"API Users: User not authenticated")
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
         if request.method == "GET":
@@ -2247,6 +2250,8 @@ def api_users():
                 "plan": session.get('user_plan', 'foundation'),
                 "addons": session.get('user_addons', [])
             }
+            
+            logger.info(f"API Users: Returning user data: {user_data}")
             
             return jsonify({
                 "success": True,
