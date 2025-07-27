@@ -2344,53 +2344,40 @@ def debug_reset_password():
 
 @app.route("/debug/check-user", methods=["GET"])
 def debug_check_user():
-    """Debug endpoint to check user account details"""
+    """Check all existing user accounts"""
     try:
-        # Ensure database is initialized
         if not services["database"] or not db:
             init_database()
         
-        # Create database connection directly if needed
-        from auth import Database
-        if not db:
-            temp_db = Database()
-        else:
-            temp_db = db
+        from simple_auth import SimpleAuth
+        auth = SimpleAuth(db)
         
-        email = "aceelnene@gmail.com"
-        
-        conn = temp_db.get_connection()
+        conn = db.get_connection()
         cursor = conn.cursor()
         
-        # Use appropriate placeholder for database type
-        placeholder = "%s" if hasattr(temp_db, 'postgres_url') and temp_db.postgres_url else "?"
-        
-        cursor.execute(
-            f"SELECT id, email, password_hash, display_name, email_verified, created_at FROM users WHERE email = {placeholder}",
-            (email,)
-        )
-        user_data = cursor.fetchone()
+        # Get all users
+        cursor.execute("SELECT id, email, display_name, email_verified, created_at FROM users ORDER BY created_at")
+        users = cursor.fetchall()
         conn.close()
         
-        if user_data:
-            return jsonify({
-                "status": "User found",
-                "user_id": user_data[0],
-                "email": user_data[1],
-                "has_password_hash": bool(user_data[2]),
-                "password_hash_length": len(user_data[2]) if user_data[2] else 0,
-                "display_name": user_data[3],
-                "email_verified": user_data[4],
-                "created_at": str(user_data[5])
+        user_list = []
+        for user in users:
+            user_list.append({
+                "user_id": user[0],
+                "email": user[1], 
+                "display_name": user[2],
+                "email_verified": user[3],
+                "created_at": str(user[4])
             })
-        else:
-            return jsonify({
-                "status": "User not found",
-                "email": email
-            })
+        
+        return jsonify({
+            "status": "Success",
+            "total_users": len(user_list),
+            "users": user_list
+        })
             
     except Exception as e:
-        logger.error(f"Debug check user error: {e}")
+        logger.error(f"Debug check users error: {e}")
         return jsonify({
             "status": "Error",
             "error": str(e)
