@@ -697,9 +697,8 @@
             
             // Then try to load from API (will override if successful)
             loadUserData();
-            setTimeout(() => {
-                loadCompanions();
-            }, 500);
+            // Load companions immediately - no delay needed
+            loadCompanions();
             
             // Emergency debug check
             setTimeout(() => {

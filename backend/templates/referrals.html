@@ -754,17 +754,17 @@
             showMessage('Referral system temporarily simplified. Share your link to refer friends!', 'info');
         }
 
-        // Load dashboard on page load, with fallback timeout
+        // Load dashboard on page load, with faster fallback timeout
         document.addEventListener('DOMContentLoaded', function() {
             loadReferralDashboard();
             
-            // Auto-fallback after 10 seconds if still loading
+            // Auto-fallback after 5 seconds if still loading (reduced from 10)
             setTimeout(function() {
                 if (document.getElementById('loading').style.display !== 'none') {
                     console.log('Referral dashboard loading timeout - showing fallback');
                     showSimpleReferralInfo();
                 }
-            }, 10000);
+            }, 5000);
         });
     </script>
 </body>

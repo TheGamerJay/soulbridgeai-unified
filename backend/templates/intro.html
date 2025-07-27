@@ -201,7 +201,9 @@
             document.addEventListener(event, resetActivity, true);
         });
         
+        // Update session timer every 30 seconds
         setInterval(updateSessionTimer, 30000);
+        // Update immediately on load
         updateSessionTimer();
         
         // Force intro page background styling
