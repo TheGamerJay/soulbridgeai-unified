@@ -718,6 +718,127 @@ def companion_selection():
         return redirect("/login")
     return render_template("companion_selector.html")
 
+@app.route("/api/companions", methods=["GET"])
+def api_companions():
+    """Get available companions organized by tiers"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        user_plan = session.get('user_plan', 'foundation')
+        
+        # Define companions by tier
+        companions = {
+            "free": [
+                {
+                    "companion_id": "companion_gamerjay",
+                    "display_name": "GamerJay",
+                    "description": "Your friendly gaming companion",
+                    "avatar_image": "/static/logos/GamerJay Free companion.png",
+                    "tier": "free",
+                    "is_recommended": True,
+                    "popularity_score": 85,
+                    "lock_reason": None
+                }
+            ],
+            "growth": [
+                {
+                    "companion_id": "companion_sky",
+                    "display_name": "Sky",
+                    "description": "Premium companion with advanced features",
+                    "avatar_image": "/static/logos/Sky a primum companion.png",
+                    "tier": "growth",
+                    "is_recommended": True,
+                    "popularity_score": 90,
+                    "lock_reason": "Requires Growth Plan" if user_plan == 'foundation' else None
+                },
+                {
+                    "companion_id": "companion_gamerjay_premium",
+                    "display_name": "GamerJay Premium",
+                    "description": "Enhanced GamerJay with premium features",
+                    "avatar_image": "/static/logos/GamgerJay premium companion.png",
+                    "tier": "growth",
+                    "is_recommended": False,
+                    "popularity_score": 88,
+                    "lock_reason": "Requires Growth Plan" if user_plan == 'foundation' else None
+                }
+            ],
+            "max": [
+                {
+                    "companion_id": "companion_crimson",
+                    "display_name": "Crimson",
+                    "description": "Elite max-tier companion",
+                    "avatar_image": "/static/logos/Crimson a Max companion.png",
+                    "tier": "max",
+                    "is_recommended": True,
+                    "popularity_score": 95,
+                    "lock_reason": "Requires Transformation Plan" if user_plan != 'enterprise' else None
+                },
+                {
+                    "companion_id": "companion_violet",
+                    "display_name": "Violet",
+                    "description": "Premium max companion with exclusive features",
+                    "avatar_image": "/static/logos/Violet a max companion.png",
+                    "tier": "max",
+                    "is_recommended": False,
+                    "popularity_score": 92,
+                    "lock_reason": "Requires Transformation Plan" if user_plan != 'enterprise' else None
+                }
+            ],
+            "referral": [
+                {
+                    "companion_id": "blayzo",
+                    "display_name": "Blayzo",
+                    "description": "Exclusive referral companion",
+                    "avatar_image": "/static/logos/Blayzo Referral.png",
+                    "tier": "referral",
+                    "is_recommended": False,
+                    "popularity_score": 100,
+                    "lock_reason": "Unlock through referrals"
+                }
+            ]
+        }
+        
+        return jsonify({
+            "success": True,
+            "companions": companions,
+            "user_plan": user_plan
+        })
+        
+    except Exception as e:
+        logger.error(f"Companions API error: {e}")
+        return jsonify({"success": False, "error": "Failed to load companions"}), 500
+
+@app.route("/api/companions/select", methods=["POST"])
+def api_companions_select():
+    """Select a companion"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        data = request.get_json() or {}
+        companion_id = data.get("companion_id")
+        
+        if not companion_id:
+            return jsonify({"success": False, "error": "Companion ID required"}), 400
+        
+        # Store selected companion in session
+        session['selected_companion'] = companion_id
+        session['companion_selected_at'] = time.time()
+        
+        logger.info(f"User {session.get('email')} selected companion: {companion_id}")
+        
+        return jsonify({
+            "success": True,
+            "message": f"Successfully selected companion",
+            "companion_id": companion_id,
+            "redirect_url": "/"
+        })
+        
+    except Exception as e:
+        logger.error(f"Companion selection error: {e}")
+        return jsonify({"success": False, "error": "Failed to select companion"}), 500
+
 # ========================================
 # MAIN APP ROUTES
 # ========================================
