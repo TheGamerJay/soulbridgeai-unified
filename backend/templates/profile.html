@@ -1112,8 +1112,10 @@
                                     margin: 0 auto 20px auto; border: 3px solid #22d3ee;
                                     position: relative; background: #000;">
                             <img id="previewImage" src="${imageData}" 
-                                 style="width: 100%; height: 100%; object-fit: cover; object-position: center;
-                                        transform-origin: center center; transition: transform 0.2s ease;">
+                                 style="max-width: none; max-height: none; width: auto; height: auto;
+                                        transform-origin: center center; transition: transform 0.2s ease;
+                                        position: absolute; top: 50%; left: 50%; 
+                                        transform: translate(-50%, -50%);">
                         </div>
                         
                         <div style="margin-bottom: 20px;">
@@ -1160,6 +1162,32 @@
                     file: file
                 };
                 
+                // Wait for image to load to get natural dimensions
+                const previewImg = document.getElementById('previewImage');
+                previewImg.onload = function() {
+                    // Calculate initial scale to make sure image covers the circle
+                    const img = this;
+                    const containerSize = 200; // Circle diameter
+                    const imgRatio = img.naturalWidth / img.naturalHeight;
+                    
+                    // Calculate scale to make image fit nicely in circle (smaller dimension fits)
+                    const scaleX = containerSize / img.naturalWidth;
+                    const scaleY = containerSize / img.naturalHeight;
+                    
+                    // Use the larger scale so image covers the entire circle
+                    const initialScale = Math.max(scaleX, scaleY);
+                    
+                    // Set the initial scale, ensuring reasonable bounds
+                    window.imageAdjustment.scale = Math.min(Math.max(0.1, initialScale), 3);
+                    document.getElementById('zoomSlider').value = window.imageAdjustment.scale;
+                    document.getElementById('zoomValue').textContent = Math.round(window.imageAdjustment.scale * 100) + '%';
+                    
+                    // Apply initial transform
+                    updateImageStyle();
+                    
+                    console.log(`Image loaded: ${img.naturalWidth}x${img.naturalHeight}, ratio: ${imgRatio}, initial scale: ${initialScale}`);
+                };
+                
                 // Add zoom functionality
                 document.getElementById('zoomSlider').addEventListener('input', function() {
                     const scale = parseFloat(this.value);
@@ -1192,7 +1220,8 @@
             const img = document.getElementById('previewImage');
             if (img) {
                 const { scale, translateX, translateY } = window.imageAdjustment;
-                img.style.transform = `scale(${scale}) translate(${translateX}px, ${translateY}px)`;
+                // Combine the centering transform with the user adjustments
+                img.style.transform = `translate(-50%, -50%) translate(${translateX}px, ${translateY}px) scale(${scale})`;
             }
         }
 
