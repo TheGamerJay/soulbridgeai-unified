@@ -409,6 +409,35 @@
             <div class="profile-panel">
                 <h2 class="panel-title">👤 User Information</h2>
                 
+                <!-- Profile Image Section -->
+                <div style="text-align: center; margin-bottom: 25px; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 12px;">
+                    <div style="margin-bottom: 15px;">
+                        <img id="userProfileImage" src="/static/logos/Sapphire.png" alt="Profile Picture" 
+                             style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid #22d3ee; box-shadow: 0 4px 20px rgba(34, 211, 238, 0.3);">
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <input type="file" id="profileImageInput" accept="image/*" style="display: none;">
+                        <button onclick="document.getElementById('profileImageInput').click()" class="profile-btn" style="margin-right: 10px;">
+                            📷 Change Profile Picture
+                        </button>
+                        <button onclick="removeProfileImage()" class="profile-btn secondary">
+                            🗑️ Remove
+                        </button>
+                    </div>
+                    <div style="font-size: 0.85rem; color: #94a3b8;">
+                        <strong>Guidelines:</strong> PNG, JPG, GIF, WebP • Max 5MB • Appropriate content only
+                    </div>
+                </div>
+                
+                <div class="user-info">
+                    <div class="info-label">Display Name</div>
+                    <div class="info-value">
+                        <input type="text" id="displayNameInput" placeholder="Enter your display name" 
+                               style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; padding: 8px 12px; color: white; width: 200px;">
+                        <button onclick="updateDisplayName()" class="profile-btn" style="margin-left: 10px; padding: 6px 12px; font-size: 0.9rem;">Save</button>
+                    </div>
+                </div>
+                
                 <div class="user-info">
                     <div class="info-label">User ID</div>
                     <div class="info-value" id="userID">Loading...</div>
@@ -671,8 +700,19 @@
                 if (!this.userData) return;
 
                 // Update user information
-                document.getElementById('userID').textContent = this.userData.userID || 'Unknown';
+                document.getElementById('userID').textContent = this.userData.uid || this.userData.userID || 'Unknown';
                 document.getElementById('userEmail').textContent = this.userData.email || 'Not provided';
+                
+                // Update profile image and display name
+                const profileImage = document.getElementById('userProfileImage');
+                if (profileImage && this.userData.profileImage) {
+                    profileImage.src = this.userData.profileImage;
+                }
+                
+                const displayNameInput = document.getElementById('displayNameInput');
+                if (displayNameInput && this.userData.displayName) {
+                    displayNameInput.value = this.userData.displayName;
+                }
                 
                 const createdDate = this.userData.createdDate ? 
                     new Date(this.userData.createdDate).toLocaleDateString() : 'Unknown';
@@ -915,6 +955,101 @@
                     });
                     location.reload();
                 }
+            }
+        };
+
+        // Profile image upload functionality
+        document.getElementById('profileImageInput').addEventListener('change', async function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            // Validate file size (5MB limit)
+            if (file.size > 5 * 1024 * 1024) {
+                alert('File too large. Maximum size is 5MB.');
+                return;
+            }
+            
+            // Validate file type
+            const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp'];
+            if (!allowedTypes.includes(file.type)) {
+                alert('Invalid file type. Please use PNG, JPG, GIF, or WebP images.');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('profileImage', file);
+            
+            try {
+                const response = await fetch('/api/upload-profile-image', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    document.getElementById('userProfileImage').src = result.profileImage;
+                    // Show success message briefly
+                    const img = document.getElementById('userProfileImage');
+                    img.style.border = '3px solid #10b981';
+                    setTimeout(() => {
+                        img.style.border = '3px solid #22d3ee';
+                    }, 2000);
+                } else {
+                    alert('Upload failed: ' + result.error);
+                }
+            } catch (error) {
+                alert('Upload failed. Please try again.');
+                console.error('Upload error:', error);
+            }
+        });
+
+        window.removeProfileImage = async () => {
+            if (confirm('Remove your profile picture?')) {
+                try {
+                    const response = await fetch('/api/users', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ profileImage: '/static/logos/Sapphire.png' })
+                    });
+                    
+                    const result = await response.json();
+                    if (result.success) {
+                        document.getElementById('userProfileImage').src = '/static/logos/Sapphire.png';
+                    }
+                } catch (error) {
+                    console.error('Remove image error:', error);
+                }
+            }
+        };
+
+        window.updateDisplayName = async () => {
+            const displayName = document.getElementById('displayNameInput').value.trim();
+            if (!displayName) {
+                alert('Please enter a display name.');
+                return;
+            }
+            
+            if (displayName.length > 50) {
+                alert('Display name must be 50 characters or less.');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/users', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ displayName: displayName })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    alert('Display name updated successfully!');
+                } else {
+                    alert('Update failed: ' + result.error);
+                }
+            } catch (error) {
+                alert('Update failed. Please try again.');
+                console.error('Update error:', error);
             }
         };
 

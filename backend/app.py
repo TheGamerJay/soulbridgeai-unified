@@ -2242,13 +2242,17 @@ def api_users():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
         if request.method == "GET":
-            # Return current user data
+            # Return current user data with proper defaults
+            user_email = session.get('user_email') or session.get('email', 'user@soulbridgeai.com')
             user_data = {
-                "uid": session.get('user_id'),
-                "email": session.get('user_email') or session.get('email'),
-                "displayName": session.get('display_name', 'User'),
+                "uid": session.get('user_id', 'user_' + str(hash(user_email))[:8]),
+                "email": user_email,
+                "displayName": session.get('display_name') or session.get('user_name', 'SoulBridge User'),
                 "plan": session.get('user_plan', 'foundation'),
-                "addons": session.get('user_addons', [])
+                "addons": session.get('user_addons', []),
+                "profileImage": session.get('profile_image', '/static/logos/Sapphire.png'),
+                "joinDate": session.get('join_date', '2024-01-01'),
+                "isActive": True
             }
             
             logger.info(f"API Users: Returning user data: {user_data}")
@@ -2262,7 +2266,14 @@ def api_users():
             # Create/update user profile
             data = request.get_json() or {}
             
-            # For now, just return success since we have basic session data
+            # Update session data with new profile info
+            if 'displayName' in data:
+                session['display_name'] = data['displayName']
+                session['user_name'] = data['displayName']
+            
+            if 'profileImage' in data:
+                session['profile_image'] = data['profileImage']
+            
             return jsonify({
                 "success": True,
                 "message": "Profile updated successfully"
@@ -2271,6 +2282,63 @@ def api_users():
     except Exception as e:
         logger.error(f"Users API error: {e}")
         return jsonify({"success": False, "error": "Failed to process request"}), 500
+
+@app.route("/api/upload-profile-image", methods=["POST"])
+def upload_profile_image():
+    """Upload and set user profile image"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        if 'profileImage' not in request.files:
+            return jsonify({"success": False, "error": "No image file provided"}), 400
+        
+        file = request.files['profileImage']
+        if file.filename == '':
+            return jsonify({"success": False, "error": "No file selected"}), 400
+        
+        # Validate file type
+        allowed_extensions = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+        file_ext = file.filename.rsplit('.', 1)[1].lower() if '.' in file.filename else ''
+        
+        if file_ext not in allowed_extensions:
+            return jsonify({"success": False, "error": "Invalid file type. Please use PNG, JPG, JPEG, GIF, or WebP"}), 400
+        
+        # Validate file size (max 5MB)
+        file.seek(0, 2)  # Seek to end
+        file_size = file.tell()
+        file.seek(0)  # Reset to beginning
+        
+        if file_size > 5 * 1024 * 1024:  # 5MB
+            return jsonify({"success": False, "error": "File too large. Maximum size is 5MB"}), 400
+        
+        # Create uploads directory if it doesn't exist
+        import os
+        upload_dir = os.path.join('static', 'uploads', 'profiles')
+        os.makedirs(upload_dir, exist_ok=True)
+        
+        # Generate unique filename
+        import uuid
+        file_extension = file.filename.rsplit('.', 1)[1].lower()
+        unique_filename = f"{uuid.uuid4()}.{file_extension}"
+        file_path = os.path.join(upload_dir, unique_filename)
+        
+        # Save file
+        file.save(file_path)
+        
+        # Store in session
+        profile_image_url = f"/static/uploads/profiles/{unique_filename}"
+        session['profile_image'] = profile_image_url
+        
+        return jsonify({
+            "success": True,
+            "profileImage": profile_image_url,
+            "message": "Profile image updated successfully"
+        })
+        
+    except Exception as e:
+        logger.error(f"Profile image upload error: {e}")
+        return jsonify({"success": False, "error": "Failed to upload image"}), 500
 
 @app.route("/api/user-addons")
 def get_user_addons():
