@@ -412,24 +412,15 @@
                 <!-- Profile Image Section -->
                 <div style="text-align: center; margin-bottom: 25px; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 12px;">
                     <div style="margin-bottom: 15px;">
-                        <div style="width: 120px; height: 120px; border-radius: 50%; overflow: hidden; 
-                                    margin: 0 auto; border: 3px solid #22d3ee; 
-                                    box-shadow: 0 4px 20px rgba(34, 211, 238, 0.3);
-                                    position: relative; background: #000;">
-                            <img id="userProfileImage" src="/static/logos/Sapphire.png" alt="Profile Picture" 
-                                 style="max-width: none; max-height: none; width: auto; height: auto;
-                                        transform-origin: center center; transition: transform 0.1s ease;
-                                        position: absolute; top: 50%; left: 50%; 
-                                        transform: translate(-50%, -50%);">
-                        </div>
+                        <img id="userProfileImage" src="/static/logos/Sapphire.png" alt="Profile Picture" 
+                             style="width: 120px; height: 120px; object-fit: cover; object-position: center; 
+                                    box-shadow: 0 4px 20px rgba(34, 211, 238, 0.3); display: block; margin: 0 auto;
+                                    border-radius: 8px;">
                     </div>
                     <div style="margin-bottom: 15px;">
-                        <input type="file" id="profileImageInput" accept="image/*" style="display: none;">
-                        <button onclick="document.getElementById('profileImageInput').click()" class="profile-btn" style="margin-right: 10px;">
-                            📷 Change Profile Picture
-                        </button>
-                        <button onclick="removeProfileImage()" class="profile-btn secondary">
-                            🗑️ Remove
+                        <input type="file" id="profileImageInput" accept="image/*" style="display: none;" onchange="handleProfileImageUpload()">
+                        <button onclick="document.getElementById('profileImageInput').click()" class="profile-btn">
+                            📷 Upload Profile Picture
                         </button>
                     </div>
                     <div style="font-size: 0.85rem; color: #94a3b8;">
@@ -1049,11 +1040,58 @@
 
         // Global functions
         window.changeCompanion = () => {
-            window.location.href = '/#select';
+            window.location.href = '/companion-selection';
         };
 
         window.viewCompanionStats = () => {
             alert('Companion statistics feature coming soon!');
+        };
+
+        // Simple profile image upload handler - no complex adjustments needed
+        window.handleProfileImageUpload = async function() {
+            const fileInput = document.getElementById('profileImageInput');
+            if (!fileInput.files || !fileInput.files[0]) {
+                return;
+            }
+            
+            const file = fileInput.files[0];
+            
+            // Simple file size check (5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                alert('File size must be less than 5MB');
+                fileInput.value = '';
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('profileImage', file);
+            
+            try {
+                const response = await fetch('/api/upload-profile-image', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    // Update the profile image immediately
+                    const profileImg = document.getElementById('userProfileImage');
+                    profileImg.src = result.profileImage;
+                    
+                    // Show success with green glow
+                    profileImg.style.boxShadow = '0 4px 20px rgba(16, 185, 129, 0.6)';
+                    setTimeout(() => {
+                        profileImg.style.boxShadow = '0 4px 20px rgba(34, 211, 238, 0.3)';
+                    }, 2000);
+                    
+                    console.log('✅ Profile image updated successfully');
+                } else {
+                    alert('Upload failed: ' + result.error);
+                }
+            } catch (error) {
+                console.error('Upload error:', error);
+                alert('Upload failed. Please try again.');
+            }
         };
 
         window.toggleHistorySaving = async () => {
