@@ -2342,10 +2342,17 @@ def debug_check_user():
         if not services["database"] or not db:
             init_database()
         
-        from simple_auth import SimpleAuth
-        auth = SimpleAuth(db)
+        # Create database connection directly if needed
+        from auth import Database
+        if not db:
+            temp_db = Database()
+        else:
+            temp_db = db
         
-        conn = db.get_connection()
+        from simple_auth import SimpleAuth
+        auth = SimpleAuth(temp_db)
+        
+        conn = temp_db.get_connection()
         cursor = conn.cursor()
         
         # Get all users
