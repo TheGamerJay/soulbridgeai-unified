@@ -1933,13 +1933,79 @@ def create_addon_checkout():
             
         addon_type = data.get("addon_type")
         
-        # Add-ons will use same Stripe integration
-        logger.info(f"Add-on checkout requested: {addon_type} by {session.get('user_email')}")
-        return jsonify({
-            "success": False, 
-            "error": "Add-on payments coming soon! Focus on main plans for now."
-        }), 503
+        # Validate addon type
+        addon_details = {
+            'emotional-meditations': {'name': 'Emotional Meditations', 'price': 399},
+            'color-customization': {'name': 'Color Customization', 'price': 199},
+            'ai-image-generation': {'name': 'AI Image Generation', 'price': 699},
+            'complete-bundle': {'name': 'Complete Add-On Bundle', 'price': 1699}
+        }
         
+        if addon_type not in addon_details:
+            return jsonify({"success": False, "error": "Invalid add-on type"}), 400
+        
+        # Check if Stripe is configured
+        stripe_secret_key = os.environ.get("STRIPE_SECRET_KEY")
+        if not stripe_secret_key:
+            logger.warning("Stripe secret key not configured")
+            return jsonify({
+                "success": False, 
+                "error": "Payment processing is being configured. Please try again later.",
+                "debug": "STRIPE_SECRET_KEY not set"
+            }), 503
+        
+        logger.info(f"Creating Stripe checkout for {addon_type} add-on")
+        
+        import stripe
+        stripe.api_key = stripe_secret_key
+        
+        addon_info = addon_details[addon_type]
+        user_email = session.get("user_email")
+        
+        try:
+            # Create Stripe checkout session for add-on
+            checkout_session = stripe.checkout.Session.create(
+                payment_method_types=['card'],
+                customer_email=user_email,
+                line_items=[{
+                    'price_data': {
+                        'currency': 'usd',
+                        'product_data': {
+                            'name': f'SoulBridge AI - {addon_info["name"]}',
+                            'description': f'Monthly subscription to {addon_info["name"]} add-on',
+                        },
+                        'unit_amount': addon_info["price"],
+                        'recurring': {
+                            'interval': 'month'
+                        }
+                    },
+                    'quantity': 1,
+                }],
+                mode='subscription',
+                success_url=f"{request.host_url}payment/success?session_id={{CHECKOUT_SESSION_ID}}&addon={addon_type}",
+                cancel_url=f"{request.host_url}payment/cancel?addon={addon_type}",
+                metadata={
+                    'addon_type': addon_type,
+                    'user_email': user_email,
+                    'item_type': 'addon'
+                }
+            )
+            
+            logger.info(f"Stripe checkout created for {user_email}: {addon_type} add-on")
+            
+            return jsonify({
+                "success": True,
+                "checkout_url": checkout_session.url,
+                "session_id": checkout_session.id
+            })
+            
+        except stripe.error.StripeError as stripe_e:
+            logger.error(f"Stripe error for {user_email}: {stripe_e}")
+            return jsonify({
+                "success": False, 
+                "error": "Payment service temporarily unavailable. Please try again."
+            }), 503
+            
     except Exception as e:
         logger.error(f"Add-on checkout error: {e}")
         return jsonify({"success": False, "error": "Checkout failed"}), 500
@@ -1953,8 +2019,9 @@ def payment_success():
             
         session_id = request.args.get("session_id")
         plan_type = request.args.get("plan")
+        addon_type = request.args.get("addon")
         
-        if not session_id or not plan_type:
+        if not session_id or (not plan_type and not addon_type):
             return redirect("/subscription?error=invalid_payment")
         
         # Verify payment with Stripe
@@ -1966,36 +2033,58 @@ def payment_success():
             try:
                 checkout_session = stripe.checkout.Session.retrieve(session_id)
                 if checkout_session.payment_status == "paid":
-                    # Update user plan in session and database
-                    session["user_plan"] = plan_type
                     user_email = session.get("user_email")
+                    
+                    if plan_type:
+                        # Handle plan subscription
+                        session["user_plan"] = plan_type
+                        subscription_type = "plan"
+                        item_name = plan_type
+                        logger.info(f"Payment successful: {user_email} upgraded to {plan_type}")
+                        redirect_url = f"/?payment_success=true&plan={plan_type}"
+                    elif addon_type:
+                        # Handle add-on subscription
+                        if "user_addons" not in session:
+                            session["user_addons"] = []
+                        if addon_type not in session["user_addons"]:
+                            session["user_addons"].append(addon_type)
+                        subscription_type = "addon"
+                        item_name = addon_type
+                        logger.info(f"Payment successful: {user_email} purchased add-on {addon_type}")
+                        redirect_url = f"/subscription?addon_success=true&addon={addon_type}"
                     
                     # Store subscription in database
                     if services["database"] and db:
                         conn = db.get_connection()
                         cursor = conn.cursor()
                         
-                        # Insert or update subscription
-                        cursor.execute("""
-                            INSERT OR REPLACE INTO subscriptions 
-                            (user_id, email, plan_type, status, stripe_subscription_id)
-                            VALUES ((SELECT id FROM users WHERE email = ?), ?, ?, 'active', ?)
-                        """, (user_email, user_email, plan_type, checkout_session.subscription))
+                        if plan_type:
+                            # Insert or update plan subscription
+                            cursor.execute("""
+                                INSERT OR REPLACE INTO subscriptions 
+                                (user_id, email, plan_type, status, stripe_subscription_id)
+                                VALUES ((SELECT id FROM users WHERE email = ?), ?, ?, 'active', ?)
+                            """, (user_email, user_email, plan_type, checkout_session.subscription))
+                        elif addon_type:
+                            # Insert add-on subscription
+                            cursor.execute("""
+                                INSERT OR REPLACE INTO addon_subscriptions 
+                                (user_id, email, addon_type, status, stripe_subscription_id)
+                                VALUES ((SELECT id FROM users WHERE email = ?), ?, ?, 'active', ?)
+                            """, (user_email, user_email, addon_type, checkout_session.subscription))
                         
                         # Log payment event
                         cursor.execute("""
                             INSERT INTO payment_events 
                             (email, event_type, plan_type, amount, stripe_event_id)
                             VALUES (?, 'payment_success', ?, ?, ?)
-                        """, (user_email, plan_type, checkout_session.amount_total / 100, session_id))
+                        """, (user_email, subscription_type, item_name, checkout_session.amount_total / 100, session_id))
                         
                         conn.commit()
                         conn.close()
                     
-                    logger.info(f"Payment successful: {user_email} upgraded to {plan_type}")
-                    
-                    # Redirect to app with premium access
-                    return redirect("/?payment_success=true&plan=" + plan_type)
+                    # Redirect with success message
+                    return redirect(redirect_url)
                     
             except Exception as e:
                 logger.error(f"Payment verification error: {e}")
