@@ -1735,22 +1735,20 @@
         
         // Force style reapplication when page loads (fixes back navigation styling issues)
         function forceStyleReapplication() {
-            // Remove and re-add the main stylesheet to force refresh
             const body = document.body;
             const companionSelector = document.querySelector('.companion-selector');
             
             if (companionSelector) {
-                // Force reflow by temporarily changing a style
-                companionSelector.style.display = 'none';
-                companionSelector.offsetHeight; // trigger reflow
-                companionSelector.style.display = '';
-                
-                // Ensure background is properly applied
+                // Ensure Netflix-style background is properly applied
                 body.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                body.style.minHeight = '100vh';
+                
+                // Apply the Netflix gradient to the main container
                 companionSelector.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                companionSelector.style.minHeight = '100vh';
+                
+                console.log('🎨 Netflix-style companion selector styles applied');
             }
-            
-            console.log('🎨 Styles reapplied for companion selector');
         }
         
         // Apply on page load and when user returns to page
