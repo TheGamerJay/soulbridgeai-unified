@@ -46,6 +46,27 @@
             color: #000;
         }
         
+        .security-indicator {
+            background: rgba(34, 211, 238, 0.2);
+            border: 1px solid #22d3ee;
+            color: #22d3ee;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+        
+        .logout-btn {
+            background: rgba(239, 68, 68, 0.2) !important;
+            border-color: #ef4444 !important;
+            color: #ef4444 !important;
+        }
+        
+        .logout-btn:hover {
+            background: #ef4444 !important;
+            color: #fff !important;
+        }
+        
         .intro-container {
             min-height: 100vh;
             background: linear-gradient(135deg, #000000 0%, #0f172a 50%, #1e293b 100%);
@@ -141,6 +162,30 @@
             border: 2px solid #22d3ee;
             color: #22d3ee;
         }
+        
+        .security-notice {
+            background: rgba(34, 211, 238, 0.1);
+            border: 1px solid #22d3ee;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 40px;
+            text-align: left;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .security-notice h4 {
+            color: #22d3ee;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .security-notice p {
+            color: #94a3b8;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 <body>
@@ -151,8 +196,9 @@
             <a href="/profile" class="nav-btn">Profile</a>
         </div>
         <div class="nav-right">
+            <span class="security-indicator" id="sessionTimer">🔒 Session: Active</span>
             <button class="nav-btn" onclick="toggleTheme()">🌙 Theme</button>
-            <a href="/auth/logout" class="nav-btn">Logout</a>
+            <a href="/auth/logout" class="nav-btn logout-btn">🚪 Secure Logout</a>
         </div>
     </div>
     
@@ -185,6 +231,14 @@
                 <a href="/companion-selection" class="intro-btn">Choose Your Companion</a>
                 <a href="/profile" class="intro-btn secondary">View Profile</a>
             </div>
+            
+            <!-- Security Notice -->
+            <div class="security-notice">
+                <h4>🔒 Your Security Matters</h4>
+                <p>• Your session automatically expires after 30 minutes of inactivity</p>
+                <p>• You'll be logged out when you close your browser</p>
+                <p>• Always use "Secure Logout" on shared computers</p>
+            </div>
         </div>
     </div>
     
@@ -203,12 +257,52 @@
             }
         }
         
+        // Session countdown timer for security awareness
+        let sessionTimeout = 30 * 60 * 1000; // 30 minutes in milliseconds
+        let lastActivity = Date.now();
+        
+        function updateSessionTimer() {
+            const timeLeft = sessionTimeout - (Date.now() - lastActivity);
+            const minutesLeft = Math.floor(timeLeft / (60 * 1000));
+            const sessionIndicator = document.getElementById('sessionTimer');
+            
+            if (timeLeft <= 0) {
+                sessionIndicator.textContent = '🔒 Session: Expired';
+                sessionIndicator.style.color = '#ef4444';
+                alert('Your session has expired for security. Please log in again.');
+                window.location.href = '/auth/logout';
+            } else if (minutesLeft <= 5) {
+                sessionIndicator.textContent = `⚠️ Session: ${minutesLeft}min left`;
+                sessionIndicator.style.color = '#f59e0b';
+            } else {
+                sessionIndicator.textContent = `🔒 Session: ${minutesLeft}min`;
+                sessionIndicator.style.color = '#22d3ee';
+            }
+        }
+        
+        // Update activity on any user interaction
+        function resetActivity() {
+            lastActivity = Date.now();
+        }
+        
+        // Monitor user activity
+        ['click', 'keypress', 'scroll', 'mousemove'].forEach(event => {
+            document.addEventListener(event, resetActivity, true);
+        });
+        
+        // Update timer every 30 seconds
+        setInterval(updateSessionTimer, 30000);
+        updateSessionTimer(); // Initial call
+        
         // Load saved theme
         const savedTheme = localStorage.getItem('theme') || 'night';
         if (savedTheme === 'day') {
             document.body.classList.add('day-mode');
             document.querySelector('[onclick="toggleTheme()"]').textContent = '☀️ Day';
         }
+        
+        // Subtle security reminder - no popup
+        console.log('🔒 Session auto-expires in 30 minutes for security');
     </script>
 </body>
 </html>
