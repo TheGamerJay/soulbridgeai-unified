@@ -2452,6 +2452,43 @@ def debug_test_login():
             "error": str(e)
         }), 500
 
+@app.route("/debug/delete-users", methods=["POST"])
+def debug_delete_users():
+    """Delete old user accounts to start fresh"""
+    try:
+        if not services["database"] or not db:
+            init_database()
+        
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        
+        # Delete the old accounts
+        emails_to_delete = ['aceelnene@gmail.com', 'dagamerjay13@gmail.com']
+        
+        placeholder = "%s" if hasattr(db, 'postgres_url') and db.postgres_url else "?"
+        
+        deleted_users = []
+        for email in emails_to_delete:
+            cursor.execute(f"DELETE FROM users WHERE email = {placeholder}", (email,))
+            if cursor.rowcount > 0:
+                deleted_users.append(email)
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({
+            "status": "Success",
+            "deleted_users": deleted_users,
+            "message": "Old accounts deleted. You can now create a fresh account."
+        })
+            
+    except Exception as e:
+        logger.error(f"Delete users error: {e}")
+        return jsonify({
+            "status": "Error",
+            "error": str(e)
+        }), 500
+
 @app.route("/stripe-status", methods=["GET"])
 def stripe_status():
     """Check Stripe configuration status - public endpoint for debugging"""
