@@ -2337,40 +2337,50 @@ def debug_reset_password():
 
 @app.route("/debug/check-user", methods=["GET"])
 def debug_check_user():
-    """Check all existing user accounts"""
+    """NUCLEAR OPTION: Drop and recreate users table"""
     try:
-        if not services["database"] or not db:
-            init_database()
+        import os
+        import psycopg2
         
-        # Create database connection directly if needed
-        from auth import Database
-        if not db:
-            temp_db = Database()
-        else:
-            temp_db = db
+        # Direct PostgreSQL connection
+        postgres_url = os.environ.get('DATABASE_URL') or os.environ.get('POSTGRES_URL')
+        if not postgres_url:
+            return jsonify({"error": "No database URL found"})
         
-        from simple_auth import SimpleAuth
-        auth = SimpleAuth(temp_db)
-        
-        conn = temp_db.get_connection()
+        conn = psycopg2.connect(postgres_url)
         cursor = conn.cursor()
         
-        # DELETE ALL USERS FIRST
-        cursor.execute("DELETE FROM users")
-        deleted_count = cursor.rowcount
+        # DROP and recreate the entire users table
+        cursor.execute("DROP TABLE IF EXISTS users CASCADE")
+        cursor.execute("""
+            CREATE TABLE users (
+                id SERIAL PRIMARY KEY,
+                email VARCHAR(255) UNIQUE,
+                password_hash TEXT,
+                display_name TEXT NOT NULL,
+                email_verified INTEGER DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                trial_start TIMESTAMP,
+                ip_address TEXT,
+                oauth_provider VARCHAR(50),
+                oauth_id VARCHAR(255),
+                profile_picture_url TEXT,
+                last_login TIMESTAMP
+            )
+        """)
         
-        # Get remaining users
-        cursor.execute("SELECT id, email, display_name, email_verified, created_at FROM users ORDER BY created_at")
-        users = cursor.fetchall()
+        # Verify table is empty
+        cursor.execute("SELECT COUNT(*) FROM users")
+        count = cursor.fetchone()[0]
         
         conn.commit()
         conn.close()
         
         return jsonify({
-            "status": "ALL USERS DELETED",
-            "deleted_count": deleted_count,
-            "remaining_users": len(users),
-            "message": "Database completely cleaned"
+            "status": "NUCLEAR CLEANUP COMPLETE",
+            "users_table_recreated": True,
+            "current_user_count": count,
+            "message": "Fresh start - table dropped and recreated"
         })
             
     except Exception as e:
