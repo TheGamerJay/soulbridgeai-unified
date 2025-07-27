@@ -621,7 +621,7 @@ def register_page():
 
 @app.route("/auth/register", methods=["GET", "POST"])
 def auth_register():
-    """Handle user registration"""
+    """Clean, simple user registration"""
     # Handle GET requests - show registration form
     if request.method == "GET":
         return render_template("register.html")
@@ -634,58 +634,37 @@ def auth_register():
         if not email or not password:
             return jsonify({"success": False, "error": "Email and password required"}), 400
         
-        # Normalize email to lowercase for consistency
-        email = email.lower().strip()
-            
         if not display_name:
             display_name = email.split('@')[0]  # Use email prefix as default name
         
-        # Get database instance (lazy initialization)
-        database = get_database()
-        if database:
-            try:
-                from auth import User
-                user = User(database)
-                
-                # Check if user already exists
-                if user.user_exists(email):
-                    logger.warning(f"Registration attempt for existing user: {email}")
-                    return jsonify({"success": False, "error": "User already exists"}), 409
-                
-                # Create new user
-                user_id = user.create_user(email, password, display_name)
-                
-                if user_id:
-                    # Auto-login after registration
-                    setup_user_session(email, user_id=user_id)
-                    logger.info(f"User registered and logged in: {email}")
-                    
-                    # Initialize email service if needed and send welcome email
-                    try:
-                        if not services["email"]:
-                            init_email()
-                        
-                        if services["email"] and email_service:
-                            result = email_service.send_welcome_email(email, display_name)
-                            if result.get("success"):
-                                logger.info(f"Welcome email sent to {email}")
-                            else:
-                                logger.warning(f"Welcome email failed for {email}: {result.get('error')}")
-                        else:
-                            logger.warning(f"Email service not available for welcome email to {email}")
-                    except Exception as e:
-                        logger.error(f"Welcome email error for {email}: {e}")
-                    
-                    # New users should go to plan selection  
-                    return jsonify({"success": True, "redirect": "/subscription"})
-                else:
-                    return jsonify({"success": False, "error": "Registration failed"}), 500
-                    
-            except Exception as db_error:
-                logger.error(f"Registration database error: {db_error}")
-                return jsonify({"success": False, "error": "Registration failed"}), 500
+        # Initialize database if needed
+        if not services["database"]:
+            init_database()
+        
+        # Use clean authentication system
+        from simple_auth import SimpleAuth
+        auth = SimpleAuth(db)
+        
+        # Check if user already exists
+        if auth.user_exists(email):
+            return jsonify({"success": False, "error": "User already exists"}), 409
+        
+        # Create new user
+        result = auth.create_user(email, password, display_name)
+        
+        if result["success"]:
+            # Auto-login after registration
+            user_data = {
+                "user_id": result["user_id"],
+                "email": email,
+                "display_name": display_name
+            }
+            auth.create_session(user_data)
+            
+            logger.info(f"User registered and logged in: {email}")
+            return jsonify({"success": True, "redirect": "/"})
         else:
-            return jsonify({"success": False, "error": "Registration service unavailable"}), 503
+            return jsonify({"success": False, "error": result["error"]}), 500
             
     except Exception as e:
         logger.error(f"Registration error: {e}")
