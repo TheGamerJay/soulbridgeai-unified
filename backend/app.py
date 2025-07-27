@@ -2337,50 +2337,49 @@ def debug_reset_password():
 
 @app.route("/debug/check-user", methods=["GET"])
 def debug_check_user():
-    """NUCLEAR OPTION: Drop and recreate users table"""
+    """FORCE DELETE specific user across all connections"""
     try:
         import os
         import psycopg2
+        import time
         
         # Direct PostgreSQL connection
         postgres_url = os.environ.get('DATABASE_URL') or os.environ.get('POSTGRES_URL')
         if not postgres_url:
             return jsonify({"error": "No database URL found"})
         
+        # Create multiple connections to ensure deletion across all
+        for i in range(3):
+            conn = psycopg2.connect(postgres_url)
+            conn.autocommit = True  # Force immediate commit
+            cursor = conn.cursor()
+            
+            # Force delete the problematic user
+            cursor.execute("DELETE FROM users WHERE email = 'jaaythechaos13@gmail.com'")
+            cursor.execute("DELETE FROM users WHERE email = 'mynewaccount@gmail.com'")
+            
+            # Also delete by ID if needed
+            cursor.execute("DELETE FROM users WHERE id IN (55, 57)")
+            
+            conn.close()
+            time.sleep(1)  # Wait between deletions
+        
+        # Final verification
         conn = psycopg2.connect(postgres_url)
         cursor = conn.cursor()
-        
-        # DROP and recreate the entire users table
-        cursor.execute("DROP TABLE IF EXISTS users CASCADE")
-        cursor.execute("""
-            CREATE TABLE users (
-                id SERIAL PRIMARY KEY,
-                email VARCHAR(255) UNIQUE,
-                password_hash TEXT,
-                display_name TEXT NOT NULL,
-                email_verified INTEGER DEFAULT 0,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                trial_start TIMESTAMP,
-                ip_address TEXT,
-                oauth_provider VARCHAR(50),
-                oauth_id VARCHAR(255),
-                profile_picture_url TEXT,
-                last_login TIMESTAMP
-            )
-        """)
-        
-        # Verify table is empty
         cursor.execute("SELECT COUNT(*) FROM users")
         count = cursor.fetchone()[0]
         
-        conn.commit()
+        cursor.execute("SELECT id, email FROM users")
+        remaining = cursor.fetchall()
+        
         conn.close()
         
         return jsonify({
-            "status": "NUCLEAR CLEANUP COMPLETE",
-            "users_table_recreated": True,
-            "current_user_count": count,
-            "message": "Fresh start - table dropped and recreated"
+            "status": "FORCE DELETE COMPLETE",
+            "remaining_count": count,
+            "remaining_users": [{"id": r[0], "email": r[1]} for r in remaining],
+            "message": "Multi-connection force delete executed"
         })
             
     except Exception as e:
