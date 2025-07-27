@@ -462,8 +462,8 @@ def home():
         if not services["database"]:
             initialize_services()
         
-        # Show your original beautiful chat page
-        return render_template("chat.html")
+        # Show intro page first instead of going directly to chat
+        return render_template("intro.html")
         
     except Exception as e:
         logger.error(f"Home route error: {e}")
@@ -3489,7 +3489,7 @@ def oauth_callback():
             else:
                 flash(f"Welcome back! Signed in with {provider.title()}.", "success")
                 
-            return redirect(url_for("profile"))
+            return redirect("/")
         else:
             flash(result["error"], "error")
             return redirect(url_for("login_page"))
