@@ -7,258 +7,66 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/themes.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
-    <style>
-        .top-nav {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
-            background: rgba(0, 0, 0, 0.9);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid #374151;
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .nav-left, .nav-right {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-        }
-        
-        .nav-btn {
-            background: rgba(34, 211, 238, 0.2);
-            border: 1px solid #22d3ee;
-            color: #22d3ee;
-            padding: 8px 16px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-        
-        .nav-btn:hover {
-            background: #22d3ee;
-            color: #000;
-        }
-        
-        .security-indicator {
-            background: rgba(34, 211, 238, 0.2);
-            border: 1px solid #22d3ee;
-            color: #22d3ee;
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            font-weight: bold;
-        }
-        
-        .logout-btn {
-            background: rgba(239, 68, 68, 0.2) !important;
-            border-color: #ef4444 !important;
-            color: #ef4444 !important;
-        }
-        
-        .logout-btn:hover {
-            background: #ef4444 !important;
-            color: #fff !important;
-        }
-        
-        .intro-container {
-            min-height: 100vh;
-            background: linear-gradient(135deg, #000000 0%, #0f172a 50%, #1e293b 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 80px 20px 20px;
-        }
-        
-        .intro-content {
-            max-width: 800px;
-            text-align: center;
-            color: #e2e8f0;
-        }
-        
-        .intro-logo {
-            max-width: 200px;
-            height: auto;
-            margin-bottom: 30px;
-        }
-        
-        .intro-title {
-            font-size: 3rem;
-            font-weight: bold;
-            margin-bottom: 20px;
-            background: linear-gradient(135deg, #22d3ee, #06b6d4);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        .intro-subtitle {
-            font-size: 1.5rem;
-            margin-bottom: 40px;
-            opacity: 0.9;
-        }
-        
-        .intro-features {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 30px;
-            margin-bottom: 50px;
-        }
-        
-        .feature-card {
-            background: rgba(34, 211, 238, 0.1);
-            border: 2px solid #22d3ee;
-            border-radius: 16px;
-            padding: 30px;
-            backdrop-filter: blur(10px);
-        }
-        
-        .feature-icon {
-            font-size: 3rem;
-            color: #22d3ee;
-            margin-bottom: 15px;
-        }
-        
-        .feature-title {
-            font-size: 1.3rem;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-        
-        .intro-buttons {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-        
-        .intro-btn {
-            background: linear-gradient(135deg, #22d3ee, #06b6d4);
-            color: #000;
-            padding: 15px 30px;
-            border: none;
-            border-radius: 12px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
-        }
-        
-        .intro-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(34, 211, 238, 0.3);
-        }
-        
-        .intro-btn.secondary {
-            background: transparent;
-            border: 2px solid #22d3ee;
-            color: #22d3ee;
-        }
-        
-        .security-notice {
-            background: rgba(34, 211, 238, 0.1);
-            border: 1px solid #22d3ee;
-            border-radius: 12px;
-            padding: 20px;
-            margin-top: 40px;
-            text-align: left;
-            max-width: 500px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        
-        .security-notice h4 {
-            color: #22d3ee;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-        
-        .security-notice p {
-            color: #94a3b8;
-            margin-bottom: 8px;
-            font-size: 0.9rem;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/animations.css') }}">
 </head>
 <body>
-    <!-- Top Navigation -->
-    <div class="top-nav">
-        <div class="nav-left">
-            <button class="nav-btn" onclick="history.back()">← Back</button>
-            <a href="/profile" class="nav-btn">Profile</a>
+    <!-- Original Theme Navigation -->
+    <div class="top-nav" style="position: fixed; top: 0; left: 0; right: 0; z-index: 1000; background: rgba(0, 0, 0, 0.9); backdrop-filter: blur(10px); border-bottom: 1px solid #374151; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; gap: 15px; align-items: center;">
+            <button class="btn-secondary" onclick="history.back()">← Back</button>
+            <a href="/profile" class="btn-secondary">Profile</a>
         </div>
-        <div class="nav-right">
-            <span class="security-indicator" id="sessionTimer">🔒 Session: Active</span>
-            <button class="nav-btn" onclick="toggleTheme()">🌙 Theme</button>
-            <a href="/auth/logout" class="nav-btn logout-btn">🚪 Secure Logout</a>
-        </div>
-    </div>
-    
-    <div class="intro-container">
-        <div class="intro-content">
-            <img src="{{ url_for('static', filename='logos/IntroLogo.png') }}" alt="SoulBridge AI" class="intro-logo">
-            
-            <h1 class="intro-title">Welcome to SoulBridge AI</h1>
-            <p class="intro-subtitle">Your AI companion for meaningful conversations and personal growth</p>
-            
-            <div class="intro-features">
-                <div class="feature-card">
-                    <div class="feature-icon">🤖</div>
-                    <div class="feature-title">AI Companions</div>
-                    <p>Choose from unique AI personalities tailored to your needs</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">💬</div>
-                    <div class="feature-title">Deep Conversations</div>
-                    <p>Engage in meaningful dialogue that evolves with you</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">⭐</div>
-                    <div class="feature-title">Personal Growth</div>
-                    <p>Develop insights and grow through AI-guided interactions</p>
-                </div>
-            </div>
-            
-            <div class="intro-buttons">
-                <a href="/companion-selection" class="intro-btn">Choose Your Companion</a>
-                <a href="/profile" class="intro-btn secondary">View Profile</a>
-            </div>
-            
-            <!-- Security Notice -->
-            <div class="security-notice">
-                <h4>🔒 Your Security Matters</h4>
-                <p>• Your session automatically expires after 30 minutes of inactivity</p>
-                <p>• You'll be logged out when you close your browser</p>
-                <p>• Always use "Secure Logout" on shared computers</p>
-            </div>
+        <div style="display: flex; gap: 15px; align-items: center;">
+            <span id="sessionTimer" style="color: #22d3ee; font-size: 0.9rem;">🔒 Session: Active</span>
+            <button class="btn-secondary" onclick="toggleTheme()">🌙 Theme</button>
+            <a href="/auth/logout" class="btn-danger">Logout</a>
         </div>
     </div>
     
-    <script>
-        function toggleTheme() {
-            document.body.classList.toggle('day-mode');
-            const isDayMode = document.body.classList.contains('day-mode');
-            const themeBtn = document.querySelector('[onclick="toggleTheme()"]');
-            
-            if (isDayMode) {
-                themeBtn.textContent = '☀️ Day';
-                localStorage.setItem('theme', 'day');
-            } else {
-                themeBtn.textContent = '🌙 Night';
-                localStorage.setItem('theme', 'night');
-            }
-        }
+    <!-- Main Content using your original styling -->
+    <div class="container" style="padding-top: 80px; text-align: center; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center;">
         
-        // Session countdown timer for security awareness
-        let sessionTimeout = 30 * 60 * 1000; // 30 minutes in milliseconds
+        <img src="{{ url_for('static', filename='logos/IntroLogo.png') }}" alt="SoulBridge AI" style="max-width: 200px; height: auto; margin-bottom: 30px;">
+        
+        <h1 style="font-size: 2.5rem; margin-bottom: 20px;">Welcome to SoulBridge AI</h1>
+        <p style="font-size: 1.2rem; margin-bottom: 40px; opacity: 0.9;">Your AI companion for meaningful conversations and personal growth</p>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; margin-bottom: 50px; max-width: 800px;">
+            <div class="card" style="padding: 30px; text-align: center;">
+                <div style="font-size: 3rem; margin-bottom: 15px;">🤖</div>
+                <h3>AI Companions</h3>
+                <p>Choose from unique AI personalities tailored to your needs</p>
+            </div>
+            <div class="card" style="padding: 30px; text-align: center;">
+                <div style="font-size: 3rem; margin-bottom: 15px;">💬</div>
+                <h3>Deep Conversations</h3>
+                <p>Engage in meaningful dialogue that evolves with you</p>
+            </div>
+            <div class="card" style="padding: 30px; text-align: center;">
+                <div style="font-size: 3rem; margin-bottom: 15px;">⭐</div>
+                <h3>Personal Growth</h3>
+                <p>Develop insights and grow through AI-guided interactions</p>
+            </div>
+        </div>
+        
+        <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; margin-bottom: 40px;">
+            <a href="/companion-selection" class="btn-primary" style="padding: 15px 30px; font-size: 1.1rem;">Choose Your Companion</a>
+            <a href="/profile" class="btn-secondary" style="padding: 15px 30px; font-size: 1.1rem;">View Profile</a>
+        </div>
+        
+        <!-- Security notice using your card styling -->
+        <div class="card" style="max-width: 500px; text-align: left; padding: 20px;">
+            <h4 style="text-align: center; margin-bottom: 15px;">🔒 Your Security Matters</h4>
+            <p style="margin-bottom: 8px; font-size: 0.9rem;">• Your session automatically expires after 30 minutes of inactivity</p>
+            <p style="margin-bottom: 8px; font-size: 0.9rem;">• You'll be logged out when you close your browser</p>
+            <p style="margin-bottom: 0; font-size: 0.9rem;">• Always use "Logout" on shared computers</p>
+        </div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/login-fixed.js') }}"></script>
+    <script>
+        // Session timer for security awareness
+        let sessionTimeout = 30 * 60 * 1000;
         let lastActivity = Date.now();
         
         function updateSessionTimer() {
@@ -280,19 +88,30 @@
             }
         }
         
-        // Update activity on any user interaction
         function resetActivity() {
             lastActivity = Date.now();
         }
         
-        // Monitor user activity
         ['click', 'keypress', 'scroll', 'mousemove'].forEach(event => {
             document.addEventListener(event, resetActivity, true);
         });
         
-        // Update timer every 30 seconds
         setInterval(updateSessionTimer, 30000);
-        updateSessionTimer(); // Initial call
+        updateSessionTimer();
+        
+        function toggleTheme() {
+            document.body.classList.toggle('day-mode');
+            const isDayMode = document.body.classList.contains('day-mode');
+            const themeBtn = document.querySelector('[onclick="toggleTheme()"]');
+            
+            if (isDayMode) {
+                themeBtn.textContent = '☀️ Day';
+                localStorage.setItem('theme', 'day');
+            } else {
+                themeBtn.textContent = '🌙 Night';
+                localStorage.setItem('theme', 'night');
+            }
+        }
         
         // Load saved theme
         const savedTheme = localStorage.getItem('theme') || 'night';
@@ -300,9 +119,6 @@
             document.body.classList.add('day-mode');
             document.querySelector('[onclick="toggleTheme()"]').textContent = '☀️ Day';
         }
-        
-        // Subtle security reminder - no popup
-        console.log('🔒 Session auto-expires in 30 minutes for security');
     </script>
 </body>
 </html>
