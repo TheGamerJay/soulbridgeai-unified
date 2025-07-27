@@ -2507,10 +2507,6 @@ def upload_profile_image():
                             ON CONFLICT (email) DO UPDATE SET profile_image = EXCLUDED.profile_image
                         """, (user_email, profile_image_url))
                 
-                conn.commit()
-                conn.close()
-                logger.info(f"Profile image saved to database: {profile_image_url} for user {user_id}")
-                
                 # Also save file content as base64 backup in case filesystem is ephemeral
                 try:
                     import base64
@@ -2520,11 +2516,14 @@ def upload_profile_image():
                     cursor.execute(f"""
                         UPDATE users SET profile_image_data = {placeholder} WHERE id = {placeholder}
                     """, (img_data, user_id))
-                    conn.commit()
                     logger.info(f"Profile image data backup saved to database for user {user_id}")
                     
                 except Exception as backup_error:
                     logger.warning(f"Failed to save image data backup: {backup_error}")
+                
+                conn.commit()
+                conn.close()
+                logger.info(f"Profile image saved to database: {profile_image_url} for user {user_id}")
                 
             except Exception as db_error:
                 logger.error(f"Failed to save profile image to database: {db_error}")
