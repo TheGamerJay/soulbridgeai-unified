@@ -718,6 +718,13 @@ def companion_selection():
         return redirect("/login")
     return render_template("companion_selector.html")
 
+@app.route("/chat")
+def chat():
+    """Chat page with selected companion"""
+    if not is_logged_in():
+        return redirect("/login")
+    return render_template("chat.html")
+
 @app.route("/api/companions", methods=["GET"])
 def api_companions():
     """Get available companions organized by tiers"""
@@ -802,26 +809,6 @@ def api_companions():
                     "popularity_score": 88,
                     "lock_reason": "Requires Growth Plan" if user_plan == 'foundation' else None
                 },
-                {
-                    "companion_id": "companion_luna",
-                    "display_name": "Luna",
-                    "description": "Mystical companion with spiritual wisdom",
-                    "avatar_image": "/static/logos/Luna companion.png",
-                    "tier": "growth",
-                    "is_recommended": False,
-                    "popularity_score": 87,
-                    "lock_reason": "Requires Growth Plan" if user_plan == 'foundation' else None
-                },
-                {
-                    "companion_id": "companion_phoenix",
-                    "display_name": "Phoenix",
-                    "description": "Inspiring companion focused on personal transformation",
-                    "avatar_image": "/static/logos/Phoenix companion.png",
-                    "tier": "growth",
-                    "is_recommended": False,
-                    "popularity_score": 89,
-                    "lock_reason": "Requires Growth Plan" if user_plan == 'foundation' else None
-                }
             ],
             "max": [
                 {
@@ -892,7 +879,7 @@ def api_companions_select():
             "success": True,
             "message": f"Successfully selected companion",
             "companion_id": companion_id,
-            "redirect_url": "/"
+            "redirect_url": "/chat"
         })
         
     except Exception as e:
