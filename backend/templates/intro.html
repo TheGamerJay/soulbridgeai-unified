@@ -34,10 +34,23 @@
             background: linear-gradient(135deg, #0a0e1a 0%, #1a202c 25%, #2d3748 50%, #1a202c 75%, #0a0e1a 100%) !important;
         }
     </style>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/themes.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/animations.css') }}">
+    <!-- Load external CSS after intro styles are established -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}" media="none" onload="this.media='all'; this.onload=null;">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/themes.css') }}" media="none" onload="this.media='all'; this.onload=null;">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}" media="none" onload="this.media='all'; this.onload=null;">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/animations.css') }}" media="none" onload="this.media='all'; this.onload=null;">
+    
+    <!-- IMMEDIATE styling script - runs before anything else -->
+    <script>
+        (function() {
+            const gradient = 'linear-gradient(135deg, #0a0e1a 0%, #1a202c 25%, #2d3748 50%, #1a202c 75%, #0a0e1a 100%)';
+            document.documentElement.style.background = gradient + ' !important';
+            document.documentElement.style.backgroundAttachment = 'fixed';
+            document.documentElement.style.backgroundSize = '100% 100%';
+            console.log('🚀 IMMEDIATE intro styling applied');
+        })();
+    </script>
+    
     <style>
         /* Enhanced intro page background for better visual fit */
         body {
@@ -223,14 +236,35 @@
         // Update immediately on load
         updateSessionTimer();
         
-        // Force intro page background styling
+        // AGGRESSIVE intro page styling enforcement
         function forceIntroStyling() {
-            document.body.style.background = 'linear-gradient(135deg, #0a0e1a 0%, #1a202c 25%, #2d3748 50%, #1a202c 75%, #0a0e1a 100%)';
-            document.body.style.backgroundAttachment = 'fixed';
-            document.body.style.backgroundSize = '100% 100%';
-            document.body.style.minHeight = '100vh';
-            console.log('🎨 Intro page background forced');
+            const body = document.body;
+            const html = document.documentElement;
+            
+            // Force styles on both html and body
+            const gradient = 'linear-gradient(135deg, #0a0e1a 0%, #1a202c 25%, #2d3748 50%, #1a202c 75%, #0a0e1a 100%)';
+            
+            html.style.background = gradient;
+            html.style.backgroundAttachment = 'fixed';
+            html.style.backgroundSize = '100% 100%';
+            
+            body.style.background = gradient;
+            body.style.backgroundAttachment = 'fixed';
+            body.style.backgroundSize = '100% 100%';
+            body.style.minHeight = '100vh';
+            body.style.margin = '0';
+            body.style.padding = '0';
+            body.style.fontFamily = 'system-ui, -apple-system, sans-serif';
+            body.style.color = '#22d3ee';
+            
+            // Override any existing classes
+            body.className = 'intro-page';
+            
+            console.log('🎨 AGGRESSIVE intro page styling applied');
         }
+        
+        // Apply immediately - before DOM is even ready
+        forceIntroStyling();
         
         // Show page when ready - fix timing issues
         function showPageWhenReady() {
