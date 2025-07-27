@@ -633,11 +633,16 @@ def auth_register():
         return render_template("register.html")
     
     try:
-        # Get data
-        data = request.get_json() or {}
-        email = data.get('email', '').strip().lower()
-        password = data.get('password', '')
-        name = data.get('display_name', '') or email.split('@')[0]
+        # Get data from form or JSON
+        if request.is_json:
+            data = request.get_json()
+            email = data.get('email', '').strip().lower()
+            password = data.get('password', '')
+            name = data.get('display_name', '') or email.split('@')[0]
+        else:
+            email = request.form.get('email', '').strip().lower()
+            password = request.form.get('password', '')
+            name = request.form.get('display_name', '') or email.split('@')[0]
         
         if not email or not password:
             return jsonify({"success": False, "error": "Email and password required"}), 400
