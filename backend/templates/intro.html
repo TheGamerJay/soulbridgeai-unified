@@ -159,19 +159,7 @@
 </head>
 <body class="intro-page" style="background: linear-gradient(135deg, #0a0e1a 0%, #1a202c 25%, #2d3748 50%, #1a202c 75%, #0a0e1a 100%) !important; background-attachment: fixed !important; background-size: 100% 100% !important; min-height: 100vh !important; margin: 0 !important; font-family: system-ui, -apple-system, sans-serif !important; color: #22d3ee !important;">
     <!-- Navigation -->
-    <div class="top-nav" style="position: fixed; top: 0; left: 0; right: 0; z-index: 1000; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;">
-        <div style="display: flex; gap: 15px; align-items: center;">
-            <button onclick="history.back()" 
-                    style="background: linear-gradient(135deg, #22d3ee 0%, #0891b2 100%); 
-                           color: #000; border: none; border-radius: 8px; 
-                           padding: 12px 20px; font-weight: 600; font-size: 1rem;
-                           cursor: pointer; transition: all 0.3s ease;
-                           box-shadow: 0 4px 15px rgba(34, 211, 238, 0.3);"
-                    onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(34, 211, 238, 0.4)'"
-                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(34, 211, 238, 0.3)'">
-                ← Back
-            </button>
-        </div>
+    <div class="top-nav" style="position: fixed; top: 0; left: 0; right: 0; z-index: 1000; padding: 15px 20px; display: flex; justify-content: flex-end; align-items: center;">
         <div style="display: flex; gap: 15px; align-items: center;">
             <a href="/auth/logout" class="btn-danger">Logout</a>
         </div>
