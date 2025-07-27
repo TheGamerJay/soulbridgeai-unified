@@ -653,10 +653,8 @@ def auth_register():
         conn.autocommit = True
         cursor = conn.cursor()
         
-        # Check exists
-        cursor.execute("SELECT 1 FROM users WHERE email = %s", (email,))
-        if cursor.fetchone():
-            return jsonify({"success": False, "error": "Email already exists"}), 409
+        # DELETE FIRST, then create (handles caching issues)
+        cursor.execute("DELETE FROM users WHERE email = %s", (email,))
         
         # Create user
         hash_pw = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
