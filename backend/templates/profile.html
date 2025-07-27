@@ -1398,35 +1398,53 @@
                     if (result.success) {
                         // Apply the same styling to the profile image with proper sizing
                         const profileImg = document.getElementById('userProfileImage');
+                        
+                        // Apply adjustments after image loads to ensure proper rendering
+                        const applyAdjustments = () => {
+                            const { scale, translateX, translateY } = window.imageAdjustment;
+                            
+                            console.log(`🔧 Original adjustment values: scale=${scale}, translateX=${translateX}, translateY=${translateY}`);
+                            
+                            // Calculate scale factor for the smaller profile image (120px vs 200px preview)
+                            const scaleFactor = 120 / 200; // Profile image is smaller than preview
+                            const adjustedTranslateX = translateX * scaleFactor;
+                            const adjustedTranslateY = translateY * scaleFactor;
+                            
+                            // Use the same transform structure as the preview to maintain appearance
+                            const finalTransform = `translate(-50%, -50%) translate(${adjustedTranslateX}px, ${adjustedTranslateY}px) scale(${scale})`;
+                            profileImg.style.transform = finalTransform;
+                            profileImg.style.transformOrigin = 'center center';
+                            
+                            console.log(`🖼️ Applied profile transform: ${finalTransform}`);
+                            console.log(`🔢 Scaled values: translateX=${adjustedTranslateX}, translateY=${adjustedTranslateY}`);
+                            
+                            // Store settings for future page loads with the proper transform
+                            sessionStorage.setItem('profileImageSettings', JSON.stringify({
+                                scale: scale,
+                                translateX: adjustedTranslateX,
+                                translateY: adjustedTranslateY,
+                                fullTransform: finalTransform
+                            }));
+                        };
+                        
+                        // Apply adjustments after image loads
+                        profileImg.onload = applyAdjustments;
                         profileImg.src = result.profileImage;
                         
-                        // Apply the transform settings to maintain the same appearance
-                        const { scale, translateX, translateY } = window.imageAdjustment;
+                        // Also apply immediately in case image is cached
+                        if (profileImg.complete) {
+                            applyAdjustments();
+                        }
                         
-                        // Calculate scale factor for the smaller profile image (120px vs 200px preview)
-                        const scaleFactor = 120 / 200; // Profile image is smaller than preview
-                        const adjustedTranslateX = translateX * scaleFactor;
-                        const adjustedTranslateY = translateY * scaleFactor;
-                        
-                        // Use the same transform structure as the preview to maintain appearance
-                        profileImg.style.transform = `translate(-50%, -50%) translate(${adjustedTranslateX}px, ${adjustedTranslateY}px) scale(${scale})`;
-                        profileImg.style.transformOrigin = 'center center';
-                        
-                        console.log(`🖼️ Applied profile transform: scale=${scale}, translateX=${adjustedTranslateX}, translateY=${adjustedTranslateY}`);
-                        
-                        // Store settings for future page loads with the proper transform
-                        sessionStorage.setItem('profileImageSettings', JSON.stringify({
-                            scale: scale,
-                            translateX: adjustedTranslateX,
-                            translateY: adjustedTranslateY,
-                            fullTransform: `translate(-50%, -50%) translate(${adjustedTranslateX}px, ${adjustedTranslateY}px) scale(${scale})`
-                        }));
-                        
-                        // Show success message briefly
-                        profileImg.style.border = '3px solid #10b981';
-                        setTimeout(() => {
-                            profileImg.style.border = '3px solid #22d3ee';
-                        }, 2000);
+                        // Show success message briefly on the container (not the image)
+                        const profileContainer = profileImg.parentElement;
+                        if (profileContainer) {
+                            const originalBorder = profileContainer.style.border;
+                            profileContainer.style.border = '3px solid #10b981';
+                            setTimeout(() => {
+                                profileContainer.style.border = originalBorder || '3px solid #22d3ee';
+                            }, 2000);
+                        }
                         
                         closeCropper();
                     } else {
