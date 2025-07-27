@@ -182,7 +182,18 @@
                         animation: gentleGlow 3s ease-in-out infinite alternate;">
             <div style="text-align: center; margin-bottom: 20px;">
                 <h2 style="font-size: 1.4rem; color: #22d3ee; margin-bottom: 8px; font-weight: 500;">👋 Meet Sapphire</h2>
-                <p style="font-size: 1rem; color: #94a3b8; margin: 0; font-style: italic;">Your navigation assistant for finding features & getting help</p>
+                <p style="font-size: 1rem; color: #94a3b8; margin: 0 0 15px 0; font-style: italic;">Your navigation assistant for finding features & getting help</p>
+                <button onclick="toggleNavigationAssistant()" 
+                        style="background: linear-gradient(135deg, #22d3ee 0%, #0891b2 100%); 
+                               border: none; border-radius: 12px; padding: 12px 24px; 
+                               color: white; font-weight: 600; font-size: 0.95rem;
+                               cursor: pointer; transition: all 0.3s ease;
+                               box-shadow: 0 4px 15px rgba(34, 211, 238, 0.3);
+                               transform: translateY(0);"
+                        onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 25px rgba(34, 211, 238, 0.4)'"
+                        onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(34, 211, 238, 0.3)'">
+                    💎 Ask Sapphire for Help
+                </button>
             </div>
         </div>
         
@@ -208,31 +219,37 @@
         </div>
         
         <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; margin-bottom: 40px;">
-            <a href="/companion-selection" class="btn-primary" style="padding: 15px 30px; font-size: 1.1rem; position: relative;">
+            <a href="/companion-selection" 
+               style="background: linear-gradient(135deg, #22d3ee 0%, #0891b2 100%);
+                      border: none; border-radius: 15px; padding: 18px 35px; 
+                      color: white; font-weight: 700; font-size: 1.1rem;
+                      text-decoration: none; cursor: pointer; transition: all 0.3s ease;
+                      box-shadow: 0 6px 20px rgba(34, 211, 238, 0.4);
+                      transform: translateY(0); display: inline-block;"
+               onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 10px 30px rgba(34, 211, 238, 0.5)'"
+               onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 6px 20px rgba(34, 211, 238, 0.4)'">
                 🌟 Choose Your AI Companion
             </a>
-            <a href="/chat" class="btn-secondary" style="padding: 15px 30px; font-size: 1.1rem;">
+            <a href="/chat" 
+               style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px);
+                      border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 15px; padding: 16px 33px; 
+                      color: #22d3ee; font-weight: 600; font-size: 1.1rem;
+                      text-decoration: none; cursor: pointer; transition: all 0.3s ease;
+                      transform: translateY(0); display: inline-block;"
+               onmouseover="this.style.transform='translateY(-3px)'; this.style.borderColor='rgba(34, 211, 238, 0.5)'; this.style.background='rgba(34, 211, 238, 0.1)'"
+               onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='rgba(255, 255, 255, 0.2)'; this.style.background='rgba(255, 255, 255, 0.1)'">
                 💬 Start Chatting
             </a>
-            <a href="/profile" class="btn-secondary" style="padding: 15px 30px; font-size: 1.1rem;">
+            <a href="/profile" 
+               style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px);
+                      border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 15px; padding: 16px 33px; 
+                      color: #22d3ee; font-weight: 600; font-size: 1.1rem;
+                      text-decoration: none; cursor: pointer; transition: all 0.3s ease;
+                      transform: translateY(0); display: inline-block;"
+               onmouseover="this.style.transform='translateY(-3px)'; this.style.borderColor='rgba(34, 211, 238, 0.5)'; this.style.background='rgba(34, 211, 238, 0.1)'"
+               onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='rgba(255, 255, 255, 0.2)'; this.style.background='rgba(255, 255, 255, 0.1)'">
                 👤 View Profile
             </a>
-        </div>
-        
-        <!-- Interactive Sapphire Assistant -->
-        <div class="card" style="max-width: 500px; text-align: center; padding: 25px; margin-bottom: 30px; background: rgba(34, 211, 238, 0.1) !important; border: 1px solid rgba(34, 211, 238, 0.3) !important;">
-            <img src="{{ url_for('static', filename='logos/Sapphire.png') }}" alt="Sapphire" 
-                 style="width: 50px; height: 50px; border-radius: 50%; margin-bottom: 15px; border: 2px solid #22d3ee;">
-            <h4 style="color: #22d3ee; margin-bottom: 15px;">✨ Need Help Finding Something?</h4>
-            <p style="margin-bottom: 15px; font-size: 0.95rem; opacity: 0.9;">
-                Sapphire can help you find features, reset passwords, navigate settings, or answer questions about SoulBridge AI.
-            </p>
-            <button onclick="toggleNavigationAssistant()" 
-                    class="btn-primary" style="padding: 12px 25px; font-size: 1rem; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s ease;"
-                    onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(34, 211, 238, 0.3)'"
-                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
-                💎 Ask Sapphire for Help
-            </button>
         </div>
         
         <!-- Security notice using your card styling -->
