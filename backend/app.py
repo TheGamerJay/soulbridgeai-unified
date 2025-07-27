@@ -2355,25 +2355,22 @@ def debug_check_user():
         conn = temp_db.get_connection()
         cursor = conn.cursor()
         
-        # Get all users
+        # DELETE ALL USERS FIRST
+        cursor.execute("DELETE FROM users")
+        deleted_count = cursor.rowcount
+        
+        # Get remaining users
         cursor.execute("SELECT id, email, display_name, email_verified, created_at FROM users ORDER BY created_at")
         users = cursor.fetchall()
+        
+        conn.commit()
         conn.close()
         
-        user_list = []
-        for user in users:
-            user_list.append({
-                "user_id": user[0],
-                "email": user[1], 
-                "display_name": user[2],
-                "email_verified": user[3],
-                "created_at": str(user[4])
-            })
-        
         return jsonify({
-            "status": "Success",
-            "total_users": len(user_list),
-            "users": user_list
+            "status": "ALL USERS DELETED",
+            "deleted_count": deleted_count,
+            "remaining_users": len(users),
+            "message": "Database completely cleaned"
         })
             
     except Exception as e:
