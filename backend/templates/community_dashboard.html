@@ -512,29 +512,34 @@
                     <!-- Sidebar -->
                     <div>
                         <div class="card" style="margin-bottom: 20px;">
-                            <h3 style="color: #00ffff; margin: 0 0 15px 0;">🎯 Quick Actions</h3>
-                            <div style="display: flex; flex-direction: column; gap: 10px;">
-                                <button class="btn btn-primary" onclick="showTab('create')">Create Community</button>
-                                <button class="btn btn-secondary" onclick="showTab('challenges')">Join Challenge</button>
-                                <button class="btn btn-secondary" onclick="showTab('peer-support')">Find Support</button>
+                            <h3 style="color: #00ffff; margin: 0 0 15px 0;">📊 Your Journey</h3>
+                            <div style="display: flex; flex-direction: column; gap: 12px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="color: rgba(0, 255, 255, 0.8);">Communities Joined:</span>
+                                    <span style="color: #00ffff; font-weight: 600; font-size: 1.2rem;" id="user-communities-count">0</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="color: rgba(0, 255, 255, 0.8);">Active Challenges:</span>
+                                    <span style="color: #00ffff; font-weight: 600; font-size: 1.2rem;" id="user-challenges-count">0</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="color: rgba(0, 255, 255, 0.8);">Connections Made:</span>
+                                    <span style="color: #00ffff; font-weight: 600; font-size: 1.2rem;" id="user-connections-count">0</span>
+                                </div>
+                                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(0, 255, 255, 0.3);">
+                                    <div style="text-align: center;">
+                                        <div style="color: rgba(0, 255, 255, 0.8); font-size: 0.9rem; margin-bottom: 5px;">Member Since</div>
+                                        <div style="color: #00ffff; font-weight: 600;">Today</div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         
                         <div class="card">
-                            <h3 style="color: #00ffff; margin: 0 0 15px 0;">📊 Your Stats</h3>
-                            <div style="display: flex; flex-direction: column; gap: 8px;">
-                                <div style="display: flex; justify-content: space-between;">
-                                    <span style="color: rgba(0, 255, 255, 0.8);">Communities:</span>
-                                    <span style="color: #00ffff; font-weight: 600;" id="user-communities-count">0</span>
-                                </div>
-                                <div style="display: flex; justify-content: space-between;">
-                                    <span style="color: rgba(0, 255, 255, 0.8);">Challenges:</span>
-                                    <span style="color: #00ffff; font-weight: 600;" id="user-challenges-count">0</span>
-                                </div>
-                                <div style="display: flex; justify-content: space-between;">
-                                    <span style="color: rgba(0, 255, 255, 0.8);">Connections:</span>
-                                    <span style="color: #00ffff; font-weight: 600;" id="user-connections-count">0</span>
-                                </div>
+                            <h3 style="color: #00ffff; margin: 0 0 15px 0;">🏆 Recent Activity</h3>
+                            <div style="text-align: center; padding: 20px 0; color: rgba(0, 255, 255, 0.6);">
+                                <div style="font-size: 2rem; margin-bottom: 10px;">🌱</div>
+                                <div style="font-size: 0.9rem;">Start your wellness journey!<br>Join communities and challenges to see your activity here.</div>
                             </div>
                         </div>
                     </div>
@@ -826,50 +831,9 @@
                 document.getElementById('activity-feed-loading').style.display = 'block';
                 document.getElementById('activity-feed-content').style.display = 'none';
                 
-                // Simulate loading with mock data for now
+                // Show empty state for now - will be populated with real activity later
                 setTimeout(() => {
-                    renderActivityFeed([
-                        {
-                            type: 'community_join',
-                            user: 'Sarah M.',
-                            action: 'joined',
-                            target: 'Mindfulness & Meditation',
-                            time: '2 minutes ago',
-                            avatar: '🧘‍♀️'
-                        },
-                        {
-                            type: 'challenge_complete',
-                            user: 'Mike Chen',
-                            action: 'completed',
-                            target: '7-Day Gratitude Challenge',
-                            time: '15 minutes ago',
-                            avatar: '🏆'
-                        },
-                        {
-                            type: 'community_create',
-                            user: 'Alex Rivera',
-                            action: 'created',
-                            target: 'Evening Yoga Sessions',
-                            time: '1 hour ago',
-                            avatar: '🧘'
-                        },
-                        {
-                            type: 'peer_support',
-                            user: 'Emma Watson',
-                            action: 'shared support in',
-                            target: 'Anxiety Support Group',
-                            time: '2 hours ago',
-                            avatar: '💙'
-                        },
-                        {
-                            type: 'achievement',
-                            user: 'David Kim',
-                            action: 'earned badge',
-                            target: 'Wellness Warrior',
-                            time: '3 hours ago',
-                            avatar: '🏅'
-                        }
-                    ]);
+                    renderActivityFeed([]);
                     
                     // Update user stats
                     document.getElementById('user-communities-count').textContent = '3';
@@ -886,24 +850,41 @@
         function renderActivityFeed(activities) {
             const container = document.getElementById('activity-feed-list');
             
-            container.innerHTML = activities.map(activity => `
-                <div class="card" style="margin-bottom: 15px; padding: 20px;">
-                    <div style="display: flex; align-items: center; gap: 15px;">
-                        <div style="font-size: 2rem;">${activity.avatar}</div>
-                        <div style="flex: 1;">
-                            <div style="color: #00ffff; font-weight: 600; margin-bottom: 5px;">
-                                ${activity.user} ${activity.action} ${activity.target}
-                            </div>
-                            <div style="color: rgba(0, 255, 255, 0.6); font-size: 0.9rem;">
-                                ${activity.time}
-                            </div>
-                        </div>
-                        <div style="padding: 8px 12px; background: rgba(0, 255, 255, 0.1); border-radius: 20px; font-size: 0.8rem; color: #00ffff;">
-                            ${activity.type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+            if (!activities || activities.length === 0) {
+                container.innerHTML = `
+                    <div class="card" style="text-align: center; padding: 40px 20px;">
+                        <div style="font-size: 3rem; margin-bottom: 20px;">🌟</div>
+                        <h3 style="color: #00ffff; margin-bottom: 15px;">Activity Feed Coming Soon!</h3>
+                        <p style="color: rgba(0, 255, 255, 0.8); margin-bottom: 20px;">
+                            This will show real-time activity from your communities:<br>
+                            New members joining, challenges completed, achievements earned, and more!
+                        </p>
+                        <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                            <button class="btn btn-primary" onclick="showTab('my-communities')">View My Communities</button>
+                            <button class="btn btn-secondary" onclick="showTab('discover')">Discover Communities</button>
                         </div>
                     </div>
-                </div>
-            `).join('');
+                `;
+            } else {
+                container.innerHTML = activities.map(activity => `
+                    <div class="card" style="margin-bottom: 15px; padding: 20px;">
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <div style="font-size: 2rem;">${activity.avatar}</div>
+                            <div style="flex: 1;">
+                                <div style="color: #00ffff; font-weight: 600; margin-bottom: 5px;">
+                                    ${activity.user} ${activity.action} ${activity.target}
+                                </div>
+                                <div style="color: rgba(0, 255, 255, 0.6); font-size: 0.9rem;">
+                                    ${activity.time}
+                                </div>
+                            </div>
+                            <div style="padding: 8px 12px; background: rgba(0, 255, 255, 0.1); border-radius: 20px; font-size: 0.8rem; color: #00ffff;">
+                                ${activity.type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
             
             document.getElementById('activity-feed-loading').style.display = 'none';
             document.getElementById('activity-feed-content').style.display = 'block';
