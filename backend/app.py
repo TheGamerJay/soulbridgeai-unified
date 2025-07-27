@@ -211,15 +211,11 @@ background_monitoring()
 
 def is_logged_in():
     """Check if user is logged in with session timeout"""
-    logger.debug(f"is_logged_in: Checking authentication - user_authenticated: {session.get('user_authenticated', 'NOT SET')}")
-    
     if not session.get("user_authenticated", False):
-        logger.debug(f"is_logged_in: user_authenticated is False or missing")
         return False
     
     # Also check for user_id or user_email as backup validation
     if not session.get('user_id') and not session.get('user_email') and not session.get('email'):
-        logger.debug(f"is_logged_in: No user ID or email found in session")
         return False
     
     # Check session timeout (30 minutes of inactivity)
@@ -229,18 +225,15 @@ def is_logged_in():
             last_time = datetime.fromisoformat(last_activity)
             if datetime.now() - last_time > timedelta(minutes=30):
                 # Session expired - clear it
-                logger.info(f"is_logged_in: Session expired for user, clearing session")
                 session.clear()
                 return False
         except Exception as e:
             # Invalid timestamp - clear session
-            logger.warning(f"is_logged_in: Invalid timestamp, clearing session: {e}")
             session.clear()
             return False
     
     # Update last activity time
     session['last_activity'] = datetime.now().isoformat()
-    logger.debug(f"is_logged_in: Authentication successful")
     return True
 
 def get_user_plan():
@@ -905,43 +898,29 @@ def api_companions_select():
 def profile():
     """Profile route"""
     try:
-        logger.info(f"Profile route: Session keys: {list(session.keys())}")
-        logger.info(f"Profile route: user_authenticated: {session.get('user_authenticated', 'NOT SET')}")
-        logger.info(f"Profile route: user_email: {session.get('user_email', 'NOT SET')}")
-        
         auth_check = is_logged_in()
-        logger.info(f"Profile route: is_logged_in() result: {auth_check}")
         
         if not auth_check:
-            logger.warning(f"Profile route: User not authenticated. Session: {dict(session)}")
-            
             # Try alternative session validation for profile page
             if session.get('user_id') or session.get('user_email') or session.get('email'):
-                logger.info(f"Profile route: Found session data, attempting recovery...")
                 # Repair session authentication
                 session['user_authenticated'] = True
                 session['last_activity'] = datetime.now().isoformat()
                 auth_check = True
-                logger.info(f"Profile route: Session authentication repaired")
             else:
-                logger.warning(f"Profile route: No session data found, redirecting to login")
                 return redirect("/login")
         
         # Ensure session has minimal required data for profile
         if not session.get('user_email') and not session.get('email'):
             session['email'] = 'user@soulbridgeai.com'
-            logger.info("Profile route: Set default email")
         if not session.get('display_name') and not session.get('user_name'):
             session['display_name'] = 'SoulBridge User'
-            logger.info("Profile route: Set default display name")
         if not session.get('user_plan'):
             session['user_plan'] = 'foundation'
-            logger.info("Profile route: Set default plan")
         
         # Update last activity
         session['last_activity'] = datetime.now().isoformat()
         
-        logger.info(f"Profile route: User authenticated, showing profile page")
         return render_template("profile.html")
     except Exception as e:
         logger.error(f"Profile template error: {e}")
@@ -2296,28 +2275,17 @@ def payment_cancel():
 def api_users():
     """User profile API endpoint"""
     try:
-        logger.info(f"API Users: Method: {request.method}")
-        logger.info(f"API Users: Session keys: {list(session.keys())}")
-        logger.info(f"API Users: Session authenticated: {session.get('user_authenticated', 'NOT SET')}")
-        logger.info(f"API Users: Session user_email: {session.get('user_email', 'NOT SET')}")
-        logger.info(f"API Users: Session email: {session.get('email', 'NOT SET')}")
-        
         auth_result = is_logged_in()
-        logger.info(f"API Users: is_logged_in() result: {auth_result}")
         
         if not auth_result:
-            logger.warning(f"API Users: User not authenticated. Session: {dict(session)}")
-            
             # Try alternative session validation for profile page
             if session.get('user_id') or session.get('user_email') or session.get('email'):
-                logger.info(f"API Users: Found session data, attempting recovery...")
                 # Repair session authentication
                 session['user_authenticated'] = True
                 session['last_activity'] = datetime.now().isoformat()
                 auth_result = True
-                logger.info(f"API Users: Session authentication repaired")
             else:
-                return jsonify({"success": False, "error": "Authentication required", "debug_session": dict(session)}), 401
+                return jsonify({"success": False, "error": "Authentication required"}), 401
         
         if request.method == "GET":
             # Return current user data with proper defaults
@@ -2332,8 +2300,6 @@ def api_users():
                 "joinDate": session.get('join_date', '2024-01-01'),
                 "isActive": True
             }
-            
-            logger.info(f"API Users: Returning user data: {user_data}")
             
             return jsonify({
                 "success": True,
