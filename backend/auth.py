@@ -249,6 +249,22 @@ class Database:
                 )
                 """
             )
+
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS addon_subscriptions (
+                    id SERIAL PRIMARY KEY,
+                    user_id INTEGER NOT NULL,
+                    email VARCHAR(255) NOT NULL,
+                    addon_type VARCHAR(50) NOT NULL,
+                    status VARCHAR(50) NOT NULL DEFAULT 'active',
+                    stripe_subscription_id TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (user_id) REFERENCES users (id)
+                )
+                """
+            )
         else:
             cursor.execute(
                 """
@@ -305,6 +321,22 @@ class Database:
                     redirect_url TEXT,
                     expires_at TIMESTAMP NOT NULL,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """
+            )
+
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS addon_subscriptions (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER NOT NULL,
+                    email TEXT NOT NULL,
+                    addon_type TEXT NOT NULL,
+                    status TEXT NOT NULL DEFAULT 'active',
+                    stripe_subscription_id TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (user_id) REFERENCES users (id)
                 )
             """
             )
@@ -473,10 +505,27 @@ class User:
         user_data = cursor.fetchone()
         conn.close()
 
-        if user_data and bcrypt.checkpw(password.encode("utf-8"), user_data[2].encode("utf-8")):
-            # Return user data tuple (compatible with existing code)
-            return user_data
-        return None
+        if user_data:
+            logger.info(f"User found in database: {email}")
+            password_hash = user_data[2]
+            
+            if password_hash is None:
+                logger.warning(f"User {email} has no password hash stored")
+                return None
+                
+            try:
+                if bcrypt.checkpw(password.encode("utf-8"), password_hash.encode("utf-8")):
+                    logger.info(f"Password verification successful for: {email}")
+                    return user_data
+                else:
+                    logger.warning(f"Password verification failed for: {email}")
+                    return None
+            except Exception as e:
+                logger.error(f"Password verification error for {email}: {e}")
+                return None
+        else:
+            logger.warning(f"User not found in database: {email}")
+            return None
 
     def get_user_by_id(self, user_id):
         """Get user by ID"""
