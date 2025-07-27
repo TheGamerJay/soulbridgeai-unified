@@ -6,9 +6,7 @@
     <title>Welcome to SoulBridge AI</title>
     <!-- CRITICAL: Block rendering until intro styles are ready -->
     <style>
-        /* Prevent flash of unstyled content */
-        html { visibility: hidden; opacity: 0; transition: opacity 0.1s; }
-        html.loaded { visibility: visible; opacity: 1; }
+        /* Allow normal rendering with intro background */
         
         /* ULTRA CRITICAL: Override base.css background */
         html, body {
@@ -34,11 +32,11 @@
             background: linear-gradient(135deg, #0a0e1a 0%, #1a202c 25%, #2d3748 50%, #1a202c 75%, #0a0e1a 100%) !important;
         }
     </style>
-    <!-- Load external CSS after intro styles are established -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}" media="none" onload="this.media='all'; this.onload=null;">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/themes.css') }}" media="none" onload="this.media='all'; this.onload=null;">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}" media="none" onload="this.media='all'; this.onload=null;">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/animations.css') }}" media="none" onload="this.media='all'; this.onload=null;">
+    <!-- Load CSS normally but override background only -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/themes.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/animations.css') }}">
     
     <!-- IMMEDIATE styling script - runs before anything else -->
     <script>
@@ -266,28 +264,12 @@
         // Apply immediately - before DOM is even ready
         forceIntroStyling();
         
-        // Show page when ready - fix timing issues
-        function showPageWhenReady() {
-            forceIntroStyling();
-            document.documentElement.className = 'loaded';
-            console.log('✅ Intro page fully loaded and styled');
-        }
-        
-        // Apply on load and focus with proper timing
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', showPageWhenReady);
-        } else {
-            showPageWhenReady();
-        }
+        // Apply intro styling on load and focus
+        document.addEventListener('DOMContentLoaded', forceIntroStyling);
         window.addEventListener('focus', forceIntroStyling);
         
-        // Emergency fallback - show after 1 second regardless
-        setTimeout(() => {
-            if (!document.documentElement.classList.contains('loaded')) {
-                console.log('⚠️ Emergency: Showing intro page after timeout');
-                showPageWhenReady();
-            }
-        }, 1000);
+        // Apply immediately as well
+        setTimeout(forceIntroStyling, 100);
         
         // Intro page uses default night mode - no theme switching needed
         console.log('📄 Intro page loaded - using default styling');
