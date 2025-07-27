@@ -412,8 +412,16 @@
                 <!-- Profile Image Section -->
                 <div style="text-align: center; margin-bottom: 25px; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 12px;">
                     <div style="margin-bottom: 15px;">
-                        <img id="userProfileImage" src="/static/logos/Sapphire.png" alt="Profile Picture" 
-                             style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; object-position: center; border: 3px solid #22d3ee; box-shadow: 0 4px 20px rgba(34, 211, 238, 0.3); display: block; margin: 0 auto;">
+                        <div style="width: 120px; height: 120px; border-radius: 50%; overflow: hidden; 
+                                    margin: 0 auto; border: 3px solid #22d3ee; 
+                                    box-shadow: 0 4px 20px rgba(34, 211, 238, 0.3);
+                                    position: relative; background: #000;">
+                            <img id="userProfileImage" src="/static/logos/Sapphire.png" alt="Profile Picture" 
+                                 style="max-width: none; max-height: none; width: auto; height: auto;
+                                        transform-origin: center center; transition: transform 0.1s ease;
+                                        position: absolute; top: 50%; left: 50%; 
+                                        transform: translate(-50%, -50%);">
+                        </div>
                     </div>
                     <div style="margin-bottom: 15px;">
                         <input type="file" id="profileImageInput" accept="image/*" style="display: none;">
@@ -762,8 +770,15 @@
                     if (savedSettings) {
                         try {
                             const settings = JSON.parse(savedSettings);
-                            profileImage.style.transform = `scale(${settings.scale}) translate(${settings.translateX}px, ${settings.translateY}px)`;
+                            // Use the full transform that includes centering if available
+                            if (settings.fullTransform) {
+                                profileImage.style.transform = settings.fullTransform;
+                            } else {
+                                // Fallback to old format but with proper centering
+                                profileImage.style.transform = `translate(-50%, -50%) translate(${settings.translateX}px, ${settings.translateY}px) scale(${settings.scale})`;
+                            }
                             profileImage.style.transformOrigin = 'center center';
+                            console.log('🔄 Restored profile image settings:', settings);
                         } catch (e) {
                             console.log('Error restoring image settings:', e);
                         }
@@ -779,7 +794,9 @@
                 let createdDateShort = '-';
                 const dateSource = this.userData.createdDate || this.userData.joinDate;
                 
-                if (dateSource && dateSource !== '2024-01-01') {
+                console.log('Account created date source:', dateSource);
+                
+                if (dateSource && dateSource !== '2024-01-01' && dateSource !== '-') {
                     try {
                         const date = new Date(dateSource);
                         if (!isNaN(date.getTime())) {
@@ -787,11 +804,24 @@
                                 year: 'numeric',
                                 month: 'short'
                             });
+                            console.log('Formatted account created date:', createdDateShort);
                         }
                     } catch (e) {
                         console.log('Date parsing error:', e);
-                        createdDateShort = dateSource.substring(0, 7); // Use YYYY-MM if parsing fails
+                        // Try a simpler format if full parsing fails
+                        if (dateSource.length >= 7) {
+                            const yearMonth = dateSource.substring(0, 7); // YYYY-MM
+                            const [year, month] = yearMonth.split('-');
+                            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                                               'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                            const monthIndex = parseInt(month) - 1;
+                            if (monthIndex >= 0 && monthIndex < 12) {
+                                createdDateShort = `${monthNames[monthIndex]} ${year}`;
+                            }
+                        }
                     }
+                } else {
+                    console.log('Using fallback date or invalid date source');
                 }
                 
                 const accountCreatedElement = document.getElementById('accountCreated');
@@ -1378,14 +1408,18 @@
                         const adjustedTranslateX = translateX * scaleFactor;
                         const adjustedTranslateY = translateY * scaleFactor;
                         
-                        profileImg.style.transform = `scale(${scale}) translate(${adjustedTranslateX}px, ${adjustedTranslateY}px)`;
+                        // Use the same transform structure as the preview to maintain appearance
+                        profileImg.style.transform = `translate(-50%, -50%) translate(${adjustedTranslateX}px, ${adjustedTranslateY}px) scale(${scale})`;
                         profileImg.style.transformOrigin = 'center center';
                         
-                        // Store settings for future page loads
+                        console.log(`🖼️ Applied profile transform: scale=${scale}, translateX=${adjustedTranslateX}, translateY=${adjustedTranslateY}`);
+                        
+                        // Store settings for future page loads with the proper transform
                         sessionStorage.setItem('profileImageSettings', JSON.stringify({
                             scale: scale,
                             translateX: adjustedTranslateX,
-                            translateY: adjustedTranslateY
+                            translateY: adjustedTranslateY,
+                            fullTransform: `translate(-50%, -50%) translate(${adjustedTranslateX}px, ${adjustedTranslateY}px) scale(${scale})`
                         }));
                         
                         // Show success message briefly
