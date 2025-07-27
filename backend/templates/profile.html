@@ -741,9 +741,16 @@
             updateProfileDisplay() {
                 if (!this.userData) return;
 
-                // Update user information
-                document.getElementById('userID').textContent = this.userData.uid || this.userData.userID || 'Unknown';
-                document.getElementById('userEmail').textContent = this.userData.email || 'Not provided';
+                // Update user information with null checks
+                const userIDElement = document.getElementById('userID');
+                if (userIDElement) {
+                    userIDElement.textContent = this.userData.uid || this.userData.userID || 'Unknown';
+                }
+                
+                const userEmailElement = document.getElementById('userEmail');
+                if (userEmailElement) {
+                    userEmailElement.textContent = this.userData.email || 'Not provided';
+                }
                 
                 // Update profile image and display name
                 const profileImage = document.getElementById('userProfileImage');
@@ -758,19 +765,32 @@
                 
                 const createdDate = this.userData.createdDate ? 
                     new Date(this.userData.createdDate).toLocaleDateString() : 'Unknown';
-                document.getElementById('accountCreated').textContent = createdDate;
+                const accountCreatedElement = document.getElementById('accountCreated');
+                if (accountCreatedElement) {
+                    accountCreatedElement.textContent = createdDate;
+                }
 
                 // Update subscription badge
                 this.updateSubscriptionBadge(this.userData.subscriptionStatus || 'free');
 
-                // Update statistics
+                // Update statistics with null checks
                 const messageCount = this.userData.chatHistory ? this.userData.chatHistory.length : 0;
-                document.getElementById('totalMessages').textContent = messageCount;
-                document.getElementById('totalSessions').textContent = Math.ceil(messageCount / 10) || 1;
+                const totalMessagesElement = document.getElementById('totalMessages');
+                if (totalMessagesElement) {
+                    totalMessagesElement.textContent = messageCount;
+                }
+                
+                const totalSessionsElement = document.getElementById('totalSessions');
+                if (totalSessionsElement) {
+                    totalSessionsElement.textContent = Math.ceil(messageCount / 10) || 1;
+                }
                 
                 const daysSinceCreation = this.userData.createdDate ? 
                     Math.ceil((Date.now() - new Date(this.userData.createdDate)) / (1000 * 60 * 60 * 24)) : 1;
-                document.getElementById('daysActive').textContent = daysSinceCreation;
+                const daysActiveElement = document.getElementById('daysActive');
+                if (daysActiveElement) {
+                    daysActiveElement.textContent = daysSinceCreation;
+                }
 
                 // Update companion info
                 this.updateCompanionInfo(this.userData.companion || 'Blayzo');
@@ -835,9 +855,20 @@
 
                 const info = companionData[companion] || companionData['Blayzo'];
                 
-                document.getElementById('companionAvatar').textContent = info.avatar;
-                document.getElementById('companionName').textContent = info.name;
-                document.getElementById('companionDescription').textContent = info.description;
+                const companionAvatarElement = document.getElementById('companionAvatar');
+                if (companionAvatarElement) {
+                    companionAvatarElement.textContent = info.avatar;
+                }
+                
+                const companionNameElement = document.getElementById('companionName');
+                if (companionNameElement) {
+                    companionNameElement.textContent = info.name;
+                }
+                
+                const companionDescriptionElement = document.getElementById('companionDescription');
+                if (companionDescriptionElement) {
+                    companionDescriptionElement.textContent = info.description;
+                }
 
                 // Update color palette
                 const colorPalettes = {
@@ -849,8 +880,10 @@
                     'Violet': 'Violet'
                 };
                 
-                document.getElementById('currentColorPalette').textContent = 
-                    colorPalettes[companion] || 'Cyan';
+                const colorPaletteElement = document.getElementById('currentColorPalette');
+                if (colorPaletteElement) {
+                    colorPaletteElement.textContent = colorPalettes[companion] || 'Cyan';
+                }
             }
 
             updateSettingsDisplay() {
