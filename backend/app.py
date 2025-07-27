@@ -1892,6 +1892,8 @@ def create_addon_checkout():
             'emotional-meditations': {'name': 'Emotional Meditations', 'price': 399},
             'color-customization': {'name': 'Color Customization', 'price': 199},
             'ai-image-generation': {'name': 'AI Image Generation', 'price': 699},
+            'relationship': {'name': 'Relationship Profile Add-on', 'price': 499},
+            'voice-journaling': {'name': 'Voice Journaling', 'price': 599},
             'complete-bundle': {'name': 'Complete Add-On Bundle', 'price': 1699}
         }
         

@@ -1,5 +1,53 @@
 /* Theme Styles - Day and night mode theming */
 
+/* NIGHT MODE (default) */
+body {
+    background: linear-gradient(135deg, #000000 0%, #0f172a 50%, #1e293b 100%);
+    color: #22d3ee;
+    transition: all 0.5s ease;
+}
+
+/* DAY MODE */
+body.day-mode {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%) !important;
+    color: #1e293b !important;
+}
+
+/* DAY MODE - Text colors */
+body.day-mode h1,
+body.day-mode h2, 
+body.day-mode h3,
+body.day-mode p {
+    color: #1e293b !important;
+}
+
+/* DAY MODE - Links */
+body.day-mode a {
+    color: #0891b2 !important;
+}
+
+/* DAY MODE - Buttons */
+body.day-mode .btn-primary,
+body.day-mode button {
+    background: linear-gradient(135deg, #0891b2, #0e7490) !important;
+    color: #ffffff !important;
+    border-color: #0891b2 !important;
+}
+
+body.day-mode .btn-secondary {
+    background: rgba(148, 163, 184, 0.2) !important;
+    color: #1e293b !important;
+    border-color: #94a3b8 !important;
+}
+
+/* DAY MODE - Cards */
+body.day-mode .card {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border-color: #cbd5e1 !important;
+    color: #1e293b !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1) !important;
+}
+
 /* RAINBOW BACKGROUND FOR BLAYZION AND BLAYZIA CHARACTERS */
 body.character-blayzion,
 body.character-blayzia {
