@@ -103,6 +103,26 @@ class SimpleAuth:
         session['display_name'] = user_data['display_name']
         session['last_activity'] = datetime.now().isoformat()
         
+        # Try to fetch and store account creation date
+        try:
+            conn = self.db.get_connection()
+            cursor = conn.cursor()
+            
+            placeholder = "%s" if hasattr(self.db, 'postgres_url') and self.db.postgres_url else "?"
+            cursor.execute(f"SELECT created_at FROM users WHERE id = {placeholder}", (user_data['user_id'],))
+            result = cursor.fetchone()
+            
+            if result and result[0]:
+                if isinstance(result[0], str):
+                    session['account_created'] = result[0]
+                else:
+                    session['account_created'] = result[0].isoformat()
+                logger.info(f"Account creation date stored: {session['account_created']}")
+            
+            conn.close()
+        except Exception as e:
+            logger.warning(f"Could not fetch creation date during login: {e}")
+        
         logger.info(f"Secure session created for user: {user_data['email']}")
     
     def clear_session(self):

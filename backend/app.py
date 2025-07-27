@@ -2278,33 +2278,58 @@ def api_users():
             user_email = session.get('user_email') or session.get('email', 'user@soulbridgeai.com')
             user_id = session.get('user_id')
             
-            # Try to get actual account creation date from database
-            join_date = '2024-01-01'  # fallback
+            # Try to get actual account creation date from database or session
+            join_date = session.get('account_created', '2024-01-01')  # Try session first
             try:
-                if user_id and services.get("database"):
+                logger.info(f"Fetching creation date for user_id: {user_id}")
+                logger.info(f"Session has account_created: {bool(session.get('account_created'))}")
+                logger.info(f"Database service available: {bool(services.get('database'))}")
+                
+                # Only query database if we don't have date from session and it's not the fallback
+                if user_id and services.get("database") and join_date == '2024-01-01':
                     conn = services["database"].get_connection()
                     cursor = conn.cursor()
                     
                     placeholder = "%s" if hasattr(services["database"], 'postgres_url') and services["database"].postgres_url else "?"
-                    cursor.execute(f"SELECT created_at FROM users WHERE id = {placeholder}", (user_id,))
+                    logger.info(f"Using placeholder: {placeholder}")
+                    
+                    query = f"SELECT created_at FROM users WHERE id = {placeholder}"
+                    logger.info(f"Executing query: {query} with user_id: {user_id}")
+                    
+                    cursor.execute(query, (user_id,))
                     result = cursor.fetchone()
+                    
+                    logger.info(f"Query result: {result}")
                     
                     if result and result[0]:
                         # Convert database timestamp to readable date
-                        if isinstance(result[0], str):
+                        raw_date = result[0]
+                        logger.info(f"Raw date from DB: {raw_date}, type: {type(raw_date)}")
+                        
+                        if isinstance(raw_date, str):
                             # Parse string timestamp
                             try:
-                                created_dt = datetime.fromisoformat(result[0].replace('Z', '+00:00'))
+                                created_dt = datetime.fromisoformat(raw_date.replace('Z', '+00:00'))
                                 join_date = created_dt.strftime('%Y-%m-%d')
-                            except:
-                                join_date = result[0][:10] if len(result[0]) >= 10 else '2024-01-01'
+                                logger.info(f"Parsed string date to: {join_date}")
+                            except Exception as parse_error:
+                                logger.warning(f"String date parse error: {parse_error}")
+                                join_date = raw_date[:10] if len(raw_date) >= 10 else '2024-01-01'
                         else:
                             # Handle datetime object
-                            join_date = result[0].strftime('%Y-%m-%d')
+                            join_date = raw_date.strftime('%Y-%m-%d')
+                            logger.info(f"Formatted datetime to: {join_date}")
+                    else:
+                        logger.warning(f"No result found for user_id {user_id}")
                     
                     conn.close()
+                else:
+                    logger.warning(f"Missing requirements: user_id={user_id}, database={bool(services.get('database'))}")
             except Exception as e:
-                logger.warning(f"Could not fetch account creation date: {e}")
+                logger.error(f"Error fetching account creation date: {e}")
+                logger.error(f"Exception type: {type(e)}")
+                import traceback
+                logger.error(f"Traceback: {traceback.format_exc()}")
             
             user_data = {
                 "uid": user_id or ('user_' + str(hash(user_email))[:8]),
