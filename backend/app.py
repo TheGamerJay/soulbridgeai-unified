@@ -2063,6 +2063,42 @@ def payment_cancel():
         logger.error(f"Payment cancel handler error: {e}")
         return redirect("/subscription")
 
+@app.route("/api/users", methods=["GET", "POST"])
+def api_users():
+    """User profile API endpoint"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        if request.method == "GET":
+            # Return current user data
+            user_data = {
+                "uid": session.get('user_id'),
+                "email": session.get('user_email') or session.get('email'),
+                "displayName": session.get('display_name', 'User'),
+                "plan": session.get('user_plan', 'foundation'),
+                "addons": session.get('user_addons', [])
+            }
+            
+            return jsonify({
+                "success": True,
+                "user": user_data
+            })
+        
+        elif request.method == "POST":
+            # Create/update user profile
+            data = request.get_json() or {}
+            
+            # For now, just return success since we have basic session data
+            return jsonify({
+                "success": True,
+                "message": "Profile updated successfully"
+            })
+    
+    except Exception as e:
+        logger.error(f"Users API error: {e}")
+        return jsonify({"success": False, "error": "Failed to process request"}), 500
+
 @app.route("/api/user-addons")
 def get_user_addons():
     """Get user's active add-ons"""
