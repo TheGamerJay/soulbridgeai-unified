@@ -1414,9 +1414,39 @@
             }
         }
 
-        // Load initial content
+        // Add universal Sapphire helper - same as profile page
+        function addSapphireHelper() {
+            const sapphireBtn = document.createElement('div');
+            sapphireBtn.innerHTML = `
+                <div id="sapphire-helper" style="
+                    position: fixed; bottom: 20px; left: 20px; z-index: 1000;
+                    width: 60px; height: 60px; border-radius: 50%;
+                    background: linear-gradient(135deg, #22d3ee 0%, #0891b2 100%);
+                    border: 3px solid rgba(0, 255, 255, 0.6);
+                    cursor: pointer; display: flex; align-items: center; justify-content: center;
+                    box-shadow: 0 4px 20px rgba(34, 211, 238, 0.4);
+                    transition: all 0.3s ease; animation: sapphireGlow 3s ease-in-out infinite alternate;
+                " onclick="openSapphireHelp()" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                    <img src="/static/logos/Sapphire.png" alt="Sapphire" 
+                         style="width: 40px; height: 40px; border-radius: 50%;">
+                </div>
+            `;
+            
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes sapphireGlow {
+                    0% { box-shadow: 0 4px 20px rgba(34, 211, 238, 0.4); }
+                    100% { box-shadow: 0 8px 30px rgba(34, 211, 238, 0.7); }
+                }
+            `;
+            document.head.appendChild(style);
+            document.body.appendChild(sapphireBtn);
+        }
+        
+        // Load initial content and add Sapphire helper
         document.addEventListener('DOMContentLoaded', function() {
             loadTabContent('activity-feed');
+            addSapphireHelper();
         });
     </script>
 </body>

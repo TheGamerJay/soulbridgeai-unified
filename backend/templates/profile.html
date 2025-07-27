@@ -1446,6 +1446,206 @@
         resetIdleTimer();
         console.log('🔒 Auto-logout security active on profile page');
 
+        // Add universal Sapphire helper
+        function addSapphireHelper() {
+            const sapphireBtn = document.createElement('div');
+            sapphireBtn.innerHTML = `
+                <div id="sapphire-helper" style="
+                    position: fixed; bottom: 20px; right: 20px; z-index: 1000;
+                    width: 60px; height: 60px; border-radius: 50%;
+                    background: linear-gradient(135deg, #22d3ee 0%, #0891b2 100%);
+                    border: 3px solid rgba(0, 255, 255, 0.6);
+                    cursor: pointer; display: flex; align-items: center; justify-content: center;
+                    box-shadow: 0 4px 20px rgba(34, 211, 238, 0.4);
+                    transition: all 0.3s ease; animation: sapphireGlow 3s ease-in-out infinite alternate;
+                " onclick="openSapphireHelp()" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                    <img src="/static/logos/Sapphire.png" alt="Sapphire" 
+                         style="width: 40px; height: 40px; border-radius: 50%;">
+                </div>
+            `;
+            
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes sapphireGlow {
+                    0% { box-shadow: 0 4px 20px rgba(34, 211, 238, 0.4); }
+                    100% { box-shadow: 0 8px 30px rgba(34, 211, 238, 0.7); }
+                }
+            `;
+            document.head.appendChild(style);
+            document.body.appendChild(sapphireBtn);
+        }
+        
+        function openSapphireHelp() {
+            const currentPage = window.location.pathname;
+            let contextualHelp = "";
+            
+            if (currentPage.includes('profile')) {
+                contextualHelp = "I can help you with uploading profile images, changing your display name, managing subscription, viewing stats, and navigating your account settings!";
+            } else if (currentPage.includes('community')) {
+                contextualHelp = "I can help you join communities, participate in challenges, find peer support, and understand the activity feed!";
+            } else {
+                contextualHelp = "I can help you navigate SoulBridge AI, find features, troubleshoot issues, and guide your wellness journey!";
+            }
+            
+            // Create enhanced Sapphire modal
+            const modal = document.createElement('div');
+            modal.id = 'sapphireHelpModal';
+            modal.style.cssText = `
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(10px);
+                display: flex; justify-content: center; align-items: center;
+                z-index: 10000; animation: fadeIn 0.3s ease;
+            `;
+            
+            modal.innerHTML = `
+                <div style="
+                    background: linear-gradient(135deg, #0a0e1a 0%, #1a202c 100%);
+                    border: 2px solid rgba(34, 211, 238, 0.3);
+                    border-radius: 20px; padding: 30px; max-width: 600px; width: 90%;
+                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+                    animation: slideUp 0.3s ease;
+                ">
+                    <div style="text-align: center; margin-bottom: 25px;">
+                        <img src="/static/logos/Sapphire.png" alt="Sapphire" 
+                             style="width: 80px; height: 80px; border-radius: 50%; margin-bottom: 15px; border: 3px solid #22d3ee;">
+                        <h3 style="color: #22d3ee; margin: 0 0 10px 0;">💎 Sapphire - Your Navigation Assistant</h3>
+                        <p style="color: #94a3b8; margin: 0 0 15px 0; font-size: 0.9rem;">${contextualHelp}</p>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <input type="text" id="sapphireHelpQuestion" placeholder="Ask me anything about SoulBridge AI..." 
+                               style="width: 100%; padding: 15px; border: 2px solid rgba(34, 211, 238, 0.3);
+                                      border-radius: 12px; background: rgba(255, 255, 255, 0.1);
+                                      color: white; font-size: 1rem; outline: none;"
+                               onkeypress="if(event.key==='Enter') askSapphireHelp()">
+                        <button onclick="askSapphireHelp()" 
+                                style="width: 100%; margin-top: 15px; padding: 15px;
+                                       background: linear-gradient(135deg, #22d3ee 0%, #0891b2 100%);
+                                       border: none; border-radius: 12px; color: white;
+                                       font-weight: 600; cursor: pointer; transition: all 0.3s ease;">
+                            Ask Sapphire
+                        </button>
+                    </div>
+                    
+                    <div id="sapphireHelpResponse" style="
+                        background: rgba(255, 255, 255, 0.05); border-radius: 12px; 
+                        padding: 15px; margin-bottom: 20px; display: none;
+                        border-left: 4px solid #22d3ee;
+                    ">
+                        <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                            <img src="/static/logos/Sapphire.png" alt="Sapphire" 
+                                 style="width: 24px; height: 24px; border-radius: 50%; margin-right: 10px;">
+                            <strong style="color: #22d3ee;">Sapphire:</strong>
+                        </div>
+                        <p id="sapphireHelpAnswer" style="color: #e2e8f0; margin: 0; line-height: 1.4;"></p>
+                    </div>
+                    
+                    <button onclick="closeSapphireHelp()" 
+                            style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.1);
+                                   border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 12px;
+                                   color: #94a3b8; cursor: pointer; transition: all 0.3s ease;">
+                        Close
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            setTimeout(() => document.getElementById('sapphireHelpQuestion').focus(), 100);
+        }
+        
+        function askSapphireHelp() {
+            const question = document.getElementById('sapphireHelpQuestion').value.trim();
+            if (!question) return;
+            
+            const responseDiv = document.getElementById('sapphireHelpResponse');
+            const answerP = document.getElementById('sapphireHelpAnswer');
+            responseDiv.style.display = 'block';
+            
+            // Use the same enhanced response system
+            const currentPage = window.location.pathname;
+            let answer = getSapphireResponse(question, currentPage);
+            
+            answerP.textContent = answer;
+            document.getElementById('sapphireHelpQuestion').value = '';
+        }
+        
+        function getSapphireResponse(question, currentPage) {
+            const q = question.toLowerCase();
+            
+            // Profile page specific help
+            if (currentPage.includes('profile')) {
+                if (q.includes('upload') || q.includes('image') || q.includes('picture')) {
+                    return "📷 Profile Image: Scroll down to 'User Information' section and click '📷 Upload Profile Picture'. Choose PNG, JPG, GIF, or WebP up to 5MB. Your image saves permanently now!";
+                }
+                if (q.includes('name') || q.includes('display')) {
+                    return "✏️ Display Name: In the 'User Information' section, find the display name field, type your new name, and click 'Save'. This is how others see you in communities!";
+                }
+                if (q.includes('subscription') || q.includes('upgrade')) {
+                    return "💳 Subscription: Scroll down to the subscription section to upgrade from Foundation to Plus or Galaxy. Manage billing and view your current plan details here!";
+                }
+                if (q.includes('stats') || q.includes('activity')) {
+                    return "📊 Your Stats: Check your profile stats to see total messages, sessions, days active, and account creation date. Track your SoulBridge AI journey!";
+                }
+            }
+            
+            // Community page specific help
+            if (currentPage.includes('community')) {
+                if (q.includes('join') || q.includes('community')) {
+                    return "🏘️ Joining Communities: Use the 'Discover' tab to find wellness communities like Mindfulness, Fitness, or Anxiety Support. Click 'Join Community' on any that interest you!";
+                }
+                if (q.includes('challenge')) {
+                    return "🎯 Challenges: Go to the 'Challenges' tab to see available wellness challenges. Join ones that match your goals and track your progress!";
+                }
+                if (q.includes('activity') || q.includes('feed')) {
+                    return "🌟 Activity Feed: The main tab shows community activity when available. For now, it's a 'Coming Soon' feature that will show real-time community updates!";
+                }
+            }
+            
+            // General comprehensive help
+            if (q.includes('companion') || q.includes('ai') || q.includes('character')) {
+                return "🌟 AI Companions: From any page, look for 'Choose Your AI Companion' to select from Blayzo (wise mentor), Violet (gentle nurturing), Crimson (passionate motivator), and more! Each has unique conversation styles.";
+            }
+            
+            if (q.includes('navigate') || q.includes('where') || q.includes('find')) {
+                return `🧭 Navigation Help: 
+                
+👤 Profile: Manage account, upload images, subscription
+🌍 Community: Join wellness groups, challenges, peer support  
+🌟 Companions: Choose your AI conversation partner
+🏠 Home: Return to main intro page
+🚪 Logout: Secure sign out (always use this!)`;
+            }
+            
+            if (q.includes('error') || q.includes('404') || q.includes('problem')) {
+                return "🔧 Troubleshooting: For 404 errors, try refreshing the page. For profile image issues, re-upload your image (it now saves permanently!). For other issues, check your internet connection or email support!";
+            }
+            
+            // Default comprehensive response
+            return `💎 I'm your personal SoulBridge AI guide! I can help with:
+
+📱 Navigation: Finding any feature or page
+👤 Profile: Images, names, settings, subscriptions  
+🏘️ Communities: Joining groups, challenges, support
+🌟 Companions: Choosing the perfect AI personality
+🔧 Troubleshooting: Fixing errors and issues
+💬 Getting Started: Step-by-step guidance
+
+What specific help do you need? I know every corner of SoulBridge AI!`;
+        }
+        
+        function closeSapphireHelp() {
+            const modal = document.getElementById('sapphireHelpModal');
+            if (modal) {
+                modal.style.animation = 'fadeOut 0.3s ease';
+                setTimeout(() => modal.remove(), 300);
+            }
+        }
+        
+        // Add Sapphire helper when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            addSapphireHelper();
+        });
+        
         // Profile page uses default styling - no theme switching
         console.log('📄 Profile page loaded - using default styling');
     </script>

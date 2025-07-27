@@ -521,29 +521,103 @@
             const answerP = document.getElementById('sapphireAnswer');
             responseDiv.style.display = 'block';
             
-            // Simple responses for common questions
-            let answer = "I'm here to help! ";
+            // Get current page context
+            const currentPage = window.location.pathname;
+            const isIntroPage = currentPage === '/' || currentPage.includes('intro');
             
-            if (question.toLowerCase().includes('password') || question.toLowerCase().includes('reset')) {
-                answer = "To reset your password, go to your Profile page (click the 👤 View Profile button above) and look for 'Account Settings' or 'Change Password'. You can also log out and use 'Forgot Password' on the login page.";
-            } else if (question.toLowerCase().includes('setting') || question.toLowerCase().includes('profile')) {
-                answer = "Your settings are in your Profile page! Click the '👤 View Profile' button above. There you can manage your account, subscription, preferences, and more.";
-            } else if (question.toLowerCase().includes('companion') || question.toLowerCase().includes('character')) {
-                answer = "To choose or change your AI companion, click the '🌟 Choose Your AI Companion' button above. You can select from different personalities like Blayzo, Violet, Crimson, and others!";
-            } else if (question.toLowerCase().includes('billing') || question.toLowerCase().includes('payment') || question.toLowerCase().includes('subscription')) {
-                answer = "Billing and subscription details are in your Profile page. Click '👤 View Profile' above, then look for 'Billing' or 'Subscription' section.";
-            } else if (question.toLowerCase().includes('chat') || question.toLowerCase().includes('talk') || question.toLowerCase().includes('message')) {
-                answer = "To start chatting, click '💬 Start Chatting' above! Make sure you've selected a companion first with the '🌟 Choose Your AI Companion' button.";
-            } else if (question.toLowerCase().includes('help') || question.toLowerCase().includes('support')) {
-                answer = "I'm your navigation assistant! I help you find features, reset passwords, and navigate SoulBridge AI. You can also find more help in your Profile page under 'Support' or 'Help'.";
-            } else {
-                answer = `I can help you with: finding settings (in Profile), resetting passwords, choosing companions, billing info, and navigating the platform. Could you be more specific about what you're looking for?`;
-            }
+            // Enhanced Sapphire with comprehensive website knowledge
+            let answer = getSapphireResponse(question, currentPage);
             
             answerP.textContent = answer;
             
             // Clear input
             document.getElementById('sapphireQuestion').value = '';
+        }
+        
+        function getSapphireResponse(question, currentPage) {
+            const q = question.toLowerCase();
+            
+            // Website navigation help
+            if (q.includes('where') || q.includes('find') || q.includes('navigate')) {
+                if (q.includes('profile') || q.includes('account')) {
+                    return "🏠 From here: Click '👤 Profile' button above to access your account settings, profile image, display name, subscription details, and more!";
+                } else if (q.includes('community') || q.includes('communities')) {
+                    return "🌍 From here: Click '🌍 Community' button above to join wellness communities, participate in challenges, find peer support, and track your community activity!";
+                } else if (q.includes('companion') || q.includes('character') || q.includes('ai')) {
+                    return "🌟 From here: Click '🌟 Choose Your AI Companion' button above to select from Blayzo, Violet, Crimson, Blayzica, Blayzia, and more! Each has unique personalities and specialties.";
+                } else if (q.includes('chat') || q.includes('talk') || q.includes('conversation')) {
+                    return "💬 To start chatting: First choose your AI companion with the '🌟 Choose Your AI Companion' button, then you'll be able to start meaningful conversations!";
+                }
+            }
+            
+            // Feature-specific help
+            if (q.includes('upload') || q.includes('image') || q.includes('picture') || q.includes('photo')) {
+                return "📷 Profile Images: Go to Profile page → scroll to 'User Information' → click '📷 Upload Profile Picture'. Supports PNG, JPG, GIF, WebP up to 5MB. Your images are saved permanently!";
+            }
+            
+            if (q.includes('password') || q.includes('reset') || q.includes('forgot')) {
+                return "🔒 Password Help: Use 'Forgot Password' on login page, or go to Profile → Account Settings to change your password. Always use the Logout button on shared computers!";
+            }
+            
+            if (q.includes('community') || q.includes('join') || q.includes('wellness')) {
+                return "🏘️ Communities: Visit Community Dashboard to join wellness groups like Mindfulness, Fitness, Anxiety Support, and more! You can also create your own communities and participate in challenges.";
+            }
+            
+            if (q.includes('companion') || q.includes('personality') || q.includes('blayzo') || q.includes('violet')) {
+                return "🌟 AI Companions: Choose from 6 unique personalities - Blayzo (wise mentor), Violet (gentle nurturing), Crimson (passionate motivator), Blayzica (empathetic support), Blayzia (mystical guide), Blayzion (creative innovator). Each offers different conversation styles!";
+            }
+            
+            if (q.includes('subscription') || q.includes('billing') || q.includes('payment') || q.includes('upgrade')) {
+                return "💳 Subscription: Go to Profile → Subscription section to upgrade from Foundation to Plus or Galaxy plans. Manage billing, view usage, and access premium features!";
+            }
+            
+            if (q.includes('dark') || q.includes('theme') || q.includes('colors') || q.includes('appearance')) {
+                return "🎨 Appearance: SoulBridge AI uses a beautiful black background with cyan accents for a calming, focused experience. Theme settings may be available in your Profile page!";
+            }
+            
+            if (q.includes('error') || q.includes('404') || q.includes('broken') || q.includes('not working')) {
+                return "🔧 Troubleshooting: If you see 404 errors or issues, try refreshing the page. For profile image issues, re-upload your image. For persistent problems, check your internet connection or contact support!";
+            }
+            
+            if (q.includes('support') || q.includes('help') || q.includes('contact')) {
+                return "📧 Support: Email soulbridgeai.contact@gmail.com for help, or go to Profile → Support section. I'm also here 24/7 to help you navigate SoulBridge AI!";
+            }
+            
+            if (q.includes('logout') || q.includes('sign out') || q.includes('exit')) {
+                return "🚪 Logout: Always use the 'Logout' button (top-right on most pages) for security. Your session will automatically expire after 30 minutes of inactivity to protect your privacy.";
+            }
+            
+            if (q.includes('security') || q.includes('privacy') || q.includes('safe')) {
+                return "🔒 Security: Your conversations are private and secure. Sessions auto-expire when you close your browser. Always logout on shared computers. Your data is encrypted and protected!";
+            }
+            
+            // Page-specific contextual help
+            if (currentPage === '/' || currentPage.includes('intro')) {
+                if (q.includes('start') || q.includes('begin') || q.includes('first')) {
+                    return "🚀 Getting Started: Welcome! First, click '🌟 Choose Your AI Companion' to select your perfect conversation partner. Then visit '🌍 Community' to join wellness groups, and '👤 Profile' to customize your account!";
+                }
+            }
+            
+            // Motivational and wellness guidance
+            if (q.includes('wellness') || q.includes('mental health') || q.includes('support')) {
+                return "💙 Wellness Support: SoulBridge AI offers communities for anxiety, depression, meditation, fitness, and more. Choose a companion that resonates with you, join supportive communities, and participate in wellness challenges!";
+            }
+            
+            if (q.includes('how') && (q.includes('work') || q.includes('use'))) {
+                return "🌟 How SoulBridge Works: 1) Choose your AI companion personality 2) Join wellness communities that interest you 3) Start conversations and participate in challenges 4) Track your wellness journey in your profile. I'm here to guide you through everything!";
+            }
+            
+            // Default comprehensive response
+            return `💎 I'm Sapphire, your SoulBridge AI navigation assistant! I can help you with:
+
+🌟 Choosing AI companions (Blayzo, Violet, Crimson, etc.)
+🏘️ Joining wellness communities and challenges  
+👤 Managing your profile and settings
+💬 Starting conversations and getting support
+🔒 Account security and troubleshooting
+📧 Contacting support when needed
+
+What specific area would you like help with? I know every feature of SoulBridge AI and I'm here to guide your wellness journey!`;
         }
         
         function closeSapphireModal() {
