@@ -455,9 +455,15 @@ def home():
             logger.info(f"Home route: User not authenticated, redirecting to login")
             return redirect("/login")
         
-        # User is authenticated - redirect to intro (proper returning user flow)
-        logger.info(f"Home route: User authenticated, redirecting to intro")
-        return redirect("/intro")
+        # User is authenticated - show original chat interface
+        logger.info(f"Home route: User authenticated, showing chat interface")
+        
+        # Initialize services if needed
+        if not services["database"]:
+            initialize_services()
+        
+        # Show original chat page with proper authentication
+        return render_template("chat.html")
         
     except Exception as e:
         logger.error(f"Home route error: {e}")
@@ -514,7 +520,7 @@ def auth_login():
             # Create session
             auth.create_session(result)
             logger.info(f"Login successful: {email}")
-            return jsonify({"success": True, "redirect": "/intro"})
+            return jsonify({"success": True, "redirect": "/"})
         else:
             logger.warning(f"Login failed: {email}")
             return jsonify({"success": False, "error": result["error"]}), 401
@@ -682,7 +688,7 @@ def auth_register():
         session['user_authenticated'] = True
         session['last_activity'] = datetime.now().isoformat()
         
-        return jsonify({"success": True, "redirect": "/plan-selection"})
+        return jsonify({"success": True, "redirect": "/"})
         
     except Exception as e:
         return jsonify({"success": False, "error": f"Error: {str(e)}"}), 500
