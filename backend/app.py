@@ -675,21 +675,15 @@ def auth_register():
         user_id = cursor.fetchone()[0]
         conn.close()
         
-        result = {"success": True, "user_id": user_id}
+        # Create session manually
+        session.permanent = True
+        session['user_id'] = user_id
+        session['email'] = email
+        session['display_name'] = display_name
+        session['authenticated'] = True
         
-        if result["success"]:
-            # Auto-login after registration
-            user_data = {
-                "user_id": result["user_id"],
-                "email": email,
-                "display_name": display_name
-            }
-            auth.create_session(user_data)
-            
-            logger.info(f"User registered and logged in: {email}")
-            return jsonify({"success": True, "redirect": "/"})
-        else:
-            return jsonify({"success": False, "error": result["error"]}), 500
+        logger.info(f"User registered and logged in: {email}")
+        return jsonify({"success": True, "redirect": "/"})
             
     except Exception as e:
         logger.error(f"Registration error: {e}")
