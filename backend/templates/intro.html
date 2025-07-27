@@ -4,6 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Welcome to SoulBridge AI</title>
+    <!-- Force intro styling first -->
+    <style>
+        /* CRITICAL: Intro page styling MUST load first */
+        body {
+            background: linear-gradient(135deg, #0a0e1a 0%, #1a202c 25%, #2d3748 50%, #1a202c 75%, #0a0e1a 100%) !important;
+            background-attachment: fixed !important;
+            background-size: 100% 100% !important;
+            min-height: 100vh !important;
+            margin: 0 !important;
+            font-family: system-ui, -apple-system, sans-serif !important;
+            color: #22d3ee !important;
+        }
+    </style>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/themes.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
