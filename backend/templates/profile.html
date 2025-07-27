@@ -448,10 +448,6 @@
                     <div class="info-value" id="userEmail">Loading...</div>
                 </div>
 
-                <div class="user-info">
-                    <div class="info-label">Account Created</div>
-                    <div class="info-value" id="accountCreated">Loading...</div>
-                </div>
 
                 <div class="user-info">
                     <div class="info-label">Subscription Status</div>
@@ -470,6 +466,10 @@
                     <div class="stat-item">
                         <span class="stat-number" id="daysActive">-</span>
                         <span class="stat-label">Days Active</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="accountCreated">-</span>
+                        <span class="stat-label">Account Created</span>
                     </div>
                 </div>
             </div>
@@ -763,29 +763,28 @@
                     displayNameInput.value = this.userData.displayName;
                 }
                 
-                // Handle account creation date with better fallbacks
-                let createdDate = 'Unknown';
+                // Handle account creation date for stats display (short format)
+                let createdDateShort = '-';
                 const dateSource = this.userData.createdDate || this.userData.joinDate;
                 
                 if (dateSource && dateSource !== '2024-01-01') {
                     try {
                         const date = new Date(dateSource);
                         if (!isNaN(date.getTime())) {
-                            createdDate = date.toLocaleDateString('en-US', {
+                            createdDateShort = date.toLocaleDateString('en-US', {
                                 year: 'numeric',
-                                month: 'long', 
-                                day: 'numeric'
+                                month: 'short'
                             });
                         }
                     } catch (e) {
                         console.log('Date parsing error:', e);
-                        createdDate = dateSource; // Use raw date if parsing fails
+                        createdDateShort = dateSource.substring(0, 7); // Use YYYY-MM if parsing fails
                     }
                 }
                 
                 const accountCreatedElement = document.getElementById('accountCreated');
                 if (accountCreatedElement) {
-                    accountCreatedElement.textContent = createdDate;
+                    accountCreatedElement.textContent = createdDateShort;
                 }
 
                 // Update subscription badge
