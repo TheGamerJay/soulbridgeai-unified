@@ -95,15 +95,15 @@ class SimpleAuth:
             return False
     
     def create_session(self, user_data):
-        """Create user session"""
-        session.permanent = True  # Make session permanent
+        """Create secure user session"""
+        session.permanent = False  # Session ends when browser closes
         session['user_authenticated'] = True
         session['user_id'] = user_data['user_id']
         session['user_email'] = user_data['email']
         session['display_name'] = user_data['display_name']
-        session['login_time'] = datetime.now().isoformat()
+        session['last_activity'] = datetime.now().isoformat()
         
-        logger.info(f"Session created for user: {user_data['email']}")
+        logger.info(f"Secure session created for user: {user_data['email']}")
     
     def clear_session(self):
         """Clear user session"""

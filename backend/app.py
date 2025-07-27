@@ -210,8 +210,27 @@ def background_monitoring():
 background_monitoring()
 
 def is_logged_in():
-    """Check if user is logged in"""
-    return session.get("user_authenticated", False)
+    """Check if user is logged in with session timeout"""
+    if not session.get("user_authenticated", False):
+        return False
+    
+    # Check session timeout (30 minutes of inactivity)
+    last_activity = session.get('last_activity')
+    if last_activity:
+        try:
+            last_time = datetime.fromisoformat(last_activity)
+            if datetime.now() - last_time > timedelta(minutes=30):
+                # Session expired - clear it
+                session.clear()
+                return False
+        except:
+            # Invalid timestamp - clear session
+            session.clear()
+            return False
+    
+    # Update last activity time
+    session['last_activity'] = datetime.now().isoformat()
+    return True
 
 def get_user_plan():
     """Get user's selected plan"""
@@ -436,7 +455,7 @@ def home():
             logger.info(f"Home route: User not authenticated, redirecting to login")
             return redirect("/login")
         
-        # User is authenticated - redirect to intro
+        # User is authenticated - redirect to intro (proper returning user flow)
         logger.info(f"Home route: User authenticated, redirecting to intro")
         return redirect("/intro")
         
@@ -656,10 +675,12 @@ def auth_register():
         user_id = cursor.fetchone()[0]
         conn.close()
         
-        # Login
+        # Login with security
+        session.permanent = False  # Session ends when browser closes
         session['user_id'] = user_id
         session['email'] = email
-        session['authenticated'] = True
+        session['user_authenticated'] = True
+        session['last_activity'] = datetime.now().isoformat()
         
         return jsonify({"success": True, "redirect": "/plan-selection"})
         
