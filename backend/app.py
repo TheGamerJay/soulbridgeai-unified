@@ -2366,7 +2366,7 @@ def debug_reset_password():
         import bcrypt
         
         email = "aceelnene@gmail.com"
-        new_password = "admin123"  # New password you can remember
+        new_password = "Yariel13"  # Your actual password
         
         # Hash the new password
         password_hash = bcrypt.hashpw(new_password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
