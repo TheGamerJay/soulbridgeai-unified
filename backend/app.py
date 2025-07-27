@@ -2306,6 +2306,55 @@ def debug_info():
         "services_database": bool(services["database"])
     })
 
+@app.route("/debug/create-user", methods=["POST"])
+def debug_create_user():
+    """Debug endpoint to create a user account"""
+    try:
+        if not services["database"]:
+            init_database()
+        
+        from auth import User
+        user = User(db)
+        
+        # Create aceelnene@gmail.com account
+        email = "aceelnene@gmail.com"
+        password = "password123"  # You can change this
+        display_name = "Admin User"
+        
+        # Check if user already exists
+        if user.user_exists(email):
+            return jsonify({
+                "status": "User already exists",
+                "email": email,
+                "action": "Try logging in with existing password"
+            })
+        
+        # Create the user
+        result = user.create_user(email, password, display_name)
+        
+        if result["success"]:
+            logger.info(f"Created user account: {email}")
+            return jsonify({
+                "status": "User created successfully",
+                "email": email,
+                "password": password,
+                "user_id": result["user_id"],
+                "message": "You can now log in with these credentials"
+            })
+        else:
+            return jsonify({
+                "status": "Failed to create user",
+                "email": email,
+                "error": result["error"]
+            }), 400
+            
+    except Exception as e:
+        logger.error(f"Debug create user error: {e}")
+        return jsonify({
+            "status": "Error",
+            "error": str(e)
+        }), 500
+
 @app.route("/stripe-status", methods=["GET"])
 def stripe_status():
     """Check Stripe configuration status - public endpoint for debugging"""
