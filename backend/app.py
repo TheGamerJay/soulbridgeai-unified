@@ -3500,6 +3500,163 @@ def oauth_callback():
         return redirect(url_for("login_page"))
 
 # ========================================
+# REFERRAL UTILITY FUNCTIONS
+# ========================================
+
+def generate_referral_code(length=8):
+    """Generate a unique alphanumeric referral code"""
+    import random
+    import string
+    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=length))
+
+# ========================================
+# REFERRAL API ENDPOINTS
+# ========================================
+
+@app.route("/api/referrals/dashboard", methods=["GET"])
+def api_referrals_dashboard():
+    """Get referral dashboard data"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        user_email = session.get("user_email", "")
+        
+        # Get real referral data from database
+        referral_stats = {"total_referrals": 0, "successful_referrals": 0, "pending_referrals": 0, "total_rewards_earned": 0}
+        referral_history = []
+        
+        if services["database"] and db:
+            try:
+                conn = db.get_connection()
+                cursor = conn.cursor()
+                placeholder = "%s" if hasattr(db, 'postgres_url') and db.postgres_url else "?"
+                
+                # Get referral statistics
+                cursor.execute(f"""
+                    SELECT COUNT(*) as total,
+                           SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
+                           SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending
+                    FROM referrals 
+                    WHERE referrer_email = {placeholder}
+                """, (user_email,))
+                
+                stats = cursor.fetchone()
+                if stats:
+                    referral_stats = {
+                        "total_referrals": stats[0] or 0,
+                        "successful_referrals": stats[1] or 0, 
+                        "pending_referrals": stats[2] or 0,
+                        "total_rewards_earned": stats[1] or 0  # Rewards = successful referrals
+                    }
+                
+                # Get referral history
+                cursor.execute(f"""
+                    SELECT referred_email, created_at, status
+                    FROM referrals 
+                    WHERE referrer_email = {placeholder}
+                    ORDER BY created_at DESC
+                    LIMIT 10
+                """, (user_email,))
+                
+                history = cursor.fetchall()
+                for record in history:
+                    # Mask email for privacy
+                    masked_email = record[0][:3] + "***@" + record[0].split('@')[1] if '@' in record[0] else "***"
+                    referral_history.append({
+                        "email": masked_email,
+                        "date": record[1].strftime("%Y-%m-%d") if record[1] else "Unknown",
+                        "status": record[2] or "pending",
+                        "reward_earned": "Companion Access" if record[2] == 'completed' else "Pending signup"
+                    })
+                
+                conn.close()
+                
+            except Exception as db_error:
+                logger.error(f"Referral database query error: {db_error}")
+                # Fall back to demo data if database fails
+                referral_stats = {"total_referrals": 0, "successful_referrals": 0, "pending_referrals": 0, "total_rewards_earned": 0}
+                referral_history = []
+        
+        # Calculate next milestone
+        successful = referral_stats["successful_referrals"]
+        next_milestone_count = 2 if successful < 2 else (4 if successful < 4 else 6)
+        remaining = max(0, next_milestone_count - successful)
+        
+        milestone_rewards = {
+            2: "Blayzike - Exclusive Companion",
+            4: "Blazelian - Premium Companion", 
+            6: "Blayzo Special Skin"
+        }
+        
+        next_reward = milestone_rewards.get(next_milestone_count, "Max rewards reached!")
+        if remaining == 0 and successful >= next_milestone_count:
+            next_reward = f"{milestone_rewards.get(next_milestone_count)} - Already Unlocked!"
+        
+        # Generate or retrieve permanent referral code for this user
+        user_email = session.get("user_email", "").lower().strip()
+        if user_email:
+            # Create a consistent referral code based on user email hash
+            import hashlib
+            email_hash = hashlib.md5(user_email.encode()).hexdigest()[:8].upper()
+            referral_code = f"REF{email_hash}"
+        else:
+            referral_code = "REFGENERIC"
+        
+        return jsonify({
+            "success": True,
+            "stats": referral_stats,
+            "referral_link": f"https://soulbridgeai.com/register?ref={referral_code}",
+            "all_rewards": {
+                "2": {"type": "exclusive_companion", "description": "Blayzike - Exclusive Companion"},
+                "4": {"type": "exclusive_companion", "description": "Blazelian - Premium Companion"}, 
+                "6": {"type": "premium_skin", "description": "Blayzo Special Skin"}
+            },
+            "next_milestone": {
+                "count": next_milestone_count,
+                "remaining": remaining,
+                "reward": {"type": "exclusive_companion", "description": next_reward}
+            },
+            "referral_history": referral_history
+        })
+    except Exception as e:
+        logger.error(f"Referrals dashboard error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/api/referrals/share-templates", methods=["GET"])  
+def api_referrals_share_templates():
+    """Get referral share templates"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+            
+        user_email = session.get("user_email", "").lower().strip()
+        if user_email:
+            # Create a consistent referral code based on user email hash
+            import hashlib
+            email_hash = hashlib.md5(user_email.encode()).hexdigest()[:8].upper()
+            referral_code = f"REF{email_hash}"
+        else:
+            referral_code = "REFGENERIC"
+        referral_link = f"https://soulbridgeai.com/register?ref={referral_code}"
+        
+        return jsonify({
+            "success": True,
+            "templates": {
+                "generic": f"🌉 Join me on SoulBridge AI for amazing AI companions! {referral_link}",
+                "twitter": f"🤖 Discovered @SoulBridgeAI - incredible AI companions that actually remember our conversations! Join me: {referral_link} #AI #Companions",
+                "whatsapp": f"Hey! 🌉 I've been using SoulBridge AI and it's incredible - AI companions that feel real and remember everything! You should try it: {referral_link}",
+                "email": {
+                    "subject": "You'll love SoulBridge AI - AI companions that actually remember!",
+                    "body": f"Hi!\\n\\nI wanted to share something cool with you - SoulBridge AI! It's an AI companion platform that's actually incredible.\\n\\nWhat makes it special:\\n🤖 AI companions with real personalities\\n🧠 They remember all your conversations\\n💬 Meaningful, ongoing relationships\\n\\nI think you'd really enjoy it. Check it out here: {referral_link}\\n\\nLet me know what you think!\\n\\nBest regards"
+                }
+            }
+        })
+    except Exception as e:
+        logger.error(f"Referrals share templates error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+# ========================================
 # UTILITY ROUTES  
 # ========================================
 
