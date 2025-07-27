@@ -581,6 +581,8 @@ def admin_init_database():
         try:
             cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS plan_type VARCHAR(50) DEFAULT 'foundation'")
             cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE")
+            cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_image TEXT")
+            cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS display_name TEXT")
         except:
             pass  # Columns might already exist
         
@@ -2331,13 +2333,43 @@ def api_users():
                 import traceback
                 logger.error(f"Traceback: {traceback.format_exc()}")
             
+            # Get profile image from database if available, fallback to session, then default
+            profile_image = '/static/logos/Sapphire.png'  # Default
+            try:
+                if user_id and services.get("database"):
+                    conn = services["database"].get_connection()
+                    cursor = conn.cursor()
+                    
+                    placeholder = "%s" if hasattr(services["database"], 'postgres_url') and services["database"].postgres_url else "?"
+                    cursor.execute(f"SELECT profile_image FROM users WHERE id = {placeholder}", (user_id,))
+                    result = cursor.fetchone()
+                    
+                    if result and result[0]:
+                        profile_image = result[0]
+                        logger.info(f"Loaded profile image from database: {profile_image}")
+                    else:
+                        # Fallback to session
+                        profile_image = session.get('profile_image', '/static/logos/Sapphire.png')
+                        logger.info(f"Using profile image from session: {profile_image}")
+                    
+                    conn.close()
+                else:
+                    # No database or user_id, use session fallback
+                    profile_image = session.get('profile_image', '/static/logos/Sapphire.png')
+                    logger.info(f"Using profile image from session (no DB): {profile_image}")
+                    
+            except Exception as e:
+                logger.warning(f"Failed to load profile image from database: {e}")
+                # Fallback to session
+                profile_image = session.get('profile_image', '/static/logos/Sapphire.png')
+            
             user_data = {
                 "uid": user_id or ('user_' + str(hash(user_email))[:8]),
                 "email": user_email,
                 "displayName": session.get('display_name') or session.get('user_name', 'SoulBridge User'),
                 "plan": session.get('user_plan', 'foundation'),
                 "addons": session.get('user_addons', []),
-                "profileImage": session.get('profile_image', '/static/logos/Sapphire.png'),
+                "profileImage": profile_image,
                 "joinDate": join_date,
                 "createdDate": join_date,  # Add both for compatibility
                 "isActive": True
@@ -2359,6 +2391,22 @@ def api_users():
             
             if 'profileImage' in data:
                 session['profile_image'] = data['profileImage']
+                
+                # Also save to database
+                user_id = session.get('user_id')
+                if user_id and services.get("database"):
+                    try:
+                        conn = services["database"].get_connection()
+                        cursor = conn.cursor()
+                        
+                        placeholder = "%s" if hasattr(services["database"], 'postgres_url') and services["database"].postgres_url else "?"
+                        cursor.execute(f"UPDATE users SET profile_image = {placeholder} WHERE id = {placeholder}", 
+                                     (data['profileImage'], user_id))
+                        conn.commit()
+                        conn.close()
+                        logger.info(f"Profile image updated in database via API: {data['profileImage']}")
+                    except Exception as e:
+                        logger.error(f"Failed to update profile image in database via API: {e}")
             
             return jsonify({
                 "success": True,
@@ -2412,9 +2460,41 @@ def upload_profile_image():
         # Save file
         file.save(file_path)
         
-        # Store in session
+        # Store in session and database
         profile_image_url = f"/static/uploads/profiles/{unique_filename}"
         session['profile_image'] = profile_image_url
+        
+        # Also save to database for persistence
+        user_id = session.get('user_id')
+        if user_id and services.get("database"):
+            try:
+                conn = services["database"].get_connection()
+                cursor = conn.cursor()
+                
+                placeholder = "%s" if hasattr(services["database"], 'postgres_url') and services["database"].postgres_url else "?"
+                
+                # Update or insert profile_image in user record
+                cursor.execute(f"""
+                    UPDATE users SET profile_image = {placeholder} WHERE id = {placeholder}
+                """, (profile_image_url, user_id))
+                
+                if cursor.rowcount == 0:
+                    # If no rows updated, user might not exist in users table, try creating record
+                    user_email = session.get('user_email', session.get('email'))
+                    if user_email:
+                        cursor.execute(f"""
+                            INSERT INTO users (email, profile_image) 
+                            VALUES ({placeholder}, {placeholder})
+                            ON CONFLICT (email) DO UPDATE SET profile_image = EXCLUDED.profile_image
+                        """, (user_email, profile_image_url))
+                
+                conn.commit()
+                conn.close()
+                logger.info(f"Profile image saved to database: {profile_image_url} for user {user_id}")
+                
+            except Exception as db_error:
+                logger.error(f"Failed to save profile image to database: {db_error}")
+                # Continue anyway - session storage will work for now
         
         return jsonify({
             "success": True,
