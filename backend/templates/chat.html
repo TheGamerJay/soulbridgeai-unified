@@ -822,7 +822,7 @@
             forceStartJourney: function() {
                 try {
                     console.log('✨ EMERGENCY Begin Journey activated - redirecting to companion selector');
-                    window.location.href = '/companions';
+                    window.location.href = '/companion-selection';
                     console.log('✅ EMERGENCY Begin Journey redirect successful');
                 } catch (error) {
                     console.error('❌ EMERGENCY Begin Journey failed:', error);
@@ -1167,8 +1167,8 @@
             top: 40%;
             left: 50%;
             transform: translate(-50%, -50%);
-            max-width: 400px;
-            max-height: 300px;
+            max-width: 320px;
+            max-height: 240px;
             width: auto;
             height: auto;
             object-fit: contain;
@@ -1225,8 +1225,8 @@
                     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
                 " onmouseover="this.style.background='linear-gradient(135deg, #f97316, #ea580c)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 25px rgba(249, 115, 22, 0.5)'" onmouseout="this.style.background='linear-gradient(135deg, rgba(249, 115, 22, 0.9), rgba(234, 88, 12, 0.9))'; this.style.transform='translateY(0px)'; this.style.boxShadow='0 4px 15px rgba(249, 115, 22, 0.3)'">"
                     <img src="/static/logos/Sapphire.png" alt="Sapphire" style="
-                        width: 32px;
-                        height: 32px;
+                        width: 24px;
+                        height: 24px;
                         border: 1px solid #f97316;
                     " onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
                     <span style="font-size: 1.2rem; display: none;">🔮</span>
