@@ -462,8 +462,8 @@ def home():
         if not services["database"]:
             initialize_services()
         
-        # Show intro page first instead of going directly to chat
-        return render_template("intro.html")
+        # Show your original beautiful chat page
+        return render_template("chat.html")
         
     except Exception as e:
         logger.error(f"Home route error: {e}")
@@ -520,7 +520,7 @@ def auth_login():
             # Create session
             auth.create_session(result)
             logger.info(f"Login successful: {email}")
-            return jsonify({"success": True, "redirect": "/"})
+            return jsonify({"success": True, "redirect": "/intro"})
         else:
             logger.warning(f"Login failed: {email}")
             return jsonify({"success": False, "error": result["error"]}), 401
@@ -879,7 +879,7 @@ def api_companions_select():
             "success": True,
             "message": f"Successfully selected companion",
             "companion_id": companion_id,
-            "redirect_url": "/chat"
+            "redirect_url": "/"
         })
         
     except Exception as e:
@@ -3536,7 +3536,7 @@ def oauth_callback():
             else:
                 flash(f"Welcome back! Signed in with {provider.title()}.", "success")
                 
-            return redirect("/")
+            return redirect("/intro")
         else:
             flash(result["error"], "error")
             return redirect(url_for("login_page"))
