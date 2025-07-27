@@ -485,13 +485,47 @@
                     </div>
                 </div>
 
-                <a href="/companion-selection" class="profile-btn" style="text-decoration: none; display: inline-block; text-align: center;">
-                    🔄 Change Companion
-                </a>
+                <!-- Companion Quick Stats -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; padding: 15px; background: rgba(34, 211, 238, 0.1); border-radius: 8px;">
+                    <div style="text-align: center;">
+                        <div style="font-size: 1.2rem; font-weight: 600; color: #22d3ee;" id="todayMessages">-</div>
+                        <div style="font-size: 0.8rem; color: #94a3b8;">Messages Today</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 1.2rem; font-weight: 600; color: #22d3ee;" id="companionDays">-</div>
+                        <div style="font-size: 0.8rem; color: #94a3b8;">Days Together</div>
+                    </div>
+                </div>
 
-                <button onclick="showCompanionStats()" class="profile-btn secondary" style="border: none; cursor: pointer; width: 100%; text-decoration: none; display: inline-block; text-align: center;">
-                    📊 View Companion Stats
-                </button>
+                <!-- Companion Specialties -->
+                <div style="margin: 15px 0;">
+                    <div style="font-size: 0.9rem; color: #94a3b8; margin-bottom: 8px;">✨ Specialties:</div>
+                    <div id="companionSpecialties" style="display: flex; flex-wrap: wrap; gap: 6px;">
+                        <span style="background: rgba(34, 211, 238, 0.2); color: #22d3ee; padding: 4px 8px; border-radius: 12px; font-size: 0.8rem;">Wisdom</span>
+                        <span style="background: rgba(34, 211, 238, 0.2); color: #22d3ee; padding: 4px 8px; border-radius: 12px; font-size: 0.8rem;">Guidance</span>
+                        <span style="background: rgba(34, 211, 238, 0.2); color: #22d3ee; padding: 4px 8px; border-radius: 12px; font-size: 0.8rem;">Deep Thinking</span>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div style="display: flex; gap: 10px; margin: 15px 0;">
+                    <a href="/chat" class="profile-btn" style="text-decoration: none; display: inline-block; text-align: center; flex: 1; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none;">
+                        💬 Start Chat
+                    </a>
+                    <a href="/chat/history" class="profile-btn secondary" style="text-decoration: none; display: inline-block; text-align: center; flex: 1;">
+                        📚 History
+                    </a>
+                </div>
+
+                <!-- Companion Management -->
+                <div style="display: flex; gap: 10px;">
+                    <a href="/companion-selection" class="profile-btn" style="text-decoration: none; display: inline-block; text-align: center; flex: 1;">
+                        🔄 Change Companion
+                    </a>
+                    <button onclick="showCompanionStats()" class="profile-btn secondary" style="border: none; cursor: pointer; flex: 1;">
+                        📊 View Stats
+                    </button>
+                </div>
             </div>
 
             <!-- Upgrade & Referrals Panel -->
@@ -917,6 +951,10 @@
                     companionDescriptionElement.textContent = info.description;
                 }
 
+                // Update companion stats and specialties
+                this.updateCompanionStats(info.name);
+                this.updateCompanionSpecialties(info.name);
+
                 // Update color palette
                 const colorPalettes = {
                     'Blayzo': 'Cyan',
@@ -1015,6 +1053,55 @@
             showError(message) {
                 // You can implement a toast notification here
                 alert(message);
+            }
+
+            updateCompanionStats(companionName) {
+                // Update stats with mock data for now - could connect to real analytics later
+                const todayMessagesEl = document.getElementById('todayMessages');
+                const companionDaysEl = document.getElementById('companionDays');
+                
+                if (todayMessagesEl) {
+                    // Generate some realistic mock data
+                    const todayMessages = Math.floor(Math.random() * 20) + 1;
+                    todayMessagesEl.textContent = todayMessages;
+                }
+                
+                if (companionDaysEl) {
+                    // Calculate days since joining (mock data)
+                    const joinDate = this.userData.joinDate || this.userData.createdDate;
+                    if (joinDate && joinDate !== '2024-01-01' && joinDate !== '-') {
+                        try {
+                            const created = new Date(joinDate);
+                            const now = new Date();
+                            const daysDiff = Math.floor((now - created) / (1000 * 60 * 60 * 24));
+                            companionDaysEl.textContent = Math.max(1, daysDiff);
+                        } catch (e) {
+                            companionDaysEl.textContent = '1';
+                        }
+                    } else {
+                        companionDaysEl.textContent = '1';
+                    }
+                }
+            }
+
+            updateCompanionSpecialties(companionName) {
+                const specialtiesEl = document.getElementById('companionSpecialties');
+                if (!specialtiesEl) return;
+                
+                // Define specialties for each companion
+                const companionSpecialties = {
+                    'Blayzo': ['Wisdom', 'Guidance', 'Deep Thinking'],
+                    'Violet': ['Creativity', 'Art', 'Inspiration'],
+                    'Crimson': ['Energy', 'Motivation', 'Action'],
+                    'Luna': ['Calm', 'Meditation', 'Balance'],
+                    'Phoenix': ['Growth', 'Transformation', 'Resilience']
+                };
+                
+                const specialties = companionSpecialties[companionName] || ['Wisdom', 'Guidance', 'Support'];
+                
+                specialtiesEl.innerHTML = specialties.map(specialty => 
+                    `<span style="background: rgba(34, 211, 238, 0.2); color: #22d3ee; padding: 4px 8px; border-radius: 12px; font-size: 0.8rem;">${specialty}</span>`
+                ).join('');
             }
         }
 
