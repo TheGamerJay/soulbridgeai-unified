@@ -555,11 +555,22 @@
         async function loadReferralDashboard() {
             try {
                 const userEmail = "{{ session.get('user_email', 'user@example.com') }}";
+                console.log('📡 Loading referral dashboard...');
+                
+                // Set timeout for API calls
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
                 
                 const [dashboardResponse, templatesResponse] = await Promise.all([
-                    fetch(`/api/referrals/dashboard?userEmail=${encodeURIComponent(userEmail)}`),
-                    fetch(`/api/referrals/share-templates?userEmail=${encodeURIComponent(userEmail)}`)
+                    fetch(`/api/referrals/dashboard?userEmail=${encodeURIComponent(userEmail)}`, {
+                        signal: controller.signal
+                    }),
+                    fetch(`/api/referrals/share-templates?userEmail=${encodeURIComponent(userEmail)}`, {
+                        signal: controller.signal
+                    })
                 ]);
+                
+                clearTimeout(timeoutId);
 
                 const dashboardResult = await dashboardResponse.json();
                 const templatesResult = await templatesResponse.json();

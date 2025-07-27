@@ -4,8 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Welcome to SoulBridge AI</title>
-    <!-- Force intro styling first -->
+    <!-- CRITICAL: Block rendering until intro styles are ready -->
     <style>
+        /* Prevent flash of unstyled content */
+        html { visibility: hidden; opacity: 0; transition: opacity 0.1s; }
+        html.loaded { visibility: visible; opacity: 1; }
+        
         /* CRITICAL: Intro page styling MUST load first */
         body {
             background: linear-gradient(135deg, #0a0e1a 0%, #1a202c 25%, #2d3748 50%, #1a202c 75%, #0a0e1a 100%) !important;
@@ -215,10 +219,28 @@
             console.log('🎨 Intro page background forced');
         }
         
-        // Apply on load and focus
-        document.addEventListener('DOMContentLoaded', forceIntroStyling);
+        // Show page when ready - fix timing issues
+        function showPageWhenReady() {
+            forceIntroStyling();
+            document.documentElement.className = 'loaded';
+            console.log('✅ Intro page fully loaded and styled');
+        }
+        
+        // Apply on load and focus with proper timing
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', showPageWhenReady);
+        } else {
+            showPageWhenReady();
+        }
         window.addEventListener('focus', forceIntroStyling);
-        forceIntroStyling(); // Apply immediately
+        
+        // Emergency fallback - show after 1 second regardless
+        setTimeout(() => {
+            if (!document.documentElement.classList.contains('loaded')) {
+                console.log('⚠️ Emergency: Showing intro page after timeout');
+                showPageWhenReady();
+            }
+        }, 1000);
         
         // Intro page uses default night mode - no theme switching needed
         console.log('📄 Intro page loaded - using default styling');

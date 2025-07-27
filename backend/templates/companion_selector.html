@@ -685,20 +685,38 @@
         };
         
         // Load companions on page load with debug logging
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('🎬 Companion selector page loaded - starting initialization');
+        // Fix timing issues with proper initialization order
+        function initializeCompanionSelector() {
+            console.log('🎬 Companion selector initialization starting...');
             
-            // Initialize trial timer system
-            initializeTrialTimer();
+            // Step 1: Apply styles immediately
+            forceStyleReapplication();
             
-            // IMMEDIATE FALLBACK - Load companions right away
-            console.log('🚨 Loading fallback companions immediately to ensure content displays');
+            // Step 2: Load fallback content to prevent blank screen
+            console.log('🚨 Loading fallback companions to prevent blank screen');
             loadFallbackCompanions();
             
-            // Then try to load from API (will override if successful)
+            // Step 3: Initialize systems
+            initializeTrialTimer();
+            
+            // Step 4: Load user data
             loadUserData();
-            // Load companions immediately - no delay needed
-            loadCompanions();
+            
+            // Step 5: Load real companions (will replace fallback)
+            setTimeout(() => {
+                console.log('📡 Loading real companions from API...');
+                loadCompanions();
+            }, 100); // Small delay to ensure DOM is ready
+            
+            console.log('✅ Companion selector initialization complete');
+        }
+        
+        // Handle different loading states
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeCompanionSelector);
+        } else {
+            initializeCompanionSelector();
+        }
             
             // Emergency debug check
             setTimeout(() => {
@@ -737,8 +755,17 @@
         async function loadCompanions() {
             try {
                 console.log('🔄 Loading companions from API...');
-                const response = await fetch(`/api/companions/accessible?tier=${currentUser.subscription_tier}&points=${currentUser.referral_points}`);
+                
+                // Set a timeout for the API call to prevent hanging
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+                
+                const response = await fetch(`/api/companions/accessible?tier=${currentUser.subscription_tier}&points=${currentUser.referral_points}`, {
+                    signal: controller.signal
+                });
                 console.log('📡 API Response status:', response.status);
+                
+                clearTimeout(timeoutId);
                 
                 const data = await response.json();
                 console.log('📊 API Response data:', data);
@@ -750,10 +777,16 @@
                     updateTrialOffer();
                 } else {
                     console.error('❌ API returned error or no companions:', data);
+                    console.log('🔄 Falling back to static companions');
                     loadFallbackCompanions();
                 }
             } catch (error) {
-                console.error('❌ Error loading companions:', error);
+                if (error.name === 'AbortError') {
+                    console.log('⏰ API request timed out after 5 seconds');
+                } else {
+                    console.error('❌ Error loading companions:', error);
+                }
+                console.log('🔄 Using fallback companions for better experience');
                 loadFallbackCompanions();
             }
         }
