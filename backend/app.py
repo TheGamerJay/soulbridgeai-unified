@@ -2237,6 +2237,86 @@ def get_user_addons():
         logger.error(f"User addons error: {e}")
         return jsonify({"success": False, "error": "Failed to fetch add-ons"}), 500
 
+@app.route("/api/subscription/upgrade", methods=["POST"])
+def api_subscription_upgrade():
+    """Handle subscription upgrade requests"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        data = request.get_json() or {}
+        plan_type = data.get("plan")
+        
+        if not plan_type or plan_type not in ["growth", "max", "premium", "enterprise"]:
+            return jsonify({"success": False, "error": "Invalid plan type"}), 400
+        
+        # Map companion selector plan names to internal plan names
+        plan_mapping = {
+            "growth": "premium",
+            "max": "enterprise",
+            "premium": "premium", 
+            "enterprise": "enterprise"
+        }
+        internal_plan = plan_mapping.get(plan_type, plan_type)
+        
+        # Check if Stripe is configured
+        stripe_secret_key = os.environ.get("STRIPE_SECRET_KEY")
+        if not stripe_secret_key:
+            # Redirect to plan selection page if Stripe not configured
+            return jsonify({
+                "success": True,
+                "checkout_url": f"/plan-selection?upgrade={internal_plan}"
+            })
+        
+        # If Stripe is configured, create checkout session
+        try:
+            import stripe
+            stripe.api_key = stripe_secret_key
+            
+            user_email = session.get('user_email') or session.get('email')
+            plan_names = {"premium": "Growth Plan", "enterprise": "Max Plan"}
+            plan_prices = {"premium": 999, "enterprise": 1999}  # Prices in cents
+            
+            checkout_session = stripe.checkout.Session.create(
+                payment_method_types=['card'],
+                line_items=[{
+                    'price_data': {
+                        'currency': 'usd',
+                        'product_data': {
+                            'name': f'SoulBridge AI - {plan_names[internal_plan]}',
+                            'description': f'Monthly subscription to {plan_names[internal_plan]}',
+                        },
+                        'unit_amount': plan_prices[internal_plan],
+                        'recurring': {'interval': 'month'},
+                    },
+                    'quantity': 1,
+                }],
+                mode='subscription',
+                success_url=f"{request.host_url}payment/success?session_id={{CHECKOUT_SESSION_ID}}&plan={internal_plan}",
+                cancel_url=f"{request.host_url}payment/cancel?plan={internal_plan}",
+                metadata={
+                    'plan_type': internal_plan,
+                    'user_email': user_email,
+                    'item_type': 'plan'
+                }
+            )
+            
+            return jsonify({
+                "success": True,
+                "checkout_url": checkout_session.url
+            })
+            
+        except Exception as stripe_error:
+            logger.error(f"Stripe upgrade error: {stripe_error}")
+            return jsonify({
+                "success": True,
+                "checkout_url": f"/plan-selection?upgrade={internal_plan}"
+            })
+        
+    except Exception as e:
+        logger.error(f"Subscription upgrade error: {e}")
+        return jsonify({"success": False, "error": "Failed to process upgrade"}), 500
+
 @app.route("/emergency-user-create", methods=["GET", "POST"])
 def emergency_user_create():
     """Emergency endpoint to recreate user account"""

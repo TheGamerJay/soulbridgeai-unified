@@ -392,6 +392,7 @@
     <script src="{{ url_for('static', filename='js/universal-button-fix.js') }}"></script>
 </head>
 <body>
+
     <a href="/" class="back-btn">
         <span>←</span>
         <span>Back to Home</span>
@@ -992,6 +993,9 @@
         
         resetIdleTimer();
         console.log('🔒 Auto-logout security active on profile page');
+
+        // Profile page uses default styling - no theme switching
+        console.log('📄 Profile page loaded - using default styling');
     </script>
 </body>
 </html>

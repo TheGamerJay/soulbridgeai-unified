@@ -48,6 +48,101 @@ body.day-mode .card {
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1) !important;
 }
 
+/* DAY MODE - Navigation */
+body.day-mode .top-nav {
+    background: rgba(248, 250, 252, 0.95) !important;
+    border-bottom-color: #cbd5e1 !important;
+}
+
+/* DAY MODE - Session Timer */
+body.day-mode #sessionTimer {
+    color: #0891b2 !important;
+}
+
+/* DAY MODE - Intro Page Specific */
+body.day-mode .container h1 {
+    color: #1e293b !important;
+}
+
+body.day-mode .container p {
+    color: #475569 !important;
+}
+
+/* DAY MODE - Force override inline styles on intro page */
+body.day-mode [style*="color: #22d3ee"] {
+    color: #0891b2 !important;
+}
+
+/* DAY MODE - Profile Page Overrides */
+body.day-mode .profile-container {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%) !important;
+}
+
+body.day-mode .profile-title {
+    color: #1e293b !important;
+    text-shadow: 0 0 30px rgba(30, 41, 59, 0.3) !important;
+}
+
+body.day-mode .profile-subtitle {
+    color: #475569 !important;
+}
+
+body.day-mode .profile-panel {
+    background: linear-gradient(145deg, rgba(255,255,255,0.9), rgba(248,250,252,0.95)) !important;
+    border: 2px solid rgba(203, 213, 225, 0.5) !important;
+    color: #1e293b !important;
+}
+
+body.day-mode .panel-title {
+    color: #0891b2 !important;
+}
+
+body.day-mode .info-value {
+    color: #0891b2 !important;
+}
+
+body.day-mode .info-label {
+    color: #475569 !important;
+}
+
+body.day-mode .companion-details h3 {
+    color: #0891b2 !important;
+}
+
+body.day-mode .companion-details p {
+    color: #475569 !important;
+}
+
+body.day-mode .settings-title {
+    color: #0891b2 !important;
+}
+
+body.day-mode .setting-label {
+    color: #1e293b !important;
+}
+
+body.day-mode .stat-number {
+    color: #0891b2 !important;
+}
+
+body.day-mode .stat-label {
+    color: #475569 !important;
+}
+
+/* DAY MODE - Force override any hardcoded dark backgrounds */
+body.day-mode [style*="background: linear-gradient"][style*="#000000"],
+body.day-mode [style*="background: linear-gradient"][style*="#0f172a"] {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%) !important;
+}
+
+/* DAY MODE - Force override hardcoded cyan colors */
+body.day-mode [style*="color: #22d3ee"],
+body.day-mode .profile-title,
+body.day-mode .panel-title,
+body.day-mode .info-value {
+    color: #0891b2 !important;
+}
+
 /* RAINBOW BACKGROUND FOR BLAYZION AND BLAYZIA CHARACTERS */
 body.character-blayzion,
 body.character-blayzia {

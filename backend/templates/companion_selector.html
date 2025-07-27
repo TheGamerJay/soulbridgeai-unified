@@ -510,27 +510,9 @@
     </style>
 </head>
 <body>
-    <!-- Theme Toggle (Left Side) -->
-    <div style="position: fixed; top: 20px; left: 20px; z-index: 100;">
-        <div id="themeToggle" style="
-            background: rgba(34, 211, 238, 0.8);
-            color: #000;
-            padding: 10px 16px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        " onclick="toggleTheme()">
-            <span id="themeText">Night Mode is ON</span>
-            <span id="themeIcon">🌙</span>
-        </div>
-    </div>
 
-    <!-- Back Button (Right Side) -->
-    <div style="position: fixed; top: 20px; right: 20px; z-index: 100;">
+    <!-- Back Button -->
+    <div style="position: fixed; top: 20px; left: 20px; z-index: 100;">
         <div style="
             background: linear-gradient(135deg, #22d3ee, #0891b2);
             color: #000;
@@ -819,6 +801,18 @@
                         lock_reason: 'Requires Growth or Max subscription',
                         popularity_score: 85,
                         is_recommended: false
+                    },
+                    {
+                        companion_id: 'companion_watchdog',
+                        display_name: 'WatchDog - The Guardian',
+                        avatar_image: '/static/logos/WatchDog a Primum companion.png',
+                        short_bio: 'Protective companion who watches over your progress',
+                        personality_tags: ['Protective', 'Vigilant'],
+                        special_features: ['Progress monitoring', 'Goal protection', 'Accountability', 'Voice interactions'],
+                        tier: 'growth',
+                        lock_reason: 'Requires Growth or Max subscription',
+                        popularity_score: 78,
+                        is_recommended: false
                     }
                 ],
                 max: [
@@ -845,6 +839,54 @@
                         lock_reason: 'Requires Max subscription',
                         popularity_score: 91,
                         is_recommended: false
+                    },
+                    {
+                        companion_id: 'companion_royal',
+                        display_name: 'Royal - The Majestic Guide',
+                        avatar_image: '/static/logos/Royal a max companion.png',
+                        short_bio: 'Experience guidance fit for royalty with sophisticated wisdom',
+                        personality_tags: ['Majestic', 'Wise', 'Sophisticated'],
+                        special_features: ['Leadership coaching', 'Elite strategies', 'Premium insights', 'Advanced voice AI', 'Priority response'],
+                        tier: 'max',
+                        lock_reason: 'Requires Max subscription',
+                        popularity_score: 95,
+                        is_recommended: false
+                    },
+                    {
+                        companion_id: 'companion_watchdog_max',
+                        display_name: 'WatchDog Max - The Ultimate Guardian',
+                        avatar_image: '/static/logos/WatchDog a Max Companion.png',
+                        short_bio: 'Premium protection and guidance for your transformation journey',
+                        personality_tags: ['Elite', 'Protective', 'Strategic'],
+                        special_features: ['Advanced monitoring', 'Crisis intervention', 'Strategic planning', 'Advanced voice AI', 'Premium support'],
+                        tier: 'max',
+                        lock_reason: 'Requires Max subscription',
+                        popularity_score: 93,
+                        is_recommended: false
+                    },
+                    {
+                        companion_id: 'companion_ven_blayzica',
+                        display_name: 'Ven Blayzica - The Enhanced Healer',
+                        avatar_image: '/static/logos/Ven Blayzica a max companion.png',
+                        short_bio: 'Advanced healing companion with enhanced emotional intelligence',
+                        personality_tags: ['Healing', 'Enhanced', 'Empathetic'],
+                        special_features: ['Advanced healing', 'Emotional mastery', 'Trauma recovery', 'Advanced voice AI', 'Premium sessions'],
+                        tier: 'max',
+                        lock_reason: 'Requires Max subscription',
+                        popularity_score: 94,
+                        is_recommended: true
+                    },
+                    {
+                        companion_id: 'companion_ven_sky',
+                        display_name: 'Ven Sky - The Ascended Guide',
+                        avatar_image: '/static/logos/Ven Sky a max companion.png',
+                        short_bio: 'Transcendent spiritual guidance for the ultimate transformation',
+                        personality_tags: ['Transcendent', 'Spiritual', 'Ascended'],
+                        special_features: ['Transcendent guidance', 'Spiritual mastery', 'Consciousness expansion', 'Advanced voice AI', 'Premium wisdom'],
+                        tier: 'max',
+                        lock_reason: 'Requires Max subscription',
+                        popularity_score: 96,
+                        is_recommended: true
                     }
                 ],
                 referral: [
@@ -856,8 +898,32 @@
                         personality_tags: ['Empathetic', 'Motivational', 'Wise'],
                         special_features: ['Community insights', 'Exclusive content', 'Advanced features', 'Priority support', 'Special voice interactions'],
                         tier: 'referral',
-                        lock_reason: 'Requires 1000 referral points',
+                        lock_reason: 'Requires 5 successful referrals',
                         popularity_score: 100,
+                        is_recommended: true
+                    },
+                    {
+                        companion_id: 'companion_blayzike',
+                        display_name: 'Blayzike - The Mysterious Guide',
+                        avatar_image: '/static/logos/Blayzike.png',
+                        short_bio: 'Enigmatic companion with mysterious charm and hidden wisdom',
+                        personality_tags: ['Mysterious', 'Enigmatic', 'Wise'],
+                        special_features: ['Hidden insights', 'Mystery solving', 'Intuitive guidance', 'Exclusive interactions', 'Secret knowledge'],
+                        tier: 'referral',
+                        lock_reason: 'Requires 2 successful referrals',
+                        popularity_score: 97,
+                        is_recommended: true
+                    },
+                    {
+                        companion_id: 'companion_blazelian',
+                        display_name: 'Blazelian - The Celestial Wanderer',
+                        avatar_image: '/static/logos/Blazelian.png',
+                        short_bio: 'Ethereal companion with celestial wisdom from distant realms',
+                        personality_tags: ['Celestial', 'Ethereal', 'Wise'],
+                        special_features: ['Celestial guidance', 'Cosmic insights', 'Ethereal wisdom', 'Star navigation', 'Universal knowledge'],
+                        tier: 'referral',
+                        lock_reason: 'Requires 3 successful referrals',
+                        popularity_score: 98,
                         is_recommended: true
                     }
                 ],
@@ -985,18 +1051,48 @@
             
             if (referralContainer) {
                 referralContainer.innerHTML = `
-                    <div class="companion-card locked" onclick="showUpgradeModal('blayzo')" style="min-width: 280px; background: rgba(255,255,255,0.95); border-radius: 16px; padding: 0; cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.1); border: 2px solid transparent; opacity: 0.7;">
+                    <div class="companion-card locked" onclick="window.location.href='/referrals'" style="min-width: 280px; background: rgba(255,255,255,0.95); border-radius: 16px; padding: 0; cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.1); border: 2px solid transparent; opacity: 0.7;">
                         <div class="companion-avatar" style="width: 100%; height: 180px; position: relative; overflow: hidden;">
-                            <img src="/static/logos/Blayzo Referral.png" alt="Blayzo" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='/static/logos/IntroLogo.png'">
+                            <img src="/static/logos/Blayzike.png" alt="Blayzike" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='/static/logos/IntroLogo.png'">
                             <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center;">
-                                <i class="fas fa-lock" style="font-size: 2rem; color: white;"></i>
+                                <i class="fas fa-users" style="font-size: 2rem; color: white;"></i>
                             </div>
                         </div>
                         <div class="companion-info" style="padding: 20px;">
-                            <h3 style="font-size: 1.3rem; font-weight: 700; margin-bottom: 8px;">Blayzo - Referral Master</h3>
-                            <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 15px;">Special referral companion with exclusive powers</p>
+                            <h3 style="font-size: 1.3rem; font-weight: 700; margin-bottom: 8px;">Blayzike - Mysterious Guide</h3>
+                            <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 15px;">Enigmatic companion with mysterious charm</p>
                             <div class="companion-actions" style="display: flex; gap: 10px;">
-                                <button style="flex: 1; padding: 12px; background: #ccc; color: #666; border: none; border-radius: 8px; font-weight: 600; cursor: not-allowed;" disabled>🔒 Requires Referrals</button>
+                                <button style="flex: 1; padding: 12px; background: #FFD700; color: #333; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">👥 View Referral Program</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="companion-card locked" onclick="window.location.href='/referrals'" style="min-width: 280px; background: rgba(255,255,255,0.95); border-radius: 16px; padding: 0; cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.1); border: 2px solid transparent; opacity: 0.7;">
+                        <div class="companion-avatar" style="width: 100%; height: 180px; position: relative; overflow: hidden;">
+                            <img src="/static/logos/Blazelian.png" alt="Blazelian" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='/static/logos/IntroLogo.png'">
+                            <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-users" style="font-size: 2rem; color: white;"></i>
+                            </div>
+                        </div>
+                        <div class="companion-info" style="padding: 20px;">
+                            <h3 style="font-size: 1.3rem; font-weight: 700; margin-bottom: 8px;">Blazelian - Celestial Wanderer</h3>
+                            <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 15px;">Ethereal companion with celestial wisdom</p>
+                            <div class="companion-actions" style="display: flex; gap: 10px;">
+                                <button style="flex: 1; padding: 12px; background: #FFD700; color: #333; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">👥 View Referral Program</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="companion-card locked" onclick="window.location.href='/referrals'" style="min-width: 280px; background: rgba(255,255,255,0.95); border-radius: 16px; padding: 0; cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.1); border: 2px solid transparent; opacity: 0.7;">
+                        <div class="companion-avatar" style="width: 100%; height: 180px; position: relative; overflow: hidden;">
+                            <img src="/static/logos/Blayzo Referral.png" alt="Blayzo" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='/static/logos/IntroLogo.png'">
+                            <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-users" style="font-size: 2rem; color: white;"></i>
+                            </div>
+                        </div>
+                        <div class="companion-info" style="padding: 20px;">
+                            <h3 style="font-size: 1.3rem; font-weight: 700; margin-bottom: 8px;">Blayzo - Community Champion</h3>
+                            <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 15px;">Exclusive companion for our community champions</p>
+                            <div class="companion-actions" style="display: flex; gap: 10px;">
+                                <button style="flex: 1; padding: 12px; background: #FFD700; color: #333; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">👥 View Referral Program</button>
                             </div>
                         </div>
                     </div>
@@ -1032,9 +1128,15 @@
                 const isLocked = companion.lock_reason;
                 const isSelected = currentUser.selected_companion === companion.companion_id;
                 
+                // Determine action based on companion tier
+                const isReferralTier = companion.tier === 'referral';
+                const clickAction = isLocked ? 
+                    (isReferralTier ? `window.location.href='/referrals'` : `showUpgradeModal('${companion.companion_id}')`) 
+                    : `selectCompanion('${companion.companion_id}')`;
+                
                 return `
                     <div class="companion-card ${isLocked ? 'locked' : ''} ${isSelected ? 'selected' : ''}" 
-                         onclick="${isLocked ? `showUpgradeModal('${companion.companion_id}')` : `selectCompanion('${companion.companion_id}')`}">
+                         onclick="${clickAction}">
                         
                         <div class="companion-avatar">
                             <img src="${companion.avatar_image}" alt="${companion.display_name}" onerror="this.src='/static/logos/IntroLogo.png'">
@@ -1046,7 +1148,7 @@
                             
                             ${isLocked ? `
                                 <div class="lock-overlay">
-                                    <i class="fas fa-lock lock-icon"></i>
+                                    <i class="fas fa-${isReferralTier ? 'users' : 'lock'} lock-icon"></i>
                                 </div>
                             ` : ''}
                         </div>
@@ -1075,8 +1177,8 @@
                                         ${isSelected ? 'Selected' : 'Select'}
                                     </button>
                                 ` : `
-                                    <button class="btn-select" disabled>
-                                        🔒 ${companion.lock_reason}
+                                    <button class="btn-select" disabled style="${isReferralTier ? 'background: #FFD700; color: #333;' : ''}">
+                                        ${isReferralTier ? '👥 View Referral Program' : `🔒 ${companion.lock_reason}`}
                                     </button>
                                 `}
                                 
@@ -1438,72 +1540,9 @@
             }
         });
         
-        // Theme Toggle Functionality
-        function toggleTheme() {
-            console.log('🎨 Theme toggle clicked');
-            
-            const body = document.body;
-            const themeToggle = document.getElementById('themeToggle');
-            const themeText = document.getElementById('themeText');
-            const themeIcon = document.getElementById('themeIcon');
-            
-            // Check current theme
-            const isDayMode = body.classList.contains('day-theme');
-            
-            if (isDayMode) {
-                // Switch to night mode
-                body.classList.remove('day-theme');
-                body.classList.add('night-theme');
-                themeText.textContent = 'Night Mode is ON';
-                themeIcon.textContent = '🌙';
-                themeToggle.style.background = 'rgba(34, 211, 238, 0.8)';
-                localStorage.setItem('theme', 'night');
-                console.log('🌙 Switched to night mode');
-            } else {
-                // Switch to day mode
-                body.classList.remove('night-theme');
-                body.classList.add('day-theme');
-                themeText.textContent = 'Day Mode is ON';
-                themeIcon.textContent = '☀️';
-                themeToggle.style.background = 'rgba(255, 193, 7, 0.8)';
-                localStorage.setItem('theme', 'day');
-                console.log('☀️ Switched to day mode');
-            }
-        }
         
-        // Initialize theme on page load
-        function initializeTheme() {
-            console.log('🎨 Initializing theme...');
-            
-            const savedTheme = localStorage.getItem('theme') || 'night';
-            const body = document.body;
-            const themeToggle = document.getElementById('themeToggle');
-            const themeText = document.getElementById('themeText');
-            const themeIcon = document.getElementById('themeIcon');
-            
-            console.log('💾 Saved theme:', savedTheme);
-            
-            if (savedTheme === 'day') {
-                body.classList.add('day-theme');
-                body.classList.remove('night-theme');
-                themeText.textContent = 'Day Mode is ON';
-                themeIcon.textContent = '☀️';
-                themeToggle.style.background = 'rgba(255, 193, 7, 0.8)';
-            } else {
-                body.classList.add('night-theme');
-                body.classList.remove('day-theme');
-                themeText.textContent = 'Night Mode is ON';
-                themeIcon.textContent = '🌙';
-                themeToggle.style.background = 'rgba(34, 211, 238, 0.8)';
-            }
-            
-            console.log('✅ Theme initialized to:', savedTheme);
-        }
-        
-        // Initialize theme when DOM is ready
-        document.addEventListener('DOMContentLoaded', () => {
-            initializeTheme();
-        });
+        // Companion selector uses default styling - no theme switching
+        console.log('📄 Companion selector loaded - using default styling');
         
         // ==================== TRIAL TIMER SYSTEM ====================
         

@@ -802,7 +802,7 @@
                             themeToggle.style.background = 'rgba(255, 193, 7, 0.8)';
                             themeToggle.style.color = '#000';
                         }
-                        localStorage.setItem('themeMode', 'day');
+                        localStorage.setItem('theme', 'day');
                     } else {
                         if (themeText) themeText.textContent = 'Night Mode is ON';
                         if (themeIcon) themeIcon.textContent = '🌙';
@@ -810,7 +810,7 @@
                             themeToggle.style.background = 'rgba(34, 211, 238, 0.8)';
                             themeToggle.style.color = '#000';
                         }
-                        localStorage.setItem('themeMode', 'night');
+                        localStorage.setItem('theme', 'night');
                     }
                     console.log('✅ EMERGENCY theme toggle successful');
                 } catch (error) {
@@ -1043,24 +1043,6 @@
     </style>
 </head>
 <body onload="initializeScreen()">
-    <!-- Theme Toggle (Left Side) -->
-    <div style="position: fixed; top: 20px; left: 20px; z-index: 100;">
-        <div id="themeToggle" style="
-            background: rgba(34, 211, 238, 0.8);
-            color: #000;
-            padding: 10px 16px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        " onclick="console.log('🌙 Theme toggle clicked'); toggleTheme()">
-            <span id="themeText" data-translate="night_mode_on">Night Mode is ON</span>
-            <span id="themeIcon">🌙</span>
-        </div>
-    </div>
 
     <!-- User Menu and Controls (Right Side) -->
     <div style="position: fixed; top: 20px; right: 20px; z-index: 100; display: flex; gap: 10px; flex-wrap: wrap;">
@@ -3858,7 +3840,7 @@
 
         // Load saved theme from localStorage
         function loadSavedTheme() {
-            var savedTheme = localStorage.getItem('themeMode');
+            var savedTheme = localStorage.getItem('theme');
             var themeText = document.getElementById('themeText');
             var themeIcon = document.getElementById('themeIcon');
             var themeToggle = document.getElementById('themeToggle');
@@ -4298,6 +4280,22 @@
                 });
             }
         }
+
+        // Initialize theme IMMEDIATELY when script loads (before page load)
+        (function() {
+            console.log('🎨 Early theme initialization on chat page...');
+            const savedTheme = localStorage.getItem('theme') || 'night';
+            console.log('💾 Saved theme found:', savedTheme);
+            
+            if (savedTheme === 'day') {
+                document.body.classList.add('day-mode');
+                document.body.classList.remove('night-mode');
+            } else {
+                document.body.classList.add('night-mode');
+                document.body.classList.remove('day-mode');
+            }
+            console.log('✅ Early theme applied on chat page:', savedTheme);
+        })();
 
         // Load theme on page load
         window.addEventListener('load', function() {
