@@ -2506,6 +2506,56 @@ def upload_profile_image():
         logger.error(f"Profile image upload error: {e}")
         return jsonify({"success": False, "error": "Failed to upload image"}), 500
 
+@app.route("/debug/profile-image")
+def debug_profile_image():
+    """Debug endpoint to check profile image in database"""
+    try:
+        if not is_logged_in():
+            return jsonify({"error": "Authentication required"}), 401
+        
+        user_id = session.get('user_id')
+        user_email = session.get('user_email', session.get('email'))
+        
+        if not services.get("database"):
+            return jsonify({
+                "error": "No database connection",
+                "user_id": user_id,
+                "user_email": user_email,
+                "session_profile_image": session.get('profile_image')
+            })
+        
+        conn = services["database"].get_connection()
+        cursor = conn.cursor()
+        
+        # Check if profile_image column exists
+        try:
+            placeholder = "%s" if hasattr(services["database"], 'postgres_url') and services["database"].postgres_url else "?"
+            cursor.execute(f"SELECT profile_image FROM users WHERE id = {placeholder}", (user_id,))
+            result = cursor.fetchone()
+            
+            conn.close()
+            
+            return jsonify({
+                "success": True,
+                "user_id": user_id,
+                "user_email": user_email,
+                "database_profile_image": result[0] if result else None,
+                "session_profile_image": session.get('profile_image'),
+                "database_result": result
+            })
+            
+        except Exception as db_error:
+            conn.close()
+            return jsonify({
+                "error": f"Database query failed: {str(db_error)}",
+                "user_id": user_id,
+                "user_email": user_email,
+                "session_profile_image": session.get('profile_image')
+            })
+        
+    except Exception as e:
+        return jsonify({"error": f"Debug failed: {str(e)}"})
+
 @app.route("/api/user-addons")
 def get_user_addons():
     """Get user's active add-ons"""
