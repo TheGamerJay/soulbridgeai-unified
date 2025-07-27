@@ -2407,6 +2407,52 @@ def debug_reset_password():
             "error": str(e)
         }), 500
 
+@app.route("/debug/check-user", methods=["GET"])
+def debug_check_user():
+    """Debug endpoint to check user account details"""
+    try:
+        if not services["database"]:
+            init_database()
+        
+        email = "aceelnene@gmail.com"
+        
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        
+        # Use appropriate placeholder for database type
+        placeholder = "%s" if hasattr(db, 'postgres_url') and db.postgres_url else "?"
+        
+        cursor.execute(
+            f"SELECT id, email, password_hash, display_name, email_verified, created_at FROM users WHERE email = {placeholder}",
+            (email,)
+        )
+        user_data = cursor.fetchone()
+        conn.close()
+        
+        if user_data:
+            return jsonify({
+                "status": "User found",
+                "user_id": user_data[0],
+                "email": user_data[1],
+                "has_password_hash": bool(user_data[2]),
+                "password_hash_length": len(user_data[2]) if user_data[2] else 0,
+                "display_name": user_data[3],
+                "email_verified": user_data[4],
+                "created_at": str(user_data[5])
+            })
+        else:
+            return jsonify({
+                "status": "User not found",
+                "email": email
+            })
+            
+    except Exception as e:
+        logger.error(f"Debug check user error: {e}")
+        return jsonify({
+            "status": "Error",
+            "error": str(e)
+        }), 500
+
 @app.route("/stripe-status", methods=["GET"])
 def stripe_status():
     """Check Stripe configuration status - public endpoint for debugging"""
