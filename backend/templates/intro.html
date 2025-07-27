@@ -182,18 +182,18 @@
                         animation: gentleGlow 3s ease-in-out infinite alternate;">
             <div style="text-align: center; margin-bottom: 20px;">
                 <h2 style="font-size: 1.4rem; color: #22d3ee; margin-bottom: 8px; font-weight: 500;">👋 Meet Sapphire</h2>
-                <p style="font-size: 1rem; color: #94a3b8; margin: 0; font-style: italic;">Your intelligent guide to SoulBridge AI</p>
+                <p style="font-size: 1rem; color: #94a3b8; margin: 0; font-style: italic;">Your navigation assistant for finding features & getting help</p>
             </div>
         </div>
         
         <h1 style="font-size: 2.2rem; margin-bottom: 15px; font-weight: 600;">Welcome to SoulBridge AI</h1>
-        <p style="font-size: 1rem; margin-bottom: 40px; opacity: 0.8; max-width: 500px;">Let Sapphire guide you through meaningful conversations and personal growth</p>
+        <p style="font-size: 1rem; margin-bottom: 40px; opacity: 0.8; max-width: 500px;">Choose your AI companion for meaningful conversations and personal growth</p>
         
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; margin-bottom: 50px; max-width: 800px;">
             <div class="card" style="padding: 30px; text-align: center;">
                 <div style="font-size: 3rem; margin-bottom: 15px;">💎</div>
-                <h3>Sapphire's Guidance</h3>
-                <p>Let your intelligent navigator help you discover the perfect AI companion</p>
+                <h3>Navigation Help</h3>
+                <p>Sapphire helps you find features, reset passwords, and navigate the platform</p>
             </div>
             <div class="card" style="padding: 30px; text-align: center;">
                 <div style="font-size: 3rem; margin-bottom: 15px;">💬</div>
@@ -209,7 +209,7 @@
         
         <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; margin-bottom: 40px;">
             <a href="/companion-selection" class="btn-primary" style="padding: 15px 30px; font-size: 1.1rem; position: relative;">
-                🌟 Let Sapphire Guide You to Your Companion
+                🌟 Choose Your AI Companion
             </a>
             <a href="/chat" class="btn-secondary" style="padding: 15px 30px; font-size: 1.1rem;">
                 💬 Start Chatting
@@ -223,15 +223,15 @@
         <div class="card" style="max-width: 500px; text-align: center; padding: 25px; margin-bottom: 30px; background: rgba(34, 211, 238, 0.1) !important; border: 1px solid rgba(34, 211, 238, 0.3) !important;">
             <img src="{{ url_for('static', filename='logos/Sapphire.png') }}" alt="Sapphire" 
                  style="width: 50px; height: 50px; border-radius: 50%; margin-bottom: 15px; border: 2px solid #22d3ee;">
-            <h4 style="color: #22d3ee; margin-bottom: 15px;">✨ Ask Sapphire Anything!</h4>
+            <h4 style="color: #22d3ee; margin-bottom: 15px;">✨ Need Help Finding Something?</h4>
             <p style="margin-bottom: 15px; font-size: 0.95rem; opacity: 0.9;">
-                Need help getting started? Sapphire knows everything about SoulBridge AI and can guide you through any feature.
+                Sapphire can help you find features, reset passwords, navigate settings, or answer questions about SoulBridge AI.
             </p>
-            <button onclick="window.location.href='/chat?companion=Sapphire'" 
+            <button onclick="toggleNavigationAssistant()" 
                     class="btn-primary" style="padding: 12px 25px; font-size: 1rem; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s ease;"
                     onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(34, 211, 238, 0.3)'"
                     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
-                💎 Chat with Sapphire Now
+                💎 Ask Sapphire for Help
             </button>
         </div>
         
@@ -380,6 +380,28 @@
         
         // Intro page uses default night mode - no theme switching needed
         console.log('📄 Intro page loaded - using default styling');
+        
+        // Add Sapphire navigation assistant function
+        function toggleNavigationAssistant() {
+            // For now, show a simple alert with help options
+            // This could be expanded to show a modal with navigation help
+            const helpMessage = `Hi! I'm Sapphire, your navigation assistant. I can help you with:
+
+• Finding features and settings
+• Resetting your password  
+• Navigating the platform
+• Understanding how SoulBridge AI works
+
+What would you like help with?
+
+Common requests:
+- "How do I reset my password?" 
+- "Where are my settings?"
+- "How do I choose a different companion?"
+- "Where can I see my billing?"`;
+            
+            alert(helpMessage);
+        }
     </script>
 </body>
 </html>
