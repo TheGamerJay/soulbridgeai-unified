@@ -2468,6 +2468,75 @@ def debug_check_user():
             "error": str(e)
         }), 500
 
+@app.route("/debug/test-login", methods=["POST"])
+def debug_test_login():
+    """Debug endpoint to test login with detailed logging"""
+    try:
+        # Ensure database is initialized
+        if not services["database"] or not db:
+            init_database()
+        
+        # Create database connection directly if needed
+        from auth import Database
+        if not db:
+            temp_db = Database()
+        else:
+            temp_db = db
+        
+        import bcrypt
+        
+        email = "aceelnene@gmail.com"
+        test_password = "Yariel13"
+        
+        conn = temp_db.get_connection()
+        cursor = conn.cursor()
+        
+        # Use appropriate placeholder for database type
+        placeholder = "%s" if hasattr(temp_db, 'postgres_url') and temp_db.postgres_url else "?"
+        
+        cursor.execute(
+            f"SELECT id, email, password_hash, display_name, email_verified, created_at FROM users WHERE email = {placeholder}",
+            (email,)
+        )
+        user_data = cursor.fetchone()
+        conn.close()
+        
+        if user_data:
+            password_hash = user_data[2]
+            
+            # Test password verification
+            try:
+                password_matches = bcrypt.checkpw(test_password.encode("utf-8"), password_hash.encode("utf-8"))
+                
+                return jsonify({
+                    "status": "Debug test completed",
+                    "user_found": True,
+                    "user_id": user_data[0],
+                    "email": user_data[1],
+                    "password_hash_length": len(password_hash) if password_hash else 0,
+                    "test_password": test_password,
+                    "password_verification_result": password_matches,
+                    "bcrypt_version": bcrypt.__version__ if hasattr(bcrypt, '__version__') else "unknown"
+                })
+                
+            except Exception as verify_error:
+                return jsonify({
+                    "status": "Password verification error",
+                    "error": str(verify_error),
+                    "password_hash_length": len(password_hash) if password_hash else 0
+                })
+        else:
+            return jsonify({
+                "status": "User not found",
+                "email": email
+            })
+            
+    except Exception as e:
+        return jsonify({
+            "status": "Error",
+            "error": str(e)
+        }), 500
+
 @app.route("/stripe-status", methods=["GET"])
 def stripe_status():
     """Check Stripe configuration status - public endpoint for debugging"""
