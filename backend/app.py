@@ -926,20 +926,6 @@ def profile():
         logger.error(f"Profile template error: {e}")
         return jsonify({"error": "Profile page temporarily unavailable"}), 200
 
-# Debug endpoint to check session status  
-@app.route("/debug/session")
-def debug_session():
-    """Debug endpoint to check session status"""
-    try:
-        return jsonify({
-            "session_data": dict(session),
-            "is_logged_in": is_logged_in(),
-            "session_keys": list(session.keys()),
-            "user_authenticated": session.get('user_authenticated', 'NOT SET'),
-            "timestamp": datetime.now().isoformat()
-        })
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
 
 @app.route("/subscription")
 def subscription():
