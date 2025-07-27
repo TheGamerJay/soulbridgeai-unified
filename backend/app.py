@@ -2363,7 +2363,13 @@ def debug_reset_password():
         if not services["database"] or not db:
             init_database()
         
-        from auth import User
+        # Create database connection directly if needed
+        from auth import Database
+        if not db:
+            temp_db = Database()
+        else:
+            temp_db = db
+        
         import bcrypt
         
         email = "aceelnene@gmail.com"
@@ -2372,11 +2378,11 @@ def debug_reset_password():
         # Hash the new password
         password_hash = bcrypt.hashpw(new_password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
         
-        conn = db.get_connection()
+        conn = temp_db.get_connection()
         cursor = conn.cursor()
         
         # Use appropriate placeholder for database type
-        placeholder = "%s" if hasattr(db, 'postgres_url') and db.postgres_url else "?"
+        placeholder = "%s" if hasattr(temp_db, 'postgres_url') and temp_db.postgres_url else "?"
         
         # Update the password directly
         cursor.execute(
@@ -2416,13 +2422,20 @@ def debug_check_user():
         if not services["database"] or not db:
             init_database()
         
+        # Create database connection directly if needed
+        from auth import Database
+        if not db:
+            temp_db = Database()
+        else:
+            temp_db = db
+        
         email = "aceelnene@gmail.com"
         
-        conn = db.get_connection()
+        conn = temp_db.get_connection()
         cursor = conn.cursor()
         
         # Use appropriate placeholder for database type
-        placeholder = "%s" if hasattr(db, 'postgres_url') and db.postgres_url else "?"
+        placeholder = "%s" if hasattr(temp_db, 'postgres_url') and temp_db.postgres_url else "?"
         
         cursor.execute(
             f"SELECT id, email, password_hash, display_name, email_verified, created_at FROM users WHERE email = {placeholder}",
