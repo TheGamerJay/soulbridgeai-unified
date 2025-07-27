@@ -756,6 +756,18 @@
                 const profileImage = document.getElementById('userProfileImage');
                 if (profileImage && this.userData.profileImage) {
                     profileImage.src = this.userData.profileImage;
+                    
+                    // Restore saved image settings if they exist
+                    const savedSettings = sessionStorage.getItem('profileImageSettings');
+                    if (savedSettings) {
+                        try {
+                            const settings = JSON.parse(savedSettings);
+                            profileImage.style.transform = `scale(${settings.scale}) translate(${settings.translateX}px, ${settings.translateY}px)`;
+                            profileImage.style.transformOrigin = 'center center';
+                        } catch (e) {
+                            console.log('Error restoring image settings:', e);
+                        }
+                    }
                 }
                 
                 const displayNameInput = document.getElementById('displayNameInput');
@@ -1112,9 +1124,10 @@
                                     position: relative; background: #000;">
                             <img id="previewImage" src="${imageData}" 
                                  style="max-width: none; max-height: none; width: auto; height: auto;
-                                        transform-origin: center center; transition: transform 0.2s ease;
+                                        transform-origin: center center; transition: transform 0.1s ease;
                                         position: absolute; top: 50%; left: 50%; 
-                                        transform: translate(-50%, -50%);">
+                                        transform: translate(-50%, -50%); cursor: grab;"
+                                 draggable="false">
                         </div>
                         
                         <div style="margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 10px;">
@@ -1127,7 +1140,7 @@
                         </div>
                         
                         <div style="margin-bottom: 20px;">
-                            <label style="color: #94a3b8; margin-right: 10px;">Position:</label><br>
+                            <label style="color: #94a3b8; margin-right: 10px;">Position (or drag image):</label><br>
                             <button onclick="moveImage('up')" style="margin: 2px; padding: 8px 12px; background: rgba(34,211,238,0.2); border: 1px solid #22d3ee; color: #22d3ee; border-radius: 4px; cursor: pointer;">↑</button><br>
                             <button onclick="moveImage('left')" style="margin: 2px; padding: 8px 12px; background: rgba(34,211,238,0.2); border: 1px solid #22d3ee; color: #22d3ee; border-radius: 4px; cursor: pointer;">←</button>
                             <button onclick="resetPosition()" style="margin: 2px; padding: 8px 12px; background: rgba(34,211,238,0.3); border: 1px solid #22d3ee; color: #22d3ee; border-radius: 4px; cursor: pointer;">⌂</button>
@@ -1173,6 +1186,9 @@
                     
                     // Apply initial transform
                     updateImageStyle();
+                    
+                    // Add drag functionality
+                    setupImageDrag();
                     
                     const img = this;
                     console.log(`Image loaded: ${img.naturalWidth}x${img.naturalHeight} - Starting at 100% zoom`);
@@ -1233,6 +1249,80 @@
             }
         }
 
+        function setupImageDrag() {
+            const img = document.getElementById('previewImage');
+            let isDragging = false;
+            let startX, startY, startTranslateX, startTranslateY;
+
+            img.addEventListener('mousedown', function(e) {
+                isDragging = true;
+                img.style.cursor = 'grabbing';
+                img.style.transition = 'none'; // Disable transition while dragging
+                
+                startX = e.clientX;
+                startY = e.clientY;
+                startTranslateX = window.imageAdjustment.translateX;
+                startTranslateY = window.imageAdjustment.translateY;
+                
+                e.preventDefault();
+            });
+
+            document.addEventListener('mousemove', function(e) {
+                if (!isDragging) return;
+                
+                const deltaX = e.clientX - startX;
+                const deltaY = e.clientY - startY;
+                
+                window.imageAdjustment.translateX = startTranslateX + deltaX;
+                window.imageAdjustment.translateY = startTranslateY + deltaY;
+                
+                updateImageStyle();
+            });
+
+            document.addEventListener('mouseup', function() {
+                if (isDragging) {
+                    isDragging = false;
+                    img.style.cursor = 'grab';
+                    img.style.transition = 'transform 0.1s ease'; // Re-enable transition
+                }
+            });
+
+            // Touch support for mobile
+            img.addEventListener('touchstart', function(e) {
+                isDragging = true;
+                img.style.transition = 'none';
+                
+                const touch = e.touches[0];
+                startX = touch.clientX;
+                startY = touch.clientY;
+                startTranslateX = window.imageAdjustment.translateX;
+                startTranslateY = window.imageAdjustment.translateY;
+                
+                e.preventDefault();
+            });
+
+            document.addEventListener('touchmove', function(e) {
+                if (!isDragging) return;
+                
+                const touch = e.touches[0];
+                const deltaX = touch.clientX - startX;
+                const deltaY = touch.clientY - startY;
+                
+                window.imageAdjustment.translateX = startTranslateX + deltaX;
+                window.imageAdjustment.translateY = startTranslateY + deltaY;
+                
+                updateImageStyle();
+                e.preventDefault();
+            });
+
+            document.addEventListener('touchend', function() {
+                if (isDragging) {
+                    isDragging = false;
+                    img.style.transition = 'transform 0.1s ease';
+                }
+            });
+        }
+
         window.acceptAdjustedImage = async function() {
             try {
                 // Simply upload the original file with the adjustment settings saved
@@ -1254,10 +1344,27 @@
                     
                     const result = await response.json();
                     if (result.success) {
-                        // Apply the same styling to the profile image
+                        // Apply the same styling to the profile image with proper sizing
                         const profileImg = document.getElementById('userProfileImage');
                         profileImg.src = result.profileImage;
-                        profileImg.style.transform = `scale(${window.imageAdjustment.scale}) translate(${window.imageAdjustment.translateX}px, ${window.imageAdjustment.translateY}px)`;
+                        
+                        // Apply the transform settings to maintain the same appearance
+                        const { scale, translateX, translateY } = window.imageAdjustment;
+                        
+                        // Calculate scale factor for the smaller profile image (120px vs 200px preview)
+                        const scaleFactor = 120 / 200; // Profile image is smaller than preview
+                        const adjustedTranslateX = translateX * scaleFactor;
+                        const adjustedTranslateY = translateY * scaleFactor;
+                        
+                        profileImg.style.transform = `scale(${scale}) translate(${adjustedTranslateX}px, ${adjustedTranslateY}px)`;
+                        profileImg.style.transformOrigin = 'center center';
+                        
+                        // Store settings for future page loads
+                        sessionStorage.setItem('profileImageSettings', JSON.stringify({
+                            scale: scale,
+                            translateX: adjustedTranslateX,
+                            translateY: adjustedTranslateY
+                        }));
                         
                         // Show success message briefly
                         profileImg.style.border = '3px solid #10b981';
