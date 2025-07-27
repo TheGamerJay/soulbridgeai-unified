@@ -296,16 +296,41 @@
             }
         }
         
-        // Emergency fallback - show after 2 seconds regardless
+        // Multiple emergency fallbacks to ensure page always shows
         setTimeout(() => {
             if (!document.documentElement.classList.contains('ready')) {
-                console.log('⚠️ Emergency: Showing intro page after timeout');
+                console.log('⚠️ Emergency fallback 1: Showing intro page after 1s');
                 showIntroWhenReady();
+            }
+        }, 1000);
+        
+        setTimeout(() => {
+            if (!document.documentElement.classList.contains('ready')) {
+                console.log('🚨 Emergency fallback 2: Force showing intro page after 2s');
+                document.documentElement.style.opacity = '1';
+                document.documentElement.classList.add('ready');
             }
         }, 2000);
         
+        // Ultimate safety: ensure page is ALWAYS visible after 3 seconds
+        setTimeout(() => {
+            document.documentElement.style.opacity = '1';
+            document.documentElement.style.visibility = 'visible';
+            console.log('🛡️ Ultimate safety: Page is now guaranteed visible');
+        }, 3000);
+        
         // Apply styling on focus when navigating back
         window.addEventListener('focus', forceIntroStyling);
+        
+        // Show page immediately on any user interaction
+        ['click', 'keydown', 'touchstart', 'mousemove'].forEach(event => {
+            document.addEventListener(event, function() {
+                if (!document.documentElement.classList.contains('ready')) {
+                    console.log('👆 User interaction detected - showing page immediately');
+                    showIntroWhenReady();
+                }
+            }, { once: true });
+        });
         
         // Intro page uses default night mode - no theme switching needed
         console.log('📄 Intro page loaded - using default styling');
