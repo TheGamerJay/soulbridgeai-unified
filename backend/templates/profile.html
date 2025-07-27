@@ -702,6 +702,8 @@
                         
                         if (result.success) {
                             this.userData = result.user;
+                            console.log('🖼️ Profile image in userData:', result.user.profileImage);
+                            console.log('📋 Full userData:', result.user);
                             this.currentUser = {
                                 uid: result.user.uid,
                                 email: result.user.email,
@@ -796,10 +798,15 @@
                 
                 // Update profile image and display name
                 const profileImage = document.getElementById('userProfileImage');
+                console.log('🖼️ Setting profile image. Element found:', !!profileImage);
+                console.log('🖼️ Profile image URL from userData:', this.userData.profileImage);
                 if (profileImage && this.userData.profileImage) {
+                    console.log('✅ Setting profile image src to:', this.userData.profileImage);
                     profileImage.src = this.userData.profileImage;
                     
                     // No image adjustments needed - simple rectangular display
+                } else {
+                    console.log('⚠️ Profile image not set. Element:', !!profileImage, 'URL:', this.userData.profileImage);
                 }
                 
                 const displayNameInput = document.getElementById('displayNameInput');

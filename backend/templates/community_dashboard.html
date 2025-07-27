@@ -10,11 +10,38 @@
     <title>Community Dashboard - SoulBridge AI</title>
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: system-ui, -apple-system, sans-serif;
             margin: 0;
             padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #000000;
+            background-attachment: fixed;
+            background-size: 100% 100%;
             min-height: 100vh;
+            color: #00ffff;
+            position: relative;
+        }
+        
+        /* Add stunning cyan animated background elements */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 15% 25%, rgba(0, 255, 255, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 85% 75%, rgba(0, 255, 255, 0.12) 0%, transparent 45%),
+                radial-gradient(circle at 45% 85%, rgba(0, 255, 255, 0.08) 0%, transparent 35%),
+                radial-gradient(circle at 70% 15%, rgba(0, 255, 255, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+            animation: breathe 4s ease-in-out infinite alternate;
+        }
+        
+        @keyframes breathe {
+            0% { opacity: 0.6; }
+            100% { opacity: 1; }
         }
         
         .dashboard-container {
@@ -24,14 +51,18 @@
         
         .dashboard-header {
             text-align: center;
-            color: white;
+            color: #00ffff;
             margin-bottom: 30px;
         }
         
         .dashboard-header h1 {
             margin: 0;
             font-size: 2.5rem;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+            background: linear-gradient(135deg, #00ffff 0%, #22d3ee 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
         
         .dashboard-nav {
@@ -43,32 +74,38 @@
         }
         
         .nav-tab {
-            background: rgba(255,255,255,0.2);
-            color: white;
-            border: none;
+            background: rgba(0, 0, 0, 0.8);
+            color: #00ffff;
+            border: 2px solid rgba(0, 255, 255, 0.3);
             padding: 12px 24px;
             border-radius: 25px;
             cursor: pointer;
             font-weight: 500;
             backdrop-filter: blur(10px);
             transition: all 0.3s ease;
+            text-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
         }
         
         .nav-tab.active {
-            background: white;
-            color: #667eea;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
+            color: #00ffff;
+            border-color: rgba(0, 255, 255, 0.6);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+            text-shadow: 0 0 8px rgba(0, 255, 255, 0.8);
         }
         
         .nav-tab:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            border-color: rgba(0, 255, 255, 0.6);
+            box-shadow: 0 5px 15px rgba(0, 255, 255, 0.2);
         }
         
         .tab-content {
-            background: white;
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid rgba(0, 255, 255, 0.3);
             border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
             overflow: hidden;
         }
         
@@ -87,14 +124,15 @@
             align-items: center;
             margin-bottom: 25px;
             padding-bottom: 15px;
-            border-bottom: 2px solid #f1f3f4;
+            border-bottom: 2px solid rgba(0, 255, 255, 0.3);
         }
         
         .section-title {
             font-size: 1.5rem;
             font-weight: bold;
-            color: #333;
+            color: #00ffff;
             margin: 0;
+            text-shadow: 0 0 8px rgba(0, 255, 255, 0.4);
         }
         
         .btn {
@@ -109,23 +147,29 @@
         }
         
         .btn-primary {
-            background: #007bff;
-            color: white;
+            background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
+            color: #00ffff;
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            text-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
         }
         
         .btn-success {
-            background: #28a745;
-            color: white;
+            background: linear-gradient(135deg, #00ffff 0%, #22d3ee 100%);
+            color: #000000;
+            border: 2px solid rgba(0, 255, 255, 0.5);
+            font-weight: 600;
         }
         
         .btn-secondary {
-            background: #6c757d;
-            color: white;
+            background: rgba(0, 0, 0, 0.8);
+            color: #00ffff;
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            text-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
         }
         
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
         }
         
         .grid {
@@ -143,16 +187,19 @@
         }
         
         .card {
-            background: #f8f9fa;
-            border: 1px solid #e9ecef;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid rgba(0, 255, 255, 0.3);
             border-radius: 15px;
             padding: 20px;
             transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.1);
         }
         
         .card:hover {
             transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-color: rgba(0, 255, 255, 0.6);
+            box-shadow: 0 10px 25px rgba(0, 255, 255, 0.2);
         }
         
         .card-header {
@@ -165,8 +212,9 @@
         .card-title {
             font-size: 1.2rem;
             font-weight: bold;
-            color: #333;
+            color: #00ffff;
             margin: 0;
+            text-shadow: 0 0 5px rgba(0, 255, 255, 0.4);
         }
         
         .card-icon {
@@ -183,12 +231,12 @@
         }
         
         .member-count {
-            color: #6c757d;
+            color: rgba(0, 255, 255, 0.7);
             font-size: 0.9rem;
         }
         
         .community-description {
-            color: #555;
+            color: rgba(0, 255, 255, 0.8);
             line-height: 1.5;
             margin: 10px 0;
         }
@@ -401,12 +449,13 @@
 </head>
 <body>
     <!-- Back Button -->
-    <a href="javascript:void(0)" onclick="goBackSafely()" style="
+    <a href="/" style="
         position: fixed;
         top: 20px;
         right: 20px;
-        background: rgba(255, 255, 255, 0.9);
-        color: #333;
+        background: rgba(0, 0, 0, 0.9);
+        color: #00ffff;
+        border: 2px solid rgba(0, 255, 255, 0.3);
         padding: 10px 16px;
         border-radius: 20px;
         cursor: pointer;
@@ -415,10 +464,11 @@
         text-decoration: none;
         z-index: 100;
         backdrop-filter: blur(10px);
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    " onmouseover="this.style.background='rgba(255, 255, 255, 1)'; this.style.transform='translateY(-2px)'" 
-       onmouseout="this.style.background='rgba(255, 255, 255, 0.9)'; this.style.transform='translateY(0px)'">
-        ← Back
+        box-shadow: 0 0 15px rgba(0, 255, 255, 0.1);
+        text-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
+    " onmouseover="this.style.borderColor='rgba(0, 255, 255, 0.6)'; this.style.boxShadow='0 0 20px rgba(0, 255, 255, 0.3)'; this.style.transform='translateY(-2px)'" 
+       onmouseout="this.style.borderColor='rgba(0, 255, 255, 0.3)'; this.style.boxShadow='0 0 15px rgba(0, 255, 255, 0.1)'; this.style.transform='translateY(0px)'">
+        🏠 Home
     </a>
 
     <div class="dashboard-container">
@@ -428,16 +478,71 @@
         </div>
         
         <div class="dashboard-nav">
-            <button class="nav-tab active" onclick="showTab('my-communities')">My Communities</button>
-            <button class="nav-tab" onclick="showTab('discover')">Discover</button>
-            <button class="nav-tab" onclick="showTab('peer-support')">Peer Support</button>
-            <button class="nav-tab" onclick="showTab('challenges')">Challenges</button>
-            <button class="nav-tab" onclick="showTab('create')">Create</button>
+            <button class="nav-tab active" onclick="showTab('activity-feed')">🌟 Activity Feed</button>
+            <button class="nav-tab" onclick="showTab('my-communities')">🏘️ My Communities</button>
+            <button class="nav-tab" onclick="showTab('discover')">🔍 Discover</button>
+            <button class="nav-tab" onclick="showTab('peer-support')">🤝 Peer Support</button>
+            <button class="nav-tab" onclick="showTab('challenges')">🎯 Challenges</button>
+            <button class="nav-tab" onclick="showTab('create')">➕ Create</button>
         </div>
         
         <div class="tab-content">
+            <!-- Activity Feed Tab -->
+            <div id="activity-feed" class="tab-pane active">
+                <div class="section-header">
+                    <h2 class="section-title">🌟 Community Activity Feed</h2>
+                    <button class="btn btn-success" onclick="refreshActivityFeed()">Refresh</button>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 300px; gap: 30px; margin-bottom: 30px;">
+                    <!-- Main Feed -->
+                    <div>
+                        <div id="activity-feed-loading" class="loading">
+                            <div class="loading-spinner">⭐</div>
+                            <p>Loading community activity...</p>
+                        </div>
+                        
+                        <div id="activity-feed-content" style="display: none;">
+                            <div id="activity-feed-list">
+                                <!-- Dynamic content -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Sidebar -->
+                    <div>
+                        <div class="card" style="margin-bottom: 20px;">
+                            <h3 style="color: #00ffff; margin: 0 0 15px 0;">🎯 Quick Actions</h3>
+                            <div style="display: flex; flex-direction: column; gap: 10px;">
+                                <button class="btn btn-primary" onclick="showTab('create')">Create Community</button>
+                                <button class="btn btn-secondary" onclick="showTab('challenges')">Join Challenge</button>
+                                <button class="btn btn-secondary" onclick="showTab('peer-support')">Find Support</button>
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <h3 style="color: #00ffff; margin: 0 0 15px 0;">📊 Your Stats</h3>
+                            <div style="display: flex; flex-direction: column; gap: 8px;">
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span style="color: rgba(0, 255, 255, 0.8);">Communities:</span>
+                                    <span style="color: #00ffff; font-weight: 600;" id="user-communities-count">0</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span style="color: rgba(0, 255, 255, 0.8);">Challenges:</span>
+                                    <span style="color: #00ffff; font-weight: 600;" id="user-challenges-count">0</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span style="color: rgba(0, 255, 255, 0.8);">Connections:</span>
+                                    <span style="color: #00ffff; font-weight: 600;" id="user-connections-count">0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
             <!-- My Communities Tab -->
-            <div id="my-communities" class="tab-pane active">
+            <div id="my-communities" class="tab-pane">
                 <div class="section-header">
                     <h2 class="section-title">My Communities</h2>
                     <button class="btn btn-primary" onclick="showTab('discover')">Join More Communities</button>
@@ -669,7 +774,7 @@
 
     <script>
         // Global variables
-        let currentTab = 'my-communities';
+        let currentTab = 'activity-feed';
         
         // Tab navigation
         function showTab(tabName) {
@@ -695,6 +800,9 @@
         
         function loadTabContent(tabName) {
             switch(tabName) {
+                case 'activity-feed':
+                    loadActivityFeed();
+                    break;
                 case 'my-communities':
                     loadMyCommunities();
                     break;
@@ -710,6 +818,99 @@
                     loadAvailableChallenges();
                     break;
             }
+        }
+        
+        // Load activity feed
+        async function loadActivityFeed() {
+            try {
+                document.getElementById('activity-feed-loading').style.display = 'block';
+                document.getElementById('activity-feed-content').style.display = 'none';
+                
+                // Simulate loading with mock data for now
+                setTimeout(() => {
+                    renderActivityFeed([
+                        {
+                            type: 'community_join',
+                            user: 'Sarah M.',
+                            action: 'joined',
+                            target: 'Mindfulness & Meditation',
+                            time: '2 minutes ago',
+                            avatar: '🧘‍♀️'
+                        },
+                        {
+                            type: 'challenge_complete',
+                            user: 'Mike Chen',
+                            action: 'completed',
+                            target: '7-Day Gratitude Challenge',
+                            time: '15 minutes ago',
+                            avatar: '🏆'
+                        },
+                        {
+                            type: 'community_create',
+                            user: 'Alex Rivera',
+                            action: 'created',
+                            target: 'Evening Yoga Sessions',
+                            time: '1 hour ago',
+                            avatar: '🧘'
+                        },
+                        {
+                            type: 'peer_support',
+                            user: 'Emma Watson',
+                            action: 'shared support in',
+                            target: 'Anxiety Support Group',
+                            time: '2 hours ago',
+                            avatar: '💙'
+                        },
+                        {
+                            type: 'achievement',
+                            user: 'David Kim',
+                            action: 'earned badge',
+                            target: 'Wellness Warrior',
+                            time: '3 hours ago',
+                            avatar: '🏅'
+                        }
+                    ]);
+                    
+                    // Update user stats
+                    document.getElementById('user-communities-count').textContent = '3';
+                    document.getElementById('user-challenges-count').textContent = '2';
+                    document.getElementById('user-connections-count').textContent = '12';
+                }, 1000);
+                
+            } catch (error) {
+                console.error('Error loading activity feed:', error);
+                showError('activity-feed-list', 'Failed to load activity feed');
+            }
+        }
+        
+        function renderActivityFeed(activities) {
+            const container = document.getElementById('activity-feed-list');
+            
+            container.innerHTML = activities.map(activity => `
+                <div class="card" style="margin-bottom: 15px; padding: 20px;">
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <div style="font-size: 2rem;">${activity.avatar}</div>
+                        <div style="flex: 1;">
+                            <div style="color: #00ffff; font-weight: 600; margin-bottom: 5px;">
+                                ${activity.user} ${activity.action} ${activity.target}
+                            </div>
+                            <div style="color: rgba(0, 255, 255, 0.6); font-size: 0.9rem;">
+                                ${activity.time}
+                            </div>
+                        </div>
+                        <div style="padding: 8px 12px; background: rgba(0, 255, 255, 0.1); border-radius: 20px; font-size: 0.8rem; color: #00ffff;">
+                            ${activity.type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            document.getElementById('activity-feed-loading').style.display = 'none';
+            document.getElementById('activity-feed-content').style.display = 'block';
+        }
+        
+        function refreshActivityFeed() {
+            loadActivityFeed();
         }
         
         // Load user's communities
@@ -1234,7 +1435,7 @@
 
         // Load initial content
         document.addEventListener('DOMContentLoaded', function() {
-            loadTabContent('my-communities');
+            loadTabContent('activity-feed');
         });
     </script>
 </body>
