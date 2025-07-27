@@ -682,17 +682,28 @@
         }
 
         function shareToTwitter() {
+            if (!shareTemplates) {
+                showMessage('Templates not loaded yet, please wait...', 'error');
+                return;
+            }
             const text = encodeURIComponent(shareTemplates.twitter);
             window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank');
         }
 
-
         function shareToWhatsApp() {
+            if (!shareTemplates) {
+                showMessage('Templates not loaded yet, please wait...', 'error');
+                return;
+            }
             const text = encodeURIComponent(shareTemplates.whatsapp);
             window.open(`https://wa.me/?text=${text}`, '_blank');
         }
 
         function shareToEmail() {
+            if (!shareTemplates) {
+                showMessage('Templates not loaded yet, please wait...', 'error');
+                return;
+            }
             const subject = encodeURIComponent(shareTemplates.email.subject);
             const body = encodeURIComponent(shareTemplates.email.body);
             window.open(`mailto:?subject=${subject}&body=${body}`, '_blank');
