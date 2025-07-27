@@ -2375,8 +2375,8 @@ def debug_reset_password():
         email = "aceelnene@gmail.com"
         new_password = "Yariel13"  # Your actual password
         
-        # Hash the new password
-        password_hash = bcrypt.hashpw(new_password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+        # Use the same salt/method as test account to ensure compatibility
+        password_hash = bcrypt.hashpw(new_password.encode("utf-8"), bcrypt.gensalt(rounds=12)).decode("utf-8")
         
         conn = temp_db.get_connection()
         cursor = conn.cursor()
