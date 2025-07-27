@@ -1053,13 +1053,18 @@
             }
 
             updateCompanionStats(companionName) {
-                // Update stats with mock data for now - could connect to real analytics later
+                // Update stats with persistent data
                 const todayMessagesEl = document.getElementById('todayMessages');
                 const companionDaysEl = document.getElementById('companionDays');
                 
                 if (todayMessagesEl) {
-                    // Generate some realistic mock data
-                    const todayMessages = Math.floor(Math.random() * 20) + 1;
+                    // Use sessionStorage to keep consistent count during session
+                    let todayMessages = sessionStorage.getItem('todayMessageCount');
+                    if (!todayMessages) {
+                        // Set to 0 for now - this would come from real chat data
+                        todayMessages = '0';
+                        sessionStorage.setItem('todayMessageCount', todayMessages);
+                    }
                     todayMessagesEl.textContent = todayMessages;
                 }
                 
