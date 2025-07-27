@@ -1121,12 +1121,13 @@
                         <!-- Preview Circle -->
                         <div style="width: 200px; height: 200px; border-radius: 50%; overflow: hidden; 
                                     margin: 0 auto 20px auto; border: 3px solid #22d3ee;
-                                    position: relative; background: #000;">
+                                    position: relative; background: #000; pointer-events: auto;">
                             <img id="previewImage" src="${imageData}" 
                                  style="max-width: none; max-height: none; width: auto; height: auto;
                                         transform-origin: center center; transition: transform 0.1s ease;
                                         position: absolute; top: 50%; left: 50%; 
-                                        transform: translate(-50%, -50%); cursor: grab;"
+                                        transform: translate(-50%, -50%); cursor: grab;
+                                        pointer-events: auto; user-select: none;"
                                  draggable="false">
                         </div>
                         
@@ -1251,20 +1252,31 @@
 
         function setupImageDrag() {
             const img = document.getElementById('previewImage');
+            if (!img) {
+                console.error('❌ Preview image not found for drag setup');
+                return;
+            }
+            
+            console.log('🖱️ Setting up drag functionality for image:', img);
+            
             let isDragging = false;
             let startX, startY, startTranslateX, startTranslateY;
 
             img.addEventListener('mousedown', function(e) {
+                console.log('🖱️ Mouse down detected on image - starting drag');
                 isDragging = true;
                 img.style.cursor = 'grabbing';
-                img.style.transition = 'none'; // Disable transition while dragging
+                img.style.transition = 'none';
                 
                 startX = e.clientX;
                 startY = e.clientY;
                 startTranslateX = window.imageAdjustment.translateX;
                 startTranslateY = window.imageAdjustment.translateY;
                 
+                console.log(`🖱️ Starting position: clientX=${startX}, clientY=${startY}, translateX=${startTranslateX}, translateY=${startTranslateY}`);
+                
                 e.preventDefault();
+                e.stopPropagation();
             });
 
             document.addEventListener('mousemove', function(e) {
@@ -1276,7 +1288,10 @@
                 window.imageAdjustment.translateX = startTranslateX + deltaX;
                 window.imageAdjustment.translateY = startTranslateY + deltaY;
                 
+                console.log(`🖱️ Dragging: deltaX=${deltaX}, deltaY=${deltaY}, newX=${window.imageAdjustment.translateX}, newY=${window.imageAdjustment.translateY}`);
+                
                 updateImageStyle();
+                e.preventDefault();
             });
 
             document.addEventListener('mouseup', function() {
@@ -1321,6 +1336,13 @@
                     img.style.transition = 'transform 0.1s ease';
                 }
             });
+
+            // Set initial cursor and make it draggable
+            img.style.cursor = 'grab';
+            img.style.userSelect = 'none';
+            img.style.pointerEvents = 'auto';
+            
+            console.log('✅ Image drag functionality setup complete');
         }
 
         window.acceptAdjustedImage = async function() {
