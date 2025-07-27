@@ -197,9 +197,9 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    // For free plan, go directly to intro
+                    // For free plan, go directly to original chat interface
                     if (planType === 'foundation') {
-                        window.location.href = '/intro';
+                        window.location.href = '/';
                     } else {
                         // For paid plans, go to payment
                         window.location.href = data.redirect_url || `/payment?plan=${planType}`;
