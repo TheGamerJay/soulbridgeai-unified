@@ -143,6 +143,18 @@
             backdrop-filter: blur(20px) !important;
             border-bottom: 1px solid rgba(34, 211, 238, 0.2) !important;
         }
+        
+        /* Beautiful Sapphire glow animation */
+        @keyframes gentleGlow {
+            0% { 
+                box-shadow: 0 0 30px rgba(34, 211, 238, 0.4);
+                transform: scale(1);
+            }
+            100% { 
+                box-shadow: 0 0 50px rgba(34, 211, 238, 0.7);
+                transform: scale(1.02);
+            }
+        }
     </style>
 </head>
 <body class="intro-page" style="background: linear-gradient(135deg, #0a0e1a 0%, #1a202c 25%, #2d3748 50%, #1a202c 75%, #0a0e1a 100%) !important; background-attachment: fixed !important; background-size: 100% 100% !important; min-height: 100vh !important; margin: 0 !important; font-family: system-ui, -apple-system, sans-serif !important; color: #22d3ee !important;">
@@ -161,16 +173,27 @@
     <!-- Main Content -->
     <div class="container">
         
-        <img src="{{ url_for('static', filename='logos/IntroLogo.png') }}" alt="Logo" style="max-width: 160px; height: auto; margin: 70px 0 25px 0;">
+        <!-- Beautiful Sapphire Guide Bot Introduction -->
+        <div style="display: flex; flex-direction: column; align-items: center; margin: 50px 0 30px 0;">
+            <img src="{{ url_for('static', filename='logos/Sapphire.png') }}" alt="Sapphire Guide Bot" 
+                 style="width: 200px; height: 200px; border-radius: 50%; 
+                        border: 4px solid #22d3ee; box-shadow: 0 0 30px rgba(34, 211, 238, 0.4);
+                        margin-bottom: 20px; object-fit: cover; object-position: center;
+                        animation: gentleGlow 3s ease-in-out infinite alternate;">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <h2 style="font-size: 1.4rem; color: #22d3ee; margin-bottom: 8px; font-weight: 500;">👋 Meet Sapphire</h2>
+                <p style="font-size: 1rem; color: #94a3b8; margin: 0; font-style: italic;">Your intelligent guide to SoulBridge AI</p>
+            </div>
+        </div>
         
         <h1 style="font-size: 2.2rem; margin-bottom: 15px; font-weight: 600;">Welcome to SoulBridge AI</h1>
-        <p style="font-size: 1rem; margin-bottom: 40px; opacity: 0.8; max-width: 500px;">Your AI companion for meaningful conversations and personal growth</p>
+        <p style="font-size: 1rem; margin-bottom: 40px; opacity: 0.8; max-width: 500px;">Let Sapphire guide you through meaningful conversations and personal growth</p>
         
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; margin-bottom: 50px; max-width: 800px;">
             <div class="card" style="padding: 30px; text-align: center;">
-                <div style="font-size: 3rem; margin-bottom: 15px;">🤖</div>
-                <h3>AI Companions</h3>
-                <p>Choose from unique AI personalities tailored to your needs</p>
+                <div style="font-size: 3rem; margin-bottom: 15px;">💎</div>
+                <h3>Sapphire's Guidance</h3>
+                <p>Let your intelligent navigator help you discover the perfect AI companion</p>
             </div>
             <div class="card" style="padding: 30px; text-align: center;">
                 <div style="font-size: 3rem; margin-bottom: 15px;">💬</div>
@@ -185,8 +208,31 @@
         </div>
         
         <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; margin-bottom: 40px;">
-            <a href="/companion-selection" class="btn-primary" style="padding: 15px 30px; font-size: 1.1rem;">Choose Your Companion</a>
-            <a href="/profile" class="btn-secondary" style="padding: 15px 30px; font-size: 1.1rem;">View Profile</a>
+            <a href="/companion-selection" class="btn-primary" style="padding: 15px 30px; font-size: 1.1rem; position: relative;">
+                🌟 Let Sapphire Guide You to Your Companion
+            </a>
+            <a href="/chat" class="btn-secondary" style="padding: 15px 30px; font-size: 1.1rem;">
+                💬 Start Chatting
+            </a>
+            <a href="/profile" class="btn-secondary" style="padding: 15px 30px; font-size: 1.1rem;">
+                👤 View Profile
+            </a>
+        </div>
+        
+        <!-- Interactive Sapphire Assistant -->
+        <div class="card" style="max-width: 500px; text-align: center; padding: 25px; margin-bottom: 30px; background: rgba(34, 211, 238, 0.1) !important; border: 1px solid rgba(34, 211, 238, 0.3) !important;">
+            <img src="{{ url_for('static', filename='logos/Sapphire.png') }}" alt="Sapphire" 
+                 style="width: 50px; height: 50px; border-radius: 50%; margin-bottom: 15px; border: 2px solid #22d3ee;">
+            <h4 style="color: #22d3ee; margin-bottom: 15px;">✨ Ask Sapphire Anything!</h4>
+            <p style="margin-bottom: 15px; font-size: 0.95rem; opacity: 0.9;">
+                Need help getting started? Sapphire knows everything about SoulBridge AI and can guide you through any feature.
+            </p>
+            <button onclick="window.location.href='/chat?companion=Sapphire'" 
+                    class="btn-primary" style="padding: 12px 25px; font-size: 1rem; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s ease;"
+                    onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(34, 211, 238, 0.3)'"
+                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                💎 Chat with Sapphire Now
+            </button>
         </div>
         
         <!-- Security notice using your card styling -->

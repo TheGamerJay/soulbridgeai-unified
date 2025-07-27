@@ -446,7 +446,7 @@ def health():
 
 @app.route("/", methods=["GET", "POST"])
 def home():
-    """Home route - require login then show intro"""
+    """Home route - require login then show beautiful intro with Sapphire"""
     try:
         # Require authentication for main app access
         logger.info(f"Home route: Checking authentication - Session: {dict(session)}")
@@ -455,15 +455,15 @@ def home():
             logger.info(f"Home route: User not authenticated, redirecting to login")
             return redirect("/login")
         
-        # User is authenticated - show original beautiful chat interface
-        logger.info(f"Home route: User authenticated, showing original chat interface")
+        # User is authenticated - show beautiful intro page with Sapphire guide
+        logger.info(f"Home route: User authenticated, showing beautiful intro with Sapphire")
         
         # Initialize services if needed
         if not services["database"]:
             initialize_services()
         
-        # Show your original beautiful chat page
-        return render_template("chat.html")
+        # Show beautiful intro page with Sapphire guide bot
+        return render_template("intro.html")
         
     except Exception as e:
         logger.error(f"Home route error: {e}")
