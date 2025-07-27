@@ -7,6 +7,8 @@ backend/.env
 backend/soulbridge.db
 backend/soulbridge.log
 backend/.pytest_cache/
+backend/static/uploads/
+backend/logs/
 
 # Frontend (local development only - not deployed to Railway)
 frontend/

@@ -582,6 +582,7 @@ def admin_init_database():
             cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS plan_type VARCHAR(50) DEFAULT 'foundation'")
             cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE")
             cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_image TEXT")
+            cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_image_data TEXT")
             cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS display_name TEXT")
         except:
             pass  # Columns might already exist
@@ -2451,6 +2452,11 @@ def upload_profile_image():
         upload_dir = os.path.join('static', 'uploads', 'profiles')
         os.makedirs(upload_dir, exist_ok=True)
         
+        # Log directory creation for debugging
+        logger.info(f"Upload directory: {os.path.abspath(upload_dir)}")
+        logger.info(f"Upload directory exists: {os.path.exists(upload_dir)}")
+        logger.info(f"Upload directory writable: {os.access(upload_dir, os.W_OK)}")
+        
         # Generate unique filename
         import uuid
         file_extension = file.filename.rsplit('.', 1)[1].lower()
@@ -2458,10 +2464,23 @@ def upload_profile_image():
         file_path = os.path.join(upload_dir, unique_filename)
         
         # Save file
-        file.save(file_path)
+        try:
+            file.save(file_path)
+            logger.info(f"File saved successfully to: {file_path}")
+            
+            # Verify file was saved
+            if os.path.exists(file_path):
+                logger.info(f"File verified at: {file_path}, size: {os.path.getsize(file_path)} bytes")
+                profile_image_url = f"/static/uploads/profiles/{unique_filename}"
+            else:
+                logger.error(f"File save failed - file not found at: {file_path}")
+                return jsonify({"success": False, "error": "File save failed"}), 500
+                
+        except Exception as save_error:
+            logger.error(f"File save exception: {save_error}")
+            return jsonify({"success": False, "error": f"File save failed: {str(save_error)}"}), 500
         
         # Store in session and database
-        profile_image_url = f"/static/uploads/profiles/{unique_filename}"
         session['profile_image'] = profile_image_url
         
         # Also save to database for persistence
@@ -2491,6 +2510,21 @@ def upload_profile_image():
                 conn.commit()
                 conn.close()
                 logger.info(f"Profile image saved to database: {profile_image_url} for user {user_id}")
+                
+                # Also save file content as base64 backup in case filesystem is ephemeral
+                try:
+                    import base64
+                    with open(file_path, 'rb') as img_file:
+                        img_data = base64.b64encode(img_file.read()).decode('utf-8')
+                        
+                    cursor.execute(f"""
+                        UPDATE users SET profile_image_data = {placeholder} WHERE id = {placeholder}
+                    """, (img_data, user_id))
+                    conn.commit()
+                    logger.info(f"Profile image data backup saved to database for user {user_id}")
+                    
+                except Exception as backup_error:
+                    logger.warning(f"Failed to save image data backup: {backup_error}")
                 
             except Exception as db_error:
                 logger.error(f"Failed to save profile image to database: {db_error}")
@@ -2555,6 +2589,39 @@ def debug_profile_image():
         
     except Exception as e:
         return jsonify({"error": f"Debug failed: {str(e)}"})
+
+@app.route("/api/profile-image/<image_id>")
+def serve_profile_image(image_id):
+    """Serve profile image from database if file doesn't exist"""
+    try:
+        if not is_logged_in():
+            return "Authentication required", 401
+        
+        user_id = session.get('user_id')
+        if not user_id or not services.get("database"):
+            return "No access", 403
+            
+        conn = services["database"].get_connection()
+        cursor = conn.cursor()
+        
+        placeholder = "%s" if hasattr(services["database"], 'postgres_url') and services["database"].postgres_url else "?"
+        cursor.execute(f"SELECT profile_image_data FROM users WHERE id = {placeholder}", (user_id,))
+        result = cursor.fetchone()
+        
+        conn.close()
+        
+        if result and result[0]:
+            import base64
+            from flask import Response
+            
+            img_data = base64.b64decode(result[0])
+            return Response(img_data, mimetype='image/png')
+        else:
+            return "Image not found", 404
+            
+    except Exception as e:
+        logger.error(f"Serve profile image error: {e}")
+        return "Server error", 500
 
 @app.route("/api/user-addons")
 def get_user_addons():
