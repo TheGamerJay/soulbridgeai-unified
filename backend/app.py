@@ -2333,7 +2333,7 @@ def create_addon_checkout():
             'color-customization': {'name': 'Color Customization', 'price': 199},
             'ai-image-generation': {'name': 'AI Image Generation', 'price': 699},
             'relationship': {'name': 'Relationship Profile Add-on', 'price': 299},
-            'voice-journaling': {'name': 'Voice Journaling', 'price': 599},
+            'voice-journaling': {'name': 'Voice Journaling', 'price': 499},
             'complete-bundle': {'name': 'Complete Add-On Bundle', 'price': 1699}
         }
         
