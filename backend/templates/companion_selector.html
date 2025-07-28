@@ -899,6 +899,17 @@
                         tier: 'free',
                         popularity_score: 89,
                         is_recommended: false
+                    },
+                    {
+                        companion_id: 'companion_claude_free',
+                        display_name: 'Claude - The Helper Bot',
+                        avatar_image: '/static/logos/Claude Free.png',
+                        short_bio: 'Your friendly coding assistant for basic programming support',
+                        personality_tags: ['Helpful', 'Methodical', 'Patient'],
+                        special_features: ['Basic code help', 'Problem solving', 'Learning support', 'Step-by-step guidance'],
+                        tier: 'free',
+                        popularity_score: 85,
+                        is_recommended: false
                     }
                 ],
                 growth: [
@@ -973,6 +984,18 @@
                         lock_reason: 'Requires Growth or Max subscription',
                         popularity_score: 84,
                         is_recommended: false
+                    },
+                    {
+                        companion_id: 'companion_claude_growth',
+                        display_name: 'Claude - The Code Mentor',
+                        avatar_image: '/static/logos/Claude Growth.png',
+                        short_bio: 'Advanced coding guidance and system architecture planning',
+                        personality_tags: ['Analytical', 'Methodical', 'Expert'],
+                        special_features: ['Advanced debugging', 'Architecture planning', 'Code optimization', 'Voice interactions', 'Best practices'],
+                        tier: 'growth',
+                        lock_reason: 'Requires Growth or Max subscription',
+                        popularity_score: 93,
+                        is_recommended: true
                     }
                 ],
                 max: [
@@ -1046,6 +1069,18 @@
                         tier: 'max',
                         lock_reason: 'Requires Max subscription',
                         popularity_score: 96,
+                        is_recommended: true
+                    },
+                    {
+                        companion_id: 'companion_claude_max',
+                        display_name: 'Claude - The Code Sage',
+                        avatar_image: '/static/logos/Claude Max.png',
+                        short_bio: 'Elite coding mastery and complex system design for the ultimate developer experience',
+                        personality_tags: ['Elite', 'Analytical', 'Sage'],
+                        special_features: ['Elite code architecture', 'Complex system design', 'Advanced AI integration', 'Premium code analysis', 'Priority support', 'Master-level guidance'],
+                        tier: 'max',
+                        lock_reason: 'Requires Max subscription',
+                        popularity_score: 97,
                         is_recommended: true
                     }
                 ],
@@ -1181,6 +1216,18 @@
                         <div class="companion-info" style="padding: 20px;">
                             <h3 style="font-size: 1.3rem; font-weight: 700; margin-bottom: 8px; color: #00ffff;">Blayzion - The Creative Innovator</h3>
                             <p style="color: rgba(0,255,255,0.8); font-size: 0.9rem; margin-bottom: 15px;">Creative innovation and breakthrough thinking for life challenges</p>
+                            <div class="companion-actions" style="display: flex; gap: 10px;">
+                                <button style="flex: 1; padding: 12px; background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%); color: #00ffff; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; text-shadow: 0 0 5px rgba(0,255,255,0.5);">Select</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="companion-card" onclick="selectCompanion('companion_claude_free')" style="min-width: 280px; background: rgba(0,0,0,0.9); border-radius: 16px; padding: 0; cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden; box-shadow: 0 8px 32px rgba(0,255,255,0.2); border: 2px solid rgba(0,255,255,0.3);">
+                        <div class="companion-avatar" style="width: 100%; height: 180px; position: relative; overflow: hidden;">
+                            <img src="/static/logos/Claude Free.png" alt="Claude Helper Bot" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='/static/logos/IntroLogo.png'">
+                        </div>
+                        <div class="companion-info" style="padding: 20px;">
+                            <h3 style="font-size: 1.3rem; font-weight: 700; margin-bottom: 8px; color: #00ffff;">Claude - The Helper Bot</h3>
+                            <p style="color: rgba(0,255,255,0.8); font-size: 0.9rem; margin-bottom: 15px;">Your friendly coding assistant for basic programming support</p>
                             <div class="companion-actions" style="display: flex; gap: 10px;">
                                 <button style="flex: 1; padding: 12px; background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%); color: #00ffff; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; text-shadow: 0 0 5px rgba(0,255,255,0.5);">Select</button>
                             </div>
