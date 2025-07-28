@@ -599,6 +599,48 @@ def clear_session():
         logger.error(f"Error clearing session: {e}")
         return jsonify({"success": False, "error": "Failed to clear session"}), 500
 
+@app.route("/api/debug/trial-status")
+def debug_trial_status():
+    """Debug endpoint to check current trial status"""
+    try:
+        trial_data = {
+            "session_keys": list(session.keys()),
+            "trial_companion": session.get('trial_companion'),
+            "trial_expires": session.get('trial_expires'),
+            "trial_active": session.get('trial_active'),
+            "user_plan": session.get('user_plan'),
+            "selected_companion": session.get('selected_companion'),
+            "user_authenticated": session.get('user_authenticated'),
+            "user_id": session.get('user_id'),
+            "user_email": session.get('user_email'),
+            "current_time": datetime.now().isoformat()
+        }
+        
+        # Check if trial is still valid
+        if session.get('trial_expires'):
+            try:
+                expiry_dt = datetime.fromisoformat(session.get('trial_expires'))
+                current_dt = datetime.now()
+                is_expired = current_dt >= expiry_dt
+                time_remaining = (expiry_dt - current_dt).total_seconds() if not is_expired else 0
+                
+                trial_data["trial_expired"] = is_expired
+                trial_data["seconds_remaining"] = time_remaining
+                trial_data["minutes_remaining"] = int(time_remaining / 60)
+            except Exception as e:
+                trial_data["trial_parse_error"] = str(e)
+        
+        return jsonify({
+            "success": True,
+            "trial_data": trial_data
+        })
+        
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        })
+
 @app.route("/admin/force-logout-all", methods=["POST"])
 def force_logout_all():
     """ADMIN: Force logout all users by incrementing session version"""
