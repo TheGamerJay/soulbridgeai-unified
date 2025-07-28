@@ -1734,6 +1734,8 @@
                     
                     localStorage.setItem('selectedCharacter', companion.display_name.split(' ')[0]);
                     localStorage.setItem('currentScreen', 'chat');
+                    localStorage.setItem('hasActiveChat', 'true'); // KEY: Prevents chat from redirecting to intro
+                    sessionStorage.setItem('hasActiveChat', 'true'); // Also set in sessionStorage
                     localStorage.setItem('trialActive', 'true');
                     localStorage.setItem('trialExpiry', Date.now() + (24 * 60 * 60 * 1000));
                     localStorage.setItem('trialStartTime', Date.now());
