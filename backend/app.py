@@ -4342,12 +4342,16 @@ def api_chat():
         if not is_logged_in():
             return jsonify({"success": False, "response": "Authentication required"}), 401
             
-        if not services["openai"]:
-            return jsonify({"success": False, "response": "AI service temporarily unavailable"}), 503
-            
         data = request.get_json()
         if not data:
             return jsonify({"success": False, "response": "Invalid request data"}), 400
+            
+        if not services["openai"]:
+            logger.warning("OpenAI service not available - providing fallback response")
+            # Provide a fallback response instead of failing
+            character = data.get("character", "Blayzo")
+            fallback_response = f"Hello! I'm {character}, your AI companion. I'm currently running in offline mode, but I'm here to help! How can I assist you today?"
+            return jsonify({"success": True, "response": fallback_response})
             
         message = data.get("message", "").strip()
         character = data.get("character", "Blayzo")
@@ -4373,7 +4377,8 @@ def api_chat():
             ai_response = response.choices[0].message.content
         except Exception as ai_error:
             logger.warning(f"OpenAI API error: {ai_error}")
-            ai_response = f"Hello! I'm {character}. Thanks for your message: '{message}'. How can I help you today?"
+            # Provide a more natural fallback response
+            ai_response = f"Hello! I'm {character}, your AI companion. I understand you said: '{message[:50]}...'. I'm experiencing some technical difficulties right now, but I'm still here to help you! What would you like to talk about?"
         
         return jsonify({"success": True, "response": ai_response})
         

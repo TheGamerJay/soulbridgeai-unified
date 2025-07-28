@@ -11,6 +11,15 @@
         // Force reload if changes aren't visible
         window.addEventListener('load', function() {
             console.log('Page loaded, version: {{ range(10000, 99999) | random }}');
+            
+            // Debug info for chat functionality
+            setTimeout(function() {
+                console.log('🔍 DIAGNOSTIC: Chat page loaded successfully');
+                console.log('🔍 testSendMessage function exists:', typeof testSendMessage);
+                console.log('🔍 messageInput element:', document.getElementById('messageInput'));
+                console.log('🔍 Send button exists:', document.querySelector('[onclick="testSendMessage()"]'));
+                console.log('🔍 chatMessages container:', document.getElementById('chatMessages'));
+            }, 1000);
         });
         
         // UNIFIED NAVIGATION CONTROLLER - Single source of truth for all navigation
@@ -3729,6 +3738,9 @@
             
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
+        
+        // Make testSendMessage globally accessible
+        window.testSendMessage = testSendMessage;
         
         // Clear chat function
         function clearChat() {
