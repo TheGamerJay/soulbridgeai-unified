@@ -3031,9 +3031,13 @@ def api_subscription_upgrade():
         
         data = request.get_json() or {}
         plan_type = data.get("plan")
+        billing = data.get("billing", "monthly")
         
         if not plan_type or plan_type not in ["growth", "max", "premium", "enterprise"]:
             return jsonify({"success": False, "error": "Invalid plan type"}), 400
+        
+        if billing not in ["monthly", "yearly"]:
+            return jsonify({"success": False, "error": "Invalid billing period"}), 400
         
         # Map companion selector plan names to internal plan names
         plan_mapping = {
@@ -3060,7 +3064,16 @@ def api_subscription_upgrade():
             
             user_email = session.get('user_email') or session.get('email')
             plan_names = {"premium": "Growth Plan", "enterprise": "Max Plan"}
-            plan_prices = {"premium": 999, "enterprise": 1999}  # Prices in cents
+            plan_prices = {
+                "monthly": {
+                    "premium": 1299,  # $12.99/month
+                    "enterprise": 1999  # $19.99/month
+                },
+                "yearly": {
+                    "premium": 11700,  # $117/year (25% savings)
+                    "enterprise": 18000  # $180/year (25% savings)
+                }
+            }
             
             checkout_session = stripe.checkout.Session.create(
                 payment_method_types=['card'],
@@ -3069,10 +3082,10 @@ def api_subscription_upgrade():
                         'currency': 'usd',
                         'product_data': {
                             'name': f'SoulBridge AI - {plan_names[internal_plan]}',
-                            'description': f'Monthly subscription to {plan_names[internal_plan]}',
+                            'description': f'{billing.title()} subscription to {plan_names[internal_plan]}',
                         },
-                        'unit_amount': plan_prices[internal_plan],
-                        'recurring': {'interval': 'month'},
+                        'unit_amount': plan_prices[billing][internal_plan],
+                        'recurring': {'interval': 'year' if billing == 'yearly' else 'month'},
                     },
                     'quantity': 1,
                 }],
