@@ -2058,6 +2058,8 @@
     <script>
         // Companion selection function
         function selectCompanion(characterName) {
+            try {
+                console.log('🤖 Selecting companion:', characterName);
             var firstPickMade = localStorage.getItem('firstPickMade');
             var currentCharacter = localStorage.getItem('selectedCharacter');
             var confirmChoice = false;
@@ -2599,6 +2601,10 @@
             });
             updatePremiumCharacters();
             forceUpdatePremiumText();
+            } catch (error) {
+                console.error('❌ Error in selectCompanion:', error);
+                alert('Failed to select companion. Please try again.');
+            }
         }
 
         // Manual test function - call from console: testPremiumUpdate()
@@ -3646,49 +3652,159 @@
         // Make testSendMessage globally accessible
         window.testSendMessage = testSendMessage;
         
+        // Enhanced button functionality checker and fixer
+        function ensureButtonFunctionality() {
+            console.log('🔧 Ensuring all buttons work properly...');
+            
+            // Make sure all critical functions are globally accessible
+            window.testSendMessage = testSendMessage;
+            window.clearChat = clearChat;
+            window.saveConversation = saveConversation;
+            window.selectCompanion = selectCompanion;
+            
+            // Ensure all onclick handlers are working
+            const criticalButtons = [
+                { selector: '[onclick*="testSendMessage"]', handler: testSendMessage, name: 'Send Message' },
+                { selector: '[onclick*="clearChat"]', handler: clearChat, name: 'Clear Chat' },
+                { selector: '[onclick*="saveConversation"]', handler: saveConversation, name: 'Save Conversation' },
+                { selector: '[onclick*="openDecoderMode"]', handler: openDecoderMode, name: 'Decoder Mode' },
+                { selector: '[onclick*="showLibrary"]', handler: showLibrary, name: 'Library' },
+                { selector: '[onclick*="openVoiceChat"]', handler: openVoiceChat, name: 'Voice Chat' },
+                { selector: '[onclick*="toggleNavigationAssistant"]', handler: toggleNavigationAssistant, name: 'Navigation Assistant' }
+            ];
+            
+            criticalButtons.forEach(button => {
+                const elements = document.querySelectorAll(button.selector);
+                elements.forEach(element => {
+                    // Add backup event listener
+                    element.addEventListener('click', function(e) {
+                        try {
+                            if (typeof button.handler === 'function') {
+                                button.handler();
+                            } else {
+                                console.warn(`⚠️ ${button.name} handler not available`);
+                            }
+                        } catch (error) {
+                            console.error(`❌ Error in ${button.name}:`, error);
+                        }
+                    });
+                });
+                console.log(`✅ ${button.name}: ${elements.length} buttons enhanced`);
+            });
+            
+            // Character selection buttons
+            const characterButtons = document.querySelectorAll('[onclick*="selectCompanion"]');
+            characterButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    try {
+                        // Extract character name from onclick attribute
+                        const onclick = button.getAttribute('onclick');
+                        const match = onclick.match(/selectCompanion\(['"]([^'"]+)['"]\)/);
+                        if (match) {
+                            selectCompanion(match[1]);
+                        }
+                    } catch (error) {
+                        console.error('❌ Error selecting companion:', error);
+                    }
+                });
+            });
+            console.log(`✅ Character Selection: ${characterButtons.length} buttons enhanced`);
+            
+            // Ensure Enter key works on message input
+            const messageInput = document.getElementById('messageInput');
+            if (messageInput) {
+                messageInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        testSendMessage();
+                    }
+                });
+                console.log('✅ Message input Enter key enhanced');
+            }
+            
+            console.log('🎉 All buttons functionality ensured!');
+        }
+        
+        // Run button functionality check when page loads
+        document.addEventListener('DOMContentLoaded', ensureButtonFunctionality);
+        window.addEventListener('load', ensureButtonFunctionality);
+        
+        // Make all functions globally accessible for debugging
+        window.ensureButtonFunctionality = ensureButtonFunctionality;
+        window.clearChat = clearChat;
+        window.saveConversation = saveConversation;
+        window.selectCompanion = selectCompanion;
+        window.openDecoderMode = openDecoderMode;
+        window.showLibrary = showLibrary;
+        window.openVoiceChat = openVoiceChat;
+        
         // Clear chat function
         function clearChat() {
-            if (confirm('Are you sure you want to clear all messages? This cannot be undone.')) {
-                document.getElementById('chatMessages').innerHTML = '';
-                // Re-add greeting after clearing
-                setTimeout(function() {
-                    if (window.GreetingManager) {
-                        window.GreetingManager.addGreeting(true); // Force greeting after clear
+            try {
+                if (confirm('Are you sure you want to clear all messages? This cannot be undone.')) {
+                    var chatMessages = document.getElementById('chatMessages');
+                    if (!chatMessages) {
+                        alert('Chat container not found!');
+                        return;
                     }
-                }, 100);
+                    
+                    chatMessages.innerHTML = '';
+                    console.log('✅ Chat cleared successfully');
+                    
+                    // Re-add greeting after clearing
+                    setTimeout(function() {
+                        if (window.GreetingManager) {
+                            window.GreetingManager.addGreeting(true); // Force greeting after clear
+                        }
+                    }, 100);
+                }
+            } catch (error) {
+                console.error('❌ Error clearing chat:', error);
+                alert('Failed to clear chat. Please try again.');
             }
         }
         
         
         // Save conversation function
         function saveConversation() {
-            var chatMessages = document.getElementById('chatMessages');
-            var messages = chatMessages.innerHTML;
-            
-            if (!messages || messages.trim() === '') {
-                alert('No conversation to save!');
-                return;
+            try {
+                var chatMessages = document.getElementById('chatMessages');
+                if (!chatMessages) {
+                    alert('Chat container not found!');
+                    return;
+                }
+                
+                var messages = chatMessages.innerHTML;
+                
+                if (!messages || messages.trim() === '') {
+                    alert('No conversation to save!');
+                    return;
+                }
+                
+                var title = prompt('Enter a title for this conversation:');
+                if (!title) return;
+                
+                var selectedCharacter = localStorage.getItem('selectedCharacter') || 'Unknown';
+                var now = new Date();
+                var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                var fullDateTime = months[now.getMonth()] + ' ' + now.getDate() + ', ' + now.getFullYear() + ' at ' + now.toLocaleTimeString();
+                var conversation = {
+                    title: title,
+                    character: selectedCharacter,
+                    date: fullDateTime,
+                    content: messages
+                };
+                
+                var savedConversations = JSON.parse(localStorage.getItem('savedConversations') || '[]');
+                savedConversations.push(conversation);
+                localStorage.setItem('savedConversations', JSON.stringify(savedConversations));
+                
+                alert('Conversation saved successfully!');
+                console.log('✅ Conversation saved:', title);
+            } catch (error) {
+                console.error('❌ Error saving conversation:', error);
+                alert('Failed to save conversation. Please try again.');
             }
-            
-            var title = prompt('Enter a title for this conversation:');
-            if (!title) return;
-            
-            var selectedCharacter = localStorage.getItem('selectedCharacter');
-            var now = new Date();
-            var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            var fullDateTime = months[now.getMonth()] + ' ' + now.getDate() + ', ' + now.getFullYear() + ' at ' + now.toLocaleTimeString();
-            var conversation = {
-                title: title,
-                character: selectedCharacter,
-                date: fullDateTime,
-                content: messages
-            };
-            
-            var savedConversations = JSON.parse(localStorage.getItem('savedConversations') || '[]');
-            savedConversations.push(conversation);
-            localStorage.setItem('savedConversations', JSON.stringify(savedConversations));
-            
-            alert('Conversation saved successfully!');
         }
         
         // Load conversation function
