@@ -2077,7 +2077,7 @@
             // Add user message to chat with better styling
             var chatDiv = document.getElementById('chatMessages');
             if (chatDiv) {
-                chatDiv.innerHTML += '<div style="margin-bottom: 15px; padding: 10px; background: rgba(34, 211, 238, 0.1); border-radius: 10px; text-align: right; border-left: 4px solid #22d3ee;"><strong style="color: #22d3ee;">You:</strong> ' + msg + '</div>';
+                chatDiv.innerHTML += '<div style="margin-bottom: 15px; padding: 10px; background: rgba(34, 211, 238, 0.1); border-radius: 10px; text-align: center; border-left: 4px solid #22d3ee;"><strong style="color: #22d3ee;">You:</strong> ' + msg + '</div>';
             }
             
             // Send to AI backend
@@ -2095,7 +2095,7 @@
             .then(data => {
                 if (data.reply && chatDiv) {
                     var characterName = localStorage.getItem('selectedCharacter') || 'AI';
-                    chatDiv.innerHTML += '<div style="margin-bottom: 15px; padding: 10px; background: rgba(139, 92, 246, 0.1); border-radius: 10px; text-align: left; border-right: 4px solid #8b5cf6;"><strong style="color: #8b5cf6;">' + characterName + ':</strong> ' + data.reply + '</div>';
+                    chatDiv.innerHTML += '<div style="margin-bottom: 15px; padding: 10px; background: rgba(139, 92, 246, 0.1); border-radius: 10px; text-align: center; border-right: 4px solid #8b5cf6;"><strong style="color: #8b5cf6;">' + characterName + ':</strong> ' + data.reply + '</div>';
                     chatDiv.scrollTop = chatDiv.scrollHeight;
                 } else {
                     if (chatDiv) {
