@@ -732,19 +732,40 @@ What specific area would you like help with? I know every feature of SoulBridge 
         
         // BANKING SECURITY: Clear session when user navigates away (like bank sites)
         let sessionCleared = false;
+        let navigatingInternally = false;
+        
+        // Track internal navigation to avoid clearing session for app navigation
+        document.addEventListener('click', function(e) {
+            const link = e.target.closest('a');
+            if (link && link.href) {
+                const url = new URL(link.href);
+                const currentHost = window.location.hostname;
+                if (url.hostname === currentHost || url.hostname === 'www.soulbridgeai.com' || url.hostname === 'soulbridgeai.com') {
+                    navigatingInternally = true;
+                    // Reset flag after a short delay
+                    setTimeout(() => {
+                        navigatingInternally = false;
+                    }, 1000);
+                }
+            }
+        });
         
         function clearSession() {
-            if (!sessionCleared) {
+            // Only clear session if not navigating internally within the app
+            if (!sessionCleared && !navigatingInternally) {
                 sessionCleared = true;
+                console.log('🔒 SECURITY: Clearing session due to external navigation/page close');
                 fetch('/api/clear-session', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     keepalive: true // Ensures request completes even if page is closing
                 }).catch(e => console.log('Session clear request sent'));
+            } else if (navigatingInternally) {
+                console.log('🔄 SECURITY: Keeping session for internal navigation');
             }
         }
         
-        // Clear session on navigation away
+        // Clear session on navigation away (but not for internal navigation)
         window.addEventListener('beforeunload', clearSession);
         window.addEventListener('pagehide', clearSession);
         window.addEventListener('visibilitychange', function() {

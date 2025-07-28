@@ -580,31 +580,8 @@ def clear_session():
     """BANKING SECURITY: Clear session when user navigates away"""
     try:
         user_email = session.get('user_email', 'unknown')
-        
-        # Preserve critical user data before clearing
-        preserved_data = {
-            'user_id': session.get('user_id'),
-            'user_email': session.get('user_email'),
-            'display_name': session.get('display_name'),
-            'profile_image': session.get('profile_image'),
-            'account_created': session.get('account_created'),
-            'user_authenticated': session.get('user_authenticated')
-        }
-        
         logger.info(f"SECURITY: Clearing session for user {user_email} (navigation away detected)")
         session.clear()
-        
-        # Restore preserved data to maintain user state
-        for key, value in preserved_data.items():
-            if value is not None:
-                session[key] = value
-        
-        # Reset security fields
-        session['last_activity'] = datetime.now().isoformat()
-        session['session_version'] = "2025-07-28-banking-security"
-        session.permanent = False
-        
-        logger.info(f"SECURITY: Session cleared but user data preserved for {user_email}")
         return jsonify({"success": True, "message": "Session cleared"})
     except Exception as e:
         logger.error(f"Error clearing session: {e}")
