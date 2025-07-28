@@ -3632,9 +3632,21 @@
         
         // Send message function
         function testSendMessage() {
+            console.log('🔄 testSendMessage() called');
             var messageInput = document.getElementById('messageInput');
+            console.log('📝 Message input element:', messageInput);
+            
+            if (!messageInput) {
+                console.error('❌ Message input element not found');
+                alert('Message input not found!');
+                return;
+            }
+            
             var message = messageInput.value.trim();
+            console.log('💬 Message content:', message);
+            
             if (!message) {
+                console.log('⚠️ Empty message, showing alert');
                 alert('Please type a message first!');
                 return;
             }
@@ -3646,10 +3658,14 @@
             }
             
             var selectedCharacter = localStorage.getItem('selectedCharacter');
+            console.log('👤 Selected character:', selectedCharacter);
+            
             var chatMessages = document.getElementById('chatMessages');
+            console.log('💬 Chat messages container:', chatMessages);
             
             if (!chatMessages) {
-                console.error('Chat messages container not found');
+                console.error('❌ Chat messages container not found');
+                alert('Chat container not found!');
                 return;
             }
             
@@ -3664,18 +3680,26 @@
             showTypingIndicator(selectedCharacter);
             
             // Send to AI backend
-            fetch('https://soulbridgeai.com/api/chat', {
+            console.log('🚀 Sending request to /api/chat');
+            console.log('📦 Request data:', { message: message, character: selectedCharacter });
+            
+            fetch('/api/chat', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                credentials: 'include',
                 body: JSON.stringify({
                     message: message,
                     character: selectedCharacter
                 })
             })
-            .then(response => response.json())
+            .then(response => {
+                console.log('📡 Response received:', response.status);
+                return response.json();
+            })
             .then(data => {
+                console.log('📊 Response data:', data);
                 // Remove typing indicator
                 hideTypingIndicator();
                 
@@ -3692,7 +3716,7 @@
                 chatMessages.scrollTop = chatMessages.scrollHeight;
             })
             .catch(error => {
-                console.error('Error:', error);
+                console.error('❌ Fetch error:', error);
                 
                 // Remove typing indicator on error
                 hideTypingIndicator();
