@@ -893,6 +893,41 @@ def api_companions_select():
         logger.error(f"Companion selection error: {e}")
         return jsonify({"success": False, "error": "Failed to select companion"}), 500
 
+@app.route("/api/companions/trial", methods=["POST"])
+def api_start_companion_trial():
+    """Start a trial for a premium companion"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+            
+        data = request.get_json() or {}
+        companion_id = data.get("companion_id")
+        
+        if not companion_id:
+            return jsonify({"success": False, "error": "Companion ID required"}), 400
+        
+        user_id = session.get('user_id', 'anonymous')
+        user_email = session.get('user_email', session.get('email', 'unknown'))
+        
+        # Set trial companion in session (simplified version without companion service)
+        session['trial_companion'] = companion_id
+        session['trial_expires'] = (datetime.now() + timedelta(hours=24)).isoformat()
+        session['selected_companion'] = companion_id
+        session['user_plan'] = 'trial'  # Temporarily upgrade to trial
+        
+        logger.info(f"Started 24-hour trial for user {user_email} with companion {companion_id}")
+        
+        return jsonify({
+            "success": True,
+            "message": f"Free trial started for {companion_id}! You have 24 hours of premium access.",
+            "trial_expires": session['trial_expires'],
+            "companion_id": companion_id
+        })
+        
+    except Exception as e:
+        logger.error(f"Start companion trial API error: {e}")
+        return jsonify({"success": False, "error": "Failed to start trial"}), 500
+
 # ========================================
 # MAIN APP ROUTES
 # ========================================
