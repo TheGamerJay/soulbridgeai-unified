@@ -2060,17 +2060,54 @@
         // Working button functions that actually do things
         function testSendMessage() { 
             var input = document.getElementById('messageInput');
-            if (input) {
-                var msg = input.value.trim();
-                if (msg) {
-                    alert('Sending message: ' + msg);
-                    input.value = '';
-                } else {
-                    alert('Please type a message first!');
-                }
-            } else {
+            if (!input) {
                 alert('Message input not found!');
+                return;
             }
+            
+            var msg = input.value.trim();
+            if (!msg) {
+                alert('Please type a message first!');
+                return;
+            }
+            
+            // Clear input immediately
+            input.value = '';
+            
+            // Add user message to chat
+            var chatDiv = document.getElementById('chatMessages');
+            if (chatDiv) {
+                chatDiv.innerHTML += '<div style="margin-bottom: 10px; text-align: right;"><strong>You:</strong> ' + msg + '</div>';
+            }
+            
+            // Send to AI backend
+            fetch('/api/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    message: msg,
+                    character: localStorage.getItem('selectedCharacter') || 'Blayzo'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.reply && chatDiv) {
+                    chatDiv.innerHTML += '<div style="margin-bottom: 10px;"><strong>AI:</strong> ' + data.reply + '</div>';
+                    chatDiv.scrollTop = chatDiv.scrollHeight;
+                } else {
+                    if (chatDiv) {
+                        chatDiv.innerHTML += '<div style="margin-bottom: 10px; color: red;"><strong>Error:</strong> No response from AI</div>';
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                if (chatDiv) {
+                    chatDiv.innerHTML += '<div style="margin-bottom: 10px; color: red;"><strong>Error:</strong> Failed to send message</div>';
+                }
+            });
         }
         
         function clearChat() { 
