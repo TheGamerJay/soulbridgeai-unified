@@ -580,8 +580,31 @@ def clear_session():
     """BANKING SECURITY: Clear session when user navigates away"""
     try:
         user_email = session.get('user_email', 'unknown')
+        
+        # Preserve critical user data before clearing
+        preserved_data = {
+            'user_id': session.get('user_id'),
+            'user_email': session.get('user_email'),
+            'display_name': session.get('display_name'),
+            'profile_image': session.get('profile_image'),
+            'account_created': session.get('account_created'),
+            'user_authenticated': session.get('user_authenticated')
+        }
+        
         logger.info(f"SECURITY: Clearing session for user {user_email} (navigation away detected)")
         session.clear()
+        
+        # Restore preserved data to maintain user state
+        for key, value in preserved_data.items():
+            if value is not None:
+                session[key] = value
+        
+        # Reset security fields
+        session['last_activity'] = datetime.now().isoformat()
+        session['session_version'] = "2025-07-28-banking-security"
+        session.permanent = False
+        
+        logger.info(f"SECURITY: Session cleared but user data preserved for {user_email}")
         return jsonify({"success": True, "message": "Session cleared"})
     except Exception as e:
         logger.error(f"Error clearing session: {e}")
@@ -2623,6 +2646,25 @@ def api_users():
                     cursor = conn.cursor()
                     
                     placeholder = "%s" if hasattr(db_instance, 'postgres_url') and db_instance.postgres_url else "?"
+                    
+                    # Ensure profile_image columns exist (migration)
+                    try:
+                        if hasattr(db_instance, 'postgres_url') and db_instance.postgres_url:
+                            # PostgreSQL
+                            cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_image TEXT")
+                            cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_image_data TEXT")
+                        else:
+                            # SQLite - check if columns exist
+                            cursor.execute("PRAGMA table_info(users)")
+                            columns = [col[1] for col in cursor.fetchall()]
+                            if 'profile_image' not in columns:
+                                cursor.execute("ALTER TABLE users ADD COLUMN profile_image TEXT")
+                            if 'profile_image_data' not in columns:
+                                cursor.execute("ALTER TABLE users ADD COLUMN profile_image_data TEXT")
+                        logger.info("✅ Profile image columns ensured in database")
+                    except Exception as migration_error:
+                        logger.warning(f"Migration warning (columns might already exist): {migration_error}")
+                    
                     logger.info(f"🔍 DEBUG: Executing query: SELECT profile_image, profile_image_data FROM users WHERE id = {user_id}")
                     cursor.execute(f"SELECT profile_image, profile_image_data FROM users WHERE id = {placeholder}", (user_id,))
                     result = cursor.fetchone()
@@ -2765,6 +2807,16 @@ def api_users():
                         
                         placeholder = "%s" if hasattr(db_instance, 'postgres_url') and db_instance.postgres_url else "?"
                         
+                        # Ensure profile_image columns exist (migration)
+                        try:
+                            if hasattr(db_instance, 'postgres_url') and db_instance.postgres_url:
+                                # PostgreSQL
+                                cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_image TEXT")
+                                cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_image_data TEXT")
+                            logger.info("✅ Profile image columns ensured during /api/users update")
+                        except Exception as migration_error:
+                            logger.warning(f"Migration warning during /api/users update: {migration_error}")
+                        
                         # Try to update by user_id first
                         if user_id:
                             cursor.execute(f"UPDATE users SET profile_image = {placeholder} WHERE id = {placeholder}", 
@@ -2875,6 +2927,16 @@ def upload_profile_image():
                 
                 placeholder = "%s" if hasattr(db_instance, 'postgres_url') and db_instance.postgres_url else "?"
                 
+                # Ensure profile_image columns exist (migration)
+                try:
+                    if hasattr(db_instance, 'postgres_url') and db_instance.postgres_url:
+                        # PostgreSQL
+                        cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_image TEXT")
+                        cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_image_data TEXT")
+                    logger.info("✅ Profile image columns ensured during upload")
+                except Exception as migration_error:
+                    logger.warning(f"Migration warning during upload: {migration_error}")
+                
                 # Update or insert profile_image in user record
                 cursor.execute(f"""
                     UPDATE users SET profile_image = {placeholder} WHERE id = {placeholder}
@@ -2921,6 +2983,63 @@ def upload_profile_image():
     except Exception as e:
         logger.error(f"Profile image upload error: {e}")
         return jsonify({"success": False, "error": "Failed to upload image"}), 500
+
+@app.route("/debug/profile-image-detailed")
+def debug_profile_image_detailed():
+    """Detailed debug endpoint to check profile image state"""
+    try:
+        user_id = session.get('user_id')
+        user_email = session.get('user_email')
+        
+        debug_info = {
+            "session_user_id": user_id,
+            "session_user_email": user_email,
+            "session_profile_image": session.get('profile_image'),
+            "session_keys": list(session.keys())
+        }
+        
+        # Check database
+        db_instance = get_database()
+        if user_id and db_instance:
+            try:
+                conn = db_instance.get_connection()
+                cursor = conn.cursor()
+                
+                # First ensure columns exist
+                placeholder = "%s" if hasattr(db_instance, 'postgres_url') and db_instance.postgres_url else "?"
+                try:
+                    if hasattr(db_instance, 'postgres_url') and db_instance.postgres_url:
+                        cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_image TEXT")
+                        cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_image_data TEXT")
+                        debug_info["migration_attempted"] = "postgresql"
+                    debug_info["migration_status"] = "success"
+                except Exception as e:
+                    debug_info["migration_status"] = f"failed: {e}"
+                
+                # Check what's in database
+                cursor.execute(f"SELECT profile_image, profile_image_data, profile_picture_url FROM users WHERE id = {placeholder}", (user_id,))
+                result = cursor.fetchone()
+                conn.close()
+                
+                debug_info["database_result"] = result
+                if result:
+                    debug_info["database_profile_image"] = result[0] if len(result) > 0 else None
+                    debug_info["database_profile_image_data"] = result[1] if len(result) > 1 else None
+                    debug_info["database_profile_picture_url"] = result[2] if len(result) > 2 else None
+                
+            except Exception as db_error:
+                debug_info["database_error"] = str(db_error)
+        
+        return jsonify({
+            "success": True,
+            "debug_info": debug_info
+        })
+        
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        })
 
 @app.route("/debug/profile-image")
 def debug_profile_image():

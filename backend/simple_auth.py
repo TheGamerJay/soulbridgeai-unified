@@ -104,25 +104,81 @@ class SimpleAuth:
         session['last_activity'] = datetime.now().isoformat()
         session['session_version'] = "2025-07-28-banking-security"  # BANKING SECURITY: Force version check
         
-        # Try to fetch and store account creation date
+        # Try to fetch and store account creation date and profile image
         try:
             conn = self.db.get_connection()
             cursor = conn.cursor()
             
             placeholder = "%s" if hasattr(self.db, 'postgres_url') and self.db.postgres_url else "?"
-            cursor.execute(f"SELECT created_at FROM users WHERE id = {placeholder}", (user_data['user_id'],))
-            result = cursor.fetchone()
             
-            if result and result[0]:
-                if isinstance(result[0], str):
-                    session['account_created'] = result[0]
+            # First try to get creation date and profile image (check both column names)
+            try:
+                # Ensure profile_image columns exist (migration for PostgreSQL)
+                try:
+                    if hasattr(self.db, 'postgres_url') and self.db.postgres_url:
+                        # PostgreSQL
+                        cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_image TEXT")
+                        cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_image_data TEXT")
+                    logger.info("✅ Profile image columns ensured during session creation")
+                except Exception as migration_error:
+                    logger.warning(f"Migration warning during session creation: {migration_error}")
+                
+                # Try new profile_image column first
+                cursor.execute(f"SELECT created_at, profile_image, profile_picture_url FROM users WHERE id = {placeholder}", (user_data['user_id'],))
+                result = cursor.fetchone()
+                
+                if result and result[0]:
+                    if isinstance(result[0], str):
+                        session['account_created'] = result[0]
+                    else:
+                        session['account_created'] = result[0].isoformat()
+                    logger.info(f"Account creation date stored: {session['account_created']}")
+                
+                # Load profile image from database (check both columns)
+                profile_img = None
+                if result and len(result) > 1:
+                    # Try profile_image column first (new)
+                    if result[1]:
+                        profile_img = result[1]
+                        logger.info(f"Profile image loaded from profile_image column: {result[1]}")
+                    # Fallback to profile_picture_url column (legacy)
+                    elif len(result) > 2 and result[2]:
+                        profile_img = result[2]
+                        logger.info(f"Profile image loaded from profile_picture_url column: {result[2]}")
+                
+                if profile_img:
+                    session['profile_image'] = profile_img
                 else:
-                    session['account_created'] = result[0].isoformat()
-                logger.info(f"Account creation date stored: {session['account_created']}")
+                    # Set default profile image if none exists
+                    session['profile_image'] = '/static/logos/Sapphire.png'
+                    logger.info("No profile image found, using default Sapphire.png")
+                    
+            except Exception as profile_error:
+                # If profile_image column doesn't exist, just get creation date
+                logger.warning(f"Profile image column might not exist: {profile_error}")
+                try:
+                    cursor.execute(f"SELECT created_at FROM users WHERE id = {placeholder}", (user_data['user_id'],))
+                    result = cursor.fetchone()
+                    
+                    if result and result[0]:
+                        if isinstance(result[0], str):
+                            session['account_created'] = result[0]
+                        else:
+                            session['account_created'] = result[0].isoformat()
+                        logger.info(f"Account creation date stored: {session['account_created']}")
+                        
+                except Exception as date_error:
+                    logger.warning(f"Could not fetch creation date: {date_error}")
+                
+                # Set default profile image
+                session['profile_image'] = '/static/logos/Sapphire.png'
+                logger.info("Set default profile image due to database schema issue")
             
             conn.close()
         except Exception as e:
-            logger.warning(f"Could not fetch creation date during login: {e}")
+            logger.warning(f"Could not fetch user data during login: {e}")
+            # Set default profile image on error
+            session['profile_image'] = '/static/logos/Sapphire.png'
         
         logger.info(f"Secure session created for user: {user_data['email']}")
     
