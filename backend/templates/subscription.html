@@ -410,7 +410,7 @@
       
       <div class="add-on-card" onclick="selectAddOn('complete-bundle')" style="cursor: pointer; transition: all 0.3s ease;" onmouseover="this.style.background='rgba(16, 185, 129, 0.1)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(34, 211, 238, 0.1)'; this.style.transform='translateY(0)'">
         <h4>📦 Complete Bundle</h4>
-        <p style="margin: 10px 0; color: #94a3b8;">All add-ons included (Save $4!)</p>
+        <p style="margin: 10px 0; color: #94a3b8;">All add-ons included - Individual total: $20.95 (Save $4!)</p>
         <div style="font-weight: 600; color: #10b981;">$16.99/month</div>
         <div style="font-size: 0.8rem; color: #10b981; margin-top: 5px;">Includes AI Images!</div>
       </div>
@@ -608,7 +608,7 @@ async function selectAddOn(addOnType) {
     'emotional-meditations': 'Emotional Meditations ($3.99/month)', 
     'color-customization': 'Color Customization ($1.99/month)',
     'ai-image-generation': 'AI Image Generation ($6.99/month)',
-    'complete-bundle': 'Complete Add-On Bundle ($16.99/month - Save $4!)'
+    'complete-bundle': 'Complete Add-On Bundle ($16.99/month - Individual total: $20.95, Save $4!)'
   };
   
   const confirm = window.confirm(`Purchase ${addonNames[addOnType]}?\n\nThis will be a monthly subscription that you can cancel anytime.`);
