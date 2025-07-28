@@ -2335,39 +2335,88 @@ def api_users():
                 logger.error(f"Traceback: {traceback.format_exc()}")
             
             # Get profile image from database if available, fallback to session, then default
-            profile_image = '/static/logos/Sapphire.png'  # Default
+            profile_image = None  # Start with None to track if we actually find a saved image
             try:
                 if user_id and services.get("database"):
                     conn = services["database"].get_connection()
                     cursor = conn.cursor()
                     
                     placeholder = "%s" if hasattr(services["database"], 'postgres_url') and services["database"].postgres_url else "?"
-                    cursor.execute(f"SELECT profile_image FROM users WHERE id = {placeholder}", (user_id,))
+                    cursor.execute(f"SELECT profile_image, profile_image_data FROM users WHERE id = {placeholder}", (user_id,))
                     result = cursor.fetchone()
                     
-                    if result and result[0]:
-                        profile_image = result[0]
-                        logger.info(f"Loaded profile image from database: {profile_image}")
-                    else:
-                        # Fallback to session
-                        profile_image = session.get('profile_image', '/static/logos/Sapphire.png')
-                        logger.info(f"Using profile image from session: {profile_image}")
+                    if result and (result[0] or result[1]):
+                        # Check if we have a URL that isn't the default
+                        if result[0] and result[0] != '/static/logos/Sapphire.png':
+                            profile_image = result[0]
+                            logger.info(f"Loaded profile image from database: {profile_image}")
+                        # If no URL but we have base64 data, use that as backup
+                        elif result[1]:
+                            # For now, keep the URL if we have base64 backup
+                            profile_image = result[0] if result[0] else '/static/logos/default-profile.png'
+                            logger.info(f"Using profile image with base64 backup: {profile_image}")
+                    
+                    # If no profile image found in database, check session but don't default to Sapphire
+                    if not profile_image:
+                        session_image = session.get('profile_image')
+                        if session_image and session_image != '/static/logos/Sapphire.png':
+                            profile_image = session_image
+                            logger.info(f"Using profile image from session: {profile_image}")
                     
                     conn.close()
                 else:
-                    # No database or user_id, use session fallback
-                    profile_image = session.get('profile_image', '/static/logos/Sapphire.png')
-                    logger.info(f"Using profile image from session (no DB): {profile_image}")
+                    # No database or user_id, check session but don't default to Sapphire
+                    session_image = session.get('profile_image')
+                    if session_image and session_image != '/static/logos/Sapphire.png':
+                        profile_image = session_image
+                        logger.info(f"Using profile image from session (no DB): {profile_image}")
                     
             except Exception as e:
                 logger.warning(f"Failed to load profile image from database: {e}")
-                # Fallback to session
-                profile_image = session.get('profile_image', '/static/logos/Sapphire.png')
+                # Check session but don't default to Sapphire
+                session_image = session.get('profile_image')
+                if session_image and session_image != '/static/logos/Sapphire.png':
+                    profile_image = session_image
+            
+            # Only use Sapphire as absolute last resort if no profile image was ever set
+            if not profile_image:
+                profile_image = '/static/logos/Sapphire.png'
+                logger.info("No custom profile image found, using default Sapphire")
+            
+            # Get display name from database if available, fallback to session, then default
+            display_name = None
+            try:
+                if user_id and services.get("database"):
+                    conn = services["database"].get_connection()
+                    cursor = conn.cursor()
+                    
+                    placeholder = "%s" if hasattr(services["database"], 'postgres_url') and services["database"].postgres_url else "?"
+                    cursor.execute(f"SELECT display_name FROM users WHERE id = {placeholder}", (user_id,))
+                    result = cursor.fetchone()
+                    
+                    if result and result[0]:
+                        display_name = result[0]
+                        logger.info(f"Loaded display name from database: {display_name}")
+                    
+                    conn.close()
+            except Exception as e:
+                logger.warning(f"Failed to load display name from database: {e}")
+            
+            # If no display name from database, check session
+            if not display_name:
+                display_name = session.get('display_name') or session.get('user_name')
+                if display_name:
+                    logger.info(f"Using display name from session: {display_name}")
+            
+            # Only use default if no display name was ever set
+            if not display_name:
+                display_name = 'SoulBridge User'
+                logger.info("No custom display name found, using default")
             
             user_data = {
                 "uid": user_id or ('user_' + str(hash(user_email))[:8]),
                 "email": user_email,
-                "displayName": session.get('display_name') or session.get('user_name', 'SoulBridge User'),
+                "displayName": display_name,
                 "plan": session.get('user_plan', 'foundation'),
                 "addons": session.get('user_addons', []),
                 "profileImage": profile_image,
