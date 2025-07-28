@@ -1073,7 +1073,7 @@ def api_companions_select():
             "success": True,
             "message": f"Successfully selected companion",
             "companion_id": companion_id,
-            "redirect_url": "/"
+            "redirect_url": "/chat"
         })
         
     except Exception as e:
