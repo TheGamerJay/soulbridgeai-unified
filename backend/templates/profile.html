@@ -548,9 +548,6 @@
                     <a href="/referrals" class="profile-btn secondary" style="text-decoration: none; display: inline-block; text-align: center; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none;">
                         💰 Referrals & Rewards
                     </a>
-                    <a href="/subscription" class="profile-btn secondary" style="text-decoration: none; display: inline-block; text-align: center;">
-                        ⚙️ Manage Subscription
-                    </a>
                 </div>
                 
                 <div id="subscriptionDetails" style="margin-bottom: 15px;">
@@ -884,14 +881,16 @@
 
                 // Update upgrade button
                 const upgradeBtn = document.getElementById('upgradeBtn');
-                if (status === 'free') {
-                    upgradeBtn.textContent = '🚀 Upgrade to Plus';
-                    upgradeBtn.style.display = 'block';
-                } else if (status === 'plus') {
-                    upgradeBtn.textContent = '🌟 Upgrade to Galaxy';
-                    upgradeBtn.style.display = 'block';
-                } else {
-                    upgradeBtn.style.display = 'none';
+                if (upgradeBtn) {
+                    if (status === 'free') {
+                        upgradeBtn.textContent = '🚀 Upgrade to Plus';
+                        upgradeBtn.style.display = 'block';
+                    } else if (status === 'plus') {
+                        upgradeBtn.textContent = '🌟 Upgrade to Galaxy';
+                        upgradeBtn.style.display = 'block';
+                    } else {
+                        upgradeBtn.style.display = 'none';
+                    }
                 }
             }
 
@@ -1241,7 +1240,10 @@
                     
                     const result = await response.json();
                     if (result.success) {
-                        document.getElementById('userProfileImage').src = '/static/logos/Sapphire.png';
+                        const profileImg = document.getElementById('userProfileImage');
+                        if (profileImg) {
+                            profileImg.src = '/static/logos/Sapphire.png';
+                        }
                     }
                 } catch (error) {
                     console.error('Remove image error:', error);
@@ -1250,7 +1252,12 @@
         };
 
         window.updateDisplayName = async () => {
-            const displayName = document.getElementById('displayNameInput').value.trim();
+            const displayNameInput = document.getElementById('displayNameInput');
+            if (!displayNameInput) {
+                alert('Display name input field not found.');
+                return;
+            }
+            const displayName = displayNameInput.value.trim();
             if (!displayName) {
                 alert('Please enter a display name.');
                 return;
@@ -1529,15 +1536,25 @@
             `;
             
             document.body.appendChild(modal);
-            setTimeout(() => document.getElementById('sapphireHelpQuestion').focus(), 100);
+            setTimeout(() => {
+                const questionInput = document.getElementById('sapphireHelpQuestion');
+                if (questionInput) {
+                    questionInput.focus();
+                }
+            }, 100);
         }
         
         function askSapphireHelp() {
-            const question = document.getElementById('sapphireHelpQuestion').value.trim();
+            const questionInput = document.getElementById('sapphireHelpQuestion');
+            if (!questionInput) return;
+            
+            const question = questionInput.value.trim();
             if (!question) return;
             
             const responseDiv = document.getElementById('sapphireHelpResponse');
             const answerP = document.getElementById('sapphireHelpAnswer');
+            if (!responseDiv || !answerP) return;
+            
             responseDiv.style.display = 'block';
             
             // Use the same enhanced response system
@@ -1545,7 +1562,7 @@
             let answer = getSapphireResponse(question, currentPage);
             
             answerP.textContent = answer;
-            document.getElementById('sapphireHelpQuestion').value = '';
+            questionInput.value = '';
         }
         
         function getSapphireResponse(question, currentPage) {
