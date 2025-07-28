@@ -4047,13 +4047,14 @@ def api_referrals_dashboard():
         
         # Calculate next milestone
         successful = referral_stats["successful_referrals"]
-        next_milestone_count = 2 if successful < 2 else (4 if successful < 4 else 6)
+        next_milestone_count = 2 if successful < 2 else (4 if successful < 4 else (6 if successful < 6 else 8))
         remaining = max(0, next_milestone_count - successful)
         
         milestone_rewards = {
             2: "Blayzike - Exclusive Companion",
             4: "Blazelian - Premium Companion", 
-            6: "Blayzo Special Skin"
+            6: "Blayzo Special Skin",
+            8: "Claude - The Community Code Architect"
         }
         
         next_reward = milestone_rewards.get(next_milestone_count, "Max rewards reached!")
@@ -4077,7 +4078,8 @@ def api_referrals_dashboard():
             "all_rewards": {
                 "2": {"type": "exclusive_companion", "description": "Blayzike - Exclusive Companion"},
                 "4": {"type": "exclusive_companion", "description": "Blazelian - Premium Companion"}, 
-                "6": {"type": "premium_skin", "description": "Blayzo Special Skin"}
+                "6": {"type": "premium_skin", "description": "Blayzo Special Skin"},
+                "8": {"type": "exclusive_companion", "description": "Claude - The Community Code Architect"}
             },
             "next_milestone": {
                 "count": next_milestone_count,
