@@ -2336,14 +2336,17 @@ def api_users():
             
             # Get profile image from database if available, fallback to session, then default
             profile_image = None  # Start with None to track if we actually find a saved image
+            logger.info(f"🔍 DEBUG: Starting profile image lookup for user_id: {user_id}")
             try:
                 if user_id and services.get("database"):
                     conn = services["database"].get_connection()
                     cursor = conn.cursor()
                     
                     placeholder = "%s" if hasattr(services["database"], 'postgres_url') and services["database"].postgres_url else "?"
+                    logger.info(f"🔍 DEBUG: Executing query: SELECT profile_image, profile_image_data FROM users WHERE id = {user_id}")
                     cursor.execute(f"SELECT profile_image, profile_image_data FROM users WHERE id = {placeholder}", (user_id,))
                     result = cursor.fetchone()
+                    logger.info(f"🔍 DEBUG: Database query result: {result}")
                     
                     if result and (result[0] or result[1]):
                         # Check if we have a URL that isn't the default
@@ -2385,18 +2388,23 @@ def api_users():
             
             # Get display name from database if available, fallback to session, then default
             display_name = None
+            logger.info(f"🔍 DEBUG: Starting display name lookup for user_id: {user_id}")
             try:
                 if user_id and services.get("database"):
                     conn = services["database"].get_connection()
                     cursor = conn.cursor()
                     
                     placeholder = "%s" if hasattr(services["database"], 'postgres_url') and services["database"].postgres_url else "?"
+                    logger.info(f"🔍 DEBUG: Executing query: SELECT display_name FROM users WHERE id = {user_id}")
                     cursor.execute(f"SELECT display_name FROM users WHERE id = {placeholder}", (user_id,))
                     result = cursor.fetchone()
+                    logger.info(f"🔍 DEBUG: Display name query result: {result}")
                     
                     if result and result[0]:
                         display_name = result[0]
-                        logger.info(f"Loaded display name from database: {display_name}")
+                        logger.info(f"✅ Loaded display name from database: {display_name}")
+                    else:
+                        logger.info(f"⚠️ No display name found in database")
                     
                     conn.close()
             except Exception as e:
