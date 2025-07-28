@@ -2289,43 +2289,46 @@ def api_users():
                 logger.info(f"Database service available: {bool(services.get('database'))}")
                 
                 # Only query database if we don't have date from session and it's not the fallback
-                if user_id and services.get("database") and join_date == '2024-01-01':
-                    conn = services["database"].get_connection()
-                    cursor = conn.cursor()
-                    
-                    placeholder = "%s" if hasattr(services["database"], 'postgres_url') and services["database"].postgres_url else "?"
-                    logger.info(f"Using placeholder: {placeholder}")
-                    
-                    query = f"SELECT created_at FROM users WHERE id = {placeholder}"
-                    logger.info(f"Executing query: {query} with user_id: {user_id}")
-                    
-                    cursor.execute(query, (user_id,))
-                    result = cursor.fetchone()
-                    
-                    logger.info(f"Query result: {result}")
-                    
-                    if result and result[0]:
-                        # Convert database timestamp to readable date
-                        raw_date = result[0]
-                        logger.info(f"Raw date from DB: {raw_date}, type: {type(raw_date)}")
+                if user_id and join_date == '2024-01-01':
+                    # Ensure database is initialized before checking
+                    db_instance = get_database()
+                    if db_instance:
+                        conn = db_instance.get_connection()
+                        cursor = conn.cursor()
                         
-                        if isinstance(raw_date, str):
-                            # Parse string timestamp
-                            try:
-                                created_dt = datetime.fromisoformat(raw_date.replace('Z', '+00:00'))
-                                join_date = created_dt.strftime('%Y-%m-%d')
-                                logger.info(f"Parsed string date to: {join_date}")
-                            except Exception as parse_error:
-                                logger.warning(f"String date parse error: {parse_error}")
-                                join_date = raw_date[:10] if len(raw_date) >= 10 else '2024-01-01'
+                        placeholder = "%s" if hasattr(db_instance, 'postgres_url') and db_instance.postgres_url else "?"
+                        logger.info(f"Using placeholder: {placeholder}")
+                        
+                        query = f"SELECT created_at FROM users WHERE id = {placeholder}"
+                        logger.info(f"Executing query: {query} with user_id: {user_id}")
+                        
+                        cursor.execute(query, (user_id,))
+                        result = cursor.fetchone()
+                        
+                        logger.info(f"Query result: {result}")
+                        
+                        if result and result[0]:
+                            # Convert database timestamp to readable date
+                            raw_date = result[0]
+                            logger.info(f"Raw date from DB: {raw_date}, type: {type(raw_date)}")
+                            
+                            if isinstance(raw_date, str):
+                                # Parse string timestamp
+                                try:
+                                    created_dt = datetime.fromisoformat(raw_date.replace('Z', '+00:00'))
+                                    join_date = created_dt.strftime('%Y-%m-%d')
+                                    logger.info(f"Parsed string date to: {join_date}")
+                                except Exception as parse_error:
+                                    logger.warning(f"String date parse error: {parse_error}")
+                                    join_date = raw_date[:10] if len(raw_date) >= 10 else '2024-01-01'
+                            else:
+                                # Handle datetime object
+                                join_date = raw_date.strftime('%Y-%m-%d')
+                                logger.info(f"Formatted datetime to: {join_date}")
                         else:
-                            # Handle datetime object
-                            join_date = raw_date.strftime('%Y-%m-%d')
-                            logger.info(f"Formatted datetime to: {join_date}")
-                    else:
-                        logger.warning(f"No result found for user_id {user_id}")
-                    
-                    conn.close()
+                            logger.warning(f"No result found for user_id {user_id}")
+                        
+                        conn.close()
                 else:
                     logger.warning(f"Missing requirements: user_id={user_id}, database={bool(services.get('database'))}")
             except Exception as e:
@@ -2338,11 +2341,13 @@ def api_users():
             profile_image = None  # Start with None to track if we actually find a saved image
             logger.info(f"🔍 DEBUG: Starting profile image lookup for user_id: {user_id}")
             try:
-                if user_id and services.get("database"):
-                    conn = services["database"].get_connection()
+                # Ensure database is initialized before checking
+                db_instance = get_database()
+                if user_id and db_instance:
+                    conn = db_instance.get_connection()
                     cursor = conn.cursor()
                     
-                    placeholder = "%s" if hasattr(services["database"], 'postgres_url') and services["database"].postgres_url else "?"
+                    placeholder = "%s" if hasattr(db_instance, 'postgres_url') and db_instance.postgres_url else "?"
                     logger.info(f"🔍 DEBUG: Executing query: SELECT profile_image, profile_image_data FROM users WHERE id = {user_id}")
                     cursor.execute(f"SELECT profile_image, profile_image_data FROM users WHERE id = {placeholder}", (user_id,))
                     result = cursor.fetchone()
@@ -2390,11 +2395,13 @@ def api_users():
             display_name = None
             logger.info(f"🔍 DEBUG: Starting display name lookup for user_id: {user_id}")
             try:
-                if user_id and services.get("database"):
-                    conn = services["database"].get_connection()
+                # Ensure database is initialized before checking
+                db_instance = get_database()
+                if user_id and db_instance:
+                    conn = db_instance.get_connection()
                     cursor = conn.cursor()
                     
-                    placeholder = "%s" if hasattr(services["database"], 'postgres_url') and services["database"].postgres_url else "?"
+                    placeholder = "%s" if hasattr(db_instance, 'postgres_url') and db_instance.postgres_url else "?"
                     logger.info(f"🔍 DEBUG: Executing query: SELECT display_name FROM users WHERE id = {user_id}")
                     cursor.execute(f"SELECT display_name FROM users WHERE id = {placeholder}", (user_id,))
                     result = cursor.fetchone()
@@ -2449,12 +2456,14 @@ def api_users():
                 
                 # Also save display name to database
                 user_id = session.get('user_id')
-                if user_id and services.get("database"):
+                # Ensure database is initialized before checking
+                db_instance = get_database()
+                if user_id and db_instance:
                     try:
-                        conn = services["database"].get_connection()
+                        conn = db_instance.get_connection()
                         cursor = conn.cursor()
                         
-                        placeholder = "%s" if hasattr(services["database"], 'postgres_url') and services["database"].postgres_url else "?"
+                        placeholder = "%s" if hasattr(db_instance, 'postgres_url') and db_instance.postgres_url else "?"
                         cursor.execute(f"UPDATE users SET display_name = {placeholder} WHERE id = {placeholder}", 
                                      (data['displayName'], user_id))
                         conn.commit()
@@ -2468,12 +2477,14 @@ def api_users():
                 
                 # Also save to database
                 user_id = session.get('user_id')
-                if user_id and services.get("database"):
+                # Ensure database is initialized before checking
+                db_instance = get_database()
+                if user_id and db_instance:
                     try:
-                        conn = services["database"].get_connection()
+                        conn = db_instance.get_connection()
                         cursor = conn.cursor()
                         
-                        placeholder = "%s" if hasattr(services["database"], 'postgres_url') and services["database"].postgres_url else "?"
+                        placeholder = "%s" if hasattr(db_instance, 'postgres_url') and db_instance.postgres_url else "?"
                         cursor.execute(f"UPDATE users SET profile_image = {placeholder} WHERE id = {placeholder}", 
                                      (data['profileImage'], user_id))
                         conn.commit()
@@ -2558,12 +2569,14 @@ def upload_profile_image():
         
         # Also save to database for persistence
         user_id = session.get('user_id')
-        if user_id and services.get("database"):
+        # Ensure database is initialized before checking
+        db_instance = get_database()
+        if user_id and db_instance:
             try:
-                conn = services["database"].get_connection()
+                conn = db_instance.get_connection()
                 cursor = conn.cursor()
                 
-                placeholder = "%s" if hasattr(services["database"], 'postgres_url') and services["database"].postgres_url else "?"
+                placeholder = "%s" if hasattr(db_instance, 'postgres_url') and db_instance.postgres_url else "?"
                 
                 # Update or insert profile_image in user record
                 cursor.execute(f"""
@@ -2622,7 +2635,9 @@ def debug_profile_image():
         user_id = session.get('user_id')
         user_email = session.get('user_email', session.get('email'))
         
-        if not services.get("database"):
+        # Ensure database is initialized before checking
+        db_instance = get_database()
+        if not db_instance:
             return jsonify({
                 "error": "No database connection",
                 "user_id": user_id,
@@ -2630,12 +2645,12 @@ def debug_profile_image():
                 "session_profile_image": session.get('profile_image')
             })
         
-        conn = services["database"].get_connection()
+        conn = db_instance.get_connection()
         cursor = conn.cursor()
         
         # Check if profile_image column exists
         try:
-            placeholder = "%s" if hasattr(services["database"], 'postgres_url') and services["database"].postgres_url else "?"
+            placeholder = "%s" if hasattr(db_instance, 'postgres_url') and db_instance.postgres_url else "?"
             cursor.execute(f"SELECT profile_image FROM users WHERE id = {placeholder}", (user_id,))
             result = cursor.fetchone()
             
@@ -2670,13 +2685,15 @@ def serve_profile_image(image_id):
             return "Authentication required", 401
         
         user_id = session.get('user_id')
-        if not user_id or not services.get("database"):
+        # Ensure database is initialized before checking
+        db_instance = get_database()
+        if not user_id or not db_instance:
             return "No access", 403
             
-        conn = services["database"].get_connection()
+        conn = db_instance.get_connection()
         cursor = conn.cursor()
         
-        placeholder = "%s" if hasattr(services["database"], 'postgres_url') and services["database"].postgres_url else "?"
+        placeholder = "%s" if hasattr(db_instance, 'postgres_url') and db_instance.postgres_url else "?"
         cursor.execute(f"SELECT profile_image_data FROM users WHERE id = {placeholder}", (user_id,))
         result = cursor.fetchone()
         
