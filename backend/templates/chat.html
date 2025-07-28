@@ -2074,10 +2074,10 @@
             // Clear input immediately
             input.value = '';
             
-            // Add user message to chat
+            // Add user message to chat with better styling
             var chatDiv = document.getElementById('chatMessages');
             if (chatDiv) {
-                chatDiv.innerHTML += '<div style="margin-bottom: 10px; text-align: right;"><strong>You:</strong> ' + msg + '</div>';
+                chatDiv.innerHTML += '<div style="margin-bottom: 15px; padding: 10px; background: rgba(34, 211, 238, 0.1); border-radius: 10px; text-align: right; border-left: 4px solid #22d3ee;"><strong style="color: #22d3ee;">You:</strong> ' + msg + '</div>';
             }
             
             // Send to AI backend
@@ -2094,18 +2094,19 @@
             .then(response => response.json())
             .then(data => {
                 if (data.reply && chatDiv) {
-                    chatDiv.innerHTML += '<div style="margin-bottom: 10px;"><strong>AI:</strong> ' + data.reply + '</div>';
+                    var characterName = localStorage.getItem('selectedCharacter') || 'AI';
+                    chatDiv.innerHTML += '<div style="margin-bottom: 15px; padding: 10px; background: rgba(139, 92, 246, 0.1); border-radius: 10px; text-align: left; border-right: 4px solid #8b5cf6;"><strong style="color: #8b5cf6;">' + characterName + ':</strong> ' + data.reply + '</div>';
                     chatDiv.scrollTop = chatDiv.scrollHeight;
                 } else {
                     if (chatDiv) {
-                        chatDiv.innerHTML += '<div style="margin-bottom: 10px; color: red;"><strong>Error:</strong> No response from AI</div>';
+                        chatDiv.innerHTML += '<div style="margin-bottom: 15px; padding: 10px; background: rgba(239, 68, 68, 0.1); border-radius: 10px; border-left: 4px solid #ef4444;"><strong style="color: #ef4444;">Error:</strong> No response from AI. Response data: ' + JSON.stringify(data) + '</div>';
                     }
                 }
             })
             .catch(error => {
-                console.error('Error:', error);
+                console.error('Fetch Error:', error);
                 if (chatDiv) {
-                    chatDiv.innerHTML += '<div style="margin-bottom: 10px; color: red;"><strong>Error:</strong> Failed to send message</div>';
+                    chatDiv.innerHTML += '<div style="margin-bottom: 15px; padding: 10px; background: rgba(239, 68, 68, 0.1); border-radius: 10px; border-left: 4px solid #ef4444;"><strong style="color: #ef4444;">Network Error:</strong> Failed to send message - ' + error.message + '</div>';
                 }
             });
         }
