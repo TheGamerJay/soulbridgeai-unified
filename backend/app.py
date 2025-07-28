@@ -2165,6 +2165,8 @@ def select_plan():
         plan_type = data.get("plan_type", "foundation")
         billing = data.get("billing", "monthly")
         
+        logger.info(f"Select plan request: plan_type={plan_type}, billing={billing}, data={data}")
+        
         if plan_type not in VALID_PLANS:
             return jsonify({"success": False, "error": "Invalid plan type"}), 400
         
@@ -2207,6 +2209,8 @@ def payment_page():
         
         plan = request.args.get("plan", "premium")
         billing = request.args.get("billing", "monthly")
+        
+        logger.info(f"Payment page request: plan={plan}, billing={billing}, URL args={dict(request.args)}")
         
         if plan not in VALID_PLANS or plan == "foundation":
             return redirect("/subscription")
