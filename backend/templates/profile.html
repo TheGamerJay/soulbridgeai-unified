@@ -412,7 +412,7 @@
                 <!-- Profile Image Section -->
                 <div style="text-align: center; margin-bottom: 20px; padding: 30px 20px;">
                     <div style="margin-bottom: 20px;">
-                        <img id="userProfileImage" src="/static/logos/Sapphire.png" alt="Profile Picture" 
+                        <img id="userProfileImage" src="" alt="Profile Picture" 
                              style="max-width: 280px; max-height: 280px; width: auto; height: auto;
                                     box-shadow: 0 8px 30px rgba(34, 211, 238, 0.5); display: block; margin: 0 auto;
                                     border-radius: 12px;"
@@ -717,19 +717,21 @@
                     
                     this.showError(`Failed to load profile data: ${error.message}`);
                     
-                    // Try to provide fallback data for display purposes
-                    console.log('🔄 Using fallback data for display');
-                    this.userData = {
-                        uid: 'user_fallback',
-                        email: 'user@soulbridgeai.com',
-                        displayName: 'SoulBridge User',
-                        plan: 'foundation',
-                        addons: [],
-                        profileImage: '/static/logos/Sapphire.png',
-                        joinDate: '2024-01-01',
-                        isActive: true
-                    };
-                    this.updateProfileDisplay();
+                    // Only provide minimal fallback data if absolutely necessary
+                    console.log('🔄 API failed, trying to preserve any existing data');
+                    if (!this.userData) {
+                        this.userData = {
+                            uid: 'user_fallback',
+                            email: 'user@soulbridgeai.com',
+                            displayName: '', // Don't default to anything
+                            plan: 'foundation',
+                            addons: [],
+                            profileImage: '', // Don't default to Sapphire
+                            joinDate: '2024-01-01',
+                            isActive: true
+                        };
+                    }
+                    // Don't call updateProfileDisplay() here to avoid overwriting any existing data
                 }
             }
 
@@ -776,13 +778,15 @@
                 const profileImage = document.getElementById('userProfileImage');
                 console.log('🖼️ Setting profile image. Element found:', !!profileImage);
                 console.log('🖼️ Profile image URL from userData:', this.userData.profileImage);
-                if (profileImage && this.userData.profileImage) {
-                    console.log('✅ Setting profile image src to:', this.userData.profileImage);
-                    profileImage.src = this.userData.profileImage;
-                    
-                    // No image adjustments needed - simple rectangular display
-                } else {
-                    console.log('⚠️ Profile image not set. Element:', !!profileImage, 'URL:', this.userData.profileImage);
+                if (profileImage) {
+                    if (this.userData.profileImage && this.userData.profileImage.trim() !== '') {
+                        console.log('✅ Setting profile image src to:', this.userData.profileImage);
+                        profileImage.src = this.userData.profileImage;
+                    } else {
+                        // Only use Sapphire as fallback if no custom image exists
+                        console.log('⚠️ No custom profile image, using Sapphire fallback');
+                        profileImage.src = '/static/logos/Sapphire.png';
+                    }
                 }
                 
                 const displayNameInput = document.getElementById('displayNameInput');

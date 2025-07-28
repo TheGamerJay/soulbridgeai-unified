@@ -2438,6 +2438,22 @@ def api_users():
             if 'displayName' in data:
                 session['display_name'] = data['displayName']
                 session['user_name'] = data['displayName']
+                
+                # Also save display name to database
+                user_id = session.get('user_id')
+                if user_id and services.get("database"):
+                    try:
+                        conn = services["database"].get_connection()
+                        cursor = conn.cursor()
+                        
+                        placeholder = "%s" if hasattr(services["database"], 'postgres_url') and services["database"].postgres_url else "?"
+                        cursor.execute(f"UPDATE users SET display_name = {placeholder} WHERE id = {placeholder}", 
+                                     (data['displayName'], user_id))
+                        conn.commit()
+                        conn.close()
+                        logger.info(f"Display name updated in database via API: {data['displayName']}")
+                    except Exception as e:
+                        logger.error(f"Failed to update display name in database via API: {e}")
             
             if 'profileImage' in data:
                 session['profile_image'] = data['profileImage']
