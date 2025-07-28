@@ -2205,20 +2205,31 @@ def payment_page():
             return redirect("/login")
         
         plan = request.args.get("plan", "premium")
+        billing = request.args.get("billing", "monthly")
+        
         if plan not in VALID_PLANS or plan == "foundation":
             return redirect("/subscription")
             
-        plan_names = {"premium": "Growth", "enterprise": "Transformation"}
+        plan_names = {"premium": "Growth", "enterprise": "Max"}
         plan_display = plan_names.get(plan, plan.title())
         
-        # Prices in cents
+        # Prices in cents - Updated for accurate yearly pricing
         plan_prices = {
-            "premium": 1299,  # $12.99
-            "enterprise": 1999  # $19.99
+            "monthly": {
+                "premium": 1299,  # $12.99/month
+                "enterprise": 1999  # $19.99/month
+            },
+            "yearly": {
+                "premium": 11700,  # $117/year (25% savings from $155.88)
+                "enterprise": 18000  # $180/year (25% savings from $239.88)
+            }
         }
         
-        price_cents = plan_prices.get(plan, 1299)
-        price_display = f"${price_cents / 100:.2f}"
+        price_cents = plan_prices[billing].get(plan, 1299)
+        if billing == "yearly":
+            price_display = f"${price_cents / 100:.0f}/year"
+        else:
+            price_display = f"${price_cents / 100:.2f}/month"
         
         return render_template("payment.html", 
                              plan=plan,
@@ -2240,8 +2251,13 @@ def create_checkout_session():
             return jsonify({"success": False, "error": "Invalid request data"}), 400
             
         plan_type = data.get("plan_type")
+        billing = data.get("billing", "monthly")
+        
         if plan_type not in ["premium", "enterprise"]:
             return jsonify({"success": False, "error": "Invalid plan type"}), 400
+        
+        if billing not in ["monthly", "yearly"]:
+            return jsonify({"success": False, "error": "Invalid billing period"}), 400
         
         # Check if Stripe is configured
         stripe_secret_key = os.environ.get("STRIPE_SECRET_KEY")
@@ -2259,11 +2275,20 @@ def create_checkout_session():
         stripe.api_key = stripe_secret_key
         
         # Plan details
-        plan_names = {"premium": "Growth Plan", "enterprise": "Transformation Plan"}
-        plan_prices = {"premium": 1299, "enterprise": 1999}  # Prices in cents
+        plan_names = {"premium": "Growth Plan", "enterprise": "Max Plan"}
+        plan_prices = {
+            "monthly": {
+                "premium": 1299,  # $12.99/month
+                "enterprise": 1999  # $19.99/month
+            },
+            "yearly": {
+                "premium": 11700,  # $117/year (25% savings)
+                "enterprise": 18000  # $180/year (25% savings)
+            }
+        }
         
         plan_name = plan_names[plan_type]
-        price_cents = plan_prices[plan_type]
+        price_cents = plan_prices[billing][plan_type]
         
         user_email = session.get("user_email")
         
@@ -2277,11 +2302,11 @@ def create_checkout_session():
                         'currency': 'usd',
                         'product_data': {
                             'name': f'SoulBridge AI - {plan_name}',
-                            'description': f'Monthly subscription to {plan_name}',
+                            'description': f'{billing.title()} subscription to {plan_name}',
                         },
                         'unit_amount': price_cents,
                         'recurring': {
-                            'interval': 'month'
+                            'interval': 'year' if billing == 'yearly' else 'month'
                         }
                     },
                     'quantity': 1,
