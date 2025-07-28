@@ -2163,6 +2163,7 @@ def select_plan():
             return jsonify({"success": False, "error": "Invalid request data"}), 400
             
         plan_type = data.get("plan_type", "foundation")
+        billing = data.get("billing", "monthly")
         
         if plan_type not in VALID_PLANS:
             return jsonify({"success": False, "error": "Invalid plan type"}), 400
@@ -2185,7 +2186,7 @@ def select_plan():
             plan_display = plan_names.get(plan_type, plan_type.title())
             message = f"Great choice! {plan_display} plan selected. Complete payment to activate premium features."
             # Redirect paid plan users to real payment processing
-            redirect_url = f"/payment?plan={plan_type}"
+            redirect_url = f"/payment?plan={plan_type}&billing={billing}"
         
         return jsonify({
             "success": True,
