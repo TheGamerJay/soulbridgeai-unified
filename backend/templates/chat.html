@@ -94,24 +94,31 @@
                     validated.hasActiveChat = true;
                     console.log('🔍 Rule 1: Character + active session = chat screen');
                 }
-                // Rule 2: After fresh login, always show intro first (regardless of saved character)
+                // Rule 2: If we have a character but no active session, check if we just selected a companion
                 else if (localCharacter && sessionActive !== 'true') {
-                    // Check if this is a fresh login
+                    // Check if this is coming from companion selection (just selected)
                     var urlParams = new URLSearchParams(window.location.search);
                     var showIntro = urlParams.get('show_intro');
+                    var fromSelection = localStorage.getItem('currentScreen') === 'chat'; // Set by companion selection
                     
-                    // ALWAYS show intro unless explicitly requesting character selection
-                    // This fixes profile → back showing character selection
-                    if (showIntro === 'false') {
-                        // Explicit character select request - redirect to new page
-                        console.log('🔍 Rule 2: Redirecting to companion selection for character select request');
+                    // If we just came from companion selection, start chat session
+                    if (fromSelection || window.location.pathname === '/chat') {
+                        validated.screen = 'chat';
+                        validated.character = localCharacter;
+                        console.log('🔍 Rule 2: Just selected companion, starting chat session');
+                        // Mark session as active since we're starting chat
+                        localStorage.setItem('sessionActive', 'true');
+                    }
+                    // Only redirect to companion selection if explicitly requested
+                    else if (showIntro === 'false') {
+                        console.log('🔍 Rule 2: Explicit character select request - redirecting');
                         window.location.href = '/companion-selection';
                         return;
                     } else {
-                        // DEFAULT: Skip intro - redirect to new companion selection page
-                        console.log('🔍 Rule 2: Redirecting to new companion selection page');
-                        window.location.href = '/companion-selection';
-                        return;
+                        // Default to chat if we have a character
+                        validated.screen = 'chat';
+                        validated.character = localCharacter;
+                        console.log('🔍 Rule 2: Have character, defaulting to chat');
                     }
                 }
                 // Rule 3: If local screen is explicitly set to select, honor it (unless fresh login)
