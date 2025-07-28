@@ -2056,17 +2056,9 @@
     <script src="{{ url_for('static', filename='js/universal-button-fix.js') }}"></script>
     
     <script>
-        // Simple working companion selection function
-        function selectCompanion(characterName) {
-            console.log('🤖 Selecting companion:', characterName);
-            localStorage.setItem('selectedCharacter', characterName);
-            localStorage.setItem('currentScreen', 'chat');
-            localStorage.setItem('firstPickMade', 'true');
-            alert('✅ ' + characterName + ' selected as your companion!');
-            showChat();
-        }
+        // ===== CRITICAL BUTTON FUNCTIONS - MUST BE FIRST =====
+        // Define all button functions immediately so onclick handlers work
         
-        // Simple working button functions
         function testSendMessage() {
             console.log('🔄 testSendMessage() called');
             var messageInput = document.getElementById('messageInput');
@@ -2117,21 +2109,30 @@
         }
         
         function showChat() {
-            document.getElementById('introScreen').style.display = 'none';
-            document.getElementById('characterSelect').style.display = 'none';
-            document.getElementById('chatScreen').style.display = 'block';
+            var intro = document.getElementById('introScreen');
+            var select = document.getElementById('characterSelect');
+            var chat = document.getElementById('chatScreen');
+            if (intro) intro.style.display = 'none';
+            if (select) select.style.display = 'none';
+            if (chat) chat.style.display = 'block';
         }
         
         function showIntro() {
-            document.getElementById('chatScreen').style.display = 'none';
-            document.getElementById('characterSelect').style.display = 'none';
-            document.getElementById('introScreen').style.display = 'block';
+            var intro = document.getElementById('introScreen');
+            var select = document.getElementById('characterSelect');
+            var chat = document.getElementById('chatScreen');
+            if (chat) chat.style.display = 'none';
+            if (select) select.style.display = 'none';
+            if (intro) intro.style.display = 'block';
         }
         
         function showCharacterSelect() {
-            document.getElementById('chatScreen').style.display = 'none';
-            document.getElementById('introScreen').style.display = 'none';
-            document.getElementById('characterSelect').style.display = 'block';
+            var intro = document.getElementById('introScreen');
+            var select = document.getElementById('characterSelect');
+            var chat = document.getElementById('chatScreen');
+            if (chat) chat.style.display = 'none';
+            if (intro) intro.style.display = 'none';
+            if (select) select.style.display = 'block';
         }
         
         function performRegularLogout() {
@@ -2139,7 +2140,16 @@
             window.location.href = '/auth/logout';
         }
         
-        // Make all functions globally accessible
+        function selectCompanion(characterName) {
+            console.log('🤖 Selecting companion:', characterName);
+            localStorage.setItem('selectedCharacter', characterName);
+            localStorage.setItem('currentScreen', 'chat');
+            localStorage.setItem('firstPickMade', 'true');
+            alert('✅ ' + characterName + ' selected as your companion!');
+            showChat();
+        }
+        
+        // Make all functions globally accessible immediately
         window.testSendMessage = testSendMessage;
         window.clearChat = clearChat;
         window.saveConversation = saveConversation;
@@ -2153,9 +2163,13 @@
         window.showCharacterSelect = showCharacterSelect;
         window.performRegularLogout = performRegularLogout;
         
-        console.log('✅ All button functions loaded and working!');
+        console.log('🚀 ALL CRITICAL BUTTON FUNCTIONS LOADED IMMEDIATELY!');
         
-        // Simplified companion selection complete
+        // ===== END CRITICAL FUNCTIONS =====
+        
+        // (selectCompanion function moved to top for immediate availability)
+        
+        // (All button functions moved to top for immediate availability)
         
         // Manual test function - call from console: testPremiumUpdate()
         function testPremiumUpdate() {
