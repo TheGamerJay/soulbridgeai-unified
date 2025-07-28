@@ -537,9 +537,9 @@
                 </div>
             </div>
 
-            <!-- Upgrade & Referrals Panel -->
+            <!-- Account & Subscription Panel -->
             <div class="profile-panel">
-                <h2 class="panel-title">💎 Account & Rewards</h2>
+                <h2 class="panel-title">💎 Account & Subscription</h2>
                 
                 <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px;">
                     <a href="/subscription" class="profile-btn" style="text-decoration: none; display: inline-block; text-align: center; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: white; border: none;">
@@ -548,16 +548,23 @@
                     <a href="/referrals" class="profile-btn secondary" style="text-decoration: none; display: inline-block; text-align: center; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none;">
                         💰 Referrals & Rewards
                     </a>
+                    <a href="/subscription" class="profile-btn secondary" style="text-decoration: none; display: inline-block; text-align: center;">
+                        ⚙️ Manage Subscription
+                    </a>
+                </div>
+                
+                <div id="subscriptionDetails" style="margin-bottom: 15px;">
+                    <!-- Subscription details will be loaded here -->
                 </div>
                 
                 <p style="font-size: 0.9rem; color: #94a3b8; margin: 0;">
-                    Upgrade your plan for more features or earn rewards by referring friends to SoulBridge AI.
+                    Upgrade your plan for more features, manage your subscription, or earn rewards by referring friends.
                 </p>
             </div>
 
-            <!-- Settings Panel -->
+            <!-- Settings & Data Management Panel -->
             <div class="profile-panel">
-                <h2 class="panel-title">⚙️ Preferences</h2>
+                <h2 class="panel-title">⚙️ Settings & Data</h2>
                 
                 <div class="settings-group">
                     <div class="settings-title">Chat Settings</div>
@@ -573,27 +580,20 @@
                     </div>
                 </div>
 
-
-                <button class="profile-btn secondary" onclick="resetSettings()">
-                    🔄 Reset to Defaults
-                </button>
-            </div>
-
-            <!-- Data Management Panel -->
-            <div class="profile-panel">
-                <h2 class="panel-title">📁 Data Management</h2>
-                
-                <button class="profile-btn" onclick="downloadChatHistory()">
-                    📥 Download Chat History
-                </button>
-
-                <button class="profile-btn secondary" onclick="exportUserData()">
-                    📦 Export All Data
-                </button>
-
-                <button class="profile-btn secondary" onclick="clearChatHistory()">
-                    🗑️ Clear Chat History
-                </button>
+                <div style="display: flex; gap: 15px; flex-wrap: wrap; margin: 20px 0;">
+                    <button class="profile-btn secondary" onclick="resetSettings()">
+                        🔄 Reset to Defaults
+                    </button>
+                    <button class="profile-btn" onclick="downloadChatHistory()">
+                        📥 Download Chat History
+                    </button>
+                    <button class="profile-btn secondary" onclick="exportUserData()">
+                        📦 Export All Data
+                    </button>
+                    <button class="profile-btn secondary" onclick="clearChatHistory()">
+                        🗑️ Clear Chat History
+                    </button>
+                </div>
 
                 <div class="warning-panel">
                     <div class="warning-title">
@@ -608,22 +608,6 @@
                 </div>
             </div>
 
-            <!-- Subscription Panel -->
-            <div class="profile-panel">
-                <h2 class="panel-title">⭐ Subscription</h2>
-                
-                <div id="subscriptionDetails">
-                    <!-- Subscription details will be loaded here -->
-                </div>
-
-                <a href="/subscription" class="profile-btn" id="upgradeBtn" style="text-decoration: none; display: inline-block; text-align: center;">
-                    🚀 Upgrade to Plus
-                </a>
-
-                <a href="/subscription" class="profile-btn secondary" style="text-decoration: none; display: inline-block; text-align: center;">
-                    ⚙️ Manage Subscription
-                </a>
-            </div>
 
             <!-- Support Panel -->
             <div class="profile-panel">
@@ -640,11 +624,6 @@
                 <a href="/help" class="profile-btn secondary" style="text-decoration: none; display: inline-block; text-align: center;">
                     📚 Help & FAQ
                 </a>
-
-                <div style="margin-top: 1rem; padding: 1rem; background: rgba(34, 211, 238, 0.1); border-radius: 8px;">
-                    <div style="color: #22d3ee; font-weight: 600; margin-bottom: 0.5rem;">Support Email</div>
-                    <div style="color: rgba(255, 255, 255, 0.9);">soulbridgeai.contact@gmail.com</div>
-                </div>
             </div>
         </div>
     </div>
