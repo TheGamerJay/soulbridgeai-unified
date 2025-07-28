@@ -580,8 +580,20 @@ def clear_session():
     """BANKING SECURITY: Clear session when user navigates away"""
     try:
         user_email = session.get('user_email', 'unknown')
+        
+        # Preserve only profile image for UX - NOT authentication data
+        profile_image = session.get('profile_image')
+        user_id = session.get('user_id')
+        
         logger.info(f"SECURITY: Clearing session for user {user_email} (navigation away detected)")
         session.clear()
+        
+        # Restore only profile image if it was a custom one (not default)
+        # This maintains UX without compromising security since it's just cosmetic data
+        if profile_image and profile_image != '/static/logos/Sapphire.png':
+            session['profile_image'] = profile_image
+            logger.info(f"SECURITY: Profile image preserved after session clear: {profile_image}")
+        
         return jsonify({"success": True, "message": "Session cleared"})
     except Exception as e:
         logger.error(f"Error clearing session: {e}")

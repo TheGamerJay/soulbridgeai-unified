@@ -736,19 +736,48 @@ What specific area would you like help with? I know every feature of SoulBridge 
         
         // Track internal navigation to avoid clearing session for app navigation
         document.addEventListener('click', function(e) {
-            const link = e.target.closest('a');
-            if (link && link.href) {
-                const url = new URL(link.href);
-                const currentHost = window.location.hostname;
-                if (url.hostname === currentHost || url.hostname === 'www.soulbridgeai.com' || url.hostname === 'soulbridgeai.com') {
+            const link = e.target.closest('a, button');
+            if (link) {
+                // Check for internal links
+                if (link.href) {
+                    try {
+                        const url = new URL(link.href);
+                        const currentHost = window.location.hostname;
+                        if (url.hostname === currentHost || url.hostname === 'www.soulbridgeai.com' || url.hostname === 'soulbridgeai.com') {
+                            console.log('🔄 Internal navigation detected:', url.pathname);
+                            navigatingInternally = true;
+                            setTimeout(() => { navigatingInternally = false; }, 2000);
+                        }
+                    } catch (e) {
+                        // Invalid URL, might be relative - assume internal
+                        navigatingInternally = true;
+                        setTimeout(() => { navigatingInternally = false; }, 2000);
+                    }
+                }
+                // Check for buttons that trigger navigation (like profile button)
+                else if (link.onclick || link.getAttribute('onclick')) {
+                    console.log('🔄 Button navigation detected');
                     navigatingInternally = true;
-                    // Reset flag after a short delay
-                    setTimeout(() => {
-                        navigatingInternally = false;
-                    }, 1000);
+                    setTimeout(() => { navigatingInternally = false; }, 2000);
                 }
             }
         });
+        
+        // Also track programmatic navigation
+        const originalPushState = history.pushState;
+        const originalReplaceState = history.replaceState;
+        
+        history.pushState = function() {
+            navigatingInternally = true;
+            setTimeout(() => { navigatingInternally = false; }, 2000);
+            return originalPushState.apply(history, arguments);
+        };
+        
+        history.replaceState = function() {
+            navigatingInternally = true;
+            setTimeout(() => { navigatingInternally = false; }, 2000);
+            return originalReplaceState.apply(history, arguments);
+        };
         
         function clearSession() {
             // Only clear session if not navigating internally within the app
