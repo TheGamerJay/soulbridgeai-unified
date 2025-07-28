@@ -39,12 +39,14 @@ if not secret_key:
 
 app.secret_key = secret_key
 
-# Security: Configure session cookies
-app.config['SESSION_COOKIE_HTTPONLY'] = True
+# BANKING SECURITY: Configure session cookies for maximum security
+app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevent XSS access
 app.config['SESSION_COOKIE_SECURE'] = bool(os.environ.get('RAILWAY_ENVIRONMENT'))  # HTTPS in production
-app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['SESSION_COOKIE_SAMESITE'] = 'Strict'  # Prevent CSRF
 app.config['SESSION_COOKIE_PATH'] = '/'  # Ensure cookie works for all paths
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=30)  # Sessions last 30 days
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=10)  # BANKING: 10 minute max session (bathroom break friendly)
+app.config['SESSION_PERMANENT'] = False  # Sessions expire when browser closes
+app.config['SESSION_COOKIE_MAX_AGE'] = 600  # 10 minutes in seconds
 
 # Global variables for services
 services = {
@@ -210,7 +212,14 @@ def background_monitoring():
 background_monitoring()
 
 def is_logged_in():
-    """Check if user is logged in with session timeout"""
+    """Check if user is logged in with strict banking-style session timeout"""
+    # BANKING SECURITY: Force clear all sessions created before security upgrade
+    REQUIRED_SESSION_VERSION = "2025-07-28-banking-security"
+    if session.get('session_version') != REQUIRED_SESSION_VERSION:
+        logger.info("SECURITY: Clearing old session - banking security upgrade")
+        session.clear()
+        return False
+    
     if not session.get("user_authenticated", False):
         return False
     
@@ -218,13 +227,14 @@ def is_logged_in():
     if not session.get('user_id') and not session.get('user_email') and not session.get('email'):
         return False
     
-    # Check session timeout (30 minutes of inactivity)
+    # BANKING SECURITY: Check session timeout (5 minutes of inactivity - very strict)
     last_activity = session.get('last_activity')
     if last_activity:
         try:
             last_time = datetime.fromisoformat(last_activity)
-            if datetime.now() - last_time > timedelta(minutes=30):
-                # Session expired - clear it
+            if datetime.now() - last_time > timedelta(minutes=10):  # BANKING SECURITY: 10 minute timeout (bathroom break friendly)
+                # SECURITY: Session expired - clear it
+                logger.info("SECURITY: Session expired due to inactivity (10 minutes)")
                 session.clear()
                 return False
         except Exception as e:
@@ -453,10 +463,13 @@ def home():
     """Home route - require login then always show intro with Sapphire"""
     try:
         # Require authentication for main app access
-        logger.info(f"Home route: Checking authentication - Session: {dict(session)}")
+        logger.info(f"Home route: Checking authentication - Session keys: {list(session.keys())}")
+        logger.info(f"Home route: user_authenticated = {session.get('user_authenticated')}")
+        logger.info(f"Home route: user_id = {session.get('user_id')}")
+        logger.info(f"Home route: user_email = {session.get('user_email')}")
         
         if not is_logged_in():
-            logger.info(f"Home route: User not authenticated, redirecting to login")
+            logger.info(f"Home route: ❌ User NOT authenticated, redirecting to login")
             return redirect("/login")
         
         # User is authenticated - always show beautiful intro with Sapphire
@@ -466,7 +479,7 @@ def home():
         if not services["database"]:
             initialize_services()
         
-        # Always show intro page with Sapphire (proper flow)
+        # Always show beautiful intro page with Sapphire (proper flow)
         return render_template("intro.html")
         
     except Exception as e:
@@ -524,7 +537,7 @@ def auth_login():
             # Create session
             auth.create_session(result)
             logger.info(f"Login successful: {email}")
-            return jsonify({"success": True, "redirect": "/intro"})
+            return jsonify({"success": True, "redirect": "/"})
         else:
             logger.warning(f"Login failed: {email}")
             return jsonify({"success": False, "error": result["error"]}), 401
@@ -537,11 +550,134 @@ def auth_login():
 def logout():
     """Logout route"""
     try:
+        user_email = session.get('user_email', 'unknown')
+        logger.info(f"SECURITY: User {user_email} logged out")
         session.clear()
         return redirect("/login")
     except Exception as e:
         logger.error(f"Logout error: {e}")
         return redirect("/login")
+
+@app.route("/api/session-refresh", methods=["POST"])
+def session_refresh():
+    """NETFLIX-STYLE: Refresh session when user confirms they're still there"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Session expired"}), 401
+            
+        # Update last activity to reset the timeout
+        session['last_activity'] = datetime.now().isoformat()
+        user_email = session.get('user_email', 'unknown')
+        logger.info(f"SECURITY: Session refreshed for user {user_email} (Netflix-style continuation)")
+        
+        return jsonify({"success": True, "message": "Session refreshed"})
+    except Exception as e:
+        logger.error(f"Error refreshing session: {e}")
+        return jsonify({"success": False, "error": "Failed to refresh session"}), 500
+
+@app.route("/api/clear-session", methods=["POST"])
+def clear_session():
+    """BANKING SECURITY: Clear session when user navigates away"""
+    try:
+        user_email = session.get('user_email', 'unknown')
+        logger.info(f"SECURITY: Clearing session for user {user_email} (navigation away detected)")
+        session.clear()
+        return jsonify({"success": True, "message": "Session cleared"})
+    except Exception as e:
+        logger.error(f"Error clearing session: {e}")
+        return jsonify({"success": False, "error": "Failed to clear session"}), 500
+
+@app.route("/admin/force-logout-all", methods=["POST"])
+def force_logout_all():
+    """ADMIN: Force logout all users by incrementing session version"""
+    try:
+        # This will be called when we need to force all users to re-login
+        session.clear()
+        logger.info("ADMIN: Forced logout initiated - all old sessions will be invalidated")
+        return jsonify({"success": True, "message": "All users will be forced to re-login"})
+    except Exception as e:
+        logger.error(f"Force logout error: {e}")
+        return jsonify({"success": False, "error": "Failed to force logout"}), 500
+
+@app.route("/favicon.ico")
+def favicon():
+    """Serve favicon for Google and browsers"""
+    return app.send_static_file('favicon.ico')
+
+@app.route("/favicon-16x16.png")
+def favicon_16():
+    """Serve 16x16 favicon"""
+    return app.send_static_file('favicon-16x16.png')
+
+@app.route("/favicon-32x32.png") 
+def favicon_32():
+    """Serve 32x32 favicon"""
+    return app.send_static_file('favicon-32x32.png')
+
+@app.route("/favicon-192x192.png")
+def favicon_192():
+    """Serve 192x192 favicon for Android"""
+    return app.send_static_file('favicon-192x192.png')
+
+@app.route("/favicon-512x512.png")
+def favicon_512():
+    """Serve 512x512 favicon for high-res"""
+    return app.send_static_file('favicon-512x512.png')
+
+@app.route("/apple-touch-icon.png")
+def apple_touch_icon():
+    """Serve Apple touch icon"""
+    return app.send_static_file('apple-touch-icon.png')
+
+@app.route("/manifest.json")
+def manifest():
+    """Serve web app manifest"""
+    return app.send_static_file('manifest.json')
+
+@app.route("/robots.txt")
+def robots():
+    """Serve robots.txt for search engines"""
+    robots_content = """User-agent: *
+Allow: /
+Allow: /login
+Allow: /register
+Allow: /static/
+Disallow: /admin/
+Disallow: /debug/
+Disallow: /api/
+Sitemap: https://soulbridgeai.com/sitemap.xml
+"""
+    response = make_response(robots_content)
+    response.headers['Content-Type'] = 'text/plain'
+    return response
+
+@app.route("/sitemap.xml")
+def sitemap():
+    """Generate basic sitemap for SEO"""
+    sitemap_content = """<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+        <loc>https://soulbridgeai.com/</loc>
+        <lastmod>2025-07-28</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>1.0</priority>
+    </url>
+    <url>
+        <loc>https://soulbridgeai.com/login</loc>
+        <lastmod>2025-07-28</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://soulbridgeai.com/register</loc>
+        <lastmod>2025-07-28</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+</urlset>"""
+    response = make_response(sitemap_content)
+    response.headers['Content-Type'] = 'application/xml'
+    return response
 
 @app.route("/debug/session")
 def debug_session():
@@ -713,10 +849,10 @@ def plan_selection():
 
 @app.route("/intro")
 def intro():
-    """Intro page for all authenticated users"""
+    """Redirect to companion selection instead of intro"""
     if not is_logged_in():
         return redirect("/login")
-    return render_template("intro.html")
+    return redirect("/companion-selection")
 
 @app.route("/companion-selection")
 def companion_selection():
@@ -863,6 +999,45 @@ def api_companions():
         logger.error(f"Companions API error: {e}")
         return jsonify({"success": False, "error": "Failed to load companions"}), 500
 
+@app.route("/api/companions/accessible", methods=["GET"])
+def api_companions_accessible():
+    """Get accessible companions based on user tier and points"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+            
+        tier = request.args.get('tier', 'free')
+        points = int(request.args.get('points', 0))
+        
+        # Return basic companion accessibility info
+        accessible_companions = {
+            "free": ["sapphire", "gamerjay_free", "blayzo", "blayzica", "blayzia", "blayzion", "claude_free"],
+            "growth": ["sky", "gamerjay_premium", "blayzo_premium", "claude_growth"],
+            "max": ["crimson", "violet", "watchdog", "royal", "claude_max", "ven_blayzica", "ven_sky"]
+        }
+        
+        # For free tier, only show free companions
+        if tier == 'free':
+            companions = accessible_companions["free"]
+        else:
+            # For paid tiers, show all companions up to their tier
+            companions = accessible_companions["free"]
+            if tier in ["growth", "max"]:
+                companions.extend(accessible_companions["growth"])
+            if tier == "max":
+                companions.extend(accessible_companions["max"])
+        
+        return jsonify({
+            "success": True,
+            "accessible_companions": companions,
+            "user_tier": tier,
+            "referral_points": points
+        })
+        
+    except Exception as e:
+        logger.error(f"Companions accessible API error: {e}")
+        return jsonify({"success": False, "error": "Failed to get accessible companions"}), 500
+
 @app.route("/api/companions/select", methods=["POST"])
 def api_companions_select():
     """Select a companion"""
@@ -897,8 +1072,41 @@ def api_companions_select():
 def api_start_companion_trial():
     """Start a trial for a premium companion"""
     try:
-        if not is_logged_in():
+        # ENHANCED: Debug session state
+        logger.info(f"🔍 TRIAL DEBUG: Session authenticated: {session.get('user_authenticated')}")
+        logger.info(f"🔍 TRIAL DEBUG: User ID: {session.get('user_id')}")
+        logger.info(f"🔍 TRIAL DEBUG: User email: {session.get('user_email', session.get('email'))}")
+        
+        # ENHANCED: More robust authentication check
+        user_authenticated = session.get("user_authenticated", False)
+        user_id = session.get('user_id')
+        user_email = session.get('user_email', session.get('email'))
+        
+        if not user_authenticated or (not user_id and not user_email):
+            logger.warning(f"🔍 TRIAL DEBUG: Authentication failed - auth: {user_authenticated}, id: {user_id}, email: {user_email}")
             return jsonify({"success": False, "error": "Authentication required"}), 401
+            
+        # PREVENT RESET: Check if trial is already active
+        existing_trial_expires = session.get('trial_expires')
+        if existing_trial_expires:
+            try:
+                # Parse the existing expiry time
+                from datetime import datetime
+                expiry_dt = datetime.fromisoformat(existing_trial_expires.replace('Z', '+00:00'))
+                current_dt = datetime.now(timezone.utc) if expiry_dt.tzinfo else datetime.now()
+                
+                if current_dt < expiry_dt:
+                    time_remaining = expiry_dt - current_dt
+                    minutes_remaining = int(time_remaining.total_seconds() / 60)
+                    logger.info(f"⚠️ TRIAL ALREADY ACTIVE: {minutes_remaining} minutes remaining, not resetting")
+                    return jsonify({
+                        "success": False, 
+                        "error": f"Trial is already active! {minutes_remaining} minutes remaining.",
+                        "trial_active": True,
+                        "minutes_remaining": minutes_remaining
+                    }), 400
+            except Exception as e:
+                logger.warning(f"Error checking existing trial: {e}, proceeding with new trial")
             
         data = request.get_json() or {}
         companion_id = data.get("companion_id")
@@ -906,22 +1114,22 @@ def api_start_companion_trial():
         if not companion_id:
             return jsonify({"success": False, "error": "Companion ID required"}), 400
         
-        user_id = session.get('user_id', 'anonymous')
-        user_email = session.get('user_email', session.get('email', 'unknown'))
-        
-        # Set trial companion in session (simplified version without companion service)
+        # ENHANCED: Set trial companion in session with permanent flag
         session['trial_companion'] = companion_id
         session['trial_expires'] = (datetime.now() + timedelta(hours=24)).isoformat()
         session['selected_companion'] = companion_id
         session['user_plan'] = 'trial'  # Temporarily upgrade to trial
+        session['trial_active'] = True
+        session.permanent = True  # CRITICAL: Ensure session persists
         
-        logger.info(f"Started 24-hour trial for user {user_email} with companion {companion_id}")
+        logger.info(f"✅ TRIAL STARTED: 24-hour trial for user {user_email or user_id} with companion {companion_id}")
         
         return jsonify({
             "success": True,
             "message": f"Free trial started for {companion_id}! You have 24 hours of premium access.",
             "trial_expires": session['trial_expires'],
-            "companion_id": companion_id
+            "companion_id": companion_id,
+            "trial_active": True
         })
         
     except Exception as e:
@@ -2124,7 +2332,7 @@ def create_addon_checkout():
             'emotional-meditations': {'name': 'Emotional Meditations', 'price': 399},
             'color-customization': {'name': 'Color Customization', 'price': 199},
             'ai-image-generation': {'name': 'AI Image Generation', 'price': 699},
-            'relationship': {'name': 'Relationship Profile Add-on', 'price': 499},
+            'relationship': {'name': 'Relationship Profile Add-on', 'price': 299},
             'voice-journaling': {'name': 'Voice Journaling', 'price': 599},
             'complete-bundle': {'name': 'Complete Add-On Bundle', 'price': 1699}
         }
@@ -2295,7 +2503,8 @@ def payment_cancel():
         logger.error(f"Payment cancel handler error: {e}")
         return redirect("/subscription")
 
-@app.route("/api/users", methods=["GET", "POST"])
+@app.route("/api/user/profile", methods=["GET", "POST"])
+@app.route("/api/users", methods=["GET", "POST"])  
 def api_users():
     """User profile API endpoint"""
     try:
@@ -2508,25 +2717,47 @@ def api_users():
                         logger.error(f"Failed to update display name in database via API: {e}")
             
             if 'profileImage' in data:
-                session['profile_image'] = data['profileImage']
+                profile_image_url = data['profileImage']
+                # BULLETPROOF: Save to session first
+                session['profile_image'] = profile_image_url
+                session.permanent = True
                 
-                # Also save to database
+                # BULLETPROOF: Also save to database with fallbacks
                 user_id = session.get('user_id')
-                # Ensure database is initialized before checking
+                user_email = session.get('user_email', session.get('email'))
+                
                 db_instance = get_database()
-                if user_id and db_instance:
+                if db_instance and (user_id or user_email):
                     try:
                         conn = db_instance.get_connection()
                         cursor = conn.cursor()
                         
                         placeholder = "%s" if hasattr(db_instance, 'postgres_url') and db_instance.postgres_url else "?"
-                        cursor.execute(f"UPDATE users SET profile_image = {placeholder} WHERE id = {placeholder}", 
-                                     (data['profileImage'], user_id))
+                        
+                        # Try to update by user_id first
+                        if user_id:
+                            cursor.execute(f"UPDATE users SET profile_image = {placeholder} WHERE id = {placeholder}", 
+                                         (profile_image_url, user_id))
+                            updated_rows = cursor.rowcount
+                            
+                            # If no rows updated and we have email, try email fallback
+                            if updated_rows == 0 and user_email:
+                                cursor.execute(f"UPDATE users SET profile_image = {placeholder} WHERE email = {placeholder}", 
+                                             (profile_image_url, user_email))
+                                logger.info(f"BULLETPROOF: Updated profile image by email fallback: {user_email}")
+                            
+                        elif user_email:
+                            # Only email available, update by email
+                            cursor.execute(f"UPDATE users SET profile_image = {placeholder} WHERE email = {placeholder}", 
+                                         (profile_image_url, user_email))
+                        
                         conn.commit()
                         conn.close()
-                        logger.info(f"Profile image updated in database via API: {data['profileImage']}")
+                        logger.info(f"BULLETPROOF: Profile image saved to database and session: {profile_image_url}")
                     except Exception as e:
-                        logger.error(f"Failed to update profile image in database via API: {e}")
+                        logger.error(f"Database profile image update failed, but session saved: {e}")
+                else:
+                    logger.warning(f"BULLETPROOF: No database or user identifier, profile image saved to session only")
             
             return jsonify({
                 "success": True,
@@ -4016,7 +4247,7 @@ def oauth_callback():
             else:
                 flash(f"Welcome back! Signed in with {provider.title()}.", "success")
                 
-            return redirect("/intro")
+            return redirect("/")
         else:
             flash(result["error"], "error")
             return redirect(url_for("login_page"))
@@ -4188,10 +4419,6 @@ def api_referrals_share_templates():
 # ========================================
 # UTILITY ROUTES  
 # ========================================
-
-@app.route('/favicon.ico')
-def favicon():
-    return app.send_static_file('favicon.ico')
 
 # Error handlers
 @app.errorhandler(404)

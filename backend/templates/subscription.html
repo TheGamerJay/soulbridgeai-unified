@@ -383,7 +383,7 @@
         <div style="font-weight: 600;">$4.99/month</div>
       </div>
       
-      <div class="add-on-card" onclick="selectAddOn('relationship-profiles')" style="cursor: pointer; transition: all 0.3s ease;" onmouseover="this.style.background='rgba(34, 211, 238, 0.15)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(34, 211, 238, 0.1)'; this.style.transform='translateY(0)'">
+      <div class="add-on-card" onclick="selectAddOn('relationship')" style="cursor: pointer; transition: all 0.3s ease;" onmouseover="this.style.background='rgba(34, 211, 238, 0.15)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(34, 211, 238, 0.1)'; this.style.transform='translateY(0)'">
         <h4>👤 Relationship Profiles</h4>
         <p style="margin: 10px 0; color: #94a3b8;">Track and improve your relationships</p>
         <div style="font-weight: 600;">$2.99/month</div>
@@ -604,11 +604,11 @@ async function selectAddOn(addOnType) {
   // Add-on names for display
   const addonNames = {
     'voice-journaling': 'Voice Journaling ($4.99/month)',
-    'relationship-profiles': 'Relationship Profiles ($2.99/month)',
+    'relationship': 'Relationship Profiles ($2.99/month)',
     'emotional-meditations': 'Emotional Meditations ($3.99/month)', 
     'color-customization': 'Color Customization ($1.99/month)',
     'ai-image-generation': 'AI Image Generation ($6.99/month)',
-    'complete-bundle': 'Complete Add-On Bundle ($16.99/month - Save $2!)'
+    'complete-bundle': 'Complete Add-On Bundle ($16.99/month - Save $4!)'
   };
   
   const confirm = window.confirm(`Purchase ${addonNames[addOnType]}?\n\nThis will be a monthly subscription that you can cancel anytime.`);
