@@ -1190,7 +1190,44 @@ def profile():
         # Update last activity
         session['last_activity'] = datetime.now().isoformat()
         
-        return render_template("profile.html")
+        # Get profile image for server-side rendering (eliminates flash)
+        profile_image = session.get('profile_image', '/static/logos/Sapphire.png')
+        
+        # Also try to load from database if not in session
+        if not profile_image or profile_image == '/static/logos/Sapphire.png':
+            user_id = session.get('user_id')
+            if user_id:
+                try:
+                    db_instance = get_database()
+                    if db_instance:
+                        conn = db_instance.get_connection()
+                        cursor = conn.cursor()
+                        
+                        placeholder = "%s" if hasattr(db_instance, 'postgres_url') and db_instance.postgres_url else "?"
+                        
+                        # Ensure columns exist
+                        try:
+                            if hasattr(db_instance, 'postgres_url') and db_instance.postgres_url:
+                                cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_image TEXT")
+                                cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_image_data TEXT")
+                        except:
+                            pass
+                        
+                        cursor.execute(f"SELECT profile_image, profile_picture_url FROM users WHERE id = {placeholder}", (user_id,))
+                        result = cursor.fetchone()
+                        conn.close()
+                        
+                        if result:
+                            if result[0] and result[0] != '/static/logos/Sapphire.png':
+                                profile_image = result[0]
+                                session['profile_image'] = profile_image  # Cache in session
+                            elif result[1] and result[1] != '/static/logos/Sapphire.png':
+                                profile_image = result[1]
+                                session['profile_image'] = profile_image  # Cache in session
+                except Exception as e:
+                    logger.warning(f"Failed to load profile image for template: {e}")
+        
+        return render_template("profile.html", user_profile_image=profile_image)
     except Exception as e:
         logger.error(f"Profile template error: {e}")
         return jsonify({"error": "Profile page temporarily unavailable"}), 200

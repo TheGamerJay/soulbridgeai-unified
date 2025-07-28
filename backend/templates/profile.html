@@ -412,7 +412,7 @@
                 <!-- Profile Image Section -->
                 <div style="text-align: center; margin-bottom: 20px; padding: 30px 20px;">
                     <div style="margin-bottom: 20px;">
-                        <img id="userProfileImage" src="" alt="Profile Picture" 
+                        <img id="userProfileImage" src="{{ user_profile_image or '/static/logos/Sapphire.png' }}" alt="Profile Picture" 
                              style="max-width: 280px; max-height: 280px; width: auto; height: auto;
                                     box-shadow: 0 8px 30px rgba(34, 211, 238, 0.5); display: block; margin: 0 auto;
                                     border-radius: 12px;"
@@ -779,13 +779,16 @@
                 console.log('🖼️ Setting profile image. Element found:', !!profileImage);
                 console.log('🖼️ Profile image URL from userData:', this.userData.profileImage);
                 if (profileImage) {
-                    if (this.userData.profileImage && this.userData.profileImage.trim() !== '') {
-                        console.log('✅ Setting profile image src to:', this.userData.profileImage);
-                        profileImage.src = this.userData.profileImage;
+                    const newImageSrc = this.userData.profileImage && this.userData.profileImage.trim() !== '' 
+                        ? this.userData.profileImage 
+                        : '/static/logos/Sapphire.png';
+                    
+                    // Only update if the image source is different (prevents flash)
+                    if (profileImage.src !== newImageSrc) {
+                        console.log('✅ Updating profile image src from', profileImage.src, 'to:', newImageSrc);
+                        profileImage.src = newImageSrc;
                     } else {
-                        // Only use Sapphire as fallback if no custom image exists
-                        console.log('⚠️ No custom profile image, using Sapphire fallback');
-                        profileImage.src = '/static/logos/Sapphire.png';
+                        console.log('⚡ Profile image already correct, no update needed');
                     }
                 }
                 
