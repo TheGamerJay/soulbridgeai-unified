@@ -107,9 +107,9 @@
                         validated.character = localCharacter;
                         console.log('🔍 Rule 2: Explicit character select request');
                     } else {
-                        // DEFAULT: Always show intro for clean user experience
-                        validated.screen = 'intro';
-                        console.log('🔍 Rule 2: Default to intro (fixes profile → back issue)');
+                        // DEFAULT: Skip intro - go to companion selection
+                        validated.screen = 'select';
+                        console.log('🔍 Rule 2: Default to companion selection (intro eliminated)');
                     }
                 }
                 // Rule 3: If local screen is explicitly set to select, honor it (unless fresh login)
@@ -122,8 +122,8 @@
                         // Fresh login - clear old localStorage and show intro
                         localStorage.removeItem('currentScreen');
                         localStorage.removeItem('selectedCharacter');
-                        validated.screen = 'intro';
-                        console.log('🔍 Rule 3: Fresh login detected - clearing localStorage and showing intro');
+                        validated.screen = 'select';
+                        console.log('🔍 Rule 3: Fresh login detected - going to companion selection');
                     } else {
                         validated.screen = 'select';
                         console.log('🔍 Rule 3: Explicit select screen setting');
@@ -137,18 +137,18 @@
                     
                     // Don't override if we already determined this should be intro
                     if (localScreen === 'intro' && showIntro !== 'false') {
-                        validated.screen = 'intro';
-                        console.log('🔍 Rule 4: Preserving intro screen decision');
+                        validated.screen = 'select';
+                        console.log('🔍 Rule 4: Forcing companion selection instead of intro');
                     } else if (showIntro === 'true') {
-                        validated.screen = 'intro';
-                        console.log('🔍 Rule 4: Fresh login = intro screen');
+                        validated.screen = 'select';
+                        console.log('🔍 Rule 4: Fresh login = companion selection screen');
                     } else if (showIntro === 'false') {
                         validated.screen = 'select';
                         console.log('🔍 Rule 4: Explicit request for character select');
                     } else {
-                        // DEFAULT: Show intro instead of character select
-                        validated.screen = 'intro';
-                        console.log('🔍 Rule 4: Default to intro (fixes profile → back issue)');
+                        // DEFAULT: Show companion selection
+                        validated.screen = 'select';
+                        console.log('🔍 Rule 4: Default to companion selection (intro eliminated)');
                     }
                 }
                 
@@ -205,7 +205,7 @@
                     console.log('🎯 NavigationController: Initialized', this.state);
                 } catch (error) {
                     console.error('🎯 NavigationController: Initialization failed', error);
-                    this.state.targetScreen = 'intro';
+                    this.state.targetScreen = 'select';
                     this.state.isInitialized = true;
                 }
             },
@@ -277,7 +277,7 @@
                     greetingShown: false,
                     selectedCharacter: null,
                     firstPickMade: false,
-                    targetScreen: 'intro'
+                    targetScreen: 'select'
                 };
             },
             
@@ -302,7 +302,7 @@
                     
                 } catch (error) {
                     console.error('🎯 NavigationController: DOM setup failed', error);
-                    this.transitionToScreen('intro');
+                    this.transitionToScreen('select');
                 }
             },
             
@@ -380,6 +380,8 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192x192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="/favicon-512x512.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta name="theme-color" content="#00ffff">
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
     <meta name="theme-color" content="#22d3ee">
     
@@ -2902,8 +2904,8 @@
                 console.log('🎬 Redirecting to Netflix-style companion selector');
                 window.location.href = '/companions';
             } else {
-                // Show intro by default
-                document.getElementById('introScreen').classList.remove('hidden');
+                // Show companion selection by default
+                showCharacterSelect();
             }
             
             // Start monitoring premium text to ensure it stays updated

@@ -4,6 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Choose Your Companion - SoulBridge AI</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/favicon-512x512.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta name="theme-color" content="#00ffff">
+    
     <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}?v={{ range(1000000) | random }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/themes.css') }}?v={{ range(1000000) | random }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}?v={{ range(1000000) | random }}">
@@ -630,6 +640,7 @@
                 <h3><i class="fas fa-star"></i> Try Premium Free!</h3>
                 <p>Experience a Growth companion for 24 hours - no commitment required</p>
                 <button class="btn-trial" onclick="showTrialModal()">Start Free Trial</button>
+                <button class="btn-reset" onclick="resetPremiumCompanionState()" style="margin-top: 10px; background: linear-gradient(135deg, #4ecdc4, #44a08d); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 0.9rem;">🔄 Refresh Premium Access</button>
             </div>
             
             <!-- Growth Companions Section -->
@@ -1268,21 +1279,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="companion-card locked" onclick="showUpgradeModal('companion_gamerjay_premium')" style="min-width: 280px; background: rgba(255,255,255,0.95); border-radius: 16px; padding: 0; cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.1); border: 2px solid transparent; opacity: 0.7;">
-                        <div class="companion-avatar" style="width: 100%; height: 180px; position: relative; overflow: hidden;">
-                            <img src="/static/logos/GamgerJay premium companion.png" alt="GamerJay Premium" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='/static/logos/IntroLogo.png'">
-                            <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center;">
-                                <i class="fas fa-lock" style="font-size: 2rem; color: white;"></i>
-                            </div>
-                        </div>
-                        <div class="companion-info" style="padding: 20px;">
-                            <h3 style="font-size: 1.3rem; font-weight: 700; margin-bottom: 8px;">GamerJay Premium - Strategic Mind</h3>
-                            <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 15px;">Advanced gaming strategies applied to life challenges</p>
-                            <div class="companion-actions" style="display: flex; gap: 10px;">
-                                <button style="flex: 1; padding: 12px; background: #ccc; color: #666; border: none; border-radius: 8px; font-weight: 600; cursor: not-allowed;" disabled>🔒 Requires Growth</button>
-                            </div>
-                        </div>
-                    </div>
+                    <div id="gamerjay-premium-card"></div>
                 `;
             }
             
@@ -1669,6 +1666,142 @@
             }
         }
         
+        function getPremiumCompanionState(companionId) {
+            const trialActive = localStorage.getItem('trialActive') === 'true';
+            const premiumLocked = localStorage.getItem('premiumCompanionsLocked') === 'true';
+            const unlockedCompanion = localStorage.getItem('unlockedPremiumCompanion');
+            
+            // If trial is active and no selection made yet, premium companions should be unlocked
+            if (trialActive && !premiumLocked) {
+                return {
+                    isLocked: false,
+                    onclick: `startPremiumCompanionTrial('${companionId}')`,
+                    buttonText: '🎁 Start Trial',
+                    buttonClass: 'btn-trial'
+                };
+            }
+            
+            // If trial is active and this companion was selected, keep it unlocked
+            if (trialActive && unlockedCompanion === companionId) {
+                return {
+                    isLocked: false,
+                    onclick: `selectCompanion('${companionId}')`,
+                    buttonText: '✨ Chat Now',
+                    buttonClass: 'btn-select'
+                };
+            }
+            
+            // Default locked state
+            return {
+                isLocked: true,
+                onclick: `showUpgradeModal('${companionId}')`,
+                buttonText: '🔒 Requires Growth',
+                buttonClass: 'btn-locked'
+            };
+        }
+        
+        async function startPremiumCompanionTrial(companionId) {
+            console.log(`🎁 Starting premium trial for: ${companionId}`);
+            
+            try {
+                const response = await fetch('/api/companions/trial', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        companion_id: companionId
+                    })
+                });
+                
+                const data = await response.json();
+                console.log('📊 Premium trial API response:', data);
+                
+                if (data.success) {
+                    // Find companion details for notification
+                    const companion = { companion_id: companionId, display_name: companionId.replace('companion_', '').replace('_premium', ' Premium') };
+                    
+                    showNotification(`Premium trial started for ${companion.display_name}! Enjoy 24 hours of access.`, 'success');
+                    
+                    // Store trial data
+                    localStorage.setItem('trialActive', 'true');
+                    localStorage.setItem('trialExpiry', Date.now() + (24 * 60 * 60 * 1000));
+                    localStorage.setItem('trialStartTime', Date.now());
+                    localStorage.setItem('trialSelectedCompanion', companionId);
+                    localStorage.setItem('selectedCharacter', companion.display_name.split(' ')[0]);
+                    localStorage.setItem('currentScreen', 'chat');
+                    localStorage.setItem('hasActiveChat', 'true');
+                    sessionStorage.setItem('hasActiveChat', 'true');
+                    
+                    // Lock other premium companions
+                    lockOtherPremiumCompanions(companionId);
+                    
+                    // Start trial timer
+                    startTrialTimer();
+                    
+                    // Redirect to chat
+                    setTimeout(() => {
+                        window.location.href = '/chat';
+                    }, 2000);
+                    
+                } else if (data.trial_active) {
+                    showNotification(data.error, 'info');
+                } else {
+                    showNotification('Failed to start premium trial', 'error');
+                }
+                
+            } catch (error) {
+                console.error('❌ Premium trial error:', error);
+                showNotification('Failed to start premium trial', 'error');
+            }
+        }
+        
+        function lockOtherPremiumCompanions(selectedCompanionId) {
+            console.log(`🔒 PREMIUM LOCK: Locking all premium companions except ${selectedCompanionId}`);
+            
+            // Get all premium companion IDs
+            const premiumCompanionIds = [
+                'companion_gamerjay_premium',
+                'companion_blayzo_premium'
+            ];
+            
+            premiumCompanionIds.forEach(companionId => {
+                if (companionId !== selectedCompanionId) {
+                    const companionCard = document.querySelector(`[onclick*="${companionId}"]`);
+                    if (companionCard) {
+                        // Add locked class and visual styling
+                        companionCard.classList.add('locked');
+                        companionCard.style.opacity = '0.5';
+                        companionCard.style.pointerEvents = 'none';
+                        
+                        // Update the onclick to show upgrade modal instead
+                        companionCard.setAttribute('onclick', `showUpgradeModal('${companionId}')`);
+                        
+                        // Add lock icon if not already present
+                        const existingLock = companionCard.querySelector('.fas.fa-lock');
+                        if (!existingLock) {
+                            const lockOverlay = document.createElement('div');
+                            lockOverlay.style.cssText = 'position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; border-radius: 16px;';
+                            lockOverlay.innerHTML = '<i class="fas fa-lock" style="font-size: 2rem; color: white;"></i>';
+                            
+                            // Make sure the card has relative positioning
+                            companionCard.style.position = 'relative';
+                            companionCard.appendChild(lockOverlay);
+                        }
+                        
+                        console.log(`🔒 Locked premium companion: ${companionId}`);
+                    }
+                }
+            });
+            
+            // Store the lock state in localStorage
+            localStorage.setItem('premiumCompanionsLocked', 'true');
+            localStorage.setItem('unlockedPremiumCompanion', selectedCompanionId);
+            
+            // Re-render premium companions to reflect new state
+            renderPremiumCompanions();
+        }
+        
         function updateTrialOffer() {
             const trialOffer = document.getElementById('trial-offer');
             
@@ -1681,6 +1814,18 @@
         
         async function showTrialModal() {
             console.log('🆓 Starting free trial...');
+            
+            // PREVENT RESET: Check if trial is already active
+            const trialActive = localStorage.getItem('trialActive') === 'true';
+            const trialExpiry = localStorage.getItem('trialExpiry');
+            const currentTime = Date.now();
+            
+            if (trialActive && trialExpiry && currentTime < parseInt(trialExpiry)) {
+                const timeRemaining = Math.floor((parseInt(trialExpiry) - currentTime) / 1000 / 60);
+                console.log('⚠️ TRIAL ALREADY ACTIVE: Cannot reset timer, time remaining:', timeRemaining, 'minutes');
+                showNotification(`Trial is already active! ${timeRemaining} minutes remaining.`, 'info');
+                return;
+            }
             
             // Show available Growth companions for trial
             const growthCompanions = companions.growth || [];
@@ -1718,14 +1863,28 @@
                     localStorage.setItem('trialActive', 'true');
                     localStorage.setItem('trialExpiry', Date.now() + (24 * 60 * 60 * 1000)); // 24 hours
                     localStorage.setItem('trialStartTime', Date.now()); // Track when trial started
+                    localStorage.setItem('trialSelectedCompanion', companion.companion_id); // Store which companion was selected
+                    
+                    // PREMIUM LOCK: Lock all other premium companions now that one has been selected
+                    lockOtherPremiumCompanions(companion.companion_id);
                     
                     // Start the trial timer
                     startTrialTimer();
+                    
+                    // Re-render premium companions to unlock them
+                    renderPremiumCompanions();
                     
                     setTimeout(() => {
                         window.location.href = '/chat';
                     }, 2000);
                 } else {
+                    // Check if this is a "trial already active" error
+                    if (data.trial_active && data.minutes_remaining) {
+                        console.log('⚠️ Trial already active, showing notification');
+                        showNotification(data.error, 'info');
+                        return;
+                    }
+                    
                     console.error('❌ Trial failed:', data);
                     
                     // Fallback: Start trial directly 
@@ -1739,6 +1898,10 @@
                     localStorage.setItem('trialActive', 'true');
                     localStorage.setItem('trialExpiry', Date.now() + (24 * 60 * 60 * 1000));
                     localStorage.setItem('trialStartTime', Date.now());
+                    localStorage.setItem('trialSelectedCompanion', companion.companion_id);
+                    
+                    // PREMIUM LOCK: Lock all other premium companions
+                    lockOtherPremiumCompanions(companion.companion_id);
                     
                     // Start the trial timer
                     startTrialTimer();
@@ -1759,6 +1922,10 @@
                 localStorage.setItem('trialActive', 'true');
                 localStorage.setItem('trialExpiry', Date.now() + (24 * 60 * 60 * 1000));
                 localStorage.setItem('trialStartTime', Date.now());
+                localStorage.setItem('trialSelectedCompanion', companion.companion_id);
+                
+                // PREMIUM LOCK: Lock all other premium companions
+                lockOtherPremiumCompanions(companion.companion_id);
                 
                 // Start the trial timer
                 startTrialTimer();
@@ -1965,6 +2132,12 @@
             localStorage.removeItem('trialExpiry');
             localStorage.removeItem('trialStartTime');
             
+            // PREMIUM UNLOCK: Clear premium companion locks when trial ends
+            localStorage.removeItem('premiumCompanionsLocked');
+            localStorage.removeItem('unlockedPremiumCompanion');
+            localStorage.removeItem('trialSelectedCompanion');
+            console.log('🔓 TRIAL END: Cleared premium companion locks');
+            
             // Hide timer
             hideTrialTimer();
             
@@ -2047,9 +2220,105 @@
             }
         }
         
+        function renderPremiumCompanions() {
+            console.log('🎨 Rendering premium companions with dynamic states');
+            
+            // Render GamerJay Premium
+            const gamerJayCard = document.getElementById('gamerjay-premium-card');
+            if (gamerJayCard) {
+                const gamerJayState = getPremiumCompanionState('companion_gamerjay_premium');
+                const lockOverlay = gamerJayState.isLocked ? 
+                    `<div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-lock" style="font-size: 2rem; color: white;"></i>
+                     </div>` : '';
+                
+                const cardClass = gamerJayState.isLocked ? 'companion-card locked' : 'companion-card';
+                const cardOpacity = gamerJayState.isLocked ? '0.7' : '1';
+                const buttonStyle = gamerJayState.isLocked ? 
+                    'background: #ccc; color: #666; cursor: not-allowed;' : 
+                    'background: linear-gradient(135deg, #ff6b6b, #4ecdc4); color: white; cursor: pointer;';
+                
+                gamerJayCard.innerHTML = `
+                    <div class="${cardClass}" onclick="${gamerJayState.onclick}" style="min-width: 280px; background: rgba(255,255,255,0.95); border-radius: 16px; padding: 0; cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.1); border: 2px solid transparent; opacity: ${cardOpacity};">
+                        <div class="companion-avatar" style="width: 100%; height: 180px; position: relative; overflow: hidden;">
+                            <img src="/static/logos/GamgerJay premium companion.png" alt="GamerJay Premium" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='/static/logos/IntroLogo.png'">
+                            ${lockOverlay}
+                        </div>
+                        <div class="companion-info" style="padding: 20px;">
+                            <h3 style="font-size: 1.3rem; font-weight: 700; margin-bottom: 8px;">GamerJay Premium - Strategic Mind</h3>
+                            <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 15px;">Advanced gaming strategies applied to life challenges</p>
+                            <div class="companion-actions" style="display: flex; gap: 10px;">
+                                <button onclick="${gamerJayState.onclick}" style="flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: 600; ${buttonStyle}" ${gamerJayState.isLocked ? 'disabled' : ''}>${gamerJayState.buttonText}</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+        function resetPremiumCompanionState() {
+            console.log('🔄 RESET: Resetting premium companion state');
+            
+            // Clear all premium lock state
+            localStorage.removeItem('premiumCompanionsLocked');
+            localStorage.removeItem('unlockedPremiumCompanion');
+            
+            // Check if trial is active
+            const trialActive = localStorage.getItem('trialActive') === 'true';
+            const trialExpiry = localStorage.getItem('trialExpiry');
+            const currentTime = Date.now();
+            
+            if (trialActive && trialExpiry && currentTime < parseInt(trialExpiry)) {
+                console.log('✅ RESET: Trial is active, unlocking premium companions');
+                showNotification('Premium companions unlocked! You can now select any premium companion during your trial.', 'success');
+            } else {
+                console.log('⚠️ RESET: No active trial found');
+                showNotification('No active trial found. Start a free trial to access premium companions.', 'info');
+            }
+            
+            // Re-render companions with new state
+            renderPremiumCompanions();
+        }
+        
+        // Check and restore premium companion lock state on page load
+        function checkAndRestorePremiumLocks() {
+            const isLocked = localStorage.getItem('premiumCompanionsLocked') === 'true';
+            const unlockedCompanion = localStorage.getItem('unlockedPremiumCompanion');
+            const trialActive = localStorage.getItem('trialActive') === 'true';
+            const trialExpiry = localStorage.getItem('trialExpiry');
+            const currentTime = Date.now();
+            
+            // AUTO-FIX: If trial is active but no companion was selected yet (old bug state), reset and unlock
+            if (trialActive && trialExpiry && currentTime < parseInt(trialExpiry) && (!isLocked || !unlockedCompanion)) {
+                console.log('🔄 AUTO-FIX: Active trial detected but companions not properly unlocked, auto-resetting');
+                resetPremiumCompanionState();
+                return;
+            }
+            
+            // Normal restore logic for properly selected companions
+            if (isLocked && unlockedCompanion && trialActive) {
+                console.log(`🔒 RESTORE: Restoring premium locks, unlocked: ${unlockedCompanion}`);
+                setTimeout(() => {
+                    lockOtherPremiumCompanions(unlockedCompanion);
+                }, 500); // Small delay to ensure DOM is ready
+            }
+        }
+        
         // Apply on page load and when user returns to page
-        document.addEventListener('DOMContentLoaded', forceStyleReapplication);
-        window.addEventListener('pageshow', forceStyleReapplication);
+        document.addEventListener('DOMContentLoaded', () => {
+            forceStyleReapplication();
+            setTimeout(() => {
+                renderPremiumCompanions();
+                checkAndRestorePremiumLocks(); 
+            }, 100);
+        });
+        window.addEventListener('pageshow', () => {
+            forceStyleReapplication();
+            setTimeout(() => {
+                renderPremiumCompanions();
+                checkAndRestorePremiumLocks();
+            }, 100);
+        });
         window.addEventListener('focus', forceStyleReapplication);
         
         // ==================== END TRIAL TIMER SYSTEM ====================

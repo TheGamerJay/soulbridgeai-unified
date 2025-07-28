@@ -2985,10 +2985,12 @@ def get_user_addons():
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
             
-        # For now, return empty add-ons since payment isn't set up
+        # Get active add-ons from session (where payment system stores them)
+        active_addons = session.get('user_addons', [])
+        
         return jsonify({
             "success": True,
-            "active_addons": []
+            "active_addons": active_addons
         })
         
     except Exception as e:
@@ -4415,6 +4417,573 @@ def api_referrals_share_templates():
     except Exception as e:
         logger.error(f"Referrals share templates error: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
+
+# ========================================
+# VOICE JOURNALING ADD-ON
+# ========================================
+
+@app.route("/voice-journaling")
+def voice_journaling_page():
+    """Voice journaling add-on page"""
+    if not is_logged_in():
+        return redirect("/login")
+    
+    # Check if user has voice-journaling add-on
+    user_addons = session.get('user_addons', [])
+    if 'voice-journaling' not in user_addons:
+        return redirect("/subscription?addon=voice-journaling")
+    
+    return render_template("voice_journaling.html")
+
+@app.route("/api/voice-journaling/transcribe", methods=["POST"])
+def voice_journaling_transcribe():
+    """Transcribe and analyze voice recording"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        # Check if user has voice-journaling add-on
+        user_addons = session.get('user_addons', [])
+        if 'voice-journaling' not in user_addons:
+            return jsonify({"success": False, "error": "Voice Journaling add-on required"}), 403
+        
+        if 'audio' not in request.files:
+            return jsonify({"success": False, "error": "No audio file provided"}), 400
+        
+        audio_file = request.files['audio']
+        
+        # For now, return a mock transcription and analysis
+        # In production, you would integrate with OpenAI Whisper API
+        mock_transcription = "I've been feeling quite overwhelmed lately with work and personal responsibilities. There's so much going on and I sometimes feel like I can't keep up with everything. But I'm trying to stay positive and take things one day at a time."
+        
+        mock_analysis = {
+            "summary": "This recording shows signs of stress and overwhelm, but also resilience and positive coping strategies. The speaker acknowledges their challenges while maintaining hope.",
+            "emotions": ["Stress", "Overwhelm", "Hope", "Determination"],
+            "mood_score": 6.5,
+            "recommendations": ["Practice mindfulness", "Break tasks into smaller steps", "Schedule regular breaks"]
+        }
+        
+        return jsonify({
+            "success": True,
+            "transcription": mock_transcription,
+            "analysis": mock_analysis
+        })
+        
+    except Exception as e:
+        logger.error(f"Voice transcription error: {e}")
+        return jsonify({"success": False, "error": "Failed to process audio"}), 500
+
+@app.route("/api/voice-journaling/save", methods=["POST"])
+def voice_journaling_save():
+    """Save voice journal entry"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        # Check if user has voice-journaling add-on
+        user_addons = session.get('user_addons', [])
+        if 'voice-journaling' not in user_addons:
+            return jsonify({"success": False, "error": "Voice Journaling add-on required"}), 403
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({"success": False, "error": "No data provided"}), 400
+        
+        # Initialize voice journal entries in session if not exists
+        if 'voice_journal_entries' not in session:
+            session['voice_journal_entries'] = []
+        
+        # Save entry to session (in production, save to database)
+        entry = {
+            "id": len(session['voice_journal_entries']) + 1,
+            "transcription": data.get('transcription'),
+            "analysis": data.get('analysis'),
+            "timestamp": data.get('timestamp'),
+            "user_id": session.get('user_id')
+        }
+        
+        session['voice_journal_entries'].append(entry)
+        session.permanent = True
+        
+        logger.info(f"Voice journal entry saved for user {session.get('user_email')}")
+        
+        return jsonify({
+            "success": True,
+            "message": "Journal entry saved successfully",
+            "entry_id": entry["id"]
+        })
+        
+    except Exception as e:
+        logger.error(f"Voice journal save error: {e}")
+        return jsonify({"success": False, "error": "Failed to save entry"}), 500
+
+@app.route("/api/voice-journaling/entries", methods=["GET"])
+def voice_journaling_entries():
+    """Get user's voice journal entries"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        # Check if user has voice-journaling add-on
+        user_addons = session.get('user_addons', [])
+        if 'voice-journaling' not in user_addons:
+            return jsonify({"success": False, "error": "Voice Journaling add-on required"}), 403
+        
+        # Get entries from session (in production, get from database)
+        entries = session.get('voice_journal_entries', [])
+        
+        # Sort by timestamp, most recent first
+        entries.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
+        
+        return jsonify({
+            "success": True,
+            "entries": entries[-10:]  # Return last 10 entries
+        })
+        
+    except Exception as e:
+        logger.error(f"Voice journal entries error: {e}")
+        return jsonify({"success": False, "error": "Failed to fetch entries"}), 500
+
+# ========================================
+# RELATIONSHIP PROFILES ADD-ON
+# ========================================
+
+@app.route("/relationship-profiles")
+def relationship_profiles_page():
+    """Relationship profiles add-on page"""
+    if not is_logged_in():
+        return redirect("/login")
+    
+    # Check if user has relationship add-on
+    user_addons = session.get('user_addons', [])
+    if 'relationship' not in user_addons:
+        return redirect("/subscription?addon=relationship")
+    
+    return render_template("relationship_profiles.html")
+
+@app.route("/api/relationship-profiles/add", methods=["POST"])
+def relationship_profiles_add():
+    """Add a new relationship profile"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        # Check if user has relationship add-on
+        user_addons = session.get('user_addons', [])
+        if 'relationship' not in user_addons:
+            return jsonify({"success": False, "error": "Relationship Profiles add-on required"}), 403
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({"success": False, "error": "No data provided"}), 400
+        
+        # Initialize relationship profiles in session if not exists
+        if 'relationship_profiles' not in session:
+            session['relationship_profiles'] = []
+        
+        # Create new profile
+        profile = {
+            "id": str(len(session['relationship_profiles']) + 1),
+            "name": data.get('name'),
+            "type": data.get('type'),
+            "connectionStrength": data.get('connectionStrength'),
+            "meetingFrequency": data.get('meetingFrequency'),
+            "lastContact": data.get('lastContact'),
+            "notes": data.get('notes', ''),
+            "timestamp": data.get('timestamp'),
+            "user_id": session.get('user_id')
+        }
+        
+        session['relationship_profiles'].append(profile)
+        session.permanent = True
+        
+        logger.info(f"Relationship profile added for user {session.get('user_email')}: {profile['name']}")
+        
+        return jsonify({
+            "success": True,
+            "message": "Relationship profile added successfully",
+            "profile_id": profile["id"]
+        })
+        
+    except Exception as e:
+        logger.error(f"Relationship profile add error: {e}")
+        return jsonify({"success": False, "error": "Failed to add profile"}), 500
+
+@app.route("/api/relationship-profiles/list", methods=["GET"])
+def relationship_profiles_list():
+    """Get user's relationship profiles"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        # Check if user has relationship add-on
+        user_addons = session.get('user_addons', [])
+        if 'relationship' not in user_addons:
+            return jsonify({"success": False, "error": "Relationship Profiles add-on required"}), 403
+        
+        # Get profiles from session (in production, get from database)
+        profiles = session.get('relationship_profiles', [])
+        
+        return jsonify({
+            "success": True,
+            "profiles": profiles
+        })
+        
+    except Exception as e:
+        logger.error(f"Relationship profiles list error: {e}")
+        return jsonify({"success": False, "error": "Failed to fetch profiles"}), 500
+
+@app.route("/api/relationship-profiles/delete/<profile_id>", methods=["DELETE"])
+def relationship_profiles_delete(profile_id):
+    """Delete a relationship profile"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        # Check if user has relationship add-on
+        user_addons = session.get('user_addons', [])
+        if 'relationship' not in user_addons:
+            return jsonify({"success": False, "error": "Relationship Profiles add-on required"}), 403
+        
+        # Get profiles from session
+        profiles = session.get('relationship_profiles', [])
+        
+        # Find and remove the profile
+        updated_profiles = [p for p in profiles if p.get('id') != profile_id]
+        
+        if len(updated_profiles) == len(profiles):
+            return jsonify({"success": False, "error": "Profile not found"}), 404
+        
+        session['relationship_profiles'] = updated_profiles
+        session.permanent = True
+        
+        logger.info(f"Relationship profile deleted for user {session.get('user_email')}: {profile_id}")
+        
+        return jsonify({
+            "success": True,
+            "message": "Profile deleted successfully"
+        })
+        
+    except Exception as e:
+        logger.error(f"Relationship profile delete error: {e}")
+        return jsonify({"success": False, "error": "Failed to delete profile"}), 500
+
+# ========================================
+# EMOTIONAL MEDITATIONS ADD-ON
+# ========================================
+
+@app.route("/emotional-meditations")
+def emotional_meditations_page():
+    """Emotional meditations add-on page"""
+    if not is_logged_in():
+        return redirect("/login")
+    
+    # Check if user has emotional-meditations add-on
+    user_addons = session.get('user_addons', [])
+    if 'emotional-meditations' not in user_addons:
+        return redirect("/subscription?addon=emotional-meditations")
+    
+    return render_template("emotional_meditations.html")
+
+@app.route("/api/emotional-meditations/save-session", methods=["POST"])
+def emotional_meditations_save_session():
+    """Save completed meditation session"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        # Check if user has emotional-meditations add-on
+        user_addons = session.get('user_addons', [])
+        if 'emotional-meditations' not in user_addons:
+            return jsonify({"success": False, "error": "Emotional Meditations add-on required"}), 403
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({"success": False, "error": "No data provided"}), 400
+        
+        # Initialize meditation sessions in session if not exists
+        if 'meditation_sessions' not in session:
+            session['meditation_sessions'] = []
+        
+        # Save session data
+        session_record = {
+            "id": len(session['meditation_sessions']) + 1,
+            "meditationId": data.get('meditationId'),
+            "title": data.get('title'),
+            "duration": data.get('duration'),
+            "completed": data.get('completed'),
+            "timestamp": data.get('timestamp'),
+            "user_id": session.get('user_id')
+        }
+        
+        session['meditation_sessions'].append(session_record)
+        session.permanent = True
+        
+        logger.info(f"Meditation session saved for user {session.get('user_email')}: {session_record['title']}")
+        
+        return jsonify({
+            "success": True,
+            "message": "Meditation session saved successfully"
+        })
+        
+    except Exception as e:
+        logger.error(f"Meditation session save error: {e}")
+        return jsonify({"success": False, "error": "Failed to save session"}), 500
+
+@app.route("/api/emotional-meditations/stats", methods=["GET"])
+def emotional_meditations_stats():
+    """Get user's meditation statistics"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        # Check if user has emotional-meditations add-on
+        user_addons = session.get('user_addons', [])
+        if 'emotional-meditations' not in user_addons:
+            return jsonify({"success": False, "error": "Emotional Meditations add-on required"}), 403
+        
+        # Get sessions from session storage
+        sessions = session.get('meditation_sessions', [])
+        
+        # Calculate stats
+        total_sessions = len(sessions)
+        total_minutes = sum(session.get('duration', 0) for session in sessions) // 60
+        
+        # Calculate streak (simplified - consecutive days with sessions)
+        from datetime import datetime, timedelta
+        today = datetime.now().date()
+        streak_days = 0
+        
+        if sessions:
+            # Get unique dates with sessions
+            session_dates = set()
+            for session in sessions:
+                try:
+                    session_date = datetime.fromisoformat(session['timestamp'].replace('Z', '')).date()
+                    session_dates.add(session_date)
+                except:
+                    continue
+            
+            # Count consecutive days from today backwards
+            check_date = today
+            while check_date in session_dates:
+                streak_days += 1
+                check_date -= timedelta(days=1)
+        
+        # Find favorite meditation type (simplified)
+        favorite_type = "Stress Relief"  # Default
+        if sessions:
+            meditation_counts = {}
+            for session in sessions:
+                meditation_id = session.get('meditationId', '')
+                if meditation_id.startswith('stress'):
+                    meditation_counts['Stress Relief'] = meditation_counts.get('Stress Relief', 0) + 1
+                elif meditation_id.startswith('anxiety'):
+                    meditation_counts['Anxiety Support'] = meditation_counts.get('Anxiety Support', 0) + 1
+                elif meditation_id.startswith('sleep'):
+                    meditation_counts['Sleep & Rest'] = meditation_counts.get('Sleep & Rest', 0) + 1
+                elif meditation_id.startswith('healing'):
+                    meditation_counts['Emotional Healing'] = meditation_counts.get('Emotional Healing', 0) + 1
+                elif meditation_id.startswith('confidence'):
+                    meditation_counts['Self-Confidence'] = meditation_counts.get('Self-Confidence', 0) + 1
+                elif meditation_id.startswith('breathing'):
+                    meditation_counts['Breathing Exercises'] = meditation_counts.get('Breathing Exercises', 0) + 1
+            
+            if meditation_counts:
+                favorite_type = max(meditation_counts, key=meditation_counts.get)
+        
+        stats = {
+            "totalSessions": total_sessions,
+            "totalMinutes": total_minutes,
+            "streakDays": streak_days,
+            "favoriteType": favorite_type
+        }
+        
+        return jsonify({
+            "success": True,
+            "stats": stats
+        })
+        
+    except Exception as e:
+        logger.error(f"Meditation stats error: {e}")
+        return jsonify({"success": False, "error": "Failed to fetch stats"}), 500
+
+# ========================================
+# AI IMAGE GENERATION ADD-ON
+# ========================================
+
+@app.route("/ai-image-generation")
+def ai_image_generation_page():
+    """AI image generation add-on page"""
+    if not is_logged_in():
+        return redirect("/login")
+    
+    # Check if user has ai-image-generation add-on
+    user_addons = session.get('user_addons', [])
+    if 'ai-image-generation' not in user_addons:
+        return redirect("/subscription?addon=ai-image-generation")
+    
+    return render_template("ai_image_generation.html")
+
+@app.route("/api/ai-image-generation/generate", methods=["POST"])
+def ai_image_generation_generate():
+    """Generate AI image from prompt"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        # Check if user has ai-image-generation add-on
+        user_addons = session.get('user_addons', [])
+        if 'ai-image-generation' not in user_addons:
+            return jsonify({"success": False, "error": "AI Image Generation add-on required"}), 403
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({"success": False, "error": "No data provided"}), 400
+        
+        prompt = data.get('prompt')
+        style = data.get('style', 'realistic')
+        
+        if not prompt:
+            return jsonify({"success": False, "error": "Prompt required"}), 400
+        
+        # Check usage limit (50 per month)
+        current_month = datetime.now().strftime('%Y-%m')
+        usage_key = f'ai_image_usage_{current_month}'
+        monthly_usage = session.get(usage_key, 0)
+        
+        if monthly_usage >= 50:
+            return jsonify({"success": False, "error": "Monthly usage limit reached (50 images)"}), 403
+        
+        # For demo purposes, return a placeholder image
+        # In production, you would integrate with DALL-E API here
+        placeholder_images = [
+            "https://picsum.photos/512/512?random=1",
+            "https://picsum.photos/512/512?random=2", 
+            "https://picsum.photos/512/512?random=3",
+            "https://picsum.photos/512/512?random=4",
+            "https://picsum.photos/512/512?random=5"
+        ]
+        
+        import random
+        mock_image_url = random.choice(placeholder_images)
+        
+        # Update usage count
+        session[usage_key] = monthly_usage + 1
+        session.permanent = True
+        
+        logger.info(f"AI image generated for user {session.get('user_email')}: {prompt[:50]}...")
+        
+        return jsonify({
+            "success": True,
+            "imageUrl": mock_image_url,
+            "prompt": prompt,
+            "style": style,
+            "message": "Image generated successfully! (Demo mode - placeholder image)"
+        })
+        
+    except Exception as e:
+        logger.error(f"AI image generation error: {e}")
+        return jsonify({"success": False, "error": "Failed to generate image"}), 500
+
+@app.route("/api/ai-image-generation/save", methods=["POST"])
+def ai_image_generation_save():
+    """Save generated image to gallery"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        # Check if user has ai-image-generation add-on
+        user_addons = session.get('user_addons', [])
+        if 'ai-image-generation' not in user_addons:
+            return jsonify({"success": False, "error": "AI Image Generation add-on required"}), 403
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({"success": False, "error": "No data provided"}), 400
+        
+        # Initialize gallery in session if not exists
+        if 'ai_image_gallery' not in session:
+            session['ai_image_gallery'] = []
+        
+        # Save image data
+        image_record = {
+            "id": len(session['ai_image_gallery']) + 1,
+            "imageUrl": data.get('imageUrl'),
+            "prompt": data.get('prompt'),
+            "style": data.get('style'),
+            "timestamp": data.get('timestamp'),
+            "user_id": session.get('user_id')
+        }
+        
+        session['ai_image_gallery'].append(image_record)
+        session.permanent = True
+        
+        logger.info(f"AI image saved to gallery for user {session.get('user_email')}")
+        
+        return jsonify({
+            "success": True,
+            "message": "Image saved to gallery successfully"
+        })
+        
+    except Exception as e:
+        logger.error(f"AI image save error: {e}")
+        return jsonify({"success": False, "error": "Failed to save image"}), 500
+
+@app.route("/api/ai-image-generation/gallery", methods=["GET"])
+def ai_image_generation_gallery():
+    """Get user's AI image gallery"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        # Check if user has ai-image-generation add-on
+        user_addons = session.get('user_addons', [])
+        if 'ai-image-generation' not in user_addons:
+            return jsonify({"success": False, "error": "AI Image Generation add-on required"}), 403
+        
+        # Get images from session (in production, get from database)
+        images = session.get('ai_image_gallery', [])
+        
+        # Sort by timestamp, most recent first
+        images.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
+        
+        return jsonify({
+            "success": True,
+            "images": images
+        })
+        
+    except Exception as e:
+        logger.error(f"AI image gallery error: {e}")
+        return jsonify({"success": False, "error": "Failed to fetch gallery"}), 500
+
+@app.route("/api/ai-image-generation/usage", methods=["GET"])
+def ai_image_generation_usage():
+    """Get user's monthly usage statistics"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        # Check if user has ai-image-generation add-on
+        user_addons = session.get('user_addons', [])
+        if 'ai-image-generation' not in user_addons:
+            return jsonify({"success": False, "error": "AI Image Generation add-on required"}), 403
+        
+        # Get current month usage
+        current_month = datetime.now().strftime('%Y-%m')
+        usage_key = f'ai_image_usage_{current_month}'
+        monthly_usage = session.get(usage_key, 0)
+        
+        return jsonify({
+            "success": True,
+            "used": monthly_usage,
+            "limit": 50,
+            "remaining": 50 - monthly_usage
+        })
+        
+    except Exception as e:
+        logger.error(f"AI image usage error: {e}")
+        return jsonify({"success": False, "error": "Failed to fetch usage"}), 500
 
 # ========================================
 # UTILITY ROUTES  

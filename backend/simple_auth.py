@@ -102,6 +102,7 @@ class SimpleAuth:
         session['user_email'] = user_data['email']
         session['display_name'] = user_data['display_name']
         session['last_activity'] = datetime.now().isoformat()
+        session['session_version'] = "2025-07-28-banking-security"  # BANKING SECURITY: Force version check
         
         # Try to fetch and store account creation date
         try:
