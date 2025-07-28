@@ -855,6 +855,28 @@
                         tier: 'free',
                         popularity_score: 88,
                         is_recommended: true
+                    },
+                    {
+                        companion_id: 'companion_blayzo_free',
+                        display_name: 'Blayzo - The Wise Mentor',
+                        avatar_image: '/static/logos/Blayzo.png',
+                        short_bio: 'Calm wisdom and thoughtful guidance for life\'s journey',
+                        personality_tags: ['Wise', 'Calm', 'Empathetic'],
+                        special_features: ['Life guidance', 'Emotional support', 'Mindfulness', 'Decision making'],
+                        tier: 'free',
+                        popularity_score: 95,
+                        is_recommended: true
+                    },
+                    {
+                        companion_id: 'companion_blayzica_free',
+                        display_name: 'Blayzica - The Healing Heart',
+                        avatar_image: '/static/logos/Blayzica.png',
+                        short_bio: 'Gentle healing and nurturing support for emotional wellness',
+                        personality_tags: ['Healing', 'Nurturing', 'Supportive'],
+                        special_features: ['Emotional healing', 'Stress relief', 'Self-care guidance', 'Compassionate listening'],
+                        tier: 'free',
+                        popularity_score: 92,
+                        is_recommended: true
                     }
                 ],
                 growth: [
@@ -1034,7 +1056,7 @@
             
             if (freeContainer) {
                 freeContainer.innerHTML = `
-                    <div class="companion-card" onclick="selectCompanion('companion_gamerjay')" style="min-width: 280px; background: rgba(255,255,255,0.95); border-radius: 16px; padding: 0; cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.1); border: 2px solid transparent;">
+                    <div class="companion-card" onclick="selectCompanion('companion_gamerjay')" style="min-width: 280px; background: rgba(0,0,0,0.9); border-radius: 16px; padding: 0; cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden; box-shadow: 0 8px 32px rgba(0,255,255,0.2); border: 2px solid rgba(0,255,255,0.3);">
                         <div class="companion-avatar" style="width: 100%; height: 180px; position: relative; overflow: hidden;">
                             <img src="/static/logos/GamerJay Free companion.png" alt="GamerJay" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='/static/logos/IntroLogo.png'">
                             <div class="companion-badges" style="position: absolute; top: 12px; right: 12px; display: flex; flex-direction: column; gap: 6px;">
@@ -1042,10 +1064,40 @@
                             </div>
                         </div>
                         <div class="companion-info" style="padding: 20px;">
-                            <h3 style="font-size: 1.3rem; font-weight: 700; margin-bottom: 8px;">GamerJay - The Gaming Coach</h3>
-                            <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 15px;">Your gaming companion who understands the grind</p>
+                            <h3 style="font-size: 1.3rem; font-weight: 700; margin-bottom: 8px; color: #00ffff;">GamerJay - The Gaming Coach</h3>
+                            <p style="color: rgba(0,255,255,0.8); font-size: 0.9rem; margin-bottom: 15px;">Your gaming companion who understands the grind</p>
                             <div class="companion-actions" style="display: flex; gap: 10px;">
-                                <button style="flex: 1; padding: 12px; background: #673ab7; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Select</button>
+                                <button style="flex: 1; padding: 12px; background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%); color: #00ffff; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; text-shadow: 0 0 5px rgba(0,255,255,0.5);">Select</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="companion-card" onclick="selectCompanion('companion_blayzo_free')" style="min-width: 280px; background: rgba(0,0,0,0.9); border-radius: 16px; padding: 0; cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden; box-shadow: 0 8px 32px rgba(0,255,255,0.2); border: 2px solid rgba(0,255,255,0.3);">
+                        <div class="companion-avatar" style="width: 100%; height: 180px; position: relative; overflow: hidden;">
+                            <img src="/static/logos/Blayzo.png" alt="Blayzo" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='/static/logos/IntroLogo.png'">
+                            <div class="companion-badges" style="position: absolute; top: 12px; right: 12px; display: flex; flex-direction: column; gap: 6px;">
+                                <span style="padding: 4px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; backdrop-filter: blur(10px); background: rgba(76, 175, 80, 0.9); color: white;">Recommended</span>
+                            </div>
+                        </div>
+                        <div class="companion-info" style="padding: 20px;">
+                            <h3 style="font-size: 1.3rem; font-weight: 700; margin-bottom: 8px; color: #00ffff;">Blayzo - The Wise Mentor</h3>
+                            <p style="color: rgba(0,255,255,0.8); font-size: 0.9rem; margin-bottom: 15px;">Calm wisdom and thoughtful guidance for life's journey</p>
+                            <div class="companion-actions" style="display: flex; gap: 10px;">
+                                <button style="flex: 1; padding: 12px; background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%); color: #00ffff; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; text-shadow: 0 0 5px rgba(0,255,255,0.5);">Select</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="companion-card" onclick="selectCompanion('companion_blayzica_free')" style="min-width: 280px; background: rgba(0,0,0,0.9); border-radius: 16px; padding: 0; cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden; box-shadow: 0 8px 32px rgba(0,255,255,0.2); border: 2px solid rgba(0,255,255,0.3);">
+                        <div class="companion-avatar" style="width: 100%; height: 180px; position: relative; overflow: hidden;">
+                            <img src="/static/logos/Blayzica.png" alt="Blayzica" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='/static/logos/IntroLogo.png'">
+                            <div class="companion-badges" style="position: absolute; top: 12px; right: 12px; display: flex; flex-direction: column; gap: 6px;">
+                                <span style="padding: 4px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; backdrop-filter: blur(10px); background: rgba(76, 175, 80, 0.9); color: white;">Recommended</span>
+                            </div>
+                        </div>
+                        <div class="companion-info" style="padding: 20px;">
+                            <h3 style="font-size: 1.3rem; font-weight: 700; margin-bottom: 8px; color: #00ffff;">Blayzica - The Healing Heart</h3>
+                            <p style="color: rgba(0,255,255,0.8); font-size: 0.9rem; margin-bottom: 15px;">Gentle healing and nurturing support for emotional wellness</p>
+                            <div class="companion-actions" style="display: flex; gap: 10px;">
+                                <button style="flex: 1; padding: 12px; background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%); color: #00ffff; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; text-shadow: 0 0 5px rgba(0,255,255,0.5);">Select</button>
                             </div>
                         </div>
                     </div>
