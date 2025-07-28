@@ -183,7 +183,7 @@
             <div class="plan-name">{{ plan_display }}</div>
             
             <div class="price-display">{{ price_display }}</div>
-            <div class="price-period">per month</div>
+            <div class="price-period">per {% if billing == 'yearly' %}year{% else %}month{% endif %}</div>
             
             <div class="features-list">
                 <h3>✨ What's Included</h3>

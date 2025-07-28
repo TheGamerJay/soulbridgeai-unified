@@ -2234,7 +2234,8 @@ def payment_page():
         return render_template("payment.html", 
                              plan=plan,
                              plan_display=plan_display,
-                             price_display=price_display)
+                             price_display=price_display,
+                             billing=billing)
     except Exception as e:
         logger.error(f"Payment page error: {e}")
         return redirect("/subscription")
