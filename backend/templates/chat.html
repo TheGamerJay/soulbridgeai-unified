@@ -3646,6 +3646,12 @@
             }
             
             var selectedCharacter = localStorage.getItem('selectedCharacter');
+            var chatMessages = document.getElementById('chatMessages');
+            
+            if (!chatMessages) {
+                console.error('Chat messages container not found');
+                return;
+            }
             
             // Add user message
             var userDiv = document.createElement('div');
