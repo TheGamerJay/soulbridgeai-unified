@@ -281,10 +281,10 @@ function loadFallbackCompanions() {
 function renderCompanions() {
     console.log('🎨 Rendering companions...');
     
-    renderSection('free', companions.free);
-    renderSection('growth', companions.growth.concat(companions.locked.filter(c => c.tier === 'growth')));
-    renderSection('max', companions.max.concat(companions.locked.filter(c => c.tier === 'max')));
-    renderSection('referral', companions.referral.concat(companions.locked.filter(c => c.tier === 'referral')));
+    renderSection('free', companions.free || []);
+    renderSection('growth', companions.growth || []);
+    renderSection('max', companions.max || []);
+    renderSection('referral', companions.referral || []);
 }
 
 function renderSection(sectionId, companionList) {
