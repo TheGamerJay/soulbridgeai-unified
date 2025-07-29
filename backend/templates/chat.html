@@ -2548,21 +2548,45 @@
                 if (isPremium && !hasPurchased && !isReferralCompanion) {
                     console.log('Premium character selected - checking subscription requirements');
                     
-                    // STRICT CHECK: Always require PAID subscription for premium characters
-                    var hasActiveSubscription = localStorage.getItem('soulbridge_subscription') === 'premium' || 
-                                               localStorage.getItem('soulbridge_subscription') === 'enterprise' ||
-                                               localStorage.getItem('soulbridge_subscription') === 'growth' ||
-                                               localStorage.getItem('soulbridge_subscription') === 'transformation';
+                    // Check for active trial
+                    var trialActive = localStorage.getItem('trial_active') === 'true';
+                    var trialCompanion = localStorage.getItem('trial_companion');
+                    var trialExpires = localStorage.getItem('trial_expires');
                     
-                    // Check user's selected plan from backend session  
-                    var selectedPlan = JSON.parse(localStorage.getItem('selectedPlan') || '{}');
-                    var userPlan = selectedPlan.plan || 'foundation';
+                    // Check if trial is still valid
+                    var isTrialValid = false;
+                    if (trialActive && trialExpires) {
+                        try {
+                            var expiryDate = new Date(trialExpires);
+                            var now = new Date();
+                            isTrialValid = now < expiryDate;
+                            console.log('Trial check:', { trialActive, trialCompanion, isTrialValid, expiryDate, now });
+                        } catch (e) {
+                            console.error('Trial date parsing error:', e);
+                        }
+                    }
                     
-                    // ALWAYS require paid plan for premium characters - no exceptions
-                    if (userPlan === 'foundation' || (!hasActiveSubscription && userPlan !== 'premium' && userPlan !== 'enterprise')) {
-                        console.log('Free plan user trying to access premium character - showing upgrade modal');
-                        showPremiumUpgradeModal(characterName);
-                        return;
+                    // Allow access if user has trial for this specific character
+                    if (isTrialValid && trialCompanion === characterName) {
+                        console.log('✅ Trial access granted for:', characterName);
+                        // Continue with selection
+                    } else {
+                        // STRICT CHECK: Always require PAID subscription for premium characters
+                        var hasActiveSubscription = localStorage.getItem('soulbridge_subscription') === 'premium' || 
+                                                   localStorage.getItem('soulbridge_subscription') === 'enterprise' ||
+                                                   localStorage.getItem('soulbridge_subscription') === 'growth' ||
+                                                   localStorage.getItem('soulbridge_subscription') === 'transformation';
+                        
+                        // Check user's selected plan from backend session  
+                        var selectedPlan = JSON.parse(localStorage.getItem('selectedPlan') || '{}');
+                        var userPlan = selectedPlan.plan || 'foundation';
+                        
+                        // ALWAYS require paid plan for premium characters - no exceptions
+                        if (userPlan === 'foundation' || (!hasActiveSubscription && userPlan !== 'premium' && userPlan !== 'enterprise')) {
+                            console.log('Free plan user trying to access premium character - showing upgrade modal');
+                            showPremiumUpgradeModal(characterName);
+                            return;
+                        }
                     }
                     
                     // Only users with verified paid subscription can proceed
@@ -2690,9 +2714,32 @@
                 if (isPremium && !hasPurchased && !isReferralCompanion) {
                     console.log('Premium character selected - checking subscription requirements (switching flow)');
                     
-                    // STRICT CHECK: Always require PAID subscription for premium characters
-                    var hasActiveSubscription = localStorage.getItem('soulbridge_subscription') === 'premium' || 
-                                               localStorage.getItem('soulbridge_subscription') === 'enterprise' ||
+                    // Check for active trial
+                    var trialActive = localStorage.getItem('trial_active') === 'true';
+                    var trialCompanion = localStorage.getItem('trial_companion');
+                    var trialExpires = localStorage.getItem('trial_expires');
+                    
+                    // Check if trial is still valid
+                    var isTrialValid = false;
+                    if (trialActive && trialExpires) {
+                        try {
+                            var expiryDate = new Date(trialExpires);
+                            var now = new Date();
+                            isTrialValid = now < expiryDate;
+                            console.log('Trial check (switching):', { trialActive, trialCompanion, isTrialValid, expiryDate, now });
+                        } catch (e) {
+                            console.error('Trial date parsing error (switching):', e);
+                        }
+                    }
+                    
+                    // Allow access if user has trial for this specific character
+                    if (isTrialValid && trialCompanion === characterName) {
+                        console.log('✅ Trial access granted for switching to:', characterName);
+                        // Continue with selection
+                    } else {
+                        // STRICT CHECK: Always require PAID subscription for premium characters
+                        var hasActiveSubscription = localStorage.getItem('soulbridge_subscription') === 'premium' || 
+                                                   localStorage.getItem('soulbridge_subscription') === 'enterprise' ||
                                                localStorage.getItem('soulbridge_subscription') === 'growth' ||
                                                localStorage.getItem('soulbridge_subscription') === 'transformation';
                     
@@ -2700,11 +2747,12 @@
                     var selectedPlan = JSON.parse(localStorage.getItem('selectedPlan') || '{}');
                     var userPlan = selectedPlan.plan || 'foundation';
                     
-                    // ALWAYS require paid plan for premium characters - no exceptions
-                    if (userPlan === 'foundation' || (!hasActiveSubscription && userPlan !== 'premium' && userPlan !== 'enterprise')) {
-                        console.log('Free plan user trying to access premium character - showing upgrade modal');
-                        showPremiumUpgradeModal(characterName);
-                        return;
+                        // ALWAYS require paid plan for premium characters - no exceptions
+                        if (userPlan === 'foundation' || (!hasActiveSubscription && userPlan !== 'premium' && userPlan !== 'enterprise')) {
+                            console.log('Free plan user trying to access premium character - showing upgrade modal');
+                            showPremiumUpgradeModal(characterName);
+                            return;
+                        }
                     }
                     
                     // Only users with verified paid subscription can proceed
@@ -5949,7 +5997,21 @@
                             <strong style="color: #fbbf24;">Upgrade to SoulBridge AI Plus</strong> to unlock all premium companions and enhanced features!
                         </div>
                         
-                        <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 2rem;">
+                        <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 2rem; flex-wrap: wrap;">
+                            <button onclick="startTrialForCharacter('${characterName}')" style="
+                                background: linear-gradient(135deg, #22d3ee, #0891b2);
+                                color: #000;
+                                border: none;
+                                padding: 1rem 2rem;
+                                border-radius: 12px;
+                                font-weight: bold;
+                                font-size: 1rem;
+                                cursor: pointer;
+                                box-shadow: 0 4px 15px rgba(34, 211, 238, 0.4);
+                                transition: all 0.3s ease;
+                            ">
+                                🎯 Start 24h Trial
+                            </button>
                             <button onclick="upgradeToPremium()" style="
                                 background: linear-gradient(135deg, #fbbf24, #f59e0b);
                                 color: #000;
@@ -6020,6 +6082,49 @@
                     document.body.style.overflow = 'auto';
                 }, 300);
             }
+        }
+
+        // Start trial for a specific character
+        function startTrialForCharacter(characterName) {
+            console.log('🎯 Starting trial for:', characterName);
+            
+            fetch('/api/companions/trial', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    companion_id: characterName
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log('✅ Trial started successfully:', data);
+                    
+                    // Close modal
+                    closePremiumModal();
+                    
+                    // Set trial in localStorage
+                    localStorage.setItem('trial_active', 'true');
+                    localStorage.setItem('trial_companion', characterName);
+                    localStorage.setItem('trial_expires', data.trial_expires);
+                    
+                    // Show success message
+                    alert(`🎉 24-hour trial started for ${characterName}! You can now chat with this premium companion.`);
+                    
+                    // Automatically select the trial companion
+                    selectCompanion(characterName);
+                    
+                } else {
+                    console.error('❌ Trial start failed:', data);
+                    alert(data.error || 'Failed to start trial. Please try again.');
+                }
+            })
+            .catch(error => {
+                console.error('🚫 Trial request error:', error);
+                alert('Network error. Please check your connection and try again.');
+            });
         }
 
         // Switching payment modal function
