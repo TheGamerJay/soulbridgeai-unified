@@ -3158,6 +3158,24 @@
             // Check if URL has show_intro parameter (from fresh login)
             var urlParams = new URLSearchParams(window.location.search);
             var showIntro = urlParams.get('show_intro');
+            var companionParam = urlParams.get('companion');
+            
+            // Handle post-login companion selection
+            if (companionParam && !showIntro) {
+                console.log('Post-login companion selection:', companionParam);
+                localStorage.setItem('selectedCharacter', companionParam);
+                localStorage.setItem('firstPickMade', 'true');
+                localStorage.setItem('currentScreen', 'chat');
+                
+                // Clean URL
+                var cleanUrl = window.location.pathname;
+                window.history.replaceState({}, document.title, cleanUrl);
+                
+                // Show success message
+                setTimeout(() => {
+                    alert(`Welcome back! You've selected ${companionParam} as your companion.`);
+                }, 500);
+            }
             
             if (showIntro === 'true') {
                 // Clear localStorage state to force intro screen on fresh login
@@ -6231,7 +6249,9 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({})
+                    body: JSON.stringify({
+                        companion_name: characterName
+                    })
                 });
 
                 const result = await response.json();

@@ -919,7 +919,11 @@ def companion_selection():
 def chat():
     """Chat page with selected companion"""
     if not is_logged_in():
-        return redirect("/login")
+        # Preserve intended companion selection
+        companion = request.args.get('companion')
+        if companion:
+            return redirect(f"/login?return_to=chat&companion={companion}")
+        return redirect("/login?return_to=chat")
     return render_template("chat.html")
 
 @app.route("/api/companions", methods=["GET"])
@@ -2553,7 +2557,17 @@ def payment_success():
                 if checkout_session.payment_status == "paid":
                     user_email = session.get("user_email")
                     
-                    if plan_type:
+                    # Check if this is a switching payment
+                    if checkout_session.metadata and checkout_session.metadata.get('payment_type') == 'companion_switching':
+                        # Handle companion switching payment
+                        session['switching_unlocked'] = True
+                        companion_name = checkout_session.metadata.get('companion_name', 'Companion')
+                        session['selected_companion'] = companion_name
+                        subscription_type = "switching"
+                        item_name = f"Switch to {companion_name}"
+                        logger.info(f"Payment successful: {user_email} unlocked companion switching for {companion_name}")
+                        redirect_url = f"/chat?switching_success=true&companion={companion_name}"
+                    elif plan_type:
                         # Handle plan subscription
                         session["user_plan"] = plan_type
                         subscription_type = "plan"
@@ -5236,6 +5250,82 @@ def server_error(e):
     return jsonify({"error": "Internal server error"}), 500
 
 # ========================================
+# ========================================
+# COMPANION SWITCHING PAYMENT API
+# ========================================
+
+@app.route("/api/create-switching-payment", methods=["POST"])
+def create_switching_payment():
+    """Create Stripe payment for $3 companion switching"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        data = request.get_json() or {}
+        companion_name = data.get("companion_name", "Companion")
+        
+        # Check if switching payment already made
+        if session.get('switching_unlocked'):
+            return jsonify({
+                "success": False, 
+                "error": "Switching already unlocked!"
+            }), 400
+        
+        # Create Stripe checkout session for $3 switching payment
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[{
+                'price_data': {
+                    'currency': 'usd',
+                    'product_data': {
+                        'name': f'Switch to {companion_name}',
+                        'description': 'One-time payment for unlimited companion switching',
+                    },
+                    'unit_amount': 300,  # $3.00
+                },
+                'quantity': 1,
+            }],
+            mode='payment',
+            success_url=f'{request.url_root}chat?switching_success=true&companion={companion_name}',
+            cancel_url=f'{request.url_root}chat?switching_cancel=true',
+            metadata={
+                'user_email': session.get('user_email', session.get('email')),
+                'user_id': session.get('user_id'),
+                'payment_type': 'companion_switching',
+                'companion_name': companion_name
+            }
+        )
+        
+        logger.info(f"💳 Created switching payment session for user {session.get('user_email')} - ${3}")
+        
+        return jsonify({
+            "success": True,
+            "checkout_url": checkout_session.url,
+            "session_id": checkout_session.id
+        })
+        
+    except Exception as e:
+        logger.error(f"Create switching payment error: {e}")
+        return jsonify({"success": False, "error": "Failed to create payment session"}), 500
+
+@app.route("/api/check-switching-status", methods=["GET"])
+def check_switching_status():
+    """Check if user has unlocked companion switching"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+            
+        switching_unlocked = session.get('switching_unlocked', False)
+        
+        return jsonify({
+            "success": True,
+            "switching_unlocked": switching_unlocked
+        })
+        
+    except Exception as e:
+        logger.error(f"Check switching status error: {e}")
+        return jsonify({"success": False, "error": "Failed to check status"}), 500
+
 # APPLICATION STARTUP
 # ========================================
 
