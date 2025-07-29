@@ -51,6 +51,16 @@ document.addEventListener("DOMContentLoaded", function() {
                 
                 if (data.success) {
                     console.log("✅ Login successful, setting authentication and redirecting...");
+                    
+                    // Clear any previous user's trial data to prevent trial carryover
+                    console.log("🧹 Clearing previous user's trial data...");
+                    localStorage.removeItem('trialActive');
+                    localStorage.removeItem('trialExpiry');
+                    localStorage.removeItem('trialStartTime');
+                    localStorage.removeItem('trialSelectedCompanion');
+                    localStorage.removeItem('premiumCompanionsLocked');
+                    localStorage.removeItem('unlockedPremiumCompanion');
+                    
                     // Set client-side authentication flags
                     localStorage.setItem('user_authenticated', 'true');
                     sessionStorage.setItem('user_authenticated', 'true');

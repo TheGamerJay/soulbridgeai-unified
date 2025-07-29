@@ -2054,6 +2054,19 @@
         function initializeTrialTimer() {
             console.log('⏰ Initializing trial timer system...');
             
+            // SECURITY: Validate trial belongs to current session
+            const userAuthenticated = localStorage.getItem('user_authenticated');
+            if (!userAuthenticated) {
+                console.log('🧹 No authenticated user - clearing any leftover trial data');
+                localStorage.removeItem('trialActive');
+                localStorage.removeItem('trialExpiry');
+                localStorage.removeItem('trialStartTime');
+                localStorage.removeItem('trialSelectedCompanion');
+                localStorage.removeItem('premiumCompanionsLocked');
+                localStorage.removeItem('unlockedPremiumCompanion');
+                return;
+            }
+            
             // Set up page visibility detection
             document.addEventListener('visibilitychange', handleVisibilityChange);
             window.addEventListener('focus', handlePageFocus);

@@ -3993,6 +3993,9 @@
                 const userTier = tierData.tier || 'foundation'; // foundation, premium (growth), enterprise (max)
                 const companionTier = getCompanionTier(selectedCharacter);
                 
+                // Store user tier in localStorage for immediate access by animation functions
+                localStorage.setItem('userTier', userTier);
+                
                 console.log('🎯 Tier check - User:', userTier, 'Companion:', companionTier, 'Character:', selectedCharacter);
                 
                 // Check what features user should have access to
@@ -4059,11 +4062,14 @@
                 features.customThemes = true;
             }
             
-            // Max plan features (enterprise in backend)
+            // Max plan features (enterprise in backend) - includes ALL Growth features PLUS more
             if (userTier === 'enterprise') {
                 features.voiceChatLabel = '🎤 Advanced Voice Chat (Max)';
                 features.advancedAI = true;
-                features.premiumAnimations = true;
+                features.prioritySupport = true;
+                features.unlimitedMessages = true;
+                features.customThemes = true; // Max gets Growth's 3-palette system
+                features.premiumAnimations = true; // PLUS exclusive animations
             }
 
             return features;
@@ -4076,6 +4082,22 @@
                 document.body.classList.add('premium-user');
             }
             
+            // Apply Premium Animations for Max Plan subscribers
+            if (features.premiumAnimations) {
+                console.log('🌟 Applying Premium Animations for Max Plan user');
+                applyPremiumAnimations();
+            } else {
+                removePremiumAnimations();
+            }
+            
+            // Apply Custom Themes for Growth Plan (3-palette system)
+            if (features.customThemes) {
+                console.log('🎨 Applying 3-Palette System for Growth Plan user');
+                showPaletteSelector();
+            } else {
+                hidePaletteSelector();
+            }
+            
             // Show/hide premium indicators
             const premiumIndicators = document.querySelectorAll('.premium-indicator');
             premiumIndicators.forEach(indicator => {
@@ -4083,6 +4105,223 @@
             });
             
             console.log('🎯 Applied tier features:', features);
+        }
+
+        // Apply Premium Animations to the chat interface
+        function applyPremiumAnimations() {
+            const chatAvatarImg = document.getElementById('chatAvatarImg');
+            const chatAvatarContainer = chatAvatarImg ? chatAvatarImg.parentElement : null;
+            
+            if (chatAvatarImg && chatAvatarContainer) {
+                // Add premium character portrait class
+                chatAvatarContainer.classList.add('premium-character-portrait');
+                
+                // Create particle effect container if it doesn't exist
+                if (!document.getElementById('premiumParticles')) {
+                    const particleContainer = document.createElement('div');
+                    particleContainer.id = 'premiumParticles';
+                    particleContainer.className = 'premium-particles';
+                    
+                    // Add 5 animated particles
+                    for (let i = 1; i <= 5; i++) {
+                        const particle = document.createElement('div');
+                        particle.className = 'premium-particle';
+                        particle.style.left = `${Math.random() * 80 + 10}%`;
+                        particle.style.top = `${Math.random() * 80 + 10}%`;
+                        particle.style.animationDelay = `${(i - 1) * 0.5}s`;
+                        particleContainer.appendChild(particle);
+                    }
+                    
+                    chatAvatarContainer.appendChild(particleContainer);
+                }
+                
+                // Apply premium glow effect to character name if visible
+                const characterName = document.querySelector('.character-name, .chat-header h2');
+                if (characterName) {
+                    characterName.classList.add('premium-text-glow');
+                }
+                
+                // Apply premium button effects
+                const buttons = document.querySelectorAll('.btn-primary, .voice-chat-btn, .decoder-btn');
+                buttons.forEach(btn => {
+                    btn.classList.add('premium-button');
+                });
+                
+                console.log('✨ Premium Animations applied successfully');
+            }
+        }
+
+        // Remove Premium Animations (for non-Max users)
+        function removePremiumAnimations() {
+            const chatAvatarImg = document.getElementById('chatAvatarImg');
+            const chatAvatarContainer = chatAvatarImg ? chatAvatarImg.parentElement : null;
+            
+            if (chatAvatarContainer) {
+                // Remove premium character portrait class
+                chatAvatarContainer.classList.remove('premium-character-portrait');
+                
+                // Remove particle effects
+                const particles = document.getElementById('premiumParticles');
+                if (particles) {
+                    particles.remove();
+                }
+            }
+            
+            // Remove premium text effects
+            const premiumTexts = document.querySelectorAll('.premium-text-glow');
+            premiumTexts.forEach(text => {
+                text.classList.remove('premium-text-glow');
+            });
+            
+            // Remove premium button effects
+            const premiumButtons = document.querySelectorAll('.premium-button');
+            premiumButtons.forEach(btn => {
+                btn.classList.remove('premium-button');
+            });
+        }
+
+        // Get current user tier for premium animations
+        function getCurrentUserTier() {
+            // This would normally be fetched from the backend, but for now we'll use localStorage
+            // In a production environment, this should always verify with the backend
+            return localStorage.getItem('userTier') || 'foundation';
+        }
+
+        // Show palette selector for Growth Plan users
+        function showPaletteSelector() {
+            // Hide old theme toggle when palette system is active
+            const oldThemeToggle = document.getElementById('themeToggle');
+            if (oldThemeToggle) {
+                oldThemeToggle.style.display = 'none';
+            }
+            
+            // Remove existing palette selector
+            const existingSelector = document.getElementById('paletteSelector');
+            if (existingSelector) {
+                existingSelector.remove();
+            }
+            
+            // Create palette selector
+            const paletteSelector = document.createElement('div');
+            paletteSelector.id = 'paletteSelector';
+            paletteSelector.style.cssText = `
+                position: fixed;
+                top: 80px;
+                right: 20px;
+                z-index: 1000;
+                background: rgba(0, 0, 0, 0.9);
+                border: 2px solid #22d3ee;
+                border-radius: 12px;
+                padding: 15px;
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                min-width: 150px;
+            `;
+            
+            paletteSelector.innerHTML = `
+                <div style="color: #22d3ee; font-weight: bold; text-align: center; margin-bottom: 5px;">
+                    🎨 Color Themes
+                </div>
+                <button class="palette-btn" data-palette="black" style="
+                    background: linear-gradient(45deg, #000, #1e293b);
+                    border: 2px solid #22d3ee;
+                    color: #22d3ee;
+                    padding: 8px 12px;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    font-weight: bold;
+                    transition: all 0.3s ease;
+                ">⚫ Black</button>
+                <button class="palette-btn" data-palette="red" style="
+                    background: linear-gradient(45deg, #1a0000, #4a1515);
+                    border: 2px solid #dc2626;
+                    color: #dc2626;
+                    padding: 8px 12px;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    font-weight: bold;
+                    transition: all 0.3s ease;
+                ">🔴 Red</button>
+                <button class="palette-btn" data-palette="cyan" style="
+                    background: linear-gradient(45deg, #001a1a, #154a4a);
+                    border: 2px solid #22d3ee;
+                    color: #22d3ee;
+                    padding: 8px 12px;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    font-weight: bold;
+                    transition: all 0.3s ease;
+                ">🔵 Cyan</button>
+            `;
+            
+            // Add click handlers
+            paletteSelector.querySelectorAll('.palette-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const palette = this.dataset.palette;
+                    applyPalette(palette);
+                    
+                    // Update active state
+                    paletteSelector.querySelectorAll('.palette-btn').forEach(b => {
+                        b.style.transform = 'scale(1)';
+                        b.style.boxShadow = 'none';
+                    });
+                    this.style.transform = 'scale(1.1)';
+                    this.style.boxShadow = '0 0 15px rgba(255, 255, 255, 0.3)';
+                });
+                
+                btn.addEventListener('mouseenter', function() {
+                    this.style.transform = 'scale(1.05)';
+                });
+                
+                btn.addEventListener('mouseleave', function() {
+                    if (!this.classList.contains('active')) {
+                        this.style.transform = 'scale(1)';
+                    }
+                });
+            });
+            
+            document.body.appendChild(paletteSelector);
+            
+            // Load saved palette
+            const savedPalette = localStorage.getItem('selectedPalette') || 'black';
+            applyPalette(savedPalette);
+            
+            // Set active button
+            const activeBtn = paletteSelector.querySelector(`[data-palette="${savedPalette}"]`);
+            if (activeBtn) {
+                activeBtn.style.transform = 'scale(1.1)';
+                activeBtn.style.boxShadow = '0 0 15px rgba(255, 255, 255, 0.3)';
+                activeBtn.classList.add('active');
+            }
+        }
+
+        // Hide palette selector for non-Growth users
+        function hidePaletteSelector() {
+            const selector = document.getElementById('paletteSelector');
+            if (selector) {
+                selector.remove();
+            }
+            
+            // Show old theme toggle when palette system is not active
+            const oldThemeToggle = document.getElementById('themeToggle');
+            if (oldThemeToggle) {
+                oldThemeToggle.style.display = 'flex';
+            }
+        }
+
+        // Apply selected palette
+        function applyPalette(palette) {
+            // Remove all palette classes
+            document.body.classList.remove('palette-black', 'palette-red', 'palette-cyan');
+            
+            // Apply selected palette
+            document.body.classList.add(`palette-${palette}`);
+            
+            // Save selection
+            localStorage.setItem('selectedPalette', palette);
+            
+            console.log(`🎨 Applied ${palette} palette for Growth Plan user`);
         }
 
         // Fallback function for basic premium checking (legacy)
@@ -4975,10 +5214,19 @@
         window.addEventListener('load', function() {
             loadSavedTheme();
             loadCustomColors();
+            loadSavedPalette(); // Load Growth Plan palette system
             checkPremiumFeatures();
             initializeGalaxyCompanions();
             initializeFirebaseAuth();
         });
+
+        // Load saved palette on page load
+        function loadSavedPalette() {
+            const savedPalette = localStorage.getItem('selectedPalette');
+            if (savedPalette) {
+                applyPalette(savedPalette);
+            }
+        }
         
         // Sign out function
         function signOut() {
@@ -5788,8 +6036,18 @@
             if (currentCharacterAvatar) {
                 console.log('🎙️ Starting voice chat lip sync animation');
                 
-                // Apply talking animation
-                currentCharacterAvatar.style.animation += ', talking 0.3s ease-in-out infinite';
+                // Check if user has premium animations
+                const userTier = getCurrentUserTier();
+                const hasPremiumAnimations = userTier === 'enterprise'; // Max Plan
+                
+                if (hasPremiumAnimations) {
+                    // Premium voice wave visualization
+                    addPremiumVoiceWaves();
+                    currentCharacterAvatar.style.animation += ', talking 0.3s ease-in-out infinite, premiumGlow 2s ease-in-out infinite';
+                } else {
+                    // Standard lip sync animation
+                    currentCharacterAvatar.style.animation += ', talking 0.3s ease-in-out infinite';
+                }
                 
                 // Add random lip sync movements
                 lipSyncInterval = setInterval(() => {
@@ -5815,16 +6073,62 @@
                 lipSyncInterval = null;
             }
             
+            // Remove premium voice waves
+            removePremiumVoiceWaves();
+            
             if (currentCharacterAvatar) {
                 console.log('🤐 Stopping voice chat lip sync animation');
                 
                 // Remove talking/lipSync animations and return to breathing
-                const baseAnimation = currentCharacterAvatar.style.animation.replace(/, (talking|lipSync) [^,]*/g, '');
+                const baseAnimation = currentCharacterAvatar.style.animation.replace(/, (talking|lipSync|premiumGlow) [^,]*/g, '');
                 currentCharacterAvatar.style.animation = baseAnimation;
                 
                 // Reset to character-specific breathing animation
                 const selectedCharacter = localStorage.getItem('selectedCharacter') || 'Blayzo';
                 resetToBreathingAnimation(currentCharacterAvatar, selectedCharacter);
+            }
+        }
+
+        // Add premium voice wave visualization
+        function addPremiumVoiceWaves() {
+            // Remove existing waves
+            const existingWaves = document.getElementById('premiumVoiceWaves');
+            if (existingWaves) {
+                existingWaves.remove();
+            }
+            
+            const chatContainer = document.querySelector('.chat-container') || document.body;
+            const waveContainer = document.createElement('div');
+            waveContainer.id = 'premiumVoiceWaves';
+            waveContainer.className = 'premium-voice-wave';
+            waveContainer.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                z-index: 1000;
+                background: rgba(0, 0, 0, 0.8);
+                border-radius: 15px;
+                padding: 10px 20px;
+                border: 2px solid #22d3ee;
+            `;
+            
+            // Add voice wave bars
+            for (let i = 1; i <= 5; i++) {
+                const bar = document.createElement('div');
+                bar.className = 'premium-wave-bar';
+                bar.style.height = `${Math.random() * 15 + 5}px`;
+                waveContainer.appendChild(bar);
+            }
+            
+            chatContainer.appendChild(waveContainer);
+        }
+
+        // Remove premium voice waves
+        function removePremiumVoiceWaves() {
+            const waves = document.getElementById('premiumVoiceWaves');
+            if (waves) {
+                waves.remove();
             }
         }
         
@@ -5929,6 +6233,10 @@
             // Remove existing typing indicator
             hideTypingIndicator();
             
+            // Check if user has premium animations
+            const userTier = getCurrentUserTier();
+            const hasPremiumAnimations = userTier === 'enterprise'; // Max Plan
+            
             // Create typing indicator element
             typingIndicatorElement = document.createElement('div');
             typingIndicatorElement.className = 'typing-indicator';
@@ -5969,14 +6277,26 @@
                     avatar = '🤔';
             }
             
-            typingIndicatorElement.innerHTML = `
-                <div class="typing-text">${avatar} ${thinkingText}</div>
-                <div class="typing-dots">
-                    <div class="typing-dot" style="animation-delay: -0.32s;"></div>
-                    <div class="typing-dot" style="animation-delay: -0.16s;"></div>
-                    <div class="typing-dot" style="animation-delay: 0s;"></div>
-                </div>
-            `;
+            // Create typing indicator content with premium animations if available
+            if (hasPremiumAnimations) {
+                typingIndicatorElement.innerHTML = `
+                    <div class="typing-text">${avatar} ${thinkingText}</div>
+                    <div class="premium-typing">
+                        <div class="premium-typing-dot"></div>
+                        <div class="premium-typing-dot"></div>
+                        <div class="premium-typing-dot"></div>
+                    </div>
+                `;
+            } else {
+                typingIndicatorElement.innerHTML = `
+                    <div class="typing-text">${avatar} ${thinkingText}</div>
+                    <div class="typing-dots">
+                        <div class="typing-dot" style="animation-delay: -0.32s;"></div>
+                        <div class="typing-dot" style="animation-delay: -0.16s;"></div>
+                        <div class="typing-dot" style="animation-delay: 0s;"></div>
+                    </div>
+                `;
+            }
             
             chatMessages.appendChild(typingIndicatorElement);
             chatMessages.scrollTop = chatMessages.scrollHeight;

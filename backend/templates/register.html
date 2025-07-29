@@ -933,6 +933,16 @@
                 console.log('Registration response:', data);
                 if (data.success) {
                     console.log('Registration successful, redirecting...');
+                    
+                    // Clear any previous user's trial data to prevent trial carryover
+                    console.log('🧹 Clearing previous user trial data on new registration...');
+                    localStorage.removeItem('trialActive');
+                    localStorage.removeItem('trialExpiry');
+                    localStorage.removeItem('trialStartTime');
+                    localStorage.removeItem('trialSelectedCompanion');
+                    localStorage.removeItem('premiumCompanionsLocked');
+                    localStorage.removeItem('unlockedPremiumCompanion');
+                    
                     window.location.href = data.redirect || '/';
                 } else {
                     console.log('Registration failed:', data.error);
