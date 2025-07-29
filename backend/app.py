@@ -4381,28 +4381,76 @@ def api_chat():
         if character not in VALID_CHARACTERS:
             character = "Blayzo"  # Default fallback
         
-        # Use OpenAI for actual AI response
+        # Get user's subscription tier for enhanced features
+        user_tier = session.get('user_plan', 'foundation')
+        
+        # Tier-specific AI model and parameters
+        if user_tier == 'enterprise':  # Max Plan
+            model = "gpt-4"
+            max_tokens = 300
+            temperature = 0.8
+            system_prompt = f"You are {character}, an advanced AI companion from SoulBridge AI Max Plan. You have enhanced emotional intelligence, deeper insights, and provide more thoughtful, nuanced responses. You can engage in complex discussions and offer premium-level guidance."
+        elif user_tier == 'premium':  # Growth Plan
+            model = "gpt-3.5-turbo"
+            max_tokens = 200
+            temperature = 0.75
+            system_prompt = f"You are {character}, an enhanced AI companion from SoulBridge AI Growth Plan. You provide more detailed responses and have access to advanced conversation features. You're helpful, insightful, and offer quality guidance."
+        else:  # Foundation (Free)
+            model = "gpt-3.5-turbo"
+            max_tokens = 150
+            temperature = 0.7
+            system_prompt = f"You are {character}, a helpful AI companion from SoulBridge AI."
+        
+        # Use OpenAI for actual AI response with tier-specific enhancements
         try:
             response = openai_client.chat.completions.create(
-                model="gpt-3.5-turbo",
+                model=model,
                 messages=[
-                    {"role": "system", "content": f"You are {character}, a helpful AI companion from SoulBridge AI."},
+                    {"role": "system", "content": system_prompt},
                     {"role": "user", "content": message}
                 ],
-                max_tokens=150,
-                temperature=0.7
+                max_tokens=max_tokens,
+                temperature=temperature
             )
             ai_response = response.choices[0].message.content
+            
+            # Add tier-specific response enhancements
+            if user_tier in ['premium', 'enterprise']:
+                # Premium users get enhanced response formatting
+                ai_response = enhance_premium_response(ai_response, user_tier, character)
         except Exception as ai_error:
             logger.warning(f"OpenAI API error: {ai_error}")
             # Provide a more natural fallback response
             ai_response = f"Hello! I'm {character}, your AI companion. I understand you said: '{message[:50]}...'. I'm experiencing some technical difficulties right now, but I'm still here to help you! What would you like to talk about?"
         
-        return jsonify({"success": True, "response": ai_response})
+        return jsonify({
+            "success": True, 
+            "response": ai_response,
+            "tier": user_tier,
+            "enhanced": user_tier in ['premium', 'enterprise']
+        })
         
     except Exception as e:
         logger.error(f"Chat API error: {e}")
         return jsonify({"success": False, "response": "Sorry, I encountered an error."}), 500
+
+def enhance_premium_response(response, tier, character):
+    """Enhance responses for premium users"""
+    try:
+        # Add tier-specific enhancements
+        if tier == 'enterprise':  # Max Plan
+            # Add advanced insights marker
+            if len(response) > 100:
+                response += f"\n\n✨ *Enhanced Max Plan insight from {character}*"
+        elif tier == 'premium':  # Growth Plan
+            # Add premium marker for growth plan
+            if len(response) > 80:
+                response += f"\n\n🌱 *Growth Plan enhanced response*"
+        
+        return response
+    except Exception as e:
+        logger.error(f"Premium response enhancement error: {e}")
+        return response  # Return original response if enhancement fails
 
 # ========================================
 # OAUTH ROUTES
@@ -5348,6 +5396,77 @@ def check_switching_status():
     except Exception as e:
         logger.error(f"Check switching status error: {e}")
         return jsonify({"success": False, "error": "Failed to check status"}), 500
+
+@app.route("/api/user/tier-status", methods=["GET"])
+def get_user_tier_status():
+    """Get user's subscription tier and available features"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        # Get user's current subscription tier
+        user_tier = session.get('user_plan', 'foundation')
+        user_email = session.get('user_email', session.get('email'))
+        
+        # Map backend plan names to frontend tier names
+        tier_mapping = {
+            'foundation': 'foundation',
+            'premium': 'premium',     # Growth plan
+            'enterprise': 'enterprise' # Max plan
+        }
+        
+        mapped_tier = tier_mapping.get(user_tier, 'foundation')
+        
+        # Define tier features
+        tier_features = {
+            'foundation': {
+                'voice_chat': False,
+                'advanced_ai': False,
+                'priority_support': False,
+                'unlimited_messages': False,
+                'custom_themes': False,
+                'premium_animations': False,
+                'max_companions': 'free_only'
+            },
+            'premium': {  # Growth Plan
+                'voice_chat': True,
+                'advanced_ai': True,
+                'priority_support': True,
+                'unlimited_messages': True,
+                'custom_themes': True,
+                'premium_animations': False,
+                'max_companions': 'growth'
+            },
+            'enterprise': {  # Max Plan
+                'voice_chat': True,
+                'advanced_ai': True,
+                'priority_support': True,
+                'unlimited_messages': True,
+                'custom_themes': True,
+                'premium_animations': True,
+                'max_companions': 'max'
+            }
+        }
+        
+        features = tier_features.get(mapped_tier, tier_features['foundation'])
+        
+        logger.info(f"Tier status check for {user_email}: {mapped_tier}")
+        
+        return jsonify({
+            "success": True,
+            "tier": mapped_tier,
+            "tier_display": {
+                'foundation': 'Foundation (Free)',
+                'premium': 'Growth Plan',
+                'enterprise': 'Max Plan'
+            }.get(mapped_tier, 'Foundation'),
+            "features": features,
+            "switching_unlocked": session.get('switching_unlocked', False)
+        })
+        
+    except Exception as e:
+        logger.error(f"Get tier status error: {e}")
+        return jsonify({"success": False, "error": "Internal server error"}), 500
 
 # APPLICATION STARTUP
 # ========================================

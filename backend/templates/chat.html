@@ -3977,8 +3977,116 @@
             setTimeout(showContextualSuggestion, 30000);
         });
         
-        // Show voice chat button for premium companions only
-        function checkPremiumFeatures() {
+        // Check tier-specific features and show appropriate buttons/functionality
+        async function checkTierFeatures() {
+            const selectedCharacter = localStorage.getItem('selectedCharacter');
+            const voiceChatBtn = document.getElementById('voiceChatBtn');
+            
+            try {
+                // Get user's subscription tier from backend
+                const response = await fetch('/api/user/tier-status', {
+                    credentials: 'include',
+                    cache: 'no-cache'
+                });
+                const tierData = await response.json();
+                
+                const userTier = tierData.tier || 'foundation'; // foundation, premium (growth), enterprise (max)
+                const companionTier = getCompanionTier(selectedCharacter);
+                
+                console.log('🎯 Tier check - User:', userTier, 'Companion:', companionTier, 'Character:', selectedCharacter);
+                
+                // Check what features user should have access to
+                const features = getTierFeatures(userTier, companionTier, selectedCharacter);
+                
+                // Apply voice chat availability
+                if (features.voiceChat && voiceChatBtn) {
+                    voiceChatBtn.style.display = 'flex';
+                    voiceChatBtn.querySelector('span').textContent = features.voiceChatLabel;
+                } else if (voiceChatBtn) {
+                    voiceChatBtn.style.display = 'none';
+                }
+                
+                // Apply other tier-specific features
+                applyTierFeatures(features);
+                
+            } catch (error) {
+                console.error('Error checking tier features:', error);
+                // Fallback to basic tier checking
+                checkBasicPremiumFeatures();
+            }
+        }
+
+        // Get companion tier based on character name
+        function getCompanionTier(characterName) {
+            const freeCompanions = ['GamerJay', 'Blayzo', 'Blayzica', 'Blayzia', 'Blayzion', 'Claude'];
+            const growthCompanions = ['Crimson', 'Violet', 'Sky', 'WatchDog'];
+            const maxCompanions = ['Ven Blayzica', 'Ven Sky', 'Royal', 'WatchDog Max'];
+            const referralCompanions = ['Blayzike', 'Blazelian', 'BlayzoReferral', 'Sapphire'];
+            
+            if (freeCompanions.includes(characterName)) return 'free';
+            if (growthCompanions.includes(characterName)) return 'growth';
+            if (maxCompanions.includes(characterName)) return 'max';
+            if (referralCompanions.includes(characterName)) return 'referral';
+            
+            return 'free'; // Default to free
+        }
+
+        // Get features available for user's tier
+        function getTierFeatures(userTier, companionTier, characterName) {
+            const features = {
+                voiceChat: false,
+                voiceChatLabel: '🎤 Voice Chat',
+                advancedAI: false,
+                prioritySupport: false,
+                unlimitedMessages: false,
+                customThemes: false,
+                premiumAnimations: false
+            };
+
+            // Referral characters always get voice chat
+            if (companionTier === 'referral') {
+                features.voiceChat = true;
+                features.voiceChatLabel = '🎤 Voice Chat (Referral)';
+            }
+            
+            // Growth plan features (premium in backend)
+            if (userTier === 'premium' || userTier === 'enterprise') {
+                features.voiceChat = true;
+                features.voiceChatLabel = '🎤 Voice Chat (Growth)';
+                features.advancedAI = true;
+                features.prioritySupport = true;
+                features.unlimitedMessages = true;
+                features.customThemes = true;
+            }
+            
+            // Max plan features (enterprise in backend)
+            if (userTier === 'enterprise') {
+                features.voiceChatLabel = '🎤 Advanced Voice Chat (Max)';
+                features.advancedAI = true;
+                features.premiumAnimations = true;
+            }
+
+            return features;
+        }
+
+        // Apply tier-specific features to the UI
+        function applyTierFeatures(features) {
+            // Add premium styling if user has advanced features
+            if (features.advancedAI) {
+                document.body.classList.add('premium-user');
+            }
+            
+            // Show/hide premium indicators
+            const premiumIndicators = document.querySelectorAll('.premium-indicator');
+            premiumIndicators.forEach(indicator => {
+                indicator.style.display = features.advancedAI ? 'block' : 'none';
+            });
+            
+            console.log('🎯 Applied tier features:', features);
+        }
+
+        // Fallback function for basic premium checking (legacy)
+        function checkBasicPremiumFeatures() {
             const selectedCharacter = localStorage.getItem('selectedCharacter');
             const voiceChatBtn = document.getElementById('voiceChatBtn');
             
@@ -3987,11 +4095,6 @@
             const referralCharacters = ['Blayzike', 'Blazelian', 'BlayzoReferral'];
             const isPremiumCharacter = premiumCharacters.includes(selectedCharacter);
             const isReferralCharacter = referralCharacters.includes(selectedCharacter);
-            const hasPurchasedCharacter = localStorage.getItem('purchased' + selectedCharacter) === 'true';
-            
-            // Check for admin bypass
-            const isAdminMode = localStorage.getItem('adminMode') === 'true';
-            const adminBypass = localStorage.getItem('adminBypass') === 'true';
             
             // Show voice chat for premium characters and referral characters
             if ((isPremiumCharacter || isReferralCharacter) && voiceChatBtn) {
@@ -4004,6 +4107,11 @@
             } else if (voiceChatBtn) {
                 voiceChatBtn.style.display = 'none';
             }
+        }
+
+        // Legacy function name for compatibility
+        function checkPremiumFeatures() {
+            checkTierFeatures();
         }
         
         // Send message function
