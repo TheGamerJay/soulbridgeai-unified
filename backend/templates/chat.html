@@ -483,15 +483,15 @@
 
         /* Character-specific theme styles for chat interface */
         
-        /* Blayzo - Cyan Ocean Theme */
+        /* Blayzo - Cyan and Red Theme */
         body.character-blayzo {
             --character-primary: #22d3ee;
-            --character-secondary: #0891b2;
+            --character-secondary: #dc2626;
             --character-accent: rgba(34, 211, 238, 0.1);
         }
         
         body.character-blayzo #chatInterface {
-            background: linear-gradient(135deg, rgba(34, 211, 238, 0.05), rgba(8, 145, 178, 0.05));
+            background: linear-gradient(135deg, rgba(34, 211, 238, 0.05), rgba(220, 38, 38, 0.05));
         }
         
         /* Blayzica - Red and Cyan Theme */
@@ -4936,6 +4936,8 @@
                 case 'Blayzo':
                     chatAvatarImg.style.animation = 'breathe 4s ease-in-out infinite';
                     chatAvatarImg.style.filter = 'drop-shadow(0 4px 12px rgba(34, 211, 238, 0.3))';
+                    // Add subtle dual-color effect for cyan and red theme
+                    addChatParticles('cosmic');
                     break;
                     
                 case 'Blayzica':
