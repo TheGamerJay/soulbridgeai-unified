@@ -1537,6 +1537,37 @@
                     showUpgradeModal(companionId);
                     return;
                 }
+
+                // Add switching fee logic for free companions
+                const firstPickMade = localStorage.getItem('firstPickMade') === 'true';
+                const currentCharacter = localStorage.getItem('selectedCharacter');
+                const freeCompanions = ['companion_gamerjay', 'companion_blayzo_free', 'companion_blayzica_free', 
+                                      'companion_blayzia_free', 'companion_blayzion_free', 'companion_claude_free'];
+                
+                console.log('🔍 DEBUG: First pick made:', firstPickMade);
+                console.log('🔍 DEBUG: Current character:', currentCharacter);
+                console.log('🔍 DEBUG: Selected companion:', companionId);
+                console.log('🔍 DEBUG: Is free companion:', freeCompanions.includes(companionId));
+
+                // If user has already made their first pick and is switching between free companions
+                if (firstPickMade && currentCharacter && freeCompanions.includes(companionId)) {
+                    console.log('🔍 DEBUG: Checking switching status...');
+                    
+                    // Check if switching between free characters has been unlocked
+                    const switchingResponse = await fetch('/api/check-switching-status', {
+                        credentials: 'include',
+                        cache: 'no-cache'
+                    });
+                    const switchingData = await switchingResponse.json();
+                    console.log('🔍 DEBUG: Switching status result:', switchingData);
+                    
+                    if (!switchingData.switching_unlocked) {
+                        // Show switching payment modal
+                        console.log('🔍 DEBUG: Showing switching payment modal for:', companion.display_name);
+                        showSwitchingPaymentModal(companion.display_name, companionId);
+                        return;
+                    }
+                }
                 
                 const response = await fetch('/api/companions/select', {
                     method: 'POST',
@@ -1560,6 +1591,7 @@
                     // Store selection in localStorage as backup
                     localStorage.setItem('selectedCharacter', companion.display_name.split(' ')[0]);
                     localStorage.setItem('currentScreen', 'chat');
+                    localStorage.setItem('firstPickMade', 'true');  // Mark first pick as made
                     
                     // Add selection glow effect
                     const card = document.querySelector(`[onclick*="${companionId}"]`);
@@ -2405,6 +2437,114 @@
             if (modal) {
                 modal.style.animation = 'fadeOut 0.3s ease';
                 setTimeout(() => modal.remove(), 300);
+            }
+        }
+
+        // Switching payment modal for free companion switching
+        function showSwitchingPaymentModal(companionName, companionId) {
+            console.log('🔍 DEBUG: Creating switching payment modal for:', companionName);
+            
+            const modalHTML = `
+                <div id="switchingPaymentModal" style="
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.9);
+                    z-index: 10000;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    animation: fadeIn 0.3s ease;
+                ">
+                    <div style="
+                        background: linear-gradient(135deg, #0a0e1a 0%, #1a202c 100%);
+                        border: 2px solid rgba(34, 211, 238, 0.3);
+                        border-radius: 20px;
+                        padding: 30px;
+                        max-width: 500px;
+                        width: 90%;
+                        text-align: center;
+                        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+                        animation: slideUp 0.3s ease;
+                    ">
+                        <h3 style="color: #22d3ee; margin-bottom: 20px;">🔄 Companion Switching</h3>
+                        <p style="color: #e2e8f0; margin-bottom: 20px; line-height: 1.5;">
+                            You've already selected your first free companion. To switch between free companions, 
+                            there's a <strong style="color: #22d3ee;">one-time payment of $3.00</strong> that unlocks 
+                            unlimited switching between all free companions forever.
+                        </p>
+                        <p style="color: #94a3b8; margin-bottom: 25px; font-size: 0.9rem;">
+                            After this payment, you can freely switch between GamerJay, Blayzo, Blayzica, Blayzia, Blayzion, and Claude anytime.
+                        </p>
+                        <div style="display: flex; gap: 15px; justify-content: center;">
+                            <button onclick="closeSwitchingModal()" style="
+                                padding: 12px 24px;
+                                background: rgba(255, 255, 255, 0.1);
+                                border: 2px solid rgba(255, 255, 255, 0.2);
+                                border-radius: 8px;
+                                color: #94a3b8;
+                                cursor: pointer;
+                                transition: all 0.3s ease;
+                            ">Cancel</button>
+                            <button onclick="processSwitchingPayment('${companionId}')" style="
+                                padding: 12px 24px;
+                                background: linear-gradient(135deg, #22d3ee 0%, #0891b2 100%);
+                                border: none;
+                                border-radius: 8px;
+                                color: #000;
+                                font-weight: 600;
+                                cursor: pointer;
+                                transition: all 0.3s ease;
+                            ">Pay $3.00 & Switch</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+
+        function closeSwitchingModal() {
+            const modal = document.getElementById('switchingPaymentModal');
+            if (modal) {
+                modal.style.animation = 'fadeOut 0.3s ease';
+                setTimeout(() => modal.remove(), 300);
+            }
+        }
+
+        async function processSwitchingPayment(companionId) {
+            try {
+                console.log('🔍 DEBUG: Processing switching payment for:', companionId);
+                
+                // Create switching payment via Stripe
+                const response = await fetch('/api/create-switching-payment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        companion_id: companionId,
+                        amount: 300, // $3.00 in cents
+                        currency: 'usd'
+                    })
+                });
+
+                const data = await response.json();
+                console.log('🔍 DEBUG: Payment response:', data);
+
+                if (data.success && data.checkout_url) {
+                    // Redirect to Stripe checkout
+                    window.location.href = data.checkout_url;
+                } else {
+                    console.error('Payment setup failed:', data);
+                    alert('Payment setup failed. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error processing switching payment:', error);
+                alert('Payment error. Please try again.');
             }
         }
         
