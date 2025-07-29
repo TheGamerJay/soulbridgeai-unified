@@ -1454,8 +1454,8 @@
                 // CRITICAL FIX: Override lock status during active trial for premium companions
                 let isLocked = companion.lock_reason;
                 
-                // If trial is active, unlock Growth and Max companions
-                if (hasActiveTrialAccess && (companion.tier === 'growth' || companion.tier === 'max')) {
+                // If trial is active, unlock ONLY Growth companions (not Max)
+                if (hasActiveTrialAccess && companion.tier === 'growth') {
                     isLocked = false;
                     console.log(`🔓 UNLOCKED for trial: ${companion.display_name}`);
                 }
