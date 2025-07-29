@@ -1541,6 +1541,7 @@
                 // Add switching fee logic for free companions
                 const firstPickMade = localStorage.getItem('firstPickMade') === 'true';
                 const currentCharacter = localStorage.getItem('selectedCharacter');
+                const firstSelectedCompanion = localStorage.getItem('firstSelectedCompanion');
                 const freeCompanions = ['companion_gamerjay', 'companion_blayzo_free', 'companion_blayzica_free', 
                                       'companion_blayzia_free', 'companion_blayzion_free', 'companion_claude_free'];
                 
@@ -1554,11 +1555,16 @@
                 console.log('🔍 DEBUG: Is free companion:', freeCompanions.includes(companionId));
                 console.log('🔍 DEBUG: Is switching to different companion:', currentCharacter !== selectedCompanionName);
 
+                // Allow returning to original first free companion without charge
+                const isReturningToFirstPick = firstSelectedCompanion && selectedCompanionName === firstSelectedCompanion;
+                
                 // Only charge switching fee if:
                 // 1. First pick was already made
                 // 2. This is a free companion 
                 // 3. They're switching to a DIFFERENT companion
-                if (firstPickMade && currentCharacter && freeCompanions.includes(companionId) && currentCharacter !== selectedCompanionName) {
+                // 4. NOT returning to their original first pick
+                if (firstPickMade && currentCharacter && freeCompanions.includes(companionId) && 
+                    currentCharacter !== selectedCompanionName && !isReturningToFirstPick) {
                     console.log('🔍 DEBUG: User is switching to different free companion, checking switching status...');
                     
                     // Check if switching between free characters has been unlocked
@@ -1602,6 +1608,7 @@
                     localStorage.setItem('selectedCharacter', companion.display_name.split(' ')[0]);
                     localStorage.setItem('currentScreen', 'chat');
                     localStorage.setItem('firstPickMade', 'true');  // Mark first pick as made
+                    localStorage.setItem('firstSelectedCompanion', companion.display_name.split(' ')[0]); // Remember first free companion
                     
                     // Add selection glow effect
                     const card = document.querySelector(`[onclick*="${companionId}"]`);
