@@ -4894,6 +4894,8 @@
         
         // Update character info in the interface
         function updateCharacterInfo(character) {
+            console.log('🎨 updateCharacterInfo called with character:', character);
+            
             var selectedCharacterSpan = document.querySelector('#selectedCharacter span');
             if (selectedCharacterSpan) {
                 if (character === 'Blayzion') {
@@ -4914,6 +4916,10 @@
                     selectedCharacterSpan.textContent = '✨ ' + character + ' is ready to chat';
                 } else if (character === 'BlayzoReferral') {
                     selectedCharacterSpan.textContent = '🎉 Blayzo (Referral Master) is ready to chat';
+                } else if (character === 'GamerJay') {
+                    selectedCharacterSpan.textContent = '🎮 ' + character + ' is ready to chat';
+                } else if (character === 'Claude') {
+                    selectedCharacterSpan.textContent = '🤖 ' + character + ' is ready to chat';
                 } else {
                     selectedCharacterSpan.textContent = character + ' is ready to chat';
                 }
@@ -4924,8 +4930,14 @@
             updateChatAvatar(character);
             
             // Add character class to body for character-specific styling
-            document.body.classList.remove('character-blayzo', 'character-blayzica', 'character-blayzion', 'character-blayzia', 'character-violet', 'character-crimson', 'character-blayzike', 'character-blazelian', 'character-blazoreferral');
-            document.body.classList.add('character-' + character.toLowerCase());
+            const characterClass = 'character-' + character.toLowerCase();
+            console.log('🎨 Removing old character classes and adding:', characterClass);
+            document.body.classList.remove('character-blayzo', 'character-blayzica', 'character-blayzion', 'character-blayzia', 'character-violet', 'character-crimson', 'character-blayzike', 'character-blazelian', 'character-blazoreferral', 'character-gamerjay', 'character-claude');
+            document.body.classList.add(characterClass);
+            
+            // Force a repaint to ensure theme changes take effect
+            document.body.offsetHeight;
+            console.log('🎨 Character theme applied. Body classes:', document.body.className);
             
             // Check if voice chat should be available
             checkPremiumFeatures();
@@ -7522,6 +7534,14 @@
         document.addEventListener('DOMContentLoaded', function() {
             domReady = true;
             console.log('📄 Chat DOM ready');
+            
+            // Ensure character theme is applied on page load
+            const selectedCharacter = localStorage.getItem('selectedCharacter');
+            if (selectedCharacter) {
+                console.log('🎨 Applying character theme on page load for:', selectedCharacter);
+                updateCharacterInfo(selectedCharacter);
+            }
+            
             checkIfChatFullyReady();
         });
         
