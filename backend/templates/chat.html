@@ -41,6 +41,8 @@
             },
             
             // STORAGE STATE VALIDATION - Ensures consistency between storage and DOM
+            // UPDATED: Made more user-friendly to allow returning users to continue chat sessions
+            // instead of being redirected to companion selection unnecessarily
             validateStorageState: function() {
                 console.log('🔍 Validating storage state...');
                 
@@ -126,8 +128,12 @@
                     validated.hasActiveChat = true;
                     console.log('🔍 Rule 1: Character + active session/trial = chat screen');
                 }
-                // Rule 2: If we have a character but no active session, check if we just selected a companion or have trial access
+                // Rule 2: If we have a character but no active session, be user-friendly
                 else if (localCharacter && sessionActive !== 'true') {
+                    // Check if this is an explicit request for character selection
+                    var urlParams = new URLSearchParams(window.location.search);
+                    var showIntro = urlParams.get('show_intro');
+                    
                     // If user has active trial access, allow chat regardless of session state
                     if (hasActiveTrialAccess) {
                         validated.screen = 'chat';
@@ -136,65 +142,69 @@
                         console.log('🔍 Rule 2: Active trial access - allowing chat');
                         // Mark session as active since trial provides access
                         sessionStorage.setItem('hasActiveChat', 'true');
+                    }
+                    // Only redirect if explicitly requested
+                    else if (showIntro === 'false') {
+                        console.log('🔍 Rule 2: Explicit character select request - redirecting');
+                        window.location.href = '/companion-selection';
+                        return;
                     } else {
-                        // Check if this is coming from companion selection (just selected)
-                        var urlParams = new URLSearchParams(window.location.search);
-                        var showIntro = urlParams.get('show_intro');
-                        var fromSelection = localStorage.getItem('currentScreen') === 'chat'; // Set by companion selection
-                        
-                        // If we just came from companion selection, start chat session
-                        if (fromSelection || window.location.pathname === '/chat') {
-                            validated.screen = 'chat';
-                            validated.character = localCharacter;
-                            console.log('🔍 Rule 2: Just selected companion, starting chat session');
-                            // Mark session as active since we're starting chat
-                            sessionStorage.setItem('hasActiveChat', 'true');
-                        }
-                        // Only redirect to companion selection if explicitly requested AND no trial
-                        else if (showIntro === 'false') {
-                            console.log('🔍 Rule 2: Explicit character select request - redirecting');
-                            window.location.href = '/companion-selection';
-                            return;
-                        } else {
-                            // Default to chat if we have a character
-                            validated.screen = 'chat';
-                            validated.character = localCharacter;
-                            console.log('🔍 Rule 2: Have character, defaulting to chat');
-                        }
+                        // Default: Allow user to continue with their selected character
+                        validated.screen = 'chat';
+                        validated.character = localCharacter;
+                        validated.hasActiveChat = true;
+                        console.log('🔍 Rule 2: Returning user with character - allowing chat continuation');
+                        // Mark session as active since we're allowing chat
+                        sessionStorage.setItem('hasActiveChat', 'true');
                     }
                 }
-                // Rule 3: If local screen is explicitly set to select, honor it (unless active trial or fresh login)
+                // Rule 3: Handle explicit select screen requests more thoughtfully
                 else if (localScreen === 'select') {
-                    // If user has active trial access, keep them in chat instead of redirecting
+                    // Check if this is a fresh login or explicit request
+                    var urlParams = new URLSearchParams(window.location.search);
+                    var showIntro = urlParams.get('show_intro');
+                    
+                    // If user has active trial access and a character, keep them in chat instead of redirecting
                     if (hasActiveTrialAccess && localCharacter) {
                         validated.screen = 'chat';
                         validated.character = localCharacter;
                         validated.hasActiveChat = true;
                         console.log('🔍 Rule 3: Active trial access - keeping in chat instead of redirect');
                         sessionStorage.setItem('hasActiveChat', 'true');
-                    } else {
-                        // Check if this is a fresh login - if so, clear old localStorage and show intro
-                        var urlParams = new URLSearchParams(window.location.search);
-                        var showIntro = urlParams.get('show_intro');
-                        
+                    }
+                    // If user has a character and it's not a fresh login, let them continue chatting
+                    else if (localCharacter && showIntro !== 'true') {
+                        validated.screen = 'chat';
+                        validated.character = localCharacter;
+                        validated.hasActiveChat = true;
+                        console.log('🔍 Rule 3: User has character - allowing chat continuation');
+                        sessionStorage.setItem('hasActiveChat', 'true');
+                    }
+                    // Only redirect for fresh logins or when no character is selected
+                    else if (showIntro === 'true' || !localCharacter) {
                         if (showIntro === 'true') {
-                            // Fresh login - clear old localStorage and show intro
+                            // Fresh login - clear old localStorage
                             localStorage.removeItem('currentScreen');
                             localStorage.removeItem('selectedCharacter');
-                            // Fresh login detected - redirect to new companion selection
-                            console.log('🔍 Rule 3: Fresh login detected - redirecting to new companion selection');
-                            window.location.href = '/companion-selection';
-                            return;
+                            console.log('🔍 Rule 3: Fresh login detected - redirecting to companion selection');
                         } else {
-                            // Explicit select screen setting - redirect to new companion selection
-                            console.log('🔍 Rule 3: Explicit select screen - redirecting to new companion selection');
-                            window.location.href = '/companion-selection';
-                            return;
+                            console.log('🔍 Rule 3: No character selected - redirecting to companion selection');
                         }
+                        window.location.href = '/companion-selection';
+                        return;
+                    } else {
+                        // User has character but explicit select was requested - honor it
+                        console.log('🔍 Rule 3: Explicit select screen request - redirecting');
+                        window.location.href = '/companion-selection';
+                        return;
                     }
                 }
-                // Rule 4: Default to character selection for returning users (unless active trial)
+                // Rule 4: Smart defaults for returning users
                 else {
+                    // Check if this is a fresh login or explicit navigation
+                    var urlParams = new URLSearchParams(window.location.search);
+                    var showIntro = urlParams.get('show_intro');
+                    
                     // If user has active trial access and a character, keep them in chat
                     if (hasActiveTrialAccess && localCharacter) {
                         validated.screen = 'chat';
@@ -202,33 +212,38 @@
                         validated.hasActiveChat = true;
                         console.log('🔍 Rule 4: Active trial access - keeping in chat');
                         sessionStorage.setItem('hasActiveChat', 'true');
+                    }
+                    // If user has a previously selected character, allow them to continue chatting
+                    else if (localCharacter && !showIntro) {
+                        validated.screen = 'chat';
+                        validated.character = localCharacter;
+                        validated.hasActiveChat = true;
+                        console.log('🔍 Rule 4: Returning user with character - continuing chat session');
+                        sessionStorage.setItem('hasActiveChat', 'true');
+                    }
+                    // Only redirect to companion selection for specific cases
+                    else if (showIntro === 'true') {
+                        // Fresh login = companion selection screen - redirect
+                        console.log('🔍 Rule 4: Fresh login - redirecting to companion selection');
+                        window.location.href = '/companion-selection';
+                        return;
+                    } else if (showIntro === 'false') {
+                        // Explicit request for character select - redirect
+                        console.log('🔍 Rule 4: Explicit character select - redirecting');
+                        window.location.href = '/companion-selection';
+                        return;
+                    } else if (!localCharacter) {
+                        // No character selected - need to select one
+                        console.log('🔍 Rule 4: No character selected - redirecting to companion selection');
+                        window.location.href = '/companion-selection';
+                        return;
                     } else {
-                        // Check if this is a fresh login or explicit navigation
-                        var urlParams = new URLSearchParams(window.location.search);
-                        var showIntro = urlParams.get('show_intro');
-                        
-                        // Don't override if we already determined this should be intro
-                        if (localScreen === 'intro' && showIntro !== 'false') {
-                            // Forcing companion selection instead of intro - redirect
-                            console.log('🔍 Rule 4: Redirecting to companion selection instead of intro');
-                            window.location.href = '/companion-selection';
-                            return;
-                        } else if (showIntro === 'true') {
-                            // Fresh login = companion selection screen - redirect
-                            console.log('🔍 Rule 4: Fresh login - redirecting to companion selection');
-                            window.location.href = '/companion-selection';
-                            return;
-                        } else if (showIntro === 'false') {
-                            // Explicit request for character select - redirect
-                            console.log('🔍 Rule 4: Explicit character select - redirecting');
-                            window.location.href = '/companion-selection';
-                            return;
-                        } else {
-                            // DEFAULT: Redirect to new companion selection page
-                            console.log('🔍 Rule 4: Redirecting to new companion selection page');
-                            window.location.href = '/companion-selection';
-                            return;
-                        }
+                        // Default: Allow user to continue with their character
+                        validated.screen = 'chat';
+                        validated.character = localCharacter;
+                        validated.hasActiveChat = true;
+                        console.log('🔍 Rule 4: Default - allowing user to continue chat');
+                        sessionStorage.setItem('hasActiveChat', 'true');
                     }
                 }
                 
@@ -1269,6 +1284,24 @@
     </style>
 </head>
 <body class="chat-page" style="background: linear-gradient(135deg, #0a0e1a 0%, #1a202c 25%, #2d3748 50%, #1a202c 75%, #0a0e1a 100%) !important; background-attachment: fixed !important; background-size: 100% 100% !important; min-height: 100vh !important; margin: 0 !important; font-family: system-ui, -apple-system, sans-serif !important; color: #22d3ee !important;" onload="initializeScreen()">
+
+    <!-- Back Button -->
+    <div style="position: fixed; top: 20px; left: 20px; z-index: 100;">
+        <div style="
+            background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
+            color: #00ffff;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(255, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            text-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+        " onclick="navigateBackFromChat()" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(255, 0, 0, 0.5)'" onmouseout="this.style.transform='translateY(0px)'; this.style.boxShadow='0 2px 8px rgba(255, 0, 0, 0.3)'">
+            ← Back
+        </div>
+    </div>
 
     <!-- User Menu and Controls (Right Side) -->
     <div style="position: fixed; top: 20px; right: 20px; z-index: 100; display: flex; gap: 10px; flex-wrap: wrap;">
@@ -8093,6 +8126,49 @@
                     showChatWhenReady();
                 }
             }, { once: true });
+        });
+        
+        // Navigation function for back button with smart routing
+        function navigateBackFromChat() {
+            console.log('🔙 Back button clicked from chat - setting navigation flags');
+            
+            // Set navigation flags for companion selector to handle return properly
+            localStorage.setItem('navigatedFromChat', 'true');
+            localStorage.setItem('hasActiveChat', 'true');
+            localStorage.setItem('currentScreen', 'companion_selector');
+            
+            // Store the current selected character for potential return
+            const selectedCharacter = localStorage.getItem('selectedCharacter');
+            if (selectedCharacter) {
+                console.log('💾 Preserving selected character for return:', selectedCharacter);
+            }
+            
+            console.log('🔄 Navigating back to companion selector');
+            window.location.href = '/companion_selector';
+        }
+        
+        // Set navigation flags whenever user navigates away from chat page
+        window.addEventListener('beforeunload', function() {
+            console.log('🚪 User navigating away from chat - setting navigation flags');
+            localStorage.setItem('navigatedFromChat', 'true');
+            
+            // Only set hasActiveChat if there's actually a selected character
+            const selectedCharacter = localStorage.getItem('selectedCharacter');
+            if (selectedCharacter) {
+                localStorage.setItem('hasActiveChat', 'true');
+                console.log('💾 Chat session preserved for character:', selectedCharacter);
+            }
+        });
+        
+        // Also handle navigation via browser back/forward buttons
+        window.addEventListener('popstate', function() {
+            console.log('🔙 Browser navigation detected - setting navigation flags');
+            localStorage.setItem('navigatedFromChat', 'true');
+            
+            const selectedCharacter = localStorage.getItem('selectedCharacter');
+            if (selectedCharacter) {
+                localStorage.setItem('hasActiveChat', 'true');
+            }
         });
     </script>
 </body>

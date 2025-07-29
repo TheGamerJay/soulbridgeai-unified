@@ -44,9 +44,9 @@ app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevent XSS access
 app.config['SESSION_COOKIE_SECURE'] = bool(os.environ.get('RAILWAY_ENVIRONMENT'))  # HTTPS in production
 app.config['SESSION_COOKIE_SAMESITE'] = 'Strict'  # Prevent CSRF
 app.config['SESSION_COOKIE_PATH'] = '/'  # Ensure cookie works for all paths
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=10)  # BANKING: 10 minute max session (bathroom break friendly)
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=2)  # Extended for companion experience
 app.config['SESSION_PERMANENT'] = False  # Sessions expire when browser closes
-app.config['SESSION_COOKIE_MAX_AGE'] = 600  # 10 minutes in seconds
+app.config['SESSION_COOKIE_MAX_AGE'] = 7200  # 2 hours in seconds
 
 # Global variables for services
 services = {
@@ -227,14 +227,14 @@ def is_logged_in():
     if not session.get('user_id') and not session.get('user_email') and not session.get('email'):
         return False
     
-    # BANKING SECURITY: Check session timeout (5 minutes of inactivity - very strict)
+    # BANKING SECURITY: Check session timeout (extended for companion experience)
     last_activity = session.get('last_activity')
     if last_activity:
         try:
             last_time = datetime.fromisoformat(last_activity)
-            if datetime.now() - last_time > timedelta(minutes=10):  # BANKING SECURITY: 10 minute timeout (bathroom break friendly)
+            if datetime.now() - last_time > timedelta(hours=2):  # Extended to 2 hours for better UX
                 # SECURITY: Session expired - clear it
-                logger.info("SECURITY: Session expired due to inactivity (10 minutes)")
+                logger.info("SECURITY: Session expired due to inactivity (2 hours)")
                 session.clear()
                 return False
         except Exception as e:

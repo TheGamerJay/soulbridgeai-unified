@@ -59,6 +59,29 @@
             padding: 20px 0;
         }
         
+        /* Back button styling */
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: linear-gradient(135deg, #00ffff 0%, #0891b2 100%);
+            color: #000000;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 255, 255, 0.3);
+        }
+        
+        .back-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 255, 255, 0.4);
+            background: linear-gradient(135deg, #22d3ee 0%, #0891b2 100%);
+        }
+        
         .companion-header {
             text-align: center;
             margin-bottom: 40px;
@@ -1415,11 +1438,31 @@
                 return;
             }
             
+            // Check for active trial to unlock premium companions
+            const trialActive = localStorage.getItem('trialActive') === 'true';
+            const trialExpiry = localStorage.getItem('trialExpiry');
+            const currentTime = Date.now();
+            const hasActiveTrialAccess = trialActive && trialExpiry && currentTime < parseInt(trialExpiry);
+            
+            console.log(`🔍 Trial check for ${sectionId}:`, {
+                trialActive,
+                trialExpiry: trialExpiry ? new Date(parseInt(trialExpiry)) : null,
+                hasActiveTrialAccess
+            });
+            
             container.innerHTML = companionList.map(companion => {
-                const isLocked = companion.lock_reason;
+                // CRITICAL FIX: Override lock status during active trial for premium companions
+                let isLocked = companion.lock_reason;
+                
+                // If trial is active, unlock Growth and Max companions
+                if (hasActiveTrialAccess && (companion.tier === 'growth' || companion.tier === 'max')) {
+                    isLocked = false;
+                    console.log(`🔓 UNLOCKED for trial: ${companion.display_name}`);
+                }
+                
                 const isSelected = currentUser.selected_companion === companion.companion_id;
                 
-                // Determine action based on companion tier
+                // Determine action based on companion tier and lock status
                 const isReferralTier = companion.tier === 'referral';
                 const clickAction = isLocked ? 
                     (isReferralTier ? `window.location.href='/referrals'` : `showUpgradeModal('${companion.companion_id}')`) 
@@ -1465,7 +1508,7 @@
                                 ${!isLocked ? `
                                     <button class="btn-select ${isSelected ? 'selected' : ''}" 
                                             ${isSelected ? 'disabled' : ''}>
-                                        ${isSelected ? 'Selected' : 'Select'}
+                                        ${isSelected ? 'Selected' : (hasActiveTrialAccess && (companion.tier === 'growth' || companion.tier === 'max') ? '✨ Try Premium' : 'Select')}
                                     </button>
                                 ` : `
                                     <button class="btn-select" disabled style="${isReferralTier ? 'background: #FFD700; color: #333;' : ''}">
@@ -1890,50 +1933,27 @@
             }
         }
         
+        // FIXED: No longer locks companions during trial - allows full premium access
         function lockOtherPremiumCompanions(selectedCompanionId) {
-            console.log(`🔒 PREMIUM LOCK: Locking all premium companions except ${selectedCompanionId}`);
+            // Check if trial is active - if so, don't lock anything
+            const trialActive = localStorage.getItem('trialActive') === 'true';
+            const trialExpiry = localStorage.getItem('trialExpiry');
+            const currentTime = Date.now();
+            const hasActiveTrialAccess = trialActive && trialExpiry && currentTime < parseInt(trialExpiry);
             
-            // Get all premium companion IDs
-            const premiumCompanionIds = [
-                'companion_gamerjay_premium',
-                'companion_blayzo_premium'
-            ];
+            if (hasActiveTrialAccess) {
+                console.log('🔓 TRIAL ACTIVE: Keeping all premium companions unlocked');
+                return; // Don't lock anything during trial
+            }
             
-            premiumCompanionIds.forEach(companionId => {
-                if (companionId !== selectedCompanionId) {
-                    const companionCard = document.querySelector(`[onclick*="${companionId}"]`);
-                    if (companionCard) {
-                        // Add locked class and visual styling
-                        companionCard.classList.add('locked');
-                        companionCard.style.opacity = '0.5';
-                        companionCard.style.pointerEvents = 'none';
-                        
-                        // Update the onclick to show upgrade modal instead
-                        companionCard.setAttribute('onclick', `showUpgradeModal('${companionId}')`);
-                        
-                        // Add lock icon if not already present
-                        const existingLock = companionCard.querySelector('.fas.fa-lock');
-                        if (!existingLock) {
-                            const lockOverlay = document.createElement('div');
-                            lockOverlay.style.cssText = 'position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; border-radius: 16px;';
-                            lockOverlay.innerHTML = '<i class="fas fa-lock" style="font-size: 2rem; color: white;"></i>';
-                            
-                            // Make sure the card has relative positioning
-                            companionCard.style.position = 'relative';
-                            companionCard.appendChild(lockOverlay);
-                        }
-                        
-                        console.log(`🔒 Locked premium companion: ${companionId}`);
-                    }
-                }
-            });
+            console.log(`🔒 PREMIUM LOCK: Trial expired/inactive - locking companions except ${selectedCompanionId}`);
             
-            // Store the lock state in localStorage
+            // Only lock if trial has expired or is not active
             localStorage.setItem('premiumCompanionsLocked', 'true');
             localStorage.setItem('unlockedPremiumCompanion', selectedCompanionId);
             
-            // Re-render premium companions to reflect new state
-            renderPremiumCompanions();
+            // Re-render to reflect lock state
+            renderCompanions();
         }
         
         function updateTrialOffer() {
@@ -1957,21 +1977,15 @@
             if (trialActive && trialExpiry && currentTime < parseInt(trialExpiry)) {
                 const timeRemaining = Math.floor((parseInt(trialExpiry) - currentTime) / 1000 / 60);
                 console.log('⚠️ TRIAL ALREADY ACTIVE: Cannot reset timer, time remaining:', timeRemaining, 'minutes');
-                showNotification(`Trial is already active! ${timeRemaining} minutes remaining.`, 'info');
+                showNotification(`Trial is already active! ${timeRemaining} minutes remaining. You can select any premium companion during your trial.`, 'success');
+                
+                // Make sure all premium companions are unlocked during active trial
+                unlockAllPremiumCompanionsForTrial();
                 return;
             }
             
-            // Show available Growth companions for trial
-            const growthCompanions = companions.growth || [];
-            if (growthCompanions.length === 0) {
-                console.log('❌ No growth companions available');
-                showNotification('No Growth companions available for trial', 'info');
-                return;
-            }
-            
-            // For now, offer trial of first Growth companion
-            const companion = growthCompanions[0];
-            console.log('🎯 Offering trial for:', companion);
+            // Start 24-hour trial with access to ALL premium companions
+            console.log('🎯 Starting trial with access to ALL premium companions');
             
             try {
                 const response = await fetch('/api/companions/trial', {
@@ -1980,7 +1994,7 @@
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        companion_id: companion.companion_id
+                        trial_type: 'all_premium' // Request access to all premium companions
                     })
                 });
                 
@@ -1989,33 +2003,30 @@
                 console.log('📊 Trial API response data:', data);
                 
                 if (data.success) {
-                    showNotification(`Trial started for ${companion.display_name}! Enjoy 24 hours of premium access.`, 'success');
+                    showNotification('🎉 Free trial started! You now have 24 hours of access to ALL premium companions. Choose any premium companion to chat with!', 'success');
                     
-                    // Store trial selection in localStorage
-                    localStorage.setItem('selectedCharacter', companion.display_name.split(' ')[0]);
-                    localStorage.setItem('currentScreen', 'chat');
+                    // Store trial state - NO specific companion selected yet
                     localStorage.setItem('trialActive', 'true');
                     localStorage.setItem('trialExpiry', Date.now() + (24 * 60 * 60 * 1000)); // 24 hours
                     localStorage.setItem('trialStartTime', Date.now()); // Track when trial started
-                    localStorage.setItem('trialSelectedCompanion', companion.companion_id); // Store which companion was selected
+                    localStorage.removeItem('trialSelectedCompanion'); // Clear any previous selection
+                    localStorage.removeItem('selectedCharacter'); // Let user choose
                     
-                    // PREMIUM LOCK: Lock all other premium companions now that one has been selected
-                    lockOtherPremiumCompanions(companion.companion_id);
+                    // UNLOCK ALL PREMIUM COMPANIONS - no locking!
+                    unlockAllPremiumCompanionsForTrial();
                     
                     // Start the trial timer
                     startTrialTimer();
                     
-                    // Re-render premium companions to unlock them
-                    renderPremiumCompanions();
+                    // Re-render all companions to show unlocked state
+                    renderCompanions();
                     
-                    setTimeout(() => {
-                        window.location.href = '/chat';
-                    }, 2000);
                 } else {
                     // Check if this is a "trial already active" error
                     if (data.trial_active && data.minutes_remaining) {
                         console.log('⚠️ Trial already active, showing notification');
-                        showNotification(data.error, 'info');
+                        showNotification(`Trial is already active! ${data.minutes_remaining} minutes remaining. You can select any premium companion!`, 'success');
+                        unlockAllPremiumCompanionsForTrial();
                         return;
                     }
                     
@@ -2023,50 +2034,44 @@
                     
                     // Fallback: Start trial directly 
                     console.log('🔄 Using fallback trial activation');
-                    showNotification(`Free trial started for ${companion.display_name}! Enjoy 24 hours of premium access.`, 'success');
+                    showNotification('🎉 Free trial activated! You now have 24 hours of access to ALL premium companions!', 'success');
                     
-                    localStorage.setItem('selectedCharacter', companion.display_name.split(' ')[0]);
-                    localStorage.setItem('currentScreen', 'chat');
-                    localStorage.setItem('hasActiveChat', 'true'); // KEY: Prevents chat from redirecting to intro
-                    sessionStorage.setItem('hasActiveChat', 'true'); // Also set in sessionStorage
                     localStorage.setItem('trialActive', 'true');
                     localStorage.setItem('trialExpiry', Date.now() + (24 * 60 * 60 * 1000));
                     localStorage.setItem('trialStartTime', Date.now());
-                    localStorage.setItem('trialSelectedCompanion', companion.companion_id);
+                    localStorage.removeItem('trialSelectedCompanion'); // No specific selection
+                    localStorage.removeItem('selectedCharacter'); // Let user choose
                     
-                    // PREMIUM LOCK: Lock all other premium companions
-                    lockOtherPremiumCompanions(companion.companion_id);
+                    // UNLOCK ALL PREMIUM COMPANIONS
+                    unlockAllPremiumCompanionsForTrial();
                     
                     // Start the trial timer
                     startTrialTimer();
                     
-                    setTimeout(() => {
-                        window.location.href = '/chat';
-                    }, 2000);
+                    // Re-render companions
+                    renderCompanions();
                 }
             } catch (error) {
                 console.error('❌ Error starting trial:', error);
                 
-                // Emergency fallback
+                // Emergency fallback - still unlock all premium companions
                 console.log('🚨 Using emergency trial fallback');
-                showNotification(`Free trial activated for ${companion.display_name}! Enjoy 24 hours of premium access.`, 'success');
+                showNotification('🎉 Free trial activated! You now have 24 hours of access to ALL premium companions!', 'success');
                 
-                localStorage.setItem('selectedCharacter', companion.display_name.split(' ')[0]);
-                localStorage.setItem('currentScreen', 'chat');
                 localStorage.setItem('trialActive', 'true');
                 localStorage.setItem('trialExpiry', Date.now() + (24 * 60 * 60 * 1000));
                 localStorage.setItem('trialStartTime', Date.now());
-                localStorage.setItem('trialSelectedCompanion', companion.companion_id);
+                localStorage.removeItem('trialSelectedCompanion'); // No specific selection
+                localStorage.removeItem('selectedCharacter'); // Let user choose
                 
-                // PREMIUM LOCK: Lock all other premium companions
-                lockOtherPremiumCompanions(companion.companion_id);
+                // UNLOCK ALL PREMIUM COMPANIONS
+                unlockAllPremiumCompanionsForTrial();
                 
                 // Start the trial timer
                 startTrialTimer();
                 
-                setTimeout(() => {
-                    window.location.href = '/chat';
-                }, 2000);
+                // Re-render companions
+                renderCompanions();
             }
         }
         
@@ -2403,6 +2408,25 @@
             }
         }
         
+        // UNLOCK ALL PREMIUM COMPANIONS FOR TRIAL - Fixed function
+        function unlockAllPremiumCompanionsForTrial() {
+            console.log('🔓 UNLOCKING: All premium companions for trial access');
+            
+            // Clear any existing premium locks
+            localStorage.removeItem('premiumCompanionsLocked');
+            localStorage.removeItem('unlockedPremiumCompanion');
+            
+            // Set trial unlock flag
+            localStorage.setItem('trialAllPremiumUnlocked', 'true');
+            
+            console.log('✅ All premium companions unlocked for trial period');
+            
+            // Re-render all companions to show unlocked state
+            setTimeout(() => {
+                renderCompanions();
+            }, 100);
+        }
+        
         function resetPremiumCompanionState() {
             console.log('🔄 RESET: Resetting premium companion state');
             
@@ -2416,15 +2440,15 @@
             const currentTime = Date.now();
             
             if (trialActive && trialExpiry && currentTime < parseInt(trialExpiry)) {
-                console.log('✅ RESET: Trial is active, unlocking premium companions');
-                showNotification('Premium companions unlocked! You can now select any premium companion during your trial.', 'success');
+                console.log('✅ RESET: Trial is active, unlocking ALL premium companions');
+                unlockAllPremiumCompanionsForTrial();
+                showNotification('All premium companions unlocked! You can select any premium companion during your trial.', 'success');
             } else {
                 console.log('⚠️ RESET: No active trial found');
                 showNotification('No active trial found. Start a free trial to access premium companions.', 'info');
+                // Re-render companions with locked state
+                renderCompanions();
             }
-            
-            // Re-render companions with new state
-            renderPremiumCompanions();
         }
         
         // Check and restore premium companion lock state on page load
@@ -2535,6 +2559,23 @@
                         </ul>
                     </div>
                     
+                    <!-- Interactive Chat Section -->
+                    <div style="background: rgba(0, 0, 0, 0.3); border-radius: 12px; padding: 15px; margin-bottom: 20px;">
+                        <h4 style="color: #22d3ee; margin: 0 0 10px 0; font-size: 0.9rem;">💬 Ask Sapphire:</h4>
+                        <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+                            <input type="text" id="sapphireQuestion" placeholder="Ask about companions..."
+                                   style="flex: 1; padding: 8px 12px; background: rgba(255, 255, 255, 0.1);
+                                          border: 1px solid rgba(34, 211, 238, 0.3); border-radius: 8px;
+                                          color: #e2e8f0; font-size: 0.85rem;"
+                                   onkeypress="if(event.key==='Enter') askSapphire()">
+                            <button onclick="askSapphire()" 
+                                    style="padding: 8px 16px; background: linear-gradient(135deg, #22d3ee 0%, #0891b2 100%);
+                                           border: none; border-radius: 8px; color: #000; font-weight: 600; cursor: pointer;
+                                           font-size: 0.8rem; white-space: nowrap;">Ask</button>
+                        </div>
+                        <div id="sapphireResponse" style="color: #94a3b8; font-size: 0.8rem; min-height: 20px; line-height: 1.4;"></div>
+                    </div>
+                    
                     <button onclick="closeSapphireHelp()" 
                             style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.1);
                                    border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 12px;
@@ -2545,6 +2586,88 @@
             `;
             
             document.body.appendChild(modal);
+        }
+        
+        function askSapphire() {
+            const question = document.getElementById('sapphireQuestion').value.trim();
+            const responseDiv = document.getElementById('sapphireResponse');
+            
+            if (!question) {
+                responseDiv.textContent = 'Please ask me something about companions!';
+                return;
+            }
+            
+            // Show loading state
+            responseDiv.textContent = 'Sapphire is thinking...';
+            
+            // Get smart response based on question
+            const response = getSapphireCompanionResponse(question);
+            
+            // Simulate response delay for realistic feel
+            setTimeout(() => {
+                responseDiv.innerHTML = response;
+                document.getElementById('sapphireQuestion').value = '';
+            }, 800);
+        }
+        
+        function getSapphireCompanionResponse(question) {
+            const q = question.toLowerCase();
+            
+            // Companion-specific questions
+            if (q.includes('gamerjay') || q.includes('gamer')) {
+                return '🎮 <strong>GamerJay</strong> is perfect for goal-oriented people! He brings gaming motivation to personal growth. Great for setting and achieving life goals with gaming-style progression tracking.';
+            }
+            if (q.includes('blayzo') && !q.includes('blayz')) {
+                return '🧙‍♂️ <strong>Blayzo</strong> is wise and calm, offering deep philosophical guidance. Perfect for those seeking wisdom and understanding through life\'s challenges.';
+            }
+            if (q.includes('blayzica')) {
+                return '💖 <strong>Blayzica</strong> radiates positivity and empathy. She\'s your caring personal assistant who helps with emotional support and encouragement.';
+            }
+            if (q.includes('sky')) {
+                return '🌟 <strong>Sky</strong> (Growth tier) specializes in spiritual guidance and mindfulness. Perfect for meditation, chakra work, and connecting with your higher self.';
+            }
+            if (q.includes('crimson')) {
+                return '🔥 <strong>Crimson</strong> (Max tier) is a powerful transformer who helps you rise stronger from challenges. Specializes in trauma healing and deep personal growth.';
+            }
+            if (q.includes('violet')) {
+                return '🎨 <strong>Violet</strong> (Max tier) ignites creativity and artistic expression. Perfect for artists, writers, and creative souls seeking inspiration.';
+            }
+            
+            // Tier and feature questions
+            if (q.includes('free') && (q.includes('companion') || q.includes('which'))) {
+                return '🆓 <strong>Free companions:</strong> GamerJay, Blayzo, and Blayzica are always available! They offer excellent guidance without any subscription required.';
+            }
+            if (q.includes('trial') || q.includes('premium')) {
+                return '🎁 <strong>Free Trial:</strong> You can try any Growth tier companion (like Sky) for 24 hours free! Just click the "Try Me Today" button on premium companions.';
+            }
+            if (q.includes('growth') || q.includes('subscription')) {
+                return '🌱 <strong>Growth tier:</strong> Unlocks Sky, enhanced GamerJay Premium, and other advanced companions with voice interactions and deeper AI personalities.';
+            }
+            if (q.includes('max') || q.includes('enterprise')) {
+                return '👑 <strong>Max tier:</strong> Access to Crimson and Violet with the most advanced AI models, priority responses, and premium features.';
+            }
+            if (q.includes('voice') || q.includes('speak')) {
+                return '🎵 <strong>Voice features:</strong> Growth and Max tier companions have unique voice interactions! Premium companions can speak their responses aloud.';
+            }
+            if (q.includes('switch') || q.includes('change')) {
+                return '🔄 <strong>Switching companions:</strong> Your first companion is free! After that, there\'s a one-time $3 fee to unlock unlimited switching between all free companions.';
+            }
+            
+            // Recommendation questions
+            if (q.includes('recommend') || q.includes('best') || q.includes('which should')) {
+                return '💎 <strong>My recommendations:</strong><br>• Beginners: Start with <strong>GamerJay</strong> or <strong>Blayzica</strong><br>• Spiritual growth: Try <strong>Sky</strong> (Growth)<br>• Creative work: <strong>Violet</strong> (Max)<br>• Deep healing: <strong>Crimson</strong> (Max)';
+            }
+            if (q.includes('difference') || q.includes('compare')) {
+                return '⚖️ <strong>Key differences:</strong><br>• Free: Basic AI, core features<br>• Growth: Enhanced AI, voice, spiritual guidance<br>• Max: Most advanced AI, premium features, priority support';
+            }
+            
+            // General help
+            if (q.includes('help') || q.includes('how') || q.includes('what')) {
+                return '💡 <strong>I can help with:</strong><br>• Choosing the right companion for your needs<br>• Explaining tier differences and features<br>• Trial and subscription information<br>• Companion personalities and specialties';
+            }
+            
+            // Default response
+            return '💎 That\'s a great question! Each companion has unique strengths:<br>• <strong>Free companions</strong> for daily support<br>• <strong>Growth companions</strong> for enhanced guidance<br>• <strong>Max companions</strong> for advanced features<br><br>Ask me about specific companions or features!';
         }
         
         function closeSapphireHelp() {
@@ -2715,9 +2838,69 @@
             window.location.href = '/login';
         }
         
+        // Initialize trial status and unlock companions if trial is active
+        function initializeTrialStatus() {
+            const trialActive = localStorage.getItem('trialActive') === 'true';
+            const trialExpiry = localStorage.getItem('trialExpiry');
+            const currentTime = Date.now();
+            const hasActiveTrialAccess = trialActive && trialExpiry && currentTime < parseInt(trialExpiry);
+            
+            console.log('🔍 Initializing trial status:', {
+                trialActive,
+                trialExpiry: trialExpiry ? new Date(parseInt(trialExpiry)) : null,
+                hasActiveTrialAccess
+            });
+            
+            if (hasActiveTrialAccess) {
+                console.log('✅ Active trial detected - unlocking all premium companions');
+                unlockAllPremiumCompanionsForTrial();
+                startTrialTimer(); // Restart timer display
+            } else if (trialActive && trialExpiry) {
+                // Trial expired
+                console.log('⏰ Trial expired - cleaning up');
+                localStorage.removeItem('trialActive');
+                localStorage.removeItem('trialExpiry');
+                localStorage.removeItem('trialStartTime');
+                localStorage.removeItem('trialAllPremiumUnlocked');
+            }
+        }
+        
+        // Handle back button navigation with smart routing
+        function navigateBack() {
+            console.log('🔙 Back button clicked - determining navigation path');
+            
+            // Check if user came from chat
+            const fromChat = localStorage.getItem('navigatedFromChat') === 'true';
+            const selectedCharacter = localStorage.getItem('selectedCharacter');
+            const hasActiveChat = localStorage.getItem('hasActiveChat') === 'true';
+            
+            if (fromChat && selectedCharacter && hasActiveChat) {
+                console.log('🔄 Returning to chat with companion:', selectedCharacter);
+                localStorage.setItem('currentScreen', 'chat');
+                window.location.href = '/chat';
+                return;
+            }
+            
+            // Check authentication status
+            const userAuthenticated = sessionStorage.getItem('user_authenticated') === 'true';
+            
+            if (userAuthenticated) {
+                console.log('🔄 Returning to intro page');
+                window.location.href = '/intro';
+            } else {
+                console.log('🔄 Returning to login page');
+                window.location.href = '/login';
+            }
+        }
+
         // Add Sapphire helper when page loads
         document.addEventListener('DOMContentLoaded', function() {
             addSapphireHelper();
+            
+            // Initialize trial status on page load
+            setTimeout(() => {
+                initializeTrialStatus();
+            }, 500);
         });
         
     </script>
