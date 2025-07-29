@@ -29,7 +29,20 @@ function initializeCompanionSelector() {
     // Set up event listeners
     setupEventListeners();
     
+    // Handle switching from chat
+    handleChatSwitching();
+    
     console.log('✅ Companion Selector initialized');
+}
+
+function handleChatSwitching() {
+    const switchingFromChat = localStorage.getItem('switchingFromChat');
+    if (switchingFromChat === 'true') {
+        localStorage.removeItem('switchingFromChat');
+        setTimeout(() => {
+            showNotification('Choose your new AI companion!', 'info');
+        }, 500);
+    }
 }
 
 function setupEventListeners() {
@@ -299,17 +312,19 @@ async function selectCompanion(companionId) {
             currentUser.selected_companion = companionId;
             renderCompanions();
             
-            // Store selection
-            localStorage.setItem('selectedCharacter', getCompanionName(companionId));
+            // Store selection for instant access
+            const companionName = getCompanionName(companionId);
+            localStorage.setItem('selectedCharacter', companionName);
             localStorage.setItem('currentScreen', 'chat');
+            localStorage.setItem('companionSelectionTime', Date.now());
             
             // Show success message
-            showNotification('Companion selected! Redirecting to chat...', 'success');
+            showNotification(`${companionName} companion selected! Redirecting...`, 'success');
             
-            // Redirect to chat
+            // Immediate redirect for smooth flow
             setTimeout(() => {
-                window.location.href = '/chat';
-            }, 1000);
+                window.location.href = `/chat?companion=${companionName.toLowerCase()}`;
+            }, 800);
             
         } else {
             console.error('❌ Companion selection failed:', data.error);
@@ -347,15 +362,17 @@ async function startPremiumTrial(companionId) {
             localStorage.setItem('trialActive', 'true');
             localStorage.setItem('trialExpiry', Date.now() + (24 * 60 * 60 * 1000));
             localStorage.setItem('trialStartTime', Date.now());
+            const companionName = getCompanionName(companionId);
             localStorage.setItem('trialSelectedCompanion', companionId);
-            localStorage.setItem('selectedCharacter', getCompanionName(companionId));
+            localStorage.setItem('selectedCharacter', companionName);
             localStorage.setItem('currentScreen', 'chat');
             localStorage.setItem('hasActiveChat', 'true');
+            localStorage.setItem('companionSelectionTime', Date.now());
             sessionStorage.setItem('hasActiveChat', 'true');
             
-            // Redirect to chat immediately
-            console.log('🔄 Redirecting to chat with premium companion:', getCompanionName(companionId));
-            window.location.href = '/chat';
+            // Redirect to chat with instant companion loading
+            console.log('🔄 Redirecting to chat with premium companion:', companionName);
+            window.location.href = `/chat?companion=${companionName.toLowerCase()}&trial=true`;
             
         } else {
             console.error('❌ Premium trial failed:', data.error);

@@ -1014,8 +1014,16 @@ def chat():
             return redirect(f"/login?return_to=chat&companion={companion}")
         return redirect("/login?return_to=chat")
     
-    # Get selected companion from session
+    # Get selected companion from session or URL parameter
     selected_companion = session.get('selected_companion')
+    url_companion = request.args.get('companion')
+    
+    # If companion passed via URL, update session immediately
+    if url_companion and not selected_companion:
+        session['selected_companion'] = f"companion_{url_companion.lower()}"
+        selected_companion = session['selected_companion']
+        logger.info(f"🔄 CHAT: Updated companion from URL: {selected_companion}")
+    
     companion_name = None
     
     if selected_companion:
