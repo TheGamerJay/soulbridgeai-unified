@@ -518,17 +518,18 @@ def home():
     """Home route - require login then always show intro with Sapphire"""
     try:
         # Require authentication for main app access
-        logger.info(f"Home route: Checking authentication - Session keys: {list(session.keys())}")
-        logger.info(f"Home route: user_authenticated = {session.get('user_authenticated')}")
-        logger.info(f"Home route: user_id = {session.get('user_id')}")
-        logger.info(f"Home route: user_email = {session.get('user_email')}")
+        logger.info(f"🏠 HOME ROUTE: Checking authentication - Session keys: {list(session.keys())}")
+        logger.info(f"🏠 HOME ROUTE: user_authenticated = {session.get('user_authenticated')}")
+        logger.info(f"🏠 HOME ROUTE: user_id = {session.get('user_id')}")
+        logger.info(f"🏠 HOME ROUTE: user_email = {session.get('user_email')}")
+        logger.info(f"🏠 HOME ROUTE: session_version = {session.get('session_version')}")
         
         if not is_logged_in():
-            logger.info(f"Home route: ❌ User NOT authenticated, redirecting to login")
+            logger.info(f"🏠 HOME ROUTE: ❌ User NOT authenticated, redirecting to login")
             return redirect("/login")
         
         # User is authenticated - always show beautiful intro with Sapphire
-        logger.info(f"Home route: User authenticated, showing intro with Sapphire")
+        logger.info(f"🏠 HOME ROUTE: ✅ User authenticated, showing intro with Sapphire")
         
         # Initialize services if needed
         if not services["database"]:
@@ -991,8 +992,16 @@ def intro():
 @app.route("/companion-selection")
 def companion_selection():
     """Companion selection page"""
+    logger.info(f"🔍 COMPANION SELECTION: Session keys: {list(session.keys())}")
+    logger.info(f"🔍 COMPANION SELECTION: user_authenticated = {session.get('user_authenticated')}")
+    logger.info(f"🔍 COMPANION SELECTION: user_id = {session.get('user_id')}")
+    logger.info(f"🔍 COMPANION SELECTION: session_version = {session.get('session_version')}")
+    
     if not is_logged_in():
+        logger.warning(f"🚫 COMPANION SELECTION: User not authenticated, redirecting to login")
         return redirect("/login")
+    
+    logger.info(f"✅ COMPANION SELECTION: User authenticated, showing companion selector")
     return render_template("companion_selector.html")
 
 @app.route("/chat")
