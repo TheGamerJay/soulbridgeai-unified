@@ -1297,9 +1297,12 @@ def api_start_companion_trial():
         if existing_trial_expires:
             try:
                 # Parse the existing expiry time
-                from datetime import datetime
-                expiry_dt = datetime.fromisoformat(existing_trial_expires.replace('Z', '+00:00'))
-                current_dt = datetime.now(timezone.utc) if expiry_dt.tzinfo else datetime.now()
+                if existing_trial_expires.endswith('Z'):
+                    expiry_dt = datetime.fromisoformat(existing_trial_expires.replace('Z', '+00:00'))
+                    current_dt = datetime.now(timezone.utc)
+                else:
+                    expiry_dt = datetime.fromisoformat(existing_trial_expires)
+                    current_dt = datetime.now()
                 
                 if current_dt < expiry_dt:
                     time_remaining = expiry_dt - current_dt
@@ -1328,6 +1331,8 @@ def api_start_companion_trial():
         session['trial_active'] = True
         session.permanent = True  # CRITICAL: Ensure session persists
         
+        logger.info(f"🔧 TRIAL SESSION DATA SET: companion={companion_id}, expires={session['trial_expires']}, plan={session['user_plan']}")
+        
         logger.info(f"✅ TRIAL STARTED: 24-hour trial for user {user_email or user_id} with companion {companion_id}")
         
         return jsonify({
@@ -1340,7 +1345,9 @@ def api_start_companion_trial():
         
     except Exception as e:
         logger.error(f"Start companion trial API error: {e}")
-        return jsonify({"success": False, "error": "Failed to start trial"}), 500
+        import traceback
+        logger.error(f"Trial API traceback: {traceback.format_exc()}")
+        return jsonify({"success": False, "error": f"Failed to start trial: {str(e)}"}), 500
 
 # ========================================
 # MAIN APP ROUTES
