@@ -494,15 +494,15 @@
             background: linear-gradient(135deg, rgba(34, 211, 238, 0.05), rgba(8, 145, 178, 0.05));
         }
         
-        /* Blayzica - Purple Cosmic Theme */
+        /* Blayzica - Red and Cyan Theme */
         body.character-blayzica {
-            --character-primary: #a855f7;
-            --character-secondary: #7c3aed;
-            --character-accent: rgba(168, 85, 247, 0.1);
+            --character-primary: #dc2626;
+            --character-secondary: #22d3ee;
+            --character-accent: rgba(220, 38, 38, 0.1);
         }
         
         body.character-blayzica #chatInterface {
-            background: linear-gradient(135deg, rgba(168, 85, 247, 0.05), rgba(124, 58, 237, 0.05));
+            background: linear-gradient(135deg, rgba(220, 38, 38, 0.05), rgba(34, 211, 238, 0.05));
         }
         
         /* Blayzion - Rainbow Mystical Theme */
@@ -4940,7 +4940,9 @@
                     
                 case 'Blayzica':
                     chatAvatarImg.style.animation = 'breathe 4.5s ease-in-out infinite';
-                    chatAvatarImg.style.filter = 'drop-shadow(0 4px 12px rgba(34, 211, 238, 0.3))';
+                    chatAvatarImg.style.filter = 'drop-shadow(0 4px 12px rgba(220, 38, 38, 0.3))';
+                    // Add dual-color particles for red and cyan theme
+                    addChatParticles('fire');
                     break;
                     
                 case 'Blayzion':
@@ -5071,7 +5073,7 @@
         function getCharacterColor(character) {
             switch(character) {
                 case 'Blayzo': return 'rgba(34, 211, 238, 1)';
-                case 'Blayzica': return 'rgba(34, 211, 238, 1)';
+                case 'Blayzica': return 'rgba(220, 38, 38, 1)'; // Red primary color
                 case 'Blayzion': return 'rgba(255, 215, 0, 1)';
                 case 'Blayzia': return 'rgba(168, 85, 247, 1)';
                 case 'Violet': return 'rgba(124, 58, 237, 1)';
