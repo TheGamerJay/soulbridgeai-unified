@@ -1852,16 +1852,7 @@
             right: 20px;
             z-index: 50;
             display: none;
-        " onclick="
-            // Remove character theme classes when going back to character select
-            document.body.classList.remove('character-blayzo', 'character-blayzica', 'character-blayzion', 'character-blayzia', 'character-violet', 'character-crimson');
-            
-            // Clear active chat session flag when leaving chat
-            sessionStorage.removeItem('hasActiveChat');
-            localStorage.setItem('currentScreen', 'select');
-            document.getElementById('chatInterface').classList.add('hidden');
-            document.getElementById('characterSelect').classList.remove('hidden');
-        ">
+        " onclick="showCharacterSelect()">
             ← Back
         </div>
 
@@ -2144,7 +2135,17 @@
         }
         
         function openDecoderMode() { window.location.href = '/decoder'; }
-        function showLibrary() { window.location.href = '/library'; }
+        function showLibrary() { 
+            console.log('📚 Library button clicked');
+            // Get saved conversations from localStorage
+            var conversations = JSON.parse(localStorage.getItem('savedConversations') || '[]');
+            if (conversations.length === 0) {
+                alert('No saved conversations found! Save some conversations first.');
+                return;
+            }
+            // Open library page
+            window.location.href = '/library';
+        }
         function openVoiceChat() { window.location.href = '/voice-chat'; }
         function toggleNavigationAssistant() { 
             var modal = document.getElementById('navAssistantModal');
@@ -2176,9 +2177,34 @@
         }
         
         function showCharacterSelect() { 
-            document.getElementById('chatScreen').style.display = 'none';
-            document.getElementById('introScreen').style.display = 'none';
-            document.getElementById('characterSelect').style.display = 'block';
+            console.log('🔙 Going back to character select');
+            // Remove character theme classes when going back to character select
+            document.body.classList.remove('character-blayzo', 'character-blayzica', 'character-blayzion', 'character-blayzia', 'character-violet', 'character-crimson');
+            
+            // Clear active chat session flag when leaving chat
+            sessionStorage.removeItem('hasActiveChat');
+            localStorage.setItem('currentScreen', 'select');
+            
+            // Hide chat interface and show character select
+            var chatInterface = document.getElementById('chatInterface');
+            var characterSelect = document.getElementById('characterSelect');
+            var chatScreen = document.getElementById('chatScreen');
+            var introScreen = document.getElementById('introScreen');
+            
+            if (chatInterface) chatInterface.classList.add('hidden');
+            if (chatScreen) chatScreen.style.display = 'none';
+            if (introScreen) introScreen.style.display = 'none';
+            if (characterSelect) {
+                characterSelect.classList.remove('hidden');
+                characterSelect.style.display = 'block';
+            }
+            
+            // Hide back button
+            var backToIntroBtn = document.getElementById('backToIntroBtn');
+            if (backToIntroBtn) {
+                backToIntroBtn.style.display = 'none';
+            }
+            
             alert('Switched to character select screen!');
         }
         
