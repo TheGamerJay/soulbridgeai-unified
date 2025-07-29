@@ -1087,112 +1087,37 @@ def api_companions():
         # Define companions by tier
         companions = {
             "free": [
-                {
-                    "companion_id": "blayzo_free",
-                    "display_name": "Blayzo",
-                    "description": "Your creative and fun AI companion",
-                    "avatar_image": "/static/logos/Blayzo.png",
-                    "tier": "free",
-                    "is_recommended": True,
-                    "popularity_score": 90,
-                    "lock_reason": None
-                },
-                {
-                    "companion_id": "blayzica_free",
-                    "display_name": "Blayzica",
-                    "description": "Your empathetic and caring AI companion",
-                    "avatar_image": "/static/logos/Blayzica.png",
-                    "tier": "free",
-                    "is_recommended": True,
-                    "popularity_score": 88,
-                    "lock_reason": None
-                },
-                {
-                    "companion_id": "companion_gamerjay",
-                    "display_name": "GamerJay",
-                    "description": "Your friendly gaming companion",
-                    "avatar_image": "/static/logos/GamerJay Free companion.png",
-                    "tier": "free",
-                    "is_recommended": False,
-                    "popularity_score": 85,
-                    "lock_reason": None
-                }
+                {"companion_id": "blayzo_free", "display_name": "Blayzo", "description": "Your creative and fun AI companion", "avatar_image": "/static/logos/Blayzo.png", "tier": "free", "is_recommended": True, "popularity_score": 90, "lock_reason": None},
+                {"companion_id": "blayzica_free", "display_name": "Blayzica", "description": "Your empathetic and caring AI companion", "avatar_image": "/static/logos/Blayzica.png", "tier": "free", "is_recommended": True, "popularity_score": 88, "lock_reason": None},
+                {"companion_id": "companion_gamerjay", "display_name": "GamerJay", "description": "Your friendly gaming companion", "avatar_image": "/static/logos/GamerJay Free companion.png", "tier": "free", "is_recommended": False, "popularity_score": 85, "lock_reason": None},
+                {"companion_id": "blayzia_free", "display_name": "Blayzia", "description": "Mystical wisdom and spiritual insight", "avatar_image": "/static/logos/Blayzia.png", "tier": "free", "is_recommended": True, "popularity_score": 90, "lock_reason": None},
+                {"companion_id": "blayzion_free", "display_name": "Blayzion", "description": "Creative innovation and breakthrough thinking", "avatar_image": "/static/logos/Blayzion.png", "tier": "free", "is_recommended": False, "popularity_score": 89, "lock_reason": None},
+                {"companion_id": "claude_free", "display_name": "Claude", "description": "Your friendly coding assistant", "avatar_image": "/static/logos/Claude Free.png", "tier": "free", "is_recommended": False, "popularity_score": 85, "lock_reason": None}
             ],
             "growth": [
-                {
-                    "companion_id": "companion_sky",
-                    "display_name": "Sky",
-                    "description": "Premium companion with advanced features",
-                    "avatar_image": "/static/logos/Sky a primum companion.png",
-                    "tier": "growth",
-                    "is_recommended": True,
-                    "popularity_score": 90,
-                    "lock_reason": "Requires Growth Plan" if user_plan == 'foundation' else None
-                },
-                {
-                    "companion_id": "blayzo_growth",
-                    "display_name": "Blayzo Pro",
-                    "description": "Advanced Blayzo with enhanced creativity and memory",
-                    "avatar_image": "/static/logos/Blayzo.png",
-                    "tier": "growth",
-                    "is_recommended": True,
-                    "popularity_score": 92,
-                    "lock_reason": "Requires Growth Plan" if user_plan == 'foundation' else None
-                },
-                {
-                    "companion_id": "blayzica_growth",
-                    "display_name": "Blayzica Pro",
-                    "description": "Enhanced Blayzica with deeper emotional intelligence",
-                    "avatar_image": "/static/logos/Blayzica.png",
-                    "tier": "growth",
-                    "is_recommended": True,
-                    "popularity_score": 91,
-                    "lock_reason": "Requires Growth Plan" if user_plan == 'foundation' else None
-                },
-                {
-                    "companion_id": "companion_gamerjay_premium",
-                    "display_name": "GamerJay Premium",
-                    "description": "Enhanced GamerJay with premium features",
-                    "avatar_image": "/static/logos/GamgerJay premium companion.png",
-                    "tier": "growth",
-                    "is_recommended": False,
-                    "popularity_score": 88,
-                    "lock_reason": "Requires Growth Plan" if user_plan == 'foundation' else None
-                },
+                {"companion_id": "companion_sky", "display_name": "Sky", "description": "Premium companion with advanced features", "avatar_image": "/static/logos/Sky a primum companion.png", "tier": "growth", "is_recommended": True, "popularity_score": 90, "lock_reason": "Requires Growth Plan" if user_plan == 'foundation' else None},
+                {"companion_id": "blayzo_growth", "display_name": "Blayzo Pro", "description": "Advanced Blayzo with enhanced creativity", "avatar_image": "/static/logos/Blayzo premium companion.png", "tier": "growth", "is_recommended": True, "popularity_score": 92, "lock_reason": "Requires Growth Plan" if user_plan == 'foundation' else None},
+                {"companion_id": "blayzica_growth", "display_name": "Blayzica Pro", "description": "Enhanced emotional intelligence companion", "avatar_image": "/static/logos/Blayzica.png", "tier": "growth", "is_recommended": True, "popularity_score": 91, "lock_reason": "Requires Growth Plan" if user_plan == 'foundation' else None},
+                {"companion_id": "companion_gamerjay_premium", "display_name": "GamerJay Premium", "description": "Enhanced GamerJay with premium features", "avatar_image": "/static/logos/GamgerJay premium companion.png", "tier": "growth", "is_recommended": False, "popularity_score": 88, "lock_reason": "Requires Growth Plan" if user_plan == 'foundation' else None},
+                {"companion_id": "watchdog_growth", "display_name": "WatchDog", "description": "Your protective guardian companion", "avatar_image": "/static/logos/WatchDog a Primum companion.png", "tier": "growth", "is_recommended": False, "popularity_score": 78, "lock_reason": "Requires Growth Plan" if user_plan == 'foundation' else None},
+                {"companion_id": "crimson_growth", "display_name": "Crimson", "description": "Motivational drive to overcome challenges", "avatar_image": "/static/logos/Crimson.png", "tier": "growth", "is_recommended": True, "popularity_score": 87, "lock_reason": "Requires Growth Plan" if user_plan == 'foundation' else None},
+                {"companion_id": "violet_growth", "display_name": "Violet", "description": "Creative inspiration and artistic guidance", "avatar_image": "/static/logos/Violet.png", "tier": "growth", "is_recommended": False, "popularity_score": 84, "lock_reason": "Requires Growth Plan" if user_plan == 'foundation' else None},
+                {"companion_id": "claude_growth", "display_name": "Claude Growth", "description": "Advanced coding guidance and architecture", "avatar_image": "/static/logos/Claude Growth.png", "tier": "growth", "is_recommended": True, "popularity_score": 93, "lock_reason": "Requires Growth Plan" if user_plan == 'foundation' else None}
             ],
             "max": [
-                {
-                    "companion_id": "companion_crimson",
-                    "display_name": "Crimson",
-                    "description": "Elite max-tier companion",
-                    "avatar_image": "/static/logos/Crimson a Max companion.png",
-                    "tier": "max",
-                    "is_recommended": True,
-                    "popularity_score": 95,
-                    "lock_reason": "Requires Transformation Plan" if user_plan != 'enterprise' else None
-                },
-                {
-                    "companion_id": "companion_violet",
-                    "display_name": "Violet",
-                    "description": "Premium max companion with exclusive features",
-                    "avatar_image": "/static/logos/Violet a max companion.png",
-                    "tier": "max",
-                    "is_recommended": False,
-                    "popularity_score": 92,
-                    "lock_reason": "Requires Transformation Plan" if user_plan != 'enterprise' else None
-                }
+                {"companion_id": "companion_crimson", "display_name": "Crimson Max", "description": "Elite transformation companion", "avatar_image": "/static/logos/Crimson a Max companion.png", "tier": "max", "is_recommended": True, "popularity_score": 98, "lock_reason": "Requires Transformation Plan" if user_plan != 'enterprise' else None},
+                {"companion_id": "companion_violet", "display_name": "Violet Max", "description": "Premium creative companion", "avatar_image": "/static/logos/Violet a max companion.png", "tier": "max", "is_recommended": False, "popularity_score": 91, "lock_reason": "Requires Transformation Plan" if user_plan != 'enterprise' else None},
+                {"companion_id": "royal_max", "display_name": "Royal", "description": "Majestic guide with sophisticated wisdom", "avatar_image": "/static/logos/Royal a max companion.png", "tier": "max", "is_recommended": False, "popularity_score": 95, "lock_reason": "Requires Transformation Plan" if user_plan != 'enterprise' else None},
+                {"companion_id": "watchdog_max", "display_name": "WatchDog Max", "description": "Ultimate guardian companion", "avatar_image": "/static/logos/WatchDog a Max Companion.png", "tier": "max", "is_recommended": False, "popularity_score": 93, "lock_reason": "Requires Transformation Plan" if user_plan != 'enterprise' else None},
+                {"companion_id": "ven_blayzica", "display_name": "Ven Blayzica", "description": "Enhanced healer with emotional mastery", "avatar_image": "/static/logos/Ven Blayzica a max companion.png", "tier": "max", "is_recommended": True, "popularity_score": 94, "lock_reason": "Requires Transformation Plan" if user_plan != 'enterprise' else None},
+                {"companion_id": "ven_sky", "display_name": "Ven Sky", "description": "Ascended spiritual guide", "avatar_image": "/static/logos/Ven Sky a max companion.png", "tier": "max", "is_recommended": True, "popularity_score": 96, "lock_reason": "Requires Transformation Plan" if user_plan != 'enterprise' else None},
+                {"companion_id": "claude_max", "display_name": "Claude Max", "description": "Elite coding mastery and system design", "avatar_image": "/static/logos/Claude Max.png", "tier": "max", "is_recommended": True, "popularity_score": 97, "lock_reason": "Requires Transformation Plan" if user_plan != 'enterprise' else None}
             ],
             "referral": [
-                {
-                    "companion_id": "blayzo",
-                    "display_name": "Blayzo",
-                    "description": "Exclusive referral companion",
-                    "avatar_image": "/static/logos/Blayzo Referral.png",
-                    "tier": "referral",
-                    "is_recommended": False,
-                    "popularity_score": 100,
-                    "lock_reason": "Unlock through referrals"
-                }
+                {"companion_id": "blayzo", "display_name": "Blayzo Champion", "description": "Exclusive community champion", "avatar_image": "/static/logos/Blayzo Referral.png", "tier": "referral", "is_recommended": True, "popularity_score": 100, "lock_reason": "Unlock through referrals"},
+                {"companion_id": "blayzike", "display_name": "Blayzike", "description": "Mysterious guide with hidden wisdom", "avatar_image": "/static/logos/Blayzike.png", "tier": "referral", "is_recommended": True, "popularity_score": 97, "lock_reason": "Unlock through referrals"},
+                {"companion_id": "blazelian", "display_name": "Blazelian", "description": "Celestial wanderer with cosmic wisdom", "avatar_image": "/static/logos/Blazelian.png", "tier": "referral", "is_recommended": True, "popularity_score": 98, "lock_reason": "Unlock through referrals"},
+                {"companion_id": "claude_referral", "display_name": "Claude Referral", "description": "Elite coding companion for champions", "avatar_image": "/static/logos/Claude Referral.png", "tier": "referral", "is_recommended": True, "popularity_score": 100, "lock_reason": "Unlock through referrals"}
             ]
         }
         
