@@ -10,7 +10,14 @@
     <script>
         // Force reload if changes aren't visible
         window.addEventListener('load', function() {
-            console.log('Page loaded, version: {{ range(10000, 99999) | random }}');
+            const buildVersion = '{{ range(10000, 99999) | random }}';
+            console.log('🚀 SoulBridge AI Chat Page Loaded - Build:', buildVersion);
+            console.log('🔧 Features: Trial System ✅, $3 Switching ✅, Login Redirects ✅');
+            console.log('⏰ Loaded at:', new Date().toISOString());
+            
+            // Show build info in console for debugging
+            console.log('%c🎯 DEBUGGING: If you don\'t see new features, try Ctrl+F5 or clear browser cache', 
+                       'background: #22d3ee; color: black; padding: 4px; border-radius: 4px;');
             
             // Debug info for chat functionality
             setTimeout(function() {
