@@ -993,7 +993,22 @@ def chat():
         if companion:
             return redirect(f"/login?return_to=chat&companion={companion}")
         return redirect("/login?return_to=chat")
-    return render_template("chat.html")
+    
+    # Get selected companion from session
+    selected_companion = session.get('selected_companion')
+    companion_name = None
+    
+    if selected_companion:
+        # Convert companion_id to display name
+        companion_name = selected_companion.replace('companion_', '')
+        if companion_name == 'gamerjay':
+            companion_name = 'GamerJay'
+        elif companion_name == 'gamerjay_premium':
+            companion_name = 'GamerJay Premium'
+        elif companion_name in ['sky', 'crimson', 'violet', 'blayzo', 'blayzica', 'blayzia', 'blayzion']:
+            companion_name = companion_name.capitalize()
+    
+    return render_template("chat.html", selected_companion=companion_name)
 
 @app.route("/api/companions", methods=["GET"])
 def api_companions():

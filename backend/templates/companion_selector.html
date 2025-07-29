@@ -1512,10 +1512,8 @@
                                         ${isSelected ? 'Selected' : (hasActiveTrialAccess && (companion.tier === 'growth' || companion.tier === 'max') ? '✨ Try Premium' : 'Select')}
                                     </button>
                                 ` : `
-                                    <button class="btn-select ${isReferralTier ? 'referral-button' : 'upgrade-button'}" 
-                                            style="${isReferralTier ? 'background: #FFD700; color: #333;' : 'background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%); color: white;'}"
-                                            onclick="${isReferralTier ? 'showReferralProgram()' : `showUpgradeModal('${companion.companion_id}')`}">
-                                        ${isReferralTier ? '👥 View Referral Program' : '🔓 Unlock Premium'}
+                                    <button class="btn-select" disabled style="${isReferralTier ? 'background: #FFD700; color: #333;' : 'background: #ccc; color: #666; cursor: not-allowed;'}">
+                                        ${isReferralTier ? '👥 View Referral Program' : `🔒 ${companion.lock_reason}`}
                                     </button>
                                 `}
                                 

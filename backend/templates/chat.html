@@ -8058,7 +8058,16 @@
             // Ensure character theme is applied on page load
             let selectedCharacter = localStorage.getItem('selectedCharacter');
             
-            // If not in localStorage, try to get from session storage or derive from companion_id
+            // If not in localStorage, try server-provided data first
+            if (!selectedCharacter) {
+                const serverCompanion = '{{ selected_companion if selected_companion else "" }}';
+                if (serverCompanion) {
+                    selectedCharacter = serverCompanion;
+                    console.log('🖥️ Using server-provided companion:', selectedCharacter);
+                }
+            }
+            
+            // If still not found, try to get from session storage or derive from companion_id
             if (!selectedCharacter) {
                 const sessionCharacter = sessionStorage.getItem('selectedCharacter');
                 if (sessionCharacter) {
@@ -8081,11 +8090,23 @@
             
             if (selectedCharacter) {
                 console.log('🎨 Applying character theme on page load for:', selectedCharacter);
+                console.log('📊 Character info debug:', {
+                    selectedCharacter,
+                    localStorageChar: localStorage.getItem('selectedCharacter'),
+                    sessionStorageChar: sessionStorage.getItem('selectedCharacter'),
+                    hasActiveChat: localStorage.getItem('hasActiveChat'),
+                    currentScreen: localStorage.getItem('currentScreen')
+                });
                 updateCharacterInfo(selectedCharacter);
                 // Also store in localStorage for consistency
                 localStorage.setItem('selectedCharacter', selectedCharacter);
             } else {
                 console.log('⚠️ No selected character found in storage');
+                console.log('🔍 Storage debug:', {
+                    localStorage_keys: Object.keys(localStorage),
+                    sessionStorage_keys: Object.keys(sessionStorage),
+                    url_params: window.location.search
+                });
             }
             
             checkIfChatFullyReady();
