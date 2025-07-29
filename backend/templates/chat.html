@@ -4916,8 +4916,14 @@
             
             if (!chatAvatarImg) return;
             
-            // Set character image
-            chatAvatarImg.src = `/static/logos/${character}.png`;
+            // Set character image with proper file names
+            let imagePath;
+            if (character === 'BlayzoReferral') {
+                imagePath = '/static/logos/Blayzo Referral.png';
+            } else {
+                imagePath = `/static/logos/${character}.png`;
+            }
+            chatAvatarImg.src = imagePath;
             chatAvatarImg.alt = `${character} Avatar`;
             
             // Clear existing particles
@@ -4965,6 +4971,23 @@
                     addChatParticles('fire');
                     break;
                     
+                case 'Blayzike':
+                    chatAvatarImg.style.animation = 'breathe 3.9s ease-in-out infinite';
+                    chatAvatarImg.style.filter = 'drop-shadow(0 4px 12px rgba(249, 115, 22, 0.3))';
+                    break;
+                    
+                case 'Blazelian':
+                    chatAvatarImg.style.animation = 'breathe 4.1s ease-in-out infinite';
+                    chatAvatarImg.style.filter = 'drop-shadow(0 4px 12px rgba(6, 182, 212, 0.3))';
+                    addChatParticles('mystical');
+                    break;
+                    
+                case 'BlayzoReferral':
+                    chatAvatarImg.style.animation = 'breathe 3.6s ease-in-out infinite';
+                    chatAvatarImg.style.filter = 'drop-shadow(0 4px 12px rgba(245, 158, 11, 0.3))';
+                    addChatParticles('cosmic');
+                    break;
+                    
                 default:
                     chatAvatarImg.style.animation = 'breathe 4s ease-in-out infinite';
                     chatAvatarImg.style.filter = 'drop-shadow(0 4px 12px rgba(34, 211, 238, 0.3))';
@@ -4990,7 +5013,7 @@
                         justify-content: center;
                         flex-shrink: 0;
                     ">
-                        <img src="/static/logos/${character}.png" alt="${character}" style="
+                        <img src="${character === 'BlayzoReferral' ? '/static/logos/Blayzo Referral.png' : `/static/logos/${character}.png`}" alt="${character}" style="
                             width: 24px;
                             height: 24px;
                             object-fit: contain;
