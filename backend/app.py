@@ -1081,10 +1081,8 @@ def chat():
 def api_companions():
     """Get available companions organized by tiers"""
     try:
-        if not is_logged_in():
-            return jsonify({"success": False, "error": "Authentication required"}), 401
-        
-        user_plan = session.get('user_plan', 'foundation')
+        # Allow access without authentication so users can see companions before login
+        user_plan = session.get('user_plan', 'foundation') if is_logged_in() else 'foundation'
         
         # Define companions by tier
         companions = {
