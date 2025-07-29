@@ -2709,7 +2709,7 @@
                     localStorage.setItem('selectedCharacter', characterName);
                     confirmChoice = confirm('Great! ' + characterName + ' is now your selected companion.\n\nWould you like to start chatting with ' + characterName + ' now?');
                 } else {
-                    var firstChoice = confirm('Your first companion selection is FREE!\n\nYou can choose between Blayzo and Blayzica at no cost.\n\nAre you sure you want to pick ' + characterName + ' as your companion?');
+                    var firstChoice = confirm('Your first companion selection is FREE!\n\nYou can choose any free companion at no cost.\n\nAre you sure you want to pick ' + characterName + ' as your companion?');
                     if (firstChoice) {
                         localStorage.setItem('firstPickMade', 'true');
                         localStorage.setItem('selectedCharacter', characterName);
@@ -2873,8 +2873,8 @@
                     localStorage.setItem('selectedCharacter', characterName);
                     confirmChoice = confirm('Great! ' + characterName + ' is now your selected companion.\n\nWould you like to start chatting with ' + characterName + ' now?');
                 } else {
-                    // Check if this is a free character (Blayzo, Blayzica)
-                    var freeCharacters = ['Blayzo', 'Blayzica'];
+                    // Check if this is a free character (all companions shown are free for first selection)
+                    var freeCharacters = ['GamerJay', 'Blayzo', 'Blayzica', 'Blayzia', 'Blayzion', 'Claude'];
                     if (freeCharacters.includes(characterName)) {
                         // Check if switching between free characters has been unlocked from backend
                         checkSwitchingStatus().then(unlocked => {
