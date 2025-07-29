@@ -2086,6 +2086,426 @@ def reset_password():
 # Google OAuth routes removed - was causing issues
 
 # ========================================
+# WATCHDOG ADMIN HELPER FUNCTIONS
+# ========================================
+
+def get_total_users():
+    """Get total user count"""
+    try:
+        db_instance = get_database()
+        if not db_instance:
+            return 0
+        conn = db_instance.get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM users")
+        count = cursor.fetchone()[0]
+        conn.close()
+        return count
+    except Exception as e:
+        logger.error(f"Error getting user count: {e}")
+        return 0
+
+def get_active_sessions_count():
+    """Get active session count (placeholder)"""
+    # This would require session tracking - placeholder for now
+    return 0
+
+def get_trial_users_count():
+    """Get users currently on trial"""
+    # This would track trial sessions - placeholder for now
+    return 0
+
+def check_database_health():
+    """Check database health"""
+    try:
+        db_instance = get_database()
+        if not db_instance:
+            return "Error"
+        conn = db_instance.get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT 1")
+        conn.close()
+        return "Healthy"
+    except Exception as e:
+        logger.error(f"Database health check failed: {e}")
+        return "Error"
+
+def get_companion_selections_today():
+    """Get companion selections today"""
+    # Placeholder - would track daily selections
+    return 0
+
+def get_premium_conversions():
+    """Get premium conversions"""
+    # Placeholder - would track trial to paid conversions
+    return 0
+
+def get_all_users_admin():
+    """Get all users for admin management"""
+    try:
+        db_instance = get_database()
+        if not db_instance:
+            return []
+        conn = db_instance.get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, email, display_name, created_at, email_verified FROM users ORDER BY created_at DESC LIMIT 100")
+        users = cursor.fetchall()
+        conn.close()
+        
+        # Convert to dictionaries
+        user_list = []
+        for user in users:
+            user_list.append({
+                'id': user[0],
+                'email': user[1],
+                'display_name': user[2],
+                'created_at': user[3],
+                'email_verified': user[4],
+                'user_plan': 'foundation'  # Default plan
+            })
+        return user_list
+    except Exception as e:
+        logger.error(f"Error getting users: {e}")
+        return []
+
+def get_admin_css():
+    """Get admin dashboard CSS"""
+    return """
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            color: #fff;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: rgba(0, 0, 0, 0.9);
+            padding: 15px 30px;
+            border-bottom: 2px solid #00ffff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            color: #00ffff;
+            font-size: 1.5rem;
+        }
+        
+        .nav {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .nav a {
+            color: #ccc;
+            text-decoration: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .nav a:hover, .nav a.active {
+            background: rgba(0, 255, 255, 0.2);
+            color: #00ffff;
+        }
+        
+        .container {
+            padding: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .stat-card {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 10px;
+            padding: 25px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            border-color: #00ffff;
+            box-shadow: 0 5px 20px rgba(0, 255, 255, 0.2);
+        }
+        
+        .stat-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #00ffff;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: #ccc;
+            font-size: 0.9rem;
+        }
+        
+        .section {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+        
+        .section h2 {
+            color: #00ffff;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+        }
+        
+        .health-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .health-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 5px;
+        }
+        
+        .health-indicator {
+            font-size: 1.2rem;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(0, 0, 0, 0.3);
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+        }
+        
+        th {
+            background: rgba(0, 255, 255, 0.1);
+            color: #00ffff;
+            font-weight: 600;
+        }
+        
+        tr:hover {
+            background: rgba(0, 255, 255, 0.05);
+        }
+    """
+
+# ========================================
+# WATCHDOG ADMIN SYSTEM ROUTES
+# ========================================
+
+@app.route("/admin/dashboard")
+def admin_dashboard():
+    """🎯 ADMIN DASHBOARD - System Overview"""
+    key = request.args.get("key")
+    if key != ADMIN_DASH_KEY:
+        return jsonify({"error": "Unauthorized"}), 403
+    
+    try:
+        # Get system statistics
+        stats = {
+            'total_users': get_total_users(),
+            'active_sessions': get_active_sessions_count(),
+            'trial_users': get_trial_users_count(),
+            'database_status': check_database_health(),
+            'companion_selections_today': get_companion_selections_today(),
+            'premium_conversions': get_premium_conversions()
+        }
+        
+        return f"""
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>🐕 WatchDog Admin Dashboard</title>
+            <style>
+                {get_admin_css()}
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h1>🐕 WATCHDOG ADMIN DASHBOARD</h1>
+                <div class="nav">
+                    <a href="/admin/dashboard?key={ADMIN_DASH_KEY}" class="active">📊 DASHBOARD</a>
+                    <a href="/admin/surveillance?key={ADMIN_DASH_KEY}">🚨 SURVEILLANCE</a>
+                    <a href="/admin/users?key={ADMIN_DASH_KEY}">👥 USERS</a>
+                    <a href="/admin/database?key={ADMIN_DASH_KEY}">🗄️ DATABASE</a>
+                </div>
+            </div>
+            
+            <div class="container">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">👥</div>
+                        <div class="stat-value">{stats['total_users']}</div>
+                        <div class="stat-label">Total Users</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">🟢</div>
+                        <div class="stat-value">{stats['active_sessions']}</div>
+                        <div class="stat-label">Active Sessions</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">🆓</div>
+                        <div class="stat-value">{stats['trial_users']}</div>
+                        <div class="stat-label">Trial Users</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">💾</div>
+                        <div class="stat-value">{stats['database_status']}</div>
+                        <div class="stat-label">Database</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">🤖</div>
+                        <div class="stat-value">{stats['companion_selections_today']}</div>
+                        <div class="stat-label">Companions Today</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">💰</div>
+                        <div class="stat-value">{stats['premium_conversions']}</div>
+                        <div class="stat-label">Premium Converts</div>
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <h2>📊 System Health Overview</h2>
+                    <div class="health-grid">
+                        <div class="health-item">
+                            <span class="health-indicator {"✅" if stats['database_status'] == "Healthy" else "❌"}"></span>
+                            <span>Database Connection</span>
+                        </div>
+                        <div class="health-item">
+                            <span class="health-indicator">✅</span>
+                            <span>API Endpoints</span>
+                        </div>
+                        <div class="health-item">
+                            <span class="health-indicator">✅</span>
+                            <span>Session Management</span>
+                        </div>
+                        <div class="health-item">
+                            <span class="health-indicator">✅</span>
+                            <span>Trial System</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <script>
+                // Auto-refresh every 30 seconds
+                setTimeout(() => location.reload(), 30000);
+            </script>
+        </body>
+        </html>
+        """
+        
+    except Exception as e:
+        logger.error(f"Admin dashboard error: {e}")
+        return jsonify({"error": "Dashboard error"}), 500
+
+@app.route("/admin/users")
+def admin_users():
+    """👥 USER MANAGEMENT - View and manage users"""
+    key = request.args.get("key")
+    if key != ADMIN_DASH_KEY:
+        return jsonify({"error": "Unauthorized"}), 403
+    
+    try:
+        users = get_all_users_admin()
+        
+        return f"""
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>👥 User Management - WatchDog</title>
+            <style>
+                {get_admin_css()}
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h1>👥 USER MANAGEMENT</h1>
+                <div class="nav">
+                    <a href="/admin/dashboard?key={ADMIN_DASH_KEY}">📊 DASHBOARD</a>
+                    <a href="/admin/surveillance?key={ADMIN_DASH_KEY}">🚨 SURVEILLANCE</a>
+                    <a href="/admin/users?key={ADMIN_DASH_KEY}" class="active">👥 USERS</a>
+                    <a href="/admin/database?key={ADMIN_DASH_KEY}">🗄️ DATABASE</a>
+                </div>
+            </div>
+            
+            <div class="container">
+                <div class="section">
+                    <h2>📋 User List ({len(users)} total)</h2>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Email</th>
+                                    <th>Display Name</th>
+                                    <th>Plan</th>
+                                    <th>Created</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {''.join([f'''
+                                <tr>
+                                    <td>{user.get('id', 'N/A')}</td>
+                                    <td>{user.get('email', 'N/A')}</td>
+                                    <td>{user.get('display_name', 'N/A')}</td>
+                                    <td>{user.get('user_plan', 'foundation')}</td>
+                                    <td>{user.get('created_at', 'N/A')}</td>
+                                    <td>{"🟢 Active" if user.get('email_verified') else "🔴 Pending"}</td>
+                                </tr>
+                                ''' for user in users[:50]])}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        
+    except Exception as e:
+        logger.error(f"Admin users error: {e}")
+        return jsonify({"error": "Users management error"}), 500
+
+# ========================================
 # ADMIN SURVEILLANCE ROUTES
 # ========================================
 
@@ -2347,6 +2767,9 @@ def admin_surveillance():
                 <div class="controls">
                     <a href="/admin/surveillance?key={ADMIN_DASH_KEY}" class="control-btn">🔄 REFRESH</a>
                     <a href="/health" class="control-btn">💓 HEALTH CHECK</a>
+                    <a href="/admin/dashboard?key={ADMIN_DASH_KEY}" class="control-btn">📊 DASHBOARD</a>
+                    <a href="/admin/users?key={ADMIN_DASH_KEY}" class="control-btn">👥 USERS</a>
+                    <a href="/admin/database?key={ADMIN_DASH_KEY}" class="control-btn">🗄️ DATABASE</a>
                 </div>
                 
                 <div class="grid-container">
