@@ -261,7 +261,7 @@ def parse_request_data():
                 request.form.get("display_name", "").strip())
 
 def setup_user_session(email, user_id=None, is_admin=False, dev_mode=False):
-    """Setup user session with security measures"""
+    """Setup user session with security measures and companion data restoration"""
     # Security: Clear and regenerate session to prevent fixation attacks
     session.clear()
     session.permanent = False  # Session expires when browser closes
@@ -276,6 +276,49 @@ def setup_user_session(email, user_id=None, is_admin=False, dev_mode=False):
         session["is_admin"] = True
     if dev_mode:
         session["dev_mode"] = True
+    
+    # Restore companion data if available
+    if user_id:
+        restore_companion_data(user_id)
+
+def restore_companion_data(user_id):
+    """Restore companion and trial data from persistence file"""
+    import json
+    persistence_file = f"logs/user_companion_{user_id}.json"
+    try:
+        with open(persistence_file, 'r') as f:
+            companion_data = json.load(f)
+            
+        # Restore companion selection
+        if companion_data.get('selected_companion'):
+            session['selected_companion'] = companion_data['selected_companion']
+            session['companion_selected_at'] = companion_data.get('companion_selected_at')
+            session['first_companion_picked'] = companion_data.get('first_companion_picked', False)
+            
+        # Restore trial data if still valid
+        trial_expires = companion_data.get('trial_expires')
+        if trial_expires and companion_data.get('trial_active'):
+            from datetime import datetime
+            try:
+                expiry_time = datetime.fromisoformat(trial_expires)
+                if datetime.now() < expiry_time:
+                    # Trial is still valid
+                    session['trial_companion'] = companion_data.get('trial_companion')
+                    session['trial_expires'] = trial_expires
+                    session['trial_active'] = True
+                    session['user_plan'] = 'trial'
+                    logger.info(f"PERSISTENCE: Restored valid trial for user {user_id}")
+                else:
+                    logger.info(f"PERSISTENCE: Trial expired for user {user_id}")
+            except ValueError:
+                logger.warning(f"Invalid trial expiry format for user {user_id}")
+                
+        logger.info(f"PERSISTENCE: Restored companion data for user {user_id}")
+        
+    except FileNotFoundError:
+        logger.info(f"PERSISTENCE: No companion data found for user {user_id}")
+    except Exception as e:
+        logger.warning(f"Failed to restore companion data for user {user_id}: {e}")
 
 def login_success_response(redirect_to="/"):
     """Return appropriate response for successful login (JSON for AJAX, redirect for forms)"""
@@ -549,9 +592,33 @@ def auth_login():
 
 @app.route("/auth/logout", methods=["GET", "POST"])
 def logout():
-    """Logout route"""
+    """Logout route with companion selection persistence"""
     try:
         user_email = session.get('user_email', 'unknown')
+        user_id = session.get('user_id')
+        
+        # Save companion and trial data before clearing session
+        companion_data = {}
+        if user_id:
+            companion_data = {
+                'selected_companion': session.get('selected_companion'),
+                'companion_selected_at': session.get('companion_selected_at'),
+                'trial_companion': session.get('trial_companion'),
+                'trial_expires': session.get('trial_expires'),
+                'trial_active': session.get('trial_active'),
+                'first_companion_picked': session.get('first_companion_picked', False)
+            }
+            
+            # Store in temporary file (simple persistence)
+            import json
+            persistence_file = f"logs/user_companion_{user_id}.json"
+            try:
+                with open(persistence_file, 'w') as f:
+                    json.dump(companion_data, f)
+                logger.info(f"PERSISTENCE: Saved companion data for user {user_email}")
+            except Exception as e:
+                logger.warning(f"Failed to save companion data: {e}")
+        
         logger.info(f"SECURITY: User {user_email} logged out")
         session.clear()
         return redirect("/login")
@@ -1115,7 +1182,12 @@ def api_companions_select():
         session['selected_companion'] = companion_id
         session['companion_selected_at'] = time.time()
         
-        logger.info(f"User {session.get('email')} selected companion: {companion_id}")
+        # Track first companion selection
+        if not session.get('first_companion_picked', False):
+            session['first_companion_picked'] = True
+            logger.info(f"FIRST COMPANION: User {session.get('email')} selected their first companion: {companion_id}")
+        else:
+            logger.info(f"User {session.get('email')} selected companion: {companion_id}")
         
         return jsonify({
             "success": True,

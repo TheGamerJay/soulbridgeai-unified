@@ -1511,8 +1511,10 @@
                                         ${isSelected ? 'Selected' : (hasActiveTrialAccess && (companion.tier === 'growth' || companion.tier === 'max') ? '✨ Try Premium' : 'Select')}
                                     </button>
                                 ` : `
-                                    <button class="btn-select" disabled style="${isReferralTier ? 'background: #FFD700; color: #333;' : ''}">
-                                        ${isReferralTier ? '👥 View Referral Program' : `🔒 ${companion.lock_reason}`}
+                                    <button class="btn-select ${isReferralTier ? 'referral-button' : 'upgrade-button'}" 
+                                            style="${isReferralTier ? 'background: #FFD700; color: #333;' : 'background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%); color: white;'}"
+                                            onclick="${isReferralTier ? 'showReferralProgram()' : `showUpgradeModal('${companion.companion_id}')`}">
+                                        ${isReferralTier ? '👥 View Referral Program' : '🔓 Unlock Premium'}
                                     </button>
                                 `}
                                 
@@ -2635,7 +2637,7 @@
             
             // Tier and feature questions
             if (q.includes('free') && (q.includes('companion') || q.includes('which'))) {
-                return '🆓 <strong>Free companions:</strong> GamerJay, Blayzo, and Blayzica are always available! They offer excellent guidance without any subscription required.';
+                return '🆓 <strong>Free companions:</strong> Your first companion selection is free! Choose from GamerJay, Blayzo, Blayzica, and others. After your first pick, switching costs $3 for unlimited companion switching.';
             }
             if (q.includes('trial') || q.includes('premium')) {
                 return '🎁 <strong>Free Trial:</strong> You can try any Growth tier companion (like Sky) for 24 hours free! Just click the "Try Me Today" button on premium companions.';
@@ -2881,16 +2883,9 @@
                 return;
             }
             
-            // Check authentication status
-            const userAuthenticated = sessionStorage.getItem('user_authenticated') === 'true';
-            
-            if (userAuthenticated) {
-                console.log('🔄 Returning to intro page');
-                window.location.href = '/intro';
-            } else {
-                console.log('🔄 Returning to login page');
-                window.location.href = '/login';
-            }
+            // Always navigate to intro page - it will handle authentication properly
+            console.log('🔄 Navigating to intro page');
+            window.location.href = '/intro';
         }
 
         // Add Sapphire helper when page loads

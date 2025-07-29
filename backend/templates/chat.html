@@ -1285,23 +1285,6 @@
 </head>
 <body class="chat-page" style="background: linear-gradient(135deg, #0a0e1a 0%, #1a202c 25%, #2d3748 50%, #1a202c 75%, #0a0e1a 100%) !important; background-attachment: fixed !important; background-size: 100% 100% !important; min-height: 100vh !important; margin: 0 !important; font-family: system-ui, -apple-system, sans-serif !important; color: #22d3ee !important;" onload="initializeScreen()">
 
-    <!-- Back Button -->
-    <div style="position: fixed; top: 20px; left: 20px; z-index: 100;">
-        <div style="
-            background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
-            color: #00ffff;
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            box-shadow: 0 2px 8px rgba(255, 0, 0, 0.3);
-            transition: all 0.3s ease;
-            text-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
-            border: 1px solid rgba(0, 255, 255, 0.3);
-        " onclick="navigateBackFromChat()" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(255, 0, 0, 0.5)'" onmouseout="this.style.transform='translateY(0px)'; this.style.boxShadow='0 2px 8px rgba(255, 0, 0, 0.3)'">
-            ← Back
-        </div>
-    </div>
 
     <!-- User Menu and Controls (Right Side) -->
     <div style="position: fixed; top: 20px; right: 20px; z-index: 100; display: flex; gap: 10px; flex-wrap: wrap;">
@@ -2049,7 +2032,7 @@
             border: 2px solid rgba(34, 211, 238, 0.6);
             transition: all 0.3s ease;
             backdrop-filter: blur(10px);
-        " onclick="showCharacterSelect()"
+        " onclick="navigateBackFromChat()"
         onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 6px 20px rgba(34, 211, 238, 0.6)';"
         onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 15px rgba(34, 211, 238, 0.4)';">
             ← Back
@@ -8073,10 +8056,36 @@
             console.log('📄 Chat DOM ready');
             
             // Ensure character theme is applied on page load
-            const selectedCharacter = localStorage.getItem('selectedCharacter');
+            let selectedCharacter = localStorage.getItem('selectedCharacter');
+            
+            // If not in localStorage, try to get from session storage or derive from companion_id
+            if (!selectedCharacter) {
+                const sessionCharacter = sessionStorage.getItem('selectedCharacter');
+                if (sessionCharacter) {
+                    selectedCharacter = sessionCharacter;
+                } else {
+                    // Try to derive character name from companion_id stored in session
+                    // This makes it compatible with backend session storage
+                    try {
+                        const urlParams = new URLSearchParams(window.location.search);
+                        const companionId = urlParams.get('companion_id');
+                        if (companionId) {
+                            // Convert companion_id like "companion_gamerjay" to "GamerJay"
+                            selectedCharacter = companionId.replace('companion_', '').replace(/^./, str => str.toUpperCase());
+                        }
+                    } catch (e) {
+                        console.log('Could not derive character from URL params');
+                    }
+                }
+            }
+            
             if (selectedCharacter) {
                 console.log('🎨 Applying character theme on page load for:', selectedCharacter);
                 updateCharacterInfo(selectedCharacter);
+                // Also store in localStorage for consistency
+                localStorage.setItem('selectedCharacter', selectedCharacter);
+            } else {
+                console.log('⚠️ No selected character found in storage');
             }
             
             checkIfChatFullyReady();
@@ -8144,7 +8153,7 @@
             }
             
             console.log('🔄 Navigating back to companion selector');
-            window.location.href = '/companion_selector';
+            window.location.href = '/companion-selection';
         }
         
         // Set navigation flags whenever user navigates away from chat page
