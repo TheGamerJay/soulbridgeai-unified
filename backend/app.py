@@ -999,6 +999,43 @@ def chat():
     companion_name = None
     
     if selected_companion:
+        # Check if user has access to this companion
+        user_tier = session.get('user_plan', 'foundation')
+        trial_active = session.get('trial_active', False)
+        trial_expires = session.get('trial_expires')
+        has_active_trial = False
+        
+        # Check trial status
+        if trial_active and trial_expires:
+            try:
+                from datetime import datetime, timezone
+                expiry_dt = datetime.fromisoformat(trial_expires.replace('Z', '+00:00'))
+                current_dt = datetime.now(timezone.utc) if expiry_dt.tzinfo else datetime.now()
+                has_active_trial = current_dt < expiry_dt
+                logger.info(f"🔍 CHAT PAGE: Trial check - active: {trial_active}, expires: {trial_expires}, has_active: {has_active_trial}")
+            except Exception as e:
+                logger.warning(f"Error checking trial status in chat page: {e}")
+        
+        # Validate companion access based on tier
+        companion_access_valid = True
+        
+        # Check if this is a premium companion that requires validation
+        if selected_companion in ['companion_sky', 'companion_gamerjay_premium', 'companion_blayzo_premium', 'companion_watchdog', 'companion_crimson_growth', 'companion_violet_growth', 'companion_claude_growth']:
+            # Growth tier companion - requires growth/max plan or active trial
+            if user_tier not in ['premium', 'enterprise'] and not has_active_trial:
+                companion_access_valid = False
+                logger.warning(f"🚫 Access denied to Growth companion {selected_companion} - user tier: {user_tier}, trial: {has_active_trial}")
+        elif selected_companion in ['companion_crimson', 'companion_violet']:
+            # Max tier companion - requires max plan only (no trial access)
+            if user_tier != 'enterprise':
+                companion_access_valid = False
+                logger.warning(f"🚫 Access denied to Max companion {selected_companion} - user tier: {user_tier}")
+        
+        # If access denied, redirect to companion selector
+        if not companion_access_valid:
+            session['selected_companion'] = None  # Clear invalid selection
+            return redirect("/companion-selection?error=access_denied")
+        
         # Convert companion_id to display name
         companion_name = selected_companion.replace('companion_', '')
         if companion_name == 'gamerjay':
@@ -1007,6 +1044,8 @@ def chat():
             companion_name = 'GamerJay Premium'
         elif companion_name in ['sky', 'crimson', 'violet', 'blayzo', 'blayzica', 'blayzia', 'blayzion']:
             companion_name = companion_name.capitalize()
+        
+        logger.info(f"✅ CHAT ACCESS: User accessing {companion_name} with tier {user_tier}, trial: {has_active_trial}")
     
     return render_template("chat.html", selected_companion=companion_name)
 
@@ -4471,17 +4510,35 @@ def api_chat():
         # Get user's subscription tier for enhanced features
         user_tier = session.get('user_plan', 'foundation')
         
+        # Check if user has active trial access
+        trial_active = session.get('trial_active', False)
+        trial_expires = session.get('trial_expires')
+        has_active_trial = False
+        
+        if trial_active and trial_expires:
+            try:
+                from datetime import datetime, timezone
+                expiry_dt = datetime.fromisoformat(trial_expires.replace('Z', '+00:00'))
+                current_dt = datetime.now(timezone.utc) if expiry_dt.tzinfo else datetime.now()
+                has_active_trial = current_dt < expiry_dt
+                logger.info(f"🔍 CHAT API: Trial check - active: {trial_active}, expires: {trial_expires}, has_active: {has_active_trial}")
+            except Exception as e:
+                logger.warning(f"Error checking trial status in chat API: {e}")
+        
         # Tier-specific AI model and parameters
         if user_tier == 'enterprise':  # Max Plan
             model = "gpt-4"
             max_tokens = 300
             temperature = 0.8
             system_prompt = f"You are {character}, an advanced AI companion from SoulBridge AI Max Plan. You have enhanced emotional intelligence, deeper insights, and provide more thoughtful, nuanced responses. You can engage in complex discussions and offer premium-level guidance."
-        elif user_tier == 'premium':  # Growth Plan
+        elif user_tier == 'premium' or user_tier == 'trial' or has_active_trial:  # Growth Plan or Active Trial
             model = "gpt-3.5-turbo"
             max_tokens = 200
             temperature = 0.75
-            system_prompt = f"You are {character}, an enhanced AI companion from SoulBridge AI Growth Plan. You provide more detailed responses and have access to advanced conversation features. You're helpful, insightful, and offer quality guidance."
+            if has_active_trial:
+                system_prompt = f"You are {character}, an enhanced AI companion from SoulBridge AI Growth Plan (Trial Access). You provide more detailed responses and have access to advanced conversation features during this 24-hour trial. You're helpful, insightful, and offer quality guidance. Make sure to mention this is a premium trial experience!"
+            else:
+                system_prompt = f"You are {character}, an enhanced AI companion from SoulBridge AI Growth Plan. You provide more detailed responses and have access to advanced conversation features. You're helpful, insightful, and offer quality guidance."
         else:  # Foundation (Free)
             model = "gpt-3.5-turbo"
             max_tokens = 150

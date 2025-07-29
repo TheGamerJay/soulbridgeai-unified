@@ -1508,8 +1508,8 @@
                                 ${!isLocked ? `
                                     <button class="btn-select ${isSelected ? 'selected' : ''}" 
                                             ${isSelected ? 'disabled' : ''}
-                                            onclick="${isSelected ? '' : (hasActiveTrialAccess && (companion.tier === 'growth' || companion.tier === 'max') ? `startPremiumTrial('${companion.companion_id}')` : `selectCompanion('${companion.companion_id}')`)}">
-                                        ${isSelected ? 'Selected' : (hasActiveTrialAccess && (companion.tier === 'growth' || companion.tier === 'max') ? '✨ Try Premium' : 'Select')}
+                                            onclick="${isSelected ? '' : (hasActiveTrialAccess && companion.tier === 'growth' ? `startPremiumTrial('${companion.companion_id}')` : `selectCompanion('${companion.companion_id}')`)}">
+                                        ${isSelected ? 'Selected' : (hasActiveTrialAccess && companion.tier === 'growth' ? '✨ Try Premium' : 'Select')}
                                     </button>
                                 ` : `
                                     <button class="btn-select" disabled style="${isReferralTier ? 'background: #FFD700; color: #333;' : 'background: #ccc; color: #666; cursor: not-allowed;'}">
