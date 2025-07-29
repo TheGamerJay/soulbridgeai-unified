@@ -44,8 +44,8 @@ app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevent XSS access
 app.config['SESSION_COOKIE_SECURE'] = bool(os.environ.get('RAILWAY_ENVIRONMENT'))  # HTTPS in production
 app.config['SESSION_COOKIE_SAMESITE'] = 'Strict'  # Prevent CSRF
 app.config['SESSION_COOKIE_PATH'] = '/'  # Ensure cookie works for all paths
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=2)  # Extended for companion experience
-app.config['SESSION_PERMANENT'] = False  # Sessions expire when browser closes
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=2)  # 2 hour session timeout
+app.config['SESSION_PERMANENT'] = True  # Use PERMANENT_SESSION_LIFETIME for consistent timeout
 app.config['SESSION_COOKIE_MAX_AGE'] = 7200  # 2 hours in seconds
 
 # Global variables for services
@@ -275,7 +275,7 @@ def setup_user_session(email, user_id=None, is_admin=False, dev_mode=False):
     """Setup user session with security measures and companion data restoration"""
     # Security: Clear and regenerate session to prevent fixation attacks
     session.clear()
-    session.permanent = False  # Session expires when browser closes
+    session.permanent = True  # Use configured PERMANENT_SESSION_LIFETIME (2 hours)
     session["user_authenticated"] = True
     session["session_version"] = "2025-07-28-banking-security"  # Required for auth
     session["user_email"] = email
@@ -959,7 +959,7 @@ def auth_register():
         conn.close()
         
         # Login with security
-        session.permanent = False  # Session ends when browser closes
+        session.permanent = True  # Use configured PERMANENT_SESSION_LIFETIME (2 hours)
         session['user_id'] = user_id
         session['email'] = email
         session['user_authenticated'] = True
@@ -2424,7 +2424,7 @@ def select_plan():
         session["user_plan"] = plan_type
         session["plan_selected_at"] = time.time()
         session["first_time_user"] = False
-        session.permanent = False  # Session expires when browser closes
+        session.permanent = True  # Use configured PERMANENT_SESSION_LIFETIME (2 hours)
         
         logger.info(f"Plan selected: {plan_type} by {session.get('user_email')}")
         logger.info(f"Session after plan selection: {dict(session)}")
