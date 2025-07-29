@@ -105,51 +105,136 @@ async function loadCompanions() {
 function loadFallbackCompanions() {
     console.log('🔄 Loading fallback companion data...');
     
-    // Fallback companion data if API fails
+    // Complete fallback companion data matching API
     companions = {
         free: [
             {
-                companion_id: 'companion_gamerjay',
-                display_name: 'GamerJay - The Gaming Coach',
-                avatar_image: '/static/logos/GamerJay Free companion.png',
-                short_bio: 'Your gaming companion who understands the grind',
-                personality_tags: ['Motivational', 'Playful'],
-                special_features: ['Goal setting', 'Achievement tracking', 'Motivation boosts', 'Gaming mindset'],
+                companion_id: 'blayzo_free',
+                display_name: 'Blayzo',
+                short_bio: 'Your creative and fun AI companion',
+                avatar_image: '/static/logos/Blayzo.png',
+                personality_tags: ['Creative', 'Fun'],
+                special_features: ['Creative assistance', 'Fun conversations', 'Idea generation', 'Entertainment'],
                 tier: 'free',
+                is_recommended: true,
+                popularity_score: 90,
+                lock_reason: null
+            },
+            {
+                companion_id: 'blayzica_free',
+                display_name: 'Blayzica',
+                short_bio: 'Your empathetic and caring AI companion',
+                avatar_image: '/static/logos/Blayzica.png',
+                personality_tags: ['Empathetic', 'Caring'],
+                special_features: ['Emotional support', 'Active listening', 'Compassionate advice', 'Wellness guidance'],
+                tier: 'free',
+                is_recommended: true,
                 popularity_score: 88,
-                is_recommended: true
+                lock_reason: null
+            },
+            {
+                companion_id: 'companion_gamerjay',
+                display_name: 'GamerJay',
+                short_bio: 'Your friendly gaming companion',
+                avatar_image: '/static/logos/GamerJay Free companion.png',
+                personality_tags: ['Gaming', 'Motivational'],
+                special_features: ['Gaming tips', 'Achievement tracking', 'Motivation boosts', 'Strategy advice'],
+                tier: 'free',
+                is_recommended: false,
+                popularity_score: 85,
+                lock_reason: null
             }
         ],
         growth: [
             {
                 companion_id: 'companion_sky',
-                display_name: 'Sky - The Spiritual Guide',
+                display_name: 'Sky',
+                short_bio: 'Premium companion with advanced features',
                 avatar_image: '/static/logos/Sky a primum companion.png',
-                short_bio: 'Connect with your spiritual side through Sky\'s guidance',
                 personality_tags: ['Spiritual', 'Healing'],
                 special_features: ['Spiritual guidance', 'Meditation sessions', 'Energy healing', 'Voice interactions'],
                 tier: 'growth',
-                lock_reason: 'Requires Growth or Max subscription',
+                is_recommended: true,
+                popularity_score: 90,
+                lock_reason: 'Requires Growth Plan'
+            },
+            {
+                companion_id: 'blayzo_growth',
+                display_name: 'Blayzo Pro',
+                short_bio: 'Advanced Blayzo with enhanced creativity and memory',
+                avatar_image: '/static/logos/Blayzo.png',
+                personality_tags: ['Creative', 'Advanced'],
+                special_features: ['Enhanced creativity', 'Memory retention', 'Advanced problem solving', 'Deep conversations'],
+                tier: 'growth',
+                is_recommended: true,
                 popularity_score: 92,
-                is_recommended: true
+                lock_reason: 'Requires Growth Plan'
+            },
+            {
+                companion_id: 'blayzica_growth',
+                display_name: 'Blayzica Pro',
+                short_bio: 'Enhanced Blayzica with deeper emotional intelligence',
+                avatar_image: '/static/logos/Blayzica.png',
+                personality_tags: ['Empathetic', 'Intelligent'],
+                special_features: ['Deep emotional support', 'Advanced empathy', 'Personalized guidance', 'Crisis support'],
+                tier: 'growth',
+                is_recommended: true,
+                popularity_score: 91,
+                lock_reason: 'Requires Growth Plan'
+            },
+            {
+                companion_id: 'companion_gamerjay_premium',
+                display_name: 'GamerJay Premium',
+                short_bio: 'Enhanced GamerJay with premium features',
+                avatar_image: '/static/logos/GamgerJay premium companion.png',
+                personality_tags: ['Gaming', 'Premium'],
+                special_features: ['Pro gaming strategies', 'Performance analysis', 'Competitive coaching', 'Advanced metrics'],
+                tier: 'growth',
+                is_recommended: false,
+                popularity_score: 88,
+                lock_reason: 'Requires Growth Plan'
             }
         ],
         max: [
             {
                 companion_id: 'companion_crimson',
-                display_name: 'Crimson - The Transformer',
+                display_name: 'Crimson',
+                short_bio: 'Elite max-tier companion',
                 avatar_image: '/static/logos/Crimson a Max companion.png',
-                short_bio: 'Rise from challenges stronger than before',
                 personality_tags: ['Healing', 'Protective', 'Wise'],
-                special_features: ['Trauma healing', 'Transformation coaching', 'Crisis support', 'Advanced voice AI', 'Priority response'],
+                special_features: ['Trauma healing', 'Transformation coaching', 'Crisis support', 'Advanced voice AI'],
                 tier: 'max',
-                lock_reason: 'Requires Max subscription',
-                popularity_score: 98,
-                is_recommended: true
+                is_recommended: true,
+                popularity_score: 95,
+                lock_reason: 'Requires Transformation Plan'
+            },
+            {
+                companion_id: 'companion_violet',
+                display_name: 'Violet',
+                short_bio: 'Premium max companion with exclusive features',
+                avatar_image: '/static/logos/Violet a max companion.png',
+                personality_tags: ['Elite', 'Exclusive', 'Advanced'],
+                special_features: ['Premium features', 'Exclusive access', 'Priority support', 'Advanced AI'],
+                tier: 'max',
+                is_recommended: false,
+                popularity_score: 92,
+                lock_reason: 'Requires Transformation Plan'
             }
         ],
-        referral: [],
-        locked: []
+        referral: [
+            {
+                companion_id: 'blayzo',
+                display_name: 'Blayzo',
+                short_bio: 'Exclusive referral companion',
+                avatar_image: '/static/logos/Blayzo Referral.png',
+                personality_tags: ['Exclusive', 'Referral'],
+                special_features: ['Exclusive access', 'Referral rewards', 'Special bonuses', 'Premium features'],
+                tier: 'referral',
+                is_recommended: false,
+                popularity_score: 100,
+                lock_reason: 'Unlock through referrals'
+            }
+        ]
     };
     
     console.log('✅ Fallback companions loaded');
