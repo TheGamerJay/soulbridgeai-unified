@@ -1507,7 +1507,8 @@
                             <div class="companion-actions">
                                 ${!isLocked ? `
                                     <button class="btn-select ${isSelected ? 'selected' : ''}" 
-                                            ${isSelected ? 'disabled' : ''}>
+                                            ${isSelected ? 'disabled' : ''}
+                                            onclick="${isSelected ? '' : (hasActiveTrialAccess && (companion.tier === 'growth' || companion.tier === 'max') ? `startPremiumTrial('${companion.companion_id}')` : `selectCompanion('${companion.companion_id}')`)}">
                                         ${isSelected ? 'Selected' : (hasActiveTrialAccess && (companion.tier === 'growth' || companion.tier === 'max') ? '✨ Try Premium' : 'Select')}
                                     </button>
                                 ` : `
@@ -1965,6 +1966,117 @@
                 trialOffer.style.display = 'none';
             } else {
                 trialOffer.style.display = 'block';
+            }
+        }
+        
+        // Function to handle premium trial for a specific companion
+        async function startPremiumTrial(companionId) {
+            console.log('🚀 Starting premium trial for companion:', companionId);
+            
+            try {
+                // Start the trial via API
+                const response = await fetch('/api/companions/trial', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        companion_id: companionId,
+                        trial_type: 'companion_specific'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    console.log('✅ Premium trial started successfully');
+                    showNotification(`Premium trial started! Enjoy 24 hours with your premium companion.`, 'success');
+                    
+                    // Store trial data
+                    localStorage.setItem('trialActive', 'true');
+                    localStorage.setItem('trialExpiry', Date.now() + (24 * 60 * 60 * 1000));
+                    localStorage.setItem('trialStartTime', Date.now());
+                    localStorage.setItem('trialSelectedCompanion', companionId);
+                    
+                    // Get companion display name for localStorage
+                    let companionName = companionId.replace('companion_', '');
+                    
+                    // Handle special naming cases
+                    if (companionName === 'gamerjay') {
+                        companionName = 'GamerJay';
+                    } else if (companionName === 'gamerjay_premium') {
+                        companionName = 'GamerJay Premium';
+                    } else if (companionName === 'sky') {
+                        companionName = 'Sky';
+                    } else if (companionName === 'crimson') {
+                        companionName = 'Crimson';
+                    } else if (companionName === 'violet') {
+                        companionName = 'Violet';
+                    } else if (companionName === 'blayzo') {
+                        companionName = 'Blayzo';
+                    } else if (companionName === 'blayzica') {
+                        companionName = 'Blayzica';
+                    } else if (companionName === 'blayzia') {
+                        companionName = 'Blayzia';
+                    } else if (companionName === 'blayzion') {
+                        companionName = 'Blayzion';
+                    } else {
+                        // Fallback: just capitalize first letter
+                        companionName = companionName.charAt(0).toUpperCase() + companionName.slice(1);
+                    }
+                    localStorage.setItem('selectedCharacter', companionName);
+                    localStorage.setItem('currentScreen', 'chat');
+                    localStorage.setItem('hasActiveChat', 'true');
+                    sessionStorage.setItem('hasActiveChat', 'true');
+                    
+                    // Redirect to chat immediately
+                    console.log('🔄 Redirecting to chat with premium companion:', companionName);
+                    window.location.href = '/chat';
+                    
+                } else {
+                    console.error('❌ Premium trial failed:', data.error);
+                    showNotification(data.error || 'Failed to start premium trial', 'error');
+                }
+                
+            } catch (error) {
+                console.error('❌ Premium trial error:', error);
+                showNotification('Failed to start premium trial', 'error');
+            }
+        }
+        
+        // Function to start and display trial timer
+        function startTrialTimer() {
+            console.log('⏰ Starting trial timer display');
+            
+            const trialExpiry = localStorage.getItem('trialExpiry');
+            if (trialExpiry) {
+                const updateTimer = () => {
+                    const now = Date.now();
+                    const timeLeft = parseInt(trialExpiry) - now;
+                    
+                    if (timeLeft <= 0) {
+                        // Trial expired
+                        localStorage.removeItem('trialActive');
+                        localStorage.removeItem('trialExpiry');
+                        localStorage.removeItem('trialStartTime');
+                        localStorage.removeItem('trialAllPremiumUnlocked');
+                        console.log('⏰ Trial expired - cleaning up');
+                        return;
+                    }
+                    
+                    const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+                    const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                    
+                    // Update any timer displays on the page
+                    const timerElements = document.querySelectorAll('.trial-timer');
+                    timerElements.forEach(element => {
+                        element.textContent = `Trial: ${hours}h ${minutes}m remaining`;
+                    });
+                };
+                
+                // Update immediately and then every minute
+                updateTimer();
+                setInterval(updateTimer, 60000);
             }
         }
         
