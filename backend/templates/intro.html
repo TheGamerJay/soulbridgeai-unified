@@ -794,17 +794,16 @@ What specific area would you like help with? I know every feature of SoulBridge 
             }
         }
         
-        // Clear session on navigation away (but not for internal navigation)
-        window.addEventListener('beforeunload', clearSession);
-        window.addEventListener('pagehide', clearSession);
-        window.addEventListener('visibilitychange', function() {
-            if (document.visibilityState === 'hidden') {
-                clearSession();
-            }
-        });
-        
-        // Clear session on page focus loss (user switches tabs/apps)
-        window.addEventListener('blur', clearSession);
+        // DISABLED: Overly aggressive session clearing was causing login loops
+        // Only clear session on explicit logout, not on navigation/tab switching
+        // window.addEventListener('beforeunload', clearSession);
+        // window.addEventListener('pagehide', clearSession);
+        // window.addEventListener('visibilitychange', function() {
+        //     if (document.visibilityState === 'hidden') {
+        //         clearSession();
+        //     }
+        // });
+        // window.addEventListener('blur', clearSession);
         
         // Netflix-style "Are you still there?" warning (9 minutes - before 10 minute server timeout)
         setTimeout(() => {
