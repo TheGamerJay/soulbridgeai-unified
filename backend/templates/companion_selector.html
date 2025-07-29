@@ -581,7 +581,7 @@
             transition: all 0.3s ease;
             text-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
             border: 1px solid rgba(0, 255, 255, 0.3);
-        " onclick="window.history.back()" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(255, 0, 0, 0.5)'" onmouseout="this.style.transform='translateY(0px)'; this.style.boxShadow='0 2px 8px rgba(255, 0, 0, 0.3)'">
+        " onclick="navigateBack()" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(255, 0, 0, 0.5)'" onmouseout="this.style.transform='translateY(0px)'; this.style.boxShadow='0 2px 8px rgba(255, 0, 0, 0.3)'">
             ← Back
         </div>
     </div>
@@ -1487,6 +1487,7 @@
         
         function getFeatureIcon(feature) {
             const iconMap = {
+                // Basic features
                 'Meditation guidance': 'leaf',
                 'Life advice': 'lightbulb',
                 'Emotional support': 'heart',
@@ -1500,6 +1501,53 @@
                 'Problem analysis': 'brain',
                 'Decision trees': 'project-diagram',
                 'Logic frameworks': 'cogs',
+                
+                // Free companion features
+                'Achievement tracking': 'trophy',
+                'Motivation boosts': 'rocket',
+                'Gaming mindset': 'gamepad',
+                'Life guidance': 'compass',
+                'Mindfulness': 'leaf',
+                'Decision making': 'balance-scale',
+                'Emotional healing': 'heart',
+                'Stress relief': 'spa',
+                'Self-care guidance': 'hand-holding-heart',
+                'Compassionate listening': 'ear',
+                'Intuitive guidance': 'eye',
+                'Dream interpretation': 'moon',
+                'Spiritual awakening': 'sun',
+                'Inner wisdom': 'gem',
+                'Creative problem solving': 'lightbulb',
+                'Innovation coaching': 'rocket',
+                'Breakthrough thinking': 'brain',
+                'Artistic inspiration': 'palette',
+                'Basic code help': 'code',
+                'Problem solving': 'puzzle-piece',
+                'Learning support': 'graduation-cap',
+                'Step-by-step guidance': 'list',
+                
+                // Growth tier features
+                'Strategic thinking': 'chess',
+                'Advanced coaching': 'user-graduate',
+                'Tactical solutions': 'crosshairs',
+                'Advanced mentoring': 'chalkboard-teacher',
+                'Strategic planning': 'clipboard-list',
+                'Elite coaching': 'crown',
+                'Progress monitoring': 'chart-line',
+                'Goal protection': 'shield',
+                'Accountability': 'handshake',
+                'Motivation coaching': 'fire',
+                'Goal achievement': 'flag-checkered',
+                'Overcoming obstacles': 'mountain',
+                'Creative guidance': 'paint-brush',
+                'Artistic inspiration': 'palette',
+                'Self-expression': 'microphone',
+                'Advanced debugging': 'bug',
+                'Architecture planning': 'drafting-compass',
+                'Code optimization': 'tachometer-alt',
+                'Best practices': 'check-circle',
+                
+                // Max tier features
                 'Trauma healing': 'shield-alt',
                 'Transformation coaching': 'phoenix',
                 'Crisis support': 'ambulance',
@@ -1509,11 +1557,48 @@
                 'Art therapy': 'paint-brush',
                 'Inspiration sessions': 'magic',
                 'Custom personality modes': 'user-cog',
+                'Leadership coaching': 'crown',
+                'Elite strategies': 'chess-king',
+                'Premium insights': 'gem',
+                'Advanced monitoring': 'radar',
+                'Crisis intervention': 'first-aid',
+                'Strategic planning': 'map',
+                'Premium support': 'headset',
+                'Advanced healing': 'heart-pulse',
+                'Emotional mastery': 'brain',
+                'Trauma recovery': 'shield-virus',
+                'Premium sessions': 'star',
+                'Transcendent guidance': 'dove',
+                'Spiritual mastery': 'om',
+                'Consciousness expansion': 'expand-arrows-alt',
+                'Premium wisdom': 'scroll',
+                'Elite code architecture': 'sitemap',
+                'Complex system design': 'project-diagram',
+                'Advanced AI integration': 'robot',
+                'Premium code analysis': 'microscope',
+                'Master-level guidance': 'graduation-cap',
+                
+                // Referral features
                 'Community insights': 'users',
                 'Exclusive content': 'crown',
                 'Advanced features': 'rocket',
                 'Priority support': 'headset',
-                'Special voice interactions': 'comment-dots'
+                'Special voice interactions': 'comment-dots',
+                'Hidden insights': 'eye-slash',
+                'Mystery solving': 'search',
+                'Exclusive interactions': 'user-secret',
+                'Secret knowledge': 'book-open',
+                'Celestial guidance': 'star',
+                'Cosmic insights': 'meteor',
+                'Ethereal wisdom': 'cloud',
+                'Star navigation': 'compass',
+                'Universal knowledge': 'globe',
+                'Community code reviews': 'code-branch',
+                'Collaborative architecture': 'users-cog',
+                'Mentorship network': 'network-wired',
+                'Exclusive beta access': 'flask',
+                'Advanced integration APIs': 'plug',
+                'Community challenges': 'trophy'
             };
             
             return iconMap[feature] || 'star';
@@ -2582,6 +2667,52 @@
                 console.error('Error processing switching payment:', error);
                 alert('Payment error. Please try again.');
             }
+        }
+        
+        // Smart navigation back function - handles different entry points
+        function navigateBack() {
+            console.log('🔄 Smart navigation back initiated');
+            
+            // Check various sources to determine where user came from
+            const trialActive = localStorage.getItem('trialActive') === 'true';
+            const userAuthenticated = sessionStorage.getItem('user_authenticated') === 'true';
+            const fromChat = localStorage.getItem('navigatedFromChat') === 'true';
+            const currentScreen = localStorage.getItem('currentScreen');
+            
+            console.log('🔍 Navigation context:', {
+                trialActive,
+                userAuthenticated,
+                fromChat,
+                currentScreen,
+                referrer: document.referrer
+            });
+            
+            // Clear navigation flags
+            localStorage.removeItem('navigatedFromChat');
+            
+            // Navigation priority logic:
+            // 1. If they came from chat, return to chat with their selected companion
+            if (fromChat) {
+                const selectedCharacter = localStorage.getItem('selectedCharacter');
+                if (selectedCharacter) {
+                    console.log('🔄 Returning to chat with selected companion:', selectedCharacter);
+                    localStorage.setItem('currentScreen', 'chat');
+                    localStorage.setItem('hasActiveChat', 'true');
+                    window.location.href = '/chat';
+                    return;
+                }
+            }
+            
+            // 2. If they're authenticated but no clear navigation path, go to intro
+            if (userAuthenticated) {
+                console.log('🔄 Authenticated user - redirecting to intro page');
+                window.location.href = '/intro';
+                return;
+            }
+            
+            // 3. Fallback - login page for unauthenticated users
+            console.log('🔄 Fallback - redirecting to login');
+            window.location.href = '/login';
         }
         
         // Add Sapphire helper when page loads

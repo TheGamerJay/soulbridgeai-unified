@@ -96,6 +96,22 @@
                     bodyClasses: bodyPrefs
                 });
                 
+                // Check for active trial first (critical for access control)
+                const trialActive = localStorage.getItem('trialActive') === 'true';
+                const trialExpiry = localStorage.getItem('trialExpiry');
+                const currentTime = Date.now();
+                let hasActiveTrialAccess = false;
+                
+                if (trialActive && trialExpiry) {
+                    hasActiveTrialAccess = currentTime < parseInt(trialExpiry);
+                    console.log('🔍 Trial check:', {
+                        trialActive,
+                        trialExpiry: new Date(parseInt(trialExpiry)),
+                        currentTime: new Date(currentTime),
+                        hasActiveTrialAccess
+                    });
+                }
+                
                 // Validation rules
                 let validated = {
                     screen: 'intro', // default
@@ -104,87 +120,115 @@
                 };
                 
                 // Rule 1: If we have a selected character and active chat session, we should be on chat screen
-                if (localCharacter && sessionActive === 'true') {
+                if (localCharacter && (sessionActive === 'true' || hasActiveTrialAccess)) {
                     validated.screen = 'chat';
                     validated.character = localCharacter;
                     validated.hasActiveChat = true;
-                    console.log('🔍 Rule 1: Character + active session = chat screen');
+                    console.log('🔍 Rule 1: Character + active session/trial = chat screen');
                 }
-                // Rule 2: If we have a character but no active session, check if we just selected a companion
+                // Rule 2: If we have a character but no active session, check if we just selected a companion or have trial access
                 else if (localCharacter && sessionActive !== 'true') {
-                    // Check if this is coming from companion selection (just selected)
-                    var urlParams = new URLSearchParams(window.location.search);
-                    var showIntro = urlParams.get('show_intro');
-                    var fromSelection = localStorage.getItem('currentScreen') === 'chat'; // Set by companion selection
-                    
-                    // If we just came from companion selection, start chat session
-                    if (fromSelection || window.location.pathname === '/chat') {
+                    // If user has active trial access, allow chat regardless of session state
+                    if (hasActiveTrialAccess) {
                         validated.screen = 'chat';
                         validated.character = localCharacter;
-                        console.log('🔍 Rule 2: Just selected companion, starting chat session');
-                        // Mark session as active since we're starting chat
-                        localStorage.setItem('sessionActive', 'true');
-                    }
-                    // Only redirect to companion selection if explicitly requested
-                    else if (showIntro === 'false') {
-                        console.log('🔍 Rule 2: Explicit character select request - redirecting');
-                        window.location.href = '/companion-selection';
-                        return;
+                        validated.hasActiveChat = true;
+                        console.log('🔍 Rule 2: Active trial access - allowing chat');
+                        // Mark session as active since trial provides access
+                        sessionStorage.setItem('hasActiveChat', 'true');
                     } else {
-                        // Default to chat if we have a character
-                        validated.screen = 'chat';
-                        validated.character = localCharacter;
-                        console.log('🔍 Rule 2: Have character, defaulting to chat');
+                        // Check if this is coming from companion selection (just selected)
+                        var urlParams = new URLSearchParams(window.location.search);
+                        var showIntro = urlParams.get('show_intro');
+                        var fromSelection = localStorage.getItem('currentScreen') === 'chat'; // Set by companion selection
+                        
+                        // If we just came from companion selection, start chat session
+                        if (fromSelection || window.location.pathname === '/chat') {
+                            validated.screen = 'chat';
+                            validated.character = localCharacter;
+                            console.log('🔍 Rule 2: Just selected companion, starting chat session');
+                            // Mark session as active since we're starting chat
+                            sessionStorage.setItem('hasActiveChat', 'true');
+                        }
+                        // Only redirect to companion selection if explicitly requested AND no trial
+                        else if (showIntro === 'false') {
+                            console.log('🔍 Rule 2: Explicit character select request - redirecting');
+                            window.location.href = '/companion-selection';
+                            return;
+                        } else {
+                            // Default to chat if we have a character
+                            validated.screen = 'chat';
+                            validated.character = localCharacter;
+                            console.log('🔍 Rule 2: Have character, defaulting to chat');
+                        }
                     }
                 }
-                // Rule 3: If local screen is explicitly set to select, honor it (unless fresh login)
+                // Rule 3: If local screen is explicitly set to select, honor it (unless active trial or fresh login)
                 else if (localScreen === 'select') {
-                    // Check if this is a fresh login - if so, clear old localStorage and show intro
-                    var urlParams = new URLSearchParams(window.location.search);
-                    var showIntro = urlParams.get('show_intro');
-                    
-                    if (showIntro === 'true') {
-                        // Fresh login - clear old localStorage and show intro
-                        localStorage.removeItem('currentScreen');
-                        localStorage.removeItem('selectedCharacter');
-                        // Fresh login detected - redirect to new companion selection
-                        console.log('🔍 Rule 3: Fresh login detected - redirecting to new companion selection');
-                        window.location.href = '/companion-selection';
-                        return;
+                    // If user has active trial access, keep them in chat instead of redirecting
+                    if (hasActiveTrialAccess && localCharacter) {
+                        validated.screen = 'chat';
+                        validated.character = localCharacter;
+                        validated.hasActiveChat = true;
+                        console.log('🔍 Rule 3: Active trial access - keeping in chat instead of redirect');
+                        sessionStorage.setItem('hasActiveChat', 'true');
                     } else {
-                        // Explicit select screen setting - redirect to new companion selection
-                        console.log('🔍 Rule 3: Explicit select screen - redirecting to new companion selection');
-                        window.location.href = '/companion-selection';
-                        return;
+                        // Check if this is a fresh login - if so, clear old localStorage and show intro
+                        var urlParams = new URLSearchParams(window.location.search);
+                        var showIntro = urlParams.get('show_intro');
+                        
+                        if (showIntro === 'true') {
+                            // Fresh login - clear old localStorage and show intro
+                            localStorage.removeItem('currentScreen');
+                            localStorage.removeItem('selectedCharacter');
+                            // Fresh login detected - redirect to new companion selection
+                            console.log('🔍 Rule 3: Fresh login detected - redirecting to new companion selection');
+                            window.location.href = '/companion-selection';
+                            return;
+                        } else {
+                            // Explicit select screen setting - redirect to new companion selection
+                            console.log('🔍 Rule 3: Explicit select screen - redirecting to new companion selection');
+                            window.location.href = '/companion-selection';
+                            return;
+                        }
                     }
                 }
-                // Rule 4: Default to character selection for returning users
+                // Rule 4: Default to character selection for returning users (unless active trial)
                 else {
-                    // Check if this is a fresh login or explicit navigation
-                    var urlParams = new URLSearchParams(window.location.search);
-                    var showIntro = urlParams.get('show_intro');
-                    
-                    // Don't override if we already determined this should be intro
-                    if (localScreen === 'intro' && showIntro !== 'false') {
-                        // Forcing companion selection instead of intro - redirect
-                        console.log('🔍 Rule 4: Redirecting to companion selection instead of intro');
-                        window.location.href = '/companion-selection';
-                        return;
-                    } else if (showIntro === 'true') {
-                        // Fresh login = companion selection screen - redirect
-                        console.log('🔍 Rule 4: Fresh login - redirecting to companion selection');
-                        window.location.href = '/companion-selection';
-                        return;
-                    } else if (showIntro === 'false') {
-                        // Explicit request for character select - redirect
-                        console.log('🔍 Rule 4: Explicit character select - redirecting');
-                        window.location.href = '/companion-selection';
-                        return;
+                    // If user has active trial access and a character, keep them in chat
+                    if (hasActiveTrialAccess && localCharacter) {
+                        validated.screen = 'chat';
+                        validated.character = localCharacter;
+                        validated.hasActiveChat = true;
+                        console.log('🔍 Rule 4: Active trial access - keeping in chat');
+                        sessionStorage.setItem('hasActiveChat', 'true');
                     } else {
-                        // DEFAULT: Redirect to new companion selection page
-                        console.log('🔍 Rule 4: Redirecting to new companion selection page');
-                        window.location.href = '/companion-selection';
-                        return;
+                        // Check if this is a fresh login or explicit navigation
+                        var urlParams = new URLSearchParams(window.location.search);
+                        var showIntro = urlParams.get('show_intro');
+                        
+                        // Don't override if we already determined this should be intro
+                        if (localScreen === 'intro' && showIntro !== 'false') {
+                            // Forcing companion selection instead of intro - redirect
+                            console.log('🔍 Rule 4: Redirecting to companion selection instead of intro');
+                            window.location.href = '/companion-selection';
+                            return;
+                        } else if (showIntro === 'true') {
+                            // Fresh login = companion selection screen - redirect
+                            console.log('🔍 Rule 4: Fresh login - redirecting to companion selection');
+                            window.location.href = '/companion-selection';
+                            return;
+                        } else if (showIntro === 'false') {
+                            // Explicit request for character select - redirect
+                            console.log('🔍 Rule 4: Explicit character select - redirecting');
+                            window.location.href = '/companion-selection';
+                            return;
+                        } else {
+                            // DEFAULT: Redirect to new companion selection page
+                            console.log('🔍 Rule 4: Redirecting to new companion selection page');
+                            window.location.href = '/companion-selection';
+                            return;
+                        }
                     }
                 }
                 
@@ -1000,6 +1044,10 @@
             forceStartJourney: function() {
                 try {
                     console.log('✨ EMERGENCY Begin Journey activated - redirecting to companion selector');
+                    // Set navigation flag so user can return to chat
+                    localStorage.setItem('navigatedFromChat', 'true');
+                    localStorage.setItem('hasActiveChat', 'true');
+                    console.log('🔄 Navigation flag set for return journey');
                     window.location.href = '/companion-selection';
                     console.log('✅ EMERGENCY Begin Journey redirect successful');
                 } catch (error) {
@@ -3982,13 +4030,22 @@
             const selectedCharacter = localStorage.getItem('selectedCharacter');
             const voiceChatBtn = document.getElementById('voiceChatBtn');
             
+            console.log('🎯 Starting tier check for character:', selectedCharacter);
+            console.log('🎯 Voice chat button found:', !!voiceChatBtn);
+            
             try {
                 // Get user's subscription tier from backend
                 const response = await fetch('/api/user/tier-status', {
                     credentials: 'include',
                     cache: 'no-cache'
                 });
+                
+                if (!response.ok) {
+                    throw new Error(`API response not ok: ${response.status}`);
+                }
+                
                 const tierData = await response.json();
+                console.log('🎯 Tier API response:', tierData);
                 
                 const userTier = tierData.tier || 'foundation'; // foundation, premium (growth), enterprise (max)
                 const companionTier = getCompanionTier(selectedCharacter);
@@ -4000,20 +4057,31 @@
                 
                 // Check what features user should have access to
                 const features = getTierFeatures(userTier, companionTier, selectedCharacter);
+                console.log('🎯 Features determined:', features);
                 
                 // Apply voice chat availability
                 if (features.voiceChat && voiceChatBtn) {
+                    console.log('✅ Showing voice chat button with label:', features.voiceChatLabel);
                     voiceChatBtn.style.display = 'flex';
-                    voiceChatBtn.querySelector('span').textContent = features.voiceChatLabel;
-                } else if (voiceChatBtn) {
-                    voiceChatBtn.style.display = 'none';
+                    const span = voiceChatBtn.querySelector('span');
+                    if (span) {
+                        span.textContent = features.voiceChatLabel;
+                    } else {
+                        console.error('❌ Voice chat button span not found');
+                    }
+                } else {
+                    console.log('❌ Hiding voice chat button - voiceChat:', features.voiceChat, 'button exists:', !!voiceChatBtn);
+                    if (voiceChatBtn) {
+                        voiceChatBtn.style.display = 'none';
+                    }
                 }
                 
                 // Apply other tier-specific features
                 applyTierFeatures(features);
                 
             } catch (error) {
-                console.error('Error checking tier features:', error);
+                console.error('❌ Error checking tier features:', error);
+                console.log('🔄 Falling back to basic premium features check');
                 // Fallback to basic tier checking
                 checkBasicPremiumFeatures();
             }
@@ -4021,16 +4089,24 @@
 
         // Get companion tier based on character name
         function getCompanionTier(characterName) {
+            if (!characterName) return 'free';
+            
             const freeCompanions = ['GamerJay', 'Blayzo', 'Blayzica', 'Blayzia', 'Blayzion', 'Claude'];
             const growthCompanions = ['Crimson', 'Violet', 'Sky', 'WatchDog'];
             const maxCompanions = ['Ven Blayzica', 'Ven Sky', 'Royal', 'WatchDog Max'];
             const referralCompanions = ['Blayzike', 'Blazelian', 'BlayzoReferral', 'Sapphire'];
             
-            if (freeCompanions.includes(characterName)) return 'free';
-            if (growthCompanions.includes(characterName)) return 'growth';
-            if (maxCompanions.includes(characterName)) return 'max';
-            if (referralCompanions.includes(characterName)) return 'referral';
+            // Clean character name (remove any extra text)
+            const cleanName = characterName.split(' ')[0].split('-')[0].trim();
             
+            console.log('🔍 Tier detection - Original:', characterName, 'Clean:', cleanName);
+            
+            if (freeCompanions.includes(cleanName)) return 'free';
+            if (growthCompanions.includes(cleanName)) return 'growth';
+            if (maxCompanions.includes(cleanName)) return 'max';
+            if (referralCompanions.includes(cleanName)) return 'referral';
+            
+            console.log('⚠️ Unknown companion tier for:', characterName, 'defaulting to free');
             return 'free'; // Default to free
         }
 
