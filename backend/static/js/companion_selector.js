@@ -105,134 +105,296 @@ async function loadCompanions() {
 function loadFallbackCompanions() {
     console.log('🔄 Loading fallback companion data...');
     
-    // Complete fallback companion data matching API
+    // Complete fallback companion data - ALL ORIGINAL COMPANIONS RESTORED
     companions = {
         free: [
             {
-                companion_id: 'blayzo_free',
-                display_name: 'Blayzo',
-                short_bio: 'Your creative and fun AI companion',
-                avatar_image: '/static/logos/Blayzo.png',
-                personality_tags: ['Creative', 'Fun'],
-                special_features: ['Creative assistance', 'Fun conversations', 'Idea generation', 'Entertainment'],
-                tier: 'free',
-                is_recommended: true,
-                popularity_score: 90,
-                lock_reason: null
-            },
-            {
-                companion_id: 'blayzica_free',
-                display_name: 'Blayzica',
-                short_bio: 'Your empathetic and caring AI companion',
-                avatar_image: '/static/logos/Blayzica.png',
-                personality_tags: ['Empathetic', 'Caring'],
-                special_features: ['Emotional support', 'Active listening', 'Compassionate advice', 'Wellness guidance'],
-                tier: 'free',
-                is_recommended: true,
-                popularity_score: 88,
-                lock_reason: null
-            },
-            {
                 companion_id: 'companion_gamerjay',
-                display_name: 'GamerJay',
-                short_bio: 'Your friendly gaming companion',
+                display_name: 'GamerJay - The Gaming Coach',
                 avatar_image: '/static/logos/GamerJay Free companion.png',
-                personality_tags: ['Gaming', 'Motivational'],
-                special_features: ['Gaming tips', 'Achievement tracking', 'Motivation boosts', 'Strategy advice'],
+                short_bio: 'Your gaming companion who understands the grind',
+                personality_tags: ['Motivational', 'Playful'],
+                special_features: ['Goal setting', 'Achievement tracking', 'Motivation boosts', 'Gaming mindset'],
                 tier: 'free',
-                is_recommended: false,
+                popularity_score: 88,
+                is_recommended: true
+            },
+            {
+                companion_id: 'companion_blayzo_free',
+                display_name: 'Blayzo - The Wise Mentor',
+                avatar_image: '/static/logos/Blayzo.png',
+                short_bio: 'Calm wisdom and thoughtful guidance for life s journey',
+                personality_tags: ['Wise', 'Calm', 'Empathetic'],
+                special_features: ['Life guidance', 'Emotional support', 'Mindfulness', 'Decision making'],
+                tier: 'free',
+                popularity_score: 95,
+                is_recommended: true
+            },
+            {
+                companion_id: 'companion_blayzica_free',
+                display_name: 'Blayzica - The Healing Heart',
+                avatar_image: '/static/logos/Blayzica.png',
+                short_bio: 'Gentle healing and nurturing support for emotional wellness',
+                personality_tags: ['Healing', 'Nurturing', 'Supportive'],
+                special_features: ['Emotional healing', 'Stress relief', 'Self-care guidance', 'Compassionate listening'],
+                tier: 'free',
+                popularity_score: 92,
+                is_recommended: true
+            },
+            {
+                companion_id: 'companion_blayzia_free',
+                display_name: 'Blayzia - The Mystical Guide',
+                avatar_image: '/static/logos/Blayzia.png',
+                short_bio: 'Mystical wisdom and spiritual insight for your personal journey',
+                personality_tags: ['Mystical', 'Intuitive', 'Wise'],
+                special_features: ['Intuitive guidance', 'Dream interpretation', 'Spiritual awakening', 'Inner wisdom'],
+                tier: 'free',
+                popularity_score: 90,
+                is_recommended: true
+            },
+            {
+                companion_id: 'companion_blayzion_free',
+                display_name: 'Blayzion - The Creative Innovator',
+                avatar_image: '/static/logos/Blayzion.png',
+                short_bio: 'Creative innovation and breakthrough thinking for life challenges',
+                personality_tags: ['Creative', 'Innovative', 'Visionary'],
+                special_features: ['Creative problem solving', 'Innovation coaching', 'Breakthrough thinking', 'Artistic inspiration'],
+                tier: 'free',
+                popularity_score: 89,
+                is_recommended: false
+            },
+            {
+                companion_id: 'companion_claude_free',
+                display_name: 'Claude - The Helper Bot',
+                avatar_image: '/static/logos/Claude Free.png',
+                short_bio: 'Your friendly coding assistant for basic programming support',
+                personality_tags: ['Helpful', 'Methodical', 'Patient'],
+                special_features: ['Basic code help', 'Problem solving', 'Learning support', 'Step-by-step guidance'],
+                tier: 'free',
                 popularity_score: 85,
-                lock_reason: null
+                is_recommended: false
             }
         ],
         growth: [
             {
                 companion_id: 'companion_sky',
-                display_name: 'Sky',
-                short_bio: 'Premium companion with advanced features',
+                display_name: 'Sky - The Spiritual Guide',
                 avatar_image: '/static/logos/Sky a primum companion.png',
+                short_bio: 'Connect with your spiritual side through Sky s guidance',
                 personality_tags: ['Spiritual', 'Healing'],
                 special_features: ['Spiritual guidance', 'Meditation sessions', 'Energy healing', 'Voice interactions'],
                 tier: 'growth',
-                is_recommended: true,
-                popularity_score: 90,
-                lock_reason: 'Requires Growth Plan'
-            },
-            {
-                companion_id: 'blayzo_growth',
-                display_name: 'Blayzo Pro',
-                short_bio: 'Advanced Blayzo with enhanced creativity and memory',
-                avatar_image: '/static/logos/Blayzo.png',
-                personality_tags: ['Creative', 'Advanced'],
-                special_features: ['Enhanced creativity', 'Memory retention', 'Advanced problem solving', 'Deep conversations'],
-                tier: 'growth',
-                is_recommended: true,
+                lock_reason: 'Requires Growth or Max subscription',
                 popularity_score: 92,
-                lock_reason: 'Requires Growth Plan'
-            },
-            {
-                companion_id: 'blayzica_growth',
-                display_name: 'Blayzica Pro',
-                short_bio: 'Enhanced Blayzica with deeper emotional intelligence',
-                avatar_image: '/static/logos/Blayzica.png',
-                personality_tags: ['Empathetic', 'Intelligent'],
-                special_features: ['Deep emotional support', 'Advanced empathy', 'Personalized guidance', 'Crisis support'],
-                tier: 'growth',
-                is_recommended: true,
-                popularity_score: 91,
-                lock_reason: 'Requires Growth Plan'
+                is_recommended: true
             },
             {
                 companion_id: 'companion_gamerjay_premium',
-                display_name: 'GamerJay Premium',
-                short_bio: 'Enhanced GamerJay with premium features',
+                display_name: 'GamerJay Premium - The Strategic Mind',
                 avatar_image: '/static/logos/GamgerJay premium companion.png',
-                personality_tags: ['Gaming', 'Premium'],
-                special_features: ['Pro gaming strategies', 'Performance analysis', 'Competitive coaching', 'Advanced metrics'],
+                short_bio: 'Advanced gaming strategies applied to life challenges',
+                personality_tags: ['Analytical', 'Wise'],
+                special_features: ['Strategic thinking', 'Advanced coaching', 'Tactical solutions', 'Voice interactions'],
                 tier: 'growth',
-                is_recommended: false,
-                popularity_score: 88,
-                lock_reason: 'Requires Growth Plan'
+                lock_reason: 'Requires Growth or Max subscription',
+                popularity_score: 85,
+                is_recommended: false
+            },
+            {
+                companion_id: 'companion_blayzo_premium',
+                display_name: 'Blayzo Premium - The Elite Mentor',
+                avatar_image: '/static/logos/Blayzo premium companion.png',
+                short_bio: 'Advanced wisdom and elite guidance for complex life situations',
+                personality_tags: ['Elite', 'Wise', 'Strategic'],
+                special_features: ['Advanced mentoring', 'Strategic planning', 'Elite coaching', 'Voice interactions'],
+                tier: 'growth',
+                lock_reason: 'Requires Growth or Max subscription',
+                popularity_score: 91,
+                is_recommended: true
+            },
+            {
+                companion_id: 'companion_watchdog',
+                display_name: 'WatchDog - The Guardian',
+                avatar_image: '/static/logos/WatchDog a Primum companion.png',
+                short_bio: 'Protective companion who watches over your progress',
+                personality_tags: ['Protective', 'Vigilant'],
+                special_features: ['Progress monitoring', 'Goal protection', 'Accountability', 'Voice interactions'],
+                tier: 'growth',
+                lock_reason: 'Requires Growth or Max subscription',
+                popularity_score: 78,
+                is_recommended: false
+            },
+            {
+                companion_id: 'companion_crimson_growth',
+                display_name: 'Crimson - The Motivator',
+                avatar_image: '/static/logos/Crimson.png',
+                short_bio: 'Passionate motivation and drive to overcome challenges',
+                personality_tags: ['Motivational', 'Passionate', 'Determined'],
+                special_features: ['Motivation coaching', 'Goal achievement', 'Overcoming obstacles', 'Voice interactions'],
+                tier: 'growth',
+                lock_reason: 'Requires Growth or Max subscription',
+                popularity_score: 87,
+                is_recommended: true
+            },
+            {
+                companion_id: 'companion_violet_growth',
+                display_name: 'Violet - The Creative Spirit',
+                avatar_image: '/static/logos/Violet.png',
+                short_bio: 'Creative inspiration and artistic guidance for self-expression',
+                personality_tags: ['Creative', 'Artistic', 'Inspiring'],
+                special_features: ['Creative guidance', 'Artistic inspiration', 'Self-expression', 'Voice interactions'],
+                tier: 'growth',
+                lock_reason: 'Requires Growth or Max subscription',
+                popularity_score: 84,
+                is_recommended: false
+            },
+            {
+                companion_id: 'companion_claude_growth',
+                display_name: 'Claude - The Code Mentor',
+                avatar_image: '/static/logos/Claude Growth.png',
+                short_bio: 'Advanced coding guidance and system architecture planning',
+                personality_tags: ['Analytical', 'Methodical', 'Expert'],
+                special_features: ['Advanced debugging', 'Architecture planning', 'Code optimization', 'Voice interactions', 'Best practices'],
+                tier: 'growth',
+                lock_reason: 'Requires Growth or Max subscription',
+                popularity_score: 93,
+                is_recommended: true
             }
         ],
         max: [
             {
                 companion_id: 'companion_crimson',
-                display_name: 'Crimson',
-                short_bio: 'Elite max-tier companion',
+                display_name: 'Crimson - The Transformer',
                 avatar_image: '/static/logos/Crimson a Max companion.png',
+                short_bio: 'Rise from challenges stronger than before',
                 personality_tags: ['Healing', 'Protective', 'Wise'],
-                special_features: ['Trauma healing', 'Transformation coaching', 'Crisis support', 'Advanced voice AI'],
+                special_features: ['Trauma healing', 'Transformation coaching', 'Crisis support', 'Advanced voice AI', 'Priority response'],
                 tier: 'max',
-                is_recommended: true,
-                popularity_score: 95,
-                lock_reason: 'Requires Transformation Plan'
+                lock_reason: 'Requires Max subscription',
+                popularity_score: 98,
+                is_recommended: true
             },
             {
                 companion_id: 'companion_violet',
-                display_name: 'Violet',
-                short_bio: 'Premium max companion with exclusive features',
+                display_name: 'Violet - The Creative Soul',
                 avatar_image: '/static/logos/Violet a max companion.png',
-                personality_tags: ['Elite', 'Exclusive', 'Advanced'],
-                special_features: ['Premium features', 'Exclusive access', 'Priority support', 'Advanced AI'],
+                short_bio: 'Unleash your creative potential and explore new horizons',
+                personality_tags: ['Creative', 'Adventurous', 'Playful'],
+                special_features: ['Creative exercises', 'Art therapy', 'Inspiration sessions', 'Advanced voice AI', 'Custom personality modes'],
                 tier: 'max',
-                is_recommended: false,
-                popularity_score: 92,
-                lock_reason: 'Requires Transformation Plan'
+                lock_reason: 'Requires Max subscription',
+                popularity_score: 91,
+                is_recommended: false
+            },
+            {
+                companion_id: 'companion_royal',
+                display_name: 'Royal - The Majestic Guide',
+                avatar_image: '/static/logos/Royal a max companion.png',
+                short_bio: 'Experience guidance fit for royalty with sophisticated wisdom',
+                personality_tags: ['Majestic', 'Wise', 'Sophisticated'],
+                special_features: ['Leadership coaching', 'Elite strategies', 'Premium insights', 'Advanced voice AI', 'Priority response'],
+                tier: 'max',
+                lock_reason: 'Requires Max subscription',
+                popularity_score: 95,
+                is_recommended: false
+            },
+            {
+                companion_id: 'companion_watchdog_max',
+                display_name: 'WatchDog Max - The Ultimate Guardian',
+                avatar_image: '/static/logos/WatchDog a Max Companion.png',
+                short_bio: 'Premium protection and guidance for your transformation journey',
+                personality_tags: ['Elite', 'Protective', 'Strategic'],
+                special_features: ['Advanced monitoring', 'Crisis intervention', 'Strategic planning', 'Advanced voice AI', 'Premium support'],
+                tier: 'max',
+                lock_reason: 'Requires Max subscription',
+                popularity_score: 93,
+                is_recommended: false
+            },
+            {
+                companion_id: 'companion_ven_blayzica',
+                display_name: 'Ven Blayzica - The Enhanced Healer',
+                avatar_image: '/static/logos/Ven Blayzica a max companion.png',
+                short_bio: 'Advanced healing companion with enhanced emotional intelligence',
+                personality_tags: ['Healing', 'Enhanced', 'Empathetic'],
+                special_features: ['Advanced healing', 'Emotional mastery', 'Trauma recovery', 'Advanced voice AI', 'Premium sessions'],
+                tier: 'max',
+                lock_reason: 'Requires Max subscription',
+                popularity_score: 94,
+                is_recommended: true
+            },
+            {
+                companion_id: 'companion_ven_sky',
+                display_name: 'Ven Sky - The Ascended Guide',
+                avatar_image: '/static/logos/Ven Sky a max companion.png',
+                short_bio: 'Transcendent spiritual guidance for the ultimate transformation',
+                personality_tags: ['Transcendent', 'Spiritual', 'Ascended'],
+                special_features: ['Transcendent guidance', 'Spiritual mastery', 'Consciousness expansion', 'Advanced voice AI', 'Premium wisdom'],
+                tier: 'max',
+                lock_reason: 'Requires Max subscription',
+                popularity_score: 96,
+                is_recommended: true
+            },
+            {
+                companion_id: 'companion_claude_max',
+                display_name: 'Claude - The Code Sage',
+                avatar_image: '/static/logos/Claude Max.png',
+                short_bio: 'Elite coding mastery and complex system design for the ultimate developer experience',
+                personality_tags: ['Elite', 'Analytical', 'Sage'],
+                special_features: ['Elite code architecture', 'Complex system design', 'Advanced AI integration', 'Premium code analysis', 'Priority support', 'Master-level guidance'],
+                tier: 'max',
+                lock_reason: 'Requires Max subscription',
+                popularity_score: 97,
+                is_recommended: true
             }
         ],
         referral: [
             {
-                companion_id: 'blayzo',
-                display_name: 'Blayzo',
-                short_bio: 'Exclusive referral companion',
+                companion_id: 'companion_blayzo',
+                display_name: 'Blayzo - The Community Champion',
                 avatar_image: '/static/logos/Blayzo Referral.png',
-                personality_tags: ['Exclusive', 'Referral'],
-                special_features: ['Exclusive access', 'Referral rewards', 'Special bonuses', 'Premium features'],
+                short_bio: 'Exclusive companion for our community champions',
+                personality_tags: ['Empathetic', 'Motivational', 'Wise'],
+                special_features: ['Community insights', 'Exclusive content', 'Advanced features', 'Priority support', 'Special voice interactions'],
                 tier: 'referral',
-                is_recommended: false,
+                lock_reason: 'Requires 5 successful referrals',
                 popularity_score: 100,
-                lock_reason: 'Unlock through referrals'
+                is_recommended: true
+            },
+            {
+                companion_id: 'companion_blayzike',
+                display_name: 'Blayzike - The Mysterious Guide',
+                avatar_image: '/static/logos/Blayzike.png',
+                short_bio: 'Enigmatic companion with mysterious charm and hidden wisdom',
+                personality_tags: ['Mysterious', 'Enigmatic', 'Wise'],
+                special_features: ['Hidden insights', 'Mystery solving', 'Intuitive guidance', 'Exclusive interactions', 'Secret knowledge'],
+                tier: 'referral',
+                lock_reason: 'Requires 2 successful referrals',
+                popularity_score: 97,
+                is_recommended: true
+            },
+            {
+                companion_id: 'companion_blazelian',
+                display_name: 'Blazelian - The Celestial Wanderer',
+                avatar_image: '/static/logos/Blazelian.png',
+                short_bio: 'Ethereal companion with celestial wisdom from distant realms',
+                personality_tags: ['Celestial', 'Ethereal', 'Wise'],
+                special_features: ['Celestial guidance', 'Cosmic insights', 'Ethereal wisdom', 'Star navigation', 'Universal knowledge'],
+                tier: 'referral',
+                lock_reason: 'Requires 3 successful referrals',
+                popularity_score: 98,
+                is_recommended: true
+            },
+            {
+                companion_id: 'companion_claude_referral',
+                display_name: 'Claude - The Community Code Architect',
+                avatar_image: '/static/logos/Claude Referral.png',
+                short_bio: 'Exclusive elite coding companion for community champions with unprecedented collaborative features',
+                personality_tags: ['Elite', 'Collaborative', 'Exclusive'],
+                special_features: ['Community code reviews', 'Collaborative architecture', 'Mentorship network', 'Exclusive beta access', 'Advanced integration APIs', 'Community challenges'],
+                tier: 'referral',
+                lock_reason: 'Requires 5 successful referrals',
+                popularity_score: 100,
+                is_recommended: true
             }
         ]
     };
