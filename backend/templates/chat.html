@@ -2189,12 +2189,17 @@
                 chatDiv.innerHTML += '<div style="margin-bottom: 15px; padding: 10px; background: rgba(34, 211, 238, 0.1); border-radius: 10px; text-align: center; border-left: 4px solid #22d3ee;"><strong style="color: #22d3ee;">You:</strong> ' + msg + '</div>';
             }
             
-            // Send to AI backend
-            fetch('/api/chat', {
+            // Send to AI backend with cache busting
+            const cacheBuster = '?cb=' + Date.now() + '_' + Math.random() + '_' + new Date().getTime();
+            fetch('/api/chat' + cacheBuster, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
                 },
+                cache: 'no-cache',
                 body: JSON.stringify({
                     message: msg,
                     character: localStorage.getItem('selectedCharacter') || 'Blayzo'
@@ -2876,8 +2881,13 @@
                     // Check if this is a free character (all companions shown are free for first selection)
                     var freeCharacters = ['GamerJay', 'Blayzo', 'Blayzica', 'Blayzia', 'Blayzion', 'Claude'];
                     if (freeCharacters.includes(characterName)) {
+                        console.log('🔍 DEBUG: Selecting free character:', characterName);
+                        console.log('🔍 DEBUG: First pick made:', localStorage.getItem('firstPickMade'));
+                        console.log('🔍 DEBUG: Current character:', localStorage.getItem('selectedCharacter'));
+                        
                         // Check if switching between free characters has been unlocked from backend
                         checkSwitchingStatus().then(unlocked => {
+                            console.log('🔍 DEBUG: Switching unlocked:', unlocked);
                             if (unlocked) {
                                 // Free switching after one-time payment
                                 var switchChoice = confirm('Switch to ' + characterName + '?');
@@ -2893,6 +2903,7 @@
                                 }
                             } else {
                                 // First time switching between free characters requires $3 payment
+                                console.log('🔍 DEBUG: Showing switching payment modal');
                                 showSwitchingPaymentModal(characterName);
                             }
                         });
@@ -4044,16 +4055,21 @@
             // Add typing indicator with character-specific animation
             showTypingIndicator(selectedCharacter);
             
-            // Send to AI backend
+            // Send to AI backend with cache busting
             console.log('🚀 Sending request to /api/chat');
             console.log('📦 Request data:', { message: message, character: selectedCharacter });
             
-            fetch('/api/chat', {
+            const cacheBuster = '?cb=' + Date.now() + '_' + Math.random() + '_' + new Date().getTime();
+            fetch('/api/chat' + cacheBuster, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
                 },
                 credentials: 'include',
+                cache: 'no-cache',
                 body: JSON.stringify({
                     message: message,
                     character: selectedCharacter
@@ -6291,10 +6307,19 @@
         // Check switching status from backend
         async function checkSwitchingStatus() {
             try {
-                const response = await fetch('/api/check-switching-status', {
-                    credentials: 'include'
+                // Add aggressive cache busting
+                const cacheBuster = '?cb=' + Date.now() + '_' + Math.random() + '_' + new Date().getTime();
+                const response = await fetch('/api/check-switching-status' + cacheBuster, {
+                    credentials: 'include',
+                    cache: 'no-cache',
+                    headers: {
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache',
+                        'Expires': '0'
+                    }
                 });
                 const result = await response.json();
+                console.log('🔍 DEBUG: Switching status result:', result);
                 return result.switching_unlocked || false;
             } catch (error) {
                 console.error('Error checking switching status:', error);
