@@ -480,6 +480,99 @@
         body:not(.day-mode).character-blayzia #selectedCharacter span {
             color: #000 !important;
         }
+
+        /* Character-specific theme styles for chat interface */
+        
+        /* Blayzo - Cyan Ocean Theme */
+        body.character-blayzo {
+            --character-primary: #22d3ee;
+            --character-secondary: #0891b2;
+            --character-accent: rgba(34, 211, 238, 0.1);
+        }
+        
+        body.character-blayzo #chatInterface {
+            background: linear-gradient(135deg, rgba(34, 211, 238, 0.05), rgba(8, 145, 178, 0.05));
+        }
+        
+        /* Blayzica - Purple Cosmic Theme */
+        body.character-blayzica {
+            --character-primary: #a855f7;
+            --character-secondary: #7c3aed;
+            --character-accent: rgba(168, 85, 247, 0.1);
+        }
+        
+        body.character-blayzica #chatInterface {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.05), rgba(124, 58, 237, 0.05));
+        }
+        
+        /* Blayzion - Rainbow Mystical Theme */
+        body.character-blayzion {
+            --character-primary: #ff006e;
+            --character-secondary: #8338ec;
+            --character-accent: rgba(255, 0, 110, 0.1);
+        }
+        
+        body.character-blayzion #chatInterface {
+            background: linear-gradient(45deg, rgba(255, 0, 110, 0.03), rgba(131, 56, 236, 0.03), rgba(58, 134, 255, 0.03), rgba(6, 255, 165, 0.03));
+            animation: rainbow-bg 10s ease-in-out infinite;
+        }
+        
+        /* Blayzia - Pink Healing Theme */
+        body.character-blayzia {
+            --character-primary: #ec4899;
+            --character-secondary: #be185d;
+            --character-accent: rgba(236, 72, 153, 0.1);
+        }
+        
+        body.character-blayzia #chatInterface {
+            background: linear-gradient(135deg, rgba(236, 72, 153, 0.05), rgba(190, 24, 93, 0.05));
+        }
+        
+        /* Violet - Deep Purple Mystical Theme */
+        body.character-violet {
+            --character-primary: #7c3aed;
+            --character-secondary: #5b21b6;
+            --character-accent: rgba(124, 58, 237, 0.1);
+        }
+        
+        body.character-violet #chatInterface {
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.05), rgba(91, 33, 182, 0.05));
+        }
+        
+        /* Crimson - Red Fire Theme */
+        body.character-crimson {
+            --character-primary: #dc2626;
+            --character-secondary: #991b1b;
+            --character-accent: rgba(220, 38, 38, 0.1);
+        }
+        
+        body.character-crimson #chatInterface {
+            background: linear-gradient(135deg, rgba(220, 38, 38, 0.05), rgba(153, 27, 27, 0.05));
+        }
+        
+        /* Referral Characters */
+        body.character-blayzike {
+            --character-primary: #f97316;
+            --character-secondary: #ea580c;
+            --character-accent: rgba(249, 115, 22, 0.1);
+        }
+        
+        body.character-blazelian {
+            --character-primary: #06b6d4;
+            --character-secondary: #0891b2;
+            --character-accent: rgba(6, 182, 212, 0.1);
+        }
+        
+        body.character-blazoreferral {
+            --character-primary: #f59e0b;
+            --character-secondary: #d97706;
+            --character-accent: rgba(245, 158, 11, 0.1);
+        }
+        
+        @keyframes rainbow-bg {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
         
         /* Remove all backgrounds from intro section */
         #introScreen * {
@@ -2801,6 +2894,7 @@
                 
                 setTimeout(function() { 
                     updateCharacterInfo(characterName);
+                    updateChatAvatar(characterName);
                     // Ensure premium features are checked after character selection
                     checkPremiumFeatures();
                     // Add greeting after character selection
@@ -3082,6 +3176,7 @@
                 setTimeout(function() {
                     document.getElementById('chatMessages').innerHTML = conversation.content;
                     updateCharacterInfo(conversation.character);
+                    updateChatAvatar(conversation.character);
                 }, 100);
             }
             
@@ -3099,6 +3194,7 @@
                 
                 // Update character info
                 updateCharacterInfo(selectedCharacter);
+                updateChatAvatar(selectedCharacter);
                 
                 // Show back button
                 var backToIntroBtn = document.getElementById('backToIntroBtn');
