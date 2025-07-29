@@ -105,7 +105,7 @@ async function loadCompanions() {
 function loadFallbackCompanions() {
     console.log('🔄 Loading fallback companion data...');
     
-    // Complete fallback companion data - ALL ORIGINAL COMPANIONS RESTORED
+    // Complete fallback companion data - RESTORED FROM BACKEND API
     companions = {
         free: [
             {
@@ -139,6 +139,42 @@ function loadFallbackCompanions() {
                 short_bio: 'Your friendly gaming companion',
                 personality_tags: ['Gaming', 'Motivational'],
                 special_features: ['Gaming tips', 'Achievement tracking', 'Motivation boosts', 'Strategy advice'],
+                tier: 'free',
+                popularity_score: 85,
+                is_recommended: false,
+                lock_reason: null
+            },
+            {
+                companion_id: 'blayzia_free',
+                display_name: 'Blayzia',
+                avatar_image: '/static/logos/Blayzia.png',
+                short_bio: 'Mystical wisdom and spiritual insight',
+                personality_tags: ['Mystical', 'Intuitive', 'Wise'],
+                special_features: ['Intuitive guidance', 'Dream interpretation', 'Spiritual awakening', 'Inner wisdom'],
+                tier: 'free',
+                popularity_score: 90,
+                is_recommended: true,
+                lock_reason: null
+            },
+            {
+                companion_id: 'blayzion_free',
+                display_name: 'Blayzion',
+                avatar_image: '/static/logos/Blayzion.png',
+                short_bio: 'Creative innovation and breakthrough thinking',
+                personality_tags: ['Creative', 'Innovative', 'Visionary'],
+                special_features: ['Creative problem solving', 'Innovation coaching', 'Breakthrough thinking', 'Artistic inspiration'],
+                tier: 'free',
+                popularity_score: 89,
+                is_recommended: false,
+                lock_reason: null
+            },
+            {
+                companion_id: 'claude_free',
+                display_name: 'Claude',
+                avatar_image: '/static/logos/Claude Free.png',
+                short_bio: 'Your friendly coding assistant',
+                personality_tags: ['Helpful', 'Methodical', 'Patient'],
+                special_features: ['Basic code help', 'Problem solving', 'Learning support', 'Step-by-step guidance'],
                 tier: 'free',
                 popularity_score: 85,
                 is_recommended: false,
@@ -316,13 +352,13 @@ function renderSection(sectionId, companionList) {
                     <h3 class="companion-name">${companion.display_name}</h3>
                     
                     <div class="companion-tags">
-                        ${companion.personality_tags.map(tag => `<span class="personality-tag">${tag}</span>`).join('')}
+                        ${(companion.personality_tags || []).map(tag => `<span class="personality-tag">${tag}</span>`).join('')}
                     </div>
                     
-                    <p class="companion-bio">${companion.short_bio}</p>
+                    <p class="companion-bio">${companion.short_bio || companion.description || ''}</p>
                     
                     <div class="companion-features">
-                        ${companion.special_features.slice(0, 4).map(feature => `
+                        ${(companion.special_features || []).slice(0, 4).map(feature => `
                             <div class="feature-icon" title="${feature}">
                                 <i class="fas fa-${getFeatureIcon(feature)}"></i>
                             </div>
