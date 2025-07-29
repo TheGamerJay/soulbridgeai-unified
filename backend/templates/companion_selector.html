@@ -104,6 +104,48 @@
         </div>
     </div>
 
+    <!-- Companion Details Modal -->
+    <div class="companion-modal" id="companionModal" style="display: none;">
+        <div class="modal-overlay" onclick="closeCompanionModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalCompanionName">Companion Details</h2>
+                <button class="close-btn" onclick="closeCompanionModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="companion-preview">
+                    <img id="modalCompanionAvatar" src="" alt="Companion Avatar" class="modal-avatar">
+                    <div class="companion-details">
+                        <p id="modalCompanionBio"></p>
+                        <div class="companion-tier" id="modalCompanionTier"></div>
+                    </div>
+                </div>
+                
+                <div class="upgrade-section" id="upgradeSection">
+                    <h3>Unlock This Companion</h3>
+                    <div class="plan-options">
+                        <div class="plan-card growth-plan" onclick="selectUpgradePlan('growth')">
+                            <div class="plan-header">
+                                <span class="plan-name">Growth Plan</span>
+                                <span class="plan-price">$9.99/month</span>
+                            </div>
+                            <p>Access to Growth companions and premium features</p>
+                        </div>
+                        
+                        <div class="plan-card max-plan" onclick="selectUpgradePlan('max')">
+                            <div class="plan-header">
+                                <span class="plan-name">Max Plan</span>
+                                <span class="plan-price">$19.99/month</span>
+                            </div>
+                            <p>All companions, advanced AI, and premium features</p>
+                            <div class="recommended-badge">Most Popular</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- JavaScript -->
     <script src="{{ url_for('static', filename='js/companion_selector.js') }}?v={{ range(1000000) | random }}"></script>
 </body>

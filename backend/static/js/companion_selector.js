@@ -326,7 +326,7 @@ function renderSection(sectionId, companionList) {
         const isSelected = currentUser.selected_companion === companion.companion_id;
         const isReferralTier = companion.tier === 'referral';
         const clickAction = isLocked ? 
-            (isReferralTier ? `window.location.href='/referrals'` : `showUpgradeModal('${companion.companion_id}')`) 
+            (isReferralTier ? `window.location.href='/referrals'` : `showCompanionDetails('${companion.companion_id}')`) 
             : `selectCompanion('${companion.companion_id}')`;
         
         return `
@@ -618,6 +618,79 @@ function showNotification(message, type = 'info') {
         }, 300);
     }, 3000);
 }
+
+// Companion Details Modal Functions
+function showCompanionDetails(companionId) {
+    const companion = findCompanionById(companionId);
+    if (!companion) {
+        console.error('Companion not found:', companionId);
+        return;
+    }
+    
+    // Populate modal with companion data
+    document.getElementById('modalCompanionName').textContent = companion.display_name;
+    document.getElementById('modalCompanionAvatar').src = companion.avatar_image;
+    document.getElementById('modalCompanionBio').textContent = companion.short_bio || companion.description;
+    document.getElementById('modalCompanionTier').textContent = `${companion.tier.toUpperCase()} TIER`;
+    
+    // Show appropriate upgrade options based on companion tier
+    const upgradeSection = document.getElementById('upgradeSection');
+    const growthPlan = document.querySelector('.growth-plan');
+    const maxPlan = document.querySelector('.max-plan');
+    
+    if (companion.tier === 'growth') {
+        growthPlan.style.display = 'block';
+        maxPlan.style.display = 'block';
+        growthPlan.classList.add('recommended');
+        maxPlan.classList.remove('recommended');
+    } else if (companion.tier === 'max') {
+        growthPlan.style.display = 'none';
+        maxPlan.style.display = 'block';
+        maxPlan.classList.add('recommended');
+    }
+    
+    // Show modal
+    document.getElementById('companionModal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function closeCompanionModal() {
+    document.getElementById('companionModal').style.display = 'none';
+    document.body.style.overflow = 'auto';
+}
+
+function selectUpgradePlan(planType) {
+    closeCompanionModal();
+    
+    // Redirect to upgrade page with plan pre-selected
+    if (planType === 'growth') {
+        window.location.href = '/pricing?plan=growth';
+    } else if (planType === 'max') {
+        window.location.href = '/pricing?plan=max';
+    }
+}
+
+function findCompanionById(companionId) {
+    const allCompanions = [
+        ...(companions.free || []),
+        ...(companions.growth || []),
+        ...(companions.max || []),
+        ...(companions.referral || [])
+    ];
+    
+    return allCompanions.find(c => c.companion_id === companionId);
+}
+
+// Close modal when pressing Escape
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeCompanionModal();
+    }
+});
+
+// Export functions for testing
+window.showCompanionDetails = showCompanionDetails;
+window.closeCompanionModal = closeCompanionModal;
 
 function navigateBack() {
     window.history.back();
