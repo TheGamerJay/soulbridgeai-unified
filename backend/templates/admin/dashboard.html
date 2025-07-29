@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WatchDog Dashboard - SoulBridge AI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            color: #fff;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: rgba(0, 0, 0, 0.9);
+            padding: 15px 30px;
+            border-bottom: 2px solid #00ffff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            color: #00ffff;
+            font-size: 1.5rem;
+        }
+        
+        .nav {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .nav a {
+            color: #ccc;
+            text-decoration: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .nav a:hover {
+            background: rgba(0, 255, 255, 0.2);
+            color: #00ffff;
+        }
+        
+        .logout {
+            background: rgba(255, 0, 0, 0.2);
+            color: #ff4444 !important;
+            border: 1px solid #ff4444;
+        }
+        
+        .logout:hover {
+            background: rgba(255, 0, 0, 0.3);
+        }
+        
+        .container {
+            padding: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .stat-card {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 10px;
+            padding: 25px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            border-color: #00ffff;
+            box-shadow: 0 5px 20px rgba(0, 255, 255, 0.2);
+        }
+        
+        .stat-card h3 {
+            color: #00ffff;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+        
+        .stat-card .value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 5px;
+        }
+        
+        .stat-card .label {
+            color: #ccc;
+            font-size: 0.9rem;
+        }
+        
+        .section {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+        
+        .section h2 {
+            color: #00ffff;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-healthy { background: #4ade80; }
+        .status-warning { background: #fbbf24; }
+        .status-error { background: #ef4444; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🐕 WatchDog Admin Dashboard</h1>
+        <nav class="nav">
+            <a href="/admin/home">Dashboard</a>
+            <a href="/admin/users">Users</a>
+            <a href="/admin/database">Database</a>
+            <a href="/admin/surveillance">Surveillance</a>
+            <a href="/admin/logout" class="logout">Logout</a>
+        </nav>
+    </div>
+    
+    <div class="container">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Total Users</h3>
+                <div class="value">{{ stats.total_users or 0 }}</div>
+                <div class="label">Registered</div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>Active Sessions</h3>
+                <div class="value">{{ stats.active_sessions or 0 }}</div>
+                <div class="label">Currently Online</div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>Trial Users</h3>
+                <div class="value">{{ stats.trial_users or 0 }}</div>
+                <div class="label">Free Trials</div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>Database Status</h3>
+                <div class="value">
+                    <span class="status-indicator {% if stats.database_status == 'Healthy' %}status-healthy{% else %}status-error{% endif %}"></span>
+                    {{ stats.database_status or 'Unknown' }}
+                </div>
+                <div class="label">System Health</div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>🔍 System Overview</h2>
+            <p><strong>Server Uptime:</strong> {{ stats.server_uptime or 'Unknown' }}</p>
+            <p><strong>Last Updated:</strong> {{ moment().format('YYYY-MM-DD HH:mm:ss') if moment else 'Just now' }}</p>
+        </div>
+        
+        <div class="section">
+            <h2>📊 Recent Activity</h2>
+            <p>System monitoring and activity logs appear here.</p>
+            <p><em>Real-time monitoring dashboard coming soon...</em></p>
+        </div>
+    </div>
+    
+    <script>
+        // Auto-refresh dashboard every 30 seconds
+        setTimeout(() => {
+            location.reload();
+        }, 30000);
+    </script>
+</body>
+</html>
