@@ -1357,11 +1357,11 @@ def terms_page():
 
 @app.route("/library")
 def library_page():
-    """Conversation library (coming soon)"""
+    """Conversation library page"""
     try:
         if not is_logged_in():
             return redirect("/login")
-        return jsonify({"message": "Library feature coming soon!", "redirect": "/"}), 200
+        return render_template("library.html")
     except Exception as e:
         logger.error(f"Library page error: {e}")
         return redirect("/")
