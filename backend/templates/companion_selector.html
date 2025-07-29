@@ -2518,6 +2518,11 @@
             try {
                 console.log('🔍 DEBUG: Processing switching payment for:', companionId);
                 
+                // Find the companion to get the name
+                const companion = findCompanionById(companionId);
+                const companionName = companion ? companion.display_name : 'Companion';
+                console.log('🔍 DEBUG: Companion name for payment:', companionName);
+                
                 // Create switching payment via Stripe
                 const response = await fetch('/api/create-switching-payment', {
                     method: 'POST',
@@ -2526,6 +2531,7 @@
                     },
                     credentials: 'include',
                     body: JSON.stringify({
+                        companion_name: companionName,
                         companion_id: companionId,
                         amount: 300, // $3.00 in cents
                         currency: 'usd'

@@ -5275,6 +5275,18 @@ def create_switching_payment():
                 "error": "Switching already unlocked!"
             }), 400
         
+        # Check if Stripe is configured
+        stripe_secret_key = os.environ.get("STRIPE_SECRET_KEY")
+        if not stripe_secret_key:
+            logger.error("Stripe secret key not configured for switching payment")
+            return jsonify({
+                "success": False, 
+                "error": "Payment system not configured"
+            }), 500
+        
+        import stripe
+        stripe.api_key = stripe_secret_key
+        
         # Create Stripe checkout session for $3 switching payment
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=['card'],
@@ -5300,7 +5312,8 @@ def create_switching_payment():
             }
         )
         
-        logger.info(f"💳 Created switching payment session for user {session.get('user_email')} - ${3}")
+        logger.info(f"💳 Created switching payment session for user {session.get('user_email')} - $3.00")
+        logger.info(f"💳 Checkout URL: {checkout_session.url}")
         
         return jsonify({
             "success": True,
@@ -5309,8 +5322,14 @@ def create_switching_payment():
         })
         
     except Exception as e:
-        logger.error(f"Create switching payment error: {e}")
-        return jsonify({"success": False, "error": "Failed to create payment session"}), 500
+        logger.error(f"Create switching payment error: {str(e)}")
+        logger.error(f"Error type: {type(e).__name__}")
+        import traceback
+        logger.error(f"Full traceback: {traceback.format_exc()}")
+        return jsonify({
+            "success": False, 
+            "error": f"Failed to create payment session: {str(e)}"
+        }), 500
 
 @app.route("/api/check-switching-status", methods=["GET"])
 def check_switching_status():
