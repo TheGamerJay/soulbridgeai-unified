@@ -1544,14 +1544,22 @@
                 const freeCompanions = ['companion_gamerjay', 'companion_blayzo_free', 'companion_blayzica_free', 
                                       'companion_blayzia_free', 'companion_blayzion_free', 'companion_claude_free'];
                 
+                // Get companion name from the companion object for comparison
+                const selectedCompanionName = companion.display_name.split(' ')[0]; // e.g., "GamerJay", "Blayzo"
+                
                 console.log('🔍 DEBUG: First pick made:', firstPickMade);
                 console.log('🔍 DEBUG: Current character:', currentCharacter);
-                console.log('🔍 DEBUG: Selected companion:', companionId);
+                console.log('🔍 DEBUG: Selected companion ID:', companionId);
+                console.log('🔍 DEBUG: Selected companion name:', selectedCompanionName);
                 console.log('🔍 DEBUG: Is free companion:', freeCompanions.includes(companionId));
+                console.log('🔍 DEBUG: Is switching to different companion:', currentCharacter !== selectedCompanionName);
 
-                // If user has already made their first pick and is switching between free companions
-                if (firstPickMade && currentCharacter && freeCompanions.includes(companionId)) {
-                    console.log('🔍 DEBUG: Checking switching status...');
+                // Only charge switching fee if:
+                // 1. First pick was already made
+                // 2. This is a free companion 
+                // 3. They're switching to a DIFFERENT companion
+                if (firstPickMade && currentCharacter && freeCompanions.includes(companionId) && currentCharacter !== selectedCompanionName) {
+                    console.log('🔍 DEBUG: User is switching to different free companion, checking switching status...');
                     
                     // Check if switching between free characters has been unlocked
                     const switchingResponse = await fetch('/api/check-switching-status', {
@@ -1567,6 +1575,8 @@
                         showSwitchingPaymentModal(companion.display_name, companionId);
                         return;
                     }
+                } else {
+                    console.log('🔍 DEBUG: No switching fee needed - either first pick, same companion, or premium companion');
                 }
                 
                 const response = await fetch('/api/companions/select', {
