@@ -266,6 +266,7 @@ def setup_user_session(email, user_id=None, is_admin=False, dev_mode=False):
     session.clear()
     session.permanent = False  # Session expires when browser closes
     session["user_authenticated"] = True
+    session["session_version"] = "2025-07-28-banking-security"  # Required for auth
     session["user_email"] = email
     session["login_timestamp"] = datetime.now().isoformat()
     session["user_plan"] = "foundation"
@@ -883,6 +884,7 @@ def auth_register():
         session['user_id'] = user_id
         session['email'] = email
         session['user_authenticated'] = True
+        session['session_version'] = "2025-07-28-banking-security"  # Required for auth
         session['last_activity'] = datetime.now().isoformat()
         
         return jsonify({"success": True, "redirect": "/plan-selection"})
@@ -1209,6 +1211,7 @@ def profile():
             if session.get('user_id') or session.get('user_email') or session.get('email'):
                 # Repair session authentication
                 session['user_authenticated'] = True
+                session['session_version'] = "2025-07-28-banking-security"  # Required for auth
                 session['last_activity'] = datetime.now().isoformat()
                 auth_check = True
             else:
@@ -2651,6 +2654,7 @@ def api_users():
             if session.get('user_id') or session.get('user_email') or session.get('email'):
                 # Repair session authentication
                 session['user_authenticated'] = True
+                session['session_version'] = "2025-07-28-banking-security"  # Required for auth
                 session['last_activity'] = datetime.now().isoformat()
                 auth_result = True
             else:
