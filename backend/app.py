@@ -741,6 +741,40 @@ def debug_trial_status():
             "error": str(e)
         })
 
+@app.route("/api/debug/clear-trial", methods=["POST"])
+def clear_trial_data():
+    """Clear trial data for current user"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        user_email = session.get('user_email', session.get('email'))
+        
+        # Store original data for logging
+        original_data = {
+            'trial_active': session.get('trial_active'),
+            'trial_expires': session.get('trial_expires'),
+            'trial_companion': session.get('trial_companion')
+        }
+        
+        # Clear trial data from session
+        session.pop('trial_active', None)
+        session.pop('trial_expires', None)
+        session.pop('trial_companion', None)
+        
+        logger.info(f"Trial data cleared for {user_email}: {original_data}")
+        
+        return jsonify({
+            "success": True,
+            "message": "Trial data cleared successfully",
+            "user_email": user_email,
+            "cleared_data": original_data
+        })
+        
+    except Exception as e:
+        logger.error(f"Clear trial data error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
 @app.route("/admin/force-logout-all", methods=["POST"])
 def force_logout_all():
     """ADMIN: Force logout all users by incrementing session version"""
