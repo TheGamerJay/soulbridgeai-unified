@@ -62,6 +62,16 @@ async function loadUserDataFromBackend() {
             currentUser.trial_active = userData.trial_active || false;
             currentUser.trial_expires = userData.trial_expires || null;
             currentUser.trial_companion = userData.trial_companion || null;
+            
+            // Clear localStorage trial flag if backend shows no trial was used
+            if (!userData.trial_companion && !userData.trial_expires && !userData.trial_active) {
+                const hadStorageTrial = localStorage.getItem('trialUsed') === 'true';
+                if (hadStorageTrial) {
+                    console.log('🧹 Clearing localStorage trial flag - backend shows no trial used');
+                    localStorage.removeItem('trialUsed');
+                }
+            }
+            
             console.log('✅ User data loaded from backend:', currentUser);
         } else {
             console.warn('⚠️ Failed to load user data from backend, using defaults');
@@ -353,9 +363,19 @@ function renderSection(sectionId, companionList) {
                         lockReason = 'Requires Growth Plan';
                     }
                 } else {
-                    // No active trial - check if user has ever used their trial
-                    const hasUsedTrial = localStorage.getItem('trialUsed') === 'true';
-                    if (hasUsedTrial) {
+                    // No active trial - check if user has ever used their trial (from backend data)
+                    const hasUsedTrialFromBackend = currentUser.trial_companion !== null || currentUser.trial_expires !== null;
+                    const hasUsedTrialFromStorage = localStorage.getItem('trialUsed') === 'true';
+                    
+                    console.log('🔍 Trial usage check:', {
+                        backend: hasUsedTrialFromBackend,
+                        storage: hasUsedTrialFromStorage,
+                        trial_companion: currentUser.trial_companion,
+                        trial_expires: currentUser.trial_expires
+                    });
+                    
+                    // Trust backend data over localStorage
+                    if (hasUsedTrialFromBackend || hasUsedTrialFromStorage) {
                         isLocked = true;
                         lockReason = 'Requires Growth Plan';
                     } else {

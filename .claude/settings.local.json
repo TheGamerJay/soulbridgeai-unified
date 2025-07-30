@@ -62,7 +62,8 @@
       "WebFetch(domain:soulbridgeai-unified-production.up.railway.app)",
       "WebFetch(domain:127.0.0.1)",
       "Bash(tasklist:*)",
-      "Bash(wmic:*)"
+      "Bash(wmic:*)",
+      "Bash(node:*)"
     ],
     "deny": []
   }
