@@ -103,6 +103,7 @@ class SimpleAuth:
         session['display_name'] = user_data['display_name']
         session['last_activity'] = datetime.now().isoformat()
         session['session_version'] = "2025-07-28-banking-security"  # BANKING SECURITY: Force version check
+        session['user_plan'] = 'foundation'  # Default all users to foundation plan
         
         # Try to fetch and store account creation date and profile image
         try:

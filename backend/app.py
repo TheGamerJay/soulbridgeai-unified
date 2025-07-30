@@ -978,13 +978,14 @@ def auth_register():
         user_id = cursor.fetchone()[0]
         conn.close()
         
-        # Login with security
+        # Login with security and set default foundation plan
         session.permanent = True  # Use configured PERMANENT_SESSION_LIFETIME (2 hours)
         session['user_id'] = user_id
         session['email'] = email
         session['user_authenticated'] = True
         session['session_version'] = "2025-07-28-banking-security"  # Required for auth
         session['last_activity'] = datetime.now().isoformat()
+        session['user_plan'] = 'foundation'  # Default all new users to foundation plan
         
         return jsonify({"success": True, "redirect": "/plan-selection"})
         
