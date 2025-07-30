@@ -646,8 +646,8 @@ function showVoiceChatButton() {
     
     // Define Growth+ companions that have voice features (NO FREE TIER)
     const voiceEnabledCompanions = [
-        // GROWTH TIER
-        'Sky', 'Blayzo', 'Blayzo Pro', 'Blayzo Champion', 'Blayzica', 'Blayzica Pro',
+        // GROWTH TIER ONLY (Premium versions)
+        'Sky', 'Blayzo Pro', 'Blayzo Champion', 'Blayzica Pro',
         'GamerJay Premium', 'Claude Growth', 'WatchDog',
         
         // MAX TIER  
@@ -655,9 +655,10 @@ function showVoiceChatButton() {
         'Royal', 'Ven Blayzica', 'Ven Sky', 'Claude Max',
         
         // REFERRAL TIER
-        'Blayzia', 'Blayzion', 'Claude Referral'
+        'Claude Referral'
         
-        // FREE TIER EXCLUDED: 'GamerJay', 'Claude' - NO VOICE CHAT
+        // FREE TIER EXCLUDED (NO VOICE CHAT):
+        // 'GamerJay', 'Claude', 'Blayzo', 'Blayzica', 'Blayzia', 'Blayzion'
     ];
     
     if (voiceEnabledCompanions.includes(currentCharacter)) {
@@ -795,6 +796,54 @@ function getTierFeatures(characterName) {
                 context_memory: 5,
                 personality_depth: 'basic',
                 special_abilities: ['analysis', 'problem_solving'],
+                response_length: 'short',
+                emotional_intelligence: 'basic',
+                voice_enabled: false // FREE TIER - NO VOICE
+            }
+        },
+        'Blayzo': {
+            tier: 'free',
+            features: {
+                response_quality: 'standard',
+                context_memory: 5,
+                personality_depth: 'basic',
+                special_abilities: ['creativity', 'motivation'],
+                response_length: 'short',
+                emotional_intelligence: 'basic',
+                voice_enabled: false // FREE TIER - NO VOICE
+            }
+        },
+        'Blayzica': {
+            tier: 'free',
+            features: {
+                response_quality: 'standard',
+                context_memory: 5,
+                personality_depth: 'basic',
+                special_abilities: ['empathy', 'support'],
+                response_length: 'short',
+                emotional_intelligence: 'basic',
+                voice_enabled: false // FREE TIER - NO VOICE
+            }
+        },
+        'Blayzia': {
+            tier: 'free',
+            features: {
+                response_quality: 'standard',
+                context_memory: 5,
+                personality_depth: 'basic',
+                special_abilities: ['mystical_guidance', 'intuition'],
+                response_length: 'short',
+                emotional_intelligence: 'basic',
+                voice_enabled: false // FREE TIER - NO VOICE
+            }
+        },
+        'Blayzion': {
+            tier: 'free',
+            features: {
+                response_quality: 'standard',
+                context_memory: 5,
+                personality_depth: 'basic',
+                special_abilities: ['innovation', 'creativity'],
                 response_length: 'short',
                 emotional_intelligence: 'basic',
                 voice_enabled: false // FREE TIER - NO VOICE
@@ -1019,8 +1068,8 @@ function getTierFeatures(characterName) {
         }
     };
     
-    // Add referral tier companions (Growth level features)
-    const referralCompanions = ['Blayzia', 'Blayzion', 'Blayzo Champion', 'Blayzike', 'Blazelian', 'Claude Referral', 'Sapphire'];
+    // Add referral tier companions (Growth level features) - PREMIUM ONLY
+    const referralCompanions = ['Blayzo Champion', 'Blayzike', 'Blazelian', 'Claude Referral', 'Sapphire'];
     referralCompanions.forEach(name => {
         companionTiers[name] = {
             tier: 'referral',
@@ -1035,6 +1084,8 @@ function getTierFeatures(characterName) {
             }
         };
     });
+    
+    // NOTE: Base versions (Blayzia, Blayzion) are now FREE tier without voice chat
     
     // Return features for the character, default to free tier if not found
     return companionTiers[characterName] || companionTiers['GamerJay'];
