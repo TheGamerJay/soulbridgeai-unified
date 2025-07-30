@@ -642,7 +642,10 @@ function getCompanionThemeClass(characterName) {
 
 function showVoiceChatButton() {
     const voiceBtn = document.getElementById('voiceChatBtn');
-    if (!voiceBtn) return;
+    if (!voiceBtn) {
+        console.warn('⚠️ Voice chat button element not found');
+        return;
+    }
     
     // Define companions that have voice features by tier
     const voiceEnabledCompanions = [
@@ -660,8 +663,11 @@ function showVoiceChatButton() {
         // 'GamerJay', 'Claude', 'Blayzo', 'Blayzica', 'Blayzia', 'Blayzion'
     ];
     
+    console.log(`🔍 Checking voice chat availability for "${currentCharacter}"`);
+    
     if (voiceEnabledCompanions.includes(currentCharacter)) {
-        voiceBtn.style.display = 'block';
+        voiceBtn.style.display = 'inline-flex'; // Use inline-flex to match other action buttons
+        voiceBtn.style.visibility = 'visible';
         console.log(`🎤 Voice chat enabled for ${currentCharacter}`);
     } else {
         voiceBtn.style.display = 'none';
@@ -674,26 +680,54 @@ let mediaRecorder = null;
 let audioChunks = [];
 
 function toggleVoiceChat() {
-    if (!isVoiceChatActive) {
-        startVoiceChat();
-    } else {
-        stopVoiceChat();
+    console.log('🎤 Voice chat toggle clicked', { isVoiceChatActive, currentCharacter });
+    
+    try {
+        if (!isVoiceChatActive) {
+            startVoiceChat();
+        } else {
+            stopVoiceChat();
+        }
+    } catch (error) {
+        console.error('❌ Voice chat toggle error:', error);
+        showNotification('Voice chat error occurred', 'error');
     }
 }
 
 async function startVoiceChat() {
+    console.log('🎤 Starting voice chat...');
+    
     try {
+        // Check if browser supports the required APIs
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            throw new Error('Browser does not support voice recording');
+        }
+        
+        if (!window.MediaRecorder) {
+            throw new Error('Browser does not support MediaRecorder');
+        }
+        
+        console.log('🎤 Requesting microphone access...');
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        console.log('🎤 Microphone access granted');
+        
         mediaRecorder = new MediaRecorder(stream);
         audioChunks = [];
         
         mediaRecorder.ondataavailable = event => {
+            console.log('🎤 Audio data available:', event.data.size);
             audioChunks.push(event.data);
         };
         
         mediaRecorder.onstop = async () => {
+            console.log('🎤 Recording stopped, processing audio...');
             const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
             await sendVoiceMessage(audioBlob);
+        };
+        
+        mediaRecorder.onerror = (error) => {
+            console.error('🎤 MediaRecorder error:', error);
+            showNotification('Recording error occurred', 'error');
         };
         
         mediaRecorder.start();
@@ -701,29 +735,72 @@ async function startVoiceChat() {
         
         // Update button appearance
         const voiceBtn = document.getElementById('voiceChatBtn');
-        voiceBtn.innerHTML = '<i class="fas fa-stop"></i> Stop';
-        voiceBtn.classList.add('recording');
+        if (voiceBtn) {
+            voiceBtn.innerHTML = '<i class="fas fa-stop"></i> Stop';
+            voiceBtn.classList.add('recording');
+        }
         
         showNotification('Voice recording started...', 'info');
+        console.log('🎤 Voice recording started successfully');
         
     } catch (error) {
-        console.error('Voice chat error:', error);
-        showNotification('Microphone access denied or not available', 'error');
+        console.error('❌ Voice chat start error:', error);
+        
+        let errorMessage = 'Voice chat failed to start';
+        if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+            errorMessage = 'Microphone access denied. Please allow microphone access and try again.';
+        } else if (error.name === 'NotFoundError') {
+            errorMessage = 'No microphone found. Please connect a microphone and try again.';
+        } else if (error.name === 'NotSupportedError') {
+            errorMessage = 'Voice chat is not supported in this browser';
+        }
+        
+        showNotification(errorMessage, 'error');
+        isVoiceChatActive = false;
     }
 }
 
 function stopVoiceChat() {
-    if (mediaRecorder && isVoiceChatActive) {
-        mediaRecorder.stop();
-        mediaRecorder.stream.getTracks().forEach(track => track.stop());
+    console.log('🎤 Stopping voice chat...');
+    
+    try {
+        if (mediaRecorder && isVoiceChatActive) {
+            console.log('🎤 Stopping media recorder...');
+            mediaRecorder.stop();
+            
+            // Stop all audio tracks to free up the microphone
+            if (mediaRecorder.stream) {
+                mediaRecorder.stream.getTracks().forEach(track => {
+                    console.log('🎤 Stopping audio track:', track.kind);
+                    track.stop();
+                });
+            }
+            
+            isVoiceChatActive = false;
+            
+            // Update button appearance
+            const voiceBtn = document.getElementById('voiceChatBtn');
+            if (voiceBtn) {
+                voiceBtn.innerHTML = '<i class="fas fa-microphone"></i> Voice';
+                voiceBtn.classList.remove('recording');
+            }
+            
+            showNotification('Processing voice message...', 'info');
+            console.log('🎤 Voice recording stopped successfully');
+        } else {
+            console.warn('⚠️ No active voice recording to stop');
+        }
+    } catch (error) {
+        console.error('❌ Error stopping voice chat:', error);
+        showNotification('Error stopping voice recording', 'error');
+        
+        // Force reset state
         isVoiceChatActive = false;
-        
-        // Update button appearance
         const voiceBtn = document.getElementById('voiceChatBtn');
-        voiceBtn.innerHTML = '<i class="fas fa-microphone"></i> Voice';
-        voiceBtn.classList.remove('recording');
-        
-        showNotification('Processing voice message...', 'info');
+        if (voiceBtn) {
+            voiceBtn.innerHTML = '<i class="fas fa-microphone"></i> Voice';
+            voiceBtn.classList.remove('recording');
+        }
     }
 }
 
@@ -1155,8 +1232,102 @@ function getTierFeatures(characterName) {
     return companionTiers[characterName] || companionTiers['GamerJay'];
 }
 
+// Save conversation to library function
+function saveConversationToLibrary() {
+    if (chatHistory.length === 0) {
+        showNotification('No conversation to save', 'info');
+        return;
+    }
+    
+    const conversationTitle = generateConversationTitle();
+    const currentDate = new Date().toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+    
+    // Create conversation data
+    const conversationData = {
+        title: conversationTitle,
+        character: currentCharacter,
+        date: currentDate,
+        content: formatConversationForLibrary(),
+        timestamp: Date.now()
+    };
+    
+    try {
+        // Get existing conversations
+        const savedConversations = JSON.parse(localStorage.getItem('savedConversations') || '[]');
+        
+        // Add new conversation
+        savedConversations.unshift(conversationData); // Add to beginning of array
+        
+        // Limit to 50 conversations to prevent storage overflow
+        if (savedConversations.length > 50) {
+            savedConversations.splice(50);
+        }
+        
+        // Save back to localStorage
+        localStorage.setItem('savedConversations', JSON.stringify(savedConversations));
+        
+        console.log('💾 Conversation saved to library:', conversationTitle);
+        showNotification(`Conversation "${conversationTitle}" saved to library!`, 'success');
+        
+    } catch (error) {
+        console.error('❌ Error saving conversation to library:', error);
+        showNotification('Failed to save conversation', 'error');
+    }
+}
+
+function generateConversationTitle() {
+    // Try to extract a meaningful title from the first user message
+    const firstUserMessage = chatHistory.find(msg => msg.sender === 'user');
+    
+    if (firstUserMessage) {
+        const content = firstUserMessage.content.trim();
+        
+        // Take first 40 characters and truncate at word boundary
+        if (content.length <= 40) {
+            return content;
+        } else {
+            const truncated = content.substring(0, 40);
+            const lastSpace = truncated.lastIndexOf(' ');
+            return (lastSpace > 20 ? truncated.substring(0, lastSpace) : truncated) + '...';
+        }
+    }
+    
+    // Fallback to companion name + timestamp
+    const now = new Date();
+    return `Chat with ${currentCharacter} - ${now.toLocaleDateString()}`;
+}
+
+function formatConversationForLibrary() {
+    // Convert chat history to HTML format for library display
+    let formattedContent = '';
+    
+    chatHistory.forEach(msg => {
+        if (!msg.isError) { // Don't include error messages in saved conversations
+            const timestamp = msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+            const senderLabel = msg.sender === 'user' ? 'You' : currentCharacter;
+            
+            formattedContent += `
+                <div class="saved-message ${msg.sender}">
+                    <div class="sender-label">${senderLabel}</div>
+                    <div class="message-content">${msg.content}</div>
+                    <div class="message-time">${timestamp}</div>
+                </div>
+            `;
+        }
+    });
+    
+    return formattedContent;
+}
+
 // Export functions for testing
 window.testSendMessage = sendMessage;
 window.clearChat = clearChat;
 window.switchCharacter = switchCharacter;
 window.toggleVoiceChat = toggleVoiceChat;
+window.saveConversationToLibrary = saveConversationToLibrary;
