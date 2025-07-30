@@ -378,9 +378,14 @@ function renderSection(sectionId, companionList) {
                         trial_expires_type: typeof currentUser.trial_expires
                     });
                     
-                    // For debugging - always show trial buttons temporarily
-                    isLocked = true;
-                    lockReason = 'Requires Growth Plan or Trial';
+                    // Trust backend data over localStorage
+                    if (hasUsedTrialFromBackend || hasUsedTrialFromStorage) {
+                        isLocked = true;
+                        lockReason = 'Requires Growth Plan';
+                    } else {
+                        isLocked = true;
+                        lockReason = 'Requires Growth Plan or Trial';
+                    }
                     
                     console.log('🎯 Final decision for', companion.display_name, ':', {
                         isLocked: isLocked,
@@ -461,10 +466,10 @@ function renderSection(sectionId, companionList) {
                                     onclick="${isSelected ? '' : `selectCompanion('${companion.companion_id}')`}">
                                 ${isSelected ? 'Selected' : 'Select'}
                             </button>
-                        ` : companion.tier === 'growth' ? `
+                        ` : companion.tier === 'growth' && currentUser.plan === 'foundation' && lockReason === 'Requires Growth Plan or Trial' ? `
                             <button class="btn-trial" onclick="startPremiumTrial('${companion.companion_id}')" 
                                     style="background: linear-gradient(135deg, #ff6b6b, #ee5a24); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">
-                                ✨ Start 24h Trial (DEBUG)
+                                ✨ Start 24h Trial
                             </button>
                         ` : `
                             <button class="btn-select" disabled style="${isReferralTier ? 'background: #FFD700; color: #333;' : 'background: #ccc; color: #666; cursor: not-allowed;'}">
