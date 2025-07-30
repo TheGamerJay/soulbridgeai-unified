@@ -1089,7 +1089,12 @@ def chat():
             # Growth tier companion - requires growth/max plan or active trial
             if user_tier not in ['premium', 'enterprise'] and not has_active_trial:
                 companion_access_valid = False
-                logger.warning(f"🚫 Access denied to Growth companion {selected_companion} - user tier: {user_tier}, trial: {has_active_trial}")
+                logger.warning(f"🚫 ACCESS DENIED: Growth companion {selected_companion} blocked - user tier: {user_tier}, trial: {has_active_trial}")
+                return render_template('companion_selector.html', 
+                                     error="This companion requires a Growth plan or active trial. Please upgrade or start a trial.",
+                                     companions=get_all_companions())
+            else:
+                logger.info(f"✅ ACCESS GRANTED: Growth companion {selected_companion} - user tier: {user_tier}, trial: {has_active_trial}")
         elif selected_companion in ['companion_crimson', 'companion_violet']:
             # Max tier companion - requires max plan only (no trial access)
             if user_tier != 'enterprise':
