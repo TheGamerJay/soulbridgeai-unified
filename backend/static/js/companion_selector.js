@@ -338,13 +338,33 @@ function renderSection(sectionId, companionList) {
     });
     
     container.innerHTML = companionList.map(companion => {
-        let isLocked = companion.lock_reason;
+        // Determine if companion should be locked based on user's plan and trial status
+        let isLocked = false;
+        let lockReason = '';
         
-        // If trial is active, unlock ONLY Growth companions (not Max)
-        if (hasActiveTrialAccess && companion.tier === 'growth') {
-            isLocked = false;
-            console.log(`🔓 UNLOCKED for trial: ${companion.display_name}`);
+        // Check companion tier access
+        if (companion.tier === 'growth') {
+            // Growth tier requires premium plan or active trial
+            if (currentUser.plan === 'foundation' && !hasActiveTrialAccess) {
+                isLocked = true;
+                lockReason = 'Requires Growth Plan or Trial';
+            }
+        } else if (companion.tier === 'max') {
+            // Max tier requires enterprise plan only (no trial access)
+            if (currentUser.plan !== 'enterprise') {
+                isLocked = true;
+                lockReason = 'Requires Max Plan';
+            }
         }
+        
+        // Override with any existing lock reason from backend
+        if (companion.lock_reason) {
+            isLocked = true;
+            lockReason = companion.lock_reason;
+        }
+        
+        // Log access decision for debugging
+        console.log(`🔍 Access check for ${companion.display_name}: tier=${companion.tier}, userPlan=${currentUser.plan}, trial=${hasActiveTrialAccess}, locked=${isLocked}`);
         
         const isSelected = currentUser.selected_companion === companion.companion_id;
         const isReferralTier = companion.tier === 'referral';
@@ -392,12 +412,17 @@ function renderSection(sectionId, companionList) {
                         ${!isLocked ? `
                             <button class="btn-select ${isSelected ? 'selected' : ''}" 
                                     ${isSelected ? 'disabled' : ''}
-                                    onclick="${isSelected ? '' : (hasActiveTrialAccess && companion.tier === 'growth' ? `startPremiumTrial('${companion.companion_id}')` : `selectCompanion('${companion.companion_id}')`)}">
-                                ${isSelected ? 'Selected' : (hasActiveTrialAccess && companion.tier === 'growth' ? '✨ Try Premium' : 'Select')}
+                                    onclick="${isSelected ? '' : `selectCompanion('${companion.companion_id}')`}">
+                                ${isSelected ? 'Selected' : 'Select'}
+                            </button>
+                        ` : companion.tier === 'growth' && currentUser.plan === 'foundation' ? `
+                            <button class="btn-trial" onclick="startPremiumTrial('${companion.companion_id}')" 
+                                    style="background: linear-gradient(135deg, #ff6b6b, #ee5a24); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">
+                                ✨ Start 24h Trial
                             </button>
                         ` : `
                             <button class="btn-select" disabled style="${isReferralTier ? 'background: #FFD700; color: #333;' : 'background: #ccc; color: #666; cursor: not-allowed;'}">
-                                ${isReferralTier ? '👥 View Referral Program' : `🔒 ${companion.lock_reason}`}
+                                ${isReferralTier ? '👥 View Referral Program' : `🔒 ${lockReason}`}
                             </button>
                         `}
                         
