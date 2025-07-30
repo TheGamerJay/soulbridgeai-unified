@@ -223,7 +223,6 @@ function loadFallbackCompanions() {
                 personality_tags: ['Spiritual', 'Healing'],
                 special_features: ['Spiritual guidance', 'Meditation sessions', 'Energy healing', 'Voice interactions'],
                 tier: 'growth',
-                lock_reason: 'Requires Growth Plan',
                 popularity_score: 90,
                 is_recommended: true
             },
@@ -235,7 +234,6 @@ function loadFallbackCompanions() {
                 personality_tags: ['Creative', 'Advanced'],
                 special_features: ['Enhanced creativity', 'Memory retention', 'Advanced problem solving', 'Deep conversations'],
                 tier: 'growth',
-                lock_reason: 'Requires Growth Plan',
                 popularity_score: 92,
                 is_recommended: true
             },
@@ -247,7 +245,6 @@ function loadFallbackCompanions() {
                 personality_tags: ['Empathetic', 'Intelligent'],
                 special_features: ['Deep emotional support', 'Advanced empathy', 'Personalized guidance', 'Crisis support'],
                 tier: 'growth',
-                lock_reason: 'Requires Growth Plan',
                 popularity_score: 91,
                 is_recommended: true
             },
@@ -259,7 +256,6 @@ function loadFallbackCompanions() {
                 personality_tags: ['Gaming', 'Premium'],
                 special_features: ['Pro gaming strategies', 'Performance analysis', 'Competitive coaching', 'Advanced metrics'],
                 tier: 'growth',
-                lock_reason: 'Requires Growth Plan',
                 popularity_score: 88,
                 is_recommended: false
             }
@@ -273,7 +269,6 @@ function loadFallbackCompanions() {
                 personality_tags: ['Healing', 'Protective', 'Wise'],
                 special_features: ['Trauma healing', 'Transformation coaching', 'Crisis support', 'Advanced voice AI'],
                 tier: 'max',
-                lock_reason: 'Requires Transformation Plan',
                 popularity_score: 95,
                 is_recommended: true
             },
@@ -285,7 +280,6 @@ function loadFallbackCompanions() {
                 personality_tags: ['Elite', 'Exclusive', 'Advanced'],
                 special_features: ['Premium features', 'Exclusive access', 'Priority support', 'Advanced AI'],
                 tier: 'max',
-                lock_reason: 'Requires Transformation Plan',
                 popularity_score: 92,
                 is_recommended: false
             }
@@ -392,8 +386,9 @@ function renderSection(sectionId, companionList) {
             }
         }
         
-        // Override with any existing lock reason from backend
-        if (companion.lock_reason) {
+        // Override with any existing lock reason from backend ONLY for referral tier
+        // Growth and Max tiers should show trial option instead of their default lock reason
+        if (companion.lock_reason && companion.tier === 'referral') {
             isLocked = true;
             lockReason = companion.lock_reason;
         }
