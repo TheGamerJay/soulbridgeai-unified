@@ -6095,6 +6095,255 @@ def get_user_tier_status():
         logger.error(f"Get tier status error: {e}")
         return jsonify({"success": False, "error": "Internal server error"}), 500
 
+# COMPANION API ENDPOINTS
+# ========================================
+
+@app.route("/api/companions", methods=["GET"])
+def get_companions():
+    """Get all available companions (no auth required for viewing)"""
+    try:
+        # Companion data structure
+        companions_data = {
+            "free": [
+                {
+                    "companion_id": "blayzo_free",
+                    "display_name": "Blayzo", 
+                    "avatar_image": "/static/logos/Blayzo.png",
+                    "short_bio": "Your creative and fun AI companion",
+                    "personality_tags": ["Creative", "Fun"],
+                    "special_features": ["Creative assistance", "Fun conversations", "Idea generation", "Entertainment"],
+                    "tier": "free",
+                    "lock_reason": None,
+                    "popularity_score": 90,
+                    "is_recommended": True
+                },
+                {
+                    "companion_id": "blayzica_free",
+                    "display_name": "Blayzica",
+                    "avatar_image": "/static/logos/Blayzica.png", 
+                    "short_bio": "Your empathetic and caring AI companion",
+                    "personality_tags": ["Empathetic", "Caring"],
+                    "special_features": ["Emotional support", "Active listening", "Compassionate advice", "Wellness guidance"],
+                    "tier": "free",
+                    "lock_reason": None,
+                    "popularity_score": 88,
+                    "is_recommended": True
+                },
+                {
+                    "companion_id": "companion_gamerjay",
+                    "display_name": "GamerJay",
+                    "avatar_image": "/static/logos/GamerJay Free companion.png",
+                    "short_bio": "Your friendly gaming companion", 
+                    "personality_tags": ["Gaming", "Motivational"],
+                    "special_features": ["Gaming tips", "Achievement tracking", "Motivation boosts", "Strategy advice"],
+                    "tier": "free",
+                    "lock_reason": None,
+                    "popularity_score": 85,
+                    "is_recommended": False
+                },
+                {
+                    "companion_id": "blayzia_free",
+                    "display_name": "Blayzia",
+                    "avatar_image": "/static/logos/Blayzia.png",
+                    "short_bio": "Mystical wisdom and spiritual insight",
+                    "personality_tags": ["Mystical", "Intuitive", "Wise"],
+                    "special_features": ["Intuitive guidance", "Dream interpretation", "Spiritual awakening", "Inner wisdom"],
+                    "tier": "free",
+                    "lock_reason": None,
+                    "popularity_score": 90,
+                    "is_recommended": True
+                },
+                {
+                    "companion_id": "blayzion_free",
+                    "display_name": "Blayzion",
+                    "avatar_image": "/static/logos/Blayzion.png",
+                    "short_bio": "Creative innovation and breakthrough thinking",
+                    "personality_tags": ["Creative", "Innovative", "Visionary"],
+                    "special_features": ["Creative problem solving", "Innovation coaching", "Breakthrough thinking", "Artistic inspiration"],
+                    "tier": "free",
+                    "lock_reason": None,
+                    "popularity_score": 89,
+                    "is_recommended": False
+                },
+                {
+                    "companion_id": "claude_free",
+                    "display_name": "Claude",
+                    "avatar_image": "/static/logos/Claude Free.png",
+                    "short_bio": "Your friendly coding assistant",
+                    "personality_tags": ["Helpful", "Methodical", "Patient"],
+                    "special_features": ["Basic code help", "Problem solving", "Learning support", "Step-by-step guidance"],
+                    "tier": "free",
+                    "lock_reason": None,
+                    "popularity_score": 85,
+                    "is_recommended": False
+                }
+            ],
+            "growth": [
+                {
+                    "companion_id": "companion_sky",
+                    "display_name": "Sky",
+                    "avatar_image": "/static/logos/Sky a primum companion.png",
+                    "short_bio": "Premium companion with advanced features",
+                    "personality_tags": ["Spiritual", "Healing"],
+                    "special_features": ["Spiritual guidance", "Meditation sessions", "Energy healing", "Voice interactions"],
+                    "tier": "growth",
+                    "lock_reason": "Requires Growth Plan ($12.99/month)",
+                    "popularity_score": 90,
+                    "is_recommended": True
+                },
+                {
+                    "companion_id": "blayzo_growth",
+                    "display_name": "Blayzo Pro",
+                    "avatar_image": "/static/logos/Blayzo.png",
+                    "short_bio": "Advanced Blayzo with enhanced creativity and memory",
+                    "personality_tags": ["Creative", "Advanced"],
+                    "special_features": ["Enhanced creativity", "Memory retention", "Advanced problem solving", "Deep conversations"],
+                    "tier": "growth",
+                    "lock_reason": "Requires Growth Plan ($12.99/month)",
+                    "popularity_score": 92,
+                    "is_recommended": True
+                },
+                {
+                    "companion_id": "blayzica_growth",
+                    "display_name": "Blayzica Pro",
+                    "avatar_image": "/static/logos/Blayzica.png",
+                    "short_bio": "Enhanced Blayzica with deeper emotional intelligence",
+                    "personality_tags": ["Empathetic", "Intelligent"],
+                    "special_features": ["Deep emotional support", "Advanced empathy", "Personalized guidance", "Crisis support"],
+                    "tier": "growth",
+                    "lock_reason": "Requires Growth Plan ($12.99/month)",
+                    "popularity_score": 91,
+                    "is_recommended": True
+                },
+                {
+                    "companion_id": "companion_gamerjay_premium",
+                    "display_name": "GamerJay Premium",
+                    "avatar_image": "/static/logos/GamgerJay premium companion.png",
+                    "short_bio": "Enhanced GamerJay with premium features",
+                    "personality_tags": ["Gaming", "Premium"],
+                    "special_features": ["Pro gaming strategies", "Performance analysis", "Competitive coaching", "Advanced metrics"],
+                    "tier": "growth",
+                    "lock_reason": "Requires Growth Plan ($12.99/month)",
+                    "popularity_score": 88,
+                    "is_recommended": False
+                }
+            ],
+            "max": [
+                {
+                    "companion_id": "companion_crimson",
+                    "display_name": "Crimson",
+                    "avatar_image": "/static/logos/Crimson a Max companion.png",
+                    "short_bio": "Elite max-tier companion",
+                    "personality_tags": ["Healing", "Protective", "Wise"],
+                    "special_features": ["Trauma healing", "Transformation coaching", "Crisis support", "Advanced voice AI"],
+                    "tier": "max",
+                    "lock_reason": "Requires Max Plan ($19.99/month)",
+                    "popularity_score": 95,
+                    "is_recommended": True
+                },
+                {
+                    "companion_id": "companion_violet",
+                    "display_name": "Violet",
+                    "avatar_image": "/static/logos/Violet a max companion.png",
+                    "short_bio": "Premium max companion with exclusive features",
+                    "personality_tags": ["Elite", "Exclusive", "Advanced"],
+                    "special_features": ["Premium features", "Exclusive access", "Priority support", "Advanced AI"],
+                    "tier": "max",
+                    "lock_reason": "Requires Max Plan ($19.99/month)",
+                    "popularity_score": 92,
+                    "is_recommended": False
+                }
+            ],
+            "referral": [
+                {
+                    "companion_id": "blayzo",
+                    "display_name": "Blayzo",
+                    "avatar_image": "/static/logos/Blayzo Referral.png",
+                    "short_bio": "Exclusive referral companion",
+                    "personality_tags": ["Exclusive", "Referral"],
+                    "special_features": ["Exclusive access", "Referral rewards", "Special bonuses", "Premium features"],
+                    "tier": "referral",
+                    "lock_reason": "Unlock through referrals",
+                    "popularity_score": 100,
+                    "is_recommended": False
+                }
+            ]
+        }
+
+        return jsonify({
+            "success": True,
+            "companions": companions_data
+        })
+
+    except Exception as e:
+        logger.error(f"Get companions error: {e}")
+        return jsonify({
+            "success": False,
+            "error": "Failed to load companions"
+        }), 500
+
+@app.route("/api/companions/select", methods=["POST"])
+def select_companion():
+    """Select a companion with tier validation"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+
+        data = request.get_json()
+        companion_id = data.get("companion_id")
+        
+        if not companion_id:
+            return jsonify({"success": False, "error": "Companion ID required"}), 400
+
+        # Get companion tier from ID
+        companion_tier = "free"
+        if "_growth" in companion_id or companion_id == "companion_sky" or companion_id == "companion_gamerjay_premium":
+            companion_tier = "growth"
+        elif "_max" in companion_id or "crimson" in companion_id or "violet" in companion_id:
+            companion_tier = "max"
+        elif "referral" in companion_id or companion_id == "blayzo":
+            companion_tier = "referral"
+
+        # Get user plan and trial status
+        user_plan = session.get('user_plan', 'foundation')
+        trial_active = session.get('trial_active', False)
+        
+        # Check access permissions
+        has_access = False
+        if companion_tier == 'free':
+            has_access = True
+        elif companion_tier == 'growth':
+            has_access = user_plan in ['trial', 'premium', 'enterprise'] or trial_active
+        elif companion_tier == 'max':
+            has_access = user_plan in ['enterprise', 'max']
+        elif companion_tier == 'referral':
+            has_access = session.get('referral_unlocked', False)
+
+        if not has_access:
+            return jsonify({
+                "success": False,
+                "error": f"Access denied. {companion_tier.title()} companions require a higher plan."
+            }), 403
+
+        # Store selection
+        session['selected_companion_id'] = companion_id
+        session.permanent = True
+        
+        logger.info(f"Companion selected: {companion_id} by user {session.get('user_email')}")
+
+        return jsonify({
+            "success": True,
+            "message": "Companion selected successfully",
+            "companion_id": companion_id
+        })
+
+    except Exception as e:
+        logger.error(f"Select companion error: {e}")
+        return jsonify({
+            "success": False,
+            "error": "Failed to select companion"
+        }), 500
+
 # APPLICATION STARTUP
 # ========================================
 
