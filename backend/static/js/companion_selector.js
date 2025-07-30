@@ -460,6 +460,8 @@ function renderSection(sectionId, companionList) {
                     </div>
                     
                     <div class="companion-actions">
+                        <!-- DEBUG: Button logic for ${companion.display_name} -->
+                        <!-- isLocked: ${isLocked}, tier: ${companion.tier}, plan: ${currentUser.plan}, lockReason: ${lockReason} -->
                         ${!isLocked ? `
                             <button class="btn-select ${isSelected ? 'selected' : ''}" 
                                     ${isSelected ? 'disabled' : ''}
@@ -467,11 +469,13 @@ function renderSection(sectionId, companionList) {
                                 ${isSelected ? 'Selected' : 'Select'}
                             </button>
                         ` : companion.tier === 'growth' && currentUser.plan === 'foundation' && lockReason === 'Requires Growth Plan or Trial' ? `
+                            <!-- TRIAL BUTTON SHOULD SHOW HERE -->
                             <button class="btn-trial" onclick="startPremiumTrial('${companion.companion_id}')" 
                                     style="background: linear-gradient(135deg, #ff6b6b, #ee5a24); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">
                                 ✨ Start 24h Trial
                             </button>
                         ` : `
+                            <!-- LOCKED BUTTON: ${lockReason} -->
                             <button class="btn-select" disabled style="${isReferralTier ? 'background: #FFD700; color: #333;' : 'background: #ccc; color: #666; cursor: not-allowed;'}">
                                 ${isReferralTier ? '👥 View Referral Program' : `🔒 ${lockReason}`}
                             </button>
