@@ -385,7 +385,13 @@ function renderSection(sectionId, companionList) {
                     console.log('🎯 Final decision for', companion.display_name, ':', {
                         isLocked: isLocked,
                         lockReason: lockReason,
-                        willShowTrialButton: companion.tier === 'growth' && currentUser.plan === 'foundation' && lockReason === 'Requires Growth Plan or Trial'
+                        companion_tier: companion.tier,
+                        user_plan: currentUser.plan,
+                        lockReason_match: lockReason === 'Requires Growth Plan or Trial',
+                        tier_match: companion.tier === 'growth',
+                        plan_match: currentUser.plan === 'foundation',
+                        willShowTrialButton: companion.tier === 'growth' && currentUser.plan === 'foundation' && lockReason === 'Requires Growth Plan or Trial',
+                        HTML_condition: `!isLocked(${!isLocked}) ? SELECT : tier_growth(${companion.tier === 'growth'}) && plan_foundation(${currentUser.plan === 'foundation'}) && lockReason_match(${lockReason === 'Requires Growth Plan or Trial'}) ? TRIAL : LOCKED`
                     });
                 }
             }
