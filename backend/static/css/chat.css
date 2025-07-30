@@ -179,6 +179,141 @@ body.theme-claude .message.assistant .message-content {
     border-left: 3px solid #4285f4;
 }
 
+/* Blayzia Theme - Mystical/Intuitive */
+body.theme-blayzia {
+    background: linear-gradient(135deg, #1a0033 0%, #330066 50%, #4d0099 100%);
+}
+
+body.theme-blayzia::before {
+    background: 
+        radial-gradient(circle at 25% 75%, rgba(138, 43, 226, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 75% 25%, rgba(75, 0, 130, 0.12) 0%, transparent 50%),
+        radial-gradient(circle at 50% 50%, rgba(148, 0, 211, 0.1) 0%, transparent 50%);
+    animation: mysticalFloat 13s ease-in-out infinite alternate;
+}
+
+@keyframes mysticalFloat {
+    0% { opacity: 0.4; transform: scale(1) rotate(-0.5deg); }
+    100% { opacity: 0.8; transform: scale(1.07) rotate(0.5deg); }
+}
+
+body.theme-blayzia .chat-header {
+    background: linear-gradient(135deg, rgba(138, 43, 226, 0.3), rgba(148, 0, 211, 0.25));
+}
+
+body.theme-blayzia .message.assistant .message-content {
+    background: linear-gradient(135deg, rgba(138, 43, 226, 0.2), rgba(148, 0, 211, 0.15));
+    border-left: 3px solid #8A2BE2;
+}
+
+/* Blayzion Theme - Creative Innovation */
+body.theme-blayzion {
+    background: linear-gradient(135deg, #ff6b6b 0%, #4ecdc4 50%, #45b7d1 100%);
+}
+
+body.theme-blayzion::before {
+    background: 
+        radial-gradient(circle at 20% 80%, rgba(255, 107, 107, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(78, 205, 196, 0.12) 0%, transparent 50%),
+        radial-gradient(circle at 60% 60%, rgba(69, 183, 209, 0.1) 0%, transparent 50%);
+    animation: innovationFloat 9s ease-in-out infinite alternate;
+}
+
+@keyframes innovationFloat {
+    0% { opacity: 0.5; transform: scale(1) rotate(0deg); }
+    100% { opacity: 0.8; transform: scale(1.05) rotate(1deg); }
+}
+
+body.theme-blayzion .chat-header {
+    background: linear-gradient(135deg, rgba(255, 107, 107, 0.25), rgba(78, 205, 196, 0.2));
+}
+
+body.theme-blayzion .message.assistant .message-content {
+    background: linear-gradient(135deg, rgba(255, 107, 107, 0.15), rgba(78, 205, 196, 0.12));
+    border-left: 3px solid #FF6B6B;
+}
+
+/* Crimson Theme - Transformational/Powerful */
+body.theme-crimson {
+    background: linear-gradient(135deg, #8B0000 0%, #DC143C 50%, #FF6347 100%);
+}
+
+body.theme-crimson::before {
+    background: 
+        radial-gradient(circle at 30% 30%, rgba(220, 20, 60, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 70% 70%, rgba(139, 0, 0, 0.12) 0%, transparent 50%),
+        radial-gradient(circle at 50% 10%, rgba(255, 99, 71, 0.1) 0%, transparent 50%);
+    animation: powerFloat 10s ease-in-out infinite alternate;
+}
+
+@keyframes powerFloat {
+    0% { opacity: 0.6; transform: scale(1); }
+    100% { opacity: 0.9; transform: scale(1.04); }
+}
+
+body.theme-crimson .chat-header {
+    background: linear-gradient(135deg, rgba(220, 20, 60, 0.3), rgba(255, 99, 71, 0.25));
+}
+
+body.theme-crimson .message.assistant .message-content {
+    background: linear-gradient(135deg, rgba(220, 20, 60, 0.2), rgba(255, 99, 71, 0.15));
+    border-left: 3px solid #DC143C;
+}
+
+/* Violet Theme - Creative/Artistic */
+body.theme-violet {
+    background: linear-gradient(135deg, #4B0082 0%, #8A2BE2 50%, #9370DB 100%);
+}
+
+body.theme-violet::before {
+    background: 
+        radial-gradient(circle at 40% 20%, rgba(138, 43, 226, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 60% 80%, rgba(147, 112, 219, 0.12) 0%, transparent 50%),
+        radial-gradient(circle at 20% 60%, rgba(75, 0, 130, 0.1) 0%, transparent 50%);
+    animation: artisticFloat 11s ease-in-out infinite alternate;
+}
+
+@keyframes artisticFloat {
+    0% { opacity: 0.5; transform: scale(1) rotate(-0.3deg); }
+    100% { opacity: 0.8; transform: scale(1.06) rotate(0.3deg); }
+}
+
+body.theme-violet .chat-header {
+    background: linear-gradient(135deg, rgba(138, 43, 226, 0.3), rgba(147, 112, 219, 0.25));
+}
+
+body.theme-violet .message.assistant .message-content {
+    background: linear-gradient(135deg, rgba(138, 43, 226, 0.2), rgba(147, 112, 219, 0.15));
+    border-left: 3px solid #8A2BE2;
+}
+
+/* WatchDog Theme - Protective/Guardian */
+body.theme-watchdog {
+    background: linear-gradient(135deg, #2F4F4F 0%, #708090 50%, #4682B4 100%);
+}
+
+body.theme-watchdog::before {
+    background: 
+        radial-gradient(circle at 25% 25%, rgba(70, 130, 180, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 75% 75%, rgba(112, 128, 144, 0.12) 0%, transparent 50%),
+        radial-gradient(circle at 50% 50%, rgba(47, 79, 79, 0.1) 0%, transparent 50%);
+    animation: guardianFloat 12s ease-in-out infinite alternate;
+}
+
+@keyframes guardianFloat {
+    0% { opacity: 0.6; transform: scale(1); }
+    100% { opacity: 0.85; transform: scale(1.03); }
+}
+
+body.theme-watchdog .chat-header {
+    background: linear-gradient(135deg, rgba(70, 130, 180, 0.3), rgba(112, 128, 144, 0.25));
+}
+
+body.theme-watchdog .message.assistant .message-content {
+    background: linear-gradient(135deg, rgba(70, 130, 180, 0.2), rgba(112, 128, 144, 0.15));
+    border-left: 3px solid #4682B4;
+}
+
 /* Main container */
 .chat-container {
     display: flex;
