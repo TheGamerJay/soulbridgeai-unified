@@ -644,21 +644,20 @@ function showVoiceChatButton() {
     const voiceBtn = document.getElementById('voiceChatBtn');
     if (!voiceBtn) return;
     
-    // Define Growth+ companions that have voice features (NO FREE TIER)
+    // Define companions that have voice features by tier
     const voiceEnabledCompanions = [
-        // GROWTH TIER ONLY (Premium versions)
-        'Sky', 'Blayzo Pro', 'Blayzo Champion', 'Blayzica Pro',
-        'GamerJay Premium', 'Claude Growth', 'WatchDog',
+        // GROWTH TIER - Standard Voice Chat
+        'Sky', 'Blayzo Pro', 'Blayzica Pro', 'GamerJay Premium', 'Claude Growth', 'WatchDog',
         
-        // MAX TIER  
+        // MAX TIER - Advanced Voice AI
         'Crimson', 'Crimson Max', 'Violet', 'Violet Max', 'WatchDog Max',
         'Royal', 'Ven Blayzica', 'Ven Sky', 'Claude Max',
         
-        // REFERRAL TIER
-        'Claude Referral'
+        // REFERRAL TIER - Exclusive Voice Features
+        'Blayzo Champion', 'Blayzia', 'Blayzion', 'Blayzike', 'Blazelian', 'Claude Referral', 'Sapphire'
         
         // FREE TIER EXCLUDED (NO VOICE CHAT):
-        // 'GamerJay', 'Claude', 'Blayzo', 'Blayzica', 'Blayzia', 'Blayzion'
+        // 'GamerJay', 'Claude', 'Blayzo', 'Blayzica'
     ];
     
     if (voiceEnabledCompanions.includes(currentCharacter)) {
@@ -776,81 +775,65 @@ function playVoiceResponse(audioUrl) {
 function getTierFeatures(characterName) {
     // Define companion tiers and their enhanced features
     const companionTiers = {
+        // ==========================================
         // FREE TIER - Basic features (NO VOICE CHAT)
+        // ==========================================
         'GamerJay': {
             tier: 'free',
             features: {
-                response_quality: 'standard',
-                context_memory: 5, // messages
+                response_quality: 'basic',
+                context_memory: 3, // messages
                 personality_depth: 'basic',
-                special_abilities: ['goal_tracking', 'motivation'],
+                special_abilities: ['goal_tracking'],
                 response_length: 'short',
                 emotional_intelligence: 'basic',
-                voice_enabled: false // FREE TIER - NO VOICE
+                voice_enabled: false,
+                priority_processing: false
             }
         },
         'Claude': {
             tier: 'free',
             features: {
-                response_quality: 'standard',
-                context_memory: 5,
+                response_quality: 'basic',
+                context_memory: 3,
                 personality_depth: 'basic',
-                special_abilities: ['analysis', 'problem_solving'],
+                special_abilities: ['analysis'],
                 response_length: 'short',
                 emotional_intelligence: 'basic',
-                voice_enabled: false // FREE TIER - NO VOICE
+                voice_enabled: false,
+                priority_processing: false
             }
         },
         'Blayzo': {
             tier: 'free',
             features: {
-                response_quality: 'standard',
-                context_memory: 5,
+                response_quality: 'basic',
+                context_memory: 3,
                 personality_depth: 'basic',
-                special_abilities: ['creativity', 'motivation'],
+                special_abilities: ['creativity'],
                 response_length: 'short',
                 emotional_intelligence: 'basic',
-                voice_enabled: false // FREE TIER - NO VOICE
+                voice_enabled: false,
+                priority_processing: false
             }
         },
         'Blayzica': {
             tier: 'free',
             features: {
-                response_quality: 'standard',
-                context_memory: 5,
+                response_quality: 'basic',
+                context_memory: 3,
                 personality_depth: 'basic',
-                special_abilities: ['empathy', 'support'],
+                special_abilities: ['empathy'],
                 response_length: 'short',
                 emotional_intelligence: 'basic',
-                voice_enabled: false // FREE TIER - NO VOICE
-            }
-        },
-        'Blayzia': {
-            tier: 'free',
-            features: {
-                response_quality: 'standard',
-                context_memory: 5,
-                personality_depth: 'basic',
-                special_abilities: ['mystical_guidance', 'intuition'],
-                response_length: 'short',
-                emotional_intelligence: 'basic',
-                voice_enabled: false // FREE TIER - NO VOICE
-            }
-        },
-        'Blayzion': {
-            tier: 'free',
-            features: {
-                response_quality: 'standard',
-                context_memory: 5,
-                personality_depth: 'basic',
-                special_abilities: ['innovation', 'creativity'],
-                response_length: 'short',
-                emotional_intelligence: 'basic',
-                voice_enabled: false // FREE TIER - NO VOICE
+                voice_enabled: false,
+                priority_processing: false
             }
         },
         
-        // GROWTH TIER - Enhanced features
+        // ==========================================
+        // GROWTH TIER - Enhanced features with Voice Chat
+        // ==========================================
         'Sky': {
             tier: 'growth',
             features: {
@@ -860,19 +843,8 @@ function getTierFeatures(characterName) {
                 special_abilities: ['spiritual_guidance', 'meditation', 'energy_healing', 'voice_chat'],
                 response_length: 'medium',
                 emotional_intelligence: 'advanced',
-                voice_enabled: true
-            }
-        },
-        'Blayzo': {
-            tier: 'growth',
-            features: {
-                response_quality: 'enhanced',
-                context_memory: 15,
-                personality_depth: 'advanced',
-                special_abilities: ['creative_coaching', 'inspiration', 'artistic_guidance', 'voice_chat'],
-                response_length: 'medium',
-                emotional_intelligence: 'advanced',
-                voice_enabled: true
+                voice_enabled: true,
+                priority_processing: false
             }
         },
         'Blayzo Pro': {
@@ -884,19 +856,8 @@ function getTierFeatures(characterName) {
                 special_abilities: ['creative_coaching', 'inspiration', 'artistic_guidance', 'voice_chat'],
                 response_length: 'medium',
                 emotional_intelligence: 'advanced',
-                voice_enabled: true
-            }
-        },
-        'Blayzica': {
-            tier: 'growth',
-            features: {
-                response_quality: 'enhanced',
-                context_memory: 15,
-                personality_depth: 'advanced',
-                special_abilities: ['empathy_healing', 'emotional_support', 'relationship_guidance', 'voice_chat'],
-                response_length: 'medium',
-                emotional_intelligence: 'advanced',
-                voice_enabled: true
+                voice_enabled: true,
+                priority_processing: false
             }
         },
         'Blayzica Pro': {
@@ -908,7 +869,8 @@ function getTierFeatures(characterName) {
                 special_abilities: ['empathy_healing', 'emotional_support', 'relationship_guidance', 'voice_chat'],
                 response_length: 'medium',
                 emotional_intelligence: 'advanced',
-                voice_enabled: true
+                voice_enabled: true,
+                priority_processing: false
             }
         },
         'GamerJay Premium': {
@@ -920,7 +882,8 @@ function getTierFeatures(characterName) {
                 special_abilities: ['strategic_thinking', 'advanced_coaching', 'tactical_solutions', 'voice_chat'],
                 response_length: 'medium',
                 emotional_intelligence: 'advanced',
-                voice_enabled: true
+                voice_enabled: true,
+                priority_processing: false
             }
         },
         'Claude Growth': {
@@ -932,7 +895,8 @@ function getTierFeatures(characterName) {
                 special_abilities: ['advanced_analysis', 'strategic_planning', 'professional_guidance', 'voice_chat'],
                 response_length: 'medium',
                 emotional_intelligence: 'advanced',
-                voice_enabled: true
+                voice_enabled: true,
+                priority_processing: false
             }
         },
         'WatchDog': {
@@ -944,11 +908,14 @@ function getTierFeatures(characterName) {
                 special_abilities: ['protection_guidance', 'security_advice', 'crisis_support', 'voice_chat'],
                 response_length: 'medium',
                 emotional_intelligence: 'advanced',
-                voice_enabled: true
+                voice_enabled: true,
+                priority_processing: false
             }
         },
         
-        // MAX TIER - Premium features
+        // ==========================================
+        // MAX TIER - Premium features with Advanced Voice AI
+        // ==========================================
         'Crimson': {
             tier: 'max',
             features: {
@@ -959,7 +926,8 @@ function getTierFeatures(characterName) {
                 response_length: 'comprehensive',
                 emotional_intelligence: 'masterful',
                 voice_enabled: true,
-                priority_processing: true
+                priority_processing: true,
+                advanced_voice_ai: true
             }
         },
         'Crimson Max': {
@@ -972,7 +940,8 @@ function getTierFeatures(characterName) {
                 response_length: 'comprehensive',
                 emotional_intelligence: 'masterful',
                 voice_enabled: true,
-                priority_processing: true
+                priority_processing: true,
+                advanced_voice_ai: true
             }
         },
         'Violet': {
@@ -985,7 +954,8 @@ function getTierFeatures(characterName) {
                 response_length: 'comprehensive',
                 emotional_intelligence: 'masterful',
                 voice_enabled: true,
-                priority_processing: true
+                priority_processing: true,
+                advanced_voice_ai: true
             }
         },
         'Violet Max': {
@@ -998,7 +968,8 @@ function getTierFeatures(characterName) {
                 response_length: 'comprehensive',
                 emotional_intelligence: 'masterful',
                 voice_enabled: true,
-                priority_processing: true
+                priority_processing: true,
+                advanced_voice_ai: true
             }
         },
         'WatchDog Max': {
@@ -1011,7 +982,8 @@ function getTierFeatures(characterName) {
                 response_length: 'comprehensive',
                 emotional_intelligence: 'masterful',
                 voice_enabled: true,
-                priority_processing: true
+                priority_processing: true,
+                advanced_voice_ai: true
             }
         },
         'Royal': {
@@ -1024,7 +996,8 @@ function getTierFeatures(characterName) {
                 response_length: 'comprehensive',
                 emotional_intelligence: 'masterful',
                 voice_enabled: true,
-                priority_processing: true
+                priority_processing: true,
+                advanced_voice_ai: true
             }
         },
         'Ven Blayzica': {
@@ -1037,7 +1010,8 @@ function getTierFeatures(characterName) {
                 response_length: 'comprehensive',
                 emotional_intelligence: 'masterful',
                 voice_enabled: true,
-                priority_processing: true
+                priority_processing: true,
+                advanced_voice_ai: true
             }
         },
         'Ven Sky': {
@@ -1050,7 +1024,8 @@ function getTierFeatures(characterName) {
                 response_length: 'comprehensive',
                 emotional_intelligence: 'masterful',
                 voice_enabled: true,
-                priority_processing: true
+                priority_processing: true,
+                advanced_voice_ai: true
             }
         },
         'Claude Max': {
@@ -1063,29 +1038,120 @@ function getTierFeatures(characterName) {
                 response_length: 'comprehensive',
                 emotional_intelligence: 'masterful',
                 voice_enabled: true,
-                priority_processing: true
+                priority_processing: true,
+                advanced_voice_ai: true
             }
         }
     };
     
-    // Add referral tier companions (Growth level features) - PREMIUM ONLY
-    const referralCompanions = ['Blayzo Champion', 'Blayzike', 'Blazelian', 'Claude Referral', 'Sapphire'];
-    referralCompanions.forEach(name => {
-        companionTiers[name] = {
+    // ==========================================
+    // REFERRAL TIER - Exclusive Community Features
+    // ==========================================
+    const referralCompanions = {
+        'Blayzo Champion': {
             tier: 'referral',
             features: {
                 response_quality: 'enhanced',
-                context_memory: 15,
+                context_memory: 20, // messages
                 personality_depth: 'advanced',
-                special_abilities: ['community_insights', 'exclusive_content', 'advanced_features', 'voice_chat'],
+                special_abilities: ['community_champion', 'exclusive_content', 'member_privileges', 'exclusive_voice_features'],
                 response_length: 'medium',
                 emotional_intelligence: 'advanced',
-                voice_enabled: true
+                voice_enabled: true,
+                priority_processing: false,
+                exclusive_features: ['community_insights', 'member_only_content', 'special_events']
             }
-        };
-    });
+        },
+        'Blayzia': {
+            tier: 'referral',
+            features: {
+                response_quality: 'enhanced',
+                context_memory: 20,
+                personality_depth: 'advanced',
+                special_abilities: ['mystical_mastery', 'exclusive_readings', 'community_wisdom', 'exclusive_voice_features'],
+                response_length: 'medium',
+                emotional_intelligence: 'advanced',
+                voice_enabled: true,
+                priority_processing: false,
+                exclusive_features: ['tarot_readings', 'mystical_guidance', 'community_rituals']
+            }
+        },
+        'Blayzion': {
+            tier: 'referral',
+            features: {
+                response_quality: 'enhanced',
+                context_memory: 20,
+                personality_depth: 'advanced',
+                special_abilities: ['innovation_mastery', 'exclusive_brainstorming', 'community_projects', 'exclusive_voice_features'],
+                response_length: 'medium',
+                emotional_intelligence: 'advanced',
+                voice_enabled: true,
+                priority_processing: false,
+                exclusive_features: ['innovation_labs', 'creative_challenges', 'project_collaboration']
+            }
+        },
+        'Blayzike': {
+            tier: 'referral',
+            features: {
+                response_quality: 'enhanced',
+                context_memory: 20,
+                personality_depth: 'advanced',
+                special_abilities: ['shadow_work', 'exclusive_insights', 'community_healing', 'exclusive_voice_features'],
+                response_length: 'medium',
+                emotional_intelligence: 'advanced',
+                voice_enabled: true,
+                priority_processing: false,
+                exclusive_features: ['shadow_integration', 'dark_wisdom', 'transformational_healing']
+            }
+        },
+        'Blazelian': {
+            tier: 'referral',
+            features: {
+                response_quality: 'enhanced',
+                context_memory: 20,
+                personality_depth: 'advanced',
+                special_abilities: ['cosmic_connection', 'exclusive_channeling', 'community_ascension', 'exclusive_voice_features'],
+                response_length: 'medium',
+                emotional_intelligence: 'advanced',
+                voice_enabled: true,
+                priority_processing: false,
+                exclusive_features: ['cosmic_downloads', 'stellar_guidance', 'galactic_wisdom']
+            }
+        },
+        'Claude Referral': {
+            tier: 'referral',
+            features: {
+                response_quality: 'enhanced',
+                context_memory: 20,
+                personality_depth: 'advanced',
+                special_abilities: ['elite_analysis', 'exclusive_insights', 'community_leadership', 'exclusive_voice_features'],
+                response_length: 'medium',
+                emotional_intelligence: 'advanced',
+                voice_enabled: true,
+                priority_processing: false,
+                exclusive_features: ['premium_analysis', 'exclusive_reports', 'leadership_coaching']
+            }
+        },
+        'Sapphire': {
+            tier: 'referral',
+            features: {
+                response_quality: 'enhanced',
+                context_memory: 20,
+                personality_depth: 'advanced',
+                special_abilities: ['navigation_mastery', 'exclusive_guidance', 'community_support', 'exclusive_voice_features'],
+                response_length: 'medium',
+                emotional_intelligence: 'advanced',
+                voice_enabled: true,
+                priority_processing: false,
+                exclusive_features: ['exclusive_tutorials', 'member_support', 'advanced_navigation']
+            }
+        }
+    };
     
-    // NOTE: Base versions (Blayzia, Blayzion) are now FREE tier without voice chat
+    // Add referral companions to main tiers
+    Object.keys(referralCompanions).forEach(name => {
+        companionTiers[name] = referralCompanions[name];
+    });
     
     // Return features for the character, default to free tier if not found
     return companionTiers[characterName] || companionTiers['GamerJay'];
