@@ -8,7 +8,9 @@ let companions = {};
 let currentUser = {
     plan: 'foundation',
     selected_companion: null,
-    trial_active: false
+    trial_active: false,
+    trial_expires: null,
+    trial_companion: null
 };
 
 // Initialize on page load
@@ -16,15 +18,15 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeCompanionSelector();
 });
 
-function initializeCompanionSelector() {
+async function initializeCompanionSelector() {
     console.log('🚀 Initializing Companion Selector...');
     
-    // Load user data and companions
-    loadUserData();
+    // Load user data and companions (sync with backend)
+    await loadUserDataFromBackend();
     loadCompanions();
     
-    // Initialize trial status
-    initializeTrialStatus();
+    // Initialize trial status from backend
+    await initializeTrialStatusFromBackend();
     
     // Set up event listeners
     setupEventListeners();
@@ -48,6 +50,27 @@ function handleChatSwitching() {
 function setupEventListeners() {
     // Add any additional event listeners here
     document.addEventListener('visibilitychange', handleVisibilityChange);
+}
+
+async function loadUserDataFromBackend() {
+    try {
+        console.log('👤 Loading user data from backend...');
+        const response = await fetch('/api/user/status');
+        if (response.ok) {
+            const userData = await response.json();
+            currentUser.plan = userData.plan || 'foundation';
+            currentUser.trial_active = userData.trial_active || false;
+            currentUser.trial_expires = userData.trial_expires || null;
+            currentUser.trial_companion = userData.trial_companion || null;
+            console.log('✅ User data loaded from backend:', currentUser);
+        } else {
+            console.warn('⚠️ Failed to load user data from backend, using defaults');
+            currentUser.plan = 'foundation';
+        }
+    } catch (error) {
+        console.error('❌ Error loading user data from backend:', error);
+        currentUser.plan = 'foundation';
+    }
 }
 
 async function loadUserData() {
@@ -302,15 +325,15 @@ function renderSection(sectionId, companionList) {
         return;
     }
     
-    // Check for active trial
-    const trialActive = localStorage.getItem('trialActive') === 'true';
-    const trialExpiry = localStorage.getItem('trialExpiry');
+    // Check for active trial from backend data
     const currentTime = Date.now();
-    const hasActiveTrialAccess = trialActive && trialExpiry && currentTime < parseInt(trialExpiry);
+    const hasActiveTrialAccess = currentUser.trial_active && 
+                                currentUser.trial_expires && 
+                                currentTime < new Date(currentUser.trial_expires).getTime();
     
     console.log(`🔍 Trial check for ${sectionId}:`, {
-        trialActive,
-        trialExpiry: trialExpiry ? new Date(parseInt(trialExpiry)) : null,
+        trial_active: currentUser.trial_active,
+        trial_expires: currentUser.trial_expires ? new Date(currentUser.trial_expires) : null,
         hasActiveTrialAccess
     });
     
@@ -479,12 +502,14 @@ async function startPremiumTrial(companionId) {
             console.log('✅ Premium trial started successfully');
             showNotification(`Premium trial started! Enjoy 24 hours with your premium companion.`, 'success');
             
-            // Store trial data
-            localStorage.setItem('trialActive', 'true');
-            localStorage.setItem('trialExpiry', Date.now() + (24 * 60 * 60 * 1000));
-            localStorage.setItem('trialStartTime', Date.now());
+            // Update currentUser with backend data (no localStorage for trial data)
+            currentUser.trial_active = data.trial_active;
+            currentUser.trial_expires = data.trial_expires;
+            currentUser.trial_companion = companionId;
+            currentUser.plan = 'trial';
+            
+            // Keep necessary localStorage for UI state only
             const companionName = getCompanionName(companionId);
-            localStorage.setItem('trialSelectedCompanion', companionId);
             localStorage.setItem('selectedCharacter', companionName);
             localStorage.setItem('currentScreen', 'chat');
             localStorage.setItem('hasActiveChat', 'true');
@@ -529,6 +554,32 @@ function updateTrialOffer() {
     console.log('🎯 Trial offer updated');
 }
 
+async function initializeTrialStatusFromBackend() {
+    try {
+        console.log('⏰ Loading trial status from backend...');
+        const response = await fetch('/api/debug/trial-status');
+        if (response.ok) {
+            const data = await response.json();
+            const trialData = data.trial_data;
+            
+            if (trialData.trial_active && trialData.trial_expires) {
+                currentUser.trial_active = true;
+                currentUser.trial_expires = trialData.trial_expires;
+                currentUser.trial_companion = trialData.trial_companion;
+                
+                // Start timer if trial is still active
+                if (!trialData.trial_expired) {
+                    console.log('⏰ Active trial detected from backend, starting timer');
+                    startTrialTimer();
+                }
+            }
+            console.log('✅ Trial status loaded from backend:', currentUser);
+        }
+    } catch (error) {
+        console.error('❌ Error loading trial status from backend:', error);
+    }
+}
+
 function initializeTrialStatus() {
     // Check if user has active trial
     const trialActive = localStorage.getItem('trialActive') === 'true';
@@ -548,8 +599,8 @@ function initializeTrialStatus() {
 }
 
 function startTrialTimer() {
-    const trialExpiry = localStorage.getItem('trialExpiry');
-    if (!trialExpiry) return;
+    // Use backend trial data instead of localStorage
+    if (!currentUser.trial_expires || !currentUser.trial_active) return;
     
     const timer = document.getElementById('trialTimer');
     if (!timer) return;
@@ -557,12 +608,13 @@ function startTrialTimer() {
     timer.style.display = 'block';
     
     const updateTimer = () => {
-        const timeRemaining = parseInt(trialExpiry) - Date.now();
+        const trialExpiryTime = new Date(currentUser.trial_expires).getTime();
+        const timeRemaining = trialExpiryTime - Date.now();
         
         if (timeRemaining <= 0) {
             timer.style.display = 'none';
-            localStorage.removeItem('trialActive');
-            localStorage.removeItem('trialExpiry');
+            currentUser.trial_active = false;
+            currentUser.trial_expires = null;
             return;
         }
         

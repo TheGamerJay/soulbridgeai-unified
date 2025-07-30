@@ -683,6 +683,9 @@ def clear_session():
 def debug_trial_status():
     """Debug endpoint to check current trial status"""
     try:
+        # Require authentication for debug endpoint
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
         trial_data = {
             "session_keys": list(session.keys()),
             "trial_companion": session.get('trial_companion'),
@@ -6093,6 +6096,49 @@ def get_user_tier_status():
         
     except Exception as e:
         logger.error(f"Get tier status error: {e}")
+        return jsonify({"success": False, "error": "Internal server error"}), 500
+
+@app.route("/api/user/status", methods=["GET"])
+def get_user_status():
+    """Get user's current status including trial information"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        # Get basic user data
+        user_plan = session.get('user_plan', 'foundation')
+        user_email = session.get('user_email', session.get('email'))
+        user_id = session.get('user_id')
+        
+        # Get trial data from session
+        trial_active = session.get('trial_active', False)
+        trial_expires = session.get('trial_expires')
+        trial_companion = session.get('trial_companion')
+        
+        # Check if trial is still valid
+        has_active_trial = False
+        if trial_active and trial_expires:
+            try:
+                if trial_expires.endswith('Z'):
+                    expiry_dt = datetime.fromisoformat(trial_expires.replace('Z', '+00:00'))
+                else:
+                    expiry_dt = datetime.fromisoformat(trial_expires)
+                current_dt = datetime.now(timezone.utc)
+                has_active_trial = current_dt < expiry_dt
+            except Exception as e:
+                logger.warning(f"Error validating trial in user status: {e}")
+        
+        return jsonify({
+            "success": True,
+            "plan": user_plan,
+            "trial_active": has_active_trial,
+            "trial_expires": trial_expires if has_active_trial else None,
+            "trial_companion": trial_companion if has_active_trial else None,
+            "user_authenticated": True
+        })
+        
+    except Exception as e:
+        logger.error(f"Get user status error: {e}")
         return jsonify({"success": False, "error": "Internal server error"}), 500
 
 # COMPANION API ENDPOINTS
