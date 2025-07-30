@@ -679,6 +679,23 @@ def clear_session():
         logger.error(f"Error clearing session: {e}")
         return jsonify({"success": False, "error": "Failed to clear session"}), 500
 
+@app.route("/api/debug/reset-to-foundation")
+def reset_to_foundation():
+    """Reset current user to foundation plan (for testing)"""
+    if not is_logged_in():
+        return jsonify({"success": False, "error": "Authentication required"}), 401
+    
+    session['user_plan'] = 'foundation'
+    session['trial_active'] = False
+    session['trial_expires'] = None
+    session['trial_companion'] = None
+    
+    return jsonify({
+        "success": True,
+        "message": "User reset to foundation plan",
+        "user_plan": session.get('user_plan')
+    })
+
 @app.route("/api/debug/trial-status")
 def debug_trial_status():
     """Debug endpoint to check current trial status"""
