@@ -653,11 +653,11 @@ function showVoiceChatButton() {
         'Crimson', 'Crimson Max', 'Violet', 'Violet Max', 'WatchDog Max',
         'Royal', 'Ven Blayzica', 'Ven Sky', 'Claude Max',
         
-        // REFERRAL TIER - Exclusive Voice Features
-        'Blayzo Champion', 'Blayzia', 'Blayzion', 'Blayzike', 'Blazelian', 'Claude Referral', 'Sapphire'
+        // REFERRAL TIER - Exclusive Voice Features (EARNED ONLY)
+        'Blayzo Champion', 'Blayzike', 'Blazelian', 'Claude Referral', 'Sapphire'
         
         // FREE TIER EXCLUDED (NO VOICE CHAT):
-        // 'GamerJay', 'Claude', 'Blayzo', 'Blayzica'
+        // 'GamerJay', 'Claude', 'Blayzo', 'Blayzica', 'Blayzia', 'Blayzion'
     ];
     
     if (voiceEnabledCompanions.includes(currentCharacter)) {
@@ -824,6 +824,32 @@ function getTierFeatures(characterName) {
                 context_memory: 3,
                 personality_depth: 'basic',
                 special_abilities: ['empathy'],
+                response_length: 'short',
+                emotional_intelligence: 'basic',
+                voice_enabled: false,
+                priority_processing: false
+            }
+        },
+        'Blayzia': {
+            tier: 'free',
+            features: {
+                response_quality: 'basic',
+                context_memory: 3,
+                personality_depth: 'basic',
+                special_abilities: ['mystical_guidance'],
+                response_length: 'short',
+                emotional_intelligence: 'basic',
+                voice_enabled: false,
+                priority_processing: false
+            }
+        },
+        'Blayzion': {
+            tier: 'free',
+            features: {
+                response_quality: 'basic',
+                context_memory: 3,
+                personality_depth: 'basic',
+                special_abilities: ['innovation'],
                 response_length: 'short',
                 emotional_intelligence: 'basic',
                 voice_enabled: false,
@@ -1060,34 +1086,6 @@ function getTierFeatures(characterName) {
                 voice_enabled: true,
                 priority_processing: false,
                 exclusive_features: ['community_insights', 'member_only_content', 'special_events']
-            }
-        },
-        'Blayzia': {
-            tier: 'referral',
-            features: {
-                response_quality: 'enhanced',
-                context_memory: 20,
-                personality_depth: 'advanced',
-                special_abilities: ['mystical_mastery', 'exclusive_readings', 'community_wisdom', 'exclusive_voice_features'],
-                response_length: 'medium',
-                emotional_intelligence: 'advanced',
-                voice_enabled: true,
-                priority_processing: false,
-                exclusive_features: ['tarot_readings', 'mystical_guidance', 'community_rituals']
-            }
-        },
-        'Blayzion': {
-            tier: 'referral',
-            features: {
-                response_quality: 'enhanced',
-                context_memory: 20,
-                personality_depth: 'advanced',
-                special_abilities: ['innovation_mastery', 'exclusive_brainstorming', 'community_projects', 'exclusive_voice_features'],
-                response_length: 'medium',
-                emotional_intelligence: 'advanced',
-                voice_enabled: true,
-                priority_processing: false,
-                exclusive_features: ['innovation_labs', 'creative_challenges', 'project_collaboration']
             }
         },
         'Blayzike': {
