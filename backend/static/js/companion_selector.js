@@ -350,11 +350,18 @@ function renderSection(sectionId, companionList) {
                 if (hasActiveTrialAccess && currentUser.trial_companion) {
                     if (companion.companion_id !== currentUser.trial_companion) {
                         isLocked = true;
-                        lockReason = 'Trial active for another companion';
+                        lockReason = 'Requires Growth Plan';
                     }
-                } else if (!hasActiveTrialAccess) {
-                    isLocked = true;
-                    lockReason = 'Requires Growth Plan or Trial';
+                } else {
+                    // No active trial - check if user has ever used their trial
+                    const hasUsedTrial = localStorage.getItem('trialUsed') === 'true';
+                    if (hasUsedTrial) {
+                        isLocked = true;
+                        lockReason = 'Requires Growth Plan';
+                    } else {
+                        isLocked = true;
+                        lockReason = 'Requires Growth Plan or Trial';
+                    }
                 }
             }
         } else if (companion.tier === 'max') {
@@ -540,6 +547,9 @@ async function startPremiumTrial(companionId) {
             currentUser.trial_expires = data.trial_expires;
             currentUser.trial_companion = companionId;
             currentUser.plan = 'trial';
+            
+            // IMPORTANT: Mark trial as permanently used (one trial per user ever)
+            localStorage.setItem('trialUsed', 'true');
             
             // Keep necessary localStorage for UI state only
             const companionName = getCompanionName(companionId);
