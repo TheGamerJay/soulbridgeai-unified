@@ -528,9 +528,8 @@ def home():
             logger.info(f"🏠 HOME ROUTE: ❌ User NOT authenticated, redirecting to login")
             return redirect("/login")
         
-        # User is authenticated - redirect to companion selection instead of intro
-        logger.info(f"🏠 HOME ROUTE: ✅ User authenticated, redirecting to companion selection")
-        return redirect("/companion-selection")
+        # User is authenticated - show intro (proper flow: login → intro → companion selection)
+        logger.info(f"🏠 HOME ROUTE: ✅ User authenticated, showing intro")
         
         # Initialize services if needed
         if not services["database"]:
