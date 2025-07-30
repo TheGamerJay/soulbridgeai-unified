@@ -240,7 +240,7 @@ function loadFallbackCompanions() {
             {
                 companion_id: 'blayzica_growth',
                 display_name: 'Blayzica Pro',
-                avatar_image: '/static/logos/Blayzica.png',
+                avatar_image: '/static/logos/Blayzica Pro.png',
                 short_bio: 'Enhanced Blayzica with deeper emotional intelligence',
                 personality_tags: ['Empathetic', 'Intelligent'],
                 special_features: ['Deep emotional support', 'Advanced empathy', 'Personalized guidance', 'Crisis support'],
