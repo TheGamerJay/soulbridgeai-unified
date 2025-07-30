@@ -834,7 +834,8 @@ window.showCompanionDetails = showCompanionDetails;
 window.closeCompanionModal = closeCompanionModal;
 
 function navigateBack() {
-    window.history.back();
+    // Always go to intro/home page instead of browser history
+    window.location.href = '/intro';
 }
 
 function handleVisibilityChange() {
