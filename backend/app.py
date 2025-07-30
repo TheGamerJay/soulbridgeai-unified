@@ -1018,11 +1018,45 @@ def chat():
     selected_companion = session.get('selected_companion')
     url_companion = request.args.get('companion')
     
-    # If companion passed via URL, update session immediately
+    # If companion passed via URL, validate access before setting
     if url_companion and not selected_companion:
-        session['selected_companion'] = f"companion_{url_companion.lower()}"
-        selected_companion = session['selected_companion']
-        logger.info(f"🔄 CHAT: Updated companion from URL: {selected_companion}")
+        potential_companion = f"companion_{url_companion.lower()}"
+        
+        # Validate user has access to this companion tier
+        user_plan = session.get('user_plan', 'foundation')
+        trial_active = session.get('trial_active', False)
+        
+        # Define companion tiers for validation
+        companion_tiers = {
+            # Free companions
+            'blayzo_free': 'free', 'blayzica_free': 'free', 'companion_gamerjay': 'free',
+            'blayzia_free': 'free', 'blayzion_free': 'free', 'claude_free': 'free',
+            # Growth companions  
+            'companion_sky': 'growth', 'blayzo_growth': 'growth', 'blayzica_growth': 'growth',
+            'companion_gamerjay_premium': 'growth', 'watchdog_growth': 'growth', 
+            'crimson_growth': 'growth', 'violet_growth': 'growth', 'claude_growth': 'growth',
+            # Max companions
+            'companion_crimson': 'max', 'companion_violet': 'max', 'royal_max': 'max',
+            'watchdog_max': 'max', 'ven_blayzica': 'max', 'ven_sky': 'max', 'claude_max': 'max'
+        }
+        
+        companion_tier = companion_tiers.get(potential_companion)
+        has_access = False
+        
+        if companion_tier == 'free':
+            has_access = True
+        elif companion_tier == 'growth':
+            has_access = user_plan in ['premium', 'enterprise'] or trial_active
+        elif companion_tier == 'max':
+            has_access = user_plan == 'enterprise'
+            
+        if has_access:
+            session['selected_companion'] = potential_companion
+            selected_companion = session['selected_companion']
+            logger.info(f"🔄 CHAT: Updated companion from URL: {selected_companion}")
+        else:
+            logger.warning(f"🚫 CHAT: Access denied to {potential_companion} for user with plan {user_plan}")
+            return redirect("/companion-selection?error=access_denied")
     
     companion_name = None
     
