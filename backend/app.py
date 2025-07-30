@@ -1102,17 +1102,15 @@ def chat():
         # Validate companion access based on tier
         companion_access_valid = True
         
-        # Check if this is a premium companion that requires validation
+        # BLOCK ACCESS: Check companion tier requirements before allowing chat
         if selected_companion in ['companion_sky', 'companion_gamerjay_premium', 'companion_blayzo_premium', 'companion_watchdog', 'companion_crimson_growth', 'companion_violet_growth', 'companion_claude_growth']:
-            # Growth tier companion - requires growth/max plan or active trial
-            if user_tier not in ['premium', 'enterprise'] and not has_active_trial:
-                companion_access_valid = False
-                logger.warning(f"🚫 ACCESS DENIED: Growth companion {selected_companion} blocked - user tier: {user_tier}, trial: {has_active_trial}")
-                return render_template('companion_selector.html', 
-                                     error="This companion requires a Growth plan or active trial. Please upgrade or start a trial.",
-                                     companions=get_all_companions())
+            # Growth tier companion - foundation users need trial or upgrade
+            if user_tier == 'foundation' and not has_active_trial:
+                logger.warning(f"🚫 BLOCKING CHAT ACCESS: Foundation user {session.get('user_email')} tried to access Growth companion {selected_companion}")
+                flash("This companion requires a Growth plan or trial. Please upgrade or start a trial.")
+                return redirect("/companion-selection")
             else:
-                logger.info(f"✅ ACCESS GRANTED: Growth companion {selected_companion} - user tier: {user_tier}, trial: {has_active_trial}")
+                logger.info(f"✅ CHAT ACCESS GRANTED: Growth companion {selected_companion} - user tier: {user_tier}, trial: {has_active_trial}")
         elif selected_companion in ['companion_crimson', 'companion_violet']:
             # Max tier companion - requires max plan only (no trial access)
             if user_tier != 'enterprise':
