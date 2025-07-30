@@ -81,11 +81,21 @@ function updateCharacterDisplay() {
     if (characterAvatar) {
         // Set character avatar based on character name
         const avatarMap = {
-            'GamerJay': '/static/logos/GamerJay Free companion.png',
             'Sky': '/static/logos/Sky a primum companion.png',
+            'Blayzo_free': '/static/logos/Blayzo.png',
+            'Blayzica_free': '/static/logos/Blayzica Free companion.png',
+            'GamerJay': '/static/logos/GamerJay Free companion.png',
+            'GamerJay Premium': '/static/logos/GamerJay Premium companion.png',
+            'Blayzo Pro': '/static/logos/Blayzo Pro a growth companion.png',
+            'Blayzica Pro': '/static/logos/Blayzica Pro a growth companion.png',
+            'WatchDog': '/static/logos/WatchDog a Max Companion.png',
+            'Claude': '/static/logos/Claude Free companion.png',
+            'Claude Max': '/static/logos/Claude Max.png',
             'Crimson': '/static/logos/Crimson a Max companion.png',
             'Violet': '/static/logos/Violet a max companion.png',
-            'Blayzo': '/static/logos/Blayzo.png'
+            'Royal': '/static/logos/Royal a max companion.png',
+            'Ven Sky': '/static/logos/Ven Sky a max companion.png',
+            'Ven Blayzica': '/static/logos/Ven Blayzica a max companion.png'
         };
         
         characterAvatar.src = avatarMap[currentCharacter] || '/static/logos/IntroLogo.png';
@@ -150,11 +160,28 @@ function showWelcomeMessage() {
     // Check if welcome message already exists
     if (messagesContainer.querySelector('.welcome-message')) return;
     
+    // Unique greetings for each companion
+    const greetings = {
+        'Sky': "Hey there! I'm Sky, your companion in this digital realm. Whether you need someone to talk through your thoughts or explore new ideas, I'm here with an open mind and endless curiosity.",
+        'Blayzo_free': "What's good! I'm Blayzo, your laid-back companion. I keep things real and simple - no fancy stuff, just genuine conversation and good vibes. What's on your mind?",
+        'Blayzica_free': "Hi beautiful soul! I'm Blayzica, and I'm all about that positive energy and emotional connection. Let's dive deep into whatever's in your heart today.",
+        'GamerJay': "Yo! I'm GamerJay, your gaming buddy and tech enthusiast. Whether you want to talk games, tech, or just need someone who gets the digital lifestyle, I'm your guy!",
+        'GamerJay Premium': "What's up, legend! I'm the premium GamerJay with enhanced gaming insights and tech knowledge. Ready to level up our conversation?",
+        'Blayzo Pro': "Hey there! I'm the enhanced Blayzo with amplified creativity and deeper insights. Ready to explore some next-level conversations?",
+        'Blayzica Pro': "Hello gorgeous! I'm the pro version of Blayzica with heightened emotional intelligence. Let's connect on a deeper level today.",
+        'WatchDog': "Greetings. I'm WatchDog, your protective digital guardian. I'm here to provide security-minded advice and keep watch over your digital wellbeing.",
+        'Claude': "Hello! I'm Claude, your thoughtful AI companion. I enjoy meaningful conversations and helping you think through complex topics with clarity and insight.",
+        'Crimson': "Salutations. I'm Crimson, an advanced companion with sophisticated analytical capabilities. I excel at deep conversations and complex problem-solving.",
+        'Violet': "Greetings, dear friend. I'm Violet, your elegant and refined companion. I bring grace and wisdom to our interactions, with a touch of sophisticated charm.",
+        'Royal': "Good day! I'm Royal, your distinguished companion. I carry myself with dignity and offer counsel with the wisdom of ages. How may I assist you today?"
+    };
+    
+    const greeting = greetings[currentCharacter] || `Hello! I'm ${currentCharacter}, ready to chat and help you with whatever you need.`;
+    
     const welcomeDiv = document.createElement('div');
     welcomeDiv.className = 'welcome-message';
     welcomeDiv.innerHTML = `
-        <h3>👋 Welcome to SoulBridge AI!</h3>
-        <p>I'm ${currentCharacter}, your AI companion. I'm here to listen, support, and help you on your wellness journey. Feel free to share what's on your mind or ask me anything!</p>
+        <p>${greeting}</p>
     `;
     
     messagesContainer.appendChild(welcomeDiv);
