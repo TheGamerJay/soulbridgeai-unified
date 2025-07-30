@@ -783,3 +783,8 @@ function handleVisibilityChange() {
 async function previewVoice(companionId) {
     showNotification('Voice preview coming soon!', 'info');
 }
+
+function startAnyGrowthTrial() {
+    // Start trial with Sky as the default Growth companion
+    startPremiumTrial('companion_sky');
+}

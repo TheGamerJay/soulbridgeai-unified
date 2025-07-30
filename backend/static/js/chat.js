@@ -120,8 +120,8 @@ function updateCharacterDisplay() {
         const avatarMap = {
             'Sky': '/static/logos/Sky a primum companion.png',
             'Blayzo': '/static/logos/Blayzo.png',
-            'Blayzica': '/static/logos/Blayzica Free companion.png',
-            'GamerJay': '/static/logos/GamerJay Free companion.png',
+            'Blayzica': '/static/logos/Blayzica.png',
+            'GamerJay': '/static/logos/GamerJay.png',
             'Blayzia': '/static/logos/Blayzia.png',
             'Blayzion': '/static/logos/Blayzion.png',
             'Claude': '/static/logos/Claude Free.png',
