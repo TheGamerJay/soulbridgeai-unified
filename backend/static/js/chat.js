@@ -58,7 +58,11 @@ function cleanCharacterName(name) {
         'watchdog_max': 'WatchDog Max',
         'ven_blayzica': 'Ven Blayzica',
         'ven_sky': 'Ven Sky',
-        'claude_max': 'Claude Max'
+        'claude_max': 'Claude Max',
+        'blayzo': 'Blayzo Champion',
+        'blayzike': 'Blayzike',
+        'blazelian': 'Blazelian',
+        'sapphire': 'Sapphire'
     };
     
     return displayNameMap[name.toLowerCase()] || name;
@@ -219,7 +223,11 @@ function showWelcomeMessage() {
         'Violet Max': "Supreme creative essence. I'm Violet Max, channeling the highest frequencies of artistic and spiritual inspiration.",
         'WatchDog Max': "Ultimate protection surrounds you. I'm WatchDog Max, your supreme guardian across all planes of existence.",
         'Ven Blayzica': "Divine healing energy flows. I'm Ven Blayzica, master of emotional alchemy and spiritual restoration.",
-        'Ven Sky': "Ascended consciousness awaits. I'm Ven Sky, your guide to the highest realms of spiritual awakening and cosmic wisdom."
+        'Ven Sky': "Ascended consciousness awaits. I'm Ven Sky, your guide to the highest realms of spiritual awakening and cosmic wisdom.",
+        'Blayzo Champion': "Champion of the community! I'm Blayzo Champion, here to celebrate your journey and connect you with the collective wisdom of our spiritual family.",
+        'Blayzike': "Mysterious wisdom surrounds us. I'm Blayzike, keeper of hidden truths and guide through the shadowed paths of enlightenment.",
+        'Blazelian': "Cosmic wanderer greets you. I'm Blazelian, channeling celestial wisdom from distant stars to illuminate your earthly journey.",
+        'Sapphire': "Welcome, traveler. I'm Sapphire, your navigation assistant here to guide you through the features and pathways of SoulBridge AI. How may I assist your journey today?"
     };
     
     const greeting = greetings[currentCharacter] || `Hello! I'm ${currentCharacter}, ready to chat and help you with whatever you need.`;
