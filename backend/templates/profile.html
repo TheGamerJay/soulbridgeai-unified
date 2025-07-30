@@ -442,11 +442,11 @@
                 <!-- Profile Image Section -->
                 <div style="text-align: center; margin-bottom: 20px; padding: 30px 20px;">
                     <div style="margin-bottom: 20px;">
-                        <img id="userProfileImage" src="{{ user_profile_image or '/static/logos/Sapphire.png' }}" alt="Profile Picture" 
+                        <img id="userProfileImage" src="{{ user_profile_image or '/static/logos/IntroLogo.png' }}" alt="Profile Picture" 
                              style="max-width: 280px; max-height: 280px; width: auto; height: auto;
                                     box-shadow: 0 8px 30px rgba(34, 211, 238, 0.5); display: block; margin: 0 auto;
                                     border-radius: 12px;"
-                             onerror="this.src='/static/logos/Sapphire.png'; console.log('⚠️ Profile image failed to load, using default')">
+                             onerror="this.src='/static/logos/IntroLogo.png'; console.log('⚠️ Profile image failed to load, using default')">
                     </div>
                     <div style="margin-bottom: 15px;">
                         <input type="file" id="profileImageInput" accept="image/*" style="display: none;" onchange="handleProfileImageUpload()">
@@ -811,7 +811,7 @@
                 if (profileImage) {
                     const newImageSrc = this.userData.profileImage && this.userData.profileImage.trim() !== '' 
                         ? this.userData.profileImage 
-                        : '/static/logos/Sapphire.png';
+                        : '/static/logos/IntroLogo.png';
                     
                     // Only update if the image source is different (prevents flash)
                     if (profileImage.src !== newImageSrc) {
@@ -1272,14 +1272,14 @@
                     const response = await fetch('/api/users', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ profileImage: '/static/logos/Sapphire.png' })
+                        body: JSON.stringify({ profileImage: '/static/logos/IntroLogo.png' })
                     });
                     
                     const result = await response.json();
                     if (result.success) {
                         const profileImg = document.getElementById('userProfileImage');
                         if (profileImg) {
-                            profileImg.src = '/static/logos/Sapphire.png';
+                            profileImg.src = '/static/logos/IntroLogo.png';
                         }
                     }
                 } catch (error) {

@@ -1039,10 +1039,10 @@ def plan_selection():
 
 @app.route("/intro")
 def intro():
-    """Redirect to companion selection instead of intro"""
+    """Show intro/home page"""
     if not is_logged_in():
         return redirect("/login")
-    return redirect("/companion-selection")
+    return redirect("/")
 
 @app.route("/companion-selection")
 def companion_selection():
@@ -1189,7 +1189,7 @@ def api_companions():
             "growth": [
                 {"companion_id": "companion_sky", "display_name": "Sky", "description": "Premium companion with advanced features", "avatar_image": "/static/logos/Sky a primum companion.png", "tier": "growth", "is_recommended": True, "popularity_score": 90, "lock_reason": "Requires Growth Plan" if user_plan == 'foundation' else None},
                 {"companion_id": "blayzo_growth", "display_name": "Blayzo Pro", "description": "Advanced Blayzo with enhanced creativity", "avatar_image": "/static/logos/Blayzo premium companion.png", "tier": "growth", "is_recommended": True, "popularity_score": 92, "lock_reason": "Requires Growth Plan" if user_plan == 'foundation' else None},
-                {"companion_id": "blayzica_growth", "display_name": "Blayzica Pro", "description": "Enhanced emotional intelligence companion", "avatar_image": "/static/logos/Blayzica.png", "tier": "growth", "is_recommended": True, "popularity_score": 91, "lock_reason": "Requires Growth Plan" if user_plan == 'foundation' else None},
+                {"companion_id": "blayzica_growth", "display_name": "Blayzica Pro", "description": "Enhanced emotional intelligence companion", "avatar_image": "/static/logos/Blayzica Pro.png", "tier": "growth", "is_recommended": True, "popularity_score": 91, "lock_reason": "Requires Growth Plan" if user_plan == 'foundation' else None},
                 {"companion_id": "companion_gamerjay_premium", "display_name": "GamerJay Premium", "description": "Enhanced GamerJay with premium features", "avatar_image": "/static/logos/GamgerJay premium companion.png", "tier": "growth", "is_recommended": False, "popularity_score": 88, "lock_reason": "Requires Growth Plan" if user_plan == 'foundation' else None},
                 {"companion_id": "watchdog_growth", "display_name": "WatchDog", "description": "Your protective guardian companion", "avatar_image": "/static/logos/WatchDog a Primum companion.png", "tier": "growth", "is_recommended": False, "popularity_score": 78, "lock_reason": "Requires Growth Plan" if user_plan == 'foundation' else None},
                 {"companion_id": "crimson_growth", "display_name": "Crimson", "description": "Motivational drive to overcome challenges", "avatar_image": "/static/logos/Crimson.png", "tier": "growth", "is_recommended": True, "popularity_score": 87, "lock_reason": "Requires Growth Plan" if user_plan == 'foundation' else None},
@@ -1382,6 +1382,15 @@ def api_start_companion_trial():
         if not user_authenticated or (not user_id and not user_email):
             logger.warning(f"🔍 TRIAL DEBUG: Authentication failed - auth: {user_authenticated}, id: {user_id}, email: {user_email}")
             return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        # PREVENT MULTIPLE TRIALS: Check if user has already used their one-time trial
+        if session.get('trial_used_permanently', False):
+            logger.info(f"🚫 TRIAL ALREADY USED: User {user_email or user_id} has already used their trial")
+            return jsonify({
+                "success": False, 
+                "error": "You have already used your free trial. Each user gets only one 24-hour trial.",
+                "trial_used": True
+            }), 400
             
         # PREVENT RESET: Check if trial is already active
         existing_trial_expires = session.get('trial_expires')
@@ -1420,7 +1429,8 @@ def api_start_companion_trial():
         session['selected_companion'] = companion_id
         session['user_plan'] = 'trial'  # Temporarily upgrade to trial
         session['trial_active'] = True
-        # Session expires when browser closes  # CRITICAL: Ensure session persists
+        session['trial_used_permanently'] = True  # Mark trial as permanently used
+        session.permanent = True  # Make session permanent to persist across browser sessions
         
         logger.info(f"🔧 TRIAL SESSION DATA SET: companion={companion_id}, expires={session['trial_expires']}, plan={session['user_plan']}")
         
