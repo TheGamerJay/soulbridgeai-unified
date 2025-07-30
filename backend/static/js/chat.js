@@ -62,6 +62,7 @@ function cleanCharacterName(name) {
         'blayzo': 'Blayzo Champion',
         'blayzike': 'Blayzike',
         'blazelian': 'Blazelian',
+        'claude_referral': 'Claude Referral',
         'sapphire': 'Sapphire'
     };
     
@@ -227,6 +228,7 @@ function showWelcomeMessage() {
         'Blayzo Champion': "Champion of the community! I'm Blayzo Champion, here to celebrate your journey and connect you with the collective wisdom of our spiritual family.",
         'Blayzike': "Mysterious wisdom surrounds us. I'm Blayzike, keeper of hidden truths and guide through the shadowed paths of enlightenment.",
         'Blazelian': "Cosmic wanderer greets you. I'm Blazelian, channeling celestial wisdom from distant stars to illuminate your earthly journey.",
+        'Claude Referral': "Elite champion of code and consciousness. I'm Claude Referral, your exclusive coding companion earned through community dedication and spiritual growth.",
         'Sapphire': "Welcome, traveler. I'm Sapphire, your navigation assistant here to guide you through the features and pathways of SoulBridge AI. How may I assist your journey today?"
     };
     
