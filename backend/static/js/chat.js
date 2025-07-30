@@ -93,6 +93,9 @@ function loadCharacterInfo() {
     // Update UI with character info
     updateCharacterDisplay();
     
+    // Apply companion-specific theme
+    applyCompanionTheme();
+    
     // Show trial banner if this is a trial session
     if (urlParams.get('trial') === 'true') {
         checkTrialStatus();
@@ -580,6 +583,45 @@ function showNotification(message, type = 'info') {
         notification.style.transform = 'translateX(100%)';
         setTimeout(() => document.body.removeChild(notification), 300);
     }, 3000);
+}
+
+function applyCompanionTheme() {
+    // Remove any existing companion theme classes
+    document.body.classList.remove('theme-sky', 'theme-blayzo', 'theme-blayzica', 'theme-gamerjay', 'theme-blayzia', 'theme-blayzion', 'theme-claude', 'theme-crimson', 'theme-violet', 'theme-watchdog');
+    
+    // Apply theme based on current character
+    const themeClass = getCompanionThemeClass(currentCharacter);
+    if (themeClass) {
+        document.body.classList.add(themeClass);
+        console.log(`🎨 Applied theme: ${themeClass} for ${currentCharacter}`);
+    }
+}
+
+function getCompanionThemeClass(characterName) {
+    const themeMap = {
+        'Sky': 'theme-sky',
+        'Blayzo': 'theme-blayzo',
+        'Blayzo Pro': 'theme-blayzo',
+        'Blayzo Champion': 'theme-blayzo',
+        'Blayzica': 'theme-blayzica',
+        'Blayzica Pro': 'theme-blayzica',
+        'GamerJay': 'theme-gamerjay',
+        'GamerJay Premium': 'theme-gamerjay',
+        'Blayzia': 'theme-blayzia',
+        'Blayzion': 'theme-blayzion',
+        'Claude': 'theme-claude',
+        'Claude Growth': 'theme-claude',
+        'Claude Max': 'theme-claude',
+        'Claude Referral': 'theme-claude',
+        'Crimson': 'theme-crimson',
+        'Crimson Max': 'theme-crimson',
+        'Violet': 'theme-violet',
+        'Violet Max': 'theme-violet',
+        'WatchDog': 'theme-watchdog',
+        'WatchDog Max': 'theme-watchdog'
+    };
+    
+    return themeMap[characterName] || null;
 }
 
 // Export functions for testing
