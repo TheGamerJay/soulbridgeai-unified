@@ -662,11 +662,11 @@ function closeCompanionModal() {
 function selectUpgradePlan(planType) {
     closeCompanionModal();
     
-    // Redirect to upgrade page with plan pre-selected
+    // Redirect to plan selection page
     if (planType === 'growth') {
-        window.location.href = '/pricing?plan=growth';
+        window.location.href = '/plan-selection?plan=growth';
     } else if (planType === 'max') {
-        window.location.href = '/pricing?plan=max';
+        window.location.href = '/plan-selection?plan=max';
     }
 }
 
