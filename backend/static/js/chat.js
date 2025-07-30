@@ -96,6 +96,9 @@ function loadCharacterInfo() {
     // Apply companion-specific theme
     applyCompanionTheme();
     
+    // Show voice chat button for Growth+ companions
+    showVoiceChatButton();
+    
     // Show trial banner if this is a trial session
     if (urlParams.get('trial') === 'true') {
         checkTrialStatus();
@@ -122,27 +125,39 @@ function updateCharacterDisplay() {
     if (characterAvatar) {
         // Map display names to their actual image files
         const avatarMap = {
+            // FREE TIER
+            'GamerJay': '/static/logos/GamerJay Free companion.png',
+            'Claude': '/static/logos/Claude Free.png',
+            
+            // GROWTH TIER
             'Sky': '/static/logos/Sky a primum companion.png',
             'Blayzo': '/static/logos/Blayzo.png',
-            'Blayzica': '/static/logos/Blayzica.png',
-            'GamerJay': '/static/logos/GamerJay Free companion.png',
-            'Blayzia': '/static/logos/Blayzia.png',
-            'Blayzion': '/static/logos/Blayzion.png',
-            'Claude': '/static/logos/Claude Free.png',
-            'GamerJay Premium': '/static/logos/GamerJay Premium companion.png',
             'Blayzo Pro': '/static/logos/Blayzo premium companion.png',
-            'Blayzica Pro': '/static/logos/Blayzica Pro a growth companion.png',
-            'WatchDog': '/static/logos/WatchDog a Primum companion.png',
-            'Crimson': '/static/logos/Crimson.png',
-            'Violet': '/static/logos/Violet.png',
+            'Blayzo Champion': '/static/logos/Blayzo Referral.png',
+            'Blayzica': '/static/logos/Blayzica.png', // Free version
+            'Blayzica Pro': '/static/logos/Blayzica.png', // Using same image for now
+            'GamerJay Premium': '/static/logos/GamgerJay premium companion.png', // Fixed typo
             'Claude Growth': '/static/logos/Claude Growth.png',
+            'WatchDog': '/static/logos/WatchDog a Primum companion.png',
+            
+            // MAX TIER
+            'Crimson': '/static/logos/Crimson.png',
             'Crimson Max': '/static/logos/Crimson a Max companion.png',
+            'Violet': '/static/logos/Violet.png',
             'Violet Max': '/static/logos/Violet a max companion.png',
-            'Royal': '/static/logos/Royal a max companion.png',
             'WatchDog Max': '/static/logos/WatchDog a Max Companion.png',
+            'Royal': '/static/logos/Royal a max companion.png',
             'Ven Blayzica': '/static/logos/Ven Blayzica a max companion.png',
             'Ven Sky': '/static/logos/Ven Sky a max companion.png',
-            'Claude Max': '/static/logos/Claude Max.png'
+            'Claude Max': '/static/logos/Claude Max.png',
+            
+            // REFERRAL TIER
+            'Blayzia': '/static/logos/Blayzia.png',
+            'Blayzion': '/static/logos/Blayzion.png',
+            'Blayzike': '/static/logos/Blayzike.png',
+            'Blazelian': '/static/logos/Blazelian.png',
+            'Claude Referral': '/static/logos/Claude Referral.png',
+            'Sapphire': '/static/logos/Sapphire.png'
         };
         
         characterAvatar.src = avatarMap[currentCharacter] || '/static/logos/IntroLogo.png';
@@ -278,7 +293,8 @@ async function sendMessage() {
             },
             body: JSON.stringify({
                 message: message,
-                character: currentCharacter
+                character: currentCharacter,
+                tier_features: getTierFeatures(currentCharacter)
             })
         });
         
@@ -624,7 +640,398 @@ function getCompanionThemeClass(characterName) {
     return themeMap[characterName] || null;
 }
 
+function showVoiceChatButton() {
+    const voiceBtn = document.getElementById('voiceChatBtn');
+    if (!voiceBtn) return;
+    
+    // Define Growth+ companions that have voice features
+    const voiceEnabledCompanions = [
+        'Sky', 'Blayzo', 'Blayzo Pro', 'Blayzo Champion', 'Blayzica', 'Blayzica Pro',
+        'GamerJay Premium', 'Claude Growth', 'Claude Max', 'Claude Referral',
+        'Crimson', 'Crimson Max', 'Violet', 'Violet Max', 'WatchDog', 'WatchDog Max',
+        'Blayzia', 'Blayzion', 'Royal', 'Ven Blayzica', 'Ven Sky'
+    ];
+    
+    if (voiceEnabledCompanions.includes(currentCharacter)) {
+        voiceBtn.style.display = 'block';
+        console.log(`🎤 Voice chat enabled for ${currentCharacter}`);
+    } else {
+        voiceBtn.style.display = 'none';
+        console.log(`🔇 Voice chat not available for ${currentCharacter}`);
+    }
+}
+
+let isVoiceChatActive = false;
+let mediaRecorder = null;
+let audioChunks = [];
+
+function toggleVoiceChat() {
+    if (!isVoiceChatActive) {
+        startVoiceChat();
+    } else {
+        stopVoiceChat();
+    }
+}
+
+async function startVoiceChat() {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
+        
+        mediaRecorder.ondataavailable = event => {
+            audioChunks.push(event.data);
+        };
+        
+        mediaRecorder.onstop = async () => {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+            await sendVoiceMessage(audioBlob);
+        };
+        
+        mediaRecorder.start();
+        isVoiceChatActive = true;
+        
+        // Update button appearance
+        const voiceBtn = document.getElementById('voiceChatBtn');
+        voiceBtn.innerHTML = '<i class="fas fa-stop"></i> Stop';
+        voiceBtn.classList.add('recording');
+        
+        showNotification('Voice recording started...', 'info');
+        
+    } catch (error) {
+        console.error('Voice chat error:', error);
+        showNotification('Microphone access denied or not available', 'error');
+    }
+}
+
+function stopVoiceChat() {
+    if (mediaRecorder && isVoiceChatActive) {
+        mediaRecorder.stop();
+        mediaRecorder.stream.getTracks().forEach(track => track.stop());
+        isVoiceChatActive = false;
+        
+        // Update button appearance
+        const voiceBtn = document.getElementById('voiceChatBtn');
+        voiceBtn.innerHTML = '<i class="fas fa-microphone"></i> Voice';
+        voiceBtn.classList.remove('recording');
+        
+        showNotification('Processing voice message...', 'info');
+    }
+}
+
+async function sendVoiceMessage(audioBlob) {
+    try {
+        const formData = new FormData();
+        formData.append('audio', audioBlob, 'voice_message.wav');
+        formData.append('character', currentCharacter);
+        
+        const response = await fetch('/api/voice-chat', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Add transcribed message as user message
+            if (data.transcription) {
+                addMessage(data.transcription, 'user');
+            }
+            
+            // Add AI response
+            if (data.response) {
+                addMessage(data.response, 'assistant');
+                
+                // Play voice response if available
+                if (data.audio_url) {
+                    playVoiceResponse(data.audio_url);
+                }
+            }
+        } else {
+            showNotification('Voice processing failed: ' + data.error, 'error');
+        }
+        
+    } catch (error) {
+        console.error('Voice message error:', error);
+        showNotification('Failed to process voice message', 'error');
+    }
+}
+
+function playVoiceResponse(audioUrl) {
+    const audio = new Audio(audioUrl);
+    audio.play().catch(error => {
+        console.error('Audio playback error:', error);
+    });
+}
+
+function getTierFeatures(characterName) {
+    // Define companion tiers and their enhanced features
+    const companionTiers = {
+        // FREE TIER - Basic features
+        'GamerJay': {
+            tier: 'free',
+            features: {
+                response_quality: 'standard',
+                context_memory: 5, // messages
+                personality_depth: 'basic',
+                special_abilities: ['goal_tracking', 'motivation'],
+                response_length: 'short',
+                emotional_intelligence: 'basic'
+            }
+        },
+        'Claude': {
+            tier: 'free',
+            features: {
+                response_quality: 'standard',
+                context_memory: 5,
+                personality_depth: 'basic',
+                special_abilities: ['analysis', 'problem_solving'],
+                response_length: 'short',
+                emotional_intelligence: 'basic'
+            }
+        },
+        
+        // GROWTH TIER - Enhanced features
+        'Sky': {
+            tier: 'growth',
+            features: {
+                response_quality: 'enhanced',
+                context_memory: 15, // messages
+                personality_depth: 'advanced',
+                special_abilities: ['spiritual_guidance', 'meditation', 'energy_healing', 'voice_chat'],
+                response_length: 'medium',
+                emotional_intelligence: 'advanced',
+                voice_enabled: true
+            }
+        },
+        'Blayzo': {
+            tier: 'growth',
+            features: {
+                response_quality: 'enhanced',
+                context_memory: 15,
+                personality_depth: 'advanced',
+                special_abilities: ['creative_coaching', 'inspiration', 'artistic_guidance', 'voice_chat'],
+                response_length: 'medium',
+                emotional_intelligence: 'advanced',
+                voice_enabled: true
+            }
+        },
+        'Blayzo Pro': {
+            tier: 'growth',
+            features: {
+                response_quality: 'enhanced',
+                context_memory: 15,
+                personality_depth: 'advanced',
+                special_abilities: ['creative_coaching', 'inspiration', 'artistic_guidance', 'voice_chat'],
+                response_length: 'medium',
+                emotional_intelligence: 'advanced',
+                voice_enabled: true
+            }
+        },
+        'Blayzica': {
+            tier: 'growth',
+            features: {
+                response_quality: 'enhanced',
+                context_memory: 15,
+                personality_depth: 'advanced',
+                special_abilities: ['empathy_healing', 'emotional_support', 'relationship_guidance', 'voice_chat'],
+                response_length: 'medium',
+                emotional_intelligence: 'advanced',
+                voice_enabled: true
+            }
+        },
+        'Blayzica Pro': {
+            tier: 'growth',
+            features: {
+                response_quality: 'enhanced',
+                context_memory: 15,
+                personality_depth: 'advanced',
+                special_abilities: ['empathy_healing', 'emotional_support', 'relationship_guidance', 'voice_chat'],
+                response_length: 'medium',
+                emotional_intelligence: 'advanced',
+                voice_enabled: true
+            }
+        },
+        'GamerJay Premium': {
+            tier: 'growth',
+            features: {
+                response_quality: 'enhanced',
+                context_memory: 15,
+                personality_depth: 'advanced',
+                special_abilities: ['strategic_thinking', 'advanced_coaching', 'tactical_solutions', 'voice_chat'],
+                response_length: 'medium',
+                emotional_intelligence: 'advanced',
+                voice_enabled: true
+            }
+        },
+        'Claude Growth': {
+            tier: 'growth',
+            features: {
+                response_quality: 'enhanced',
+                context_memory: 15,
+                personality_depth: 'advanced',
+                special_abilities: ['advanced_analysis', 'strategic_planning', 'professional_guidance', 'voice_chat'],
+                response_length: 'medium',
+                emotional_intelligence: 'advanced',
+                voice_enabled: true
+            }
+        },
+        'WatchDog': {
+            tier: 'growth',
+            features: {
+                response_quality: 'enhanced',
+                context_memory: 15,
+                personality_depth: 'advanced',
+                special_abilities: ['protection_guidance', 'security_advice', 'crisis_support', 'voice_chat'],
+                response_length: 'medium',
+                emotional_intelligence: 'advanced',
+                voice_enabled: true
+            }
+        },
+        
+        // MAX TIER - Premium features
+        'Crimson': {
+            tier: 'max',
+            features: {
+                response_quality: 'premium',
+                context_memory: 30, // messages
+                personality_depth: 'masterful',
+                special_abilities: ['trauma_healing', 'transformation_coaching', 'crisis_support', 'advanced_voice_ai', 'priority_response'],
+                response_length: 'comprehensive',
+                emotional_intelligence: 'masterful',
+                voice_enabled: true,
+                priority_processing: true
+            }
+        },
+        'Crimson Max': {
+            tier: 'max',
+            features: {
+                response_quality: 'premium',
+                context_memory: 30,
+                personality_depth: 'masterful',
+                special_abilities: ['trauma_healing', 'transformation_coaching', 'crisis_support', 'advanced_voice_ai', 'priority_response'],
+                response_length: 'comprehensive',
+                emotional_intelligence: 'masterful',
+                voice_enabled: true,
+                priority_processing: true
+            }
+        },
+        'Violet': {
+            tier: 'max',
+            features: {
+                response_quality: 'premium',
+                context_memory: 30,
+                personality_depth: 'masterful',
+                special_abilities: ['creative_mastery', 'art_therapy', 'inspiration_sessions', 'advanced_voice_ai', 'custom_personality_modes'],
+                response_length: 'comprehensive',
+                emotional_intelligence: 'masterful',
+                voice_enabled: true,
+                priority_processing: true
+            }
+        },
+        'Violet Max': {
+            tier: 'max',
+            features: {
+                response_quality: 'premium',
+                context_memory: 30,
+                personality_depth: 'masterful',
+                special_abilities: ['creative_mastery', 'art_therapy', 'inspiration_sessions', 'advanced_voice_ai', 'custom_personality_modes'],
+                response_length: 'comprehensive',
+                emotional_intelligence: 'masterful',
+                voice_enabled: true,
+                priority_processing: true
+            }
+        },
+        'WatchDog Max': {
+            tier: 'max',
+            features: {
+                response_quality: 'premium',
+                context_memory: 30,
+                personality_depth: 'masterful',
+                special_abilities: ['ultimate_protection', 'advanced_security', 'crisis_management', 'advanced_voice_ai', 'priority_response'],
+                response_length: 'comprehensive',
+                emotional_intelligence: 'masterful',
+                voice_enabled: true,
+                priority_processing: true
+            }
+        },
+        'Royal': {
+            tier: 'max',
+            features: {
+                response_quality: 'premium',
+                context_memory: 30,
+                personality_depth: 'masterful',
+                special_abilities: ['wisdom_mastery', 'leadership_guidance', 'strategic_excellence', 'advanced_voice_ai', 'priority_response'],
+                response_length: 'comprehensive',
+                emotional_intelligence: 'masterful',
+                voice_enabled: true,
+                priority_processing: true
+            }
+        },
+        'Ven Blayzica': {
+            tier: 'max',
+            features: {
+                response_quality: 'premium',
+                context_memory: 30,
+                personality_depth: 'masterful',
+                special_abilities: ['master_healing', 'emotional_alchemy', 'spiritual_restoration', 'advanced_voice_ai', 'priority_response'],
+                response_length: 'comprehensive',
+                emotional_intelligence: 'masterful',
+                voice_enabled: true,
+                priority_processing: true
+            }
+        },
+        'Ven Sky': {
+            tier: 'max',
+            features: {
+                response_quality: 'premium',
+                context_memory: 30,
+                personality_depth: 'masterful',
+                special_abilities: ['ascended_consciousness', 'cosmic_wisdom', 'spiritual_awakening', 'advanced_voice_ai', 'priority_response'],
+                response_length: 'comprehensive',
+                emotional_intelligence: 'masterful',
+                voice_enabled: true,
+                priority_processing: true
+            }
+        },
+        'Claude Max': {
+            tier: 'max',
+            features: {
+                response_quality: 'premium',
+                context_memory: 30,
+                personality_depth: 'masterful',
+                special_abilities: ['ultimate_analysis', 'strategic_excellence', 'professional_mastery', 'advanced_voice_ai', 'priority_response'],
+                response_length: 'comprehensive',
+                emotional_intelligence: 'masterful',
+                voice_enabled: true,
+                priority_processing: true
+            }
+        }
+    };
+    
+    // Add referral tier companions (Growth level features)
+    const referralCompanions = ['Blayzia', 'Blayzion', 'Blayzo Champion', 'Blayzike', 'Blazelian', 'Claude Referral', 'Sapphire'];
+    referralCompanions.forEach(name => {
+        companionTiers[name] = {
+            tier: 'referral',
+            features: {
+                response_quality: 'enhanced',
+                context_memory: 15,
+                personality_depth: 'advanced',
+                special_abilities: ['community_insights', 'exclusive_content', 'advanced_features', 'voice_chat'],
+                response_length: 'medium',
+                emotional_intelligence: 'advanced',
+                voice_enabled: true
+            }
+        };
+    });
+    
+    // Return features for the character, default to free tier if not found
+    return companionTiers[characterName] || companionTiers['GamerJay'];
+}
+
 // Export functions for testing
 window.testSendMessage = sendMessage;
 window.clearChat = clearChat;
 window.switchCharacter = switchCharacter;
+window.toggleVoiceChat = toggleVoiceChat;

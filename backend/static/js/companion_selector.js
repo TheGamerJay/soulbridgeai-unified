@@ -352,52 +352,37 @@ function renderSection(sectionId, companionList) {
         let isLocked = false;
         let lockReason = '';
         
-        // Check companion tier access
+        // Check companion tier access with 24-hour trial system
         if (companion.tier === 'growth') {
             // Growth tier requires premium plan or active trial
             if (currentUser.plan === 'foundation') {
-                // If user has active trial, only unlock the trial companion
-                if (hasActiveTrialAccess && currentUser.trial_companion) {
-                    if (companion.companion_id !== currentUser.trial_companion) {
-                        isLocked = true;
-                        lockReason = 'Requires Growth Plan';
-                    }
+                // Check if user has an active trial for ANY companion
+                if (hasActiveTrialAccess) {
+                    // During trial period, all Growth companions are unlocked
+                    isLocked = false;
+                    console.log(`🆓 Growth companion ${companion.display_name} unlocked via active trial`);
                 } else {
-                    // No active trial - check if user has ever used their trial (from backend data)
-                    const hasUsedTrialFromBackend = currentUser.trial_companion !== null || currentUser.trial_expires !== null;
-                    const hasUsedTrialFromStorage = localStorage.getItem('trialUsed') === 'true';
-                    
-                    console.log('🔍 DETAILED Trial usage check for', companion.display_name, ':', {
-                        backend: hasUsedTrialFromBackend,
-                        storage: hasUsedTrialFromStorage,
-                        trial_companion: currentUser.trial_companion,
-                        trial_expires: currentUser.trial_expires,
-                        companion_tier: companion.tier,
-                        user_plan: currentUser.plan,
-                        trial_companion_type: typeof currentUser.trial_companion,
-                        trial_expires_type: typeof currentUser.trial_expires
-                    });
-                    
-                    // For debugging - always show trial buttons temporarily
+                    // No active trial - show trial option for all Growth companions
                     isLocked = true;
-                    lockReason = 'Requires Growth Plan or Trial';
-                    
-                    console.log('🎯 Final decision for', companion.display_name, ':', {
-                        isLocked: isLocked,
-                        lockReason: lockReason,
-                        companion_tier: companion.tier,
-                        user_plan: currentUser.plan,
-                        lockReason_match: lockReason === 'Requires Growth Plan or Trial',
-                        tier_match: companion.tier === 'growth',
-                        plan_match: currentUser.plan === 'foundation',
-                        willShowTrialButton: companion.tier === 'growth' && currentUser.plan === 'foundation' && lockReason === 'Requires Growth Plan or Trial',
-                        HTML_condition: `!isLocked(${!isLocked}) ? SELECT : tier_growth(${companion.tier === 'growth'}) && plan_foundation(${currentUser.plan === 'foundation'}) && lockReason_match(${lockReason === 'Requires Growth Plan or Trial'}) ? TRIAL : LOCKED`
-                    });
+                    lockReason = 'Try Free for 24 Hours';
+                    console.log(`🔒 Growth companion ${companion.display_name} locked - trial available`);
                 }
             }
         } else if (companion.tier === 'max') {
-            // Max tier requires enterprise plan only (no trial access)
-            if (currentUser.plan !== 'enterprise') {
+            // Max tier requires enterprise plan or trial
+            if (currentUser.plan === 'foundation') {
+                // Check if user has an active trial for ANY companion
+                if (hasActiveTrialAccess) {
+                    // During trial period, all Max companions are unlocked
+                    isLocked = false;
+                    console.log(`🆓 Max companion ${companion.display_name} unlocked via active trial`);
+                } else {
+                    // No active trial - show trial option for Max companions too
+                    isLocked = true;
+                    lockReason = 'Try Free for 24 Hours';
+                    console.log(`🔒 Max companion ${companion.display_name} locked - trial available`);
+                }
+            } else if (currentUser.plan !== 'enterprise') {
                 isLocked = true;
                 lockReason = 'Requires Max Plan';
             }
@@ -461,10 +446,10 @@ function renderSection(sectionId, companionList) {
                                     onclick="${isSelected ? '' : `selectCompanion('${companion.companion_id}')`}">
                                 ${isSelected ? 'Selected' : 'Select'}
                             </button>
-                        ` : companion.tier === 'growth' ? `
+                        ` : lockReason === 'Try Free for 24 Hours' ? `
                             <button class="btn-trial" onclick="startPremiumTrial('${companion.companion_id}')" 
                                     style="background: linear-gradient(135deg, #ff6b6b, #ee5a24); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">
-                                ✨ Start 24h Trial
+                                ✨ Try Free for 24h
                             </button>
                         ` : `
                             <button class="btn-select" disabled style="${isReferralTier ? 'background: #FFD700; color: #333;' : 'background: #ccc; color: #666; cursor: not-allowed;'}">
@@ -563,20 +548,20 @@ async function startPremiumTrial(companionId) {
             },
             body: JSON.stringify({
                 companion_id: companionId,
-                trial_type: 'companion_specific'
+                trial_type: 'universal_24h'
             })
         });
         
         const data = await response.json();
         
         if (data.success) {
-            console.log('✅ Premium trial started successfully');
-            showNotification(`Premium trial started! Enjoy 24 hours with your premium companion.`, 'success');
+            console.log('✅ 24-hour trial started successfully');
+            showNotification(`🎉 24-hour trial activated! Enjoy full access to all premium companions.`, 'success');
             
             // Update currentUser with backend data (no localStorage for trial data)
             currentUser.trial_active = data.trial_active;
             currentUser.trial_expires = data.trial_expires;
-            currentUser.trial_companion = companionId;
+            currentUser.trial_companion = 'all'; // Universal trial
             currentUser.plan = 'trial';
             
             // IMPORTANT: Mark trial as permanently used (one trial per user ever)
