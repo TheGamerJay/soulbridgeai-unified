@@ -528,8 +528,9 @@ def home():
             logger.info(f"🏠 HOME ROUTE: ❌ User NOT authenticated, redirecting to login")
             return redirect("/login")
         
-        # User is authenticated - always show beautiful intro with Sapphire
-        logger.info(f"🏠 HOME ROUTE: ✅ User authenticated, showing intro with Sapphire")
+        # User is authenticated - redirect to companion selection instead of intro
+        logger.info(f"🏠 HOME ROUTE: ✅ User authenticated, redirecting to companion selection")
+        return redirect("/companion-selection")
         
         # Initialize services if needed
         if not services["database"]:
