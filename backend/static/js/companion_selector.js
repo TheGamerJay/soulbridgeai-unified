@@ -461,10 +461,10 @@ function renderSection(sectionId, companionList) {
                                     onclick="${isSelected ? '' : `selectCompanion('${companion.companion_id}')`}">
                                 ${isSelected ? 'Selected' : 'Select'}
                             </button>
-                        ` : companion.tier === 'growth' && currentUser.plan === 'foundation' && lockReason === 'Requires Growth Plan or Trial' ? `
+                        ` : companion.tier === 'growth' ? `
                             <button class="btn-trial" onclick="startPremiumTrial('${companion.companion_id}')" 
                                     style="background: linear-gradient(135deg, #ff6b6b, #ee5a24); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">
-                                ✨ Start 24h Trial
+                                ✨ Start 24h Trial (DEBUG)
                             </button>
                         ` : `
                             <button class="btn-select" disabled style="${isReferralTier ? 'background: #FFD700; color: #333;' : 'background: #ccc; color: #666; cursor: not-allowed;'}">
