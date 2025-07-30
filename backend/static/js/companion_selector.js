@@ -408,10 +408,15 @@ function renderSection(sectionId, companionList) {
             }
         }
         
-        // Override with any existing lock reason from backend
+        // Override with any existing lock reason from backend, but preserve trial logic
         if (companion.lock_reason) {
             isLocked = true;
-            lockReason = companion.lock_reason;
+            // Don't override if we're in a trial-eligible state
+            if (companion.tier === 'growth' && currentUser.plan === 'foundation' && !hasUsedTrialFromBackend && !hasUsedTrialFromStorage) {
+                lockReason = 'Requires Growth Plan or Trial';
+            } else {
+                lockReason = companion.lock_reason;
+            }
         }
         
         // Log access decision for debugging
@@ -468,7 +473,7 @@ function renderSection(sectionId, companionList) {
                                     onclick="${isSelected ? '' : `selectCompanion('${companion.companion_id}')`}">
                                 ${isSelected ? 'Selected' : 'Select'}
                             </button>
-                        ` : companion.tier === 'growth' && currentUser.plan === 'foundation' && lockReason === 'Requires Growth Plan or Trial' ? `
+                        ` : companion.tier === 'growth' && currentUser.plan === 'foundation' && (lockReason === 'Requires Growth Plan or Trial' || lockReason === 'REQUIRES GROWTH PLAN OR TRIAL') ? `
                             <!-- TRIAL BUTTON SHOULD SHOW HERE -->
                             <button class="btn-trial" onclick="startPremiumTrial('${companion.companion_id}')" 
                                     style="background: linear-gradient(135deg, #ff6b6b, #ee5a24); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">
