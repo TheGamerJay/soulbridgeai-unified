@@ -644,12 +644,20 @@ function showVoiceChatButton() {
     const voiceBtn = document.getElementById('voiceChatBtn');
     if (!voiceBtn) return;
     
-    // Define Growth+ companions that have voice features
+    // Define Growth+ companions that have voice features (NO FREE TIER)
     const voiceEnabledCompanions = [
+        // GROWTH TIER
         'Sky', 'Blayzo', 'Blayzo Pro', 'Blayzo Champion', 'Blayzica', 'Blayzica Pro',
-        'GamerJay Premium', 'Claude Growth', 'Claude Max', 'Claude Referral',
-        'Crimson', 'Crimson Max', 'Violet', 'Violet Max', 'WatchDog', 'WatchDog Max',
-        'Blayzia', 'Blayzion', 'Royal', 'Ven Blayzica', 'Ven Sky'
+        'GamerJay Premium', 'Claude Growth', 'WatchDog',
+        
+        // MAX TIER  
+        'Crimson', 'Crimson Max', 'Violet', 'Violet Max', 'WatchDog Max',
+        'Royal', 'Ven Blayzica', 'Ven Sky', 'Claude Max',
+        
+        // REFERRAL TIER
+        'Blayzia', 'Blayzion', 'Claude Referral'
+        
+        // FREE TIER EXCLUDED: 'GamerJay', 'Claude' - NO VOICE CHAT
     ];
     
     if (voiceEnabledCompanions.includes(currentCharacter)) {
@@ -767,7 +775,7 @@ function playVoiceResponse(audioUrl) {
 function getTierFeatures(characterName) {
     // Define companion tiers and their enhanced features
     const companionTiers = {
-        // FREE TIER - Basic features
+        // FREE TIER - Basic features (NO VOICE CHAT)
         'GamerJay': {
             tier: 'free',
             features: {
@@ -776,7 +784,8 @@ function getTierFeatures(characterName) {
                 personality_depth: 'basic',
                 special_abilities: ['goal_tracking', 'motivation'],
                 response_length: 'short',
-                emotional_intelligence: 'basic'
+                emotional_intelligence: 'basic',
+                voice_enabled: false // FREE TIER - NO VOICE
             }
         },
         'Claude': {
@@ -787,7 +796,8 @@ function getTierFeatures(characterName) {
                 personality_depth: 'basic',
                 special_abilities: ['analysis', 'problem_solving'],
                 response_length: 'short',
-                emotional_intelligence: 'basic'
+                emotional_intelligence: 'basic',
+                voice_enabled: false // FREE TIER - NO VOICE
             }
         },
         
