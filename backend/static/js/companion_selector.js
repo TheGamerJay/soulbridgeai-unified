@@ -337,13 +337,17 @@ function renderSection(sectionId, companionList) {
     
     // Check for active trial from backend data
     const currentTime = Date.now();
+    const trialExpiryTime = currentUser.trial_expires ? new Date(currentUser.trial_expires).getTime() : 0;
     const hasActiveTrialAccess = currentUser.trial_active && 
                                 currentUser.trial_expires && 
-                                currentTime < new Date(currentUser.trial_expires).getTime();
+                                currentTime < trialExpiryTime;
     
     console.log(`🔍 Trial check for ${sectionId}:`, {
         trial_active: currentUser.trial_active,
-        trial_expires: currentUser.trial_expires ? new Date(currentUser.trial_expires) : null,
+        trial_expires: currentUser.trial_expires,
+        trial_expires_parsed: currentUser.trial_expires ? new Date(currentUser.trial_expires).toLocaleString() : null,
+        currentTime: new Date(currentTime).toLocaleString(),
+        timeUntilExpiry: trialExpiryTime ? Math.floor((trialExpiryTime - currentTime) / 1000) + ' seconds' : 'N/A',
         hasActiveTrialAccess
     });
     
@@ -666,14 +670,39 @@ function startTrialTimer() {
     
     timer.style.display = 'block';
     
+    // Clear any existing timer interval
+    if (window.trialTimerInterval) {
+        clearInterval(window.trialTimerInterval);
+    }
+    
     const updateTimer = () => {
+        // Parse the trial expiry time from backend (ISO format)
         const trialExpiryTime = new Date(currentUser.trial_expires).getTime();
-        const timeRemaining = trialExpiryTime - Date.now();
+        const currentTime = Date.now();
+        const timeRemaining = trialExpiryTime - currentTime;
+        
+        console.log('🕐 Trial timer update:', {
+            expiryTime: new Date(trialExpiryTime).toLocaleString(),
+            currentTime: new Date(currentTime).toLocaleString(),
+            timeRemaining: Math.floor(timeRemaining / 1000) + ' seconds',
+            hoursLeft: Math.floor(timeRemaining / (1000 * 60 * 60))
+        });
         
         if (timeRemaining <= 0) {
+            console.log('⏰ Trial expired - clearing timer');
             timer.style.display = 'none';
             currentUser.trial_active = false;
             currentUser.trial_expires = null;
+            
+            // Clear the interval and reload page to update UI
+            clearInterval(window.trialTimerInterval);
+            window.trialTimerInterval = null;
+            
+            // Reload page to refresh access after trial expires
+            setTimeout(() => {
+                showNotification('Trial expired. Refreshing...', 'info');
+                window.location.reload();
+            }, 2000);
             return;
         }
         
@@ -687,8 +716,9 @@ function startTrialTimer() {
         }
     };
     
+    // Run initial update and start interval
     updateTimer();
-    setInterval(updateTimer, 1000);
+    window.trialTimerInterval = setInterval(updateTimer, 1000);
 }
 
 function showNotification(message, type = 'info') {
