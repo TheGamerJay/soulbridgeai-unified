@@ -1183,6 +1183,74 @@ def api_companions_select():
         if not companion_id:
             return jsonify({"success": False, "error": "Companion ID required"}), 400
         
+        # Check if user has access to this companion
+        user_plan = session.get('user_plan', 'foundation')
+        trial_active = session.get('trial_active', False)
+        
+        # Get companion details to check tier
+        companion_found = False
+        companion_tier = None
+        
+        # Check all companions to find the tier
+        companions_data = {
+            "free": [
+                {"companion_id": "blayzo_free", "tier": "free"},
+                {"companion_id": "blayzica_free", "tier": "free"},
+                {"companion_id": "companion_gamerjay", "tier": "free"},
+                {"companion_id": "blayzia_free", "tier": "free"},
+                {"companion_id": "blayzion_free", "tier": "free"},
+                {"companion_id": "claude_free", "tier": "free"}
+            ],
+            "growth": [
+                {"companion_id": "companion_sky", "tier": "growth"},
+                {"companion_id": "blayzo_growth", "tier": "growth"},
+                {"companion_id": "blayzica_growth", "tier": "growth"},
+                {"companion_id": "companion_gamerjay_premium", "tier": "growth"},
+                {"companion_id": "watchdog_growth", "tier": "growth"},
+                {"companion_id": "crimson_growth", "tier": "growth"},
+                {"companion_id": "violet_growth", "tier": "growth"},
+                {"companion_id": "claude_growth", "tier": "growth"}
+            ],
+            "max": [
+                {"companion_id": "companion_crimson", "tier": "max"},
+                {"companion_id": "companion_violet", "tier": "max"},
+                {"companion_id": "royal_max", "tier": "max"},
+                {"companion_id": "watchdog_max", "tier": "max"},
+                {"companion_id": "ven_blayzica", "tier": "max"},
+                {"companion_id": "ven_sky", "tier": "max"},
+                {"companion_id": "claude_max", "tier": "max"}
+            ]
+        }
+        
+        # Find companion tier
+        for tier_companions in companions_data.values():
+            for comp in tier_companions:
+                if comp["companion_id"] == companion_id:
+                    companion_found = True
+                    companion_tier = comp["tier"]
+                    break
+            if companion_found:
+                break
+        
+        if not companion_found:
+            return jsonify({"success": False, "error": "Invalid companion ID"}), 400
+        
+        # Check access based on tier
+        has_access = False
+        if companion_tier == "free":
+            has_access = True
+        elif companion_tier == "growth":
+            has_access = user_plan in ['premium', 'enterprise'] or trial_active
+        elif companion_tier == "max":
+            has_access = user_plan == 'enterprise'
+        
+        if not has_access:
+            return jsonify({
+                "success": False, 
+                "error": f"Upgrade required to access {companion_tier} tier companions",
+                "tier_required": companion_tier
+            }), 403
+        
         # Store selected companion in session
         session['selected_companion'] = companion_id
         session['companion_selected_at'] = time.time()
