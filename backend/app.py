@@ -44,9 +44,9 @@ app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevent XSS access
 app.config['SESSION_COOKIE_SECURE'] = bool(os.environ.get('RAILWAY_ENVIRONMENT'))  # HTTPS in production
 app.config['SESSION_COOKIE_SAMESITE'] = 'Strict'  # Prevent CSRF
 app.config['SESSION_COOKIE_PATH'] = '/'  # Ensure cookie works for all paths
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=2)  # 2 hour session timeout
-app.config['SESSION_PERMANENT'] = True  # Use PERMANENT_SESSION_LIFETIME for consistent timeout
-app.config['SESSION_COOKIE_MAX_AGE'] = 7200  # 2 hours in seconds
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30)  # 30 minute session timeout
+app.config['SESSION_PERMANENT'] = False  # Sessions expire when browser closes
+app.config['SESSION_COOKIE_MAX_AGE'] = None  # Expire when browser closes
 
 # Global variables for services
 services = {
@@ -275,7 +275,7 @@ def setup_user_session(email, user_id=None, is_admin=False, dev_mode=False):
     """Setup user session with security measures and companion data restoration"""
     # Security: Clear and regenerate session to prevent fixation attacks
     session.clear()
-    session.permanent = True  # Use configured PERMANENT_SESSION_LIFETIME (2 hours)
+    # Session expires when browser closes
     session["user_authenticated"] = True
     session["session_version"] = "2025-07-28-banking-security"  # Required for auth
     session["user_email"] = email
@@ -979,7 +979,7 @@ def auth_register():
         conn.close()
         
         # Login with security and set default foundation plan
-        session.permanent = True  # Use configured PERMANENT_SESSION_LIFETIME (2 hours)
+        # Session expires when browser closes
         session['user_id'] = user_id
         session['email'] = email
         session['user_authenticated'] = True
@@ -1386,7 +1386,7 @@ def api_start_companion_trial():
         session['selected_companion'] = companion_id
         session['user_plan'] = 'trial'  # Temporarily upgrade to trial
         session['trial_active'] = True
-        session.permanent = True  # CRITICAL: Ensure session persists
+        # Session expires when browser closes  # CRITICAL: Ensure session persists
         
         logger.info(f"🔧 TRIAL SESSION DATA SET: companion={companion_id}, expires={session['trial_expires']}, plan={session['user_plan']}")
         
@@ -2904,7 +2904,7 @@ def select_plan():
         session["user_plan"] = plan_type
         session["plan_selected_at"] = time.time()
         session["first_time_user"] = False
-        session.permanent = True  # Use configured PERMANENT_SESSION_LIFETIME (2 hours)
+        # Session expires when browser closes
         
         logger.info(f"Plan selected: {plan_type} by {session.get('user_email')}")
         logger.info(f"Session after plan selection: {dict(session)}")
@@ -3512,7 +3512,7 @@ def api_users():
                 profile_image_url = data['profileImage']
                 # BULLETPROOF: Save to session first
                 session['profile_image'] = profile_image_url
-                session.permanent = True
+                # Session expires when browser closes
                 
                 # BULLETPROOF: Also save to database with fallbacks
                 user_id = session.get('user_id')
@@ -5456,7 +5456,7 @@ def voice_journaling_save():
         }
         
         session['voice_journal_entries'].append(entry)
-        session.permanent = True
+        # Session expires when browser closes
         
         logger.info(f"Voice journal entry saved for user {session.get('user_email')}")
         
@@ -5548,7 +5548,7 @@ def relationship_profiles_add():
         }
         
         session['relationship_profiles'].append(profile)
-        session.permanent = True
+        # Session expires when browser closes
         
         logger.info(f"Relationship profile added for user {session.get('user_email')}: {profile['name']}")
         
@@ -5608,7 +5608,7 @@ def relationship_profiles_delete(profile_id):
             return jsonify({"success": False, "error": "Profile not found"}), 404
         
         session['relationship_profiles'] = updated_profiles
-        session.permanent = True
+        # Session expires when browser closes
         
         logger.info(f"Relationship profile deleted for user {session.get('user_email')}: {profile_id}")
         
@@ -5670,7 +5670,7 @@ def emotional_meditations_save_session():
         }
         
         session['meditation_sessions'].append(session_record)
-        session.permanent = True
+        # Session expires when browser closes
         
         logger.info(f"Meditation session saved for user {session.get('user_email')}: {session_record['title']}")
         
@@ -5823,7 +5823,7 @@ def ai_image_generation_generate():
         
         # Update usage count
         session[usage_key] = monthly_usage + 1
-        session.permanent = True
+        # Session expires when browser closes
         
         logger.info(f"AI image generated for user {session.get('user_email')}: {prompt[:50]}...")
         
@@ -5870,7 +5870,7 @@ def ai_image_generation_save():
         }
         
         session['ai_image_gallery'].append(image_record)
-        session.permanent = True
+        # Session expires when browser closes
         
         logger.info(f"AI image saved to gallery for user {session.get('user_email')}")
         
@@ -6394,7 +6394,7 @@ def select_companion():
 
         # Store selection
         session['selected_companion_id'] = companion_id
-        session.permanent = True
+        # Session expires when browser closes
         
         logger.info(f"Companion selected: {companion_id} by user {session.get('user_email')}")
 
