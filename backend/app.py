@@ -1046,9 +1046,9 @@ def chat():
         if companion_tier == 'free':
             has_access = True
         elif companion_tier == 'growth':
-            has_access = user_plan in ['premium', 'enterprise'] or trial_active
+            has_access = user_plan in ['trial', 'premium', 'enterprise'] or trial_active
         elif companion_tier == 'max':
-            has_access = user_plan == 'enterprise'
+            has_access = user_plan in ['enterprise', 'max']
             
         if has_access:
             session['selected_companion'] = potential_companion
