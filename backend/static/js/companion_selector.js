@@ -345,9 +345,17 @@ function renderSection(sectionId, companionList) {
         // Check companion tier access
         if (companion.tier === 'growth') {
             // Growth tier requires premium plan or active trial
-            if (currentUser.plan === 'foundation' && !hasActiveTrialAccess) {
-                isLocked = true;
-                lockReason = 'Requires Growth Plan or Trial';
+            if (currentUser.plan === 'foundation') {
+                // If user has active trial, only unlock the trial companion
+                if (hasActiveTrialAccess && currentUser.trial_companion) {
+                    if (companion.companion_id !== currentUser.trial_companion) {
+                        isLocked = true;
+                        lockReason = 'Trial active for another companion';
+                    }
+                } else if (!hasActiveTrialAccess) {
+                    isLocked = true;
+                    lockReason = 'Requires Growth Plan or Trial';
+                }
             }
         } else if (companion.tier === 'max') {
             // Max tier requires enterprise plan only (no trial access)
@@ -415,7 +423,7 @@ function renderSection(sectionId, companionList) {
                                     onclick="${isSelected ? '' : `selectCompanion('${companion.companion_id}')`}">
                                 ${isSelected ? 'Selected' : 'Select'}
                             </button>
-                        ` : companion.tier === 'growth' && currentUser.plan === 'foundation' ? `
+                        ` : companion.tier === 'growth' && currentUser.plan === 'foundation' && lockReason === 'Requires Growth Plan or Trial' ? `
                             <button class="btn-trial" onclick="startPremiumTrial('${companion.companion_id}')" 
                                     style="background: linear-gradient(135deg, #ff6b6b, #ee5a24); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">
                                 ✨ Start 24h Trial
