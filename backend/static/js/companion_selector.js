@@ -367,21 +367,26 @@ function renderSection(sectionId, companionList) {
                     const hasUsedTrialFromBackend = currentUser.trial_companion !== null || currentUser.trial_expires !== null;
                     const hasUsedTrialFromStorage = localStorage.getItem('trialUsed') === 'true';
                     
-                    console.log('🔍 Trial usage check:', {
+                    console.log('🔍 DETAILED Trial usage check for', companion.display_name, ':', {
                         backend: hasUsedTrialFromBackend,
                         storage: hasUsedTrialFromStorage,
                         trial_companion: currentUser.trial_companion,
-                        trial_expires: currentUser.trial_expires
+                        trial_expires: currentUser.trial_expires,
+                        companion_tier: companion.tier,
+                        user_plan: currentUser.plan,
+                        trial_companion_type: typeof currentUser.trial_companion,
+                        trial_expires_type: typeof currentUser.trial_expires
                     });
                     
-                    // Trust backend data over localStorage
-                    if (hasUsedTrialFromBackend || hasUsedTrialFromStorage) {
-                        isLocked = true;
-                        lockReason = 'Requires Growth Plan';
-                    } else {
-                        isLocked = true;
-                        lockReason = 'Requires Growth Plan or Trial';
-                    }
+                    // For debugging - always show trial buttons temporarily
+                    isLocked = true;
+                    lockReason = 'Requires Growth Plan or Trial';
+                    
+                    console.log('🎯 Final decision for', companion.display_name, ':', {
+                        isLocked: isLocked,
+                        lockReason: lockReason,
+                        willShowTrialButton: companion.tier === 'growth' && currentUser.plan === 'foundation' && lockReason === 'Requires Growth Plan or Trial'
+                    });
                 }
             }
         } else if (companion.tier === 'max') {
