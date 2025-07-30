@@ -311,9 +311,12 @@ body.theme-crimson::after {
     width: 100%;
     height: 100%;
     background: 
-        radial-gradient(circle at 80% 20%, rgba(220, 20, 60, 0.06) 0%, transparent 40%),
-        radial-gradient(circle at 20% 80%, rgba(255, 99, 71, 0.04) 0%, transparent 35%),
-        radial-gradient(circle at 50% 50%, rgba(139, 0, 0, 0.03) 0%, transparent 30%);
+        radial-gradient(circle at 80% 20%, rgba(220, 20, 60, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 20% 80%, rgba(255, 99, 71, 0.06) 0%, transparent 35%),
+        radial-gradient(circle at 50% 50%, rgba(139, 0, 0, 0.05) 0%, transparent 30%),
+        /* MAX TIER EXCLUSIVE: Ultra-premium particle effects */
+        radial-gradient(circle at 15% 45%, rgba(255, 215, 0, 0.03) 0%, transparent 20%),
+        radial-gradient(circle at 85% 55%, rgba(255, 215, 0, 0.02) 0%, transparent 25%);
     pointer-events: none;
     z-index: -1;
     animation: crimsonPulse 8s ease-in-out infinite alternate;
@@ -329,11 +332,35 @@ body.theme-crimson::after {
     100% { opacity: 0.7; transform: rotate(0.5deg); }
 }
 
+@keyframes premiumSweep {
+    0% { left: -100%; }
+    50% { left: 100%; }
+    100% { left: -100%; }
+}
+
 body.theme-crimson .chat-header {
-    background: linear-gradient(135deg, rgba(220, 20, 60, 0.4), rgba(255, 99, 71, 0.35));
-    border-bottom: 3px solid rgba(220, 20, 60, 0.6);
-    box-shadow: 0 4px 30px rgba(220, 20, 60, 0.3);
-    backdrop-filter: blur(20px);
+    background: 
+        linear-gradient(135deg, rgba(220, 20, 60, 0.5), rgba(255, 99, 71, 0.4), rgba(255, 215, 0, 0.05));
+    border-bottom: 4px solid rgba(220, 20, 60, 0.8);
+    box-shadow: 
+        0 4px 35px rgba(220, 20, 60, 0.4),
+        0 0 20px rgba(255, 215, 0, 0.15),
+        inset 0 1px 0 rgba(255, 215, 0, 0.1);
+    backdrop-filter: blur(25px) saturate(130%);
+    /* MAX TIER EXCLUSIVE: Premium border animation */
+    position: relative;
+    overflow: hidden;
+}
+
+body.theme-crimson .chat-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.08), transparent);
+    animation: premiumSweep 4s ease-in-out infinite;
 }
 
 body.theme-crimson .message.assistant .message-content {
@@ -366,9 +393,12 @@ body.theme-violet::after {
     width: 100%;
     height: 100%;
     background: 
-        radial-gradient(circle at 75% 25%, rgba(138, 43, 226, 0.06) 0%, transparent 40%),
-        radial-gradient(circle at 25% 75%, rgba(147, 112, 219, 0.04) 0%, transparent 35%),
-        radial-gradient(circle at 50% 10%, rgba(75, 0, 130, 0.03) 0%, transparent 30%);
+        radial-gradient(circle at 75% 25%, rgba(138, 43, 226, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 25% 75%, rgba(147, 112, 219, 0.06) 0%, transparent 35%),
+        radial-gradient(circle at 50% 10%, rgba(75, 0, 130, 0.05) 0%, transparent 30%),
+        /* MAX TIER EXCLUSIVE: Ultra-premium sparkle effects */
+        radial-gradient(circle at 10% 30%, rgba(255, 215, 0, 0.02) 0%, transparent 15%),
+        radial-gradient(circle at 90% 70%, rgba(255, 215, 0, 0.03) 0%, transparent 20%);
     pointer-events: none;
     z-index: -1;
     animation: violetPulse 9s ease-in-out infinite alternate;

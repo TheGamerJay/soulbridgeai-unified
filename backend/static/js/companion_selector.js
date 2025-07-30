@@ -384,6 +384,11 @@ function renderSection(sectionId, companionList) {
                 isLocked = true;
                 lockReason = 'Requires Max Plan';
             }
+        } else if (companion.tier === 'referral') {
+            // Referral tier - no trial access, referral only
+            isLocked = true;
+            lockReason = 'Unlock through referrals';
+            console.log(`🔒 Referral companion ${companion.display_name} - referral only`);
         }
         
         // Override with any existing lock reason from backend ONLY for referral tier

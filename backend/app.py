@@ -306,6 +306,11 @@ def restore_companion_data(user_id):
             session['companion_selected_at'] = companion_data.get('companion_selected_at')
             session['first_companion_picked'] = companion_data.get('first_companion_picked', False)
             
+        # Always restore trial_used_permanently flag regardless of trial status
+        if companion_data.get('trial_used_permanently'):
+            session['trial_used_permanently'] = True
+            logger.info(f"PERSISTENCE: User {user_id} has permanently used their trial")
+        
         # Restore trial data if still valid
         trial_expires = companion_data.get('trial_expires')
         if trial_expires and companion_data.get('trial_active'):
@@ -618,6 +623,7 @@ def logout():
                 'trial_companion': session.get('trial_companion'),
                 'trial_expires': session.get('trial_expires'),
                 'trial_active': session.get('trial_active'),
+                'trial_used_permanently': session.get('trial_used_permanently', False),
                 'first_companion_picked': session.get('first_companion_picked', False)
             }
             
