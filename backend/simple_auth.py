@@ -53,7 +53,7 @@ class SimpleAuth:
             placeholder = "%s" if hasattr(self.db, 'postgres_url') and self.db.postgres_url else "?"
             
             cursor.execute(f"""
-                SELECT id, email, password_hash, display_name
+                SELECT id, email, password_hash, display_name, plan_type
                 FROM users WHERE email = {placeholder}
             """, (email.lower().strip(),))
             
@@ -66,7 +66,8 @@ class SimpleAuth:
                     "success": True,
                     "user_id": user_data[0],
                     "email": user_data[1],
-                    "display_name": user_data[3]
+                    "display_name": user_data[3],
+                    "plan_type": user_data[4] if len(user_data) > 4 else 'foundation'
                 }
             else:
                 logger.warning(f"Authentication failed: {email}")
@@ -103,7 +104,10 @@ class SimpleAuth:
         session['display_name'] = user_data['display_name']
         session['last_activity'] = datetime.now().isoformat()
         session['session_version'] = "2025-07-28-banking-security"  # BANKING SECURITY: Force version check
-        session['user_plan'] = 'foundation'  # Default all users to foundation plan
+        # Load user's actual plan from database instead of defaulting to foundation
+        user_plan = user_data.get('plan_type', 'foundation')  # Get plan from user data
+        session['user_plan'] = user_plan
+        print(f"🔧 LOGIN: Set user_plan = {user_plan} for {user_data['email']}")
         
         # Try to fetch and store account creation date and profile image
         try:

@@ -83,17 +83,8 @@ async function loadUserDataFromBackend() {
     }
 }
 
-async function loadUserData() {
-    try {
-        console.log('👤 Loading user data...');
-        // This would typically fetch from an API
-        // For now, using defaults
-        currentUser.plan = 'foundation';
-        console.log('✅ User data loaded:', currentUser);
-    } catch (error) {
-        console.error('❌ Error loading user data:', error);
-    }
-}
+// Removed obsolete loadUserData() function that was overriding plan to 'foundation'
+// User data is now properly loaded via fetchUserData() from /api/user/status
 
 async function loadCompanions() {
     console.log('🤖 Loading companions...');
