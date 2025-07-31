@@ -21,7 +21,7 @@ def create_production_user():
         database = "railway"
         
         if not password or "your_postgres_password_here" in password:
-            print("❌ PostgreSQL password not configured properly in .env")
+            print("ERROR: PostgreSQL password not configured properly in .env")
             print("Please set PGPASSWORD in your .env file")
             return False
         
@@ -35,7 +35,7 @@ def create_production_user():
             database=database
         )
         cursor = conn.cursor()
-        print("✅ Connected to PostgreSQL")
+        print("SUCCESS: Connected to PostgreSQL")
         
         # Check if users table exists
         cursor.execute("""
@@ -47,7 +47,7 @@ def create_production_user():
         table_exists = cursor.fetchone()[0]
         
         if not table_exists:
-            print("❌ Users table doesn't exist. Run database initialization first.")
+            print("ERROR: Users table doesn't exist. Run database initialization first.")
             return False
         
         # Check table structure
@@ -66,7 +66,7 @@ def create_production_user():
         existing_user = cursor.fetchone()
         
         if existing_user:
-            print(f"✅ User {email} already exists with ID: {existing_user[0]}")
+            print(f"SUCCESS: User {email} already exists with ID: {existing_user[0]}")
             return True
         
         # Create password hash
@@ -92,7 +92,7 @@ def create_production_user():
         cursor.execute("SELECT id FROM users WHERE email = %s", (email,))
         user_id = cursor.fetchone()[0]
         
-        print(f"✅ User created successfully!")
+        print(f"SUCCESS: User created successfully!")
         print(f"   Email: {email}")
         print(f"   User ID: {user_id}")
         print(f"   Display Name: GamerJay")
@@ -102,13 +102,13 @@ def create_production_user():
         return True
         
     except Exception as e:
-        print(f"❌ Error creating user: {e}")
+        print(f"ERROR: Error creating user: {e}")
         return False
 
 if __name__ == "__main__":
-    print("🚀 Creating production user account...")
+    print("Creating production user account...")
     success = create_production_user()
     if success:
-        print("✅ Production user account ready!")
+        print("SUCCESS: Production user account ready!")
     else:
-        print("❌ Failed to create production user account")
+        print("ERROR: Failed to create production user account")
