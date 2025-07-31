@@ -6686,6 +6686,47 @@ def emergency_login(email):
         logger.error(f"Emergency login error: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
 
+@app.route("/debug/check-user-plan")
+def debug_check_user_plan():
+    """Debug: Check current user's plan from session and database"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Not logged in"}), 401
+        
+        user_email = session.get('user_email', 'unknown')
+        user_id = session.get('user_id')
+        session_plan = session.get('user_plan', 'unknown')
+        
+        # Check database plan
+        db_plan = 'unknown'
+        try:
+            db_instance = get_database()
+            if db_instance and user_id:
+                conn = db_instance.get_connection()
+                cursor = conn.cursor()
+                placeholder = "%s" if hasattr(db_instance, 'postgres_url') and db_instance.postgres_url else "?"
+                
+                cursor.execute(f"SELECT plan_type FROM users WHERE id = {placeholder}", (user_id,))
+                result = cursor.fetchone()
+                if result:
+                    db_plan = result[0] or 'foundation'
+                conn.close()
+        except Exception as db_error:
+            logger.error(f"Debug plan check DB error: {db_error}")
+        
+        return jsonify({
+            "success": True,
+            "user_email": user_email,
+            "user_id": user_id,
+            "session_plan": session_plan,
+            "database_plan": db_plan,
+            "session_keys": list(session.keys())
+        })
+        
+    except Exception as e:
+        logger.error(f"Debug plan check error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
 @app.route("/debug/emergency-login-page")
 def emergency_login_page():
     """DEBUG: Emergency login page"""
