@@ -50,6 +50,33 @@ function handleChatSwitching() {
 function setupEventListeners() {
     // Add any additional event listeners here
     document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    // Event delegation for dynamically generated buttons
+    document.addEventListener('click', function(event) {
+        // Handle companion selection buttons
+        if (event.target.classList.contains('btn-select') && !event.target.disabled) {
+            const companionCard = event.target.closest('.companion-card');
+            if (companionCard) {
+                const companionId = companionCard.dataset.companionId;
+                if (companionId) {
+                    console.log('🔍 Event delegation: selectCompanion clicked for:', companionId);
+                    window.selectCompanion(companionId);
+                }
+            }
+        }
+        
+        // Handle trial buttons
+        if (event.target.classList.contains('btn-trial')) {
+            const companionCard = event.target.closest('.companion-card');
+            if (companionCard) {
+                const companionId = companionCard.dataset.companionId;
+                if (companionId) {
+                    console.log('🔍 Event delegation: startPremiumTrial clicked for:', companionId);
+                    window.startPremiumTrial(companionId);
+                }
+            }
+        }
+    });
 }
 
 async function loadUserDataFromBackend() {
@@ -402,6 +429,7 @@ function renderSection(sectionId, companionList) {
         
         return `
             <div class="companion-card ${isLocked ? 'locked' : ''} ${isSelected ? 'selected' : ''}" 
+                 data-companion-id="${companion.companion_id}"
                  onclick="${clickAction}">
                 
                 <div class="companion-avatar">
@@ -486,7 +514,8 @@ function getFeatureIcon(feature) {
     return iconMap[feature] || 'star';
 }
 
-async function selectCompanion(companionId) {
+// Make functions globally accessible
+window.selectCompanion = async function(companionId) {
     console.log('🤖 Selecting companion:', companionId);
     console.log('🔍 selectCompanion function called');
     
@@ -535,7 +564,7 @@ async function selectCompanion(companionId) {
     }
 }
 
-async function startPremiumTrial(companionId) {
+window.startPremiumTrial = async function(companionId) {
     console.log('🚀 Starting premium trial for companion:', companionId);
     console.log('🔍 Button clicked - function executing');
     
