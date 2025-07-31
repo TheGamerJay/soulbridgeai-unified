@@ -65,8 +65,13 @@ class SimpleAuth:
                 logger.warning(f"plan_type column not found, falling back: {col_error}")
                 
                 # IMPORTANT: In PostgreSQL, we need to rollback the transaction after an error
-                conn.rollback()
+                try:
+                    conn.rollback()
+                except:
+                    pass  # Some database types don't support rollback
                 
+                # Create new cursor after rollback
+                cursor = conn.cursor()
                 cursor.execute(f"""
                     SELECT id, email, password_hash, display_name
                     FROM users WHERE email = {placeholder}
