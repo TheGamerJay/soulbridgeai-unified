@@ -978,46 +978,6 @@ What specific area would you like help with? I know every feature of SoulBridge 
 
         // Load add-ons when page is ready
         document.addEventListener('DOMContentLoaded', loadUserAddons);
-
-        // =============================================
-        // BROWSER CLOSE DETECTION - Logout on close, stay logged in on tab switch
-        // =============================================
-        let isTabSwitch = false;
-        
-        // Track visibility changes (tab switching)
-        document.addEventListener('visibilitychange', function() {
-            if (document.hidden) {
-                isTabSwitch = true;
-                console.log('🔄 Tab hidden - marking as tab switch');
-            } else {
-                isTabSwitch = false;
-                console.log('🔄 Tab visible - resetting tab switch flag');
-            }
-        });
-        
-        // Detect browser/tab close vs tab switch
-        window.addEventListener('beforeunload', function(event) {
-            // If it's just a tab switch, don't logout
-            if (isTabSwitch) {
-                console.log('🔄 Tab switch detected - keeping session active');
-                return;
-            }
-            
-            // Browser/tab is being closed - logout user
-            console.log('🚪 Browser close detected - logging out user');
-            
-            // Send synchronous logout request
-            navigator.sendBeacon('/api/logout-on-close', JSON.stringify({
-                reason: 'browser_close'
-            }));
-        });
-        
-        // Reset tab switch flag after a delay (in case of quick tab switches)
-        setInterval(function() {
-            if (isTabSwitch && !document.hidden) {
-                isTabSwitch = false;
-            }
-        }, 2000);
     </script>
 </body>
 </html>
