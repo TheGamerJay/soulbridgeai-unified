@@ -352,8 +352,8 @@ function renderSection(sectionId, companionList) {
                     console.log(`🆓 Growth companion ${companion.display_name} unlocked via active trial`);
                 } else {
                     isLocked = true;
-                    lockReason = 'Try Free for 24 Hours';
-                    console.log(`🔒 Growth companion ${companion.display_name} locked - trial available`);
+                    lockReason = 'Upgrade to Premium Required';
+                    console.log(`🔒 Growth companion ${companion.display_name} locked - premium required`);
                 }
             } else if (currentUser.plan === 'premium' || currentUser.plan === 'enterprise') {
                 // Premium or Enterprise users have full access to Growth companions
@@ -369,8 +369,8 @@ function renderSection(sectionId, companionList) {
                     console.log(`🆓 Max companion ${companion.display_name} unlocked via active trial`);
                 } else {
                     isLocked = true;
-                    lockReason = 'Try Free for 24 Hours';
-                    console.log(`🔒 Max companion ${companion.display_name} locked - trial available`);
+                    lockReason = 'Upgrade to Enterprise Required';
+                    console.log(`🔒 Max companion ${companion.display_name} locked - enterprise required`);
                 }
             } else if (currentUser.plan === 'enterprise') {
                 // Enterprise users have full access to Max companions
