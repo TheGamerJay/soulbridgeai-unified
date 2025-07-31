@@ -659,6 +659,8 @@
     <!-- All conflicting scripts disabled on login page - login-fixed.js handles everything -->
     <!-- <script src="{{ url_for('static', filename='js/universal-button-fix.js') }}?v=20250725" defer></script> -->
     <!-- <script src="{{ url_for('static', filename='js/app.js') }}?v=20250725" defer></script> -->
+    <!-- TEMPORARILY DISABLED ALL INLINE JAVASCRIPT FOR DEBUGGING -->
+    <!--
     <script>
         // Wait for DOM to be ready before attaching event listeners
         document.addEventListener('DOMContentLoaded', function() {
@@ -1036,10 +1038,11 @@
             }, 300); // Give extra time for all scripts to load
         });
     </script>
+    -->
     
     <!-- AUTH.JS COMPLETELY REMOVED FOR PLAIN FORM SUBMISSION -->
     
-    <!-- Complete working login system -->
-    <script src="{{ url_for('static', filename='js/login-fixed.js') }}" defer></script>
+    <!-- TEMPORARILY DISABLED ALL JAVASCRIPT FOR DEBUGGING -->
+    <!-- <script src="{{ url_for('static', filename='js/login-fixed.js') }}" defer></script> -->
 </body>
 </html>

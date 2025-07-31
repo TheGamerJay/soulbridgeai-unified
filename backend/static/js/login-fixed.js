@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", function() {
         loginForm.onsubmit = null;
         
         loginForm.addEventListener("submit", function(e) {
-            console.log("🚀 Form submitted - allowing normal form submission");
+            console.log("🚀 Form submitted - checking validation only");
             
             const email = emailInput ? emailInput.value.trim() : "";
             const password = passwordInput ? passwordInput.value : "";
@@ -31,8 +31,9 @@ document.addEventListener("DOMContentLoaded", function() {
                 loginBtn.textContent = "Signing in...";
             }
             
-            // Let the form submit normally to /auth/login
-            console.log("✅ Allowing normal form POST to /auth/login");
+            // DO NOT prevent default - let form submit normally
+            console.log("✅ Form validation passed - submitting to /auth/login");
+            // Form will submit naturally to action="/auth/login" method="POST"
         });
     }
     
