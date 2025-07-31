@@ -630,7 +630,7 @@
       let prompt = promptInput.value.trim();
 
       // If reference image is provided, analyze it first
-      if (referenceImageData && !prompt) {
+      if (referenceImageData) {
         document.getElementById('loadingState').style.display = 'block';
         document.getElementById('generateBtn').disabled = true;
         
@@ -650,7 +650,13 @@
           const analysisResult = await analysisResponse.json();
           
           if (analysisResult.success) {
-            prompt = analysisResult.description;
+            if (prompt) {
+              // Combine user prompt with reference analysis
+              prompt = `Create an image with this style and composition: "${analysisResult.description}". But modify it to: ${prompt}`;
+            } else {
+              // Use only reference analysis
+              prompt = analysisResult.description;
+            }
             document.getElementById('imagePrompt').value = prompt;
           } else {
             alert('Failed to analyze reference image: ' + analysisResult.error);
