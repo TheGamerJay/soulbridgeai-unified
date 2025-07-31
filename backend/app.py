@@ -535,6 +535,11 @@ def login_page():
         logger.error(f"Login template error: {e}")
         return jsonify({"error": "Login page temporarily unavailable"}), 200
 
+@app.route("/test-login")
+def test_login_page():
+    """Simple test login page without JavaScript"""
+    return render_template("test-login.html")
+
 @app.route("/auth/login", methods=["GET", "POST"])
 def auth_login():
     """Clean, simple login authentication"""
