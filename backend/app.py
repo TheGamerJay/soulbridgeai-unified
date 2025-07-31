@@ -6054,18 +6054,28 @@ def ai_image_generation_generate():
         if monthly_usage >= 50:
             return jsonify({"success": False, "error": "Monthly usage limit reached (50 images)"}), 403
         
-        # For demo purposes, return a placeholder image
-        # In production, you would integrate with DALL-E API here
-        placeholder_images = [
-            "https://picsum.photos/512/512?random=1",
-            "https://picsum.photos/512/512?random=2", 
-            "https://picsum.photos/512/512?random=3",
-            "https://picsum.photos/512/512?random=4",
-            "https://picsum.photos/512/512?random=5"
-        ]
-        
-        import random
-        mock_image_url = random.choice(placeholder_images)
+        # Generate image using OpenAI DALL-E API
+        try:
+            # Enhance the prompt for better results
+            enhanced_prompt = f"{prompt}. High quality, detailed, {style} style."
+            
+            logger.info(f"🎨 Generating image with DALL-E: {enhanced_prompt[:100]}...")
+            
+            response = openai_client.images.generate(
+                model="dall-e-3",
+                prompt=enhanced_prompt,
+                size="1024x1024",
+                quality="standard",
+                n=1
+            )
+            
+            mock_image_url = response.data[0].url
+            logger.info(f"✅ DALL-E image generated successfully")
+            
+        except Exception as dalle_error:
+            logger.error(f"❌ DALL-E generation failed: {dalle_error}")
+            # Fallback to a more informative placeholder
+            mock_image_url = f"https://via.placeholder.com/512x512/8b5cf6/ffffff?text=Image+Generation+Error"
         
         # Update usage count
         session[usage_key] = monthly_usage + 1
