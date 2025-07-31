@@ -6755,6 +6755,85 @@ def reset_user_to_foundation():
         logger.error(f"Reset to foundation error: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
 
+@app.route("/debug/reset-password-for-user", methods=["POST"])
+def debug_reset_password_for_user():
+    """Debug: Reset password for a specific user"""
+    try:
+        data = request.get_json()
+        if not data or not data.get('email') or not data.get('new_password'):
+            return jsonify({"success": False, "error": "Email and new_password required"}), 400
+            
+        email = data['email'].lower().strip()
+        new_password = data['new_password']
+        
+        # Hash the new password
+        import bcrypt
+        password_hash = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt(rounds=12)).decode('utf-8')
+        
+        db_instance = get_database()
+        if not db_instance:
+            return jsonify({"success": False, "error": "Database not available"}), 500
+            
+        conn = db_instance.get_connection()
+        cursor = conn.cursor()
+        placeholder = "%s" if hasattr(db_instance, 'postgres_url') and db_instance.postgres_url else "?"
+        
+        # Update password hash
+        cursor.execute(f"UPDATE users SET password_hash = {placeholder} WHERE email = {placeholder}", (password_hash, email))
+        affected_rows = cursor.rowcount
+        conn.commit()
+        conn.close()
+        
+        logger.info(f"🔧 DEBUG: Updated password for {email}")
+        
+        return jsonify({
+            "success": True,
+            "message": f"Password updated for {email}",
+            "affected_rows": affected_rows
+        })
+        
+    except Exception as e:
+        logger.error(f"Reset password error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/debug/check-user-auth/<email>")
+def debug_check_user_auth(email):
+    """Debug: Check if user exists and password hash"""
+    try:
+        db_instance = get_database()
+        if not db_instance:
+            return jsonify({"success": False, "error": "Database not available"}), 500
+            
+        conn = db_instance.get_connection()
+        cursor = conn.cursor()
+        placeholder = "%s" if hasattr(db_instance, 'postgres_url') and db_instance.postgres_url else "?"
+        
+        # Check if user exists
+        cursor.execute(f"SELECT id, email, password_hash, display_name FROM users WHERE email = {placeholder}", (email.lower(),))
+        user_data = cursor.fetchone()
+        conn.close()
+        
+        if user_data:
+            return jsonify({
+                "success": True,
+                "user_found": True,
+                "user_id": user_data[0],
+                "email": user_data[1],
+                "display_name": user_data[3],
+                "has_password_hash": bool(user_data[2]),
+                "password_hash_length": len(user_data[2]) if user_data[2] else 0,
+                "password_hash_preview": user_data[2][:20] + "..." if user_data[2] else None
+            })
+        else:
+            return jsonify({
+                "success": True,
+                "user_found": False,
+                "message": f"No user found with email: {email}"
+            })
+            
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
 @app.route("/debug/check-user-plan")
 def debug_check_user_plan():
     """Debug: Check current user's plan from session and database"""
