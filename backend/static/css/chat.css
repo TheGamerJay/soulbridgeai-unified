@@ -723,6 +723,29 @@ body.theme-blayzion .message.assistant .message-content {
     100% { opacity: 1.0; }
 }
 
+/* Max Tier Addon Buttons */
+.action-btn.addon-btn {
+    border-color: rgba(139, 92, 246, 0.4);
+    color: #8b5cf6;
+    background: rgba(139, 92, 246, 0.1);
+    position: relative;
+}
+
+.action-btn.addon-btn:hover {
+    background: rgba(139, 92, 246, 0.2);
+    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+    transform: translateY(-2px);
+}
+
+.action-btn.addon-btn::before {
+    content: '👑';
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    font-size: 0.7rem;
+    opacity: 0.8;
+}
+
 /* Messages area */
 .chat-messages {
     flex: 1;

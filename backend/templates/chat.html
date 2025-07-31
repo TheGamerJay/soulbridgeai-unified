@@ -62,6 +62,27 @@
                     <i class="fas fa-book"></i>
                     Library
                 </a>
+                
+                <!-- Max Tier Addon Buttons -->
+                {% if session.get('user_plan') == 'enterprise' %}
+                <a href="/voice-journaling" class="action-btn addon-btn" title="Voice Journaling - Max Tier Feature">
+                    <i class="fas fa-microphone-alt"></i>
+                    Journal
+                </a>
+                <a href="/relationship-profiles" class="action-btn addon-btn" title="Relationship Tools - Max Tier Feature">
+                    <i class="fas fa-heart"></i>
+                    Relations
+                </a>
+                <a href="/emotional-meditations" class="action-btn addon-btn" title="Emotional Meditations - Max Tier Feature">
+                    <i class="fas fa-om"></i>
+                    Meditate
+                </a>
+                <a href="/ai-image-generation" class="action-btn addon-btn" title="AI Image Generation - Max Tier Feature">
+                    <i class="fas fa-image"></i>
+                    Images
+                </a>
+                {% endif %}
+                
                 <button onclick="saveConversationToLibrary()" class="action-btn" title="Save current conversation to library">
                     <i class="fas fa-save"></i>
                     Save
