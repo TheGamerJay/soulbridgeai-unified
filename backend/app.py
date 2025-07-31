@@ -542,13 +542,10 @@ def home():
 
 @app.route("/login")
 def login_page():
-    """Login page - redirect to intro if already logged in"""
+    """Login page - always show login form when accessed directly"""
     try:
-        # If user is already logged in, redirect to intro instead of showing login form
-        if is_logged_in():
-            logger.info(f"🔐 LOGIN ROUTE: User already authenticated, redirecting to intro")
-            return redirect("/intro")
-        
+        # Always show the login page when accessed directly
+        # Users should be able to access /login even if already logged in
         clerk_publishable_key = os.environ.get("NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY")
         return render_template("login.html", clerk_publishable_key=clerk_publishable_key)
     except Exception as e:
