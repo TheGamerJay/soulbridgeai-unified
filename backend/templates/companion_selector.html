@@ -141,6 +141,12 @@
     </div>
 
     <!-- JavaScript -->
+    <script>
+        // If not flagged in sessionStorage, log out immediately
+        if (!sessionStorage.getItem('loggedIn')) {
+            fetch('/auth/logout').then(() => window.location = '/login');
+        }
+    </script>
     <script src="{{ url_for('static', filename='js/companion_selector.js') }}?v={{ range(1000000) | random }}"></script>
 </body>
 </html>
