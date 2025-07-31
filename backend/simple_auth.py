@@ -77,7 +77,6 @@ class SimpleAuth:
             conn.close()
             
             if user_data:
-                print(f"🔍 DEBUG: Found user data for {email}: {user_data}")
                 if bcrypt.checkpw(password.encode('utf-8'), user_data[2].encode('utf-8')):
                     logger.info(f"Authentication successful: {email}")
                     
@@ -87,7 +86,6 @@ class SimpleAuth:
                     else:
                         plan_type = 'foundation'  # Default to foundation
                     
-                    print(f"🔍 DEBUG: User plan_type: {plan_type}")
                     return {
                         "success": True,
                         "user_id": user_data[0],
@@ -96,11 +94,9 @@ class SimpleAuth:
                         "plan_type": plan_type
                     }
                 else:
-                    print(f"🔍 DEBUG: Password check failed for {email}")
                     logger.warning(f"Authentication failed: {email}")
                     return {"success": False, "error": "Invalid email or password"}
             else:
-                print(f"🔍 DEBUG: No user found for email: {email}")
                 logger.warning(f"Authentication failed - user not found: {email}")
                 return {"success": False, "error": "Invalid email or password"}
                 
