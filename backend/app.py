@@ -6174,7 +6174,7 @@ def ai_image_generation_analyze_reference():
             logger.info(f"🔍 Analyzing reference image with GPT-4 Vision...")
             
             response = openai_client.chat.completions.create(
-                model="gpt-4-vision-preview",
+                model="gpt-4o",
                 messages=[
                     {
                         "role": "user",
