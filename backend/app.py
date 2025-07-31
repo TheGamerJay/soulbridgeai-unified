@@ -6181,7 +6181,7 @@ def ai_image_generation_analyze_reference():
                         "content": [
                             {
                                 "type": "text",
-                                "text": "Analyze this image and create a detailed description that could be used to generate a similar image with DALL-E. Focus on: style, composition, colors, mood, objects, characters, lighting, and artistic techniques. Be very descriptive and specific."
+                                "text": "Analyze this image and create a concise but detailed description that could be used to generate a similar image with DALL-E. Focus on: style, composition, colors, mood, objects, characters, lighting, and artistic techniques. Keep it under 3000 characters while being descriptive and specific."
                             },
                             {
                                 "type": "image_url",
@@ -6192,11 +6192,16 @@ def ai_image_generation_analyze_reference():
                         ]
                     }
                 ],
-                max_tokens=500
+                max_tokens=300
             )
             
             description = response.choices[0].message.content
             logger.info(f"✅ GPT-4 Vision analysis completed: {len(description)} characters")
+            
+            # DALL-E 3 has a 4000 character limit, so truncate if needed
+            if len(description) > 3800:  # Leave some room for user additions
+                logger.info(f"🔄 Truncating description from {len(description)} to 3800 characters")
+                description = description[:3800] + "..."
             
             return jsonify({
                 "success": True,
