@@ -6471,6 +6471,37 @@ def debug_session_status():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route("/debug/force-max-tier-by-email/<email>", methods=["POST"])
+def force_max_tier_by_email(email):
+    """DEBUG: Force set specific email to Max tier in database (no auth required)"""
+    try:
+        # Update database directly
+        db_instance = get_database()
+        if db_instance:
+            conn = db_instance.get_connection()
+            cursor = conn.cursor()
+            placeholder = "%s" if hasattr(db_instance, 'postgres_url') and db_instance.postgres_url else "?"
+            
+            # Update the user's plan in database
+            cursor.execute(f"UPDATE users SET plan_type = {placeholder} WHERE email = {placeholder}", ('enterprise', email.lower()))
+            affected_rows = cursor.rowcount
+            conn.commit()
+            conn.close()
+            
+            logger.info(f"💾 FORCE: Updated plan_type to enterprise for email {email} (affected {affected_rows} rows)")
+            
+            return jsonify({
+                "success": True,
+                "message": f"Forced {email} to Max tier (enterprise plan) in database",
+                "affected_rows": affected_rows
+            })
+        else:
+            return jsonify({"success": False, "error": "Database not available"}), 500
+            
+    except Exception as e:
+        logger.error(f"Force max tier error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
 # COMPANION API ENDPOINTS
 # ========================================
 

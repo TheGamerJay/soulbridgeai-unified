@@ -60,17 +60,26 @@ class SimpleAuth:
             user_data = cursor.fetchone()
             conn.close()
             
-            if user_data and bcrypt.checkpw(password.encode('utf-8'), user_data[2].encode('utf-8')):
-                logger.info(f"Authentication successful: {email}")
-                return {
-                    "success": True,
-                    "user_id": user_data[0],
-                    "email": user_data[1],
-                    "display_name": user_data[3],
-                    "plan_type": user_data[4] if len(user_data) > 4 else 'foundation'
-                }
+            if user_data:
+                print(f"🔍 DEBUG: Found user data for {email}: {user_data}")
+                if bcrypt.checkpw(password.encode('utf-8'), user_data[2].encode('utf-8')):
+                    logger.info(f"Authentication successful: {email}")
+                    plan_type = user_data[4] if len(user_data) > 4 and user_data[4] else 'foundation'
+                    print(f"🔍 DEBUG: User plan_type from DB: {plan_type}")
+                    return {
+                        "success": True,
+                        "user_id": user_data[0],
+                        "email": user_data[1],
+                        "display_name": user_data[3],
+                        "plan_type": plan_type
+                    }
+                else:
+                    print(f"🔍 DEBUG: Password check failed for {email}")
+                    logger.warning(f"Authentication failed: {email}")
+                    return {"success": False, "error": "Invalid email or password"}
             else:
-                logger.warning(f"Authentication failed: {email}")
+                print(f"🔍 DEBUG: No user found for email: {email}")
+                logger.warning(f"Authentication failed - user not found: {email}")
                 return {"success": False, "error": "Invalid email or password"}
                 
         except Exception as e:
