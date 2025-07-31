@@ -53,26 +53,42 @@ function setupEventListeners() {
     
     // Event delegation for dynamically generated buttons
     document.addEventListener('click', function(event) {
+        console.log('🔍 Click detected on:', event.target.tagName, event.target.className);
+        
         // Handle companion selection buttons
         if (event.target.classList.contains('btn-select') && !event.target.disabled) {
+            event.preventDefault();
             const companionCard = event.target.closest('.companion-card');
+            console.log('🔍 Found companion card:', companionCard);
             if (companionCard) {
                 const companionId = companionCard.dataset.companionId;
+                console.log('🔍 Companion ID from data attribute:', companionId);
                 if (companionId) {
                     console.log('🔍 Event delegation: selectCompanion clicked for:', companionId);
-                    window.selectCompanion(companionId);
+                    try {
+                        window.selectCompanion(companionId);
+                    } catch (error) {
+                        console.error('❌ Error calling selectCompanion:', error);
+                    }
                 }
             }
         }
         
         // Handle trial buttons
         if (event.target.classList.contains('btn-trial')) {
+            event.preventDefault();
             const companionCard = event.target.closest('.companion-card');
+            console.log('🔍 Found companion card for trial:', companionCard);
             if (companionCard) {
                 const companionId = companionCard.dataset.companionId;
+                console.log('🔍 Trial companion ID from data attribute:', companionId);
                 if (companionId) {
                     console.log('🔍 Event delegation: startPremiumTrial clicked for:', companionId);
-                    window.startPremiumTrial(companionId);
+                    try {
+                        window.startPremiumTrial(companionId);
+                    } catch (error) {
+                        console.error('❌ Error calling startPremiumTrial:', error);
+                    }
                 }
             }
         }
@@ -580,7 +596,9 @@ window.startPremiumTrial = async function(companionId) {
             })
         });
         
+        console.log('🔍 Trial API Response status:', response.status);
         const data = await response.json();
+        console.log('🔍 Trial API Response data:', data);
         
         if (data.success) {
             console.log('✅ 5-hour trial started successfully');
