@@ -230,21 +230,8 @@ def is_logged_in():
         if not session.get('user_id') and not session.get('user_email') and not session.get('email'):
             return False
         
-        # BANKING SECURITY: Check session timeout (extended for companion experience)
-        last_activity = session.get('last_activity')
-        if last_activity:
-            try:
-                last_time = datetime.fromisoformat(last_activity)
-                if datetime.now() - last_time > timedelta(hours=8):  # 8 hour session timeout (was 30 minutes)
-                    # SECURITY: Session expired - clear it
-                    logger.info("SECURITY: Session expired due to inactivity (8 hours)")
-                    session.clear()
-                    return False
-            except Exception as e:
-                # Invalid timestamp - don't clear session, just set new timestamp
-                logger.warning(f"Invalid timestamp in session, resetting: {e}")
-                session['last_activity'] = datetime.now().isoformat()
-                return True
+        # No automatic timeout - session lasts until browser is closed
+        # Just update the last activity timestamp for logging purposes
         
         # Update last activity time
         session['last_activity'] = datetime.now().isoformat()
