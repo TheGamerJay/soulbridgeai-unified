@@ -580,7 +580,7 @@ def auth_login():
             session['display_name'] = result.get('display_name', 'User')
             
             logger.info(f"Login successful: {email} (plan: {session['user_plan']})")
-            return jsonify({"success": True, "redirect": "/"})
+            return jsonify({"success": True, "redirect": "/intro"})
         else:
             logger.warning(f"Login failed: {email}")
             return jsonify({"success": False, "error": result["error"]}), 401
