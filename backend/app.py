@@ -1120,7 +1120,9 @@ def intro():
     """Show intro/home page"""
     if not is_logged_in():
         return redirect("/login")
-    return redirect("/")
+    
+    logger.info(f"✅ INTRO: Showing intro page for authenticated user")
+    return render_template("intro.html")
 
 @app.route("/companion-selection")
 def companion_selection():
