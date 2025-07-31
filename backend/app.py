@@ -235,9 +235,9 @@ def is_logged_in():
         if last_activity:
             try:
                 last_time = datetime.fromisoformat(last_activity)
-                if datetime.now() - last_time > timedelta(minutes=30):  # 30 minute session timeout
+                if datetime.now() - last_time > timedelta(hours=8):  # 8 hour session timeout (was 30 minutes)
                     # SECURITY: Session expired - clear it
-                    logger.info("SECURITY: Session expired due to inactivity (2 hours)")
+                    logger.info("SECURITY: Session expired due to inactivity (8 hours)")
                     session.clear()
                     return False
             except Exception as e:
@@ -602,9 +602,17 @@ def auth_login():
         result = auth.authenticate(email, password)
         
         if result["success"]:
-            # Create session
-            auth.create_session(result)
-            logger.info(f"Login successful: {email}")
+            # Use proper session setup instead of simple create_session
+            setup_user_session(
+                email=result["email"],
+                user_id=result["user_id"]
+            )
+            
+            # Set user plan from database result
+            session['user_plan'] = result.get('plan_type', 'foundation')
+            session['display_name'] = result.get('display_name', 'User')
+            
+            logger.info(f"Login successful: {email} (plan: {session['user_plan']})")
             return jsonify({"success": True, "redirect": "/"})
         else:
             logger.warning(f"Login failed: {email}")
