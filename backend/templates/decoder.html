@@ -482,6 +482,7 @@ function updateModeDescription() {
 
 function updateUsageIndicator() {
     const usageCount = document.getElementById('usage-count');
+    const usageLimit = document.getElementById('usage-limit');
     const usageFill = document.getElementById('usage-fill');
     const usageIndicator = document.getElementById('usage-indicator');
     
@@ -491,6 +492,8 @@ function updateUsageIndicator() {
         // Unlimited for Max tier
         usageIndicator.style.display = 'none';
     } else {
+        // Update the limit display
+        usageLimit.textContent = dailyLimit;
         const percentage = (userUsage / dailyLimit) * 100;
         usageFill.style.width = Math.min(percentage, 100) + '%';
         usageIndicator.style.display = 'block';

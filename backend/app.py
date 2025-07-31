@@ -6413,18 +6413,41 @@ def get_user_status():
 
 @app.route("/debug/set-max-tier", methods=["POST"])
 def set_max_tier():
-    """DEBUG: Set current user to Max tier (enterprise plan)"""
+    """DEBUG: Set current user to Max tier (enterprise plan) in both session AND database"""
     try:
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
             
-        session['user_plan'] = 'enterprise'
         user_email = session.get('user_email', 'unknown')
+        user_id = session.get('user_id')
+        
+        # Update session
+        session['user_plan'] = 'enterprise'
+        
+        # Update database
+        try:
+            db_instance = get_database()
+            if db_instance and (user_id or user_email):
+                conn = db_instance.get_connection()
+                cursor = conn.cursor()
+                placeholder = "%s" if hasattr(db_instance, 'postgres_url') and db_instance.postgres_url else "?"
+                
+                if user_id:
+                    cursor.execute(f"UPDATE users SET plan_type = {placeholder} WHERE id = {placeholder}", ('enterprise', user_id))
+                elif user_email:
+                    cursor.execute(f"UPDATE users SET plan_type = {placeholder} WHERE email = {placeholder}", ('enterprise', user_email))
+                
+                conn.commit()
+                conn.close()
+                logger.info(f"💾 DATABASE: Updated plan_type to enterprise for user {user_email}")
+        except Exception as db_error:
+            logger.error(f"Failed to update database plan: {db_error}")
+        
         logger.info(f"🔧 DEBUG: Set user {user_email} to enterprise plan (Max tier)")
         
         return jsonify({
             "success": True, 
-            "message": "User upgraded to Max tier (enterprise plan)",
+            "message": "User upgraded to Max tier (enterprise plan) in session and database",
             "new_plan": "enterprise"
         })
     except Exception as e:
