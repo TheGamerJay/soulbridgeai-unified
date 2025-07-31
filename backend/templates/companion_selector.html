@@ -143,8 +143,12 @@
     <!-- JavaScript -->
     <script>
         // If not flagged in sessionStorage, log out immediately
+        console.log('🔍 Checking sessionStorage loggedIn flag:', sessionStorage.getItem('loggedIn'));
         if (!sessionStorage.getItem('loggedIn')) {
+            console.log('❌ No sessionStorage flag - redirecting to login');
             fetch('/auth/logout').then(() => window.location = '/login');
+        } else {
+            console.log('✅ sessionStorage flag found - allowing page to load');
         }
     </script>
     <script src="{{ url_for('static', filename='js/companion_selector.js') }}?v={{ range(1000000) | random }}"></script>

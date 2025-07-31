@@ -384,8 +384,12 @@
     <script src="{{ url_for('static', filename='js/login-fixed.js') }}"></script>
     <script>
         // If not flagged in sessionStorage, log out immediately
+        console.log('🔍 INTRO: Checking sessionStorage loggedIn flag:', sessionStorage.getItem('loggedIn'));
         if (!sessionStorage.getItem('loggedIn')) {
+            console.log('❌ INTRO: No sessionStorage flag - redirecting to login');
             fetch('/auth/logout').then(() => window.location = '/login');
+        } else {
+            console.log('✅ INTRO: sessionStorage flag found - allowing page to load');
         }
         
         // AGGRESSIVE intro page styling enforcement

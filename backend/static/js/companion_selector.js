@@ -488,6 +488,7 @@ function getFeatureIcon(feature) {
 
 async function selectCompanion(companionId) {
     console.log('🤖 Selecting companion:', companionId);
+    console.log('🔍 selectCompanion function called');
     
     try {
         const response = await fetch('/api/companions/select', {
@@ -536,6 +537,7 @@ async function selectCompanion(companionId) {
 
 async function startPremiumTrial(companionId) {
     console.log('🚀 Starting premium trial for companion:', companionId);
+    console.log('🔍 Button clicked - function executing');
     
     try {
         const response = await fetch('/api/companions/trial', {
@@ -545,7 +547,7 @@ async function startPremiumTrial(companionId) {
             },
             body: JSON.stringify({
                 companion_id: companionId,
-                trial_type: 'universal_24h'
+                trial_type: 'growth_5h'
             })
         });
         
