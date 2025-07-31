@@ -548,7 +548,14 @@ def auth_login():
         email, password, _ = parse_request_data()
         
         if not email or not password:
-            return jsonify({"success": False, "error": "Email and password required"}), 400
+            # Handle both form submissions and AJAX requests for missing fields
+            if request.headers.get('Content-Type') == 'application/json' or request.is_json:
+                # AJAX request - return JSON
+                return jsonify({"success": False, "error": "Email and password required"}), 400
+            else:
+                # Form submission - redirect back to login with error
+                flash("Email and password are required", "error")
+                return redirect("/login")
         
         # Initialize database if needed
         if not services["database"] or not db:
@@ -580,14 +587,37 @@ def auth_login():
             session['display_name'] = result.get('display_name', 'User')
             
             logger.info(f"Login successful: {email} (plan: {session['user_plan']})")
-            return jsonify({"success": True, "redirect": "/intro"})
+            
+            # Handle both form submissions and AJAX requests
+            if request.headers.get('Content-Type') == 'application/json' or request.is_json:
+                # AJAX request - return JSON
+                return jsonify({"success": True, "redirect": "/intro"})
+            else:
+                # Form submission - redirect directly
+                return redirect("/intro")
         else:
             logger.warning(f"Login failed: {email}")
-            return jsonify({"success": False, "error": result["error"]}), 401
+            
+            # Handle both form submissions and AJAX requests for errors
+            if request.headers.get('Content-Type') == 'application/json' or request.is_json:
+                # AJAX request - return JSON
+                return jsonify({"success": False, "error": result["error"]}), 401
+            else:
+                # Form submission - redirect back to login with error
+                flash(result["error"], "error")
+                return redirect("/login")
         
     except Exception as e:
         logger.error(f"Login error: {e}")
-        return jsonify({"success": False, "error": "Login failed"}), 500
+        
+        # Handle both form submissions and AJAX requests for exceptions
+        if request.headers.get('Content-Type') == 'application/json' or request.is_json:
+            # AJAX request - return JSON
+            return jsonify({"success": False, "error": "Login failed"}), 500
+        else:
+            # Form submission - redirect back to login with error
+            flash("Login failed. Please try again.", "error")
+            return redirect("/login")
 
 @app.route("/auth/logout", methods=["GET", "POST"])
 def logout():
