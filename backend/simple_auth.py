@@ -52,20 +52,38 @@ class SimpleAuth:
             
             placeholder = "%s" if hasattr(self.db, 'postgres_url') and self.db.postgres_url else "?"
             
-            cursor.execute(f"""
-                SELECT id, email, password_hash, display_name, plan_type
-                FROM users WHERE email = {placeholder}
-            """, (email.lower().strip(),))
+            # Try to fetch with plan_type first, fallback if column doesn't exist
+            try:
+                cursor.execute(f"""
+                    SELECT id, email, password_hash, display_name, plan_type
+                    FROM users WHERE email = {placeholder}
+                """, (email.lower().strip(),))
+                user_data = cursor.fetchone()
+                has_plan_type = True
+            except Exception as col_error:
+                # plan_type column might not exist, try without it
+                logger.warning(f"plan_type column not found, falling back: {col_error}")
+                cursor.execute(f"""
+                    SELECT id, email, password_hash, display_name
+                    FROM users WHERE email = {placeholder}
+                """, (email.lower().strip(),))
+                user_data = cursor.fetchone()
+                has_plan_type = False
             
-            user_data = cursor.fetchone()
             conn.close()
             
             if user_data:
                 print(f"🔍 DEBUG: Found user data for {email}: {user_data}")
                 if bcrypt.checkpw(password.encode('utf-8'), user_data[2].encode('utf-8')):
                     logger.info(f"Authentication successful: {email}")
-                    plan_type = user_data[4] if len(user_data) > 4 and user_data[4] else 'foundation'
-                    print(f"🔍 DEBUG: User plan_type from DB: {plan_type}")
+                    
+                    # Handle plan_type based on whether column exists
+                    if has_plan_type and len(user_data) > 4 and user_data[4]:
+                        plan_type = user_data[4]
+                    else:
+                        plan_type = 'foundation'  # Default to foundation
+                    
+                    print(f"🔍 DEBUG: User plan_type: {plan_type}")
                     return {
                         "success": True,
                         "user_id": user_data[0],
