@@ -6689,6 +6689,48 @@ def debug_session_status():
 #         logger.error(f"Emergency login error: {e}")
 #         return jsonify({"success": False, "error": str(e)}), 500
 
+@app.route("/debug/emergency-login-foundation/<email>", methods=["POST"])
+def emergency_login_foundation(email):
+    """TEMP: Emergency login that sets user to foundation tier (for testing tier fix)"""
+    try:
+        # Create session directly with FOUNDATION tier
+        session['user_authenticated'] = True
+        session['user_email'] = email.lower()
+        session['email'] = email.lower()
+        session['user_plan'] = 'foundation'  # Set to Foundation tier (NOT enterprise)
+        session['display_name'] = 'GamerJay'
+        session['session_version'] = "2025-07-28-banking-security"
+        session['last_activity'] = datetime.now().isoformat()
+        
+        # Try to get user_id from database
+        try:
+            db_instance = get_database()
+            if db_instance:
+                conn = db_instance.get_connection()
+                cursor = conn.cursor()
+                placeholder = "%s" if hasattr(db_instance, 'postgres_url') and db_instance.postgres_url else "?"
+                
+                cursor.execute(f"SELECT id FROM users WHERE email = {placeholder}", (email.lower(),))
+                user_data = cursor.fetchone()
+                if user_data:
+                    session['user_id'] = user_data[0]
+                conn.close()
+        except Exception as db_error:
+            logger.error(f"Emergency login DB error: {db_error}")
+        
+        logger.info(f"🚨 EMERGENCY LOGIN: {email} logged in with FOUNDATION tier (testing tier fix)")
+        
+        return jsonify({
+            "success": True,
+            "message": f"Emergency login successful for {email} with Foundation tier",
+            "user_plan": "foundation",
+            "redirect": "/intro"
+        })
+        
+    except Exception as e:
+        logger.error(f"Emergency login error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
 @app.route("/debug/reset-user-to-foundation", methods=["POST"])
 def reset_user_to_foundation():
     """Reset current user back to foundation tier (Fix for tier system bug)"""
