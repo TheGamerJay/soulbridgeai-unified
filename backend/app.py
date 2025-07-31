@@ -509,28 +509,11 @@ def health():
 
 @app.route("/", methods=["GET", "POST"])
 def home():
-    """Home route - require login then always show intro with Sapphire"""
+    """Home route - always redirect to login page (like Google search results)"""
     try:
-        # Require authentication for main app access
-        logger.info(f"🏠 HOME ROUTE: Checking authentication - Session keys: {list(session.keys())}")
-        logger.info(f"🏠 HOME ROUTE: user_authenticated = {session.get('user_authenticated')}")
-        logger.info(f"🏠 HOME ROUTE: user_id = {session.get('user_id')}")
-        logger.info(f"🏠 HOME ROUTE: user_email = {session.get('user_email')}")
-        logger.info(f"🏠 HOME ROUTE: session_version = {session.get('session_version')}")
-        
-        if not is_logged_in():
-            logger.info(f"🏠 HOME ROUTE: ❌ User NOT authenticated, redirecting to login")
-            return redirect("/login")
-        
-        # User is authenticated - show intro (proper flow: login → intro → companion selection)
-        logger.info(f"🏠 HOME ROUTE: ✅ User authenticated, showing intro")
-        
-        # Initialize services if needed
-        if not services["database"]:
-            initialize_services()
-        
-        # Always show beautiful intro page with Sapphire (proper flow)
-        return render_template("intro.html")
+        # Always redirect to login page, just like Google search results
+        logger.info(f"🏠 HOME ROUTE: Redirecting to login (Google-style behavior)")
+        return redirect("/login")
         
     except Exception as e:
         logger.error(f"Home route error: {e}")
