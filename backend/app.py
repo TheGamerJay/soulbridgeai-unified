@@ -540,6 +540,30 @@ def test_login_page():
     """Simple test login page without JavaScript"""
     return render_template("test-login.html")
 
+@app.route("/debug/test-user")
+def debug_test_user():
+    """Debug endpoint to test if user exists"""
+    try:
+        from auth import Database
+        from simple_auth import SimpleAuth
+        
+        db = Database()
+        auth = SimpleAuth(db)
+        
+        # Test if user exists
+        exists = auth.user_exists('dagamerjay13@gmail.com')
+        
+        # Test authentication
+        result = auth.authenticate('dagamerjay13@gmail.com', 'Yariel13')
+        
+        return {
+            "user_exists": exists,
+            "auth_result": result,
+            "database_type": "SQLite" if not hasattr(db, 'postgres_url') or not db.postgres_url else "PostgreSQL"
+        }
+    except Exception as e:
+        return {"error": str(e), "traceback": str(e.__class__.__name__)}
+
 @app.route("/auth/login", methods=["GET", "POST"])
 def auth_login():
     """Clean, simple login authentication"""
