@@ -47,6 +47,8 @@ app.config['SESSION_COOKIE_PATH'] = '/'  # Ensure cookie works for all paths
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30)  # 30 minute session timeout
 app.config['SESSION_PERMANENT'] = False  # Sessions expire when browser closes
 app.config['SESSION_COOKIE_MAX_AGE'] = None  # Expire when browser closes
+app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevent JavaScript access to session cookie
+app.config['SESSION_REFRESH_EACH_REQUEST'] = False  # Don't extend session on every request
 
 # Global variables for services
 services = {
@@ -233,7 +235,7 @@ def is_logged_in():
         if last_activity:
             try:
                 last_time = datetime.fromisoformat(last_activity)
-                if datetime.now() - last_time > timedelta(hours=2):  # Extended to 2 hours for better UX
+                if datetime.now() - last_time > timedelta(minutes=30):  # 30 minute session timeout
                     # SECURITY: Session expired - clear it
                     logger.info("SECURITY: Session expired due to inactivity (2 hours)")
                     session.clear()

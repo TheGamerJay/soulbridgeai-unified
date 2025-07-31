@@ -61,9 +61,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     localStorage.removeItem('premiumCompanionsLocked');
                     localStorage.removeItem('unlockedPremiumCompanion');
                     
-                    // Set client-side authentication flags
-                    localStorage.setItem('user_authenticated', 'true');
-                    sessionStorage.setItem('user_authenticated', 'true');
+                    // Removed localStorage auth flags - authentication should only be server-side session
                     window.location.href = data.redirect || "/";
                 } else {
                     console.error("❌ Login failed:", data.error);
