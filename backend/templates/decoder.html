@@ -316,6 +316,7 @@
             <div class="usage-fill" id="usage-fill"></div>
         </div>
         <div style="font-size: 0.9rem; color: #94a3b8;">
+            <!-- DEBUG: Plan={{ user_plan }}, Limit={{ daily_limit }} -->
             {% if daily_limit %}
                 {% if user_plan == 'foundation' %}
                     Free users get {{ daily_limit }} decodes per day. Upgrade for more access.

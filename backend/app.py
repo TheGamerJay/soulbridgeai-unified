@@ -6550,48 +6550,49 @@ def get_user_status():
         logger.error(f"Get user status error: {e}")
         return jsonify({"success": False, "error": "Internal server error"}), 500
 
-@app.route("/debug/set-max-tier", methods=["POST"])
-def set_max_tier():
-    """DEBUG: Set current user to Max tier (enterprise plan) in both session AND database"""
-    try:
-        if not is_logged_in():
-            return jsonify({"success": False, "error": "Authentication required"}), 401
-            
-        user_email = session.get('user_email', 'unknown')
-        user_id = session.get('user_id')
-        
-        # Update session
-        session['user_plan'] = 'enterprise'
-        
-        # Update database
-        try:
-            db_instance = get_database()
-            if db_instance and (user_id or user_email):
-                conn = db_instance.get_connection()
-                cursor = conn.cursor()
-                placeholder = "%s" if hasattr(db_instance, 'postgres_url') and db_instance.postgres_url else "?"
-                
-                if user_id:
-                    cursor.execute(f"UPDATE users SET plan_type = {placeholder} WHERE id = {placeholder}", ('enterprise', user_id))
-                elif user_email:
-                    cursor.execute(f"UPDATE users SET plan_type = {placeholder} WHERE email = {placeholder}", ('enterprise', user_email))
-                
-                conn.commit()
-                conn.close()
-                logger.info(f"💾 DATABASE: Updated plan_type to enterprise for user {user_email}")
-        except Exception as db_error:
-            logger.error(f"Failed to update database plan: {db_error}")
-        
-        logger.info(f"🔧 DEBUG: Set user {user_email} to enterprise plan (Max tier)")
-        
-        return jsonify({
-            "success": True, 
-            "message": "User upgraded to Max tier (enterprise plan) in session and database",
-            "new_plan": "enterprise"
-        })
-    except Exception as e:
-        logger.error(f"Set max tier error: {e}")
-        return jsonify({"success": False, "error": "Failed to set tier"}), 500
+# DISABLED: This debug route was automatically giving all users enterprise tier access
+# @app.route("/debug/set-max-tier", methods=["POST"])
+# def set_max_tier():
+#     """DEBUG: Set current user to Max tier (enterprise plan) in both session AND database"""
+#     try:
+#         if not is_logged_in():
+#             return jsonify({"success": False, "error": "Authentication required"}), 401
+#             
+#         user_email = session.get('user_email', 'unknown')
+#         user_id = session.get('user_id')
+#         
+#         # Update session
+#         session['user_plan'] = 'enterprise'
+#         
+#         # Update database
+#         try:
+#             db_instance = get_database()
+#             if db_instance and (user_id or user_email):
+#                 conn = db_instance.get_connection()
+#                 cursor = conn.cursor()
+#                 placeholder = "%s" if hasattr(db_instance, 'postgres_url') and db_instance.postgres_url else "?"
+#                 
+#                 if user_id:
+#                     cursor.execute(f"UPDATE users SET plan_type = {placeholder} WHERE id = {placeholder}", ('enterprise', user_id))
+#                 elif user_email:
+#                     cursor.execute(f"UPDATE users SET plan_type = {placeholder} WHERE email = {placeholder}", ('enterprise', user_email))
+#                 
+#                 conn.commit()
+#                 conn.close()
+#                 logger.info(f"💾 DATABASE: Updated plan_type to enterprise for user {user_email}")
+#         except Exception as db_error:
+#             logger.error(f"Failed to update database plan: {db_error}")
+#         
+#         logger.info(f"🔧 DEBUG: Set user {user_email} to enterprise plan (Max tier)")
+#         
+#         return jsonify({
+#             "success": True, 
+#             "message": "User upgraded to Max tier (enterprise plan) in session and database",
+#             "new_plan": "enterprise"
+#         })
+#     except Exception as e:
+#         logger.error(f"Set max tier error: {e}")
+#         return jsonify({"success": False, "error": "Failed to set tier"}), 500
 
 @app.route("/debug/session-status")
 def debug_session_status():
@@ -6610,80 +6611,106 @@ def debug_session_status():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route("/debug/force-max-tier-by-email/<email>", methods=["POST"])
-def force_max_tier_by_email(email):
-    """DEBUG: Force set specific email to Max tier in database (no auth required)"""
-    try:
-        # Update database directly
-        db_instance = get_database()
-        if db_instance:
-            conn = db_instance.get_connection()
-            cursor = conn.cursor()
-            placeholder = "%s" if hasattr(db_instance, 'postgres_url') and db_instance.postgres_url else "?"
-            
-            # Update the user's plan in database
-            cursor.execute(f"UPDATE users SET plan_type = {placeholder} WHERE email = {placeholder}", ('enterprise', email.lower()))
-            affected_rows = cursor.rowcount
-            conn.commit()
-            conn.close()
-            
-            logger.info(f"💾 FORCE: Updated plan_type to enterprise for email {email} (affected {affected_rows} rows)")
-            
-            return jsonify({
-                "success": True,
-                "message": f"Forced {email} to Max tier (enterprise plan) in database",
-                "affected_rows": affected_rows
-            })
-        else:
-            return jsonify({"success": False, "error": "Database not available"}), 500
-            
-    except Exception as e:
-        logger.error(f"Force max tier error: {e}")
-        return jsonify({"success": False, "error": str(e)}), 500
+# DISABLED: This debug route was automatically giving all users enterprise tier access
+# @app.route("/debug/force-max-tier-by-email/<email>", methods=["POST"])
+# def force_max_tier_by_email(email):
+#     """DEBUG: Force set specific email to Max tier in database (no auth required)"""
+#     try:
+#         # Update database directly
+#         db_instance = get_database()
+#         if db_instance:
+#             conn = db_instance.get_connection()
+#             cursor = conn.cursor()
+#             placeholder = "%s" if hasattr(db_instance, 'postgres_url') and db_instance.postgres_url else "?"
+#             
+#             # Update the user's plan in database
+#             cursor.execute(f"UPDATE users SET plan_type = {placeholder} WHERE email = {placeholder}", ('enterprise', email.lower()))
+#             affected_rows = cursor.rowcount
+#             conn.commit()
+#             conn.close()
+#             
+#             logger.info(f"💾 FORCE: Updated plan_type to enterprise for email {email} (affected {affected_rows} rows)")
+#             
+#             return jsonify({
+#                 "success": True,
+#                 "message": f"Forced {email} to Max tier (enterprise plan) in database",
+#                 "affected_rows": affected_rows
+#             })
+#         else:
+#             return jsonify({"success": False, "error": "Database not available"}), 500
+#             
+#     except Exception as e:
+#         logger.error(f"Force max tier error: {e}")
+#         return jsonify({"success": False, "error": str(e)}), 500
 
-@app.route("/debug/emergency-login/<email>", methods=["POST"])
-def emergency_login(email):
-    """DEBUG: Emergency login bypass (no password required)"""
+# DISABLED: This debug route was automatically giving all users enterprise tier access
+# @app.route("/debug/emergency-login/<email>", methods=["POST"])
+# def emergency_login(email):
+#     """DEBUG: Emergency login bypass (no password required)"""
+#     try:
+#         # Create session directly
+#         session['user_authenticated'] = True
+#         session['user_email'] = email.lower()
+#         session['email'] = email.lower()
+#         session['user_plan'] = 'enterprise'  # Set to Max tier
+#         session['display_name'] = 'GamerJay'
+#         session['session_version'] = "2025-07-28-banking-security"
+#         session['last_activity'] = datetime.now().isoformat()
+#         
+#         # Try to get user_id from database
+#         try:
+#             db_instance = get_database()
+#             if db_instance:
+#                 conn = db_instance.get_connection()
+#                 cursor = conn.cursor()
+#                 placeholder = "%s" if hasattr(db_instance, 'postgres_url') and db_instance.postgres_url else "?"
+#                 
+#                 cursor.execute(f"SELECT id FROM users WHERE email = {placeholder}", (email.lower(),))
+#                 user_data = cursor.fetchone()
+#                 if user_data:
+#                     session['user_id'] = user_data[0]
+#                     
+#                 # Also update their plan in database
+#                 cursor.execute(f"UPDATE users SET plan_type = {placeholder} WHERE email = {placeholder}", ('enterprise', email.lower()))
+#                 conn.commit()
+#                 conn.close()
+#         except Exception as db_error:
+#             logger.error(f"Emergency login DB error: {db_error}")
+#         
+#         logger.info(f"🚨 EMERGENCY LOGIN: {email} logged in with Max tier")
+#         
+#         return jsonify({
+#             "success": True,
+#             "message": f"Emergency login successful for {email}",
+#             "redirect": "/intro"
+#         })
+#         
+#     except Exception as e:
+#         logger.error(f"Emergency login error: {e}")
+#         return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/debug/reset-user-to-foundation", methods=["POST"])
+def reset_user_to_foundation():
+    """Reset current user back to foundation tier (Fix for tier system bug)"""
     try:
-        # Create session directly
-        session['user_authenticated'] = True
-        session['user_email'] = email.lower()
-        session['email'] = email.lower()
-        session['user_plan'] = 'enterprise'  # Set to Max tier
-        session['display_name'] = 'GamerJay'
-        session['session_version'] = "2025-07-28-banking-security"
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Not logged in"}), 401
+            
+        # Reset session to foundation
+        session['user_plan'] = 'foundation'
         session['last_activity'] = datetime.now().isoformat()
         
-        # Try to get user_id from database
-        try:
-            db_instance = get_database()
-            if db_instance:
-                conn = db_instance.get_connection()
-                cursor = conn.cursor()
-                placeholder = "%s" if hasattr(db_instance, 'postgres_url') and db_instance.postgres_url else "?"
-                
-                cursor.execute(f"SELECT id FROM users WHERE email = {placeholder}", (email.lower(),))
-                user_data = cursor.fetchone()
-                if user_data:
-                    session['user_id'] = user_data[0]
-                    
-                # Also update their plan in database
-                cursor.execute(f"UPDATE users SET plan_type = {placeholder} WHERE email = {placeholder}", ('enterprise', email.lower()))
-                conn.commit()
-                conn.close()
-        except Exception as db_error:
-            logger.error(f"Emergency login DB error: {db_error}")
-        
-        logger.info(f"🚨 EMERGENCY LOGIN: {email} logged in with Max tier")
+        user_email = session.get('user_email', 'unknown')
+        logger.info(f"🔧 RESET: User {user_email} reset to foundation plan")
         
         return jsonify({
             "success": True,
-            "message": f"Emergency login successful for {email}",
-            "redirect": "/intro"
+            "message": "User plan reset to foundation tier",
+            "new_plan": "foundation"
         })
         
     except Exception as e:
-        logger.error(f"Emergency login error: {e}")
+        logger.error(f"Reset to foundation error: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route("/debug/check-user-plan")
@@ -6776,33 +6803,34 @@ def emergency_login_page():
     </html>
     """
 
-@app.route("/debug/refresh-max-tier", methods=["POST"])
-def refresh_max_tier():
-    """DEBUG: Refresh current session to Max tier"""
-    try:
-        if not session.get('user_authenticated'):
-            return jsonify({"success": False, "error": "Not logged in"}), 401
-            
-        # Force update session
-        session['user_plan'] = 'enterprise'
-        session['last_activity'] = datetime.now().isoformat()
-        
-        # Get current values for debugging
-        current_plan = session.get('user_plan')
-        user_email = session.get('user_email', 'unknown')
-        
-        logger.info(f"🔄 REFRESH: Updated {user_email} session to user_plan = {current_plan}")
-        
-        return jsonify({
-            "success": True,
-            "message": "Session refreshed to Max tier",
-            "user_plan": current_plan,
-            "user_email": user_email
-        })
-        
-    except Exception as e:
-        logger.error(f"Refresh max tier error: {e}")
-        return jsonify({"success": False, "error": str(e)}), 500
+# DISABLED: This debug route was automatically giving all users enterprise tier access
+# @app.route("/debug/refresh-max-tier", methods=["POST"])
+# def refresh_max_tier():
+#     """DEBUG: Refresh current session to Max tier"""
+#     try:
+#         if not session.get('user_authenticated'):
+#             return jsonify({"success": False, "error": "Not logged in"}), 401
+#             
+#         # Force update session
+#         session['user_plan'] = 'enterprise'
+#         session['last_activity'] = datetime.now().isoformat()
+#         
+#         # Get current values for debugging
+#         current_plan = session.get('user_plan')
+#         user_email = session.get('user_email', 'unknown')
+#         
+#         logger.info(f"🔄 REFRESH: Updated {user_email} session to user_plan = {current_plan}")
+#         
+#         return jsonify({
+#             "success": True,
+#             "message": "Session refreshed to Max tier",
+#             "user_plan": current_plan,
+#             "user_email": user_email
+#         })
+#         
+#     except Exception as e:
+#         logger.error(f"Refresh max tier error: {e}")
+#         return jsonify({"success": False, "error": str(e)}), 500
 
 # COMPANION API ENDPOINTS
 # ========================================
