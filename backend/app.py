@@ -6601,6 +6601,34 @@ def emergency_login_page():
     </html>
     """
 
+@app.route("/debug/refresh-max-tier", methods=["POST"])
+def refresh_max_tier():
+    """DEBUG: Refresh current session to Max tier"""
+    try:
+        if not session.get('user_authenticated'):
+            return jsonify({"success": False, "error": "Not logged in"}), 401
+            
+        # Force update session
+        session['user_plan'] = 'enterprise'
+        session['last_activity'] = datetime.now().isoformat()
+        
+        # Get current values for debugging
+        current_plan = session.get('user_plan')
+        user_email = session.get('user_email', 'unknown')
+        
+        logger.info(f"🔄 REFRESH: Updated {user_email} session to user_plan = {current_plan}")
+        
+        return jsonify({
+            "success": True,
+            "message": "Session refreshed to Max tier",
+            "user_plan": current_plan,
+            "user_email": user_email
+        })
+        
+    except Exception as e:
+        logger.error(f"Refresh max tier error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
 # COMPANION API ENDPOINTS
 # ========================================
 
