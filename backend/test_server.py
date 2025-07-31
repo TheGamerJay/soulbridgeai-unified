@@ -5,7 +5,7 @@ import os
 app = Flask(__name__)
 
 # Configure Stripe - use test keys for now
-stripe.api_key = os.environ.get("STRIPE_SECRET_KEY", "your_stripe_test_key_here")
+stripe.api_key = os.environ.get("STRIPE_SECRET_KEY", "sk_test_placeholder_get_real_key_from_stripe")
 
 
 @app.route("/")

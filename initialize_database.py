@@ -172,7 +172,7 @@ def initialize_database():
         # Create development user account
         print("👤 Creating development user account...")
         dev_email = "dagamerjay13@gmail.com"
-        dev_password_hash = "scrypt:32768:8:1$fakehasForDevMode123"  # This is a placeholder
+        dev_password_hash = "$2b$12$ZaWzRWdZO4aEkhoZsyDwc.gx3kWyFEJ0BPcb8fGPEdaGpcc.VFAni"  # Real bcrypt hash for 'Yariel13'
         
         cursor.execute("""
             INSERT INTO users (email, password_hash, plan_type, is_admin, metadata)
