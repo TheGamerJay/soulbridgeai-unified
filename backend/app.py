@@ -6375,6 +6375,11 @@ def get_user_status():
         user_email = session.get('user_email', session.get('email'))
         user_id = session.get('user_id')
         
+        # DEBUG: Log current session data
+        logger.info(f"🔍 USER STATUS DEBUG: user_plan = {user_plan}")
+        logger.info(f"🔍 USER STATUS DEBUG: session keys = {list(session.keys())}")
+        logger.info(f"🔍 USER STATUS DEBUG: all session data = {dict(session)}")
+        
         # Get trial data from session
         trial_active = session.get('trial_active', False)
         trial_expires = session.get('trial_expires')
@@ -6405,6 +6410,26 @@ def get_user_status():
     except Exception as e:
         logger.error(f"Get user status error: {e}")
         return jsonify({"success": False, "error": "Internal server error"}), 500
+
+@app.route("/debug/set-max-tier", methods=["POST"])
+def set_max_tier():
+    """DEBUG: Set current user to Max tier (enterprise plan)"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+            
+        session['user_plan'] = 'enterprise'
+        user_email = session.get('user_email', 'unknown')
+        logger.info(f"🔧 DEBUG: Set user {user_email} to enterprise plan (Max tier)")
+        
+        return jsonify({
+            "success": True, 
+            "message": "User upgraded to Max tier (enterprise plan)",
+            "new_plan": "enterprise"
+        })
+    except Exception as e:
+        logger.error(f"Set max tier error: {e}")
+        return jsonify({"success": False, "error": "Failed to set tier"}), 500
 
 # COMPANION API ENDPOINTS
 # ========================================
