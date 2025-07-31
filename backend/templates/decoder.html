@@ -316,7 +316,15 @@
             <div class="usage-fill" id="usage-fill"></div>
         </div>
         <div style="font-size: 0.9rem; color: #94a3b8;">
-            Free users get 5 decodes per day. Upgrade for unlimited access.
+            {% if daily_limit %}
+                {% if user_plan == 'foundation' %}
+                    Free users get {{ daily_limit }} decodes per day. Upgrade for more access.
+                {% elif user_plan == 'premium' %}
+                    Growth users get {{ daily_limit }} decodes per day. Upgrade to Max for unlimited.
+                {% endif %}
+            {% else %}
+                Max users have unlimited decoder access.
+            {% endif %}
         </div>
     </div>
 

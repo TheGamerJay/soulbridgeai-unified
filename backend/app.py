@@ -1438,6 +1438,38 @@ def api_start_companion_trial():
         session['trial_used_permanently'] = True  # Mark trial as permanently used
         session.permanent = True  # Make session permanent to persist across browser sessions
         
+        # CRITICAL: Save trial data to database for persistence across logout/login
+        try:
+            db_instance = get_database()
+            if db_instance and (user_id or user_email):
+                conn = db_instance.get_connection()
+                cursor = conn.cursor()
+                placeholder = "%s" if hasattr(db_instance, 'postgres_url') and db_instance.postgres_url else "?"
+                
+                companion_data = {
+                    'trial_companion': companion_id,
+                    'trial_expires': session['trial_expires'],
+                    'trial_active': True,
+                    'trial_used_permanently': True,  # This is the key fix!
+                    'selected_companion': companion_id
+                }
+                
+                if user_id:
+                    cursor.execute(f"""
+                        UPDATE users SET companion_data = {placeholder} WHERE id = {placeholder}
+                    """, (json.dumps(companion_data), user_id))
+                elif user_email:
+                    cursor.execute(f"""
+                        UPDATE users SET companion_data = {placeholder} WHERE email = {placeholder}
+                    """, (json.dumps(companion_data), user_email))
+                
+                conn.commit()
+                conn.close()
+                logger.info(f"💾 TRIAL DATA SAVED TO DATABASE: trial_used_permanently=True for user {user_id or user_email}")
+        except Exception as db_error:
+            logger.error(f"Failed to save trial data to database: {db_error}")
+            # Continue anyway - session data is still set
+        
         logger.info(f"🔧 TRIAL SESSION DATA SET: companion={companion_id}, expires={session['trial_expires']}, plan={session['user_plan']}")
         
         logger.info(f"✅ TRIAL STARTED: 24-hour trial for user {user_email or user_id} with companion {companion_id}")
