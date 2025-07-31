@@ -310,7 +310,7 @@
     <div class="usage-indicator" id="usage-indicator">
         <div>
             <strong>Daily Decodes:</strong> 
-            <span id="usage-count">0</span> / <span id="usage-limit">5</span> used
+            <span id="usage-count">0</span> / <span id="usage-limit">{{ daily_limit if daily_limit else "∞" }}</span> used
         </div>
         <div class="usage-bar">
             <div class="usage-fill" id="usage-fill"></div>
@@ -323,7 +323,7 @@
                     Growth users get {{ daily_limit }} decodes per day. Upgrade to Max for unlimited.
                 {% endif %}
             {% else %}
-                Max users have unlimited decoder access.
+                🎉 Max users have unlimited decoder access!
             {% endif %}
         </div>
     </div>
@@ -469,7 +469,7 @@ Focus on depth and meaningful interpretation. Content to decode:`
 // User state from backend
 let userUsage = {{ current_usage or 0 }};
 let userPlan = '{{ user_plan or "foundation" }}';
-let dailyLimit = {{ daily_limit or 3 }};
+let dailyLimit = {{ daily_limit if daily_limit else "null" }};
 
 // Update UI elements
 function updateModeDescription() {
@@ -490,7 +490,10 @@ function updateUsageIndicator() {
     
     if (dailyLimit === null || dailyLimit === -1) {
         // Unlimited for Max tier
-        usageIndicator.style.display = 'none';
+        usageLimit.textContent = '∞';
+        usageFill.style.width = '100%';
+        usageFill.style.background = 'linear-gradient(135deg, #22d3ee, #0891b2)';
+        usageIndicator.style.display = 'block';
     } else {
         // Update the limit display
         usageLimit.textContent = dailyLimit;
@@ -501,7 +504,12 @@ function updateUsageIndicator() {
 }
 
 function checkUsageLimit() {
-    if (dailyLimit !== null && dailyLimit !== -1 && userUsage >= dailyLimit) {
+    if (dailyLimit === null || dailyLimit === -1) {
+        // Unlimited for Max tier
+        return true;
+    }
+    
+    if (userUsage >= dailyLimit) {
         document.getElementById('decode-button').disabled = true;
         document.getElementById('decode-button').textContent = '🔒 Daily Limit Reached';
         document.getElementById('upgrade-prompt').style.display = 'block';
