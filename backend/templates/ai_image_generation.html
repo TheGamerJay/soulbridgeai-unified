@@ -334,6 +334,47 @@
       font-size: 0.9rem;
     }
 
+    .disclaimer-box {
+      background: rgba(251, 191, 36, 0.1);
+      border: 2px solid rgba(251, 191, 36, 0.3);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 30px;
+      box-shadow: 0 2px 10px rgba(251, 191, 36, 0.1);
+    }
+
+    .disclaimer-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #fbbf24;
+      font-size: 1.1rem;
+      margin-bottom: 15px;
+    }
+
+    .disclaimer-header i {
+      font-size: 1.2rem;
+    }
+
+    .disclaimer-content {
+      color: #e2e8f0;
+      line-height: 1.6;
+    }
+
+    .disclaimer-content ul {
+      margin: 15px 0;
+      padding-left: 20px;
+    }
+
+    .disclaimer-content li {
+      margin: 8px 0;
+      color: #cbd5e1;
+    }
+
+    .disclaimer-content strong {
+      color: #fbbf24;
+    }
+
     @media (max-width: 768px) {
       .style-grid {
         grid-template-columns: repeat(2, 1fr);
@@ -356,6 +397,26 @@
     <div class="header">
       <h1>🤖 AI Image Generation</h1>
       <p>Create stunning images from your imagination with AI</p>
+    </div>
+
+    <!-- Copyright Disclaimer -->
+    <div class="disclaimer-box">
+      <div class="disclaimer-header">
+        <i class="fas fa-shield-alt"></i>
+        <strong>Important: Copyright & Usage Responsibility</strong>
+      </div>
+      <div class="disclaimer-content">
+        <p>By using this AI image generation service, you acknowledge and agree that:</p>
+        <ul>
+          <li><strong>You are solely responsible</strong> for ensuring any generated images comply with copyright, trademark, and intellectual property laws</li>
+          <li><strong>SoulBridge AI is not liable</strong> for any copyright infringement or legal issues arising from your use of generated images</li>
+          <li><strong>Generated images may contain</strong> copyrighted characters, brands, or intellectual property - use at your own risk</li>
+          <li><strong>Commercial use</strong> of generated images is your responsibility to clear legally</li>
+        </ul>
+        <p style="font-style: italic; margin-top: 10px;">
+          ⚖️ You assume all legal responsibility for how you use, share, or distribute any generated images.
+        </p>
+      </div>
     </div>
 
     <!-- Usage Info -->
