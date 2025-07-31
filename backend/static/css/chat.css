@@ -750,7 +750,7 @@ body.theme-blayzion .message.assistant .message-content {
 .floating-home-btn {
     position: fixed;
     top: 20px;
-    right: 20px;
+    right: 80px;
     width: 50px;
     height: 50px;
     background: linear-gradient(135deg, #ff4444, #cc3333);
@@ -784,7 +784,7 @@ body.theme-blayzion .message.assistant .message-content {
         width: 45px;
         height: 45px;
         top: 15px;
-        right: 15px;
+        right: 70px;
         font-size: 1.1rem;
     }
 }
