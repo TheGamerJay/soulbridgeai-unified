@@ -35,6 +35,11 @@ async function initializeCompanionSelector() {
     handleChatSwitching();
     
     console.log('✅ Companion Selector initialized');
+    
+    // Test if functions are accessible
+    console.log('🔍 Testing function accessibility:');
+    console.log('  window.selectCompanion:', typeof window.selectCompanion);
+    console.log('  window.startPremiumTrial:', typeof window.startPremiumTrial);
 }
 
 function handleChatSwitching() {
@@ -51,9 +56,9 @@ function setupEventListeners() {
     // Add any additional event listeners here
     document.addEventListener('visibilitychange', handleVisibilityChange);
     
-    // Event delegation for dynamically generated buttons
+    // Event delegation for dynamically generated buttons - catch ALL clicks for debugging
     document.addEventListener('click', function(event) {
-        console.log('🔍 Click detected on:', event.target.tagName, event.target.className);
+        console.log('🔍 GLOBAL CLICK detected on:', event.target.tagName, event.target.className, event.target.textContent.substring(0, 50));
         
         // Handle companion selection buttons
         if (event.target.classList.contains('btn-select') && !event.target.disabled) {
@@ -92,7 +97,7 @@ function setupEventListeners() {
                 }
             }
         }
-    });
+    }, true); // Use capture phase to ensure we catch everything
 }
 
 async function loadUserDataFromBackend() {
