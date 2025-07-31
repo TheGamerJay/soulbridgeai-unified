@@ -6150,6 +6150,70 @@ def ai_image_generation_generate():
         logger.error(f"AI image generation error: {e}")
         return jsonify({"success": False, "error": "Failed to generate image"}), 500
 
+@app.route("/api/ai-image-generation/analyze-reference", methods=["POST"])
+def ai_image_generation_analyze_reference():
+    """Analyze reference image using GPT-4 Vision to create detailed description"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        # Check if user has ai-image-generation access (Max tier or addon)
+        user_plan = session.get('user_plan', 'foundation')
+        user_addons = session.get('user_addons', [])
+        if user_plan != 'enterprise' and 'ai-image-generation' not in user_addons:
+            return jsonify({"success": False, "error": "AI Image Generation requires Max tier or addon"}), 403
+        
+        data = request.get_json()
+        if not data or not data.get('image'):
+            return jsonify({"success": False, "error": "No image data provided"}), 400
+        
+        image_data = data.get('image')
+        
+        # Use GPT-4 Vision to analyze the image
+        try:
+            logger.info(f"🔍 Analyzing reference image with GPT-4 Vision...")
+            
+            response = openai_client.chat.completions.create(
+                model="gpt-4-vision-preview",
+                messages=[
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": "Analyze this image and create a detailed description that could be used to generate a similar image with DALL-E. Focus on: style, composition, colors, mood, objects, characters, lighting, and artistic techniques. Be very descriptive and specific."
+                            },
+                            {
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": image_data
+                                }
+                            }
+                        ]
+                    }
+                ],
+                max_tokens=500
+            )
+            
+            description = response.choices[0].message.content
+            logger.info(f"✅ GPT-4 Vision analysis completed: {len(description)} characters")
+            
+            return jsonify({
+                "success": True,
+                "description": description
+            })
+            
+        except Exception as vision_error:
+            logger.error(f"❌ GPT-4 Vision analysis failed: {vision_error}")
+            return jsonify({
+                "success": False, 
+                "error": f"Failed to analyze reference image: {str(vision_error)}"
+            }), 500
+        
+    except Exception as e:
+        logger.error(f"Reference image analysis error: {e}")
+        return jsonify({"success": False, "error": "Failed to analyze reference image"}), 500
+
 @app.route("/api/ai-image-generation/save", methods=["POST"])
 def ai_image_generation_save():
     """Save generated image to gallery"""

@@ -375,6 +375,65 @@
       color: #fbbf24;
     }
 
+    .reference-upload-area {
+      border: 2px dashed rgba(34, 211, 238, 0.3);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: rgba(34, 211, 238, 0.05);
+    }
+
+    .reference-upload-area:hover {
+      border-color: rgba(34, 211, 238, 0.5);
+      background: rgba(34, 211, 238, 0.1);
+    }
+
+    .upload-placeholder i {
+      font-size: 2rem;
+      color: #22d3ee;
+      margin-bottom: 10px;
+    }
+
+    .upload-placeholder p {
+      margin: 5px 0;
+      color: #e2e8f0;
+    }
+
+    .reference-preview {
+      position: relative;
+      display: inline-block;
+    }
+
+    .reference-preview img {
+      max-width: 200px;
+      max-height: 150px;
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(34, 211, 238, 0.3);
+    }
+
+    .remove-reference {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background: #ef4444;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+    }
+
+    .remove-reference:hover {
+      background: #dc2626;
+    }
+
     @media (max-width: 768px) {
       .style-grid {
         grid-template-columns: repeat(2, 1fr);
@@ -427,12 +486,34 @@
 
     <!-- Generation Form -->
     <div class="generation-form">
+      <!-- Reference Image Upload -->
+      <div class="form-group">
+        <label for="referenceImage">
+          <i class="fas fa-image"></i>
+          Upload Reference Image (Optional)
+        </label>
+        <div class="reference-upload-area" id="referenceUploadArea">
+          <input type="file" id="referenceImage" accept="image/*" style="display: none;">
+          <div class="upload-placeholder" id="uploadPlaceholder">
+            <i class="fas fa-cloud-upload-alt"></i>
+            <p>Click to upload a reference image</p>
+            <p style="font-size: 0.8rem; color: #94a3b8;">AI will analyze your image and create a similar one</p>
+          </div>
+          <div class="reference-preview" id="referencePreview" style="display: none;">
+            <img id="referenceImg" alt="Reference">
+            <button type="button" class="remove-reference" onclick="removeReference()">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
       <div class="form-group">
         <label for="imagePrompt">Describe your image</label>
         <textarea 
           id="imagePrompt" 
           class="prompt-input"
-          placeholder="Describe the image you want to create... Be as detailed as possible for best results!"
+          placeholder="Describe the image you want to create... Or upload a reference image above for AI analysis!"
           maxlength="500"
         ></textarea>
         <div style="text-align: right; color: #94a3b8; font-size: 0.9rem; margin-top: 5px;">
@@ -546,10 +627,47 @@
 
     async function generateImage() {
       const promptInput = document.getElementById('imagePrompt');
-      const prompt = promptInput.value.trim();
+      let prompt = promptInput.value.trim();
+
+      // If reference image is provided, analyze it first
+      if (referenceImageData && !prompt) {
+        document.getElementById('loadingState').style.display = 'block';
+        document.getElementById('generateBtn').disabled = true;
+        
+        try {
+          // Analyze reference image with GPT-4 Vision
+          const analysisResponse = await fetch('/api/ai-image-generation/analyze-reference', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+              image: referenceImageData
+            })
+          });
+          
+          const analysisResult = await analysisResponse.json();
+          
+          if (analysisResult.success) {
+            prompt = analysisResult.description;
+            document.getElementById('imagePrompt').value = prompt;
+          } else {
+            alert('Failed to analyze reference image: ' + analysisResult.error);
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('generateBtn').disabled = false;
+            return;
+          }
+        } catch (error) {
+          alert('Error analyzing reference image. Please try again.');
+          document.getElementById('loadingState').style.display = 'none';
+          document.getElementById('generateBtn').disabled = false;
+          return;
+        }
+      }
 
       if (!prompt) {
-        alert('Please describe the image you want to create!');
+        alert('Please describe the image you want to create or upload a reference image!');
         return;
       }
 
@@ -732,6 +850,61 @@
       } catch (error) {
         console.error('Error loading usage count:', error);
       }
+    }
+
+    // Reference image handling
+    let referenceImageData = null;
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const uploadArea = document.getElementById('referenceUploadArea');
+      const fileInput = document.getElementById('referenceImage');
+      
+      uploadArea.addEventListener('click', () => {
+        fileInput.click();
+      });
+      
+      fileInput.addEventListener('change', handleReferenceUpload);
+    });
+
+    async function handleReferenceUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      if (!file.type.startsWith('image/')) {
+        alert('Please upload an image file');
+        return;
+      }
+
+      if (file.size > 10 * 1024 * 1024) { // 10MB limit
+        alert('Image too large. Please upload an image under 10MB');
+        return;
+      }
+
+      // Show preview
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const placeholder = document.getElementById('uploadPlaceholder');
+        const preview = document.getElementById('referencePreview');
+        const img = document.getElementById('referenceImg');
+        
+        img.src = e.target.result;
+        placeholder.style.display = 'none';
+        preview.style.display = 'block';
+        
+        referenceImageData = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function removeReference() {
+      const placeholder = document.getElementById('uploadPlaceholder');
+      const preview = document.getElementById('referencePreview');
+      const fileInput = document.getElementById('referenceImage');
+      
+      placeholder.style.display = 'block';
+      preview.style.display = 'none';
+      fileInput.value = '';
+      referenceImageData = null;
     }
   </script>
 </body>
