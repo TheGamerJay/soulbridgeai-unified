@@ -6502,6 +6502,100 @@ def force_max_tier_by_email(email):
         logger.error(f"Force max tier error: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
 
+@app.route("/debug/emergency-login/<email>", methods=["POST"])
+def emergency_login(email):
+    """DEBUG: Emergency login bypass (no password required)"""
+    try:
+        # Create session directly
+        session['user_authenticated'] = True
+        session['user_email'] = email.lower()
+        session['email'] = email.lower()
+        session['user_plan'] = 'enterprise'  # Set to Max tier
+        session['display_name'] = 'GamerJay'
+        session['session_version'] = "2025-07-28-banking-security"
+        session['last_activity'] = datetime.now().isoformat()
+        
+        # Try to get user_id from database
+        try:
+            db_instance = get_database()
+            if db_instance:
+                conn = db_instance.get_connection()
+                cursor = conn.cursor()
+                placeholder = "%s" if hasattr(db_instance, 'postgres_url') and db_instance.postgres_url else "?"
+                
+                cursor.execute(f"SELECT id FROM users WHERE email = {placeholder}", (email.lower(),))
+                user_data = cursor.fetchone()
+                if user_data:
+                    session['user_id'] = user_data[0]
+                    
+                # Also update their plan in database
+                cursor.execute(f"UPDATE users SET plan_type = {placeholder} WHERE email = {placeholder}", ('enterprise', email.lower()))
+                conn.commit()
+                conn.close()
+        except Exception as db_error:
+            logger.error(f"Emergency login DB error: {db_error}")
+        
+        logger.info(f"🚨 EMERGENCY LOGIN: {email} logged in with Max tier")
+        
+        return jsonify({
+            "success": True,
+            "message": f"Emergency login successful for {email}",
+            "redirect": "/intro"
+        })
+        
+    except Exception as e:
+        logger.error(f"Emergency login error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/debug/emergency-login-page")
+def emergency_login_page():
+    """DEBUG: Emergency login page"""
+    return """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Emergency Login</title>
+        <style>
+            body { font-family: Arial, sans-serif; padding: 50px; background: #000; color: #fff; }
+            .container { max-width: 500px; margin: auto; }
+            button { padding: 15px 30px; background: #22d3ee; color: #000; border: none; border-radius: 5px; cursor: pointer; }
+            .result { margin-top: 20px; padding: 15px; background: #333; border-radius: 5px; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>🚨 Emergency Login</h1>
+            <p>Use this to bypass authentication issues and login directly with Max tier.</p>
+            <button onclick="emergencyLogin()">Login as dagamerjay13@gmail.com (Max Tier)</button>
+            <div id="result" class="result" style="display:none;"></div>
+        </div>
+        
+        <script>
+            async function emergencyLogin() {
+                try {
+                    const response = await fetch('/debug/emergency-login/dagamerjay13@gmail.com', {
+                        method: 'POST'
+                    });
+                    const result = await response.json();
+                    
+                    document.getElementById('result').style.display = 'block';
+                    document.getElementById('result').innerHTML = '<pre>' + JSON.stringify(result, null, 2) + '</pre>';
+                    
+                    if (result.success) {
+                        setTimeout(() => {
+                            window.location.href = '/intro';
+                        }, 2000);
+                    }
+                } catch (error) {
+                    document.getElementById('result').style.display = 'block';
+                    document.getElementById('result').innerHTML = 'Error: ' + error;
+                }
+            }
+        </script>
+    </body>
+    </html>
+    """
+
 # COMPANION API ENDPOINTS
 # ========================================
 
