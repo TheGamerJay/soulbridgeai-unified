@@ -351,38 +351,40 @@ function renderSection(sectionId, companionList) {
         let lockReason = '';
         
         // Check companion tier access with 24-hour trial system
+        // BACKEND-FRONTEND MAPPING: backend 'premium' = frontend 'growth', backend 'enterprise' = frontend 'max'
         if (companion.tier === 'growth') {
-            // Growth tier requires premium plan or active trial
+            // Growth tier requires backend 'premium' plan or active trial
             if (currentUser.plan === 'foundation') {
-                // Check if user has an active trial for ANY companion
+                // Foundation users can trial Growth companions
                 if (hasActiveTrialAccess) {
-                    // During trial period, all Growth companions are unlocked
                     isLocked = false;
                     console.log(`🆓 Growth companion ${companion.display_name} unlocked via active trial`);
                 } else {
-                    // No active trial - show trial option for all Growth companions
                     isLocked = true;
                     lockReason = 'Try Free for 24 Hours';
                     console.log(`🔒 Growth companion ${companion.display_name} locked - trial available`);
                 }
+            } else if (currentUser.plan === 'premium' || currentUser.plan === 'enterprise') {
+                // Premium or Enterprise users have full access to Growth companions
+                isLocked = false;
+                console.log(`✅ Growth companion ${companion.display_name} unlocked via ${currentUser.plan} plan`);
             }
         } else if (companion.tier === 'max') {
-            // Max tier requires enterprise plan or trial
-            if (currentUser.plan === 'foundation') {
-                // Check if user has an active trial for ANY companion
+            // Max tier requires backend 'enterprise' plan or active trial
+            if (currentUser.plan === 'foundation' || currentUser.plan === 'premium') {
+                // Foundation and Premium users can trial Max companions
                 if (hasActiveTrialAccess) {
-                    // During trial period, all Max companions are unlocked
                     isLocked = false;
                     console.log(`🆓 Max companion ${companion.display_name} unlocked via active trial`);
                 } else {
-                    // No active trial - show trial option for Max companions too
                     isLocked = true;
                     lockReason = 'Try Free for 24 Hours';
                     console.log(`🔒 Max companion ${companion.display_name} locked - trial available`);
                 }
-            } else if (currentUser.plan !== 'enterprise') {
-                isLocked = true;
-                lockReason = 'Requires Max Plan';
+            } else if (currentUser.plan === 'enterprise') {
+                // Enterprise users have full access to Max companions
+                isLocked = false;
+                console.log(`✅ Max companion ${companion.display_name} unlocked via enterprise plan`);
             }
         } else if (companion.tier === 'referral') {
             // Referral tier - no trial access, referral only
