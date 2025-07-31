@@ -14,6 +14,20 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
     <meta name="theme-color" content="#00ffff">
     
+    <!-- Open Graph / Social Media Meta Tags -->
+    <meta property="og:title" content="SoulBridge AI - Your Journey to Emotional Wellness">
+    <meta property="og:description" content="Connect with AI companions designed for healing, growth, and spiritual guidance. Start your transformative journey today.">
+    <meta property="og:image" content="{{ url_for('static', filename='logos/IntroLogo.png', _external=True) }}">
+    <meta property="og:url" content="{{ request.url }}">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="SoulBridge AI">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="SoulBridge AI - Your Journey to Emotional Wellness">
+    <meta name="twitter:description" content="Connect with AI companions designed for healing, growth, and spiritual guidance">
+    <meta name="twitter:image" content="{{ url_for('static', filename='logos/IntroLogo.png', _external=True) }}">
+    
     <!-- CRITICAL: Block rendering until intro styles are ready -->
     <style>
         /* Prevent flash during loading */

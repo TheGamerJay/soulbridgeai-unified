@@ -8,7 +8,22 @@
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
     <meta name="theme-color" content="#00ffff">
+    
+    <!-- Open Graph / Social Media Meta Tags -->
+    <meta property="og:title" content="SoulBridge AI - Chat with {{ selected_companion or 'AI Assistant' }}">
+    <meta property="og:description" content="Your AI companion for emotional wellness and spiritual growth">
+    <meta property="og:image" content="{{ url_for('static', filename='logos/IntroLogo.png', _external=True) }}">
+    <meta property="og:url" content="{{ request.url }}">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="SoulBridge AI">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="SoulBridge AI">
+    <meta name="twitter:description" content="Your AI companion for emotional wellness and spiritual growth">
+    <meta name="twitter:image" content="{{ url_for('static', filename='logos/IntroLogo.png', _external=True) }}">
     
     <!-- CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}?v={{ range(1000000) | random }}">
