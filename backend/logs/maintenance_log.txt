@@ -3066,3 +3066,13 @@ information about how to avoid this problem.
 [2025-07-31 00:57:28] 🔧 HEALTH_CHECK: System running for 4.6 hours
 [2025-07-31 00:57:28] 🔧 HEALTH_CHECK: System running for 34.0 hours
 [2025-07-31 00:57:28] 🔧 HEALTH_CHECK: System running for 28.6 hours
+[2025-07-31 01:02:28] 🔧 HEALTH_CHECK: System running for 4.7 hours
+[2025-07-31 01:02:28] 🔧 HEALTH_CHECK: System running for 34.1 hours
+[2025-07-31 01:02:28] 🔧 HEALTH_CHECK: System running for 28.8 hours
+[2025-07-31 01:03:53] 🔧 SYSTEM_START: Basic surveillance system initialized
+[2025-07-31 01:03:53] 🔧 HEALTH_CHECK: System running for 0.0 hours
+[2025-07-31 01:03:53] 🔧 MONITOR_START: Background monitoring thread started
+[2025-07-31 01:07:28] 🔧 HEALTH_CHECK: System running for 4.8 hours
+[2025-07-31 01:07:28] 🔧 HEALTH_CHECK: System running for 34.2 hours
+[2025-07-31 01:07:28] 🔧 HEALTH_CHECK: System running for 28.8 hours
+[2025-07-31 01:07:28] 🔧 HEALTH_CHECK: System running for 28.9 hours
