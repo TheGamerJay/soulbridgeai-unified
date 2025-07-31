@@ -659,8 +659,6 @@
     <!-- All conflicting scripts disabled on login page - login-fixed.js handles everything -->
     <!-- <script src="{{ url_for('static', filename='js/universal-button-fix.js') }}?v=20250725" defer></script> -->
     <!-- <script src="{{ url_for('static', filename='js/app.js') }}?v=20250725" defer></script> -->
-    <!-- TEMPORARILY DISABLED ALL INLINE JAVASCRIPT FOR DEBUGGING -->
-    <!--
     <script>
         // Wait for DOM to be ready before attaching event listeners
         document.addEventListener('DOMContentLoaded', function() {
@@ -998,18 +996,7 @@
         //     console.log('❌ Local togglePassword disabled - Universal Button Fix handling');
         // }
         
-        // SECURITY: Clear session when user closes browser/tab
-        window.addEventListener('beforeunload', function(e) {
-            // Clear session data on browser close
-            fetch('/auth/logout', {
-                method: 'POST',
-                keepalive: true  // Ensure request completes even if browser is closing
-            }).catch(() => {
-                // Ignore errors - browser might be closing
-            });
-            
-            console.log('Browser closing - session cleared from login page');
-        });
+        // REMOVED: beforeunload logout was interfering with successful login navigation
 
         // Simple initialization that doesn't conflict
         console.log('🔧 Login page ready - waiting for Universal Button Fix');
@@ -1038,11 +1025,10 @@
             }, 300); // Give extra time for all scripts to load
         });
     </script>
-    -->
     
     <!-- AUTH.JS COMPLETELY REMOVED FOR PLAIN FORM SUBMISSION -->
     
-    <!-- TEMPORARILY DISABLED ALL JAVASCRIPT FOR DEBUGGING -->
-    <!-- <script src="{{ url_for('static', filename='js/login-fixed.js') }}" defer></script> -->
+    <!-- Complete working login system -->
+    <script src="{{ url_for('static', filename='js/login-fixed.js') }}" defer></script>
 </body>
 </html>
