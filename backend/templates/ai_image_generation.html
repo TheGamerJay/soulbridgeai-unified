@@ -524,12 +524,14 @@
           currentImageData = result;
           loadUsageCount(); // Update usage count
         } else {
-          alert('Error generating image: ' + result.error);
+          const errorMessage = result.error || 'Unknown error occurred';
+          console.error('Image generation failed:', errorMessage);
+          alert('Error generating image: ' + errorMessage);
         }
 
       } catch (error) {
         console.error('Error generating image:', error);
-        alert('Failed to generate image. Please try again.');
+        alert('Failed to generate image. Please check your connection and try again.');
       } finally {
         document.getElementById('generateBtn').disabled = false;
         document.getElementById('loadingState').style.display = 'none';

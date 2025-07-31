@@ -6127,21 +6127,23 @@ def ai_image_generation_generate():
             
         except Exception as dalle_error:
             logger.error(f"❌ DALL-E generation failed: {dalle_error}")
-            # Fallback to a more informative placeholder
-            mock_image_url = f"https://via.placeholder.com/512x512/8b5cf6/ffffff?text=Image+Generation+Error"
+            # Don't update usage count on failure
+            return jsonify({
+                "success": False, 
+                "error": f"Image generation failed: {str(dalle_error)}"
+            }), 500
         
-        # Update usage count
+        # Update usage count only on success
         session[usage_key] = monthly_usage + 1
-        # Session expires when browser closes
         
-        logger.info(f"AI image generated for user {session.get('user_email')}: {prompt[:50]}...")
+        logger.info(f"✅ AI image generated successfully for user {session.get('user_email')}: {prompt[:50]}...")
         
         return jsonify({
             "success": True,
             "imageUrl": mock_image_url,
             "prompt": prompt,
             "style": style,
-            "message": "Image generated successfully! (Demo mode - placeholder image)"
+            "message": "Image generated successfully!"
         })
         
     except Exception as e:
