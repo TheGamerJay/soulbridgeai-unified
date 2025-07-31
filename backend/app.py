@@ -1629,6 +1629,10 @@ def decoder():
         user_plan = session.get('user_plan', 'foundation')
         decoder_usage = get_decoder_usage()
         
+        # DEBUG: Log decoder access info
+        logger.info(f"🔍 DECODER DEBUG: user_plan = {user_plan}")
+        logger.info(f"🔍 DECODER DEBUG: decoder_usage = {decoder_usage}")
+        
         # Define tier limits
         tier_limits = {
             'foundation': 3,    # Free: 3 per day
@@ -1637,6 +1641,7 @@ def decoder():
         }
         
         daily_limit = tier_limits.get(user_plan, 3)
+        logger.info(f"🔍 DECODER DEBUG: daily_limit = {daily_limit}")
         
         return render_template("decoder.html", 
                              user_plan=user_plan,
