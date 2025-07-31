@@ -546,6 +546,17 @@ def debug_test_user():
     try:
         from auth import Database
         from simple_auth import SimpleAuth
+        import os
+        
+        # Check environment variables
+        env_info = {
+            "PGHOST": os.environ.get("PGHOST", "NOT_SET"),
+            "PGPORT": os.environ.get("PGPORT", "NOT_SET"),
+            "PGUSER": os.environ.get("PGUSER", "NOT_SET"),
+            "PGPASSWORD": "SET" if os.environ.get("PGPASSWORD") else "NOT_SET",
+            "PGDATABASE": os.environ.get("PGDATABASE", "NOT_SET"),
+            "DATABASE_URL": "SET" if os.environ.get("DATABASE_URL") else "NOT_SET"
+        }
         
         db = Database()
         auth = SimpleAuth(db)
@@ -557,12 +568,15 @@ def debug_test_user():
         result = auth.authenticate('dagamerjay13@gmail.com', 'Yariel13')
         
         return {
+            "env_vars": env_info,
             "user_exists": exists,
             "auth_result": result,
-            "database_type": "SQLite" if not hasattr(db, 'postgres_url') or not db.postgres_url else "PostgreSQL"
+            "database_type": "SQLite" if not hasattr(db, 'postgres_url') or not db.postgres_url else "PostgreSQL",
+            "postgres_url": getattr(db, 'postgres_url', None)
         }
     except Exception as e:
-        return {"error": str(e), "traceback": str(e.__class__.__name__)}
+        import traceback
+        return {"error": str(e), "traceback": traceback.format_exc()}
 
 @app.route("/auth/login", methods=["GET", "POST"])
 def auth_login():
