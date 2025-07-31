@@ -666,6 +666,23 @@ def session_refresh():
         logger.error(f"Error refreshing session: {e}")
         return jsonify({"success": False, "error": "Failed to refresh session"}), 500
 
+@app.route("/api/logout-on-close", methods=["POST"])
+def logout_on_close():
+    """Logout user when browser/tab is closed (not tab switch)"""
+    try:
+        data = request.get_json() or {}
+        reason = data.get('reason', 'unknown')
+        
+        user_email = session.get('user_email', 'unknown')
+        logger.info(f"🚪 BROWSER CLOSE LOGOUT: User {user_email} logged out due to {reason}")
+        
+        # Clear session but don't save companion data (they're closing browser)
+        session.clear()
+        return '', 204  # No content response for beacon
+    except Exception as e:
+        logger.error(f"Logout on close error: {e}")
+        return '', 204  # Still return 204 to avoid beacon errors
+
 @app.route("/api/clear-session", methods=["POST"])
 def clear_session():
     """BANKING SECURITY: Clear session when user navigates away"""
