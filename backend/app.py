@@ -1489,10 +1489,10 @@ def profile():
         session['last_activity'] = datetime.now().isoformat()
         
         # Get profile image for server-side rendering (eliminates flash)
-        profile_image = session.get('profile_image', '/static/logos/Sapphire.png')
+        profile_image = session.get('profile_image', '/static/logos/IntroLogo.png')
         
         # Also try to load from database if not in session
-        if not profile_image or profile_image == '/static/logos/Sapphire.png':
+        if not profile_image or profile_image in ['/static/logos/Sapphire.png', '/static/logos/IntroLogo.png']:
             user_id = session.get('user_id')
             if user_id:
                 try:
@@ -1516,10 +1516,10 @@ def profile():
                         conn.close()
                         
                         if result:
-                            if result[0] and result[0] != '/static/logos/Sapphire.png':
+                            if result[0] and result[0] not in ['/static/logos/Sapphire.png', '/static/logos/IntroLogo.png']:
                                 profile_image = result[0]
                                 session['profile_image'] = profile_image  # Cache in session
-                            elif result[1] and result[1] != '/static/logos/Sapphire.png':
+                            elif result[1] and result[1] not in ['/static/logos/Sapphire.png', '/static/logos/IntroLogo.png']:
                                 profile_image = result[1]
                                 session['profile_image'] = profile_image  # Cache in session
                 except Exception as e:
@@ -3458,19 +3458,19 @@ def api_users():
                     
                     if result and (result[0] or result[1]):
                         # Check if we have a URL that isn't the default
-                        if result[0] and result[0] != '/static/logos/Sapphire.png':
+                        if result[0] and result[0] not in ['/static/logos/Sapphire.png', '/static/logos/IntroLogo.png']:
                             profile_image = result[0]
                             logger.info(f"Loaded profile image from database: {profile_image}")
                         # If no URL but we have base64 data, use that as backup
                         elif result[1]:
                             # For now, keep the URL if we have base64 backup
-                            profile_image = result[0] if result[0] else '/static/logos/default-profile.png'
+                            profile_image = result[0] if result[0] else '/static/logos/IntroLogo.png'
                             logger.info(f"Using profile image with base64 backup: {profile_image}")
                     
                     # If no profile image found in database, check session but don't default to Sapphire
                     if not profile_image:
                         session_image = session.get('profile_image')
-                        if session_image and session_image != '/static/logos/Sapphire.png':
+                        if session_image and session_image not in ['/static/logos/Sapphire.png', '/static/logos/IntroLogo.png']:
                             profile_image = session_image
                             logger.info(f"Using profile image from session: {profile_image}")
                     
@@ -3478,7 +3478,7 @@ def api_users():
                 else:
                     # No database or user_id, check session but don't default to Sapphire
                     session_image = session.get('profile_image')
-                    if session_image and session_image != '/static/logos/Sapphire.png':
+                    if session_image and session_image not in ['/static/logos/Sapphire.png', '/static/logos/IntroLogo.png']:
                         profile_image = session_image
                         logger.info(f"Using profile image from session (no DB): {profile_image}")
                     
@@ -3486,13 +3486,13 @@ def api_users():
                 logger.warning(f"Failed to load profile image from database: {e}")
                 # Check session but don't default to Sapphire
                 session_image = session.get('profile_image')
-                if session_image and session_image != '/static/logos/Sapphire.png':
+                if session_image and session_image not in ['/static/logos/Sapphire.png', '/static/logos/IntroLogo.png']:
                     profile_image = session_image
             
-            # Only use Sapphire as absolute last resort if no profile image was ever set
+            # Only use IntroLogo as absolute last resort if no profile image was ever set
             if not profile_image:
-                profile_image = '/static/logos/Sapphire.png'
-                logger.info("No custom profile image found, using default Sapphire")
+                profile_image = '/static/logos/IntroLogo.png'
+                logger.info("No custom profile image found, using default IntroLogo")
             
             # Get display name from database if available, fallback to session, then default
             display_name = None
