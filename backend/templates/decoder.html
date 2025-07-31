@@ -458,18 +458,10 @@ Focus on depth and meaningful interpretation. Content to decode:`
     }
 };
 
-// User state
-let userUsage = parseInt(localStorage.getItem('decoderUsage') || '0');
-let userPlan = localStorage.getItem('soulbridge_subscription') || 'free';
-let lastUsageDate = localStorage.getItem('lastDecoderDate') || '';
-
-// Check if it's a new day and reset usage
-const today = new Date().toDateString();
-if (lastUsageDate !== today) {
-    userUsage = 0;
-    localStorage.setItem('decoderUsage', '0');
-    localStorage.setItem('lastDecoderDate', today);
-}
+// User state from backend
+let userUsage = {{ current_usage or 0 }};
+let userPlan = '{{ user_plan or "foundation" }}';
+let dailyLimit = {{ daily_limit or 3 }};
 
 // Update UI elements
 function updateModeDescription() {
@@ -487,17 +479,18 @@ function updateUsageIndicator() {
     
     usageCount.textContent = userUsage;
     
-    if (userPlan === 'free') {
-        const percentage = (userUsage / 5) * 100;
+    if (dailyLimit === null || dailyLimit === -1) {
+        // Unlimited for Max tier
+        usageIndicator.style.display = 'none';
+    } else {
+        const percentage = (userUsage / dailyLimit) * 100;
         usageFill.style.width = Math.min(percentage, 100) + '%';
         usageIndicator.style.display = 'block';
-    } else {
-        usageIndicator.style.display = 'none';
     }
 }
 
 function checkUsageLimit() {
-    if (userPlan === 'free' && userUsage >= 5) {
+    if (dailyLimit !== null && dailyLimit !== -1 && userUsage >= dailyLimit) {
         document.getElementById('decode-button').disabled = true;
         document.getElementById('decode-button').textContent = '🔒 Daily Limit Reached';
         document.getElementById('upgrade-prompt').style.display = 'block';
@@ -544,12 +537,9 @@ async function decodeText() {
         const result = await response.json();
         
         if (result.success) {
-            // Update usage for free users
-            if (userPlan === 'free') {
-                userUsage++;
-                localStorage.setItem('decoderUsage', userUsage.toString());
-                updateUsageIndicator();
-            }
+            // Update usage count (backend handles the actual tracking)
+            userUsage++;
+            updateUsageIndicator();
             
             // Show result with animation
             outputBox.className = 'output-box show';
@@ -561,7 +551,15 @@ async function decodeText() {
             }
             
         } else {
-            throw new Error(result.error || 'Decoding failed');
+            // Check if this is a usage limit error
+            if (result.limit_reached) {
+                document.getElementById('decode-button').disabled = true;
+                document.getElementById('decode-button').textContent = '🔒 Daily Limit Reached';
+                document.getElementById('upgrade-prompt').style.display = 'block';
+                throw new Error(result.response);
+            } else {
+                throw new Error(result.error || result.response || 'Decoding failed');
+            }
         }
         
     } catch (error) {

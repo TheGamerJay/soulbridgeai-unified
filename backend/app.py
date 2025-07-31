@@ -1564,11 +1564,28 @@ def referrals():
 
 @app.route("/decoder")
 def decoder():
-    """Decoder page"""
+    """Decoder page with usage limits by tier"""
     try:
         if not is_logged_in():
             return redirect("/login")
-        return render_template("decoder.html")
+            
+        # Get user's plan and decoder usage
+        user_plan = session.get('user_plan', 'foundation')
+        decoder_usage = get_decoder_usage()
+        
+        # Define tier limits
+        tier_limits = {
+            'foundation': 3,    # Free: 3 per day
+            'premium': 15,      # Growth: 15 per day  
+            'enterprise': None  # Max: unlimited
+        }
+        
+        daily_limit = tier_limits.get(user_plan, 3)
+        
+        return render_template("decoder.html", 
+                             user_plan=user_plan,
+                             daily_limit=daily_limit,
+                             current_usage=decoder_usage)
     except Exception as e:
         logger.error(f"Decoder template error: {e}")
         return jsonify({"error": "Decoder temporarily unavailable"}), 500
@@ -3916,6 +3933,80 @@ def get_user_addons():
         logger.error(f"User addons error: {e}")
         return jsonify({"success": False, "error": "Failed to fetch add-ons"}), 500
 
+def get_decoder_usage():
+    """Get user's decoder usage for today"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return 0
+            
+        # Use session-based tracking for now (in production, use database)
+        today = datetime.now().strftime('%Y-%m-%d')
+        usage_key = f'decoder_usage_{user_id}_{today}'
+        
+        return session.get(usage_key, 0)
+    except Exception as e:
+        logger.error(f"Get decoder usage error: {e}")
+        return 0
+
+def increment_decoder_usage():
+    """Increment user's decoder usage for today"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return False
+            
+        today = datetime.now().strftime('%Y-%m-%d')
+        usage_key = f'decoder_usage_{user_id}_{today}'
+        
+        current_usage = session.get(usage_key, 0)
+        session[usage_key] = current_usage + 1
+        
+        return True
+    except Exception as e:
+        logger.error(f"Increment decoder usage error: {e}")
+        return False
+
+@app.route("/api/decoder/check-limit")
+def check_decoder_limit():
+    """Check if user can use decoder (within daily limits)"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Not logged in"}), 401
+            
+        user_plan = session.get('user_plan', 'foundation')
+        current_usage = get_decoder_usage()
+        
+        # Define tier limits
+        tier_limits = {
+            'foundation': 3,    # Free: 3 per day
+            'premium': 15,      # Growth: 15 per day  
+            'enterprise': None  # Max: unlimited
+        }
+        
+        daily_limit = tier_limits.get(user_plan, 3)
+        
+        # Check if at limit
+        if daily_limit is None:  # Unlimited for Max tier
+            can_use = True
+            remaining = None
+        else:
+            can_use = current_usage < daily_limit
+            remaining = max(0, daily_limit - current_usage)
+        
+        return jsonify({
+            "success": True,
+            "can_use": can_use,
+            "current_usage": current_usage,
+            "daily_limit": daily_limit,
+            "remaining": remaining,
+            "user_plan": user_plan
+        })
+        
+    except Exception as e:
+        logger.error(f"Check decoder limit error: {e}")
+        return jsonify({"success": False, "error": "Failed to check limit"}), 500
+
 @app.route("/api/subscription/upgrade", methods=["POST"])
 def api_subscription_upgrade():
     """Handle subscription upgrade requests"""
@@ -5056,9 +5147,38 @@ def api_chat():
             
         message = data.get("message", "").strip()
         character = data.get("character", "Blayzo")
+        context = data.get("context", "")
         
         if not message or len(message) > 1000:
             return jsonify({"success": False, "response": "Message is required and must be under 1000 characters"}), 400
+        
+        # Check decoder usage limits if this is a decoder request
+        if context == 'decoder_mode':
+            user_plan = session.get('user_plan', 'foundation')
+            current_usage = get_decoder_usage()
+            
+            # Define tier limits
+            tier_limits = {
+                'foundation': 3,    # Free: 3 per day
+                'premium': 15,      # Growth: 15 per day  
+                'enterprise': None  # Max: unlimited
+            }
+            
+            daily_limit = tier_limits.get(user_plan, 3)
+            
+            # Check if user has exceeded limit
+            if daily_limit is not None and current_usage >= daily_limit:
+                return jsonify({
+                    "success": False, 
+                    "response": f"Daily decoder limit reached ({daily_limit} uses). Upgrade to Growth for 15 daily uses, or Max for unlimited access!",
+                    "limit_reached": True,
+                    "current_usage": current_usage,
+                    "daily_limit": daily_limit,
+                    "upgrade_required": True
+                }), 429
+            
+            # Increment usage for decoder requests
+            increment_decoder_usage()
         
         # Sanitize character input
         if character not in VALID_CHARACTERS:
