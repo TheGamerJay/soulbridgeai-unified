@@ -14,68 +14,25 @@ document.addEventListener("DOMContentLoaded", function() {
         // Clear any existing handlers
         loginForm.onsubmit = null;
         
-        loginForm.addEventListener("submit", async function(e) {
-            e.preventDefault();
-            console.log("🚀 Login form submitted");
+        loginForm.addEventListener("submit", function(e) {
+            console.log("🚀 Form submitted - allowing normal form submission");
+            
+            const email = emailInput ? emailInput.value.trim() : "";
+            const password = passwordInput ? passwordInput.value : "";
+            
+            if (!email || !password) {
+                e.preventDefault();
+                alert("Please enter both email and password");
+                return;
+            }
             
             if (loginBtn) {
                 loginBtn.disabled = true;
                 loginBtn.textContent = "Signing in...";
             }
             
-            const email = emailInput ? emailInput.value.trim() : "";
-            const password = passwordInput ? passwordInput.value : "";
-            
-            if (!email || !password) {
-                alert("Please enter both email and password");
-                if (loginBtn) {
-                    loginBtn.disabled = false;
-                    loginBtn.textContent = "Sign In";
-                }
-                return;
-            }
-            
-            try {
-                const response = await fetch("/auth/login", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Accept": "application/json"
-                    },
-                    credentials: "include",
-                    body: JSON.stringify({ email, password })
-                });
-                
-                const data = await response.json();
-                console.log("📥 Login response:", data);
-                
-                if (data.success) {
-                    console.log("✅ Login successful, setting authentication and redirecting...");
-                    
-                    // Clear any previous user's trial data to prevent trial carryover
-                    console.log("🧹 Clearing previous user's trial data...");
-                    localStorage.removeItem('trialActive');
-                    localStorage.removeItem('trialExpiry');
-                    localStorage.removeItem('trialStartTime');
-                    localStorage.removeItem('trialSelectedCompanion');
-                    localStorage.removeItem('premiumCompanionsLocked');
-                    localStorage.removeItem('unlockedPremiumCompanion');
-                    
-                    // Removed localStorage auth flags - authentication should only be server-side session
-                    window.location.href = data.redirect || "/";
-                } else {
-                    console.error("❌ Login failed:", data.error);
-                    alert(data.error || "Login failed");
-                }
-            } catch (error) {
-                console.error("🛑 Login error:", error);
-                alert("Network error. Please try again.");
-            }
-            
-            if (loginBtn) {
-                loginBtn.disabled = false;
-                loginBtn.textContent = "Sign In";
-            }
+            // Let the form submit normally to /auth/login
+            console.log("✅ Allowing normal form POST to /auth/login");
         });
     }
     
