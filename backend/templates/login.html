@@ -677,8 +677,11 @@
             if (loginForm) {
                 console.log('✅ Adding login form submission handler');
                 
-                // Login form now handled by auth.js
-                console.log('✅ Login form setup - handled by auth.js');
+                loginForm.addEventListener('submit', function(e) {
+                    console.log('🔑 Login form submitted');
+                    // Set sessionStorage flag on successful login
+                    sessionStorage.setItem('loggedIn', 'true');
+                });
             }
             
             if (themeToggle) {
@@ -996,10 +999,8 @@
         //     console.log('❌ Local togglePassword disabled - Universal Button Fix handling');
         // }
         
-        // Clear localStorage on tab close to mimic logout
-        window.addEventListener("unload", function () {
-            fetch("/auth/logout", { method: "GET" });
-        });
+        // Remove "loggedIn" flag from sessionStorage on tab close
+        sessionStorage.removeItem('loggedIn');
 
         // Simple initialization that doesn't conflict
         console.log('🔧 Login page ready - waiting for Universal Button Fix');

@@ -383,6 +383,10 @@
     
     <script src="{{ url_for('static', filename='js/login-fixed.js') }}"></script>
     <script>
+        // If not flagged in sessionStorage, log out immediately
+        if (!sessionStorage.getItem('loggedIn')) {
+            fetch('/auth/logout').then(() => window.location = '/login');
+        }
         
         // AGGRESSIVE intro page styling enforcement
         function forceIntroStyling() {
