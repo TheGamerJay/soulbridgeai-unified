@@ -352,8 +352,8 @@ function renderSection(sectionId, companionList) {
                     console.log(`🆓 Growth companion ${companion.display_name} unlocked via active trial`);
                 } else {
                     isLocked = true;
-                    lockReason = 'Upgrade to Premium Required';
-                    console.log(`🔒 Growth companion ${companion.display_name} locked - premium required`);
+                    lockReason = 'Try Free for 5 Hours';
+                    console.log(`🔒 Growth companion ${companion.display_name} locked - trial available`);
                 }
             } else if (currentUser.plan === 'premium' || currentUser.plan === 'enterprise') {
                 // Premium or Enterprise users have full access to Growth companions
@@ -443,10 +443,10 @@ function renderSection(sectionId, companionList) {
                                     onclick="${isSelected ? '' : `selectCompanion('${companion.companion_id}')`}">
                                 ${isSelected ? 'Selected' : 'Select'}
                             </button>
-                        ` : lockReason === 'Try Free for 24 Hours' ? `
+                        ` : lockReason === 'Try Free for 5 Hours' ? `
                             <button class="btn-trial" onclick="startPremiumTrial('${companion.companion_id}')" 
                                     style="background: linear-gradient(135deg, #ff6b6b, #ee5a24); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">
-                                ✨ Try Free for 24h
+                                ✨ Try Free for 5h
                             </button>
                         ` : `
                             <button class="btn-select" disabled style="${isReferralTier ? 'background: #FFD700; color: #333;' : 'background: #ccc; color: #666; cursor: not-allowed;'}">
@@ -552,8 +552,8 @@ async function startPremiumTrial(companionId) {
         const data = await response.json();
         
         if (data.success) {
-            console.log('✅ 24-hour trial started successfully');
-            showNotification(`🎉 24-hour trial activated! Enjoy full access to all premium companions.`, 'success');
+            console.log('✅ 5-hour trial started successfully');
+            showNotification(`🎉 5-hour trial activated! Enjoy access to Growth tier companions.`, 'success');
             
             // Update currentUser with backend data (no localStorage for trial data)
             currentUser.trial_active = data.trial_active;

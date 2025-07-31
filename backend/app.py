@@ -1483,7 +1483,7 @@ def api_start_companion_trial():
             logger.info(f"🚫 TRIAL ALREADY USED: User {user_email or user_id} has already used their trial")
             return jsonify({
                 "success": False, 
-                "error": "You have already used your free trial. Each user gets only one 24-hour trial.",
+                "error": "You have already used your free trial. Each user gets only one 5-hour trial.",
                 "trial_used": True
             }), 400
             
@@ -1520,7 +1520,7 @@ def api_start_companion_trial():
         
         # ENHANCED: Set trial companion in session with permanent flag
         session['trial_companion'] = companion_id
-        session['trial_expires'] = (datetime.now() + timedelta(hours=24)).isoformat()
+        session['trial_expires'] = (datetime.now() + timedelta(hours=5)).isoformat()
         session['selected_companion'] = companion_id
         session['user_plan'] = 'trial'  # Temporarily upgrade to trial
         session['trial_active'] = True
@@ -1561,11 +1561,11 @@ def api_start_companion_trial():
         
         logger.info(f"🔧 TRIAL SESSION DATA SET: companion={companion_id}, expires={session['trial_expires']}, plan={session['user_plan']}")
         
-        logger.info(f"✅ TRIAL STARTED: 24-hour trial for user {user_email or user_id} with companion {companion_id}")
+        logger.info(f"✅ TRIAL STARTED: 5-hour trial for user {user_email or user_id} with companion {companion_id}")
         
         return jsonify({
             "success": True,
-            "message": f"Free trial started for {companion_id}! You have 24 hours of premium access.",
+            "message": f"Free trial started for {companion_id}! You have 5 hours of Growth tier access.",
             "trial_expires": session['trial_expires'],
             "companion_id": companion_id,
             "trial_active": True
@@ -5339,7 +5339,7 @@ def api_chat():
             max_tokens = 200
             temperature = 0.75
             if has_active_trial:
-                system_prompt = f"You are {character}, an enhanced AI companion from SoulBridge AI Growth Plan (Trial Access). You provide more detailed responses and have access to advanced conversation features during this 24-hour trial. You're helpful, insightful, and offer quality guidance. Make sure to mention this is a premium trial experience!"
+                system_prompt = f"You are {character}, an enhanced AI companion from SoulBridge AI Growth Plan (Trial Access). You provide more detailed responses and have access to advanced conversation features during this 5-hour trial. You're helpful, insightful, and offer quality guidance. Make sure to mention this is a premium trial experience!"
             else:
                 system_prompt = f"You are {character}, an enhanced AI companion from SoulBridge AI Growth Plan. You provide more detailed responses and have access to advanced conversation features. You're helpful, insightful, and offer quality guidance."
         else:  # Foundation (Free)
