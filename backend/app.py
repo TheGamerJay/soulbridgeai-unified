@@ -700,7 +700,7 @@ def clear_session():
         
         # Restore only profile image if it was a custom one (not default)
         # This maintains UX without compromising security since it's just cosmetic data
-        if profile_image and profile_image != '/static/logos/Sapphire.png':
+        if profile_image and profile_image not in ['/static/logos/Sapphire.png', '/static/logos/IntroLogo.png']:
             session['profile_image'] = profile_image
             logger.info(f"SECURITY: Profile image preserved after session clear: {profile_image}")
         
@@ -6430,6 +6430,23 @@ def set_max_tier():
     except Exception as e:
         logger.error(f"Set max tier error: {e}")
         return jsonify({"success": False, "error": "Failed to set tier"}), 500
+
+@app.route("/debug/session-status")
+def debug_session_status():
+    """DEBUG: Check current session status"""
+    try:
+        return jsonify({
+            "is_logged_in": is_logged_in(),
+            "session_keys": list(session.keys()),
+            "user_plan": session.get('user_plan'),
+            "user_email": session.get('user_email'),
+            "user_id": session.get('user_id'),
+            "user_authenticated": session.get('user_authenticated'),
+            "profile_image": session.get('profile_image'),
+            "session_version": session.get('session_version')
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 # COMPANION API ENDPOINTS
 # ========================================
