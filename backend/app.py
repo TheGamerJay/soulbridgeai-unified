@@ -509,11 +509,15 @@ def health():
 
 @app.route("/", methods=["GET", "POST"])
 def home():
-    """Home route - always redirect to login page (like Google search results)"""
+    """Home route - redirect based on authentication status"""
     try:
-        # Always redirect to login page, just like Google search results
-        logger.info(f"🏠 HOME ROUTE: Redirecting to login (Google-style behavior)")
-        return redirect("/login")
+        # Check if user is logged in
+        if is_logged_in():
+            logger.info(f"🏠 HOME ROUTE: User authenticated, redirecting to intro")
+            return redirect("/intro")
+        else:
+            logger.info(f"🏠 HOME ROUTE: User not authenticated, redirecting to login")
+            return redirect("/login")
         
     except Exception as e:
         logger.error(f"Home route error: {e}")
