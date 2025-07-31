@@ -63,6 +63,10 @@ class SimpleAuth:
             except Exception as col_error:
                 # plan_type column might not exist, try without it
                 logger.warning(f"plan_type column not found, falling back: {col_error}")
+                
+                # IMPORTANT: In PostgreSQL, we need to rollback the transaction after an error
+                conn.rollback()
+                
                 cursor.execute(f"""
                     SELECT id, email, password_hash, display_name
                     FROM users WHERE email = {placeholder}
