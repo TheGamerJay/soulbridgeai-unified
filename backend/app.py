@@ -47,6 +47,14 @@ app.config['SESSION_COOKIE_DOMAIN'] = '.soulbridgeai.com' if os.environ.get('RAI
 def make_session_non_permanent():
     session.permanent = False
 
+# Prevent caching to force fresh login checks
+@app.after_request
+def prevent_caching(response):
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, post-check=0, pre-check=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return response
+
 # Global variables for services
 services = {
     "database": None,
