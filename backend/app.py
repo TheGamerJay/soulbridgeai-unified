@@ -39,16 +39,13 @@ if not secret_key:
 
 app.secret_key = secret_key
 
-# BANKING SECURITY: Configure session cookies for maximum security
-app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevent XSS access
-app.config['SESSION_COOKIE_SECURE'] = bool(os.environ.get('RAILWAY_ENVIRONMENT'))  # HTTPS in production
-app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # Balance security with cross-domain functionality
-app.config['SESSION_COOKIE_PATH'] = '/'  # Ensure cookie works for all paths
+# Simple session configuration
 app.config['SESSION_COOKIE_DOMAIN'] = '.soulbridgeai.com' if os.environ.get('RAILWAY_ENVIRONMENT') else None  # Cross-subdomain sessions
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30)  # 30 minute session timeout
-app.config['SESSION_PERMANENT'] = False  # Sessions expire when browser closes
-app.config['SESSION_COOKIE_MAX_AGE'] = 1800  # 30 minutes absolute timeout for security
-app.config['SESSION_REFRESH_EACH_REQUEST'] = False  # Don't extend session on every request
+
+# Ensure sessions expire when browser closes
+@app.before_request
+def make_session_non_permanent():
+    session.permanent = False
 
 # Global variables for services
 services = {
