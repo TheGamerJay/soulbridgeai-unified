@@ -14,7 +14,7 @@ from psycopg2.extras import RealDictCursor
 DB_HOST = "trolley.proxy.rlwy.net"     # Your Railway PostgreSQL host
 DB_PORT = "51310"                       # Your Railway PostgreSQL port  
 DB_USER = "postgres"                    # Your Railway PostgreSQL user
-DB_PASSWORD = "sDCOyvWZKSxyJvnJBZNSJemzZKbbSjIT"  # Your Railway PostgreSQL password
+DB_PASSWORD = "YOUR_PASSWORD_HERE"      # Your Railway PostgreSQL password
 DB_NAME = "railway"                     # Your Railway PostgreSQL database name
 
 # The JSON data to insert
