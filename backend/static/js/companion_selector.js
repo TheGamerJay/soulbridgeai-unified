@@ -144,7 +144,53 @@ function addClickListeners() {
             document.body.appendChild(testDiv);
             testDiv.click();
             document.body.removeChild(testDiv);
-        }, 1000);
+            
+            // Test actual buttons on the page
+            console.log('🧪 Analyzing actual buttons on page...');
+            const selectButtons = document.querySelectorAll('.btn-select');
+            const trialButtons = document.querySelectorAll('.btn-trial');
+            
+            console.log('🔍 Found buttons:', {
+                selectButtons: selectButtons.length,
+                trialButtons: trialButtons.length
+            });
+            
+            if (selectButtons.length > 0) {
+                const firstButton = selectButtons[0];
+                console.log('🔍 First select button details:', {
+                    tagName: firstButton.tagName,
+                    className: firstButton.className,
+                    disabled: firstButton.disabled,
+                    style: firstButton.style.cssText,
+                    computedStyle: window.getComputedStyle(firstButton).pointerEvents,
+                    parentElement: firstButton.parentElement.className,
+                    dataCompanionId: firstButton.dataset.companionId,
+                    boundingRect: firstButton.getBoundingClientRect()
+                });
+                
+                // Try to click it programmatically
+                console.log('🧪 Simulating click on first select button...');
+                firstButton.click();
+            }
+            
+            if (trialButtons.length > 0) {
+                const firstTrialButton = trialButtons[0];
+                console.log('🔍 First trial button details:', {
+                    tagName: firstTrialButton.tagName,
+                    className: firstTrialButton.className,
+                    disabled: firstTrialButton.disabled,
+                    style: firstTrialButton.style.cssText,
+                    computedStyle: window.getComputedStyle(firstTrialButton).pointerEvents,
+                    parentElement: firstTrialButton.parentElement.className,
+                    dataCompanionId: firstTrialButton.dataset.companionId,
+                    boundingRect: firstTrialButton.getBoundingClientRect()
+                });
+                
+                // Try to click it programmatically
+                console.log('🧪 Simulating click on first trial button...');
+                firstTrialButton.click();
+            }
+        }, 2000);
         
     } catch (error) {
         console.error('❌ Error adding click listeners:', error);
