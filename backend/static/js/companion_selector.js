@@ -53,51 +53,70 @@ function handleChatSwitching() {
 }
 
 function setupEventListeners() {
+    console.log('🔧 Setting up event listeners...');
+    
     // Add any additional event listeners here
     document.addEventListener('visibilitychange', handleVisibilityChange);
     
-    // Event delegation for dynamically generated buttons - catch ALL clicks for debugging
-    document.addEventListener('click', function(event) {
-        console.log('🔍 GLOBAL CLICK detected on:', event.target.tagName, event.target.className, event.target.textContent.substring(0, 50));
-        
-        // Handle companion selection buttons
-        if (event.target.classList.contains('btn-select') && !event.target.disabled) {
-            event.preventDefault();
-            const companionCard = event.target.closest('.companion-card');
-            console.log('🔍 Found companion card:', companionCard);
-            if (companionCard) {
-                const companionId = companionCard.dataset.companionId;
-                console.log('🔍 Companion ID from data attribute:', companionId);
-                if (companionId) {
-                    console.log('🔍 Event delegation: selectCompanion clicked for:', companionId);
-                    try {
-                        window.selectCompanion(companionId);
-                    } catch (error) {
-                        console.error('❌ Error calling selectCompanion:', error);
+    // Ensure DOM is ready before adding click listeners
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', addClickListeners);
+    } else {
+        addClickListeners();
+    }
+}
+
+function addClickListeners() {
+    console.log('🔧 Adding click listeners to document...');
+    
+    try {
+        // Event delegation for dynamically generated buttons - catch ALL clicks for debugging
+        document.addEventListener('click', function(event) {
+            console.log('🔍 GLOBAL CLICK detected on:', event.target.tagName, event.target.className, event.target.textContent.substring(0, 50));
+            
+            // Handle companion selection buttons
+            if (event.target.classList.contains('btn-select') && !event.target.disabled) {
+                event.preventDefault();
+                const companionCard = event.target.closest('.companion-card');
+                console.log('🔍 Found companion card:', companionCard);
+                if (companionCard) {
+                    const companionId = companionCard.dataset.companionId;
+                    console.log('🔍 Companion ID from data attribute:', companionId);
+                    if (companionId) {
+                        console.log('🔍 Event delegation: selectCompanion clicked for:', companionId);
+                        try {
+                            window.selectCompanion(companionId);
+                        } catch (error) {
+                            console.error('❌ Error calling selectCompanion:', error);
+                        }
                     }
                 }
             }
-        }
-        
-        // Handle trial buttons
-        if (event.target.classList.contains('btn-trial')) {
-            event.preventDefault();
-            const companionCard = event.target.closest('.companion-card');
-            console.log('🔍 Found companion card for trial:', companionCard);
-            if (companionCard) {
-                const companionId = companionCard.dataset.companionId;
-                console.log('🔍 Trial companion ID from data attribute:', companionId);
-                if (companionId) {
-                    console.log('🔍 Event delegation: startPremiumTrial clicked for:', companionId);
-                    try {
-                        window.startPremiumTrial(companionId);
-                    } catch (error) {
-                        console.error('❌ Error calling startPremiumTrial:', error);
+            
+            // Handle trial buttons
+            if (event.target.classList.contains('btn-trial')) {
+                event.preventDefault();
+                const companionCard = event.target.closest('.companion-card');
+                console.log('🔍 Found companion card for trial:', companionCard);
+                if (companionCard) {
+                    const companionId = companionCard.dataset.companionId;
+                    console.log('🔍 Trial companion ID from data attribute:', companionId);
+                    if (companionId) {
+                        console.log('🔍 Event delegation: startPremiumTrial clicked for:', companionId);
+                        try {
+                            window.startPremiumTrial(companionId);
+                        } catch (error) {
+                            console.error('❌ Error calling startPremiumTrial:', error);
+                        }
                     }
                 }
             }
-        }
-    }, true); // Use capture phase to ensure we catch everything
+        }, true); // Use capture phase to ensure we catch everything
+        
+        console.log('✅ Click listeners successfully added');
+    } catch (error) {
+        console.error('❌ Error adding click listeners:', error);
+    }
 }
 
 async function loadUserDataFromBackend() {
@@ -444,14 +463,10 @@ function renderSection(sectionId, companionList) {
         
         const isSelected = currentUser.selected_companion === companion.companion_id;
         const isReferralTier = companion.tier === 'referral';
-        const clickAction = isLocked ? 
-            (isReferralTier ? `window.location.href='/referrals'` : `showCompanionDetails('${companion.companion_id}')`) 
-            : `selectCompanion('${companion.companion_id}')`;
         
         return `
             <div class="companion-card ${isLocked ? 'locked' : ''} ${isSelected ? 'selected' : ''}" 
-                 data-companion-id="${companion.companion_id}"
-                 onclick="${clickAction}">
+                 data-companion-id="${companion.companion_id}">
                 
                 <div class="companion-avatar">
                     <img src="${companion.avatar_image}" alt="${companion.display_name}" onerror="this.src='/static/logos/IntroLogo.png'">
@@ -489,11 +504,12 @@ function renderSection(sectionId, companionList) {
                         ${!isLocked ? `
                             <button class="btn-select ${isSelected ? 'selected' : ''}" 
                                     ${isSelected ? 'disabled' : ''}
-                                    onclick="${isSelected ? '' : `selectCompanion('${companion.companion_id}')`}">
+                                    data-companion-id="${companion.companion_id}">
                                 ${isSelected ? 'Selected' : 'Select'}
                             </button>
                         ` : lockReason === 'Try Free for 5 Hours' ? `
-                            <button class="btn-trial" onclick="startPremiumTrial('${companion.companion_id}')" 
+                            <button class="btn-trial" 
+                                    data-companion-id="${companion.companion_id}"
                                     style="background: linear-gradient(135deg, #ff6b6b, #ee5a24); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">
                                 ✨ Try Free for 5h
                             </button>
