@@ -68,15 +68,29 @@ function setupEventListeners() {
 
 function addClickListeners() {
     console.log('🔧 Adding click listeners to document...');
+    console.log('🔍 Document ready state:', document.readyState);
+    console.log('🔍 Current URL:', window.location.href);
     
     try {
         // Event delegation for dynamically generated buttons - catch ALL clicks for debugging
         document.addEventListener('click', function(event) {
-            console.log('🔍 GLOBAL CLICK detected on:', event.target.tagName, event.target.className, event.target.textContent.substring(0, 50));
+            console.log('🔍 GLOBAL CLICK detected on:', {
+                tagName: event.target.tagName,
+                className: event.target.className,
+                id: event.target.id,
+                textContent: event.target.textContent.substring(0, 50),
+                hasSelectClass: event.target.classList.contains('btn-select'),
+                hasTrialClass: event.target.classList.contains('btn-trial'),
+                isDisabled: event.target.disabled,
+                dataCompanionId: event.target.dataset.companionId
+            });
             
             // Handle companion selection buttons
             if (event.target.classList.contains('btn-select') && !event.target.disabled) {
+                console.log('✅ SELECT BUTTON CLICKED - Processing...');
                 event.preventDefault();
+                event.stopPropagation();
+                
                 const companionCard = event.target.closest('.companion-card');
                 console.log('🔍 Found companion card:', companionCard);
                 if (companionCard) {
@@ -91,11 +105,15 @@ function addClickListeners() {
                         }
                     }
                 }
+                return;
             }
             
             // Handle trial buttons
             if (event.target.classList.contains('btn-trial')) {
+                console.log('✅ TRIAL BUTTON CLICKED - Processing...');
                 event.preventDefault();
+                event.stopPropagation();
+                
                 const companionCard = event.target.closest('.companion-card');
                 console.log('🔍 Found companion card for trial:', companionCard);
                 if (companionCard) {
@@ -110,10 +128,24 @@ function addClickListeners() {
                         }
                     }
                 }
+                return;
             }
+            
+            console.log('🔍 Click not handled by event delegation');
         }, true); // Use capture phase to ensure we catch everything
         
         console.log('✅ Click listeners successfully added');
+        
+        // Add a test to verify the listener is working
+        setTimeout(() => {
+            console.log('🧪 Testing click listener by simulating a click...');
+            const testDiv = document.createElement('div');
+            testDiv.textContent = 'test';
+            document.body.appendChild(testDiv);
+            testDiv.click();
+            document.body.removeChild(testDiv);
+        }, 1000);
+        
     } catch (error) {
         console.error('❌ Error adding click listeners:', error);
     }
