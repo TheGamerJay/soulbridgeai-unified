@@ -948,6 +948,10 @@ function showUpgradeModal(companionId, tier, companionName) {
                                 style="background: ${info.color}; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-right: 10px;">
                             🚀 Upgrade to ${info.name}
                         </button>
+                        <button class="upgrade-btn-immediate" onclick="redirectToUpgradeNow('${tier}')" 
+                                style="background: linear-gradient(45deg, ${info.color}, #2563eb); color: white; border: none; padding: 12px 24px; border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; margin-left: 5px;">
+                            🚀 Go Now
+                        </button>
                         <button class="upgrade-btn-secondary" onclick="closeUpgradeModal()" 
                                 style="background: #f5f5f5; color: #333; border: 1px solid #ddd; padding: 12px 24px; border-radius: 6px; font-size: 16px; cursor: pointer;">
                             Maybe Later
@@ -1111,17 +1115,29 @@ function redirectToUpgrade(tier) {
     // Show notification about redirect
     showNotification(`Redirecting to ${tier === 'growth' ? 'Growth' : 'Max'} Plan upgrade...`, 'info');
     
-    // Redirect to plan selection or upgrade page
-    // You can customize this URL based on your upgrade flow
+    // Redirect to subscription page with tier pre-selected
     setTimeout(() => {
-        window.location.href = '/plan-selection';
+        console.log('🔄 Executing redirect to:', `/subscription?tier=${tier}`);
+        window.location.href = `/subscription?tier=${tier}`;
     }, 1000);
+}
+
+function redirectToUpgradeNow(tier) {
+    console.log('⚡ Immediate redirect to upgrade page for tier:', tier);
+    
+    // Close modal first
+    closeUpgradeModal();
+    
+    // Immediate redirect without delay
+    console.log('🔄 Executing immediate redirect to:', `/subscription?tier=${tier}`);
+    window.location.href = `/subscription?tier=${tier}`;
 }
 
 // Make functions globally accessible
 window.showUpgradeModal = showUpgradeModal;
 window.closeUpgradeModal = closeUpgradeModal;
 window.redirectToUpgrade = redirectToUpgrade;
+window.redirectToUpgradeNow = redirectToUpgradeNow;
 
 function showNotification(message, type = 'info') {
     console.log(`📢 Notification (${type}): ${message}`);
