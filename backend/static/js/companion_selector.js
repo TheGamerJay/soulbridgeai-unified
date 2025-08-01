@@ -577,6 +577,7 @@ window.selectCompanion = async function(companionId) {
     console.log('🔍 selectCompanion function called');
     
     try {
+        console.log('🔍 Making API call to /api/companions/select');
         const response = await fetch('/api/companions/select', {
             method: 'POST',
             headers: {
@@ -591,6 +592,7 @@ window.selectCompanion = async function(companionId) {
         
         if (data.success) {
             console.log('✅ Companion selected successfully');
+            console.log('🔍 Response data:', data);
             
             // Update UI
             currentUser.selected_companion = companionId;
@@ -598,6 +600,7 @@ window.selectCompanion = async function(companionId) {
             
             // Store selection for instant access
             const companionName = getCompanionName(companionId);
+            console.log('🔍 Companion name mapped to:', companionName);
             localStorage.setItem('selectedCharacter', companionName);
             localStorage.setItem('currentScreen', 'chat');
             localStorage.setItem('companionSelectionTime', Date.now());
@@ -605,9 +608,14 @@ window.selectCompanion = async function(companionId) {
             // Show success message
             showNotification(`${companionName} companion selected! Redirecting...`, 'success');
             
+            // Debug: Log the redirect URL
+            const redirectUrl = `/chat?companion=${companionName.toLowerCase()}`;
+            console.log('🔍 About to redirect to:', redirectUrl);
+            
             // Immediate redirect for smooth flow
             setTimeout(() => {
-                window.location.href = `/chat?companion=${companionName.toLowerCase()}`;
+                console.log('🚀 Redirecting now to:', redirectUrl);
+                window.location.href = redirectUrl;
             }, 800);
             
         } else {
