@@ -59,8 +59,14 @@ function addClickListeners() {
             });
             
             
-            // Handle companion selection buttons
-            if (event.target.classList.contains('btn-select') && !event.target.disabled) {
+            // Check if this is an upgrade button - let it handle its own onclick
+            if (event.target.classList.contains('btn-upgrade')) {
+                console.log('💎 UPGRADE BUTTON CLICKED - Allowing onclick handler to process...');
+                return; // Don't prevent default, let the onclick="showUpgradeModal(...)" work
+            }
+            
+            // Handle companion selection buttons (but NOT upgrade buttons)
+            if (event.target.classList.contains('btn-select') && !event.target.disabled && !event.target.classList.contains('btn-upgrade')) {
                 console.log('✅ SELECT BUTTON CLICKED - Processing...');
                 event.preventDefault();
                 event.stopPropagation();
