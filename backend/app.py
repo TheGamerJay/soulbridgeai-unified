@@ -12,6 +12,7 @@ import os
 import sys
 import logging
 import time
+import json
 from datetime import datetime, timezone, timedelta
 from flask import Flask, jsonify, render_template, request, session, redirect, url_for, flash, make_response
 
@@ -1528,6 +1529,13 @@ def api_start_companion_trial():
         # Force session modification to ensure changes are saved
         session.modified = True
         # Removed session.permanent = True - let sessions expire on browser close per Flask config
+        
+        # Debug: Log session state immediately after setting trial data
+        logger.info(f"🔍 TRIAL DEBUG: Session state after setting trial data:")
+        logger.info(f"🔍 TRIAL DEBUG: Session keys: {list(session.keys())}")
+        logger.info(f"🔍 TRIAL DEBUG: trial_active = {session.get('trial_active')}")
+        logger.info(f"🔍 TRIAL DEBUG: user_plan = {session.get('user_plan')}")  
+        logger.info(f"🔍 TRIAL DEBUG: trial_expires = {session.get('trial_expires')}")
         
         # CRITICAL: Save trial data to database for persistence across logout/login
         try:
