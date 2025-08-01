@@ -961,15 +961,11 @@ function showUpgradeModal(companionId, tier, companionName) {
                     
                     <div class="upgrade-actions" style="margin-top: 20px;">
                         <button class="upgrade-btn-primary" onclick="redirectToUpgrade('${tier}')" 
-                                style="background: ${info.color}; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-right: 10px;">
+                                style="background: ${info.color}; color: white; border: none; padding: 14px 30px; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; margin-right: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
                             🚀 Upgrade to ${info.name}
                         </button>
-                        <button class="upgrade-btn-immediate" onclick="redirectToUpgradeNow('${tier}')" 
-                                style="background: linear-gradient(45deg, ${info.color}, #2563eb); color: white; border: none; padding: 12px 24px; border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; margin-left: 5px;">
-                            🚀 Go Now
-                        </button>
                         <button class="upgrade-btn-secondary" onclick="closeUpgradeModal()" 
-                                style="background: #f5f5f5; color: #333; border: 1px solid #ddd; padding: 12px 24px; border-radius: 6px; font-size: 16px; cursor: pointer;">
+                                style="background: rgba(55, 65, 81, 0.5); color: #94a3b8; border: 2px solid #374151; padding: 12px 24px; border-radius: 8px; font-size: 16px; cursor: pointer; transition: all 0.2s ease;">
                             Maybe Later
                         </button>
                     </div>
@@ -996,19 +992,21 @@ function showUpgradeModal(companionId, tier, companionName) {
             }
             
             .upgrade-modal-content {
-                background: white;
-                border-radius: 12px;
+                background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+                border: 2px solid #374151;
+                border-radius: 16px;
                 width: 90%;
                 max-width: 500px;
                 max-height: 80vh;
                 overflow-y: auto;
-                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
                 animation: slideIn 0.3s ease;
+                color: #e2e8f0;
             }
             
             .upgrade-modal-header {
-                padding: 20px;
-                border-bottom: 1px solid #eee;
+                padding: 25px;
+                border-bottom: 2px solid #374151;
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
@@ -1017,19 +1015,22 @@ function showUpgradeModal(companionId, tier, companionName) {
             .upgrade-modal-close {
                 background: none;
                 border: none;
-                font-size: 24px;
+                font-size: 28px;
                 cursor: pointer;
-                color: #999;
+                color: #94a3b8;
                 padding: 0;
-                width: 30px;
-                height: 30px;
+                width: 35px;
+                height: 35px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
+                border-radius: 50%;
+                transition: all 0.2s ease;
             }
             
             .upgrade-modal-close:hover {
-                color: #333;
+                color: #e2e8f0;
+                background: rgba(248, 113, 113, 0.2);
             }
             
             .upgrade-modal-body {
@@ -1039,9 +1040,11 @@ function showUpgradeModal(companionId, tier, companionName) {
             
             .upgrade-companion-preview {
                 margin-bottom: 20px;
-                padding: 15px;
-                background: #f9f9f9;
-                border-radius: 8px;
+                padding: 20px;
+                background: rgba(0, 0, 0, 0.3);
+                border: 1px solid #374151;
+                border-radius: 12px;
+                backdrop-filter: blur(10px);
             }
             
             .upgrade-features {
@@ -1049,8 +1052,9 @@ function showUpgradeModal(companionId, tier, companionName) {
             }
             
             .upgrade-features h3 {
-                color: #333;
+                color: #e2e8f0;
                 margin-bottom: 15px;
+                font-size: 1.2rem;
             }
             
             .upgrade-btn-primary:hover {
@@ -1059,7 +1063,8 @@ function showUpgradeModal(companionId, tier, companionName) {
             }
             
             .upgrade-btn-secondary:hover {
-                background: #e9e9e9;
+                background: #374151;
+                color: #e2e8f0;
             }
             
             @keyframes fadeIn {
@@ -1138,16 +1143,6 @@ function redirectToUpgrade(tier) {
     }, 1000);
 }
 
-function redirectToUpgradeNow(tier) {
-    console.log('⚡ Immediate redirect to upgrade page for tier:', tier);
-    
-    // Close modal first
-    closeUpgradeModal();
-    
-    // Immediate redirect without delay
-    console.log('🔄 Executing immediate redirect to:', `/subscription?tier=${tier}`);
-    window.location.href = `/subscription?tier=${tier}`;
-}
 
 // Make functions globally accessible
 window.showUpgradeModal = showUpgradeModal;
