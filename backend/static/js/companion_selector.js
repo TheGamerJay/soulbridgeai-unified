@@ -619,9 +619,11 @@ window.selectCompanion = async function(companionId) {
             // Show success message
             showNotification(`${companionName} companion selected! Redirecting...`, 'success');
             
-            // Debug: Log the redirect URL
-            const redirectUrl = `/chat?companion=${companionName.toLowerCase()}`;
+            // Debug: Log the redirect URL - use proper URL parameter mapping
+            const urlParam = getCompanionUrlParam(companionId);
+            const redirectUrl = `/chat?companion=${urlParam}`;
             console.log('🔍 About to redirect to:', redirectUrl);
+            console.log('🔍 Companion ID:', companionId, '→ URL param:', urlParam);
             
             // Immediate redirect for smooth flow
             setTimeout(() => {
@@ -678,6 +680,33 @@ function getCompanionName(companionId) {
     
     // Capitalize first letter
     return name.charAt(0).toUpperCase() + name.slice(1);
+}
+
+function getCompanionUrlParam(companionId) {
+    // Since backend now tries both direct match and companion_ prefix,
+    // we can simplify and just pass the companion ID as-is for most cases
+    
+    const urlParamMap = {
+        // Free companions - pass as-is since backend tries direct match first
+        'blayzo_free': 'blayzo_free',
+        'blayzica_free': 'blayzica_free', 
+        'companion_gamerjay': 'gamerjay',      // Remove companion_ prefix for cleaner URL
+        'blayzia_free': 'blayzia_free',
+        'blayzion_free': 'blayzion_free',
+        'claude_free': 'claude_free',
+        
+        // Growth/Premium companions - remove companion_ prefix for cleaner URLs
+        'companion_sky': 'sky',
+        'blayzo_growth': 'blayzo_growth',
+        'blayzica_growth': 'blayzica_growth',
+        'companion_gamerjay_premium': 'gamerjay_premium',
+        
+        // Max companions - remove companion_ prefix for cleaner URLs
+        'companion_crimson': 'crimson',
+        'companion_violet': 'violet'
+    };
+    
+    return urlParamMap[companionId] || companionId.replace('companion_', '');
 }
 
 function showUpgradeModal(companionId) {

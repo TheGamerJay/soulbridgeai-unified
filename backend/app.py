@@ -1062,11 +1062,6 @@ def chat():
     
     # If companion passed via URL, validate access before setting
     if url_companion and not selected_companion:
-        potential_companion = f"companion_{url_companion.lower()}"
-        
-        # Validate user has access to this companion tier
-        user_plan = session.get('user_plan', 'foundation')
-        
         # Define companion tiers for validation
         companion_tiers = {
             # Free companions
@@ -1081,15 +1076,36 @@ def chat():
             'watchdog_max': 'max', 'ven_blayzica': 'max', 'ven_sky': 'max', 'claude_max': 'max'
         }
         
-        companion_tier = companion_tiers.get(potential_companion)
+        # Try multiple potential companion ID formats to handle URL parameter variations
+        url_param = url_companion.lower()
+        potential_companions = [
+            url_param,                    # Direct match (e.g., blayzo_free)
+            f"companion_{url_param}",     # Add companion_ prefix (e.g., companion_gamerjay)
+        ]
+        
+        # Find the first match in companion tiers
+        potential_companion = None
+        companion_tier = None
+        for candidate in potential_companions:
+            if candidate in companion_tiers:
+                potential_companion = candidate
+                companion_tier = companion_tiers[candidate]
+                logger.info(f"🔍 CHAT: Found companion match: {candidate} → tier: {companion_tier}")
+                break
+        
+        # Validate user has access to this companion tier
+        user_plan = session.get('user_plan', 'foundation')
         has_access = False
         
-        if companion_tier == 'free':
-            has_access = True
-        elif companion_tier == 'growth':
-            has_access = user_plan in ['premium', 'enterprise']
-        elif companion_tier == 'max':
-            has_access = user_plan in ['enterprise', 'max']
+        if companion_tier:
+            if companion_tier == 'free':
+                has_access = True
+            elif companion_tier == 'growth':
+                has_access = user_plan in ['premium', 'enterprise']
+            elif companion_tier == 'max':
+                has_access = user_plan in ['enterprise', 'max']
+        else:
+            logger.warning(f"🚫 CHAT: No companion found for URL param: {url_param}, tried: {potential_companions}")
             
         if has_access:
             session['selected_companion'] = potential_companion
