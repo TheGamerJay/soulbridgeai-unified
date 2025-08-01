@@ -7,10 +7,7 @@
 let companions = {};
 let currentUser = {
     plan: 'foundation',
-    selected_companion: null,
-    trial_active: false,
-    trial_expires: null,
-    trial_companion: null
+    selected_companion: null
 };
 
 function addClickListeners() {
@@ -104,76 +101,12 @@ function addClickListeners() {
                 return;
             }
             
-            // Handle trial buttons - PREVENT REFRESH FIRST
-            if (event.target.classList.contains('btn-trial')) {
-                // Immediately prevent any default behavior that could cause page refresh
-                event.preventDefault();
-                event.stopPropagation();
-                event.stopImmediatePropagation();
-                
-                console.log('✅ TRIAL BUTTON CLICKED - Processing...');
-                console.log('🔍 Trial button element:', event.target);
-                console.log('🔍 Button classes:', event.target.className);
-                console.log('🔍 Button data-companion-id:', event.target.dataset.companionId);
-                
-                const companionCard = event.target.closest('.companion-card');
-                console.log('🔍 Found companion card for trial:', companionCard);
-                if (companionCard) {
-                    const companionId = companionCard.dataset.companionId;
-                    console.log('🔍 Trial companion ID from card data attribute:', companionId);
-                    
-                    // Also try getting ID directly from button
-                    const buttonCompanionId = event.target.dataset.companionId;
-                    console.log('🔍 Trial companion ID from button data attribute:', buttonCompanionId);
-                    
-                    const finalCompanionId = companionId || buttonCompanionId;
-                    if (finalCompanionId) {
-                        console.log('🔍 Event delegation: startPremiumTrial clicked for:', finalCompanionId);
-                        try {
-                            window.startPremiumTrial(finalCompanionId);
-                        } catch (error) {
-                            console.error('❌ Error calling startPremiumTrial:', error);
-                        }
-                    } else {
-                        console.error('❌ No companion ID found for trial button');
-                    }
-                } else {
-                    console.error('❌ No companion card found for trial button');
-                }
-                return;
-            }
             
             console.log('🔍 Click not handled by event delegation');
         }, true); // Use capture phase to ensure we catch everything
         
         console.log('✅ Click listeners successfully added');
         
-        // Add direct event listeners to trial buttons as fallback
-        setTimeout(() => {
-            console.log('🔧 Adding direct listeners to trial buttons...');
-            const trialButtons = document.querySelectorAll('.btn-trial');
-            trialButtons.forEach((btn, index) => {
-                btn.addEventListener('click', function(e) {
-                    console.log(`🎯 DIRECT TRIAL BUTTON ${index} CLICKED!`);
-                    e.preventDefault();
-                    e.stopPropagation();
-                    e.stopImmediatePropagation();
-                    
-                    const companionId = e.target.dataset.companionId || 
-                                      e.target.closest('.companion-card')?.dataset.companionId;
-                    
-                    if (companionId) {
-                        console.log('🚀 Starting trial for:', companionId);
-                        console.log('🔍 About to call window.startPremiumTrial function');
-                        console.log('🔍 Function exists?', typeof window.startPremiumTrial);
-                        window.startPremiumTrial(companionId);
-                    } else {
-                        console.error('❌ No companion ID found for trial button');
-                    }
-                });
-            });
-            console.log(`✅ Added direct listeners to ${trialButtons.length} trial buttons`);
-        }, 500);
         
         // Add a test to verify the listener is working
         setTimeout(() => {
@@ -187,11 +120,9 @@ function addClickListeners() {
             // Test actual buttons on the page
             console.log('🧪 Analyzing actual buttons on page...');
             const selectButtons = document.querySelectorAll('.btn-select');
-            const trialButtons = document.querySelectorAll('.btn-trial');
             
             console.log('🔍 Found buttons:', {
-                selectButtons: selectButtons.length,
-                trialButtons: trialButtons.length
+                selectButtons: selectButtons.length
             });
             
             if (selectButtons.length > 0) {
@@ -207,40 +138,7 @@ function addClickListeners() {
                     boundingRect: firstButton.getBoundingClientRect()
                 });
                 
-                // Don't click - just analyze
                 console.log('🔍 Select button analysis complete');
-            }
-            
-            if (trialButtons.length > 0) {
-                const firstTrialButton = trialButtons[0];
-                console.log('🔍 First trial button details:', {
-                    tagName: firstTrialButton.tagName,
-                    className: firstTrialButton.className,
-                    disabled: firstTrialButton.disabled,
-                    style: firstTrialButton.style.cssText,
-                    computedStyle: window.getComputedStyle(firstTrialButton).pointerEvents,
-                    parentElement: firstTrialButton.parentElement.className,
-                    dataCompanionId: firstTrialButton.dataset.companionId,
-                    boundingRect: firstTrialButton.getBoundingClientRect()
-                });
-                
-                // Add DIRECT click handler as ultimate fallback
-                console.log('🔧 Adding DIRECT click handler to first trial button...');
-                firstTrialButton.onclick = function(e) {
-                    console.log('🎯 DIRECT ONCLICK HANDLER TRIGGERED!');
-                    console.log('🎯 Button clicked via onclick:', e.target.textContent);
-                    e.preventDefault();
-                    
-                    const companionId = e.target.dataset.companionId || 
-                                      e.target.closest('.companion-card')?.dataset.companionId;
-                    
-                    if (companionId) {
-                        console.log('🚀 DIRECT: Starting trial for:', companionId);
-                        window.startPremiumTrial(companionId);
-                    }
-                };
-                
-                console.log('🔍 Trial button analysis complete');
             }
         }, 2000);
         
@@ -320,18 +218,7 @@ async function loadUserDataFromBackend() {
             const userData = await response.json();
             currentUser.plan = userData.plan || 'foundation';
             currentUser.selected_companion = userData.selected_companion || null;
-            currentUser.trial_active = userData.trial_active || false;
-            currentUser.trial_expires = userData.trial_expires || null;
-            currentUser.trial_companion = userData.trial_companion || null;
             
-            // Clear localStorage trial flag if backend shows no trial was used
-            if (!userData.trial_companion && !userData.trial_expires && !userData.trial_active) {
-                const hadStorageTrial = localStorage.getItem('trialUsed') === 'true';
-                if (hadStorageTrial) {
-                    console.log('🧹 Clearing localStorage trial flag - backend shows no trial used');
-                    localStorage.removeItem('trialUsed');
-                }
-            }
             
             console.log('✅ User data loaded from backend:', currentUser);
         } else {
@@ -581,82 +468,48 @@ function renderSection(sectionId, companionList) {
         return;
     }
     
-    // Check for active trial from backend data
-    const currentTime = Date.now();
-    const trialExpiryTime = currentUser.trial_expires ? new Date(currentUser.trial_expires).getTime() : 0;
-    const hasActiveTrialAccess = currentUser.trial_active && 
-                                currentUser.trial_expires && 
-                                currentTime < trialExpiryTime &&
-                                (currentUser.trial_companion === 'all' || 
-                                 currentUser.trial_companion === 'all_growth' || 
-                                 currentUser.plan === 'trial');
-    
-    console.log(`🔍 Trial check for ${sectionId}:`, {
-        trial_active: currentUser.trial_active,
-        trial_expires: currentUser.trial_expires,
-        trial_expires_parsed: currentUser.trial_expires ? new Date(currentUser.trial_expires).toLocaleString() : null,
-        currentTime: new Date(currentTime).toLocaleString(),
-        timeUntilExpiry: trialExpiryTime ? Math.floor((trialExpiryTime - currentTime) / 1000) + ' seconds' : 'N/A',
-        hasActiveTrialAccess
-    });
+    console.log(`🔍 Access check for ${sectionId} companions with user plan: ${currentUser.plan}`);
     
     container.innerHTML = companionList.map(companion => {
         // Determine if companion should be locked based on user's plan and trial status
         let isLocked = false;
         let lockReason = '';
         
-        // Check companion tier access with 24-hour trial system
-        // BACKEND-FRONTEND MAPPING: backend 'premium' = frontend 'growth', backend 'enterprise' = frontend 'max'
+        // Simple tier access - no trials, pay to unlock
         if (companion.tier === 'growth') {
-            // Growth tier requires backend 'premium' plan or active trial
+            // Growth tier requires premium plan
             if (currentUser.plan === 'foundation') {
-                // Foundation users can trial Growth companions
-                if (hasActiveTrialAccess) {
-                    isLocked = false;
-                    console.log(`🆓 Growth companion ${companion.display_name} unlocked via active trial`);
-                } else {
-                    isLocked = true;
-                    lockReason = 'Try Free for 5 Hours';
-                    console.log(`🔒 Growth companion ${companion.display_name} locked - trial available`);
-                }
+                isLocked = true;
+                lockReason = 'Upgrade to Growth Plan Required';
+                console.log(`🔒 Growth companion ${companion.display_name} locked - upgrade required`);
             } else if (currentUser.plan === 'premium' || currentUser.plan === 'enterprise') {
-                // Premium or Enterprise users have full access to Growth companions
                 isLocked = false;
                 console.log(`✅ Growth companion ${companion.display_name} unlocked via ${currentUser.plan} plan`);
             }
         } else if (companion.tier === 'max') {
-            // Max tier requires backend 'enterprise' plan or active trial
+            // Max tier requires enterprise plan
             if (currentUser.plan === 'foundation' || currentUser.plan === 'premium') {
-                // Foundation and Premium users can trial Max companions
-                if (hasActiveTrialAccess) {
-                    isLocked = false;
-                    console.log(`🆓 Max companion ${companion.display_name} unlocked via active trial`);
-                } else {
-                    isLocked = true;
-                    lockReason = 'Upgrade to Enterprise Required';
-                    console.log(`🔒 Max companion ${companion.display_name} locked - enterprise required`);
-                }
+                isLocked = true;
+                lockReason = 'Upgrade to Max Plan Required';
+                console.log(`🔒 Max companion ${companion.display_name} locked - max plan required`);
             } else if (currentUser.plan === 'enterprise') {
-                // Enterprise users have full access to Max companions
                 isLocked = false;
                 console.log(`✅ Max companion ${companion.display_name} unlocked via enterprise plan`);
             }
         } else if (companion.tier === 'referral') {
-            // Referral tier - no trial access, referral only
             isLocked = true;
             lockReason = 'Unlock through referrals';
             console.log(`🔒 Referral companion ${companion.display_name} - referral only`);
         }
         
         // Override with any existing lock reason from backend ONLY for referral tier
-        // Growth and Max tiers should show trial option instead of their default lock reason
         if (companion.lock_reason && companion.tier === 'referral') {
             isLocked = true;
             lockReason = companion.lock_reason;
         }
         
         // Log access decision for debugging
-        console.log(`🔍 Access check for ${companion.display_name}: tier=${companion.tier}, userPlan=${currentUser.plan}, trial=${hasActiveTrialAccess}, locked=${isLocked}`);
+        console.log(`🔍 Access check for ${companion.display_name}: tier=${companion.tier}, userPlan=${currentUser.plan}, locked=${isLocked}`);
         
         const isSelected = currentUser.selected_companion === companion.companion_id;
         const isReferralTier = companion.tier === 'referral';
@@ -703,12 +556,6 @@ function renderSection(sectionId, companionList) {
                                     ${isSelected ? 'disabled' : ''}
                                     data-companion-id="${companion.companion_id}">
                                 ${isSelected ? 'Selected' : 'Select'}
-                            </button>
-                        ` : lockReason === 'Try Free for 5 Hours' ? `
-                            <button class="btn-trial" 
-                                    data-companion-id="${companion.companion_id}"
-                                    style="background: linear-gradient(135deg, #ff6b6b, #ee5a24); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">
-                                ✨ Try Free for 5h
                             </button>
                         ` : `
                             <button class="btn-select" disabled style="${isReferralTier ? 'background: #FFD700; color: #333;' : 'background: #ccc; color: #666; cursor: not-allowed;'}">
@@ -798,77 +645,6 @@ window.selectCompanion = async function(companionId) {
     }
 }
 
-window.startPremiumTrial = async function(companionId) {
-    console.log('🚀 Starting premium trial for companion:', companionId);
-    console.log('🔍 Button clicked - function executing');
-    console.log('🔍 About to make POST request to /api/companions/trial');
-    console.log('🔍 Current user state:', currentUser);
-    console.log('🔍 Trial already used?', localStorage.getItem('trialUsed'));
-    
-    try {
-        const response = await fetch('/api/companions/trial', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                companion_id: companionId,
-                trial_type: 'growth_5h'
-            })
-        });
-        
-        console.log('🔍 Trial API Response status:', response.status);
-        console.log('🔍 Trial API Response headers:', response.headers);
-        
-        const responseText = await response.text();
-        console.log('🔍 Trial API Raw response:', responseText);
-        
-        let data;
-        try {
-            data = JSON.parse(responseText);
-            console.log('🔍 Trial API Parsed data:', data);
-        } catch (parseError) {
-            console.error('❌ Failed to parse response as JSON:', parseError);
-            console.log('🔍 Response was:', responseText);
-            showNotification('Server returned invalid response', 'error');
-            return;
-        }
-        
-        if (data.success) {
-            console.log('✅ 5-hour trial started successfully');
-            showNotification(`🎉 5-hour trial activated! Enjoy access to Growth tier companions.`, 'success');
-            
-            // Update currentUser with backend data (no localStorage for trial data)
-            currentUser.trial_active = data.trial_active;
-            currentUser.trial_expires = data.trial_expires;
-            currentUser.trial_companion = 'all'; // Universal trial
-            currentUser.plan = 'trial';
-            
-            // IMPORTANT: Mark trial as permanently used (one trial per user ever)
-            localStorage.setItem('trialUsed', 'true');
-            
-            // Keep necessary localStorage for UI state only
-            const companionName = getCompanionName(companionId);
-            localStorage.setItem('selectedCharacter', companionName);
-            localStorage.setItem('currentScreen', 'chat');
-            localStorage.setItem('hasActiveChat', 'true');
-            localStorage.setItem('companionSelectionTime', Date.now());
-            sessionStorage.setItem('hasActiveChat', 'true');
-            
-            // Redirect to chat with instant companion loading
-            console.log('🔄 Redirecting to chat with premium companion:', companionName);
-            window.location.href = `/chat?companion=${companionName.toLowerCase()}&trial=true`;
-            
-        } else {
-            console.error('❌ Premium trial failed:', data.error);
-            showNotification(data.error || 'Failed to start premium trial', 'error');
-        }
-        
-    } catch (error) {
-        console.error('❌ Premium trial error:', error);
-        showNotification('Failed to start premium trial', 'error');
-    }
-}
 
 function getCompanionName(companionId) {
     const nameMap = {
