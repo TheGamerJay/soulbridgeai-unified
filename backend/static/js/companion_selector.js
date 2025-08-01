@@ -29,7 +29,6 @@ function addClickListeners() {
                     className: event.target.className,
                     textContent: event.target.textContent,
                     hasSelectClass: event.target.classList.contains('btn-select'),
-                    hasTrialClass: event.target.classList.contains('btn-trial'),
                     isDisabled: event.target.disabled,
                     dataCompanionId: event.target.dataset.companionId,
                     parentCard: event.target.closest('.companion-card')?.dataset.companionId
@@ -49,34 +48,16 @@ function addClickListeners() {
         
         // Event delegation for dynamically generated buttons - catch ALL clicks for debugging
         document.addEventListener('click', function(event) {
-            // Immediately prevent refresh for any trial button click
-            if (event.target.classList.contains('btn-trial') || 
-                (event.target.textContent && event.target.textContent.includes('Try Free'))) {
-                event.preventDefault();
-                event.stopPropagation();
-                event.stopImmediatePropagation();
-                console.log('🚨 PREVENTING TRIAL BUTTON REFRESH');
-            }
             console.log('🔍 GLOBAL CLICK detected on:', {
                 tagName: event.target.tagName,
                 className: event.target.className,
                 id: event.target.id,
                 textContent: event.target.textContent.substring(0, 50),
                 hasSelectClass: event.target.classList.contains('btn-select'),
-                hasTrialClass: event.target.classList.contains('btn-trial'),
                 isDisabled: event.target.disabled,
                 dataCompanionId: event.target.dataset.companionId
             });
             
-            // Extra logging for trial buttons specifically
-            if (event.target.textContent && event.target.textContent.includes('Try Free')) {
-                console.log('🚨 TRIAL BUTTON TEXT DETECTED - analyzing:', {
-                    element: event.target,
-                    classList: Array.from(event.target.classList),
-                    hasTrialClass: event.target.classList.contains('btn-trial'),
-                    parentClasses: event.target.parentElement ? event.target.parentElement.className : 'no parent'
-                });
-            }
             
             // Handle companion selection buttons
             if (event.target.classList.contains('btn-select') && !event.target.disabled) {
@@ -169,8 +150,6 @@ async function initializeCompanionSelector() {
     await loadUserDataFromBackend();
     loadCompanions();
     
-    // Initialize trial status from backend
-    await initializeTrialStatusFromBackend();
     
     // Set up event listeners (again to be sure)
     setupEventListeners();
@@ -183,7 +162,6 @@ async function initializeCompanionSelector() {
     // Test if functions are accessible
     console.log('🔍 Testing function accessibility:');
     console.log('  window.selectCompanion:', typeof window.selectCompanion);
-    console.log('  window.startPremiumTrial:', typeof window.startPremiumTrial);
 }
 
 function handleChatSwitching() {
@@ -257,7 +235,6 @@ async function loadCompanions() {
             companions = data.companions;
             console.log('✅ Companions loaded successfully:', companions);
             renderCompanions();
-            updateTrialOffer();
         } else {
             console.error('❌ API returned error or no companions:', data);
             console.log('🔄 Falling back to static companions');
@@ -441,7 +418,6 @@ function loadFallbackCompanions() {
     
     console.log('✅ Fallback companions loaded');
     renderCompanions();
-    updateTrialOffer();
 }
 
 function renderCompanions() {
@@ -471,7 +447,7 @@ function renderSection(sectionId, companionList) {
     console.log(`🔍 Access check for ${sectionId} companions with user plan: ${currentUser.plan}`);
     
     container.innerHTML = companionList.map(companion => {
-        // Determine if companion should be locked based on user's plan and trial status
+        // Determine if companion should be locked based on user's plan
         let isLocked = false;
         let lockReason = '';
         
@@ -691,244 +667,3 @@ function showUpgradeModal(companionId) {
     showNotification('Upgrade required for this companion', 'info');
 }
 
-function updateTrialOffer() {
-    // Update trial offer section if needed
-    console.log('🎯 Trial offer updated');
-}
-
-async function initializeTrialStatusFromBackend() {
-    try {
-        console.log('⏰ Loading trial status from backend...');
-        const response = await fetch('/api/debug/trial-status');
-        if (response.ok) {
-            const data = await response.json();
-            const trialData = data.trial_data;
-            
-            if (trialData.trial_active && trialData.trial_expires) {
-                currentUser.trial_active = true;
-                currentUser.trial_expires = trialData.trial_expires;
-                currentUser.trial_companion = trialData.trial_companion;
-                
-                // Start timer if trial is still active
-                if (!trialData.trial_expired) {
-                    console.log('⏰ Active trial detected from backend, starting timer');
-                    startTrialTimer();
-                }
-            }
-            console.log('✅ Trial status loaded from backend:', currentUser);
-        }
-    } catch (error) {
-        console.error('❌ Error loading trial status from backend:', error);
-    }
-}
-
-function initializeTrialStatus() {
-    // Check if user has active trial
-    const trialActive = localStorage.getItem('trialActive') === 'true';
-    const trialExpiry = localStorage.getItem('trialExpiry');
-    
-    if (trialActive && trialExpiry) {
-        const timeRemaining = parseInt(trialExpiry) - Date.now();
-        if (timeRemaining > 0) {
-            console.log('⏰ Active trial detected, starting timer');
-            startTrialTimer();
-        } else {
-            console.log('⏰ Trial expired, cleaning up');
-            localStorage.removeItem('trialActive');
-            localStorage.removeItem('trialExpiry');
-        }
-    }
-}
-
-function startTrialTimer() {
-    // Use backend trial data instead of localStorage
-    if (!currentUser.trial_expires || !currentUser.trial_active) return;
-    
-    const timer = document.getElementById('trialTimer');
-    if (!timer) return;
-    
-    timer.style.display = 'block';
-    
-    // Clear any existing timer interval
-    if (window.trialTimerInterval) {
-        clearInterval(window.trialTimerInterval);
-    }
-    
-    const updateTimer = () => {
-        // Parse the trial expiry time from backend (ISO format)
-        const trialExpiryTime = new Date(currentUser.trial_expires).getTime();
-        const currentTime = Date.now();
-        const timeRemaining = trialExpiryTime - currentTime;
-        
-        console.log('🕐 Trial timer update:', {
-            expiryTime: new Date(trialExpiryTime).toLocaleString(),
-            currentTime: new Date(currentTime).toLocaleString(),
-            timeRemaining: Math.floor(timeRemaining / 1000) + ' seconds',
-            hoursLeft: Math.floor(timeRemaining / (1000 * 60 * 60))
-        });
-        
-        if (timeRemaining <= 0) {
-            console.log('⏰ Trial expired - clearing timer');
-            timer.style.display = 'none';
-            currentUser.trial_active = false;
-            currentUser.trial_expires = null;
-            
-            // Clear the interval and reload page to update UI
-            clearInterval(window.trialTimerInterval);
-            window.trialTimerInterval = null;
-            
-            // Reload page to refresh access after trial expires
-            setTimeout(() => {
-                showNotification('Trial expired. Refreshing...', 'info');
-                window.location.reload();
-            }, 2000);
-            return;
-        }
-        
-        const hours = Math.floor(timeRemaining / (1000 * 60 * 60));
-        const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
-        
-        const display = document.getElementById('trialTimeDisplay');
-        if (display) {
-            display.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-        }
-    };
-    
-    // Run initial update and start interval
-    updateTimer();
-    window.trialTimerInterval = setInterval(updateTimer, 1000);
-}
-
-function showNotification(message, type = 'info') {
-    console.log(`📢 ${type.toUpperCase()}: ${message}`);
-    
-    // Create notification element
-    const notification = document.createElement('div');
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        z-index: 10000;
-        padding: 15px 20px;
-        border-radius: 8px;
-        color: white;
-        font-weight: 600;
-        max-width: 300px;
-        transform: translateX(100%);
-        transition: transform 0.3s ease;
-        ${type === 'success' ? 'background: linear-gradient(135deg, #4CAF50, #45a049);' : ''}
-        ${type === 'error' ? 'background: linear-gradient(135deg, #f44336, #d32f2f);' : ''}
-        ${type === 'info' ? 'background: linear-gradient(135deg, #2196F3, #1976D2);' : ''}
-    `;
-    notification.textContent = message;
-    
-    document.body.appendChild(notification);
-    
-    // Slide in
-    setTimeout(() => {
-        notification.style.transform = 'translateX(0)';
-    }, 100);
-    
-    // Slide out and remove
-    setTimeout(() => {
-        notification.style.transform = 'translateX(100%)';
-        setTimeout(() => {
-            document.body.removeChild(notification);
-        }, 300);
-    }, 3000);
-}
-
-// Companion Details Modal Functions
-function showCompanionDetails(companionId) {
-    const companion = findCompanionById(companionId);
-    if (!companion) {
-        console.error('Companion not found:', companionId);
-        return;
-    }
-    
-    // Populate modal with companion data
-    document.getElementById('modalCompanionName').textContent = companion.display_name;
-    document.getElementById('modalCompanionAvatar').src = companion.avatar_image;
-    document.getElementById('modalCompanionBio').textContent = companion.short_bio || companion.description;
-    document.getElementById('modalCompanionTier').textContent = `${companion.tier.toUpperCase()} TIER`;
-    
-    // Show appropriate upgrade options based on companion tier
-    const upgradeSection = document.getElementById('upgradeSection');
-    const growthPlan = document.querySelector('.growth-plan');
-    const maxPlan = document.querySelector('.max-plan');
-    
-    if (companion.tier === 'growth') {
-        growthPlan.style.display = 'block';
-        maxPlan.style.display = 'block';
-        growthPlan.classList.add('recommended');
-        maxPlan.classList.remove('recommended');
-    } else if (companion.tier === 'max') {
-        growthPlan.style.display = 'none';
-        maxPlan.style.display = 'block';
-        maxPlan.classList.add('recommended');
-    }
-    
-    // Show modal
-    document.getElementById('companionModal').style.display = 'flex';
-    document.body.style.overflow = 'hidden';
-}
-
-function closeCompanionModal() {
-    document.getElementById('companionModal').style.display = 'none';
-    document.body.style.overflow = 'auto';
-}
-
-function selectUpgradePlan(planType) {
-    closeCompanionModal();
-    
-    // Redirect to plan selection page
-    if (planType === 'growth') {
-        window.location.href = '/plan-selection?plan=growth';
-    } else if (planType === 'max') {
-        window.location.href = '/plan-selection?plan=max';
-    }
-}
-
-function findCompanionById(companionId) {
-    const allCompanions = [
-        ...(companions.free || []),
-        ...(companions.growth || []),
-        ...(companions.max || []),
-        ...(companions.referral || [])
-    ];
-    
-    return allCompanions.find(c => c.companion_id === companionId);
-}
-
-// Close modal when pressing Escape
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        closeCompanionModal();
-    }
-});
-
-// Export functions for testing
-window.showCompanionDetails = showCompanionDetails;
-window.closeCompanionModal = closeCompanionModal;
-
-function navigateBack() {
-    // Always go to intro/home page instead of browser history
-    window.location.href = '/intro';
-}
-
-function handleVisibilityChange() {
-    if (!document.hidden) {
-        // Page became visible, refresh companion data
-        loadCompanions();
-    }
-}
-
-async function previewVoice(companionId) {
-    showNotification('Voice preview coming soon!', 'info');
-}
-
-function startAnyGrowthTrial() {
-    // Start trial with Sky as the default Growth companion
-    startPremiumTrial('companion_sky');
-}

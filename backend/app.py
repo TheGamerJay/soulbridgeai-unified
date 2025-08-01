@@ -294,7 +294,7 @@ def setup_user_session(email, user_id=None, is_admin=False, dev_mode=False):
         restore_companion_data(user_id)
 
 def restore_companion_data(user_id):
-    """Restore companion and trial data from persistence file"""
+    """Restore companion data from persistence file"""
     import json
     persistence_file = f"logs/user_companion_{user_id}.json"
     try:
@@ -307,8 +307,6 @@ def restore_companion_data(user_id):
             session['companion_selected_at'] = companion_data.get('companion_selected_at')
             session['first_companion_picked'] = companion_data.get('first_companion_picked', False)
             
-                logger.warning(f"Invalid trial expiry format for user {user_id}")
-                
         logger.info(f"PERSISTENCE: Restored companion data for user {user_id}")
         
     except FileNotFoundError:
@@ -664,7 +662,7 @@ def logout():
         user_email = session.get('user_email', 'unknown')
         user_id = session.get('user_id')
         
-        # Save companion and trial data before clearing session
+        # Save companion data before clearing session
         companion_data = {}
         if user_id:
             companion_data = {
@@ -755,9 +753,6 @@ def reset_to_foundation():
         return jsonify({"success": False, "error": "Authentication required"}), 401
     
     session['user_plan'] = 'foundation'
-    session['trial_active'] = False
-    session['trial_expires'] = None
-    session['trial_companion'] = None
     
     return jsonify({
         "success": True,
@@ -1071,7 +1066,6 @@ def chat():
         
         # Validate user has access to this companion tier
         user_plan = session.get('user_plan', 'foundation')
-        trial_active = session.get('trial_active', False)
         
         # Define companion tiers for validation
         companion_tiers = {
@@ -1093,7 +1087,7 @@ def chat():
         if companion_tier == 'free':
             has_access = True
         elif companion_tier == 'growth':
-            has_access = user_plan in ['trial', 'premium', 'enterprise'] or trial_active
+            has_access = user_plan in ['premium', 'enterprise']
         elif companion_tier == 'max':
             has_access = user_plan in ['enterprise', 'max']
             
@@ -1255,7 +1249,6 @@ def api_companions_select():
         
         # Check if user has access to this companion
         user_plan = session.get('user_plan', 'foundation')
-        trial_active = session.get('trial_active', False)
         
         # Get companion details to check tier
         companion_found = False
@@ -2166,9 +2159,9 @@ def get_active_sessions_count():
     # This would require session tracking - placeholder for now
     return 0
 
-def get_trial_users_count():
-    """Get users currently on trial"""
-    # This would track trial sessions - placeholder for now
+def get_active_users_count():
+    """Get currently active users"""
+    # This would track active sessions - placeholder for now
     return 0
 
 def check_database_health():
@@ -2193,7 +2186,7 @@ def get_companion_selections_today():
 
 def get_premium_conversions():
     """Get premium conversions"""
-    # Placeholder - would track trial to paid conversions
+    # Placeholder - would track free to paid conversions
     return 0
 
 def get_all_users_admin():
@@ -2388,7 +2381,7 @@ def admin_dashboard():
         stats = {
             'total_users': get_total_users(),
             'active_sessions': get_active_sessions_count(),
-            'trial_users': get_trial_users_count(),
+            'active_users': get_active_users_count(),
             'database_status': check_database_health(),
             'companion_selections_today': get_companion_selections_today(),
             'premium_conversions': get_premium_conversions()
@@ -2432,8 +2425,8 @@ def admin_dashboard():
                     
                     <div class="stat-card">
                         <div class="stat-icon">🆓</div>
-                        <div class="stat-value">{stats['trial_users']}</div>
-                        <div class="stat-label">Trial Users</div>
+                        <div class="stat-value">{stats['active_users']}</div>
+                        <div class="stat-label">Active Users</div>
                     </div>
                     
                     <div class="stat-card">
@@ -2472,7 +2465,7 @@ def admin_dashboard():
                         </div>
                         <div class="health-item">
                             <span class="health-indicator">✅</span>
-                            <span>Trial System</span>
+                            <span>User Management</span>
                         </div>
                     </div>
                 </div>
@@ -6357,7 +6350,7 @@ def get_user_tier_status():
 
 @app.route("/api/user/status", methods=["GET"])
 def get_user_status():
-    """Get user's current status including trial information"""
+    """Get user's current status"""
     try:
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
