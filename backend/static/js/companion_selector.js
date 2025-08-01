@@ -188,6 +188,16 @@ function setupEventListeners() {
     }
 }
 
+function handleVisibilityChange() {
+    console.log('👁️ Page visibility changed:', document.hidden ? 'hidden' : 'visible');
+    
+    // Refresh companion data when page becomes visible again
+    if (!document.hidden) {
+        console.log('🔄 Page visible again - refreshing companion data');
+        loadUserDataFromBackend();
+    }
+}
+
 async function loadUserDataFromBackend() {
     try {
         console.log('👤 Loading user data from backend...');
