@@ -186,6 +186,8 @@ function addClickListeners() {
                     
                     if (companionId) {
                         console.log('🚀 Starting trial for:', companionId);
+                        console.log('🔍 About to call window.startPremiumTrial function');
+                        console.log('🔍 Function exists?', typeof window.startPremiumTrial);
                         window.startPremiumTrial(companionId);
                     } else {
                         console.error('❌ No companion ID found for trial button');
@@ -739,6 +741,7 @@ window.selectCompanion = async function(companionId) {
 window.startPremiumTrial = async function(companionId) {
     console.log('🚀 Starting premium trial for companion:', companionId);
     console.log('🔍 Button clicked - function executing');
+    console.log('🔍 About to make POST request to /api/companions/trial');
     
     try {
         const response = await fetch('/api/companions/trial', {

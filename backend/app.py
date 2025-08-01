@@ -1465,6 +1465,10 @@ def api_companions_select():
 def api_start_companion_trial():
     """Start a trial for a premium companion"""
     try:
+        logger.info('🚨 TRIAL REQUEST RECEIVED - POST /api/companions/trial')
+        data = request.get_json()
+        logger.info(f'🚨 TRIAL REQUEST DATA: {data}')
+        
         # ENHANCED: Debug session state
         logger.info(f"🔍 TRIAL DEBUG: Session authenticated: {session.get('user_authenticated')}")
         logger.info(f"🔍 TRIAL DEBUG: User ID: {session.get('user_id')}")
