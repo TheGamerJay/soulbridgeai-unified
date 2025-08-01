@@ -1525,6 +1525,8 @@ def api_start_companion_trial():
         session['user_plan'] = 'trial'  # Temporarily upgrade to trial
         session['trial_active'] = True
         session['trial_used_permanently'] = True  # Mark trial as permanently used
+        # Force session modification to ensure changes are saved
+        session.modified = True
         # Removed session.permanent = True - let sessions expire on browser close per Flask config
         
         # CRITICAL: Save trial data to database for persistence across logout/login
