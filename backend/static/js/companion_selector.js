@@ -170,6 +170,31 @@ function addClickListeners() {
         
         console.log('✅ Click listeners successfully added');
         
+        // Add direct event listeners to trial buttons as fallback
+        setTimeout(() => {
+            console.log('🔧 Adding direct listeners to trial buttons...');
+            const trialButtons = document.querySelectorAll('.btn-trial');
+            trialButtons.forEach((btn, index) => {
+                btn.addEventListener('click', function(e) {
+                    console.log(`🎯 DIRECT TRIAL BUTTON ${index} CLICKED!`);
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    
+                    const companionId = e.target.dataset.companionId || 
+                                      e.target.closest('.companion-card')?.dataset.companionId;
+                    
+                    if (companionId) {
+                        console.log('🚀 Starting trial for:', companionId);
+                        window.startPremiumTrial(companionId);
+                    } else {
+                        console.error('❌ No companion ID found for trial button');
+                    }
+                });
+            });
+            console.log(`✅ Added direct listeners to ${trialButtons.length} trial buttons`);
+        }, 500);
+        
         // Add a test to verify the listener is working
         setTimeout(() => {
             console.log('🧪 Testing click listener by simulating a click...');
