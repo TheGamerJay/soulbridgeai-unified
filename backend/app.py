@@ -1563,10 +1563,10 @@ def api_start_companion_trial():
         if not companion_id:
             return jsonify({"success": False, "error": "Companion ID required"}), 400
         
-        # ENHANCED: Set trial companion in session with permanent flag
-        session['trial_companion'] = companion_id
+        # ENHANCED: Set UNIVERSAL trial for all Growth companions
+        session['trial_companion'] = 'all_growth'  # Universal trial for all Growth companions
         session['trial_expires'] = (datetime.now() + timedelta(hours=5)).isoformat()
-        session['selected_companion'] = companion_id
+        session['selected_companion'] = companion_id  # Still select the clicked companion
         session['user_plan'] = 'trial'  # Temporarily upgrade to trial
         session['trial_active'] = True
         session['trial_used_permanently'] = True  # Mark trial as permanently used
@@ -1591,7 +1591,7 @@ def api_start_companion_trial():
                 placeholder = "%s" if hasattr(db_instance, 'postgres_url') and db_instance.postgres_url else "?"
                 
                 companion_data = {
-                    'trial_companion': companion_id,
+                    'trial_companion': 'all_growth',  # Universal trial for all Growth companions
                     'trial_expires': session['trial_expires'],
                     'trial_active': True,
                     'trial_used_permanently': True,  # This is the key fix!
@@ -6670,6 +6670,10 @@ def get_user_status():
                         trial_active = companion_data.get('trial_active', False)
                         trial_expires = companion_data.get('trial_expires')
                         trial_companion = companion_data.get('trial_companion')
+                        
+                        # Update user plan for universal Growth trial access
+                        if trial_companion == 'all_growth' and trial_active:
+                            user_plan = 'trial'
                 
                 logger.info(f"💾 LOADED FROM DATABASE: selected_companion = {selected_companion}, trial_active = {trial_active}")
             else:

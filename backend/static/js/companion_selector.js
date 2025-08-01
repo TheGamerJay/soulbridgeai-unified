@@ -586,7 +586,10 @@ function renderSection(sectionId, companionList) {
     const trialExpiryTime = currentUser.trial_expires ? new Date(currentUser.trial_expires).getTime() : 0;
     const hasActiveTrialAccess = currentUser.trial_active && 
                                 currentUser.trial_expires && 
-                                currentTime < trialExpiryTime;
+                                currentTime < trialExpiryTime &&
+                                (currentUser.trial_companion === 'all' || 
+                                 currentUser.trial_companion === 'all_growth' || 
+                                 currentUser.plan === 'trial');
     
     console.log(`🔍 Trial check for ${sectionId}:`, {
         trial_active: currentUser.trial_active,
