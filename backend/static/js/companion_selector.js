@@ -826,14 +826,41 @@ window.startPremiumTrial = async function(companionId) {
 
 function getCompanionName(companionId) {
     const nameMap = {
+        // Free companions
+        'blayzo_free': 'Blayzo',
+        'blayzica_free': 'Blayzica', 
         'companion_gamerjay': 'GamerJay',
+        'blayzia_free': 'Blayzia',
+        'blayzion_free': 'Blayzion',
+        'claude_free': 'Claude',
+        
+        // Growth/Premium companions
         'companion_sky': 'Sky',
+        'blayzo_growth': 'Blayzo',
+        'blayzica_growth': 'Blayzica',
+        'companion_gamerjay_premium': 'GamerJay',
+        
+        // Max companions
         'companion_crimson': 'Crimson',
         'companion_violet': 'Violet',
         'companion_blayzo': 'Blayzo'
     };
     
-    return nameMap[companionId] || companionId.replace('companion_', '').charAt(0).toUpperCase() + companionId.replace('companion_', '').slice(1);
+    if (nameMap[companionId]) {
+        return nameMap[companionId];
+    }
+    
+    // Improved fallback logic for any unmapped IDs
+    let name = companionId;
+    if (name.includes('companion_')) {
+        name = name.replace('companion_', '');
+    }
+    if (name.includes('_free') || name.includes('_growth') || name.includes('_premium')) {
+        name = name.replace(/_free|_growth|_premium/g, '');
+    }
+    
+    // Capitalize first letter
+    return name.charAt(0).toUpperCase() + name.slice(1);
 }
 
 function showUpgradeModal(companionId) {
