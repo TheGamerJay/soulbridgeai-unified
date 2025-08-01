@@ -74,6 +74,14 @@ function addClickListeners() {
     try {
         // Event delegation for dynamically generated buttons - catch ALL clicks for debugging
         document.addEventListener('click', function(event) {
+            // Immediately prevent refresh for any trial button click
+            if (event.target.classList.contains('btn-trial') || 
+                (event.target.textContent && event.target.textContent.includes('Try Free'))) {
+                event.preventDefault();
+                event.stopPropagation();
+                event.stopImmediatePropagation();
+                console.log('🚨 PREVENTING TRIAL BUTTON REFRESH');
+            }
             console.log('🔍 GLOBAL CLICK detected on:', {
                 tagName: event.target.tagName,
                 className: event.target.className,
@@ -118,15 +126,17 @@ function addClickListeners() {
                 return;
             }
             
-            // Handle trial buttons
+            // Handle trial buttons - PREVENT REFRESH FIRST
             if (event.target.classList.contains('btn-trial')) {
+                // Immediately prevent any default behavior that could cause page refresh
+                event.preventDefault();
+                event.stopPropagation();
+                event.stopImmediatePropagation();
+                
                 console.log('✅ TRIAL BUTTON CLICKED - Processing...');
                 console.log('🔍 Trial button element:', event.target);
                 console.log('🔍 Button classes:', event.target.className);
                 console.log('🔍 Button data-companion-id:', event.target.dataset.companionId);
-                
-                event.preventDefault();
-                event.stopPropagation();
                 
                 const companionCard = event.target.closest('.companion-card');
                 console.log('🔍 Found companion card for trial:', companionCard);
