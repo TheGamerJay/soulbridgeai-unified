@@ -111,6 +111,10 @@ function addClickListeners() {
             // Handle trial buttons
             if (event.target.classList.contains('btn-trial')) {
                 console.log('✅ TRIAL BUTTON CLICKED - Processing...');
+                console.log('🔍 Trial button element:', event.target);
+                console.log('🔍 Button classes:', event.target.className);
+                console.log('🔍 Button data-companion-id:', event.target.dataset.companionId);
+                
                 event.preventDefault();
                 event.stopPropagation();
                 
@@ -118,15 +122,25 @@ function addClickListeners() {
                 console.log('🔍 Found companion card for trial:', companionCard);
                 if (companionCard) {
                     const companionId = companionCard.dataset.companionId;
-                    console.log('🔍 Trial companion ID from data attribute:', companionId);
-                    if (companionId) {
-                        console.log('🔍 Event delegation: startPremiumTrial clicked for:', companionId);
+                    console.log('🔍 Trial companion ID from card data attribute:', companionId);
+                    
+                    // Also try getting ID directly from button
+                    const buttonCompanionId = event.target.dataset.companionId;
+                    console.log('🔍 Trial companion ID from button data attribute:', buttonCompanionId);
+                    
+                    const finalCompanionId = companionId || buttonCompanionId;
+                    if (finalCompanionId) {
+                        console.log('🔍 Event delegation: startPremiumTrial clicked for:', finalCompanionId);
                         try {
-                            window.startPremiumTrial(companionId);
+                            window.startPremiumTrial(finalCompanionId);
                         } catch (error) {
                             console.error('❌ Error calling startPremiumTrial:', error);
                         }
+                    } else {
+                        console.error('❌ No companion ID found for trial button');
                     }
+                } else {
+                    console.error('❌ No companion card found for trial button');
                 }
                 return;
             }
