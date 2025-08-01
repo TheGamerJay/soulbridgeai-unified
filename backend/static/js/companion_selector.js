@@ -578,7 +578,7 @@ function renderSection(sectionId, companionList) {
                     
                     <div class="companion-actions">
                         ${!isLocked ? `
-                            <button class="btn-select ${isSelected ? 'selected' : ''}" 
+                            <button class="btn-select${isSelected ? ' selected' : ''}" 
                                     ${isSelected ? 'disabled' : ''}
                                     data-companion-id="${companion.companion_id}">
                                 ${isSelected ? 'Selected' : 'Select'}
