@@ -451,7 +451,7 @@ function renderSection(sectionId, companionList) {
         let isLocked = false;
         let lockReason = '';
         
-        // Simple tier access - no trials, pay to unlock
+        // Simple tier access - pay to unlock
         if (companion.tier === 'growth') {
             // Growth tier requires premium plan
             if (currentUser.plan === 'foundation') {
