@@ -1536,6 +1536,7 @@ def api_start_companion_trial():
         logger.info(f"🔍 TRIAL DEBUG: trial_active = {session.get('trial_active')}")
         logger.info(f"🔍 TRIAL DEBUG: user_plan = {session.get('user_plan')}")  
         logger.info(f"🔍 TRIAL DEBUG: trial_expires = {session.get('trial_expires')}")
+        logger.info(f"🧪 SESSION after trial set: {dict(session)}")
         
         # CRITICAL: Save trial data to database for persistence across logout/login
         try:
@@ -6593,6 +6594,7 @@ def get_user_status():
         logger.info(f"🔍 USER STATUS DEBUG: user_plan = {user_plan}")
         logger.info(f"🔍 USER STATUS DEBUG: session keys = {list(session.keys())}")
         logger.info(f"🔍 USER STATUS DEBUG: all session data = {dict(session)}")
+        logger.info(f"🧪 SESSION on status check: {dict(session)}")
         
         # Get trial data from session
         trial_active = session.get('trial_active', False)
