@@ -22,7 +22,20 @@ function addClickListeners() {
         // Test if event listeners are working at all
         console.log('🧪 Testing basic event listener functionality...');
         document.addEventListener('click', function(event) {
-            console.log('🔍 BASIC CLICK TEST - ANY CLICK detected:', event.target.tagName);
+            console.log('🔍 BASIC CLICK TEST - ANY CLICK detected:', event.target.tagName, event.target.className);
+            
+            // Special logging for button clicks
+            if (event.target.tagName === 'BUTTON') {
+                console.log('🎯 BUTTON CLICKED - Special debug:', {
+                    className: event.target.className,
+                    textContent: event.target.textContent,
+                    hasSelectClass: event.target.classList.contains('btn-select'),
+                    hasTrialClass: event.target.classList.contains('btn-trial'),
+                    isDisabled: event.target.disabled,
+                    dataCompanionId: event.target.dataset.companionId,
+                    parentCard: event.target.closest('.companion-card')?.dataset.companionId
+                });
+            }
         });
         
         // Event delegation for dynamically generated buttons - catch ALL clicks for debugging
