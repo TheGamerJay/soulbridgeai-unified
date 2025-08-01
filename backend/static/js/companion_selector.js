@@ -19,8 +19,10 @@ function addClickListeners() {
     console.log('🔍 Current URL:', window.location.href);
     
     try {
-        // Test if event listeners are working at all
+        // Test if event listeners are working at all - MULTIPLE METHODS
         console.log('🧪 Testing basic event listener functionality...');
+        
+        // Method 1: Standard click listener
         document.addEventListener('click', function(event) {
             console.log('🔍 BASIC CLICK TEST - ANY CLICK detected:', event.target.tagName, event.target.className);
             
@@ -36,6 +38,16 @@ function addClickListeners() {
                     parentCard: event.target.closest('.companion-card')?.dataset.companionId
                 });
             }
+        });
+        
+        // Method 2: Capture phase listener (higher priority)
+        document.addEventListener('click', function(event) {
+            console.log('🚨 CAPTURE PHASE CLICK:', event.target.tagName, event.target.className);
+        }, true);
+        
+        // Method 3: Body click listener as fallback
+        document.body.addEventListener('click', function(event) {
+            console.log('🔥 BODY CLICK DETECTED:', event.target.tagName, event.target.className);
         });
         
         // Event delegation for dynamically generated buttons - catch ALL clicks for debugging
@@ -212,7 +224,22 @@ function addClickListeners() {
                     boundingRect: firstTrialButton.getBoundingClientRect()
                 });
                 
-                // Don't click - just analyze
+                // Add DIRECT click handler as ultimate fallback
+                console.log('🔧 Adding DIRECT click handler to first trial button...');
+                firstTrialButton.onclick = function(e) {
+                    console.log('🎯 DIRECT ONCLICK HANDLER TRIGGERED!');
+                    console.log('🎯 Button clicked via onclick:', e.target.textContent);
+                    e.preventDefault();
+                    
+                    const companionId = e.target.dataset.companionId || 
+                                      e.target.closest('.companion-card')?.dataset.companionId;
+                    
+                    if (companionId) {
+                        console.log('🚀 DIRECT: Starting trial for:', companionId);
+                        window.startPremiumTrial(companionId);
+                    }
+                };
+                
                 console.log('🔍 Trial button analysis complete');
             }
         }, 2000);
