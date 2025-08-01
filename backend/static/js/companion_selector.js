@@ -540,7 +540,8 @@ function renderSection(sectionId, companionList) {
                         ${!isLocked ? `
                             <button class="btn-select${isSelected ? ' selected' : ''}" 
                                     ${isSelected ? 'disabled' : ''}
-                                    data-companion-id="${companion.companion_id}">
+                                    data-companion-id="${companion.companion_id}"
+                                    onclick="window.selectCompanion('${companion.companion_id}')">
                                 ${isSelected ? 'Selected' : 'Select'}
                             </button>
                         ` : `
