@@ -319,6 +319,7 @@ async function loadUserDataFromBackend() {
         if (response.ok) {
             const userData = await response.json();
             currentUser.plan = userData.plan || 'foundation';
+            currentUser.selected_companion = userData.selected_companion || null;
             currentUser.trial_active = userData.trial_active || false;
             currentUser.trial_expires = userData.trial_expires || null;
             currentUser.trial_companion = userData.trial_companion || null;

@@ -63,7 +63,9 @@
       "WebFetch(domain:127.0.0.1)",
       "Bash(tasklist:*)",
       "Bash(wmic:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(start /b python:*)",
+      "WebFetch(domain:soulbridgeai.com)"
     ],
     "deny": []
   }

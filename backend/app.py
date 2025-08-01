@@ -1443,6 +1443,46 @@ def api_companions_select():
         session['selected_companion'] = companion_id
         session['companion_selected_at'] = time.time()
         
+        # CRITICAL FIX: Save companion selection to database
+        try:
+            user_id = session.get('user_id')
+            user_email = session.get('user_email') or session.get('email')
+            
+            if user_id or user_email:
+                conn = psycopg2.connect(os.environ.get('DATABASE_URL'))
+                cursor = conn.cursor()
+                placeholder = '%s'
+                
+                # Get current companion_data or create new
+                if user_id:
+                    cursor.execute("SELECT companion_data FROM users WHERE id = %s", (user_id,))
+                else:
+                    cursor.execute("SELECT companion_data FROM users WHERE email = %s", (user_email,))
+                
+                result = cursor.fetchone()
+                current_data = result[0] if result and result[0] else {}
+                
+                # Update selected companion in companion_data
+                current_data['selected_companion'] = companion_id
+                
+                # Save back to database
+                if user_id:
+                    cursor.execute("UPDATE users SET companion_data = %s WHERE id = %s", 
+                                 (json.dumps(current_data), user_id))
+                else:
+                    cursor.execute("UPDATE users SET companion_data = %s WHERE email = %s", 
+                                 (json.dumps(current_data), user_email))
+                
+                conn.commit()
+                conn.close()
+                logger.info(f"💾 COMPANION SELECTION SAVED TO DATABASE: {companion_id} for user {user_id or user_email}")
+            else:
+                logger.warning("⚠️ No user ID or email found in session - companion selection not saved to database")
+                
+        except Exception as db_error:
+            logger.error(f"❌ Database error saving companion selection: {db_error}")
+            # Don't fail the request if database save fails, but log it
+        
         # Track first companion selection
         if not session.get('first_companion_picked', False):
             session['first_companion_picked'] = True
@@ -6600,10 +6640,44 @@ def get_user_status():
         logger.info(f"🔍 USER STATUS DEBUG: all session data = {dict(session)}")
         logger.info(f"🧪 SESSION on status check: {dict(session)}")
         
-        # Get trial data from session
+        # CRITICAL FIX: Load companion_data from database
+        selected_companion = None
         trial_active = session.get('trial_active', False)
         trial_expires = session.get('trial_expires')
         trial_companion = session.get('trial_companion')
+        
+        try:
+            if user_id or user_email:
+                conn = psycopg2.connect(os.environ.get('DATABASE_URL'))
+                cursor = conn.cursor()
+                
+                # Load companion_data from database
+                if user_id:
+                    cursor.execute("SELECT companion_data FROM users WHERE id = %s", (user_id,))
+                else:
+                    cursor.execute("SELECT companion_data FROM users WHERE email = %s", (user_email,))
+                
+                result = cursor.fetchone()
+                companion_data = result[0] if result and result[0] else {}
+                
+                conn.close()
+                
+                # Extract companion selection and trial data from database
+                if companion_data:
+                    selected_companion = companion_data.get('selected_companion')
+                    # Override session trial data with database data if available
+                    if companion_data.get('trial_active'):
+                        trial_active = companion_data.get('trial_active', False)
+                        trial_expires = companion_data.get('trial_expires')
+                        trial_companion = companion_data.get('trial_companion')
+                
+                logger.info(f"💾 LOADED FROM DATABASE: selected_companion = {selected_companion}, trial_active = {trial_active}")
+            else:
+                logger.warning("⚠️ No user ID or email found - using session data only")
+                
+        except Exception as db_error:
+            logger.error(f"❌ Database error loading user status: {db_error}")
+            # Continue with session data if database fails
         
         # Check if trial is still valid
         has_active_trial = False
@@ -6621,6 +6695,7 @@ def get_user_status():
         return jsonify({
             "success": True,
             "plan": user_plan,
+            "selected_companion": selected_companion,
             "trial_active": has_active_trial,
             "trial_expires": trial_expires if has_active_trial else None,
             "trial_companion": trial_companion if has_active_trial else None,
@@ -7221,67 +7296,6 @@ def get_companions():
             "error": "Failed to load companions"
         }), 500
 
-@app.route("/api/companions/select", methods=["POST"])
-def select_companion():
-    """Select a companion with tier validation"""
-    try:
-        if not is_logged_in():
-            return jsonify({"success": False, "error": "Authentication required"}), 401
-
-        data = request.get_json()
-        companion_id = data.get("companion_id")
-        
-        if not companion_id:
-            return jsonify({"success": False, "error": "Companion ID required"}), 400
-
-        # Get companion tier from ID
-        companion_tier = "free"
-        if "_growth" in companion_id or companion_id == "companion_sky" or companion_id == "companion_gamerjay_premium":
-            companion_tier = "growth"
-        elif "_max" in companion_id or "crimson" in companion_id or "violet" in companion_id:
-            companion_tier = "max"
-        elif "referral" in companion_id or companion_id == "blayzo":
-            companion_tier = "referral"
-
-        # Get user plan and trial status
-        user_plan = session.get('user_plan', 'foundation')
-        trial_active = session.get('trial_active', False)
-        
-        # Check access permissions
-        has_access = False
-        if companion_tier == 'free':
-            has_access = True
-        elif companion_tier == 'growth':
-            has_access = user_plan in ['trial', 'premium', 'enterprise'] or trial_active
-        elif companion_tier == 'max':
-            has_access = user_plan in ['enterprise', 'max']
-        elif companion_tier == 'referral':
-            has_access = session.get('referral_unlocked', False)
-
-        if not has_access:
-            return jsonify({
-                "success": False,
-                "error": f"Access denied. {companion_tier.title()} companions require a higher plan."
-            }), 403
-
-        # Store selection
-        session['selected_companion_id'] = companion_id
-        # Session expires when browser closes
-        
-        logger.info(f"Companion selected: {companion_id} by user {session.get('user_email')}")
-
-        return jsonify({
-            "success": True,
-            "message": "Companion selected successfully",
-            "companion_id": companion_id
-        })
-
-    except Exception as e:
-        logger.error(f"Select companion error: {e}")
-        return jsonify({
-            "success": False,
-            "error": "Failed to select companion"
-        }), 500
 
 # APPLICATION STARTUP
 # ========================================
