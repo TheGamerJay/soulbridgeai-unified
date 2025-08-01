@@ -154,8 +154,11 @@ async function initializeCompanionSelector() {
     
     // Load user data and companions (sync with backend)
     await loadUserDataFromBackend();
-    loadCompanions();
     
+    // Check trial status on page load
+    await checkTrialStatus();
+    
+    loadCompanions();
     
     // Set up event listeners (again to be sure)
     setupEventListeners();
@@ -168,6 +171,8 @@ async function initializeCompanionSelector() {
     // Test if functions are accessible
     console.log('🔍 Testing function accessibility:');
     console.log('  window.selectCompanion:', typeof window.selectCompanion);
+    console.log('  checkTrialStatus:', typeof checkTrialStatus);
+    console.log('  startPremiumTrial:', typeof startPremiumTrial);
 }
 
 function handleChatSwitching() {
@@ -691,15 +696,49 @@ function renderSection(sectionId, companionList) {
                                     </button>
                                 `;
                             } else if (companion.tier === 'growth' || companion.tier === 'max') {
-                                console.log(`🔘 Rendering UPGRADE button for ${companion.display_name} (${companion.tier} tier)`);
-                                return `
-                                    <button class="btn-select btn-upgrade" 
-                                            data-companion-id="${companion.companion_id}"
-                                            onclick="showUpgradeModal('${companion.companion_id}', '${companion.tier}', '${companion.display_name}')"
-                                            style="background: linear-gradient(45deg, #4CAF50, #45a049); color: white; border: none; font-weight: bold;">
-                                        💎 Upgrade to ${companion.tier === 'growth' ? 'Growth' : 'Max'} Plan
-                                    </button>
-                                `;
+                                console.log(`🔘 Rendering TRIAL/UPGRADE buttons for ${companion.display_name} (${companion.tier} tier)`);
+                                const canTrial = !window.trialStatus || !window.trialStatus.usedPermanently;
+                                const hasActiveTrial = window.trialStatus && window.trialStatus.active && window.trialStatus.companion === companion.companion_id;
+                                
+                                if (hasActiveTrial) {
+                                    // Show active trial button (acts as select)
+                                    return `
+                                        <button class="btn-select" 
+                                                data-companion-id="${companion.companion_id}"
+                                                onclick="window.selectCompanion('${companion.companion_id}')"
+                                                style="background: linear-gradient(45deg, #22d3ee, #0891b2); color: white; border: none; font-weight: bold;">
+                                            🎯 Active Trial - Select
+                                        </button>
+                                    `;
+                                } else if (canTrial) {
+                                    // Show trial option first
+                                    return `
+                                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                            <button class="btn-select btn-upgrade" 
+                                                    data-companion-id="${companion.companion_id}"
+                                                    onclick="showTrialModal('${companion.companion_id}', '${companion.tier}', '${companion.display_name}')"
+                                                    style="background: linear-gradient(45deg, #22d3ee, #0891b2); color: white; border: none; font-weight: bold; flex: 1; min-width: 120px;">
+                                                🎯 Try 5hr Free
+                                            </button>
+                                            <button class="btn-select btn-upgrade" 
+                                                    data-companion-id="${companion.companion_id}"
+                                                    onclick="showUpgradeModal('${companion.companion_id}', '${companion.tier}', '${companion.display_name}')"
+                                                    style="background: linear-gradient(45deg, #4CAF50, #45a049); color: white; border: none; font-weight: bold; flex: 1; min-width: 120px;">
+                                                💎 Upgrade Plan
+                                            </button>
+                                        </div>
+                                    `;
+                                } else {
+                                    // Trial already used, show only upgrade
+                                    return `
+                                        <button class="btn-select btn-upgrade" 
+                                                data-companion-id="${companion.companion_id}"
+                                                onclick="showUpgradeModal('${companion.companion_id}', '${companion.tier}', '${companion.display_name}')"
+                                                style="background: linear-gradient(45deg, #4CAF50, #45a049); color: white; border: none; font-weight: bold;">
+                                            💎 Upgrade to ${companion.tier === 'growth' ? 'Growth' : 'Max'} Plan
+                                        </button>
+                                    `;
+                                }
                             } else {
                                 console.log(`🔘 Rendering LOCKED button for ${companion.display_name} (${companion.tier} tier)`);
                                 return `
@@ -802,6 +841,233 @@ window.selectCompanion = async function(companionId) {
     }
 }
 
+// ========================================
+// TRIAL SYSTEM FUNCTIONS
+// ========================================
+
+async function startPremiumTrial(companionId) {
+    console.log('🎯 Starting premium trial for:', companionId);
+    
+    try {
+        const response = await fetch('/start-trial', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                companion_id: companionId
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            console.log('✅ Trial started successfully:', data);
+            
+            // Show success message with trial details
+            const expiresAt = new Date(data.trial_expires);
+            const message = `🎉 5-hour trial started for ${data.trial_companion}! 
+                           Expires at: ${expiresAt.toLocaleString()}`;
+            
+            showNotification(message, 'success');
+            
+            // Update UI to reflect trial status
+            await checkTrialStatus();
+            renderCompanions();
+            
+            // Redirect to the trial companion
+            setTimeout(() => {
+                const urlParam = getCompanionUrlParam(companionId);
+                window.location.href = `/chat?companion=${urlParam}`;
+            }, 1500);
+            
+        } else {
+            console.error('❌ Trial start failed:', data.error);
+            showNotification(data.error || 'Failed to start trial', 'error');
+        }
+        
+    } catch (error) {
+        console.error('❌ Trial start error:', error);
+        showNotification('Failed to start trial. Please try again.', 'error');
+    }
+}
+
+async function checkTrialStatus() {
+    console.log('🔍 Checking trial status...');
+    
+    try {
+        const response = await fetch('/get-trial-status');
+        const data = await response.json();
+        
+        console.log('📊 Trial status:', data);
+        
+        if (data.trial_active) {
+            // Store trial info globally for UI updates
+            window.trialStatus = {
+                active: true,
+                companion: data.trial_companion,
+                expires: data.trial_expires,
+                timeRemaining: data.time_remaining_minutes
+            };
+            
+            console.log(`✅ Trial is active for ${data.trial_companion}, ${data.time_remaining_minutes} minutes remaining`);
+            
+            // Show trial indicator
+            showTrialIndicator(data.trial_companion, data.time_remaining_minutes);
+            
+        } else {
+            window.trialStatus = {
+                active: false,
+                usedPermanently: data.trial_used_permanently || false
+            };
+            
+            console.log('ℹ️ No active trial');
+        }
+        
+        return data;
+        
+    } catch (error) {
+        console.error('❌ Trial status check error:', error);
+        window.trialStatus = { active: false };
+        return { trial_active: false };
+    }
+}
+
+function showTrialIndicator(companionName, minutesRemaining) {
+    // Remove existing trial indicator
+    const existingIndicator = document.getElementById('trialIndicator');
+    if (existingIndicator) {
+        existingIndicator.remove();
+    }
+    
+    // Create trial indicator
+    const hours = Math.floor(minutesRemaining / 60);
+    const minutes = minutesRemaining % 60;
+    const timeDisplay = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+    
+    const indicator = document.createElement('div');
+    indicator.id = 'trialIndicator';
+    indicator.innerHTML = `
+        <div style="
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 25px;
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+            z-index: 1000;
+            font-weight: 600;
+            font-size: 14px;
+            animation: pulse 2s infinite;
+        ">
+            🎯 ${companionName} Trial: ${timeDisplay} left
+        </div>
+        <style>
+            @keyframes pulse {
+                0%, 100% { transform: scale(1); }
+                50% { transform: scale(1.02); }
+            }
+        </style>
+    `;
+    
+    document.body.appendChild(indicator);
+    
+    // Auto-remove when trial expires
+    setTimeout(() => {
+        const indicator = document.getElementById('trialIndicator');
+        if (indicator) indicator.remove();
+    }, minutesRemaining * 60 * 1000);
+}
+
+function showTrialModal(companionId, tier, companionName) {
+    console.log('🎯 Showing trial modal for:', companionId, 'tier:', tier, 'name:', companionName);
+    
+    // Check if trial was already used
+    if (window.trialStatus && window.trialStatus.usedPermanently) {
+        showUpgradeModal(companionId, tier, companionName);
+        return;
+    }
+    
+    // Define tier information
+    const tierInfo = {
+        growth: {
+            name: 'Growth Plan',
+            price: '$12.99/month',
+            color: '#4CAF50'
+        },
+        max: {
+            name: 'Max Plan', 
+            price: '$19.99/month',
+            color: '#9C27B0'
+        }
+    };
+    
+    const info = tierInfo[tier];
+    if (!info) {
+        showUpgradeModal(companionId, tier, companionName);
+        return;
+    }
+    
+    // Create trial modal HTML
+    const modalHtml = `
+        <div class="upgrade-modal-overlay" id="trialModal" onclick="closeTrialModal(event)">
+            <div class="upgrade-modal-content" onclick="event.stopPropagation()">
+                <div class="upgrade-modal-header">
+                    <h2 style="margin: 0; color: ${info.color};">🎯 Try ${companionName} Free!</h2>
+                    <button class="upgrade-modal-close" onclick="closeTrialModal()">&times;</button>
+                </div>
+                
+                <div class="upgrade-modal-body">
+                    <div class="upgrade-companion-preview">
+                        <p><strong>Get a 5-hour free trial</strong> of <strong>${companionName}</strong></p>
+                        <p style="font-size: 18px; color: #22d3ee; font-weight: bold; margin: 15px 0;">
+                            ⏰ 5 Hours Free Access
+                        </p>
+                        <p style="color: #94a3b8; font-size: 14px;">
+                            Experience premium features with no commitment
+                        </p>
+                    </div>
+                    
+                    <div class="upgrade-actions" style="margin-top: 25px;">
+                        <button class="upgrade-btn-primary" onclick="startPremiumTrial('${companionId}')" 
+                                style="background: linear-gradient(135deg, #22d3ee, #0891b2); color: white; border: none; padding: 16px 32px; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; margin-right: 15px; box-shadow: 0 4px 12px rgba(34, 211, 238, 0.3);">
+                            🎯 Start 5-Hour Trial
+                        </button>
+                        <button class="upgrade-btn-secondary" onclick="showUpgradeModal('${companionId}', '${tier}', '${companionName}'); closeTrialModal();" 
+                                style="background: ${info.color}; color: white; border: none; padding: 14px 28px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-right: 10px;">
+                            🚀 Upgrade to ${info.name}
+                        </button>
+                        <button class="upgrade-btn-secondary" onclick="closeTrialModal()" 
+                                style="background: rgba(55, 65, 81, 0.5); color: #94a3b8; border: 2px solid #374151; padding: 12px 24px; border-radius: 8px; font-size: 16px; cursor: pointer;">
+                            Maybe Later
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Remove existing modals
+    const existingModal = document.getElementById('trialModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    // Add modal to page
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+}
+
+function closeTrialModal(event) {
+    if (event && event.target !== event.currentTarget) return;
+    
+    const modal = document.getElementById('trialModal');
+    if (modal) {
+        modal.style.animation = 'fadeOut 0.3s ease';
+        setTimeout(() => modal.remove(), 300);
+    }
+}
 
 function getCompanionName(companionId) {
     const nameMap = {

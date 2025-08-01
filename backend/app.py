@@ -1121,23 +1121,50 @@ def chat():
         # Check if user has access to this companion
         user_tier = session.get('user_plan', 'foundation')
         
-        # Validate companion access based on tier - simple pay-to-access model
+        # Check for active trial status
+        trial_active = session.get('trial_active', False)
+        trial_companion = session.get('trial_companion')
+        
+        # If trial is active, verify it hasn't expired
+        if trial_active:
+            try:
+                trial_expires = session.get('trial_expires')
+                if trial_expires:
+                    expires_at = datetime.fromisoformat(trial_expires.replace('Z', '+00:00'))
+                    if datetime.utcnow() > expires_at:
+                        # Trial has expired, clear trial session data
+                        session.pop('trial_active', None)
+                        session.pop('trial_companion', None)
+                        session.pop('trial_expires', None)
+                        trial_active = False
+                        logger.info(f"🕐 TRIAL EXPIRED: Clearing expired trial session for {session.get('user_email')}")
+            except Exception as e:
+                logger.error(f"Trial expiration check error: {e}")
+                trial_active = False
+        
+        # Validate companion access based on tier and trial status
         companion_access_valid = True
         
         # BLOCK ACCESS: Check companion tier requirements before allowing chat
         if selected_companion in ['companion_sky', 'companion_gamerjay_premium', 'companion_blayzo_premium', 'companion_watchdog', 'companion_crimson_growth', 'companion_violet_growth', 'companion_claude_growth']:
-            # Growth tier companion - requires premium plan
+            # Growth tier companion - requires premium plan OR active trial for this companion
             if user_tier == 'foundation':
-                logger.warning(f"🚫 BLOCKING CHAT ACCESS: Foundation user {session.get('user_email')} tried to access Growth companion {selected_companion}")
-                flash("This companion requires a Growth plan. Please upgrade.")
-                return redirect("/companion-selection")
+                if trial_active and trial_companion == selected_companion.replace('companion_', ''):
+                    logger.info(f"✅ TRIAL ACCESS GRANTED: Foundation user accessing Growth companion {selected_companion} via active trial")
+                else:
+                    logger.warning(f"🚫 BLOCKING CHAT ACCESS: Foundation user {session.get('user_email')} tried to access Growth companion {selected_companion}")
+                    flash("This companion requires a Growth plan or active trial. Please upgrade or start a trial.")
+                    return redirect("/companion-selection")
             else:
                 logger.info(f"✅ CHAT ACCESS GRANTED: Growth companion {selected_companion} - user tier: {user_tier}")
         elif selected_companion in ['companion_crimson', 'companion_violet']:
-            # Max tier companion - requires enterprise plan
+            # Max tier companion - requires enterprise plan OR active trial for this companion
             if user_tier != 'enterprise':
-                companion_access_valid = False
-                logger.warning(f"🚫 Access denied to Max companion {selected_companion} - user tier: {user_tier}")
+                if trial_active and trial_companion == selected_companion.replace('companion_', ''):
+                    logger.info(f"✅ TRIAL ACCESS GRANTED: User accessing Max companion {selected_companion} via active trial")
+                else:
+                    companion_access_valid = False
+                    logger.warning(f"🚫 Access denied to Max companion {selected_companion} - user tier: {user_tier}, no active trial")
         
         # If access denied, redirect to companion selector
         if not companion_access_valid:
@@ -2938,6 +2965,148 @@ def select_plan():
     except Exception as e:
         logger.error(f"Plan selection error: {e}")
         return jsonify({"success": False, "error": "Plan selection failed"}), 500
+
+@app.route("/start-trial", methods=["POST"])
+def start_trial():
+    """Start a 5-hour premium companion trial"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+            
+        data = request.get_json()
+        if not data:
+            return jsonify({"success": False, "error": "Invalid request data"}), 400
+            
+        companion_id = data.get("companion_id")
+        if not companion_id:
+            return jsonify({"success": False, "error": "Missing companion_id"}), 400
+            
+        user_id = session.get("user_id")
+        user_email = session.get("user_email")
+        
+        if not user_id:
+            return jsonify({"success": False, "error": "No user session found"}), 401
+            
+        # Calculate trial expiration (5 hours from now)
+        now = datetime.utcnow()
+        expires_at = now + timedelta(hours=5)
+        
+        # Connect to database and update user trial info
+        import psycopg2
+        database_url = os.environ.get('DATABASE_URL')
+        if not database_url:
+            return jsonify({"success": False, "error": "Database connection failed"}), 500
+            
+        conn = psycopg2.connect(database_url)
+        cursor = conn.cursor()
+        
+        # Check if user has already used trial permanently
+        cursor.execute("""
+            SELECT trial_used_permanently FROM users WHERE email = %s
+        """, (user_email,))
+        result = cursor.fetchone()
+        
+        if result and result[0]:
+            conn.close()
+            return jsonify({"success": False, "error": "Trial already used permanently"}), 400
+            
+        # Update user with trial information
+        cursor.execute("""
+            UPDATE users
+            SET trial_started_at = %s,
+                trial_companion = %s,
+                trial_used_permanently = TRUE
+            WHERE email = %s
+        """, (now, companion_id, user_email))
+        
+        conn.commit()
+        conn.close()
+        
+        # Update session with trial info
+        session["trial_active"] = True
+        session["trial_companion"] = companion_id
+        session["trial_expires"] = expires_at.isoformat()
+        
+        logger.info(f"Trial started for user {user_email}, companion {companion_id}, expires at {expires_at}")
+        
+        return jsonify({
+            "success": True,
+            "trial_expires": expires_at.isoformat(),
+            "trial_companion": companion_id,
+            "message": f"5-hour trial started for {companion_id}!"
+        })
+        
+    except Exception as e:
+        logger.error(f"Trial start error: {e}")
+        return jsonify({"success": False, "error": "Trial start failed"}), 500
+
+@app.route("/get-trial-status")
+def get_trial_status():
+    """Get current trial status for the user"""
+    try:
+        if not is_logged_in():
+            return jsonify({"trial_active": False})
+            
+        user_email = session.get("user_email")
+        if not user_email:
+            return jsonify({"trial_active": False})
+            
+        # Connect to database and check trial status
+        import psycopg2
+        database_url = os.environ.get('DATABASE_URL')
+        if not database_url:
+            return jsonify({"trial_active": False})
+            
+        conn = psycopg2.connect(database_url)
+        cursor = conn.cursor()
+        
+        cursor.execute("""
+            SELECT trial_started_at, trial_companion, trial_used_permanently 
+            FROM users WHERE email = %s
+        """, (user_email,))
+        result = cursor.fetchone()
+        conn.close()
+        
+        if not result or not result[0]:
+            return jsonify({
+                "trial_active": False,
+                "trial_used_permanently": result[2] if result else False
+            })
+            
+        trial_started_at = result[0]
+        trial_companion = result[1]
+        trial_used_permanently = result[2]
+        
+        # Check if trial is still active (within 5 hours)
+        now = datetime.utcnow()
+        expires_at = trial_started_at + timedelta(hours=5)
+        
+        if now < expires_at:
+            # Trial is still active
+            session["trial_active"] = True
+            session["trial_companion"] = trial_companion
+            session["trial_expires"] = expires_at.isoformat()
+            
+            return jsonify({
+                "trial_active": True,
+                "trial_expires": expires_at.isoformat(),
+                "trial_companion": trial_companion,
+                "time_remaining_minutes": int((expires_at - now).total_seconds() / 60)
+            })
+        else:
+            # Trial has expired
+            session.pop("trial_active", None)
+            session.pop("trial_companion", None)
+            session.pop("trial_expires", None)
+            
+            return jsonify({
+                "trial_active": False,
+                "trial_used_permanently": trial_used_permanently
+            })
+            
+    except Exception as e:
+        logger.error(f"Trial status check error: {e}")
+        return jsonify({"trial_active": False})
 
 @app.route("/payment")
 def payment_page():

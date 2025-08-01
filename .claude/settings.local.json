@@ -1,4 +1,5 @@
 {
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "permissions": {
     "allow": [
       "Bash(docker build:*)",
@@ -66,9 +67,9 @@
       "Bash(node:*)",
       "Bash(start /b python:*)",
       "WebFetch(domain:soulbridgeai.com)",
-      "Bash(sed:*)"
+      "Bash(sed:*)",
+      "Bash(start \"\" \"C:\\Users\\jaaye\\OneDrive\\Desktop\\soulbridgeai-unified\\test_upgrade_modal.html\")"
     ],
     "deny": []
-  },
-  "$schema": "https://json.schemastore.org/claude-code-settings.json"
+  }
 }
