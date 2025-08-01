@@ -475,7 +475,7 @@ function loadFallbackCompanions() {
             {
                 companion_id: 'companion_gamerjay_premium',
                 display_name: 'GamerJay Premium',
-                avatar_image: '/static/logos/GamgerJay premium companion.png',
+                avatar_image: '/static/logos/GamerJay Free companion.png',
                 short_bio: 'Enhanced GamerJay with premium features',
                 personality_tags: ['Gaming', 'Premium'],
                 special_features: ['Pro gaming strategies', 'Performance analysis', 'Competitive coaching', 'Advanced metrics'],
@@ -771,6 +771,8 @@ window.startPremiumTrial = async function(companionId) {
     console.log('🚀 Starting premium trial for companion:', companionId);
     console.log('🔍 Button clicked - function executing');
     console.log('🔍 About to make POST request to /api/companions/trial');
+    console.log('🔍 Current user state:', currentUser);
+    console.log('🔍 Trial already used?', localStorage.getItem('trialUsed'));
     
     try {
         const response = await fetch('/api/companions/trial', {
@@ -785,8 +787,21 @@ window.startPremiumTrial = async function(companionId) {
         });
         
         console.log('🔍 Trial API Response status:', response.status);
-        const data = await response.json();
-        console.log('🔍 Trial API Response data:', data);
+        console.log('🔍 Trial API Response headers:', response.headers);
+        
+        const responseText = await response.text();
+        console.log('🔍 Trial API Raw response:', responseText);
+        
+        let data;
+        try {
+            data = JSON.parse(responseText);
+            console.log('🔍 Trial API Parsed data:', data);
+        } catch (parseError) {
+            console.error('❌ Failed to parse response as JSON:', parseError);
+            console.log('🔍 Response was:', responseText);
+            showNotification('Server returned invalid response', 'error');
+            return;
+        }
         
         if (data.success) {
             console.log('✅ 5-hour trial started successfully');
@@ -836,9 +851,9 @@ function getCompanionName(companionId) {
         
         // Growth/Premium companions
         'companion_sky': 'Sky',
-        'blayzo_growth': 'Blayzo',
-        'blayzica_growth': 'Blayzica',
-        'companion_gamerjay_premium': 'GamerJay',
+        'blayzo_growth': 'Blayzo Pro',
+        'blayzica_growth': 'Blayzica Pro',
+        'companion_gamerjay_premium': 'GamerJay Premium',
         
         // Max companions
         'companion_crimson': 'Crimson',
