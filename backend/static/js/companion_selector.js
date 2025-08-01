@@ -85,6 +85,16 @@ function addClickListeners() {
                 dataCompanionId: event.target.dataset.companionId
             });
             
+            // Extra logging for trial buttons specifically
+            if (event.target.textContent && event.target.textContent.includes('Try Free')) {
+                console.log('🚨 TRIAL BUTTON TEXT DETECTED - analyzing:', {
+                    element: event.target,
+                    classList: Array.from(event.target.classList),
+                    hasTrialClass: event.target.classList.contains('btn-trial'),
+                    parentClasses: event.target.parentElement ? event.target.parentElement.className : 'no parent'
+                });
+            }
+            
             // Handle companion selection buttons
             if (event.target.classList.contains('btn-select') && !event.target.disabled) {
                 console.log('✅ SELECT BUTTON CLICKED - Processing...');
