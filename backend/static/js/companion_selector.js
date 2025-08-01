@@ -13,65 +13,18 @@ let currentUser = {
     trial_companion: null
 };
 
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', function() {
-    initializeCompanionSelector();
-});
-
-async function initializeCompanionSelector() {
-    console.log('🚀 Initializing Companion Selector...');
-    
-    // Load user data and companions (sync with backend)
-    await loadUserDataFromBackend();
-    loadCompanions();
-    
-    // Initialize trial status from backend
-    await initializeTrialStatusFromBackend();
-    
-    // Set up event listeners
-    setupEventListeners();
-    
-    // Handle switching from chat
-    handleChatSwitching();
-    
-    console.log('✅ Companion Selector initialized');
-    
-    // Test if functions are accessible
-    console.log('🔍 Testing function accessibility:');
-    console.log('  window.selectCompanion:', typeof window.selectCompanion);
-    console.log('  window.startPremiumTrial:', typeof window.startPremiumTrial);
-}
-
-function handleChatSwitching() {
-    const switchingFromChat = localStorage.getItem('switchingFromChat');
-    if (switchingFromChat === 'true') {
-        localStorage.removeItem('switchingFromChat');
-        setTimeout(() => {
-            showNotification('Choose your new AI companion!', 'info');
-        }, 500);
-    }
-}
-
-function setupEventListeners() {
-    console.log('🔧 Setting up event listeners...');
-    
-    // Add any additional event listeners here
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    
-    // Ensure DOM is ready before adding click listeners
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', addClickListeners);
-    } else {
-        addClickListeners();
-    }
-}
-
 function addClickListeners() {
     console.log('🔧 Adding click listeners to document...');
     console.log('🔍 Document ready state:', document.readyState);
     console.log('🔍 Current URL:', window.location.href);
     
     try {
+        // Test if event listeners are working at all
+        console.log('🧪 Testing basic event listener functionality...');
+        document.addEventListener('click', function(event) {
+            console.log('🔍 BASIC CLICK TEST - ANY CLICK detected:', event.target.tagName);
+        });
+        
         // Event delegation for dynamically generated buttons - catch ALL clicks for debugging
         document.addEventListener('click', function(event) {
             // Immediately prevent refresh for any trial button click
@@ -253,6 +206,69 @@ function addClickListeners() {
         
     } catch (error) {
         console.error('❌ Error adding click listeners:', error);
+    }
+}
+
+// Add click listeners immediately when script loads
+console.log('📜 Script loaded - adding click listeners immediately');
+addClickListeners();
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    initializeCompanionSelector();
+});
+
+// Also try adding listeners when document is interactive or complete
+if (document.readyState !== 'loading') {
+    console.log('📜 Document already loaded - adding listeners again');
+    addClickListeners();
+}
+
+async function initializeCompanionSelector() {
+    console.log('🚀 Initializing Companion Selector...');
+    
+    // Load user data and companions (sync with backend)
+    await loadUserDataFromBackend();
+    loadCompanions();
+    
+    // Initialize trial status from backend
+    await initializeTrialStatusFromBackend();
+    
+    // Set up event listeners (again to be sure)
+    setupEventListeners();
+    
+    // Handle switching from chat
+    handleChatSwitching();
+    
+    console.log('✅ Companion Selector initialized');
+    
+    // Test if functions are accessible
+    console.log('🔍 Testing function accessibility:');
+    console.log('  window.selectCompanion:', typeof window.selectCompanion);
+    console.log('  window.startPremiumTrial:', typeof window.startPremiumTrial);
+}
+
+function handleChatSwitching() {
+    const switchingFromChat = localStorage.getItem('switchingFromChat');
+    if (switchingFromChat === 'true') {
+        localStorage.removeItem('switchingFromChat');
+        setTimeout(() => {
+            showNotification('Choose your new AI companion!', 'info');
+        }, 500);
+    }
+}
+
+function setupEventListeners() {
+    console.log('🔧 Setting up event listeners...');
+    
+    // Add any additional event listeners here
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    // Ensure DOM is ready before adding click listeners
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', addClickListeners);
+    } else {
+        addClickListeners();
     }
 }
 
