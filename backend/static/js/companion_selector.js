@@ -168,9 +168,8 @@ function addClickListeners() {
                     boundingRect: firstButton.getBoundingClientRect()
                 });
                 
-                // Try to click it programmatically
-                console.log('🧪 Simulating click on first select button...');
-                firstButton.click();
+                // Don't click - just analyze
+                console.log('🔍 Select button analysis complete');
             }
             
             if (trialButtons.length > 0) {
@@ -186,9 +185,8 @@ function addClickListeners() {
                     boundingRect: firstTrialButton.getBoundingClientRect()
                 });
                 
-                // Try to click it programmatically
-                console.log('🧪 Simulating click on first trial button...');
-                firstTrialButton.click();
+                // Don't click - just analyze
+                console.log('🔍 Trial button analysis complete');
             }
         }, 2000);
         
