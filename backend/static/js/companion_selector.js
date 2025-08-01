@@ -680,9 +680,18 @@ function renderSection(sectionId, companionList) {
                                 ${isSelected ? 'Selected' : 'Select'}
                             </button>
                         ` : `
-                            <button class="btn-select" disabled style="${isReferralTier ? 'background: #FFD700; color: #333;' : 'background: #ccc; color: #666; cursor: not-allowed;'}">
-                                ${isReferralTier ? '👥 View Referral Program' : `🔒 ${lockReason}`}
-                            </button>
+                            ${companion.tier === 'growth' || companion.tier === 'max' ? `
+                                <button class="btn-select btn-upgrade" 
+                                        data-companion-id="${companion.companion_id}"
+                                        onclick="showUpgradeModal('${companion.companion_id}', '${companion.tier}', '${companion.display_name}')"
+                                        style="background: linear-gradient(45deg, #4CAF50, #45a049); color: white; border: none; font-weight: bold;">
+                                    💎 Upgrade to ${companion.tier === 'growth' ? 'Growth' : 'Max'} Plan
+                                </button>
+                            ` : `
+                                <button class="btn-select" disabled style="${isReferralTier ? 'background: #FFD700; color: #333;' : 'background: #ccc; color: #666; cursor: not-allowed;'}">
+                                    ${isReferralTier ? '👥 View Referral Program' : `🔒 ${lockReason}`}
+                                </button>
+                            `}
                         `}
                         
                         ${companion.voice_id ? `
@@ -873,11 +882,246 @@ function getCompanionUrlParam(companionId) {
     return urlParamMap[companionId] || companionId.replace('companion_', '');
 }
 
-function showUpgradeModal(companionId) {
-    console.log('💰 Showing upgrade modal for:', companionId);
-    // Implement upgrade modal logic
-    showNotification('Upgrade required for this companion', 'info');
+function showUpgradeModal(companionId, tier, companionName) {
+    console.log('💰 Showing upgrade modal for:', companionId, 'tier:', tier, 'name:', companionName);
+    
+    // Define tier pricing and features
+    const tierInfo = {
+        growth: {
+            name: 'Growth Plan',
+            price: '$12.99/month',
+            features: [
+                '8 Growth tier companions including Sky, Blayzo Pro, Blayzica Pro',
+                'Enhanced AI capabilities and memory retention',
+                'Advanced conversation features',
+                'Priority response times',
+                'Extended context understanding'
+            ],
+            color: '#4CAF50'
+        },
+        max: {
+            name: 'Max Plan', 
+            price: '$19.99/month',
+            features: [
+                '7 Elite Max tier companions including Crimson Max, Violet Max',
+                'Ultimate AI capabilities and advanced reasoning',
+                'Voice interactions and premium features',
+                'Trauma healing and transformation coaching',
+                'Priority support and exclusive access'
+            ],
+            color: '#9C27B0'
+        }
+    };
+    
+    const info = tierInfo[tier];
+    if (!info) {
+        showNotification('Upgrade information not available', 'error');
+        return;
+    }
+    
+    // Create modal HTML
+    const modalHtml = `
+        <div class="upgrade-modal-overlay" id="upgradeModal" onclick="closeUpgradeModal(event)">
+            <div class="upgrade-modal-content" onclick="event.stopPropagation()">
+                <div class="upgrade-modal-header">
+                    <h2 style="margin: 0; color: ${info.color};">💎 Unlock ${companionName}</h2>
+                    <button class="upgrade-modal-close" onclick="closeUpgradeModal()">&times;</button>
+                </div>
+                
+                <div class="upgrade-modal-body">
+                    <div class="upgrade-companion-preview">
+                        <p><strong>${companionName}</strong> is part of our <strong>${info.name}</strong></p>
+                        <p class="upgrade-price" style="font-size: 24px; color: ${info.color}; font-weight: bold;">
+                            ${info.price}
+                        </p>
+                    </div>
+                    
+                    <div class="upgrade-features">
+                        <h3>What you'll get with ${info.name}:</h3>
+                        <ul style="text-align: left; margin: 0; padding-left: 20px;">
+                            ${info.features.map(feature => `<li style="margin: 8px 0;">${feature}</li>`).join('')}
+                        </ul>
+                    </div>
+                    
+                    <div class="upgrade-actions" style="margin-top: 20px;">
+                        <button class="upgrade-btn-primary" onclick="redirectToUpgrade('${tier}')" 
+                                style="background: ${info.color}; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-right: 10px;">
+                            🚀 Upgrade to ${info.name}
+                        </button>
+                        <button class="upgrade-btn-secondary" onclick="closeUpgradeModal()" 
+                                style="background: #f5f5f5; color: #333; border: 1px solid #ddd; padding: 12px 24px; border-radius: 6px; font-size: 16px; cursor: pointer;">
+                            Maybe Later
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Add modal styles
+    const modalStyles = `
+        <style id="upgradeModalStyles">
+            .upgrade-modal-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.7);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 10000;
+                animation: fadeIn 0.3s ease;
+            }
+            
+            .upgrade-modal-content {
+                background: white;
+                border-radius: 12px;
+                width: 90%;
+                max-width: 500px;
+                max-height: 80vh;
+                overflow-y: auto;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+                animation: slideIn 0.3s ease;
+            }
+            
+            .upgrade-modal-header {
+                padding: 20px;
+                border-bottom: 1px solid #eee;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            
+            .upgrade-modal-close {
+                background: none;
+                border: none;
+                font-size: 24px;
+                cursor: pointer;
+                color: #999;
+                padding: 0;
+                width: 30px;
+                height: 30px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .upgrade-modal-close:hover {
+                color: #333;
+            }
+            
+            .upgrade-modal-body {
+                padding: 20px;
+                text-align: center;
+            }
+            
+            .upgrade-companion-preview {
+                margin-bottom: 20px;
+                padding: 15px;
+                background: #f9f9f9;
+                border-radius: 8px;
+            }
+            
+            .upgrade-features {
+                margin: 20px 0;
+            }
+            
+            .upgrade-features h3 {
+                color: #333;
+                margin-bottom: 15px;
+            }
+            
+            .upgrade-btn-primary:hover {
+                opacity: 0.9;
+                transform: translateY(-1px);
+            }
+            
+            .upgrade-btn-secondary:hover {
+                background: #e9e9e9;
+            }
+            
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+            
+            @keyframes slideIn {
+                from { transform: translateY(20px); opacity: 0; }
+                to { transform: translateY(0); opacity: 1; }
+            }
+        </style>
+    `;
+    
+    // Remove existing modal if any
+    const existingModal = document.getElementById('upgradeModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    const existingStyles = document.getElementById('upgradeModalStyles');
+    if (existingStyles) {
+        existingStyles.remove();
+    }
+    
+    // Add styles and modal to page
+    document.head.insertAdjacentHTML('beforeend', modalStyles);
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    // Prevent body scroll when modal is open
+    document.body.style.overflow = 'hidden';
+    
+    // Add keyboard support (ESC to close)
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeUpgradeModal();
+        }
+    });
 }
+
+function closeUpgradeModal(event) {
+    // Only close if clicking overlay, not modal content
+    if (event && event.target !== event.currentTarget) {
+        return;
+    }
+    
+    const modal = document.getElementById('upgradeModal');
+    const styles = document.getElementById('upgradeModalStyles');
+    
+    if (modal) {
+        modal.remove();
+    }
+    if (styles) {
+        styles.remove();
+    }
+    
+    // Restore body scroll
+    document.body.style.overflow = '';
+    
+    console.log('🔒 Upgrade modal closed');
+}
+
+function redirectToUpgrade(tier) {
+    console.log('🚀 Redirecting to upgrade page for tier:', tier);
+    
+    // Close modal first
+    closeUpgradeModal();
+    
+    // Show notification about redirect
+    showNotification(`Redirecting to ${tier === 'growth' ? 'Growth' : 'Max'} Plan upgrade...`, 'info');
+    
+    // Redirect to plan selection or upgrade page
+    // You can customize this URL based on your upgrade flow
+    setTimeout(() => {
+        window.location.href = '/plan-selection';
+    }, 1000);
+}
+
+// Make functions globally accessible
+window.showUpgradeModal = showUpgradeModal;
+window.closeUpgradeModal = closeUpgradeModal;
+window.redirectToUpgrade = redirectToUpgrade;
 
 function showNotification(message, type = 'info') {
     console.log(`📢 Notification (${type}): ${message}`);
