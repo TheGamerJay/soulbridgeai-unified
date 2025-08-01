@@ -590,6 +590,7 @@ function renderSection(sectionId, companionList) {
     }
     
     console.log(`🔍 Access check for ${sectionId} companions with user plan: ${currentUser.plan}`);
+    console.log(`🔍 Current user object:`, currentUser);
     
     container.innerHTML = companionList.map(companion => {
         // Determine if companion should be locked based on user's plan
@@ -630,7 +631,7 @@ function renderSection(sectionId, companionList) {
         }
         
         // Log access decision for debugging
-        console.log(`🔍 Access check for ${companion.display_name}: tier=${companion.tier}, userPlan=${currentUser.plan}, locked=${isLocked}`);
+        console.log(`🔍 Access check for ${companion.display_name}: tier=${companion.tier}, userPlan=${currentUser.plan}, locked=${isLocked}, lockReason=${lockReason}`);
         
         const isSelected = currentUser.selected_companion === companion.companion_id;
         const isReferralTier = companion.tier === 'referral';
@@ -672,27 +673,36 @@ function renderSection(sectionId, companionList) {
                     </div>
                     
                     <div class="companion-actions">
-                        ${!isLocked ? `
-                            <button class="btn-select${isSelected ? ' selected' : ''}" 
-                                    ${isSelected ? 'disabled' : ''}
-                                    data-companion-id="${companion.companion_id}"
-                                    onclick="window.selectCompanion('${companion.companion_id}')">
-                                ${isSelected ? 'Selected' : 'Select'}
-                            </button>
-                        ` : `
-                            ${companion.tier === 'growth' || companion.tier === 'max' ? `
-                                <button class="btn-select btn-upgrade" 
-                                        data-companion-id="${companion.companion_id}"
-                                        onclick="showUpgradeModal('${companion.companion_id}', '${companion.tier}', '${companion.display_name}')"
-                                        style="background: linear-gradient(45deg, #4CAF50, #45a049); color: white; border: none; font-weight: bold;">
-                                    💎 Upgrade to ${companion.tier === 'growth' ? 'Growth' : 'Max'} Plan
-                                </button>
-                            ` : `
-                                <button class="btn-select" disabled style="${isReferralTier ? 'background: #FFD700; color: #333;' : 'background: #ccc; color: #666; cursor: not-allowed;'}">
-                                    ${isReferralTier ? '👥 View Referral Program' : `🔒 ${lockReason}`}
-                                </button>
-                            `}
-                        `}
+                        ${(() => {
+                            if (!isLocked) {
+                                console.log(`🔘 Rendering SELECT button for ${companion.display_name} (unlocked)`);
+                                return `
+                                    <button class="btn-select${isSelected ? ' selected' : ''}" 
+                                            ${isSelected ? 'disabled' : ''}
+                                            data-companion-id="${companion.companion_id}"
+                                            onclick="window.selectCompanion('${companion.companion_id}')">
+                                        ${isSelected ? 'Selected' : 'Select'}
+                                    </button>
+                                `;
+                            } else if (companion.tier === 'growth' || companion.tier === 'max') {
+                                console.log(`🔘 Rendering UPGRADE button for ${companion.display_name} (${companion.tier} tier)`);
+                                return `
+                                    <button class="btn-select btn-upgrade" 
+                                            data-companion-id="${companion.companion_id}"
+                                            onclick="showUpgradeModal('${companion.companion_id}', '${companion.tier}', '${companion.display_name}')"
+                                            style="background: linear-gradient(45deg, #4CAF50, #45a049); color: white; border: none; font-weight: bold;">
+                                        💎 Upgrade to ${companion.tier === 'growth' ? 'Growth' : 'Max'} Plan
+                                    </button>
+                                `;
+                            } else {
+                                console.log(`🔘 Rendering LOCKED button for ${companion.display_name} (${companion.tier} tier)`);
+                                return `
+                                    <button class="btn-select" disabled style="${isReferralTier ? 'background: #FFD700; color: #333;' : 'background: #ccc; color: #666; cursor: not-allowed;'}">
+                                        ${isReferralTier ? '👥 View Referral Program' : `🔒 ${lockReason}`}
+                                    </button>
+                                `;
+                            }
+                        })()}
                         
                         ${companion.voice_id ? `
                             <button class="btn-preview" onclick="event.stopPropagation(); previewVoice('${companion.companion_id}')">
