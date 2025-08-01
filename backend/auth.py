@@ -165,7 +165,8 @@ class Database:
                     oauth_provider VARCHAR(50),
                     oauth_id VARCHAR(255),
                     profile_picture_url TEXT,
-                    last_login TIMESTAMP
+                    last_login TIMESTAMP,
+                    companion_data JSONB
                 )
                 """
             )
@@ -184,11 +185,31 @@ class Database:
                     oauth_provider TEXT,
                     oauth_id TEXT,
                     profile_picture_url TEXT,
-                    last_login TIMESTAMP
+                    last_login TIMESTAMP,
+                    companion_data TEXT
                 )
                 """
             )
 
+        # Migrate existing users table to add companion_data column if missing
+        try:
+            if self.use_postgres:
+                cursor.execute("""
+                    ALTER TABLE users ADD COLUMN IF NOT EXISTS companion_data JSONB
+                """)
+            else:
+                # SQLite doesn't support IF NOT EXISTS for ALTER TABLE, so we need to check first
+                cursor.execute("PRAGMA table_info(users)")
+                columns = [column[1] for column in cursor.fetchall()]
+                if 'companion_data' not in columns:
+                    cursor.execute("ALTER TABLE users ADD COLUMN companion_data TEXT")
+            
+            conn.commit()
+            logger.info("✅ Database migration: companion_data column added/verified")
+        except Exception as e:
+            logger.warning(f"⚠️ Migration warning (companion_data column): {e}")
+            # Don't fail initialization if migration fails
+        
         # Create other tables after users table exists
         if self.use_postgres:
             cursor.execute(
