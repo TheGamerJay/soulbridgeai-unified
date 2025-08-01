@@ -384,6 +384,50 @@ function loadFallbackCompanions() {
                 tier: 'growth',
                 popularity_score: 88,
                 is_recommended: false
+            },
+            {
+                companion_id: 'watchdog_growth',
+                display_name: 'WatchDog',
+                avatar_image: '/static/logos/WatchDog a Primum companion.png',
+                short_bio: 'Your protective guardian companion',
+                personality_tags: ['Protective', 'Guardian'],
+                special_features: ['Protection guidance', 'Security advice', 'Safety coaching', 'Risk assessment'],
+                tier: 'growth',
+                popularity_score: 78,
+                is_recommended: false
+            },
+            {
+                companion_id: 'crimson_growth',
+                display_name: 'Crimson',
+                avatar_image: '/static/logos/Crimson.png',
+                short_bio: 'Motivational drive to overcome challenges',
+                personality_tags: ['Motivational', 'Strong'],
+                special_features: ['Challenge coaching', 'Motivation boosts', 'Strength building', 'Resilience training'],
+                tier: 'growth',
+                popularity_score: 87,
+                is_recommended: true
+            },
+            {
+                companion_id: 'violet_growth',
+                display_name: 'Violet',
+                avatar_image: '/static/logos/Violet.png',
+                short_bio: 'Creative inspiration and artistic guidance',
+                personality_tags: ['Creative', 'Artistic'],
+                special_features: ['Creative guidance', 'Artistic inspiration', 'Design thinking', 'Innovation coaching'],
+                tier: 'growth',
+                popularity_score: 84,
+                is_recommended: false
+            },
+            {
+                companion_id: 'claude_growth',
+                display_name: 'Claude Growth',
+                avatar_image: '/static/logos/Claude Growth.png',
+                short_bio: 'Advanced coding guidance and architecture',
+                personality_tags: ['Technical', 'Advanced', 'Methodical'],
+                special_features: ['Advanced coding', 'System architecture', 'Code optimization', 'Technical mentoring'],
+                tier: 'growth',
+                popularity_score: 93,
+                is_recommended: true
             }
         ],
         max: [
@@ -408,20 +452,111 @@ function loadFallbackCompanions() {
                 tier: 'max',
                 popularity_score: 92,
                 is_recommended: false
+            },
+            {
+                companion_id: 'royal_max',
+                display_name: 'Royal',
+                avatar_image: '/static/logos/Royal a max companion.png',
+                short_bio: 'Majestic guide with sophisticated wisdom',
+                personality_tags: ['Majestic', 'Wise', 'Sophisticated'],
+                special_features: ['Royal guidance', 'Sophisticated advice', 'Leadership coaching', 'Elite wisdom'],
+                tier: 'max',
+                popularity_score: 95,
+                is_recommended: false
+            },
+            {
+                companion_id: 'watchdog_max',
+                display_name: 'WatchDog Max',
+                avatar_image: '/static/logos/WatchDog a Max Companion.png',
+                short_bio: 'Ultimate guardian companion',
+                personality_tags: ['Ultimate', 'Guardian', 'Elite'],
+                special_features: ['Ultimate protection', 'Elite security', 'Advanced monitoring', 'Crisis management'],
+                tier: 'max',
+                popularity_score: 93,
+                is_recommended: false
+            },
+            {
+                companion_id: 'ven_blayzica',
+                display_name: 'Ven Blayzica',
+                avatar_image: '/static/logos/Ven Blayzica a max companion.png',
+                short_bio: 'Enhanced healer with emotional mastery',
+                personality_tags: ['Healer', 'Emotional', 'Master'],
+                special_features: ['Emotional mastery', 'Healing guidance', 'Advanced empathy', 'Therapeutic support'],
+                tier: 'max',
+                popularity_score: 94,
+                is_recommended: true
+            },
+            {
+                companion_id: 'ven_sky',
+                display_name: 'Ven Sky',
+                avatar_image: '/static/logos/Ven Sky a max companion.png',
+                short_bio: 'Ascended spiritual guide',
+                personality_tags: ['Ascended', 'Spiritual', 'Guide'],
+                special_features: ['Ascended wisdom', 'Spiritual mastery', 'Transcendent guidance', 'Higher consciousness'],
+                tier: 'max',
+                popularity_score: 96,
+                is_recommended: true
+            },
+            {
+                companion_id: 'claude_max',
+                display_name: 'Claude Max',
+                avatar_image: '/static/logos/Claude Max.png',
+                short_bio: 'Elite coding mastery and system design',
+                personality_tags: ['Elite', 'Master', 'Technical'],
+                special_features: ['Elite coding mastery', 'System design', 'Architecture expertise', 'Advanced optimization'],
+                tier: 'max',
+                popularity_score: 97,
+                is_recommended: true
             }
         ],
         referral: [
             {
                 companion_id: 'blayzo',
-                display_name: 'Blayzo',
+                display_name: 'Blayzo Champion',
                 avatar_image: '/static/logos/Blayzo Referral.png',
-                short_bio: 'Exclusive referral companion',
-                personality_tags: ['Exclusive', 'Referral'],
-                special_features: ['Exclusive access', 'Referral rewards', 'Special bonuses', 'Premium features'],
+                short_bio: 'Exclusive community champion',
+                personality_tags: ['Exclusive', 'Champion'],
+                special_features: ['Exclusive access', 'Champion rewards', 'Community leadership', 'Premium features'],
                 tier: 'referral',
                 lock_reason: 'Unlock through referrals',
                 popularity_score: 100,
-                is_recommended: false
+                is_recommended: true
+            },
+            {
+                companion_id: 'blayzike',
+                display_name: 'Blayzike',
+                avatar_image: '/static/logos/Blayzike.png',
+                short_bio: 'Mysterious guide with hidden wisdom',
+                personality_tags: ['Mysterious', 'Wise', 'Hidden'],
+                special_features: ['Hidden wisdom', 'Mysterious guidance', 'Secret knowledge', 'Exclusive insights'],
+                tier: 'referral',
+                lock_reason: 'Unlock through referrals',
+                popularity_score: 97,
+                is_recommended: true
+            },
+            {
+                companion_id: 'blazelian',
+                display_name: 'Blazelian',
+                avatar_image: '/static/logos/Blazelian.png',
+                short_bio: 'Celestial wanderer with cosmic wisdom',
+                personality_tags: ['Celestial', 'Cosmic', 'Wanderer'],
+                special_features: ['Cosmic wisdom', 'Celestial guidance', 'Universal insights', 'Transcendent knowledge'],
+                tier: 'referral',
+                lock_reason: 'Unlock through referrals',
+                popularity_score: 98,
+                is_recommended: true
+            },
+            {
+                companion_id: 'claude_referral',
+                display_name: 'Claude Referral',
+                avatar_image: '/static/logos/Claude Referral.png',
+                short_bio: 'Elite coding companion for champions',
+                personality_tags: ['Elite', 'Champion', 'Technical'],
+                special_features: ['Elite coding mastery', 'Champion-level support', 'Exclusive techniques', 'Advanced mentoring'],
+                tier: 'referral',
+                lock_reason: 'Unlock through referrals',
+                popularity_score: 100,
+                is_recommended: true
             }
         ]
     };
@@ -653,16 +788,30 @@ function getCompanionName(companionId) {
         'blayzion_free': 'Blayzion',
         'claude_free': 'Claude',
         
-        // Growth/Premium companions
+        // Growth/Premium companions - ALL 8 companions  
         'companion_sky': 'Sky',
         'blayzo_growth': 'Blayzo Pro',
         'blayzica_growth': 'Blayzica Pro',
         'companion_gamerjay_premium': 'GamerJay Premium',
+        'watchdog_growth': 'WatchDog',
+        'crimson_growth': 'Crimson',
+        'violet_growth': 'Violet',
+        'claude_growth': 'Claude Growth',
         
-        // Max companions
-        'companion_crimson': 'Crimson',
-        'companion_violet': 'Violet',
-        'companion_blayzo': 'Blayzo'
+        // Max companions - ALL 7 companions
+        'companion_crimson': 'Crimson Max',
+        'companion_violet': 'Violet Max',
+        'royal_max': 'Royal',
+        'watchdog_max': 'WatchDog Max',
+        'ven_blayzica': 'Ven Blayzica',
+        'ven_sky': 'Ven Sky',
+        'claude_max': 'Claude Max',
+        
+        // Referral companions - ALL 4 companions
+        'blayzo': 'Blayzo Champion',
+        'blayzike': 'Blayzike',
+        'blazelian': 'Blazelian',
+        'claude_referral': 'Claude Referral'
     };
     
     if (nameMap[companionId]) {
@@ -695,15 +844,30 @@ function getCompanionUrlParam(companionId) {
         'blayzion_free': 'blayzion_free',
         'claude_free': 'claude_free',
         
-        // Growth/Premium companions - remove companion_ prefix for cleaner URLs
-        'companion_sky': 'sky',
-        'blayzo_growth': 'blayzo_growth',
-        'blayzica_growth': 'blayzica_growth',
-        'companion_gamerjay_premium': 'gamerjay_premium',
+        // Growth/Premium companions - ALL 8 companions
+        'companion_sky': 'sky',                            // backend constructs companion_sky ✓
+        'blayzo_growth': 'blayzo_growth',                  // direct match in backend tier mapping ✓
+        'blayzica_growth': 'blayzica_growth',              // direct match in backend tier mapping ✓
+        'companion_gamerjay_premium': 'gamerjay_premium',  // backend constructs companion_gamerjay_premium ✓
+        'watchdog_growth': 'watchdog_growth',              // direct match in backend tier mapping ✓
+        'crimson_growth': 'crimson_growth',                // direct match in backend tier mapping ✓
+        'violet_growth': 'violet_growth',                  // direct match in backend tier mapping ✓
+        'claude_growth': 'claude_growth',                  // direct match in backend tier mapping ✓
         
-        // Max companions - remove companion_ prefix for cleaner URLs
-        'companion_crimson': 'crimson',
-        'companion_violet': 'violet'
+        // Max companions - ALL 7 companions
+        'companion_crimson': 'crimson',      // backend constructs companion_crimson ✓
+        'companion_violet': 'violet',        // backend constructs companion_violet ✓
+        'royal_max': 'royal_max',            // direct match in backend tier mapping ✓
+        'watchdog_max': 'watchdog_max',      // direct match in backend tier mapping ✓
+        'ven_blayzica': 'ven_blayzica',      // direct match in backend tier mapping ✓
+        'ven_sky': 'ven_sky',                // direct match in backend tier mapping ✓
+        'claude_max': 'claude_max',          // direct match in backend tier mapping ✓
+        
+        // Referral companions - ALL 4 companions
+        'blayzo': 'blayzo',                  // direct match in backend tier mapping ✓
+        'blayzike': 'blayzike',              // direct match in backend tier mapping ✓ 
+        'blazelian': 'blazelian',            // direct match in backend tier mapping ✓
+        'claude_referral': 'claude_referral' // direct match in backend tier mapping ✓
     };
     
     return urlParamMap[companionId] || companionId.replace('companion_', '');
