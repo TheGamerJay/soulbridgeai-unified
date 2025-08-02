@@ -4179,59 +4179,6 @@ def upload_profile_image():
         logger.error(f"Profile image upload error: {e}")
         return jsonify({"success": False, "error": "Failed to upload image"}), 500
 
-@app.route("/static/uploads/profiles/<filename>")
-def serve_profile_image(filename):
-    """Serve profile images - fallback to base64 data if file missing"""
-    try:
-        # First try to serve the actual file
-        file_path = os.path.join('static', 'uploads', 'profiles', filename)
-        if os.path.exists(file_path):
-            return send_file(file_path)
-        
-        # If file doesn't exist, try to serve from base64 database backup
-        user_id = session.get('user_id')
-        if user_id:
-            db_instance = get_database()
-            if db_instance:
-                conn = db_instance.get_connection()
-                cursor = conn.cursor()
-                
-                placeholder = "%s" if hasattr(db_instance, 'postgres_url') and db_instance.postgres_url else "?"
-                
-                # Look for user with this profile image filename
-                cursor.execute(f"""
-                    SELECT profile_image_data FROM users 
-                    WHERE profile_image LIKE {placeholder}
-                """, (f'%{filename}%',))
-                
-                result = cursor.fetchone()
-                conn.close()
-                
-                if result and result[0]:
-                    # Serve base64 image data
-                    import base64
-                    from io import BytesIO
-                    from flask import Response
-                    
-                    image_data = base64.b64decode(result[0])
-                    
-                    # Determine content type based on file extension
-                    content_type = 'image/png'
-                    if filename.lower().endswith('.jpg') or filename.lower().endswith('.jpeg'):
-                        content_type = 'image/jpeg'
-                    elif filename.lower().endswith('.gif'):
-                        content_type = 'image/gif'
-                    elif filename.lower().endswith('.webp'):
-                        content_type = 'image/webp'
-                    
-                    return Response(image_data, mimetype=content_type)
-        
-        # If no base64 backup found, return default avatar
-        return redirect('/static/logos/IntroLogo.png')
-        
-    except Exception as e:
-        logger.error(f"Profile image serve error: {e}")
-        return redirect('/static/logos/IntroLogo.png')
 
 @app.route("/debug/profile-image-detailed")
 def debug_profile_image_detailed():
