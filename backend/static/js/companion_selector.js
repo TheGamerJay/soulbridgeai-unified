@@ -582,35 +582,30 @@ function renderSection(sectionId, companionList) {
     console.log(`🔍 Current user object:`, currentUser);
     
     container.innerHTML = companionList.map(companion => {
-        // Determine if companion should be locked based on user's plan
-        let isLocked = false;
-        let lockReason = '';
+        // Use new access control function that considers trial status
+        const hasAccess = hasAccessToCompanion(companion, currentUser, window.trialStatus);
+        const isLocked = !hasAccess;
         
-        // Simple tier access - pay to unlock
-        if (companion.tier === 'growth') {
-            // Growth tier requires premium plan
-            if (currentUser.plan === 'foundation') {
-                isLocked = true;
+        let lockReason = '';
+        if (isLocked) {
+            if (companion.tier === 'growth') {
                 lockReason = 'Upgrade to Growth Plan Required';
                 console.log(`🔒 Growth companion ${companion.display_name} locked - upgrade required`);
-            } else if (currentUser.plan === 'premium' || currentUser.plan === 'enterprise') {
-                isLocked = false;
-                console.log(`✅ Growth companion ${companion.display_name} unlocked via ${currentUser.plan} plan`);
-            }
-        } else if (companion.tier === 'max') {
-            // Max tier requires enterprise plan
-            if (currentUser.plan === 'foundation' || currentUser.plan === 'premium') {
-                isLocked = true;
+            } else if (companion.tier === 'max') {
                 lockReason = 'Upgrade to Max Plan Required';
                 console.log(`🔒 Max companion ${companion.display_name} locked - max plan required`);
-            } else if (currentUser.plan === 'enterprise') {
-                isLocked = false;
-                console.log(`✅ Max companion ${companion.display_name} unlocked via enterprise plan`);
+            } else if (companion.tier === 'referral') {
+                lockReason = 'Unlock through referrals';
+                console.log(`🔒 Referral companion ${companion.display_name} - referral only`);
             }
-        } else if (companion.tier === 'referral') {
-            isLocked = true;
-            lockReason = 'Unlock through referrals';
-            console.log(`🔒 Referral companion ${companion.display_name} - referral only`);
+        } else {
+            if (window.trialStatus?.growth_trial_active && companion.tier === 'growth') {
+                console.log(`✅ Growth companion ${companion.display_name} unlocked via ACTIVE TRIAL`);
+            } else if (window.trialStatus?.max_trial_active && companion.tier === 'max') {
+                console.log(`✅ Max companion ${companion.display_name} unlocked via ACTIVE TRIAL`);
+            } else {
+                console.log(`✅ Companion ${companion.display_name} unlocked via ${currentUser.plan} plan`);
+            }
         }
         
         // Override with any existing lock reason from backend ONLY for referral tier
@@ -675,17 +670,20 @@ function renderSection(sectionId, companionList) {
                                 `;
                             } else if (companion.tier === 'growth' || companion.tier === 'max') {
                                 console.log(`🔘 Rendering TRIAL/UPGRADE buttons for ${companion.display_name} (${companion.tier} tier)`);
-                                const canTrial = !window.trialStatus || !window.trialStatus.usedPermanently;
-                                const hasActiveTrial = window.trialStatus && window.trialStatus.active && window.trialStatus.companion === companion.companion_id;
+                                const canTrial = !window.trialStatus || !window.trialStatus.trial_used_permanently;
                                 
-                                if (hasActiveTrial) {
-                                    // Show active trial button (acts as select)
+                                // Check if this specific companion has an active trial
+                                const hasActiveTrial = (companion.tier === 'growth' && window.trialStatus?.growth_trial_active) ||
+                                                      (companion.tier === 'max' && window.trialStatus?.max_trial_active);
+                                
+                                if (!isLocked) {
+                                    // Companion is unlocked (via plan or trial) - show select button
                                     return `
                                         <button class="btn-select" 
                                                 data-companion-id="${companion.companion_id}"
                                                 onclick="window.selectCompanion('${companion.companion_id}')"
                                                 style="background: linear-gradient(45deg, #22d3ee, #0891b2); color: white; border: none; font-weight: bold;">
-                                            🎯 Active Trial - Select
+                                            ${hasActiveTrial ? '🎯 Active Trial - Select' : 'Select'}
                                         </button>
                                     `;
                                 } else if (canTrial) {
@@ -817,6 +815,31 @@ window.selectCompanion = async function(companionId) {
         console.error('❌ Companion selection error:', error);
         showNotification('Failed to select companion', 'error');
     }
+}
+
+// ========================================
+// ACCESS CONTROL FUNCTIONS
+// ========================================
+
+function hasAccessToCompanion(companion, user, trialStatus) {
+    const tier = companion.tier; // free, growth, max, referral
+    const userPlan = user.plan;
+
+    if (tier === 'free') return true;
+
+    if (tier === 'growth') {
+        return userPlan === 'growth' || userPlan === 'premium' || trialStatus?.growth_trial_active === true;
+    }
+
+    if (tier === 'max') {
+        return userPlan === 'max' || userPlan === 'enterprise' || trialStatus?.max_trial_active === true;
+    }
+
+    if (tier === 'referral') {
+        return user.unlocked_referrals?.includes(companion.companion_id);
+    }
+
+    return false;
 }
 
 // ========================================

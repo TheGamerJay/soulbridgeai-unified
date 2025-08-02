@@ -3080,16 +3080,33 @@ def get_trial_status():
                         
                         logger.info(f"Database trial check: started={trial_started_at}, now={now}, end={trial_end}, active={trial_active}")
                         
+                        # Determine which tier trial is active for
+                        growth_trial_active = False
+                        max_trial_active = False
+                        
+                        if trial_active and trial_companion:
+                            # Check companion tier to determine trial type
+                            growth_companions = ['companion_sky', 'blayzo_growth', 'blayzica_growth', 'companion_gamerjay_premium', 'watchdog_growth', 'crimson_growth', 'violet_growth', 'claude_growth']
+                            max_companions = ['companion_crimson', 'companion_violet', 'royal_max', 'watchdog_max', 'ven_blayzica', 'ven_sky', 'claude_max']
+                            
+                            if trial_companion in growth_companions:
+                                growth_trial_active = True
+                            elif trial_companion in max_companions:
+                                max_trial_active = True
+                        
                         if trial_active:
                             return jsonify({
-                                "trial_active": True,
-                                "trial_expires": trial_end.isoformat(),
+                                "growth_trial_active": growth_trial_active,
+                                "max_trial_active": max_trial_active,
+                                "growth_trial_expires": trial_end.isoformat() if growth_trial_active else None,
+                                "max_trial_expires": trial_end.isoformat() if max_trial_active else None,
                                 "trial_companion": trial_companion,
                                 "time_remaining_minutes": int((trial_end - now).total_seconds() / 60)
                             })
                     
                     return jsonify({
-                        "trial_active": False,
+                        "growth_trial_active": False,
+                        "max_trial_active": False,
                         "trial_used_permanently": bool(trial_used_permanently)
                     })
                 else:
@@ -3108,15 +3125,25 @@ def get_trial_status():
                     now = datetime.utcnow()
                     
                     if now < expires_at:
+                        # Determine tier for session fallback
+                        growth_companions = ['companion_sky', 'blayzo_growth', 'blayzica_growth', 'companion_gamerjay_premium', 'watchdog_growth', 'crimson_growth', 'violet_growth', 'claude_growth']
+                        max_companions = ['companion_crimson', 'companion_violet', 'royal_max', 'watchdog_max', 'ven_blayzica', 'ven_sky', 'claude_max']
+                        
+                        growth_trial_active = trial_companion in growth_companions
+                        max_trial_active = trial_companion in max_companions
+                        
                         return jsonify({
-                            "trial_active": True,
-                            "trial_expires": expires_at.isoformat(),
+                            "growth_trial_active": growth_trial_active,
+                            "max_trial_active": max_trial_active,
+                            "growth_trial_expires": expires_at.isoformat() if growth_trial_active else None,
+                            "max_trial_expires": expires_at.isoformat() if max_trial_active else None,
                             "trial_companion": trial_companion,
                             "time_remaining_minutes": int((expires_at - now).total_seconds() / 60)
                         })
                 
                 return jsonify({
-                    "trial_active": False,
+                    "growth_trial_active": False,
+                    "max_trial_active": False,
                     "trial_used_permanently": trial_used_permanently
                 })
                 
