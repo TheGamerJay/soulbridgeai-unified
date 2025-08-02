@@ -897,6 +897,57 @@ def upgrade_to_max():
         "user_plan": session.get('user_plan')
     })
 
+@app.route("/api/debug/force-enterprise-for-live")
+def force_enterprise_for_live():
+    """Force current user to enterprise plan in both session and database"""
+    if not is_logged_in():
+        return jsonify({"success": False, "error": "Authentication required"}), 401
+    
+    # Set in session
+    session['user_plan'] = 'enterprise'
+    
+    # Also save to database for persistence
+    user_email = session.get('user_email') or session.get('email')
+    user_id = session.get('user_id')
+    
+    try:
+        db_instance = get_database()
+        if db_instance and (user_id or user_email):
+            conn = db_instance.get_connection()
+            cursor = conn.cursor()
+            
+            placeholder = "%s" if hasattr(db_instance, 'postgres_url') and db_instance.postgres_url else "?"
+            
+            # Update user plan in users table
+            if user_id:
+                cursor.execute(f"UPDATE users SET plan_type = {placeholder} WHERE id = {placeholder}", ('enterprise', user_id))
+            elif user_email:
+                cursor.execute(f"UPDATE users SET plan_type = {placeholder} WHERE email = {placeholder}", ('enterprise', user_email))
+            
+            # Also add to subscriptions table
+            cursor.execute(f"""
+                INSERT OR REPLACE INTO subscriptions 
+                (user_email, plan_type, status, created_at) 
+                VALUES ({placeholder}, {placeholder}, 'active', datetime('now'))
+            """, (user_email, 'enterprise'))
+            
+            conn.commit()
+            conn.close()
+            
+            return jsonify({
+                "success": True,
+                "message": "User set to enterprise plan in session and database",
+                "user_plan": session.get('user_plan'),
+                "user_email": user_email,
+                "user_id": user_id
+            })
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": f"Database update failed: {str(e)}",
+            "session_plan": session.get('user_plan')
+        })
+
 @app.route("/api/debug/get-current-plan")
 def get_current_plan():
     """Get current user's plan (for debugging)"""
