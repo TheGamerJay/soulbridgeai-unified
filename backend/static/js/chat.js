@@ -844,7 +844,7 @@ async function sendVoiceMessage(audioBlob) {
         formData.append('audio', audioBlob, 'voice_message.wav');
         formData.append('character', currentCharacter);
         
-        const response = await fetch('/api/voice-chat', {
+        const response = await fetch('/api/voice-chat/process', {
             method: 'POST',
             body: formData
         });
