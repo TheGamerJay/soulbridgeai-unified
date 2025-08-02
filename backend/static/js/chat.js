@@ -14,6 +14,30 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeChat();
 });
 
+// Re-initialize character display when returning to page
+document.addEventListener('visibilitychange', function() {
+    if (!document.hidden) {
+        console.log('🔄 Page became visible, refreshing character display');
+        // Ensure character info is loaded before updating display
+        if (!currentCharacter) {
+            loadCharacterInfo();
+        } else {
+            updateCharacterDisplay();
+        }
+    }
+});
+
+// Also handle when window gets focus (for better compatibility)
+window.addEventListener('focus', function() {
+    console.log('🔄 Window focused, refreshing character display');
+    // Ensure character info is loaded before updating display
+    if (!currentCharacter) {
+        loadCharacterInfo();
+    } else {
+        updateCharacterDisplay();
+    }
+});
+
 function initializeChat() {
     console.log('💬 Initializing chat system...');
     
@@ -115,11 +139,19 @@ function loadCharacterInfo() {
 }
 
 function updateCharacterDisplay() {
+    // Ensure we have a current character
+    if (!currentCharacter) {
+        console.log('⚠️ No current character set, loading character info...');
+        loadCharacterInfo();
+        return;
+    }
+    
     const characterName = document.querySelector('.character-details h2');
     const characterAvatar = document.querySelector('.character-avatar');
     
     if (characterName) {
         characterName.textContent = currentCharacter;
+        console.log('📝 Updated character name to:', currentCharacter);
     }
     
     if (characterAvatar) {
@@ -160,8 +192,10 @@ function updateCharacterDisplay() {
             'Sapphire': '/static/logos/Sapphire.png'
         };
         
-        characterAvatar.src = avatarMap[currentCharacter] || '/static/logos/IntroLogo.png';
+        const avatarSrc = avatarMap[currentCharacter] || '/static/logos/IntroLogo.png';
+        characterAvatar.src = avatarSrc;
         characterAvatar.alt = currentCharacter;
+        console.log('🖼️ Updated character avatar to:', avatarSrc);
     }
 }
 
