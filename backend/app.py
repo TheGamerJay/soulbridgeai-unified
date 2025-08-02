@@ -1192,9 +1192,9 @@ def chat():
         
         # BLOCK ACCESS: Check companion tier requirements before allowing chat
         if selected_companion in ['companion_sky', 'companion_gamerjay_premium', 'companion_blayzo_premium', 'companion_watchdog', 'companion_crimson_growth', 'companion_violet_growth', 'companion_claude_growth']:
-            # Growth tier companion - requires premium plan OR active trial for this companion
+            # Growth tier companion - requires premium plan OR active trial
             if user_tier == 'foundation':
-                if trial_active and trial_companion == selected_companion.replace('companion_', ''):
+                if trial_active:
                     logger.info(f"✅ TRIAL ACCESS GRANTED: Foundation user accessing Growth companion {selected_companion} via active trial")
                 else:
                     logger.warning(f"🚫 BLOCKING CHAT ACCESS: Foundation user {session.get('user_email')} tried to access Growth companion {selected_companion}")
@@ -1203,9 +1203,9 @@ def chat():
             else:
                 logger.info(f"✅ CHAT ACCESS GRANTED: Growth companion {selected_companion} - user tier: {user_tier}")
         elif selected_companion in ['companion_crimson', 'companion_violet']:
-            # Max tier companion - requires enterprise plan OR active trial for this companion
+            # Max tier companion - requires enterprise plan OR active trial
             if user_tier != 'enterprise':
-                if trial_active and trial_companion == selected_companion.replace('companion_', ''):
+                if trial_active:
                     logger.info(f"✅ TRIAL ACCESS GRANTED: User accessing Max companion {selected_companion} via active trial")
                 else:
                     companion_access_valid = False
