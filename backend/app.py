@@ -2986,64 +2986,79 @@ def start_trial():
             return jsonify({"success": False, "error": "Missing companion_id"}), 400
             
         user_email = session.get("user_email")
+        user_id = session.get("user_id")
         if not user_email:
             return jsonify({"success": False, "error": "No user session found"}), 401
             
-        # Check if user has already used trial permanently (from session for now)
-        if session.get("trial_used_permanently"):
-            return jsonify({"success": False, "error": "Trial already used permanently"}), 400
+        # Database connection and user lookup
+        database_url = os.environ.get('DATABASE_URL')
+        if database_url:
+            import psycopg2
+            conn = psycopg2.connect(database_url)
+            cursor = conn.cursor()
             
-        # Calculate trial expiration (5 hours from now)
-        now = datetime.utcnow()
-        expires_at = now + timedelta(hours=5)
-        
-        # Update database with trial info - use existing database pattern
-        try:
-            database_url = os.environ.get('DATABASE_URL')
-            if database_url:
-                import psycopg2
-                conn = psycopg2.connect(database_url)
-                cursor = conn.cursor()
-                cursor.execute("""
-                    UPDATE users 
-                    SET trial_started_at = %s, 
-                        trial_companion = %s, 
-                        trial_used_permanently = TRUE 
-                    WHERE email = %s
-                """, (now, companion_id, user_email))
-                conn.commit()
+            # Get current user data
+            cursor.execute("SELECT trial_used_permanently FROM users WHERE email = %s", (user_email,))
+            user_data = cursor.fetchone()
+            
+            if not user_data:
                 conn.close()
-                logger.info(f"✅ Trial data saved to PostgreSQL database")
-            else:
-                # Fallback to session for local development
-                session["trial_active"] = True
-                session["trial_companion"] = companion_id
-                session["trial_expires"] = expires_at.isoformat()
-                session["trial_started_at"] = now.isoformat()
-                logger.info(f"✅ Trial data saved to session (no DATABASE_URL)")
-        except Exception as db_error:
-            logger.error(f"Database update failed, using session: {db_error}")
+                return jsonify({"success": False, "error": "User not found"}), 404
+            
+            if user_data[0]:  # trial_used_permanently is True
+                conn.close()
+                return jsonify({"success": False, "error": "Trial already used"}), 403
+            
+            # Start trial - use CURRENT_TIMESTAMP for PostgreSQL compatibility
+            cursor.execute("""
+                UPDATE users 
+                SET trial_started_at = CURRENT_TIMESTAMP, 
+                    trial_companion = %s, 
+                    trial_used_permanently = TRUE,
+                    trial_expires_at = CURRENT_TIMESTAMP + INTERVAL '5 hours'
+                WHERE email = %s
+            """, (companion_id, user_email))
+            conn.commit()
+            conn.close()
+            
+            logger.info(f"✅ Trial started in PostgreSQL: {companion_id} for {user_email}")
+            
+            # Update session for immediate frontend use
+            session["trial_active"] = True
+            session["trial_companion"] = companion_id
+            
+            return jsonify({
+                "success": True,
+                "message": f"5-hour trial started for {companion_id}!",
+                "trial_companion": companion_id
+            })
+        else:
+            # Fallback to session-only for local development
+            if session.get("trial_used_permanently"):
+                return jsonify({"success": False, "error": "Trial already used"}), 403
+                
+            now = datetime.utcnow()
+            expires_at = now + timedelta(hours=5)
+            
             session["trial_active"] = True
             session["trial_companion"] = companion_id
             session["trial_expires"] = expires_at.isoformat()
             session["trial_started_at"] = now.isoformat()
-        
-        session["trial_used_permanently"] = True
-        
-        logger.info(f"Trial started for user {user_email}, companion {companion_id}, expires at {expires_at}")
-        
-        return jsonify({
-            "success": True,
-            "trial_expires": expires_at.isoformat(),
-            "trial_companion": companion_id,
-            "message": f"5-hour trial started for {companion_id}!"
-        })
+            session["trial_used_permanently"] = True
+            
+            logger.info(f"✅ Trial started in session: {companion_id}")
+            
+            return jsonify({
+                "success": True,
+                "message": f"5-hour trial started for {companion_id}!",
+                "trial_companion": companion_id
+            })
         
     except Exception as e:
         logger.error(f"Trial start error: {e}")
         return jsonify({"success": False, "error": "Trial start failed"}), 500
 
-@app.route("/get-trial-status")
+@app.route("/get-trial-status", methods=["GET", "POST"])
 def get_trial_status():
     """Get current trial status for the user"""
     try:
@@ -3054,102 +3069,69 @@ def get_trial_status():
         if not user_email:
             return jsonify({"trial_active": False})
         
-        # Check trial status from database - real-time calculation
-        try:
-            database_url = os.environ.get('DATABASE_URL')
-            if database_url:
-                import psycopg2
-                conn = psycopg2.connect(database_url)
-                cursor = conn.cursor()
-                cursor.execute("""
-                    SELECT trial_started_at, trial_companion, trial_used_permanently 
-                    FROM users WHERE email = %s
-                """, (user_email,))
-                result = cursor.fetchone()
-                conn.close()
-                
-                if result:
-                    trial_started_at, trial_companion, trial_used_permanently = result
-                    now = datetime.utcnow()
-                    
-                    # Calculate if trial is active (within 5 hours of start)
-                    trial_active = False
-                    if trial_started_at:
-                        trial_end = trial_started_at + timedelta(hours=5)
-                        trial_active = now < trial_end
-                        
-                        logger.info(f"Database trial check: started={trial_started_at}, now={now}, end={trial_end}, active={trial_active}")
-                        
-                        # Determine which tier trial is active for
-                        growth_trial_active = False
-                        max_trial_active = False
-                        
-                        if trial_active and trial_companion:
-                            # Check companion tier to determine trial type
-                            growth_companions = ['companion_sky', 'blayzo_growth', 'blayzica_growth', 'companion_gamerjay_premium', 'watchdog_growth', 'crimson_growth', 'violet_growth', 'claude_growth']
-                            max_companions = ['companion_crimson', 'companion_violet', 'royal_max', 'watchdog_max', 'ven_blayzica', 'ven_sky', 'claude_max']
-                            
-                            if trial_companion in growth_companions:
-                                growth_trial_active = True
-                            elif trial_companion in max_companions:
-                                max_trial_active = True
-                        
-                        if trial_active:
-                            return jsonify({
-                                "growth_trial_active": growth_trial_active,
-                                "max_trial_active": max_trial_active,
-                                "growth_trial_expires": trial_end.isoformat() if growth_trial_active else None,
-                                "max_trial_expires": trial_end.isoformat() if max_trial_active else None,
-                                "trial_companion": trial_companion,
-                                "time_remaining_minutes": int((trial_end - now).total_seconds() / 60)
-                            })
-                    
-                    return jsonify({
-                        "growth_trial_active": False,
-                        "max_trial_active": False,
-                        "trial_used_permanently": bool(trial_used_permanently)
-                    })
-                else:
-                    logger.error(f"No user found in database for email: {user_email}")
-                    return jsonify({"trial_active": False})
-            else:
-                # Fallback to session for local development
-                logger.info("No DATABASE_URL, falling back to session-based trial check")
-                trial_active = session.get("trial_active", False)
-                trial_companion = session.get("trial_companion")
-                trial_expires_str = session.get("trial_expires")
-                trial_used_permanently = session.get("trial_used_permanently", False)
-                
-                if trial_active and trial_expires_str:
+        # Helper function to check if trial is still active
+        def is_trial_active(trial_started_at):
+            if not trial_started_at:
+                return False
+            return datetime.utcnow() < (trial_started_at + timedelta(hours=5))
+        
+        # Database connection
+        database_url = os.environ.get('DATABASE_URL')
+        if database_url:
+            import psycopg2
+            conn = psycopg2.connect(database_url)
+            cursor = conn.cursor()
+            
+            # Get user trial data
+            cursor.execute("""
+                SELECT trial_started_at, trial_companion, trial_used_permanently 
+                FROM users WHERE email = %s
+            """, (user_email,))
+            result = cursor.fetchone()
+            conn.close()
+            
+            if not result:
+                return jsonify({"trial_active": False, "error": "User not found"})
+            
+            trial_started_at, trial_companion, trial_used_permanently = result
+            
+            # Check if trial is currently active
+            trial_active = is_trial_active(trial_started_at)
+            
+            logger.info(f"📊 Trial status check: started={trial_started_at}, active={trial_active}, companion={trial_companion}")
+            
+            return jsonify({
+                "trial_active": trial_active,
+                "trial_companion": trial_companion if trial_active else None,
+                "trial_used_permanently": bool(trial_used_permanently),
+                "time_remaining": int((trial_started_at + timedelta(hours=5) - datetime.utcnow()).total_seconds() / 60) if trial_active else 0
+            })
+        else:
+            # Fallback to session for local development
+            trial_active = session.get("trial_active", False)
+            trial_companion = session.get("trial_companion")
+            trial_expires_str = session.get("trial_expires")
+            trial_used_permanently = session.get("trial_used_permanently", False)
+            
+            if trial_active and trial_expires_str:
+                try:
                     expires_at = datetime.fromisoformat(trial_expires_str.replace('Z', '+00:00') if trial_expires_str.endswith('Z') else trial_expires_str)
                     now = datetime.utcnow()
+                    trial_active = now < expires_at
                     
-                    if now < expires_at:
-                        # Determine tier for session fallback
-                        growth_companions = ['companion_sky', 'blayzo_growth', 'blayzica_growth', 'companion_gamerjay_premium', 'watchdog_growth', 'crimson_growth', 'violet_growth', 'claude_growth']
-                        max_companions = ['companion_crimson', 'companion_violet', 'royal_max', 'watchdog_max', 'ven_blayzica', 'ven_sky', 'claude_max']
-                        
-                        growth_trial_active = trial_companion in growth_companions
-                        max_trial_active = trial_companion in max_companions
-                        
-                        return jsonify({
-                            "growth_trial_active": growth_trial_active,
-                            "max_trial_active": max_trial_active,
-                            "growth_trial_expires": expires_at.isoformat() if growth_trial_active else None,
-                            "max_trial_expires": expires_at.isoformat() if max_trial_active else None,
-                            "trial_companion": trial_companion,
-                            "time_remaining_minutes": int((expires_at - now).total_seconds() / 60)
-                        })
-                
-                return jsonify({
-                    "growth_trial_active": False,
-                    "max_trial_active": False,
-                    "trial_used_permanently": trial_used_permanently
-                })
-                
-        except Exception as db_error:
-            logger.error(f"Database trial check failed: {db_error}")
-            return jsonify({"trial_active": False})
+                    return jsonify({
+                        "trial_active": trial_active,
+                        "trial_companion": trial_companion if trial_active else None,
+                        "trial_used_permanently": trial_used_permanently,
+                        "time_remaining": int((expires_at - now).total_seconds() / 60) if trial_active else 0
+                    })
+                except Exception as date_error:
+                    logger.error(f"Date parsing error: {date_error}")
+            
+            return jsonify({
+                "trial_active": False,
+                "trial_used_permanently": trial_used_permanently
+            })
             
     except Exception as e:
         logger.error(f"Trial status check error: {e}")

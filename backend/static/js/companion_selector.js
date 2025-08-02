@@ -828,11 +828,13 @@ function hasAccessToCompanion(companion, user, trialStatus) {
     if (tier === 'free') return true;
 
     if (tier === 'growth') {
-        return userPlan === 'growth' || userPlan === 'premium' || trialStatus?.growth_trial_active === true;
+        return userPlan === 'growth' || userPlan === 'premium' || userPlan === 'enterprise' || 
+               (trialStatus?.trial_active === true);
     }
 
     if (tier === 'max') {
-        return userPlan === 'max' || userPlan === 'enterprise' || trialStatus?.max_trial_active === true;
+        return userPlan === 'max' || userPlan === 'enterprise' || 
+               (trialStatus?.trial_active === true);
     }
 
     if (tier === 'referral') {
@@ -865,22 +867,17 @@ async function startPremiumTrial(companionId) {
         if (data.success) {
             console.log('✅ Trial started successfully:', data);
             
-            // Close the trial modal first
+            // Close any open modals
             closeTrialModal();
             
-            // Show success message with trial details
-            const expiresAt = new Date(data.trial_expires);
-            const message = `🎉 5-hour trial started for ${data.trial_companion}! 
-                           Expires at: ${expiresAt.toLocaleString()}`;
+            // Show success message
+            showNotification(data.message || '🎉 5-hour trial started!', 'success');
             
-            showNotification(message, 'success');
-            
-            // Update UI to reflect trial status - refresh everything
+            // Update trial status and refresh UI
             await checkTrialStatus();
-            await refreshTrialUI();
             renderCompanions();
             
-            // Redirect to the trial companion
+            // Redirect to the trial companion after a short delay
             setTimeout(() => {
                 const urlParam = getCompanionUrlParam(companionId);
                 window.location.href = `/chat?companion=${urlParam}`;
@@ -909,81 +906,77 @@ async function checkTrialStatus() {
         if (data.trial_active) {
             // Store trial info globally for UI updates
             window.trialStatus = {
-                active: true,
-                companion: data.trial_companion,
-                expires: data.trial_expires,
-                timeRemaining: data.time_remaining_minutes
+                trial_active: true,
+                trial_companion: data.trial_companion,
+                time_remaining: data.time_remaining,
+                trial_used_permanently: data.trial_used_permanently
             };
             
-            console.log(`✅ Trial is active for ${data.trial_companion}, ${data.time_remaining_minutes} minutes remaining`);
+            console.log(`✅ Trial is active for ${data.trial_companion}, ${data.time_remaining} minutes remaining`);
             
-            // Show trial indicator
-            showTrialIndicator(data.trial_companion, data.time_remaining_minutes);
+            // Show trial timer if we have time remaining
+            if (data.time_remaining > 0) {
+                showTrialTimer(data.trial_companion, data.time_remaining);
+            }
             
         } else {
             window.trialStatus = {
-                active: false,
-                usedPermanently: data.trial_used_permanently || false
+                trial_active: false,
+                trial_used_permanently: data.trial_used_permanently || false
             };
             
             console.log('ℹ️ No active trial');
+            
+            // Hide trial timer if no active trial
+            hideTrialTimer();
         }
         
         return data;
         
     } catch (error) {
         console.error('❌ Trial status check error:', error);
-        window.trialStatus = { active: false };
+        window.trialStatus = { trial_active: false };
         return { trial_active: false };
     }
 }
 
-function showTrialIndicator(companionName, minutesRemaining) {
-    // Remove existing trial indicator
-    const existingIndicator = document.getElementById('trialIndicator');
-    if (existingIndicator) {
-        existingIndicator.remove();
+function showTrialTimer(companionName, minutesRemaining) {
+    // Remove existing trial timer
+    const existingTimer = document.getElementById('trialTimer');
+    if (existingTimer && existingTimer.style.display === 'block') {
+        // Timer already visible, just update the time
+        updateTrialTimerDisplay(minutesRemaining);
+        return;
     }
     
-    // Create trial indicator
-    const hours = Math.floor(minutesRemaining / 60);
-    const minutes = minutesRemaining % 60;
-    const timeDisplay = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
-    
-    const indicator = document.createElement('div');
-    indicator.id = 'trialIndicator';
-    indicator.innerHTML = `
-        <div style="
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-            color: white;
-            padding: 12px 20px;
-            border-radius: 25px;
-            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
-            z-index: 1000;
-            font-weight: 600;
-            font-size: 14px;
-            animation: pulse 2s infinite;
-        ">
-            🎯 ${companionName} Trial: ${timeDisplay} left
-        </div>
-        <style>
-            @keyframes pulse {
-                0%, 100% { transform: scale(1); }
-                50% { transform: scale(1.02); }
-            }
-        </style>
-    `;
-    
-    document.body.appendChild(indicator);
-    
-    // Auto-remove when trial expires
-    setTimeout(() => {
-        const indicator = document.getElementById('trialIndicator');
-        if (indicator) indicator.remove();
-    }, minutesRemaining * 60 * 1000);
+    // Use the existing timer element from the HTML template
+    const timerElement = document.getElementById('trialTimer');
+    if (timerElement) {
+        timerElement.style.display = 'block';
+        updateTrialTimerDisplay(minutesRemaining);
+        
+        console.log(`⏰ Trial timer displayed: ${minutesRemaining} minutes remaining`);
+    } else {
+        console.warn('⚠️ Trial timer element not found in HTML');
+    }
+}
+
+function hideTrialTimer() {
+    const timerElement = document.getElementById('trialTimer');
+    if (timerElement) {
+        timerElement.style.display = 'none';
+        console.log('⏰ Trial timer hidden');
+    }
+}
+
+function updateTrialTimerDisplay(minutesRemaining) {
+    const timeDisplay = document.getElementById('trialTimeDisplay');
+    if (timeDisplay) {
+        const hours = Math.floor(minutesRemaining / 60);
+        const minutes = minutesRemaining % 60;
+        const formattedTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:00`;
+        timeDisplay.textContent = formattedTime;
+    }
 }
 
 async function refreshTrialUI() {
