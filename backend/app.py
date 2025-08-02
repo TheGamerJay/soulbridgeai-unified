@@ -868,6 +868,51 @@ def reset_to_foundation():
         "user_plan": session.get('user_plan')
     })
 
+@app.route("/api/debug/upgrade-to-growth")
+def upgrade_to_growth():
+    """Upgrade current user to Growth plan (for testing decoder limits)"""
+    if not is_logged_in():
+        return jsonify({"success": False, "error": "Authentication required"}), 401
+    
+    session['user_plan'] = 'premium'  # Growth plan in backend
+    
+    return jsonify({
+        "success": True,
+        "message": "User upgraded to Growth plan",
+        "user_plan": session.get('user_plan')
+    })
+
+@app.route("/api/debug/upgrade-to-max")
+def upgrade_to_max():
+    """Upgrade current user to Max plan (for testing decoder limits)"""
+    if not is_logged_in():
+        return jsonify({"success": False, "error": "Authentication required"}), 401
+    
+    session['user_plan'] = 'enterprise'  # Max plan in backend
+    
+    return jsonify({
+        "success": True,
+        "message": "User upgraded to Max plan",
+        "user_plan": session.get('user_plan')
+    })
+
+@app.route("/api/debug/get-current-plan")
+def get_current_plan():
+    """Get current user's plan (for debugging)"""
+    if not is_logged_in():
+        return jsonify({"success": False, "error": "Authentication required"}), 401
+    
+    user_plan = session.get('user_plan', 'foundation')
+    
+    return jsonify({
+        "success": True,
+        "user_plan": user_plan,
+        "session_data": {
+            "user_email": session.get('user_email'),
+            "display_name": session.get('display_name')
+        }
+    })
+
 @app.route("/admin/force-logout-all", methods=["POST"])
 def force_logout_all():
     """ADMIN: Force logout all users by incrementing session version"""
@@ -1666,6 +1711,7 @@ def decoder():
         
         daily_limit = tier_limits.get(user_plan, 3)
         logger.info(f"🔍 DECODER DEBUG: daily_limit = {daily_limit}")
+        logger.info(f"🔍 DECODER DEBUG: tier_limits lookup result = {daily_limit} for plan '{user_plan}'")
         
         return render_template("decoder.html", 
                              user_plan=user_plan,
