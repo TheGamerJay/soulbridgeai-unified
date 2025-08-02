@@ -3014,7 +3014,7 @@ def start_trial():
                 UPDATE users 
                 SET trial_started_at = CURRENT_TIMESTAMP, 
                     trial_companion = %s, 
-                    trial_used_permanently = TRUE,
+                    trial_used_permanently = FALSE,
                     trial_expires_at = CURRENT_TIMESTAMP + INTERVAL '5 hours'
                 WHERE email = %s
             """, (companion_id, user_email))
@@ -3044,7 +3044,7 @@ def start_trial():
             session["trial_companion"] = companion_id
             session["trial_expires"] = expires_at.isoformat()
             session["trial_started_at"] = now.isoformat()
-            session["trial_used_permanently"] = True
+            session["trial_used_permanently"] = False
             
             logger.info(f"✅ Trial started in session: {companion_id}")
             
@@ -3082,29 +3082,55 @@ def get_trial_status():
             conn = psycopg2.connect(database_url)
             cursor = conn.cursor()
             
-            # Get user trial data
+            # Get user trial data including expires_at
             cursor.execute("""
-                SELECT trial_started_at, trial_companion, trial_used_permanently 
+                SELECT trial_started_at, trial_companion, trial_used_permanently, trial_expires_at
                 FROM users WHERE email = %s
             """, (user_email,))
             result = cursor.fetchone()
-            conn.close()
             
             if not result:
+                conn.close()
                 return jsonify({"trial_active": False, "error": "User not found"})
             
-            trial_started_at, trial_companion, trial_used_permanently = result
+            trial_started_at, trial_companion, trial_used_permanently, trial_expires_at = result
             
-            # Check if trial is currently active
-            trial_active = is_trial_active(trial_started_at)
+            # Check trial status according to your specifications
+            now = datetime.utcnow()
+            trial_active = False
             
-            logger.info(f"📊 Trial status check: started={trial_started_at}, active={trial_active}, companion={trial_companion}")
+            if trial_used_permanently:
+                # Trial is over - user already used their trial
+                logger.info("❌ Trial permanently used")
+                trial_active = False
+            elif trial_expires_at and now < trial_expires_at:
+                # Trial is still active
+                logger.info(f"✅ Trial active until {trial_expires_at}")
+                trial_active = True
+            elif trial_expires_at and now >= trial_expires_at:
+                # Trial has expired - mark as permanently used
+                logger.info(f"⏰ Trial expired at {trial_expires_at}, marking as used")
+                cursor.execute("""
+                    UPDATE users SET trial_used_permanently = TRUE WHERE email = %s
+                """, (user_email,))
+                conn.commit()
+                trial_active = False
+                trial_used_permanently = True
+            
+            conn.close()
+            
+            # Calculate time remaining if trial is active
+            time_remaining = 0
+            if trial_active and trial_expires_at:
+                time_remaining = max(0, int((trial_expires_at - now).total_seconds() / 60))
+            
+            logger.info(f"📊 Trial status: active={trial_active}, companion={trial_companion}, time_remaining={time_remaining}")
             
             return jsonify({
                 "trial_active": trial_active,
                 "trial_companion": trial_companion if trial_active else None,
                 "trial_used_permanently": bool(trial_used_permanently),
-                "time_remaining": int((trial_started_at + timedelta(hours=5) - datetime.utcnow()).total_seconds() / 60) if trial_active else 0
+                "time_remaining": time_remaining
             })
         else:
             # Fallback to session for local development
