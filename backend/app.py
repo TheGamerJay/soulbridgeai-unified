@@ -91,6 +91,73 @@ TRAP_LOG_FILE = "logs/trap_log.txt"
 # Ensure logs directory exists
 os.makedirs("logs", exist_ok=True)
 
+# Helper function to check trial status from database
+def check_trial_active_from_db(user_email=None, user_id=None):
+    """
+    Check if user has an active trial by querying database directly.
+    Returns: (trial_active: bool, trial_companion: str, time_remaining: int)
+    """
+    try:
+        if not user_email and not user_id:
+            user_email = session.get('user_email')
+            user_id = session.get('user_id')
+            
+        if not user_email and not user_id:
+            return False, None, 0
+            
+        database_url = os.environ.get('DATABASE_URL')
+        if database_url:
+            import psycopg2
+            conn = psycopg2.connect(database_url)
+            cursor = conn.cursor()
+            
+            if user_email:
+                cursor.execute("""
+                    SELECT trial_started_at, trial_companion, trial_used_permanently, trial_expires_at 
+                    FROM users WHERE email = %s
+                """, (user_email,))
+            else:
+                cursor.execute("""
+                    SELECT trial_started_at, trial_companion, trial_used_permanently, trial_expires_at 
+                    FROM users WHERE id = %s
+                """, (user_id,))
+            
+            result = cursor.fetchone()
+            conn.close()
+            
+            if not result:
+                return False, None, 0
+                
+            trial_started_at, trial_companion, trial_used_permanently, trial_expires_at = result
+            
+            # Check if trial is still active
+            if trial_used_permanently and trial_expires_at:
+                now = datetime.utcnow()
+                if now < trial_expires_at:
+                    time_remaining = max(0, int((trial_expires_at - now).total_seconds() / 60))
+                    return True, trial_companion, time_remaining
+                    
+            return False, trial_companion, 0
+        else:
+            # Fallback to session for local development
+            trial_active = session.get('trial_active', False)
+            trial_companion = session.get('trial_companion')
+            
+            if trial_active:
+                trial_expires_str = session.get('trial_expires')
+                if trial_expires_str:
+                    trial_expires = datetime.fromisoformat(trial_expires_str)
+                    now = datetime.utcnow()
+                    if now < trial_expires:
+                        time_remaining = max(0, int((trial_expires - now).total_seconds() / 60))
+                        return True, trial_companion, time_remaining
+                        
+            return False, trial_companion, 0
+            
+    except Exception as e:
+        logger.error(f"Error checking trial status from database: {e}")
+        return False, None, 0
+
 # Enhanced surveillance system with Flask context safety
 class BasicSurveillanceSystem:
     def __init__(self):
@@ -1166,26 +1233,10 @@ def chat():
         # Check if user has access to this companion
         user_tier = session.get('user_plan', 'foundation')
         
-        # Check for active trial status
-        trial_active = session.get('trial_active', False)
-        trial_companion = session.get('trial_companion')
+        # Check for active trial status from database (not session)
+        trial_active, trial_companion, time_remaining = check_trial_active_from_db()
         
-        # If trial is active, verify it hasn't expired
-        if trial_active:
-            try:
-                trial_expires = session.get('trial_expires')
-                if trial_expires:
-                    expires_at = datetime.fromisoformat(trial_expires.replace('Z', '+00:00'))
-                    if datetime.utcnow() > expires_at:
-                        # Trial has expired, clear trial session data
-                        session.pop('trial_active', None)
-                        session.pop('trial_companion', None)
-                        session.pop('trial_expires', None)
-                        trial_active = False
-                        logger.info(f"🕐 TRIAL EXPIRED: Clearing expired trial session for {session.get('user_email')}")
-            except Exception as e:
-                logger.error(f"Trial expiration check error: {e}")
-                trial_active = False
+        logger.info(f"🔍 CHAT ROUTE DEBUG: user_tier={user_tier}, trial_active={trial_active}, selected_companion={selected_companion}, time_remaining={time_remaining}")
         
         # Validate companion access based on tier and trial status
         companion_access_valid = True
@@ -1386,11 +1437,11 @@ def api_companions_select():
         if not companion_found:
             return jsonify({"success": False, "error": "Invalid companion ID"}), 400
         
-        # Check trial status
-        trial_active = session.get('trial_active', False)
+        # Check trial status from database (not session)
+        trial_active, trial_companion, time_remaining = check_trial_active_from_db()
         
         # DEBUG: Log companion selection access check
-        logger.info(f"🔍 COMPANION SELECTION DEBUG: user_plan={user_plan}, trial_active={trial_active}, companion_tier={companion_tier}, companion_id={companion_id}")
+        logger.info(f"🔍 COMPANION SELECTION DEBUG: user_plan={user_plan}, trial_active={trial_active}, companion_tier={companion_tier}, companion_id={companion_id}, time_remaining={time_remaining}")
         
         # Check access based on tier
         has_access = False
@@ -5470,7 +5521,7 @@ def api_creative_writing():
             
         # Check if user has access to creative writing (Growth/Max tiers or active trial)
         user_plan = session.get('user_plan', 'foundation')
-        trial_active = session.get('trial_active', False)
+        trial_active, _, _ = check_trial_active_from_db()
         
         if user_plan not in ['growth', 'premium', 'enterprise'] and not trial_active:
             return jsonify({"success": False, "error": "Creative Writing Assistant requires Growth or Max plan"}), 403
@@ -5585,7 +5636,7 @@ def api_save_creative_content():
             
         # Check if user has access to creative writing (Growth/Max tiers or active trial)
         user_plan = session.get('user_plan', 'foundation')
-        trial_active = session.get('trial_active', False)
+        trial_active, _, _ = check_trial_active_from_db()
         
         if user_plan not in ['growth', 'premium', 'enterprise'] and not trial_active:
             return jsonify({"success": False, "error": "Saving creative content requires Growth or Max plan"}), 403
@@ -5712,7 +5763,7 @@ def api_save_canvas_art():
             
         # Check if user has access to creative canvas (Growth/Max tiers or active trial)
         user_plan = session.get('user_plan', 'foundation')
-        trial_active = session.get('trial_active', False)
+        trial_active, _, _ = check_trial_active_from_db()
         
         if user_plan not in ['growth', 'premium', 'enterprise'] and not trial_active:
             return jsonify({"success": False, "error": "Creative Canvas requires Growth or Max plan"}), 403
@@ -5917,7 +5968,7 @@ def api_share_to_wellness_gallery():
             
         # Check if user has access (Growth/Max tiers or active trial)
         user_plan = session.get('user_plan', 'foundation')
-        trial_active = session.get('trial_active', False)
+        trial_active, _, _ = check_trial_active_from_db()
         
         if user_plan not in ['growth', 'premium', 'enterprise'] and not trial_active:
             return jsonify({"success": False, "error": "Wellness Gallery sharing requires Growth or Max plan"}), 403
