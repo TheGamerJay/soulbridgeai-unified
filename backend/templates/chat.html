@@ -50,9 +50,9 @@
                     <i class="fas fa-exchange-alt"></i>
                     Switch
                 </a>
-                <button id="voiceChatBtn" class="action-btn voice-chat" style="display: none;" onclick="toggleVoiceChat()">
-                    <i class="fas fa-microphone"></i>
-                    Voice
+                <button id="voiceChatBtn" class="action-btn voice-chat" onclick="toggleVoiceChat()" title="Full Voice Chat - Record and get AI response">
+                    <i class="fas fa-phone"></i>
+                    Voice Chat
                 </button>
                 <a href="/decoder" class="action-btn">
                     <i class="fas fa-brain"></i>
@@ -64,7 +64,7 @@
                 </a>
                 
                 <!-- Growth & Max Tier Creative Writing -->
-                {% if session.get('user_plan') in ['growth', 'premium', 'enterprise'] or (session.get('trial_active') and session.get('trial_companion')) %}
+                {% if session.get('user_plan') in ['premium', 'enterprise'] or (session.get('trial_active') and session.get('trial_companion')) %}
                 <button onclick="openCreativeWriting()" class="action-btn creative-btn" title="Creative Writing Assistant - Growth/Max Feature">
                     <i class="fas fa-feather-alt"></i>
                     Write
@@ -114,16 +114,20 @@
         <!-- Input Area -->
         <div class="chat-input-area">
             <div class="input-container">
+                <button id="speechBtn" class="speech-button" title="Click to speak">
+                    <i class="fas fa-microphone"></i>
+                </button>
                 <textarea 
                     id="messageInput" 
                     class="message-input" 
-                    placeholder="Type your message here..." 
+                    placeholder="Type your message here or click the microphone to speak..." 
                     rows="1"
                 ></textarea>
                 <button class="send-button" disabled>
                     <i class="fas fa-paper-plane"></i>
                 </button>
             </div>
+            <div id="speechStatus" class="speech-status">Click microphone to start voice input</div>
         </div>
     </div>
 
@@ -579,6 +583,80 @@
                 flex-direction: column;
                 align-items: center;
             }
+        }
+
+        /* Speech Input Styles */
+        .speech-button {
+            background: rgba(34, 211, 238, 0.2);
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            color: #22d3ee;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+            min-width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .speech-button:hover {
+            background: rgba(34, 211, 238, 0.3);
+            border-color: #22d3ee;
+            transform: scale(1.05);
+        }
+
+        .speech-button.listening {
+            background: rgba(239, 68, 68, 0.3);
+            border-color: #ef4444;
+            color: #ef4444;
+            animation: pulse 1.5s infinite;
+        }
+
+        .speech-button.listening i {
+            animation: glow 1.5s infinite alternate;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes glow {
+            0% { text-shadow: 0 0 5px #ef4444; }
+            100% { text-shadow: 0 0 20px #ef4444, 0 0 30px #ef4444; }
+        }
+
+        .speech-status {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            text-align: center;
+            margin-top: 8px;
+            padding: 0 10px;
+            transition: all 0.3s ease;
+        }
+
+        .speech-status.listening {
+            color: #ef4444;
+            font-weight: 600;
+        }
+
+        .speech-status.transcribing {
+            color: #22d3ee;
+            font-weight: 600;
+        }
+
+        .input-container {
+            display: flex;
+            align-items: flex-end;
+            gap: 0;
+        }
+
+        .message-input {
+            flex: 1;
         }
     </style>
 
@@ -1150,6 +1228,246 @@ Where emotion meets expression.
                 shareBtn.disabled = false;
             }
         }
+        
+        // Voice chat functionality (Full conversation mode)
+        let isVoiceChatRecording = false;
+        let voiceChatMediaRecorder = null;
+        let voiceChatAudioChunks = [];
+        
+        async function toggleVoiceChat() {
+            const voiceBtn = document.getElementById('voiceChatBtn');
+            
+            if (!isVoiceChatRecording) {
+                // Start recording for full voice chat
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    voiceChatMediaRecorder = new MediaRecorder(stream);
+                    voiceChatAudioChunks = [];
+                    
+                    voiceChatMediaRecorder.ondataavailable = (event) => {
+                        voiceChatAudioChunks.push(event.data);
+                    };
+                    
+                    voiceChatMediaRecorder.onstop = async () => {
+                        const audioBlob = new Blob(voiceChatAudioChunks, { type: 'audio/wav' });
+                        await sendVoiceMessage(audioBlob);
+                        
+                        // Stop microphone access
+                        stream.getTracks().forEach(track => track.stop());
+                    };
+                    
+                    voiceChatMediaRecorder.start();
+                    isVoiceChatRecording = true;
+                    
+                    voiceBtn.innerHTML = '<i class="fas fa-stop"></i> Stop Recording';
+                    voiceBtn.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
+                    voiceBtn.style.borderColor = '#ef4444';
+                    
+                    // Show recording indicator
+                    addSystemMessage('🎤 Recording voice message... Click "Stop Recording" when finished speaking.');
+                    
+                } catch (error) {
+                    console.error('Error accessing microphone for voice chat:', error);
+                    addSystemMessage('❌ Could not access microphone. Please check permissions.');
+                }
+            } else {
+                // Stop recording
+                if (voiceChatMediaRecorder && voiceChatMediaRecorder.state === 'recording') {
+                    voiceChatMediaRecorder.stop();
+                }
+                isVoiceChatRecording = false;
+                
+                voiceBtn.innerHTML = '<i class="fas fa-phone"></i> Voice Chat';
+                voiceBtn.style.background = '';
+                voiceBtn.style.borderColor = '';
+            }
+        }
+        
+        async function sendVoiceMessage(audioBlob) {
+            try {
+                addSystemMessage('🔄 Processing your voice message...');
+                
+                const formData = new FormData();
+                formData.append('audio', audioBlob, 'voice_message.wav');
+                formData.append('character', selectedCharacter || 'Blayzo');
+                
+                const response = await fetch('/api/voice-chat/process', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Add transcribed message as user message
+                    if (data.transcript) {
+                        addMessage(data.transcript, 'user');
+                    }
+                    
+                    // Add AI response as assistant message
+                    if (data.response) {
+                        addMessage(data.response, 'assistant');
+                        
+                        // Play AI response as speech if audio is provided
+                        if (data.audio_url) {
+                            const audio = new Audio(data.audio_url);
+                            audio.play().catch(e => console.log('Audio playback failed:', e));
+                        }
+                    }
+                } else {
+                    addSystemMessage('❌ ' + (data.error || 'Voice processing failed'));
+                }
+                
+            } catch (error) {
+                console.error('Voice chat error:', error);
+                addSystemMessage('❌ Voice chat error. Please try again.');
+            }
+        }
+        
+        function addSystemMessage(message) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message system-message';
+            messageDiv.innerHTML = `<div class="message-content">${message}</div>`;
+            
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Speech Recognition Integration
+        let speechRecognition = null;
+        let isSpeechListening = false;
+
+        function initializeSpeechRecognition() {
+            const speechBtn = document.getElementById('speechBtn');
+            const speechStatus = document.getElementById('speechStatus');
+            const messageInput = document.getElementById('messageInput');
+
+            // Check for browser support
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            
+            if (!SpeechRecognition) {
+                speechBtn.disabled = true;
+                speechBtn.style.opacity = '0.5';
+                speechStatus.innerText = "Voice input not supported in this browser";
+                speechStatus.style.color = '#ef4444';
+                return;
+            }
+
+            speechRecognition = new SpeechRecognition();
+            speechRecognition.lang = 'en-US';
+            speechRecognition.continuous = false;
+            speechRecognition.interimResults = true;
+            speechRecognition.maxAlternatives = 1;
+
+            speechBtn.addEventListener('click', toggleSpeechRecognition);
+
+            speechRecognition.onstart = () => {
+                isSpeechListening = true;
+                speechBtn.classList.add('listening');
+                speechBtn.innerHTML = '<i class="fas fa-stop"></i>';
+                speechStatus.innerText = "Listening... speak now";
+                speechStatus.classList.add('listening');
+            };
+
+            speechRecognition.onresult = (event) => {
+                let transcript = '';
+                let isFinal = false;
+
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const result = event.results[i];
+                    if (result.isFinal) {
+                        transcript += result[0].transcript;
+                        isFinal = true;
+                    } else {
+                        transcript += result[0].transcript;
+                    }
+                }
+
+                if (transcript.trim()) {
+                    if (isFinal) {
+                        // Add the final transcript to the textarea
+                        const currentText = messageInput.value;
+                        const newText = currentText ? currentText + ' ' + transcript.trim() : transcript.trim();
+                        messageInput.value = newText;
+                        
+                        // Trigger input event to enable send button if needed
+                        messageInput.dispatchEvent(new Event('input', { bubbles: true }));
+                        
+                        speechStatus.innerText = "Speech recognized! You can continue typing or click send.";
+                        speechStatus.classList.remove('listening');
+                        speechStatus.classList.add('transcribing');
+                        
+                        setTimeout(() => {
+                            speechStatus.innerText = "Click microphone to start voice input";
+                            speechStatus.classList.remove('transcribing');
+                        }, 3000);
+                    } else {
+                        // Show interim results in status
+                        speechStatus.innerText = `Hearing: "${transcript}"`;
+                    }
+                }
+            };
+
+            speechRecognition.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
+                isSpeechListening = false;
+                speechBtn.classList.remove('listening');
+                speechBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+                speechStatus.classList.remove('listening');
+                
+                const errorMessages = {
+                    'network': 'Network error. Please check your connection.',
+                    'not-allowed': 'Microphone access denied. Please allow microphone access.',
+                    'no-speech': 'No speech detected. Please try again.',
+                    'audio-capture': 'Microphone not found. Please check your audio settings.',
+                    'service-not-allowed': 'Speech service not allowed. Please try again.',
+                    'aborted': 'Speech recognition was stopped.',
+                    'language-not-supported': 'Language not supported.',
+                    'bad-grammar': 'Grammar error in speech recognition.'
+                };
+                
+                const errorMessage = errorMessages[event.error] || `Speech recognition error: ${event.error}`;
+                speechStatus.innerText = errorMessage;
+                speechStatus.style.color = '#ef4444';
+                
+                setTimeout(() => {
+                    speechStatus.innerText = "Click microphone to start voice input";
+                    speechStatus.style.color = '#94a3b8';
+                }, 4000);
+            };
+
+            speechRecognition.onend = () => {
+                isSpeechListening = false;
+                speechBtn.classList.remove('listening');
+                speechBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+                speechStatus.classList.remove('listening');
+                
+                if (!speechStatus.classList.contains('transcribing')) {
+                    speechStatus.innerText = "Click microphone to start voice input";
+                }
+            };
+        }
+
+        function toggleSpeechRecognition() {
+            if (!speechRecognition) return;
+
+            if (!isSpeechListening) {
+                try {
+                    speechRecognition.start();
+                } catch (error) {
+                    console.error('Error starting speech recognition:', error);
+                    document.getElementById('speechStatus').innerText = "Error starting voice input. Please try again.";
+                }
+            } else {
+                speechRecognition.stop();
+            }
+        }
+
+        // Initialize speech recognition when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeSpeechRecognition();
+        });
     </script>
     
     <script src="{{ url_for('static', filename='js/chat.js') }}?v={{ range(1000000) | random }}"></script>
