@@ -1626,14 +1626,21 @@ def profile():
                         except:
                             pass
                         
-                        cursor.execute(f"SELECT profile_image, profile_picture_url FROM users WHERE id = {placeholder}", (user_id,))
+                        cursor.execute(f"SELECT profile_image, profile_picture_url, profile_image_data FROM users WHERE id = {placeholder}", (user_id,))
                         result = cursor.fetchone()
                         conn.close()
                         
                         if result:
                             if result[0] and result[0] not in ['/static/logos/Sapphire.png', '/static/logos/IntroLogo.png']:
-                                profile_image = result[0]
-                                session['profile_image'] = profile_image  # Cache in session
+                                # Check if file exists, if not use base64 backup
+                                file_path = result[0].replace('/static/', 'static/')
+                                if os.path.exists(file_path):
+                                    profile_image = result[0]
+                                    session['profile_image'] = profile_image  # Cache in session
+                                elif result[2]:  # File missing but have base64 backup
+                                    profile_image = f"data:image/png;base64,{result[2]}"
+                                    session['profile_image'] = profile_image
+                                    logger.info(f"Profile image file missing, using base64 backup for user {user_id}")
                             elif result[1] and result[1] not in ['/static/logos/Sapphire.png', '/static/logos/IntroLogo.png']:
                                 profile_image = result[1]
                                 session['profile_image'] = profile_image  # Cache in session
@@ -3868,8 +3875,14 @@ def api_users():
                     if result and (result[0] or result[1]):
                         # Check if we have a URL that isn't the default
                         if result[0] and result[0] not in ['/static/logos/Sapphire.png', '/static/logos/IntroLogo.png']:
-                            profile_image = result[0]
-                            logger.info(f"Loaded profile image from database: {profile_image}")
+                            # Check if file exists, if not use base64 backup
+                            file_path = result[0].replace('/static/', 'static/')
+                            if os.path.exists(file_path):
+                                profile_image = result[0]
+                                logger.info(f"Loaded profile image from database: {profile_image}")
+                            elif len(result) > 2 and result[2]:  # File missing but have base64 backup
+                                profile_image = f"data:image/png;base64,{result[2]}"
+                                logger.info(f"Profile image file missing, using base64 backup")
                         # If no URL but we have base64 data, use that as backup
                         elif result[1]:
                             # For now, keep the URL if we have base64 backup
