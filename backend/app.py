@@ -1795,38 +1795,89 @@ def voice_chat_page():
 
 @app.route("/api/voice-chat/process", methods=["POST"])
 def voice_chat_process():
-    """Process voice chat audio - safe debug version"""
+    """Process voice chat audio - Whisper transcription + GPT-4 response"""
     try:
-        print(f"🎤 Voice chat process called - Method: {request.method}")
-        print(f"🎤 Request headers: {dict(request.headers)}")
-        print(f"🎤 Request files: {list(request.files.keys())}")
-        print(f"🎤 Request form: {dict(request.form)}")
+        # Basic validation
+        if 'audio' not in request.files:
+            return jsonify({"success": False, "error": "No audio file provided"}), 400
         
-        # Check if we have audio data
-        if 'audio' in request.files:
-            audio_file = request.files['audio']
-            print(f"🔊 Received audio file: {audio_file.filename}, size: {len(audio_file.read())} bytes")
-            audio_file.seek(0)  # Reset file pointer after read
-        else:
-            print("❌ No 'audio' key in request.files")
+        audio_file = request.files['audio']
+        character = request.form.get('character', 'SoulBridge AI Assistant')
         
-        # Get character from form data
-        character = request.form.get('character', 'AI Assistant')
-        print(f"🤖 Character: {character}")
+        if not audio_file or audio_file.filename == '':
+            return jsonify({"success": False, "error": "No audio file selected"}), 400
         
-        # ✅ Safe dummy response for testing
-        return jsonify({
-            "success": True,
-            "transcript": "Test voice message received successfully",
-            "response": f"Hello! I'm {character} and I received your voice message. The voice processing system is working!",
-            "character": character
-        })
+        print(f"🎤 Processing voice for character: {character}")
+        print(f"🔊 Audio file size: {len(audio_file.read())} bytes")
+        audio_file.seek(0)  # Reset file pointer
+        
+        # Save audio to temporary file
+        import tempfile
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.wav') as temp_file:
+            audio_path = temp_file.name
+            audio_file.save(audio_path)
+            print(f"💾 Saved audio to: {audio_path}")
+        
+        try:
+            # Initialize OpenAI client
+            from openai import OpenAI
+            client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+            
+            # Transcribe audio with Whisper
+            print("🔄 Starting Whisper transcription...")
+            with open(audio_path, 'rb') as audio_data:
+                transcription = client.audio.transcriptions.create(
+                    model="whisper-1",
+                    file=audio_data,
+                    response_format="text"
+                )
+            
+            text_input = transcription.strip() if transcription else ""
+            print(f"📝 Transcription result: '{text_input}'")
+            
+            if not text_input:
+                return jsonify({
+                    "success": False, 
+                    "error": "Could not understand the audio. Please speak clearly and try again."
+                }), 400
+            
+            # Generate GPT-4 response
+            print("🤖 Generating GPT-4 response...")
+            system_prompt = f"You are {character}, a compassionate AI companion from SoulBridge AI. Respond naturally and empathetically to the user's voice message. Keep responses conversational, warm, and under 200 words."
+            
+            chat_response = client.chat.completions.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": text_input}
+                ],
+                max_tokens=250,
+                temperature=0.8
+            )
+            
+            ai_response = chat_response.choices[0].message.content.strip()
+            print(f"💬 GPT-4 response: '{ai_response}'")
+            
+            return jsonify({
+                "success": True,
+                "transcript": text_input,
+                "response": ai_response,
+                "character": character
+            })
+            
+        finally:
+            # Clean up temporary file
+            try:
+                os.unlink(audio_path)
+                print(f"🗑️ Cleaned up temp file: {audio_path}")
+            except Exception as cleanup_error:
+                print(f"⚠️ Cleanup error: {cleanup_error}")
     
     except Exception as e:
         print(f"❌ Voice chat processing failed: {str(e)}")
         import traceback
         print(f"❌ Full traceback: {traceback.format_exc()}")
-        return jsonify({"success": False, "error": f"Internal server error: {str(e)}"}), 500
+        return jsonify({"success": False, "error": f"Voice processing error: {str(e)}"}), 500
 
 @app.route("/auth/forgot-password", methods=["GET", "POST"])
 def forgot_password():
