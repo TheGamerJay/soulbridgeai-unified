@@ -2997,11 +2997,37 @@ def start_trial():
         now = datetime.utcnow()
         expires_at = now + timedelta(hours=5)
         
-        # Update session with trial info
-        session["trial_active"] = True
-        session["trial_companion"] = companion_id
-        session["trial_expires"] = expires_at.isoformat()
-        session["trial_started_at"] = now.isoformat()
+        # Update database with trial info - use existing database pattern
+        try:
+            database_url = os.environ.get('DATABASE_URL')
+            if database_url:
+                import psycopg2
+                conn = psycopg2.connect(database_url)
+                cursor = conn.cursor()
+                cursor.execute("""
+                    UPDATE users 
+                    SET trial_started_at = %s, 
+                        trial_companion = %s, 
+                        trial_used_permanently = TRUE 
+                    WHERE email = %s
+                """, (now, companion_id, user_email))
+                conn.commit()
+                conn.close()
+                logger.info(f"✅ Trial data saved to PostgreSQL database")
+            else:
+                # Fallback to session for local development
+                session["trial_active"] = True
+                session["trial_companion"] = companion_id
+                session["trial_expires"] = expires_at.isoformat()
+                session["trial_started_at"] = now.isoformat()
+                logger.info(f"✅ Trial data saved to session (no DATABASE_URL)")
+        except Exception as db_error:
+            logger.error(f"Database update failed, using session: {db_error}")
+            session["trial_active"] = True
+            session["trial_companion"] = companion_id
+            session["trial_expires"] = expires_at.isoformat()
+            session["trial_started_at"] = now.isoformat()
+        
         session["trial_used_permanently"] = True
         
         logger.info(f"Trial started for user {user_email}, companion {companion_id}, expires at {expires_at}")
@@ -3024,60 +3050,79 @@ def get_trial_status():
         if not is_logged_in():
             return jsonify({"trial_active": False})
             
-        # Check trial status from session - simpler approach
-        trial_active = session.get("trial_active", False)
-        trial_companion = session.get("trial_companion")
-        trial_expires_str = session.get("trial_expires")
-        trial_used_permanently = session.get("trial_used_permanently", False)
+        user_email = session.get("user_email")
+        if not user_email:
+            return jsonify({"trial_active": False})
         
-        logger.info(f"Raw session trial data: active={trial_active}, companion={trial_companion}, expires={trial_expires_str}")
-        logger.info(f"Full session contents: {dict(session)}")
-        
-        # If trial is marked as active, check if it has expired
-        if trial_active and trial_expires_str:
-            try:
-                # Parse expiration time
-                if trial_expires_str.endswith('Z'):
-                    expires_at = datetime.fromisoformat(trial_expires_str.replace('Z', '+00:00'))
-                else:
-                    expires_at = datetime.fromisoformat(trial_expires_str)
+        # Check trial status from database - real-time calculation
+        try:
+            database_url = os.environ.get('DATABASE_URL')
+            if database_url:
+                import psycopg2
+                conn = psycopg2.connect(database_url)
+                cursor = conn.cursor()
+                cursor.execute("""
+                    SELECT trial_started_at, trial_companion, trial_used_permanently 
+                    FROM users WHERE email = %s
+                """, (user_email,))
+                result = cursor.fetchone()
+                conn.close()
                 
-                now = datetime.utcnow()
-                if expires_at.tzinfo:
-                    now = now.replace(tzinfo=expires_at.tzinfo)
-                
-                logger.info(f"Trial expiration check: now={now}, expires={expires_at}, still_active={now < expires_at}")
-                
-                if now < expires_at:
-                    # Trial is still active
-                    logger.info("✅ Trial is still active")
+                if result:
+                    trial_started_at, trial_companion, trial_used_permanently = result
+                    now = datetime.utcnow()
+                    
+                    # Calculate if trial is active (within 5 hours of start)
+                    trial_active = False
+                    if trial_started_at:
+                        trial_end = trial_started_at + timedelta(hours=5)
+                        trial_active = now < trial_end
+                        
+                        logger.info(f"Database trial check: started={trial_started_at}, now={now}, end={trial_end}, active={trial_active}")
+                        
+                        if trial_active:
+                            return jsonify({
+                                "trial_active": True,
+                                "trial_expires": trial_end.isoformat(),
+                                "trial_companion": trial_companion,
+                                "time_remaining_minutes": int((trial_end - now).total_seconds() / 60)
+                            })
+                    
                     return jsonify({
-                        "trial_active": True,
-                        "trial_expires": expires_at.isoformat(),
-                        "trial_companion": trial_companion,
-                        "time_remaining_minutes": int((expires_at - now).total_seconds() / 60)
+                        "trial_active": False,
+                        "trial_used_permanently": bool(trial_used_permanently)
                     })
                 else:
-                    # Trial has expired - clear session
-                    logger.info("⏰ Trial has expired, clearing session")
-                    session.pop("trial_active", None)
-                    session.pop("trial_companion", None)
-                    session.pop("trial_expires", None)
-                    trial_active = False
+                    logger.error(f"No user found in database for email: {user_email}")
+                    return jsonify({"trial_active": False})
+            else:
+                # Fallback to session for local development
+                logger.info("No DATABASE_URL, falling back to session-based trial check")
+                trial_active = session.get("trial_active", False)
+                trial_companion = session.get("trial_companion")
+                trial_expires_str = session.get("trial_expires")
+                trial_used_permanently = session.get("trial_used_permanently", False)
+                
+                if trial_active and trial_expires_str:
+                    expires_at = datetime.fromisoformat(trial_expires_str.replace('Z', '+00:00') if trial_expires_str.endswith('Z') else trial_expires_str)
+                    now = datetime.utcnow()
                     
-            except Exception as parse_error:
-                logger.error(f"Error parsing trial expiration: {parse_error}")
-                # Clear invalid trial data
-                session.pop("trial_active", None)
-                session.pop("trial_companion", None)
-                session.pop("trial_expires", None)
-                trial_active = False
-        
-        # No active trial or trial expired
-        return jsonify({
-            "trial_active": False,
-            "trial_used_permanently": trial_used_permanently
-        })
+                    if now < expires_at:
+                        return jsonify({
+                            "trial_active": True,
+                            "trial_expires": expires_at.isoformat(),
+                            "trial_companion": trial_companion,
+                            "time_remaining_minutes": int((expires_at - now).total_seconds() / 60)
+                        })
+                
+                return jsonify({
+                    "trial_active": False,
+                    "trial_used_permanently": trial_used_permanently
+                })
+                
+        except Exception as db_error:
+            logger.error(f"Database trial check failed: {db_error}")
+            return jsonify({"trial_active": False})
             
     except Exception as e:
         logger.error(f"Trial status check error: {e}")

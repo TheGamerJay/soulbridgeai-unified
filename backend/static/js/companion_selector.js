@@ -46,51 +46,29 @@ function addClickListeners() {
             console.log('🔥 BODY CLICK DETECTED:', event.target.tagName, event.target.className);
         });
         
-        // Event delegation for dynamically generated buttons - catch ALL clicks for debugging
-        document.addEventListener('click', function(event) {
-            console.log('🔍 GLOBAL CLICK detected on:', {
-                tagName: event.target.tagName,
-                className: event.target.className,
-                id: event.target.id,
-                textContent: event.target.textContent.substring(0, 50),
-                hasSelectClass: event.target.classList.contains('btn-select'),
-                isDisabled: event.target.disabled,
-                dataCompanionId: event.target.dataset.companionId
-            });
+        // Event delegation for all button clicks
+        document.body.addEventListener('click', function(event) {
+            console.log('🔍 BODY CLICK on:', event.target.tagName, event.target.className);
             
-            
-            // Check if this is an upgrade button - let it handle its own onclick
-            if (event.target.classList.contains('btn-upgrade')) {
-                console.log('💎 UPGRADE BUTTON CLICKED - Allowing onclick handler to process...');
-                return; // Don't prevent default, let the onclick="showUpgradeModal(...)" work
-            }
-            
-            // Handle companion selection buttons (but NOT upgrade buttons)
-            if (event.target.classList.contains('btn-select') && !event.target.disabled && !event.target.classList.contains('btn-upgrade')) {
-                console.log('✅ SELECT BUTTON CLICKED - Processing...');
-                event.preventDefault();
-                event.stopPropagation();
+            // Handle all btn-select buttons
+            if (event.target.classList.contains('btn-select')) {
+                const companionId = event.target.dataset.companionId || event.target.getAttribute('data-companion-id');
+                console.log('🔘 Button clicked for companion:', companionId);
                 
-                const companionCard = event.target.closest('.companion-card');
-                console.log('🔍 Found companion card:', companionCard);
-                if (companionCard) {
-                    const companionId = companionCard.dataset.companionId;
-                    console.log('🔍 Companion ID from data attribute:', companionId);
-                    if (companionId) {
-                        console.log('🔍 Event delegation: selectCompanion clicked for:', companionId);
-                        try {
-                            window.selectCompanion(companionId);
-                        } catch (error) {
-                            console.error('❌ Error calling selectCompanion:', error);
-                        }
-                    }
+                // Check if this is an upgrade/trial button with onclick handler
+                if (event.target.classList.contains('btn-upgrade') && event.target.onclick) {
+                    console.log('💎 UPGRADE/TRIAL BUTTON - Allowing onclick handler');
+                    return; // Let onclick="showTrialModal(...)" or onclick="showUpgradeModal(...)" handle it
                 }
-                return;
+                
+                // Handle regular select buttons
+                if (companionId && !event.target.disabled) {
+                    console.log('✅ SELECT BUTTON - Processing companion selection');
+                    event.preventDefault();
+                    window.selectCompanion(companionId);
+                }
             }
-            
-            
-            console.log('🔍 Click not handled by event delegation');
-        }, true); // Use capture phase to ensure we catch everything
+        });
         
         console.log('✅ Click listeners successfully added');
         
