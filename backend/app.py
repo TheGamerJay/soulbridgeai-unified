@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-SoulBridge AI - Production Ready App
+SoulBridge AI - Production Ready App  
 Combines working initialization with all essential routes
+Voice chat processing enabled
 """
 
 # CRITICAL: eventlet monkey patching MUST be first for Gunicorn compatibility
@@ -1791,6 +1792,100 @@ def voice_chat_page():
     except Exception as e:
         logger.error(f"Voice chat page error: {e}")
         return redirect("/")
+
+@app.route("/api/voice-chat/process", methods=["POST"])
+def voice_chat_process():
+    """Process voice chat audio - transcribe and generate AI response"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        # Check if user has voice chat access (Growth/Max plans or trial)
+        user_plan = session.get('user_plan', 'foundation')
+        trial_active, _, _ = check_trial_active_from_db()
+        
+        if user_plan not in ['premium', 'enterprise'] and not trial_active:
+            return jsonify({"success": False, "error": "Voice Chat requires Growth or Max plan"}), 403
+        
+        if 'audio' not in request.files:
+            return jsonify({"success": False, "error": "No audio file provided"}), 400
+        
+        audio_file = request.files['audio']
+        character = request.form.get('character', 'Blayzo')
+        
+        if audio_file.filename == '':
+            return jsonify({"success": False, "error": "No audio file selected"}), 400
+        
+        # Save audio temporarily
+        import tempfile
+        
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.wav') as temp_audio:
+            audio_file.save(temp_audio.name)
+            
+            try:
+                # Transcribe audio using OpenAI Whisper
+                openai_api_key = os.environ.get("OPENAI_API_KEY")
+                if not openai_api_key:
+                    return jsonify({"success": False, "error": "Voice processing not available"}), 500
+                
+                import openai
+                openai.api_key = openai_api_key
+                
+                with open(temp_audio.name, 'rb') as audio_data:
+                    transcript_response = openai.Audio.transcribe(
+                        model="whisper-1", 
+                        file=audio_data,
+                        response_format="text"
+                    )
+                
+                transcript = transcript_response.strip()
+                logger.info(f"Voice transcription: {transcript}")
+                
+                if not transcript:
+                    return jsonify({"success": False, "error": "Could not transcribe audio"}), 400
+                
+                # Generate AI response using the transcribed text
+                user_tier = session.get('user_plan', 'foundation')
+                
+                # Use GPT-4 for premium users, GPT-3.5 for others
+                if user_tier == 'enterprise':
+                    model = "gpt-4"
+                    max_tokens = 300
+                else:
+                    model = "gpt-3.5-turbo"
+                    max_tokens = 200
+                
+                system_prompt = f"You are {character}, an AI companion from SoulBridge AI. Respond naturally to the user's voice message with empathy and warmth. Keep responses conversational and under 200 words."
+                
+                chat_response = openai.ChatCompletion.create(
+                    model=model,
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": transcript}
+                    ],
+                    max_tokens=max_tokens,
+                    temperature=0.8
+                )
+                
+                ai_response = chat_response.choices[0].message.content
+                
+                return jsonify({
+                    "success": True,
+                    "transcript": transcript,
+                    "response": ai_response,
+                    "character": character
+                })
+                
+            finally:
+                # Clean up temporary file
+                try:
+                    os.unlink(temp_audio.name)
+                except:
+                    pass
+        
+    except Exception as e:
+        logger.error(f"Voice chat processing error: {e}")
+        return jsonify({"success": False, "error": "Voice processing failed"}), 500
 
 @app.route("/auth/forgot-password", methods=["GET", "POST"])
 def forgot_password():
