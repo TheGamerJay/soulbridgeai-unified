@@ -1010,17 +1010,67 @@ function showTrialModal(companionId, tier, companionName) {
         return;
     }
     
-    // Create trial modal HTML
+    // Create trial modal HTML with inline styles to ensure it displays
     const modalHtml = `
-        <div class="upgrade-modal-overlay" id="trialModal" onclick="closeTrialModal(event)">
-            <div class="upgrade-modal-content" onclick="event.stopPropagation()">
-                <div class="upgrade-modal-header">
+        <div id="trialModal" style="
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            animation: fadeIn 0.3s ease;
+        " onclick="closeTrialModal(event)">
+            <div style="
+                background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+                border: 2px solid #374151;
+                border-radius: 16px;
+                width: 90%;
+                max-width: 500px;
+                max-height: 80vh;
+                overflow-y: auto;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+                animation: slideIn 0.3s ease;
+                color: #e2e8f0;
+            " onclick="event.stopPropagation()">
+                <div style="
+                    padding: 25px;
+                    border-bottom: 2px solid #374151;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                ">
                     <h2 style="margin: 0; color: ${info.color};">🎯 Try ${companionName} Free!</h2>
-                    <button class="upgrade-modal-close" onclick="closeTrialModal()">&times;</button>
+                    <button onclick="closeTrialModal()" style="
+                        background: none;
+                        border: none;
+                        font-size: 28px;
+                        cursor: pointer;
+                        color: #94a3b8;
+                        padding: 0;
+                        width: 35px;
+                        height: 35px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        border-radius: 50%;
+                        transition: all 0.2s ease;
+                    ">&times;</button>
                 </div>
                 
-                <div class="upgrade-modal-body">
-                    <div class="upgrade-companion-preview">
+                <div style="padding: 20px; text-align: center;">
+                    <div style="
+                        margin-bottom: 20px;
+                        padding: 20px;
+                        background: rgba(0, 0, 0, 0.3);
+                        border: 1px solid #374151;
+                        border-radius: 12px;
+                        backdrop-filter: blur(10px);
+                    ">
                         <p><strong>Get a 5-hour free trial</strong> of <strong>${companionName}</strong></p>
                         <p style="font-size: 18px; color: #22d3ee; font-weight: bold; margin: 15px 0;">
                             ⏰ 5 Hours Free Access
@@ -1030,23 +1080,61 @@ function showTrialModal(companionId, tier, companionName) {
                         </p>
                     </div>
                     
-                    <div class="upgrade-actions" style="margin-top: 25px;">
-                        <button class="upgrade-btn-primary" onclick="startPremiumTrial('${companionId}')" 
-                                style="background: linear-gradient(135deg, #22d3ee, #0891b2); color: white; border: none; padding: 16px 32px; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; margin-right: 15px; box-shadow: 0 4px 12px rgba(34, 211, 238, 0.3);">
+                    <div style="margin-top: 25px;">
+                        <button onclick="startPremiumTrial('${companionId}')" style="
+                            background: linear-gradient(135deg, #22d3ee, #0891b2);
+                            color: white;
+                            border: none;
+                            padding: 16px 32px;
+                            border-radius: 8px;
+                            font-size: 18px;
+                            font-weight: bold;
+                            cursor: pointer;
+                            margin-right: 15px;
+                            box-shadow: 0 4px 12px rgba(34, 211, 238, 0.3);
+                        ">
                             🎯 Start 5-Hour Trial
                         </button>
-                        <button class="upgrade-btn-secondary" onclick="showUpgradeModal('${companionId}', '${tier}', '${companionName}'); closeTrialModal();" 
-                                style="background: ${info.color}; color: white; border: none; padding: 14px 28px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-right: 10px;">
+                        <button onclick="showUpgradeModal('${companionId}', '${tier}', '${companionName}'); closeTrialModal();" style="
+                            background: ${info.color};
+                            color: white;
+                            border: none;
+                            padding: 14px 28px;
+                            border-radius: 8px;
+                            font-size: 16px;
+                            font-weight: bold;
+                            cursor: pointer;
+                            margin: 5px;
+                        ">
                             🚀 Upgrade to ${info.name}
                         </button>
-                        <button class="upgrade-btn-secondary" onclick="closeTrialModal()" 
-                                style="background: rgba(55, 65, 81, 0.5); color: #94a3b8; border: 2px solid #374151; padding: 12px 24px; border-radius: 8px; font-size: 16px; cursor: pointer;">
+                        <br>
+                        <button onclick="closeTrialModal()" style="
+                            background: rgba(55, 65, 81, 0.5);
+                            color: #94a3b8;
+                            border: 2px solid #374151;
+                            padding: 12px 24px;
+                            border-radius: 8px;
+                            font-size: 16px;
+                            cursor: pointer;
+                            margin-top: 10px;
+                        ">
                             Maybe Later
                         </button>
                     </div>
                 </div>
             </div>
         </div>
+        <style>
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+            @keyframes slideIn {
+                from { transform: translateY(20px); opacity: 0; }
+                to { transform: translateY(0); opacity: 1; }
+            }
+        </style>
     `;
     
     // Remove existing modals
@@ -1057,6 +1145,8 @@ function showTrialModal(companionId, tier, companionName) {
     
     // Add modal to page
     document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    console.log('✅ Trial modal added to page');
 }
 
 function closeTrialModal(event) {
