@@ -850,15 +850,19 @@ async function sendVoiceMessage(audioBlob) {
         });
         
         const data = await response.json();
+        console.log('🎤 Voice response received:', data);
         
         if (data.success) {
+            console.log('✅ Voice processing successful');
             // Add transcribed message as user message
-            if (data.transcription) {
-                addMessage(data.transcription, 'user');
+            if (data.transcript) {
+                console.log('📝 Adding transcript:', data.transcript);
+                addMessage(data.transcript, 'user');
             }
             
             // Add AI response
             if (data.response) {
+                console.log('🤖 Adding AI response:', data.response);
                 addMessage(data.response, 'assistant');
                 
                 // Play voice response if available
@@ -867,6 +871,7 @@ async function sendVoiceMessage(audioBlob) {
                 }
             }
         } else {
+            console.log('❌ Voice processing failed:', data.error);
             showNotification('Voice processing failed: ' + data.error, 'error');
         }
         
