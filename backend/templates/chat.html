@@ -217,6 +217,9 @@
                             <button onclick="exportCreativeContent()" class="export-btn">
                                 <i class="fas fa-download"></i> Export
                             </button>
+                            <button onclick="shareToWellnessGallery()" class="share-btn">
+                                <i class="fas fa-heart"></i> Share Anonymously
+                            </button>
                         </div>
                     </div>
                     <div class="generated-content" id="generatedContent"></div>
@@ -284,6 +287,9 @@
                         </button>
                         <button onclick="exportCanvasArt()" class="export-btn">
                             <i class="fas fa-download"></i> Export Art
+                        </button>
+                        <button onclick="shareCanvasToWellnessGallery()" class="share-btn">
+                            <i class="fas fa-heart"></i> Share Anonymously
                         </button>
                         <button onclick="resetCanvas()" class="reset-btn">
                             <i class="fas fa-redo"></i> New Canvas
@@ -418,7 +424,7 @@
             gap: 10px;
         }
         
-        .copy-btn, .save-btn, .export-btn, .reset-btn {
+        .copy-btn, .save-btn, .export-btn, .share-btn, .reset-btn {
             background: rgba(34, 211, 238, 0.2);
             border: 1px solid #22d3ee;
             border-radius: 6px;
@@ -428,8 +434,19 @@
             transition: all 0.3s ease;
         }
         
-        .copy-btn:hover, .save-btn:hover, .export-btn:hover, .reset-btn:hover {
+        .copy-btn:hover, .save-btn:hover, .export-btn:hover, .share-btn:hover, .reset-btn:hover {
             background: rgba(34, 211, 238, 0.3);
+        }
+        
+        .share-btn {
+            background: rgba(255, 182, 193, 0.2) !important;
+            border-color: #ffb6c1 !important;
+            color: #ffb6c1 !important;
+        }
+        
+        .share-btn:hover {
+            background: rgba(255, 182, 193, 0.3) !important;
+            transform: scale(1.05);
         }
         
         .creative-btn {
@@ -1029,6 +1046,109 @@ Where emotion meets expression.
             document.getElementById('canvasDrawing').style.display = 'none';
             document.getElementById('canvasPrompt').value = '';
             clearCanvas();
+        }
+        
+        async function shareToWellnessGallery() {
+            const content = document.getElementById('generatedContent').textContent;
+            const mode = document.getElementById('writingPrompt').dataset.mode;
+            const prompt = document.getElementById('writingPrompt').value;
+            const mood = document.getElementById('moodSelect').value;
+            
+            if (!content) {
+                alert('No content to share!');
+                return;
+            }
+            
+            const shareBtn = document.querySelector('.share-btn');
+            const originalText = shareBtn.innerHTML;
+            shareBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sharing...';
+            shareBtn.disabled = true;
+            
+            try {
+                const response = await fetch('/api/share-to-wellness-gallery', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        content: content,
+                        content_type: 'creative_writing',
+                        theme: mode === 'thoughts' ? 'growth' : mode === 'inspiration' ? 'gratitude' : mode,
+                        mood: mood
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    shareBtn.innerHTML = '<i class="fas fa-heart"></i> Shared!';
+                    setTimeout(() => {
+                        shareBtn.innerHTML = originalText;
+                        shareBtn.disabled = false;
+                    }, 3000);
+                    
+                    // Show success message with link to gallery
+                    if (confirm(data.message + ' Would you like to visit the Wellness Gallery to see shared content?')) {
+                        window.open('/wellness-gallery', '_blank');
+                    }
+                } else {
+                    throw new Error(data.error || 'Share failed');
+                }
+            } catch (error) {
+                console.error('Share error:', error);
+                alert('Sorry, there was an error sharing your content. Please ensure your content follows our wellness community guidelines.');
+                shareBtn.innerHTML = originalText;
+                shareBtn.disabled = false;
+            }
+        }
+        
+        async function shareCanvasToWellnessGallery() {
+            const canvasDataURL = canvas.toDataURL('image/png');
+            const prompt = document.getElementById('canvasPrompt').value;
+            const theme = document.getElementById('canvasTheme').value;
+            
+            if (!canvasDataURL) {
+                alert('No artwork to share!');
+                return;
+            }
+            
+            const shareBtn = document.querySelector('#canvasDrawing .share-btn');
+            const originalText = shareBtn.innerHTML;
+            shareBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sharing...';
+            shareBtn.disabled = true;
+            
+            try {
+                const response = await fetch('/api/share-to-wellness-gallery', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        content: canvasDataURL,
+                        content_type: 'canvas_art',
+                        theme: theme,
+                        mood: ''
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    shareBtn.innerHTML = '<i class="fas fa-heart"></i> Shared!';
+                    setTimeout(() => {
+                        shareBtn.innerHTML = originalText;
+                        shareBtn.disabled = false;
+                    }, 3000);
+                    
+                    // Show success message with link to gallery
+                    if (confirm(data.message + ' Would you like to visit the Wellness Gallery to see shared content?')) {
+                        window.open('/wellness-gallery', '_blank');
+                    }
+                } else {
+                    throw new Error(data.error || 'Share failed');
+                }
+            } catch (error) {
+                console.error('Share canvas error:', error);
+                alert('Sorry, there was an error sharing your artwork. Please ensure your content follows our wellness community guidelines.');
+                shareBtn.innerHTML = originalText;
+                shareBtn.disabled = false;
+            }
         }
     </script>
     

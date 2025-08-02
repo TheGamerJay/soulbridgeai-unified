@@ -1550,14 +1550,25 @@ def subscription():
 
 @app.route("/community-dashboard")
 def community_dashboard():
-    """Community dashboard route"""
+    """Wellness Gallery route (replaces old community dashboard)"""
     try:
         if not is_logged_in():
             return redirect("/login")
-        return render_template("community_dashboard.html")
+        return render_template("wellness_gallery.html")
     except Exception as e:
-        logger.error(f"Community dashboard error: {e}")
-        return jsonify({"error": "Community dashboard temporarily unavailable"}), 200
+        logger.error(f"Wellness Gallery error: {e}")
+        return redirect("/")
+
+@app.route("/wellness-gallery")
+def wellness_gallery():
+    """Direct route to wellness gallery"""
+    try:
+        if not is_logged_in():
+            return redirect("/login")
+        return render_template("wellness_gallery.html")
+    except Exception as e:
+        logger.error(f"Wellness Gallery error: {e}")
+        return redirect("/")
         
 @app.route("/referrals")
 def referrals():
@@ -5800,6 +5811,346 @@ def api_save_canvas_art():
     except Exception as e:
         logger.error(f"Save canvas art API error: {e}")
         return jsonify({"success": False, "error": "Failed to save artwork"}), 500
+
+def moderate_content(content, content_type="text"):
+    """
+    AI-powered content moderation for wellness gallery
+    Returns: (is_safe: bool, reason: str, confidence: float)
+    """
+    try:
+        if not services["openai"]:
+            # If OpenAI is unavailable, use basic keyword filtering
+            return basic_content_filter(content)
+        
+        import openai
+        
+        # Use OpenAI's moderation endpoint
+        moderation_response = openai.Moderation.create(input=content)
+        result = moderation_response.results[0]
+        
+        if result.flagged:
+            # Get the specific reason for flagging
+            categories = result.categories
+            flagged_categories = [cat for cat, flagged in categories.items() if flagged]
+            return False, f"Content flagged for: {', '.join(flagged_categories)}", 0.95
+        
+        # Additional wellness-focused checks
+        wellness_check = check_wellness_alignment(content)
+        if not wellness_check["is_wellness_focused"]:
+            return False, wellness_check["reason"], wellness_check["confidence"]
+        
+        return True, "Content approved", 0.9
+        
+    except Exception as e:
+        logger.error(f"Content moderation error: {e}")
+        # Fail safe - reject if we can't moderate properly
+        return False, "Unable to verify content safety", 0.5
+
+def basic_content_filter(content):
+    """Basic keyword-based content filtering as fallback"""
+    inappropriate_keywords = [
+        "suicide", "self-harm", "kill", "die", "death", "violence", "hate", 
+        "sexual", "explicit", "drug", "abuse", "political", "religion"
+    ]
+    
+    content_lower = content.lower()
+    for keyword in inappropriate_keywords:
+        if keyword in content_lower:
+            return False, f"Content contains inappropriate keyword: {keyword}", 0.8
+    
+    return True, "Basic filter passed", 0.6
+
+def check_wellness_alignment(content):
+    """Check if content aligns with wellness themes"""
+    wellness_keywords = [
+        "gratitude", "peace", "calm", "growth", "healing", "hope", "joy", 
+        "strength", "love", "kindness", "meditation", "mindful", "positive",
+        "overcome", "journey", "recovery", "support", "wellness", "healthy"
+    ]
+    
+    negative_themes = [
+        "revenge", "anger", "hatred", "violence", "toxic", "negative",
+        "destroy", "hurt", "pain", "suffering", "despair", "hopeless"
+    ]
+    
+    content_lower = content.lower()
+    
+    # Check for negative themes
+    for theme in negative_themes:
+        if theme in content_lower:
+            return {
+                "is_wellness_focused": False,
+                "reason": f"Content contains non-wellness theme: {theme}",
+                "confidence": 0.7
+            }
+    
+    # Check for wellness themes
+    wellness_score = sum(1 for keyword in wellness_keywords if keyword in content_lower)
+    
+    if wellness_score >= 1:
+        return {
+            "is_wellness_focused": True,
+            "reason": "Content aligns with wellness themes",
+            "confidence": min(0.6 + (wellness_score * 0.1), 0.9)
+        }
+    
+    # Neutral content is okay too
+    return {
+        "is_wellness_focused": True,
+        "reason": "Content appears neutral/safe",
+        "confidence": 0.6
+    }
+
+@app.route("/api/share-to-wellness-gallery", methods=["POST"])
+def api_share_to_wellness_gallery():
+    """Share creative content to the anonymous wellness gallery"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+            
+        # Check if user has access (Growth/Max tiers or active trial)
+        user_plan = session.get('user_plan', 'foundation')
+        trial_active = session.get('trial_active', False)
+        
+        if user_plan not in ['growth', 'premium', 'enterprise'] and not trial_active:
+            return jsonify({"success": False, "error": "Wellness Gallery sharing requires Growth or Max plan"}), 403
+            
+        data = request.get_json()
+        if not data:
+            return jsonify({"success": False, "error": "Invalid request data"}), 400
+            
+        content = data.get("content", "").strip()
+        content_type = data.get("content_type", "creative_writing")
+        theme = data.get("theme", "freeform")
+        mood = data.get("mood", "")
+        
+        if not content:
+            return jsonify({"success": False, "error": "No content provided"}), 400
+        
+        # Content moderation - CRITICAL SAFETY CHECK
+        is_safe, moderation_reason, confidence = moderate_content(content)
+        
+        if not is_safe:
+            logger.warning(f"Content rejected in moderation: {moderation_reason}")
+            return jsonify({
+                "success": False, 
+                "error": "Content doesn't meet our wellness community guidelines. Please ensure your content is positive, supportive, and appropriate for a wellness-focused community."
+            }), 400
+        
+        # Initialize database if needed
+        if not services["database"]:
+            init_database()
+        
+        if not services["database"] or not db:
+            return jsonify({"success": False, "error": "Database service unavailable"}), 500
+        
+        # Store in wellness gallery (anonymously)
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        
+        try:
+            # Auto-approve if high confidence, otherwise mark for review
+            is_approved = confidence >= 0.8
+            moderation_status = "approved" if is_approved else "pending"
+            
+            from datetime import datetime
+            metadata = {
+                "moderation_confidence": confidence,
+                "moderation_reason": moderation_reason,
+                "original_content_type": content_type,
+                "sharing_timestamp": datetime.now().isoformat()
+            }
+            
+            if db.use_postgres:
+                cursor.execute("""
+                    INSERT INTO wellness_gallery 
+                    (content_type, content, theme, mood, is_approved, moderation_status, metadata)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                """, (
+                    content_type, content, theme, mood, is_approved, moderation_status, json.dumps(metadata)
+                ))
+            else:
+                cursor.execute("""
+                    INSERT INTO wellness_gallery 
+                    (content_type, content, theme, mood, is_approved, moderation_status, metadata)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    content_type, content, theme, mood, 1 if is_approved else 0, moderation_status, json.dumps(metadata)
+                ))
+            
+            conn.commit()
+            logger.info(f"Content shared to wellness gallery: {theme} - {content_type}")
+            
+            response_message = "Shared to Wellness Gallery!" if is_approved else "Shared to Wellness Gallery! Your content is being reviewed and will appear soon."
+            
+            return jsonify({
+                "success": True,
+                "message": response_message,
+                "approved": is_approved
+            })
+            
+        except Exception as db_error:
+            conn.rollback()
+            logger.error(f"Database error sharing to wellness gallery: {db_error}")
+            return jsonify({"success": False, "error": "Failed to share content"}), 500
+        finally:
+            cursor.close()
+            conn.close()
+            
+    except Exception as e:
+        logger.error(f"Share to wellness gallery API error: {e}")
+        return jsonify({"success": False, "error": "Failed to share content"}), 500
+
+@app.route("/api/wellness-gallery", methods=["GET"])
+def api_get_wellness_gallery():
+    """Get approved content from wellness gallery"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        # Initialize database if needed
+        if not services["database"]:
+            init_database()
+        
+        if not services["database"] or not db:
+            return jsonify({"success": False, "error": "Database service unavailable"}), 500
+        
+        theme_filter = request.args.get('theme', 'all')
+        content_type_filter = request.args.get('type', 'all')
+        limit = min(int(request.args.get('limit', 20)), 50)  # Max 50 items
+        
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        
+        try:
+            # Build query with filters
+            base_query = """
+                SELECT id, content_type, content, theme, mood, hearts_count, created_at, metadata
+                FROM wellness_gallery 
+                WHERE is_approved = {} AND moderation_status = 'approved'
+            """.format('TRUE' if db.use_postgres else '1')
+            
+            params = []
+            
+            if theme_filter != 'all':
+                base_query += " AND theme = {}"
+                base_query = base_query.format('%s' if db.use_postgres else '?')
+                params.append(theme_filter)
+            
+            if content_type_filter != 'all':
+                if params:
+                    base_query += " AND content_type = {}"
+                    base_query = base_query.format('%s' if db.use_postgres else '?')
+                else:
+                    base_query += " AND content_type = {}"
+                    base_query = base_query.format('%s' if db.use_postgres else '?')
+                params.append(content_type_filter)
+            
+            # Order by creation date (newest first) and limit
+            base_query += " ORDER BY created_at DESC LIMIT {}"
+            base_query = base_query.format('%s' if db.use_postgres else '?')
+            params.append(limit)
+            
+            cursor.execute(base_query, params)
+            results = cursor.fetchall()
+            
+            # Format results
+            gallery_items = []
+            for row in results:
+                item = {
+                    "id": row[0],
+                    "content_type": row[1],
+                    "content": row[2],
+                    "theme": row[3],
+                    "mood": row[4],
+                    "hearts_count": row[5],
+                    "created_at": row[6],
+                    "metadata": json.loads(row[7]) if row[7] else {}
+                }
+                gallery_items.append(item)
+            
+            return jsonify({
+                "success": True,
+                "items": gallery_items,
+                "total": len(gallery_items)
+            })
+            
+        except Exception as db_error:
+            logger.error(f"Database error getting wellness gallery: {db_error}")
+            return jsonify({"success": False, "error": "Failed to load gallery"}), 500
+        finally:
+            cursor.close()
+            conn.close()
+            
+    except Exception as e:
+        logger.error(f"Get wellness gallery API error: {e}")
+        return jsonify({"success": False, "error": "Failed to load gallery"}), 500
+
+@app.route("/api/wellness-gallery/heart", methods=["POST"])
+def api_heart_wellness_content():
+    """Add a heart to wellness gallery content"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+            
+        data = request.get_json()
+        content_id = data.get("content_id")
+        
+        if not content_id:
+            return jsonify({"success": False, "error": "Content ID required"}), 400
+        
+        # Initialize database if needed
+        if not services["database"]:
+            init_database()
+        
+        if not services["database"] or not db:
+            return jsonify({"success": False, "error": "Database service unavailable"}), 500
+        
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        
+        try:
+            # Increment heart count
+            if db.use_postgres:
+                cursor.execute("""
+                    UPDATE wellness_gallery 
+                    SET hearts_count = hearts_count + 1 
+                    WHERE id = %s AND is_approved = TRUE
+                    RETURNING hearts_count
+                """, (content_id,))
+            else:
+                cursor.execute("""
+                    UPDATE wellness_gallery 
+                    SET hearts_count = hearts_count + 1 
+                    WHERE id = ? AND is_approved = 1
+                """, (content_id,))
+                
+                # Get updated count for SQLite
+                cursor.execute("SELECT hearts_count FROM wellness_gallery WHERE id = ?", (content_id,))
+            
+            result = cursor.fetchone()
+            if not result:
+                return jsonify({"success": False, "error": "Content not found"}), 404
+            
+            new_count = result[0]
+            conn.commit()
+            
+            return jsonify({
+                "success": True,
+                "hearts_count": new_count
+            })
+            
+        except Exception as db_error:
+            conn.rollback()
+            logger.error(f"Database error hearting content: {db_error}")
+            return jsonify({"success": False, "error": "Failed to heart content"}), 500
+        finally:
+            cursor.close()
+            conn.close()
+            
+    except Exception as e:
+        logger.error(f"Heart wellness content API error: {e}")
+        return jsonify({"success": False, "error": "Failed to heart content"}), 500
 
 def enhance_premium_response(response, tier, character):
     """Enhance responses for premium users"""

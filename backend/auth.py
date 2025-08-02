@@ -300,6 +300,27 @@ class Database:
                 )
                 """
             )
+
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS wellness_gallery (
+                    id SERIAL PRIMARY KEY,
+                    content_type VARCHAR(50) NOT NULL CHECK(content_type IN ('creative_writing', 'canvas_art')),
+                    content TEXT NOT NULL,
+                    theme VARCHAR(100) NOT NULL,
+                    mood VARCHAR(50),
+                    is_anonymous BOOLEAN DEFAULT TRUE,
+                    hearts_count INTEGER DEFAULT 0,
+                    reports_count INTEGER DEFAULT 0,
+                    is_featured BOOLEAN DEFAULT FALSE,
+                    is_approved BOOLEAN DEFAULT FALSE,
+                    is_flagged BOOLEAN DEFAULT FALSE,
+                    moderation_status VARCHAR(20) DEFAULT 'pending' CHECK(moderation_status IN ('pending', 'approved', 'rejected', 'flagged')),
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    metadata JSONB
+                )
+                """
+            )
         else:
             cursor.execute(
                 """
@@ -384,6 +405,27 @@ class Database:
                     title TEXT NOT NULL,
                     content TEXT NOT NULL,
                     content_type TEXT NOT NULL DEFAULT 'conversation',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    metadata TEXT
+                )
+            """
+            )
+
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS wellness_gallery (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    content_type TEXT NOT NULL CHECK(content_type IN ('creative_writing', 'canvas_art')),
+                    content TEXT NOT NULL,
+                    theme TEXT NOT NULL,
+                    mood TEXT,
+                    is_anonymous INTEGER DEFAULT 1,
+                    hearts_count INTEGER DEFAULT 0,
+                    reports_count INTEGER DEFAULT 0,
+                    is_featured INTEGER DEFAULT 0,
+                    is_approved INTEGER DEFAULT 0,
+                    is_flagged INTEGER DEFAULT 0,
+                    moderation_status TEXT DEFAULT 'pending' CHECK(moderation_status IN ('pending', 'approved', 'rejected', 'flagged')),
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     metadata TEXT
                 )
