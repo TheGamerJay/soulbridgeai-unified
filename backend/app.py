@@ -622,6 +622,47 @@ def auth_login():
             session['user_plan'] = result.get('plan_type', 'foundation')
             session['display_name'] = result.get('display_name', 'User')
             
+            # Restore active trial status from database if exists
+            try:
+                database_url = os.environ.get('DATABASE_URL')
+                if database_url:
+                    import psycopg2
+                    conn = psycopg2.connect(database_url)
+                    cursor = conn.cursor()
+                    
+                    # Check if user has an active trial
+                    cursor.execute("""
+                        SELECT trial_started_at, trial_companion, trial_used_permanently, trial_expires_at
+                        FROM users WHERE email = %s
+                    """, (email,))
+                    trial_result = cursor.fetchone()
+                    conn.close()
+                    
+                    if trial_result:
+                        trial_started_at, trial_companion, trial_used_permanently, trial_expires_at = trial_result
+                        
+                        # Check if trial is still active
+                        if not trial_used_permanently and trial_expires_at:
+                            now = datetime.utcnow()
+                            if now < trial_expires_at:
+                                # Trial is still active - restore to session
+                                session["trial_active"] = True
+                                session["trial_companion"] = trial_companion
+                                session["trial_expires_at"] = trial_expires_at.isoformat()
+                                
+                                time_remaining = int((trial_expires_at - now).total_seconds() / 60)
+                                logger.info(f"✅ TRIAL RESTORED: {trial_companion} trial active for {time_remaining} minutes")
+                            else:
+                                # Trial expired - mark as used (this should be handled by get-trial-status but just in case)
+                                logger.info(f"⏰ Trial expired during login for {email}")
+                        else:
+                            logger.info(f"ℹ️ User {email} has no active trial (used_permanently: {trial_used_permanently})")
+                    else:
+                        logger.info(f"ℹ️ No trial data found for user {email}")
+                        
+            except Exception as trial_error:
+                logger.warning(f"Failed to restore trial status on login: {trial_error}")
+            
             logger.info(f"Login successful: {email} (plan: {session['user_plan']})")
             
             # Handle both form submissions and AJAX requests
