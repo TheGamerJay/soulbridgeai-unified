@@ -177,6 +177,11 @@
                             <span>Personal Letters</span>
                             <small>Letters to yourself or loved ones</small>
                         </button>
+                        <button class="mode-btn" onclick="selectWritingMode('canvas')" data-mode="canvas">
+                            <i class="fas fa-palette"></i>
+                            <span>Creative Canvas</span>
+                            <small>Art therapy and emotional expression</small>
+                        </button>
                     </div>
                 </div>
                 
@@ -218,6 +223,72 @@
                     <button onclick="resetCreativeWriting()" class="reset-btn">
                         <i class="fas fa-redo"></i> Create Another
                     </button>
+                </div>
+                
+                <!-- Canvas Mode Interface -->
+                <div class="canvas-interface" id="canvasInterface" style="display: none;">
+                    <h3 id="canvasTitle">Creative Canvas</h3>
+                    <div class="canvas-prompt-section">
+                        <textarea id="canvasPrompt" placeholder="What emotions or ideas would you like to express through art?" rows="3"></textarea>
+                        <div class="mood-selector">
+                            <label>Art Focus:</label>
+                            <select id="canvasTheme">
+                                <option value="mood">Express Current Mood</option>
+                                <option value="stress">Release Stress & Tension</option>
+                                <option value="gratitude">Gratitude & Joy</option>
+                                <option value="peace">Find Inner Peace</option>
+                                <option value="growth">Personal Growth</option>
+                                <option value="dreams">Dreams & Aspirations</option>
+                                <option value="healing">Healing & Recovery</option>
+                                <option value="freeform">Free Expression</option>
+                            </select>
+                        </div>
+                        <button onclick="startArtTherapy()" class="generate-btn">
+                            <i class="fas fa-paint-brush"></i> Start Art Therapy Session
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Canvas Drawing Area -->
+                <div class="canvas-drawing" id="canvasDrawing" style="display: none;">
+                    <div class="canvas-header">
+                        <h3 id="canvasInstructions">Let your emotions flow through art</h3>
+                        <div class="canvas-tools">
+                            <div class="tool-group">
+                                <label>Brush Size:</label>
+                                <input type="range" id="brushSize" min="2" max="20" value="5">
+                                <span id="brushSizeValue">5px</span>
+                            </div>
+                            <div class="tool-group">
+                                <label>Color:</label>
+                                <input type="color" id="brushColor" value="#22d3ee">
+                            </div>
+                            <div class="tool-group">
+                                <button onclick="clearCanvas()" class="tool-btn">
+                                    <i class="fas fa-eraser"></i> Clear
+                                </button>
+                                <button onclick="undoCanvas()" class="tool-btn">
+                                    <i class="fas fa-undo"></i> Undo
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="canvas-container">
+                        <canvas id="artCanvas" width="600" height="400"></canvas>
+                    </div>
+                    
+                    <div class="canvas-actions">
+                        <button onclick="saveCanvasArt()" class="save-btn">
+                            <i class="fas fa-bookmark"></i> Save to Library
+                        </button>
+                        <button onclick="exportCanvasArt()" class="export-btn">
+                            <i class="fas fa-download"></i> Export Art
+                        </button>
+                        <button onclick="resetCanvas()" class="reset-btn">
+                            <i class="fas fa-redo"></i> New Canvas
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -370,6 +441,128 @@
             background: linear-gradient(135deg, #7c3aed, #6d28d9) !important;
             border-color: #8b5cf6 !important;
         }
+        
+        /* Canvas Interface Styles */
+        .canvas-interface, .canvas-drawing {
+            margin: 20px 0;
+        }
+        
+        .canvas-prompt-section {
+            background: rgba(0, 0, 0, 0.2);
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .canvas-header {
+            background: rgba(0, 0, 0, 0.2);
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .canvas-tools {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+            margin-top: 15px;
+        }
+        
+        .tool-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .tool-group label {
+            color: #22d3ee;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .tool-group input[type="range"] {
+            width: 80px;
+        }
+        
+        .tool-group input[type="color"] {
+            width: 40px;
+            height: 30px;
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 6px;
+            background: transparent;
+            cursor: pointer;
+        }
+        
+        .tool-btn {
+            background: rgba(34, 211, 238, 0.2);
+            border: 1px solid #22d3ee;
+            border-radius: 6px;
+            padding: 6px 12px;
+            color: #22d3ee;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+        
+        .tool-btn:hover {
+            background: rgba(34, 211, 238, 0.3);
+        }
+        
+        .canvas-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+            background: rgba(0, 0, 0, 0.2);
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+        }
+        
+        #artCanvas {
+            border: 2px solid rgba(34, 211, 238, 0.5);
+            border-radius: 8px;
+            background: white;
+            cursor: crosshair;
+            max-width: 100%;
+            height: auto;
+        }
+        
+        .canvas-actions {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        #brushSizeValue {
+            color: #e2e8f0;
+            font-size: 0.8rem;
+            min-width: 30px;
+        }
+        
+        @media (max-width: 768px) {
+            .canvas-tools {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .tool-group {
+                justify-content: space-between;
+            }
+            
+            #artCanvas {
+                width: 100%;
+                max-width: 400px;
+            }
+            
+            .canvas-actions {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
     </style>
 
     <script>
@@ -391,8 +584,16 @@
             // Add active class to selected button
             document.querySelector(`[data-mode="${mode}"]`).classList.add('active');
             
-            // Show input section
-            document.getElementById('writingInput').style.display = 'block';
+            // Show appropriate input section based on mode
+            if (mode === 'canvas') {
+                document.getElementById('writingInput').style.display = 'none';
+                document.getElementById('canvasInterface').style.display = 'block';
+                document.getElementById('canvasDrawing').style.display = 'none';
+            } else {
+                document.getElementById('writingInput').style.display = 'block';
+                document.getElementById('canvasInterface').style.display = 'none';
+                document.getElementById('canvasDrawing').style.display = 'none';
+            }
             
             // Update title and placeholder based on mode
             const modeConfig = {
@@ -419,6 +620,10 @@
                 letter: {
                     title: 'Personal Letters',
                     placeholder: 'Who is this letter for and what message do you want to convey? (e.g., "letter to future self about goals", "thank you note to someone special")'
+                },
+                canvas: {
+                    title: 'Creative Canvas',
+                    placeholder: 'What emotions or ideas would you like to express through art? (e.g., "my current stress and how to release it", "gratitude for good things in my life")'
                 }
             };
             
@@ -591,8 +796,239 @@ Where emotion meets expression.
         function resetCreativeWriting() {
             document.getElementById('writingInput').style.display = 'none';
             document.getElementById('writingOutput').style.display = 'none';
+            document.getElementById('canvasInterface').style.display = 'none';
+            document.getElementById('canvasDrawing').style.display = 'none';
             document.getElementById('writingPrompt').value = '';
+            document.getElementById('canvasPrompt').value = '';
             document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            
+            // Clear canvas if it exists
+            const canvas = document.getElementById('artCanvas');
+            if (canvas) {
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+        }
+        
+        // Canvas Drawing Variables
+        let canvas, ctx;
+        let isDrawing = false;
+        let canvasHistory = [];
+        let historyStep = -1;
+        
+        function startArtTherapy() {
+            const prompt = document.getElementById('canvasPrompt').value.trim();
+            const theme = document.getElementById('canvasTheme').value;
+            
+            if (!prompt) {
+                alert('Please describe what you\'d like to express through art!');
+                return;
+            }
+            
+            // Show canvas drawing area
+            document.getElementById('canvasInterface').style.display = 'none';
+            document.getElementById('canvasDrawing').style.display = 'block';
+            
+            // Set theme-specific instructions
+            const themeInstructions = {
+                mood: 'Express your current mood using colors, shapes, and lines. Let your emotions guide your brush.',
+                stress: 'Release your stress and tension through bold strokes. Draw what stress feels like, then transform it.',
+                gratitude: 'Fill the canvas with symbols, colors, and shapes that represent what you\'re grateful for.',
+                peace: 'Create a peaceful scene that brings you calm. Use gentle colors and flowing lines.',
+                growth: 'Visualize your personal growth journey. Show where you\'ve been and where you\'re going.',
+                dreams: 'Paint your dreams and aspirations. What does your ideal future look like?',
+                healing: 'Use art to heal. Draw your pain transforming into strength and hope.',
+                freeform: 'Let your creativity flow freely. There are no rules - just express yourself.'
+            };
+            
+            document.getElementById('canvasInstructions').textContent = themeInstructions[theme] || 'Let your emotions flow through art';
+            
+            // Initialize canvas
+            initializeCanvas();
+        }
+        
+        function initializeCanvas() {
+            canvas = document.getElementById('artCanvas');
+            ctx = canvas.getContext('2d');
+            
+            // Set up canvas properties
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            
+            // Clear canvas and set white background
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Save initial state
+            saveCanvasState();
+            
+            // Add event listeners
+            setupCanvasEvents();
+            
+            // Update brush size display
+            updateBrushSize();
+        }
+        
+        function setupCanvasEvents() {
+            // Mouse events
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseout', stopDrawing);
+            
+            // Touch events for mobile
+            canvas.addEventListener('touchstart', handleTouch);
+            canvas.addEventListener('touchmove', handleTouch);
+            canvas.addEventListener('touchend', stopDrawing);
+            
+            // Brush size slider
+            document.getElementById('brushSize').addEventListener('input', updateBrushSize);
+        }
+        
+        function startDrawing(e) {
+            isDrawing = true;
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+        }
+        
+        function draw(e) {
+            if (!isDrawing) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            ctx.lineWidth = document.getElementById('brushSize').value;
+            ctx.strokeStyle = document.getElementById('brushColor').value;
+            
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+        }
+        
+        function stopDrawing() {
+            if (isDrawing) {
+                isDrawing = false;
+                ctx.beginPath();
+                saveCanvasState();
+            }
+        }
+        
+        function handleTouch(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent(e.type === 'touchstart' ? 'mousedown' : 
+                                            e.type === 'touchmove' ? 'mousemove' : 'mouseup', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            canvas.dispatchEvent(mouseEvent);
+        }
+        
+        function updateBrushSize() {
+            const size = document.getElementById('brushSize').value;
+            document.getElementById('brushSizeValue').textContent = size + 'px';
+        }
+        
+        function clearCanvas() {
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            saveCanvasState();
+        }
+        
+        function undoCanvas() {
+            if (historyStep > 0) {
+                historyStep--;
+                const canvasState = canvasHistory[historyStep];
+                const img = new Image();
+                img.onload = function() {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(img, 0, 0);
+                };
+                img.src = canvasState;
+            }
+        }
+        
+        function saveCanvasState() {
+            historyStep++;
+            if (historyStep < canvasHistory.length) {
+                canvasHistory.length = historyStep;
+            }
+            canvasHistory.push(canvas.toDataURL());
+        }
+        
+        async function saveCanvasArt() {
+            const canvasDataURL = canvas.toDataURL('image/png');
+            const prompt = document.getElementById('canvasPrompt').value;
+            const theme = document.getElementById('canvasTheme').value;
+            
+            const saveBtn = document.querySelector('#canvasDrawing .save-btn');
+            const originalText = saveBtn.innerHTML;
+            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            saveBtn.disabled = true;
+            
+            try {
+                const response = await fetch('/api/save-canvas-art', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        artwork: canvasDataURL,
+                        prompt: prompt,
+                        theme: theme,
+                        companion: currentCharacter || 'AI Assistant'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    saveBtn.innerHTML = '<i class="fas fa-check"></i> Saved!';
+                    setTimeout(() => {
+                        saveBtn.innerHTML = originalText;
+                        saveBtn.disabled = false;
+                    }, 2000);
+                } else {
+                    throw new Error(data.error || 'Save failed');
+                }
+            } catch (error) {
+                console.error('Save canvas error:', error);
+                alert('Sorry, there was an error saving your artwork. Please try again.');
+                saveBtn.innerHTML = originalText;
+                saveBtn.disabled = false;
+            }
+        }
+        
+        function exportCanvasArt() {
+            const prompt = document.getElementById('canvasPrompt').value;
+            const theme = document.getElementById('canvasTheme').value;
+            
+            // Export as PNG
+            const link = document.createElement('a');
+            link.download = `SoulBridge_Art_${theme}_${new Date().getTime()}.png`;
+            link.href = canvas.toDataURL('image/png');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // Visual feedback
+            const exportBtn = document.querySelector('#canvasDrawing .export-btn');
+            const originalText = exportBtn.innerHTML;
+            exportBtn.innerHTML = '<i class="fas fa-check"></i> Exported!';
+            setTimeout(() => {
+                exportBtn.innerHTML = originalText;
+            }, 2000);
+        }
+        
+        function resetCanvas() {
+            document.getElementById('canvasInterface').style.display = 'block';
+            document.getElementById('canvasDrawing').style.display = 'none';
+            document.getElementById('canvasPrompt').value = '';
+            clearCanvas();
         }
     </script>
     

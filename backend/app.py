@@ -5685,6 +5685,122 @@ def api_save_creative_content():
         logger.error(f"Save creative content API error: {e}")
         return jsonify({"success": False, "error": "Failed to save creative content"}), 500
 
+@app.route("/api/save-canvas-art", methods=["POST"])
+def api_save_canvas_art():
+    """Save canvas artwork to user's library"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+            
+        # Check if user has access to creative canvas (Growth/Max tiers or active trial)
+        user_plan = session.get('user_plan', 'foundation')
+        trial_active = session.get('trial_active', False)
+        
+        if user_plan not in ['growth', 'premium', 'enterprise'] and not trial_active:
+            return jsonify({"success": False, "error": "Creative Canvas requires Growth or Max plan"}), 403
+            
+        data = request.get_json()
+        if not data:
+            return jsonify({"success": False, "error": "Invalid request data"}), 400
+            
+        artwork_data = data.get("artwork", "").strip()
+        prompt = data.get("prompt", "").strip()
+        theme = data.get("theme", "freeform")
+        companion = data.get("companion", "AI Assistant")
+        
+        if not artwork_data or not artwork_data.startswith('data:image'):
+            return jsonify({"success": False, "error": "No valid artwork data provided"}), 400
+        
+        # Initialize database if needed
+        if not services["database"]:
+            init_database()
+        
+        if not services["database"] or not db:
+            return jsonify({"success": False, "error": "Database service unavailable"}), 500
+        
+        user_email = session.get('user_email')
+        if not user_email:
+            return jsonify({"success": False, "error": "User session invalid"}), 401
+        
+        # Create a title based on theme and prompt
+        theme_titles = {
+            "mood": "Mood Expression",
+            "stress": "Stress Release",
+            "gratitude": "Gratitude Art", 
+            "peace": "Peaceful Creation",
+            "growth": "Growth Journey",
+            "dreams": "Dreams & Aspirations",
+            "healing": "Healing Art",
+            "freeform": "Free Expression"
+        }
+        
+        title = f"{theme_titles.get(theme, 'Canvas Art')} - {prompt[:30]}{'...' if len(prompt) > 30 else ''}"
+        
+        # Save artwork data (we'll store the base64 data directly)
+        from datetime import datetime
+        current_date = datetime.now().strftime('%B %d, %Y at %I:%M %p')
+        
+        # Store in database
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        
+        try:
+            if db.use_postgres:
+                cursor.execute("""
+                    INSERT INTO user_library (user_email, title, content, content_type, created_at, metadata)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                """, (
+                    user_email,
+                    title,
+                    artwork_data,  # Store the base64 image data
+                    'canvas_art',
+                    datetime.now(),
+                    json.dumps({
+                        "theme": theme,
+                        "companion": companion,
+                        "original_prompt": prompt,
+                        "art_type": "digital_canvas"
+                    })
+                ))
+            else:
+                cursor.execute("""
+                    INSERT INTO user_library (user_email, title, content, content_type, created_at, metadata)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                """, (
+                    user_email,
+                    title,
+                    artwork_data,  # Store the base64 image data
+                    'canvas_art',
+                    datetime.now().isoformat(),
+                    json.dumps({
+                        "theme": theme,
+                        "companion": companion,
+                        "original_prompt": prompt,
+                        "art_type": "digital_canvas"
+                    })
+                ))
+            
+            conn.commit()
+            logger.info(f"Canvas artwork saved to library for user {user_email}: {theme}")
+            
+            return jsonify({
+                "success": True,
+                "message": "Artwork saved to your library!",
+                "title": title
+            })
+            
+        except Exception as db_error:
+            conn.rollback()
+            logger.error(f"Database error saving canvas artwork: {db_error}")
+            return jsonify({"success": False, "error": "Failed to save to library"}), 500
+        finally:
+            cursor.close()
+            conn.close()
+            
+    except Exception as e:
+        logger.error(f"Save canvas art API error: {e}")
+        return jsonify({"success": False, "error": "Failed to save artwork"}), 500
+
 def enhance_premium_response(response, tier, character):
     """Enhance responses for premium users"""
     try:
