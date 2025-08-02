@@ -584,7 +584,7 @@ function renderSection(sectionId, companionList) {
     container.innerHTML = companionList.map(companion => {
         // Use new access control function that considers trial status
         const hasAccess = hasAccessToCompanion(companion, currentUser, window.trialStatus);
-        const isLocked = !hasAccess;
+        let isLocked = !hasAccess;
         
         let lockReason = '';
         if (isLocked) {
