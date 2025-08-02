@@ -130,8 +130,8 @@ def check_trial_active_from_db(user_email=None, user_id=None):
                 
             trial_started_at, trial_companion, trial_used_permanently, trial_expires_at = result
             
-            # Check if trial is still active
-            if trial_used_permanently and trial_expires_at:
+            # Check if trial is still active (regardless of trial_used_permanently flag)
+            if trial_expires_at:
                 now = datetime.utcnow()
                 if now < trial_expires_at:
                     time_remaining = max(0, int((trial_expires_at - now).total_seconds() / 60))
@@ -3124,7 +3124,7 @@ def start_trial():
                 UPDATE users 
                 SET trial_started_at = CURRENT_TIMESTAMP, 
                     trial_companion = %s, 
-                    trial_used_permanently = FALSE,
+                    trial_used_permanently = TRUE,
                     trial_expires_at = CURRENT_TIMESTAMP + INTERVAL '5 hours'
                 WHERE email = %s
             """, (companion_id, user_email))
@@ -3209,23 +3209,18 @@ def get_trial_status():
             now = datetime.utcnow()
             trial_active = False
             
-            if trial_used_permanently:
-                # Trial is over - user already used their trial
-                logger.info("❌ Trial permanently used")
-                trial_active = False
-            elif trial_expires_at and now < trial_expires_at:
+            # Check if trial is still active based on expiration time only
+            if trial_expires_at and now < trial_expires_at:
                 # Trial is still active
                 logger.info(f"✅ Trial active until {trial_expires_at}")
                 trial_active = True
-            elif trial_expires_at and now >= trial_expires_at:
-                # Trial has expired - mark as permanently used
-                logger.info(f"⏰ Trial expired at {trial_expires_at}, marking as used")
-                cursor.execute("""
-                    UPDATE users SET trial_used_permanently = TRUE WHERE email = %s
-                """, (user_email,))
-                conn.commit()
+            else:
+                # Trial has expired or was never started
+                if trial_expires_at:
+                    logger.info(f"⏰ Trial expired at {trial_expires_at}")
+                else:
+                    logger.info("❌ No trial found")
                 trial_active = False
-                trial_used_permanently = True
             
             conn.close()
             
