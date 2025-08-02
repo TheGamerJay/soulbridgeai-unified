@@ -1386,14 +1386,17 @@ def api_companions_select():
         if not companion_found:
             return jsonify({"success": False, "error": "Invalid companion ID"}), 400
         
+        # Check trial status
+        trial_active = session.get('trial_active', False)
+        
         # Check access based on tier
         has_access = False
         if companion_tier == "free":
             has_access = True
         elif companion_tier == "growth":
-            has_access = user_plan in ['premium', 'enterprise']
+            has_access = user_plan in ['premium', 'enterprise'] or trial_active
         elif companion_tier == "max":
-            has_access = user_plan == 'enterprise'
+            has_access = user_plan == 'enterprise' or trial_active
         
         if not has_access:
             return jsonify({
