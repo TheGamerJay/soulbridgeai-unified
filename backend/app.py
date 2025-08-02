@@ -4289,40 +4289,6 @@ def debug_profile_image():
     except Exception as e:
         return jsonify({"error": f"Debug failed: {str(e)}"})
 
-@app.route("/api/profile-image/<image_id>")
-def serve_profile_image(image_id):
-    """Serve profile image from database if file doesn't exist"""
-    try:
-        if not is_logged_in():
-            return "Authentication required", 401
-        
-        user_id = session.get('user_id')
-        # Ensure database is initialized before checking
-        db_instance = get_database()
-        if not user_id or not db_instance:
-            return "No access", 403
-            
-        conn = db_instance.get_connection()
-        cursor = conn.cursor()
-        
-        placeholder = "%s" if hasattr(db_instance, 'postgres_url') and db_instance.postgres_url else "?"
-        cursor.execute(f"SELECT profile_image_data FROM users WHERE id = {placeholder}", (user_id,))
-        result = cursor.fetchone()
-        
-        conn.close()
-        
-        if result and result[0]:
-            import base64
-            from flask import Response
-            
-            img_data = base64.b64decode(result[0])
-            return Response(img_data, mimetype='image/png')
-        else:
-            return "Image not found", 404
-            
-    except Exception as e:
-        logger.error(f"Serve profile image error: {e}")
-        return "Server error", 500
 
 @app.route("/api/user-addons")
 def get_user_addons():
