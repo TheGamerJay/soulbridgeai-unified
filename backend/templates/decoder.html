@@ -322,6 +322,8 @@
                     Free users get {{ daily_limit }} decodes per day. Upgrade for more access.
                 {% elif user_plan == 'premium' %}
                     Growth users get {{ daily_limit }} decodes per day. Upgrade to Max for unlimited.
+                {% elif user_plan == 'enterprise' %}
+                    🎉 Max users have unlimited decoder access!
                 {% endif %}
             {% else %}
                 🎉 Max users have unlimited decoder access!
