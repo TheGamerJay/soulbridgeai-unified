@@ -1711,8 +1711,11 @@ def decoder():
         }
         
         daily_limit = tier_limits.get(user_plan, 3)
+        logger.info(f"🔍 DECODER DEBUG: user_plan = {user_plan}")
+        logger.info(f"🔍 DECODER DEBUG: decoder_usage = {decoder_usage}")
         logger.info(f"🔍 DECODER DEBUG: daily_limit = {daily_limit}")
-        logger.info(f"🔍 DECODER DEBUG: tier_limits lookup result = {daily_limit} for plan '{user_plan}'")
+        logger.info(f"🔍 DECODER DEBUG: tier_limits = {tier_limits}")
+        logger.info(f"🔍 DECODER DEBUG: Passing to template - user_plan={user_plan}, daily_limit={daily_limit}, current_usage={decoder_usage}")
         
         return render_template("decoder.html", 
                              user_plan=user_plan,
@@ -4383,6 +4386,9 @@ def check_decoder_limit():
         user_plan = session.get('user_plan', 'foundation')
         current_usage = get_decoder_usage()
         
+        logger.info(f"🔍 DECODER LIMIT CHECK: user_plan = {user_plan}")
+        logger.info(f"🔍 DECODER LIMIT CHECK: current_usage = {current_usage}")
+        
         # Define tier limits
         tier_limits = {
             'foundation': 3,    # Free: 3 per day
@@ -4391,6 +4397,7 @@ def check_decoder_limit():
         }
         
         daily_limit = tier_limits.get(user_plan, 3)
+        logger.info(f"🔍 DECODER LIMIT CHECK: daily_limit = {daily_limit}")
         
         # Check if at limit
         if daily_limit is None:  # Unlimited for Max tier
