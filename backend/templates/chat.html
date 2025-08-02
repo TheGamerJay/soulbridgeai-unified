@@ -72,7 +72,7 @@
                 {% endif %}
                 
                 <!-- Max Tier Addon Buttons -->
-                {% if session.get('user_plan') == 'enterprise' %}
+                {% if session.get('user_plan') == 'enterprise' or session.get('trial_active') %}
                 <a href="/voice-journaling" class="action-btn addon-btn" title="Voice Journaling - Max Tier Feature">
                     <i class="fas fa-microphone-alt"></i>
                     Journal

@@ -1757,26 +1757,32 @@ def decoder():
         user_plan = session.get('user_plan', 'foundation')
         decoder_usage = get_decoder_usage()
         
+        # Check if user has active trial (gives Max tier access)
+        trial_active, _, _ = check_trial_active_from_db()
+        
         # DEBUG: Log decoder access info
         logger.info(f"🔍 DECODER DEBUG: user_plan = {user_plan}")
+        logger.info(f"🔍 DECODER DEBUG: trial_active = {trial_active}")
         logger.info(f"🔍 DECODER DEBUG: decoder_usage = {decoder_usage}")
         
-        # Define tier limits
-        tier_limits = {
-            'foundation': 3,    # Free: 3 per day
-            'premium': 15,      # Growth: 15 per day  
-            'enterprise': None  # Max: unlimited
-        }
-        
-        daily_limit = tier_limits.get(user_plan, 3)
-        logger.info(f"🔍 DECODER DEBUG: user_plan = {user_plan}")
-        logger.info(f"🔍 DECODER DEBUG: decoder_usage = {decoder_usage}")
+        # Define tier limits (trial users get unlimited access)
+        if trial_active:
+            daily_limit = None  # Unlimited during trial
+            effective_plan = 'enterprise'  # Treat as Max tier during trial
+        else:
+            tier_limits = {
+                'foundation': 3,    # Free: 3 per day
+                'premium': 15,      # Growth: 15 per day  
+                'enterprise': None  # Max: unlimited
+            }
+            daily_limit = tier_limits.get(user_plan, 3)
+            effective_plan = user_plan
+        logger.info(f"🔍 DECODER DEBUG: effective_plan = {effective_plan}")
         logger.info(f"🔍 DECODER DEBUG: daily_limit = {daily_limit}")
-        logger.info(f"🔍 DECODER DEBUG: tier_limits = {tier_limits}")
-        logger.info(f"🔍 DECODER DEBUG: Passing to template - user_plan={user_plan}, daily_limit={daily_limit}, current_usage={decoder_usage}")
+        logger.info(f"🔍 DECODER DEBUG: Passing to template - effective_plan={effective_plan}, daily_limit={daily_limit}, current_usage={decoder_usage}")
         
         return render_template("decoder.html", 
-                             user_plan=user_plan,
+                             user_plan=effective_plan,
                              daily_limit=daily_limit,
                              current_usage=decoder_usage)
     except Exception as e:
@@ -4417,17 +4423,25 @@ def check_decoder_limit():
         user_plan = session.get('user_plan', 'foundation')
         current_usage = get_decoder_usage()
         
+        # Check if user has active trial (gives Max tier access)
+        trial_active, _, _ = check_trial_active_from_db()
+        
         logger.info(f"🔍 DECODER LIMIT CHECK: user_plan = {user_plan}")
+        logger.info(f"🔍 DECODER LIMIT CHECK: trial_active = {trial_active}")
         logger.info(f"🔍 DECODER LIMIT CHECK: current_usage = {current_usage}")
         
-        # Define tier limits
-        tier_limits = {
-            'foundation': 3,    # Free: 3 per day
-            'premium': 15,      # Growth: 15 per day  
-            'enterprise': None  # Max: unlimited
-        }
-        
-        daily_limit = tier_limits.get(user_plan, 3)
+        # Define tier limits (trial users get unlimited access)
+        if trial_active:
+            daily_limit = None  # Unlimited during trial
+            effective_plan = 'enterprise'  # Treat as Max tier during trial
+        else:
+            tier_limits = {
+                'foundation': 3,    # Free: 3 per day
+                'premium': 15,      # Growth: 15 per day  
+                'enterprise': None  # Max: unlimited
+            }
+            daily_limit = tier_limits.get(user_plan, 3)
+            effective_plan = user_plan
         logger.info(f"🔍 DECODER LIMIT CHECK: daily_limit = {daily_limit}")
         
         # Check if at limit
@@ -4444,7 +4458,8 @@ def check_decoder_limit():
             "current_usage": current_usage,
             "daily_limit": daily_limit,
             "remaining": remaining,
-            "user_plan": user_plan
+            "user_plan": effective_plan,
+            "trial_active": trial_active
         })
         
     except Exception as e:
