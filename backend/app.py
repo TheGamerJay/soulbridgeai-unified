@@ -1205,26 +1205,29 @@ def chat():
                 logger.info(f"🔍 CHAT: Found companion match: {candidate} → tier: {companion_tier}")
                 break
         
-        # Validate user has access to this companion tier
+        # Validate user has access to this companion tier (including trial status)
         user_plan = session.get('user_plan', 'foundation')
+        trial_active, trial_companion, time_remaining = check_trial_active_from_db()
         has_access = False
         
         if companion_tier:
             if companion_tier == 'free':
                 has_access = True
             elif companion_tier == 'growth':
-                has_access = user_plan in ['premium', 'enterprise']
+                has_access = user_plan in ['premium', 'enterprise'] or trial_active
             elif companion_tier == 'max':
-                has_access = user_plan in ['enterprise', 'max']
+                has_access = user_plan in ['enterprise', 'max'] or trial_active
         else:
             logger.warning(f"🚫 CHAT: No companion found for URL param: {url_param}, tried: {potential_companions}")
             
+        logger.info(f"🔍 CHAT URL ACCESS CHECK: user_plan={user_plan}, trial_active={trial_active}, companion_tier={companion_tier}, has_access={has_access}")
+        
         if has_access:
             session['selected_companion'] = potential_companion
             selected_companion = session['selected_companion']
             logger.info(f"🔄 CHAT: Updated companion from URL: {selected_companion}")
         else:
-            logger.warning(f"🚫 CHAT: Access denied to {potential_companion} for user with plan {user_plan}")
+            logger.warning(f"🚫 CHAT: Access denied to {potential_companion} for user with plan {user_plan} (trial_active={trial_active})")
             return redirect("/companion-selection?error=access_denied")
     
     companion_name = None
