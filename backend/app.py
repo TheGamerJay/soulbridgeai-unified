@@ -3031,6 +3031,7 @@ def get_trial_status():
         trial_used_permanently = session.get("trial_used_permanently", False)
         
         logger.info(f"Raw session trial data: active={trial_active}, companion={trial_companion}, expires={trial_expires_str}")
+        logger.info(f"Full session contents: {dict(session)}")
         
         # If trial is marked as active, check if it has expired
         if trial_active and trial_expires_str:
