@@ -1504,7 +1504,6 @@ function redirectToUpgrade(tier) {
 window.showUpgradeModal = showUpgradeModal;
 window.closeUpgradeModal = closeUpgradeModal;
 window.redirectToUpgrade = redirectToUpgrade;
-window.redirectToUpgradeNow = redirectToUpgradeNow;
 
 function showNotification(message, type = 'info') {
     console.log(`📢 Notification (${type}): ${message}`);
