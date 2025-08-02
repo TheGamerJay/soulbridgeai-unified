@@ -1389,6 +1389,9 @@ def api_companions_select():
         # Check trial status
         trial_active = session.get('trial_active', False)
         
+        # DEBUG: Log companion selection access check
+        logger.info(f"🔍 COMPANION SELECTION DEBUG: user_plan={user_plan}, trial_active={trial_active}, companion_tier={companion_tier}, companion_id={companion_id}")
+        
         # Check access based on tier
         has_access = False
         if companion_tier == "free":
@@ -1399,6 +1402,7 @@ def api_companions_select():
             has_access = user_plan == 'enterprise' or trial_active
         
         if not has_access:
+            logger.warning(f"🚫 COMPANION SELECTION BLOCKED: user_plan={user_plan}, trial_active={trial_active}, companion_tier={companion_tier}, companion_id={companion_id}")
             return jsonify({
                 "success": False, 
                 "error": f"Upgrade required to access {companion_tier} tier companions",
