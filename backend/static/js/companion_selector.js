@@ -599,10 +599,8 @@ function renderSection(sectionId, companionList) {
                 console.log(`🔒 Referral companion ${companion.display_name} - referral only`);
             }
         } else {
-            if (window.trialStatus?.growth_trial_active && companion.tier === 'growth') {
-                console.log(`✅ Growth companion ${companion.display_name} unlocked via ACTIVE TRIAL`);
-            } else if (window.trialStatus?.max_trial_active && companion.tier === 'max') {
-                console.log(`✅ Max companion ${companion.display_name} unlocked via ACTIVE TRIAL`);
+            if (window.trialStatus?.trial_active && (companion.tier === 'growth' || companion.tier === 'max')) {
+                console.log(`✅ ${companion.tier} companion ${companion.display_name} unlocked via ACTIVE TRIAL`);
             } else {
                 console.log(`✅ Companion ${companion.display_name} unlocked via ${currentUser.plan} plan`);
             }
@@ -673,8 +671,7 @@ function renderSection(sectionId, companionList) {
                                 const canTrial = !window.trialStatus || !window.trialStatus.trial_used_permanently;
                                 
                                 // Check if this specific companion has an active trial
-                                const hasActiveTrial = (companion.tier === 'growth' && window.trialStatus?.growth_trial_active) ||
-                                                      (companion.tier === 'max' && window.trialStatus?.max_trial_active);
+                                const hasActiveTrial = window.trialStatus?.trial_active === true;
                                 
                                 if (!isLocked) {
                                     // Companion is unlocked (via plan or trial) - show select button
