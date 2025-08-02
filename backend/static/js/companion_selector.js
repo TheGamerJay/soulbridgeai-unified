@@ -864,6 +864,9 @@ async function startPremiumTrial(companionId) {
         if (data.success) {
             console.log('✅ Trial started successfully:', data);
             
+            // Close the trial modal first
+            closeTrialModal();
+            
             // Show success message with trial details
             const expiresAt = new Date(data.trial_expires);
             const message = `🎉 5-hour trial started for ${data.trial_companion}! 
@@ -871,8 +874,9 @@ async function startPremiumTrial(companionId) {
             
             showNotification(message, 'success');
             
-            // Update UI to reflect trial status
+            // Update UI to reflect trial status - refresh everything
             await checkTrialStatus();
+            await refreshTrialUI();
             renderCompanions();
             
             // Redirect to the trial companion
@@ -979,6 +983,65 @@ function showTrialIndicator(companionName, minutesRemaining) {
         const indicator = document.getElementById('trialIndicator');
         if (indicator) indicator.remove();
     }, minutesRemaining * 60 * 1000);
+}
+
+async function refreshTrialUI() {
+    console.log('🔄 Refreshing trial UI lock states...');
+    
+    try {
+        const trialStatus = window.trialStatus || { active: false };
+        const trialActive = trialStatus.active;
+        const trialCompanion = trialStatus.companion;
+        
+        console.log('🔍 Current trial status for UI refresh:', trialStatus);
+        
+        // Update all companion cards based on trial status
+        document.querySelectorAll('.companion-card').forEach(card => {
+            const companionId = card.dataset.companionId;
+            const tier = card.querySelector('.tier-badge')?.textContent?.toLowerCase() || 'free';
+            
+            // Only affect growth and max tier companions
+            if (tier === 'growth' || tier === 'max') {
+                const lockIcon = card.querySelector('.lock-icon');
+                const buttons = card.querySelectorAll('.btn-select');
+                
+                if (trialActive && trialCompanion === companionId) {
+                    // This companion has active trial - unlock it
+                    if (lockIcon) lockIcon.style.display = 'none';
+                    card.classList.remove('locked');
+                    
+                    // Update buttons to show "Active Trial - Select"
+                    buttons.forEach(btn => {
+                        if (btn.classList.contains('btn-upgrade')) {
+                            btn.outerHTML = `
+                                <button class="btn-select" 
+                                        data-companion-id="${companionId}"
+                                        onclick="window.selectCompanion('${companionId}')"
+                                        style="background: linear-gradient(45deg, #22d3ee, #0891b2); color: white; border: none; font-weight: bold;">
+                                    🎯 Active Trial - Select
+                                </button>
+                            `;
+                        }
+                    });
+                    
+                    console.log(`✅ Unlocked companion ${companionId} for active trial`);
+                } else if (trialActive) {
+                    // Trial is active but for different companion - still locked
+                    if (lockIcon) lockIcon.style.display = 'block';
+                    card.classList.add('locked');
+                } else {
+                    // No active trial - locked
+                    if (lockIcon) lockIcon.style.display = 'block';
+                    card.classList.add('locked');
+                }
+            }
+        });
+        
+        console.log('✅ Trial UI refresh completed');
+        
+    } catch (error) {
+        console.error('❌ Error refreshing trial UI:', error);
+    }
 }
 
 function showTrialModal(companionId, tier, companionName) {
