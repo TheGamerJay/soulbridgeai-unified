@@ -3024,46 +3024,59 @@ def get_trial_status():
         if not is_logged_in():
             return jsonify({"trial_active": False})
             
-        # Check trial status from session
-        trial_started_at_str = session.get("trial_started_at")
+        # Check trial status from session - simpler approach
+        trial_active = session.get("trial_active", False)
         trial_companion = session.get("trial_companion")
+        trial_expires_str = session.get("trial_expires")
         trial_used_permanently = session.get("trial_used_permanently", False)
         
-        if not trial_started_at_str:
-            return jsonify({
-                "trial_active": False,
-                "trial_used_permanently": trial_used_permanently
-            })
-            
-        # Parse trial start time
-        trial_started_at = datetime.fromisoformat(trial_started_at_str.replace('Z', '+00:00'))
+        logger.info(f"Raw session trial data: active={trial_active}, companion={trial_companion}, expires={trial_expires_str}")
         
-        # Check if trial is still active (within 5 hours)
-        now = datetime.utcnow()
-        expires_at = trial_started_at + timedelta(hours=5)
+        # If trial is marked as active, check if it has expired
+        if trial_active and trial_expires_str:
+            try:
+                # Parse expiration time
+                if trial_expires_str.endswith('Z'):
+                    expires_at = datetime.fromisoformat(trial_expires_str.replace('Z', '+00:00'))
+                else:
+                    expires_at = datetime.fromisoformat(trial_expires_str)
+                
+                now = datetime.utcnow()
+                if expires_at.tzinfo:
+                    now = now.replace(tzinfo=expires_at.tzinfo)
+                
+                logger.info(f"Trial expiration check: now={now}, expires={expires_at}, still_active={now < expires_at}")
+                
+                if now < expires_at:
+                    # Trial is still active
+                    logger.info("✅ Trial is still active")
+                    return jsonify({
+                        "trial_active": True,
+                        "trial_expires": expires_at.isoformat(),
+                        "trial_companion": trial_companion,
+                        "time_remaining_minutes": int((expires_at - now).total_seconds() / 60)
+                    })
+                else:
+                    # Trial has expired - clear session
+                    logger.info("⏰ Trial has expired, clearing session")
+                    session.pop("trial_active", None)
+                    session.pop("trial_companion", None)
+                    session.pop("trial_expires", None)
+                    trial_active = False
+                    
+            except Exception as parse_error:
+                logger.error(f"Error parsing trial expiration: {parse_error}")
+                # Clear invalid trial data
+                session.pop("trial_active", None)
+                session.pop("trial_companion", None)
+                session.pop("trial_expires", None)
+                trial_active = False
         
-        if now < expires_at:
-            # Trial is still active
-            session["trial_active"] = True
-            session["trial_companion"] = trial_companion
-            session["trial_expires"] = expires_at.isoformat()
-            
-            return jsonify({
-                "trial_active": True,
-                "trial_expires": expires_at.isoformat(),
-                "trial_companion": trial_companion,
-                "time_remaining_minutes": int((expires_at - now).total_seconds() / 60)
-            })
-        else:
-            # Trial has expired
-            session.pop("trial_active", None)
-            session.pop("trial_companion", None)
-            session.pop("trial_expires", None)
-            
-            return jsonify({
-                "trial_active": False,
-                "trial_used_permanently": trial_used_permanently
-            })
+        # No active trial or trial expired
+        return jsonify({
+            "trial_active": False,
+            "trial_used_permanently": trial_used_permanently
+        })
             
     except Exception as e:
         logger.error(f"Trial status check error: {e}")
