@@ -63,6 +63,14 @@
                     Library
                 </a>
                 
+                <!-- Growth & Max Tier Creative Writing -->
+                {% if session.get('user_plan') in ['growth', 'premium', 'enterprise'] or (session.get('trial_active') and session.get('trial_companion')) %}
+                <button onclick="openCreativeWriting()" class="action-btn creative-btn" title="Creative Writing Assistant - Growth/Max Feature">
+                    <i class="fas fa-feather-alt"></i>
+                    Write
+                </button>
+                {% endif %}
+                
                 <!-- Max Tier Addon Buttons -->
                 {% if session.get('user_plan') == 'enterprise' %}
                 <a href="/voice-journaling" class="action-btn addon-btn" title="Voice Journaling - Max Tier Feature">
@@ -126,6 +134,468 @@
             fetch('/auth/logout').then(() => window.location = '/login');
         }
     </script>
+    
+    <!-- Creative Writing Modal -->
+    <div id="creativeWritingModal" class="modal" style="display: none;">
+        <div class="modal-overlay" onclick="closeCreativeWriting()"></div>
+        <div class="modal-content creative-modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-feather-alt"></i> Creative Writing Assistant</h2>
+                <button class="close-btn" onclick="closeCreativeWriting()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="writing-modes">
+                    <h3>Choose Your Creative Mode:</h3>
+                    <div class="mode-grid">
+                        <button class="mode-btn" onclick="selectWritingMode('poetry')" data-mode="poetry">
+                            <i class="fas fa-heart"></i>
+                            <span>Poetry & Verses</span>
+                            <small>Beautiful poems to express emotions</small>
+                        </button>
+                        <button class="mode-btn" onclick="selectWritingMode('inspiration')" data-mode="inspiration">
+                            <i class="fas fa-lightbulb"></i>
+                            <span>Daily Inspiration</span>
+                            <small>Uplifting quotes and affirmations</small>
+                        </button>
+                        <button class="mode-btn" onclick="selectWritingMode('story')" data-mode="story">
+                            <i class="fas fa-book-open"></i>
+                            <span>Short Stories</span>
+                            <small>Creative mini-stories and scenarios</small>
+                        </button>
+                        <button class="mode-btn" onclick="selectWritingMode('music')" data-mode="music">
+                            <i class="fas fa-music"></i>
+                            <span>Music & Lyrics</span>
+                            <small>Songs, lyrics, and musical ideas</small>
+                        </button>
+                        <button class="mode-btn" onclick="selectWritingMode('thoughts')" data-mode="thoughts">
+                            <i class="fas fa-brain"></i>
+                            <span>Thoughts & Notes</span>
+                            <small>Journal entries and personal reflections</small>
+                        </button>
+                        <button class="mode-btn" onclick="selectWritingMode('letter')" data-mode="letter">
+                            <i class="fas fa-envelope-open-text"></i>
+                            <span>Personal Letters</span>
+                            <small>Letters to yourself or loved ones</small>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="writing-input" id="writingInput" style="display: none;">
+                    <h3 id="modeTitle">Creative Writing</h3>
+                    <textarea id="writingPrompt" placeholder="Describe what you'd like help with..." rows="4"></textarea>
+                    <div class="mood-selector">
+                        <label>Mood/Tone:</label>
+                        <select id="moodSelect">
+                            <option value="uplifting">Uplifting & Positive</option>
+                            <option value="calming">Calm & Peaceful</option>
+                            <option value="motivational">Motivational & Energizing</option>
+                            <option value="romantic">Romantic & Loving</option>
+                            <option value="reflective">Reflective & Thoughtful</option>
+                            <option value="playful">Playful & Fun</option>
+                        </select>
+                    </div>
+                    <button onclick="generateCreativeContent()" class="generate-btn">
+                        <i class="fas fa-magic"></i> Generate Creative Content
+                    </button>
+                </div>
+                
+                <div class="writing-output" id="writingOutput" style="display: none;">
+                    <div class="output-header">
+                        <h3>Your Creative Content</h3>
+                        <div class="output-actions">
+                            <button onclick="copyCreativeContent()" class="copy-btn">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                            <button onclick="saveToLibrary()" class="save-btn">
+                                <i class="fas fa-bookmark"></i> Save
+                            </button>
+                            <button onclick="exportCreativeContent()" class="export-btn">
+                                <i class="fas fa-download"></i> Export
+                            </button>
+                        </div>
+                    </div>
+                    <div class="generated-content" id="generatedContent"></div>
+                    <button onclick="resetCreativeWriting()" class="reset-btn">
+                        <i class="fas fa-redo"></i> Create Another
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .creative-modal {
+            max-width: 800px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .mode-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .mode-btn {
+            background: rgba(34, 211, 238, 0.1);
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 12px;
+            padding: 20px 15px;
+            color: #e2e8f0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .mode-btn:hover, .mode-btn.active {
+            background: rgba(34, 211, 238, 0.2);
+            border-color: #22d3ee;
+            transform: translateY(-2px);
+        }
+        
+        .mode-btn i {
+            font-size: 2rem;
+            color: #22d3ee;
+            margin-bottom: 10px;
+            display: block;
+        }
+        
+        .mode-btn span {
+            font-weight: 600;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .mode-btn small {
+            color: #94a3b8;
+            font-size: 0.8rem;
+        }
+        
+        .writing-input textarea {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            color: #e2e8f0;
+            font-size: 1rem;
+            margin: 15px 0;
+            resize: vertical;
+        }
+        
+        .mood-selector {
+            margin: 15px 0;
+        }
+        
+        .mood-selector label {
+            color: #22d3ee;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: block;
+        }
+        
+        .mood-selector select {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            color: #e2e8f0;
+            font-size: 1rem;
+        }
+        
+        .generate-btn {
+            background: linear-gradient(135deg, #22d3ee, #0891b2);
+            border: none;
+            border-radius: 8px;
+            padding: 15px 30px;
+            color: #000;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 1.1rem;
+            margin: 15px 0;
+            transition: all 0.3s ease;
+        }
+        
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(34, 211, 238, 0.3);
+        }
+        
+        .generated-content {
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            white-space: pre-wrap;
+            line-height: 1.6;
+            color: #e2e8f0;
+        }
+        
+        .output-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .output-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .copy-btn, .save-btn, .export-btn, .reset-btn {
+            background: rgba(34, 211, 238, 0.2);
+            border: 1px solid #22d3ee;
+            border-radius: 6px;
+            padding: 8px 16px;
+            color: #22d3ee;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .copy-btn:hover, .save-btn:hover, .export-btn:hover, .reset-btn:hover {
+            background: rgba(34, 211, 238, 0.3);
+        }
+        
+        .creative-btn {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed) !important;
+            border: 2px solid rgba(139, 92, 246, 0.3) !important;
+        }
+        
+        .creative-btn:hover {
+            background: linear-gradient(135deg, #7c3aed, #6d28d9) !important;
+            border-color: #8b5cf6 !important;
+        }
+    </style>
+
+    <script>
+        function openCreativeWriting() {
+            document.getElementById('creativeWritingModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeCreativeWriting() {
+            document.getElementById('creativeWritingModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+            resetCreativeWriting();
+        }
+        
+        function selectWritingMode(mode) {
+            // Remove active class from all buttons
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            
+            // Add active class to selected button
+            document.querySelector(`[data-mode="${mode}"]`).classList.add('active');
+            
+            // Show input section
+            document.getElementById('writingInput').style.display = 'block';
+            
+            // Update title and placeholder based on mode
+            const modeConfig = {
+                poetry: {
+                    title: 'Poetry & Verses',
+                    placeholder: 'What emotion or theme would you like your poem to capture? (e.g., "love and gratitude", "overcoming challenges", "peaceful nature")'
+                },
+                inspiration: {
+                    title: 'Daily Inspiration',
+                    placeholder: 'What area of life do you need inspiration for? (e.g., "starting a new day", "staying motivated", "believing in myself")'
+                },
+                story: {
+                    title: 'Short Stories',
+                    placeholder: 'What kind of story would inspire you? (e.g., "adventure in a magical world", "overcoming a challenge", "finding unexpected friendship")'
+                },
+                music: {
+                    title: 'Music & Lyrics',
+                    placeholder: 'What song or musical idea would you like help with? (e.g., "uplifting song about hope", "rap about personal growth", "love ballad lyrics")'
+                },
+                thoughts: {
+                    title: 'Thoughts & Notes',
+                    placeholder: 'What would you like to explore or reflect on? (e.g., "processing my feelings today", "thoughts about my goals", "random ideas and observations")'
+                },
+                letter: {
+                    title: 'Personal Letters',
+                    placeholder: 'Who is this letter for and what message do you want to convey? (e.g., "letter to future self about goals", "thank you note to someone special")'
+                }
+            };
+            
+            document.getElementById('modeTitle').textContent = modeConfig[mode].title;
+            document.getElementById('writingPrompt').placeholder = modeConfig[mode].placeholder;
+            document.getElementById('writingPrompt').dataset.mode = mode;
+        }
+        
+        async function generateCreativeContent() {
+            const prompt = document.getElementById('writingPrompt').value.trim();
+            const mood = document.getElementById('moodSelect').value;
+            const mode = document.getElementById('writingPrompt').dataset.mode;
+            
+            if (!prompt) {
+                alert('Please describe what you\'d like help writing!');
+                return;
+            }
+            
+            const generateBtn = document.querySelector('.generate-btn');
+            generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+            generateBtn.disabled = true;
+            
+            try {
+                const response = await fetch('/api/creative-writing', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        mode: mode,
+                        prompt: prompt,
+                        mood: mood,
+                        companion: currentCharacter || 'AI Assistant'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('generatedContent').textContent = data.content;
+                    document.getElementById('writingOutput').style.display = 'block';
+                    document.getElementById('writingInput').style.display = 'none';
+                } else {
+                    alert('Sorry, there was an error generating your creative content. Please try again.');
+                }
+            } catch (error) {
+                console.error('Creative writing error:', error);
+                alert('Sorry, there was an error generating your creative content. Please try again.');
+            } finally {
+                generateBtn.innerHTML = '<i class="fas fa-magic"></i> Generate Creative Content';
+                generateBtn.disabled = false;
+            }
+        }
+        
+        function copyCreativeContent() {
+            const content = document.getElementById('generatedContent').textContent;
+            navigator.clipboard.writeText(content).then(() => {
+                const copyBtn = document.querySelector('.copy-btn');
+                const originalText = copyBtn.innerHTML;
+                copyBtn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                setTimeout(() => {
+                    copyBtn.innerHTML = originalText;
+                }, 2000);
+            });
+        }
+        
+        async function saveToLibrary() {
+            const content = document.getElementById('generatedContent').textContent;
+            const mode = document.getElementById('writingPrompt').dataset.mode;
+            const prompt = document.getElementById('writingPrompt').value;
+            const mood = document.getElementById('moodSelect').value;
+            
+            const saveBtn = document.querySelector('.save-btn');
+            const originalText = saveBtn.innerHTML;
+            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            saveBtn.disabled = true;
+            
+            try {
+                const response = await fetch('/api/save-creative-content', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        content: content,
+                        mode: mode,
+                        prompt: prompt,
+                        mood: mood,
+                        companion: currentCharacter || 'AI Assistant'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    saveBtn.innerHTML = '<i class="fas fa-check"></i> Saved!';
+                    setTimeout(() => {
+                        saveBtn.innerHTML = originalText;
+                        saveBtn.disabled = false;
+                    }, 2000);
+                } else {
+                    throw new Error(data.error || 'Save failed');
+                }
+            } catch (error) {
+                console.error('Save error:', error);
+                alert('Sorry, there was an error saving your creative content. Please try again.');
+                saveBtn.innerHTML = originalText;
+                saveBtn.disabled = false;
+            }
+        }
+        
+        function exportCreativeContent() {
+            const content = document.getElementById('generatedContent').textContent;
+            const mode = document.getElementById('writingPrompt').dataset.mode;
+            const prompt = document.getElementById('writingPrompt').value;
+            const mood = document.getElementById('moodSelect').value;
+            
+            // Create export content with metadata
+            const currentDate = new Date().toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            const modeNames = {
+                poetry: 'Poetry & Verses',
+                inspiration: 'Daily Inspiration',
+                story: 'Short Stories',
+                music: 'Music & Lyrics',
+                thoughts: 'Thoughts & Notes',
+                letter: 'Personal Letters'
+            };
+            
+            const exportContent = `SoulBridge AI - Creative Writing Export
+${'='.repeat(50)}
+
+Type: ${modeNames[mode] || 'Creative Writing'}
+Original Prompt: ${prompt}
+Mood/Tone: ${mood.charAt(0).toUpperCase() + mood.slice(1)}
+Created: ${currentDate}
+Companion: ${currentCharacter || 'AI Assistant'}
+
+${'='.repeat(50)}
+
+${content}
+
+${'='.repeat(50)}
+Generated with SoulBridge AI Creative Writing Assistant
+Where emotion meets expression.
+`;
+            
+            // Create and download file
+            const blob = new Blob([exportContent], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `SoulBridge_${mode}_${new Date().getTime()}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            // Visual feedback
+            const exportBtn = document.querySelector('.export-btn');
+            const originalText = exportBtn.innerHTML;
+            exportBtn.innerHTML = '<i class="fas fa-check"></i> Exported!';
+            setTimeout(() => {
+                exportBtn.innerHTML = originalText;
+            }, 2000);
+        }
+        
+        function resetCreativeWriting() {
+            document.getElementById('writingInput').style.display = 'none';
+            document.getElementById('writingOutput').style.display = 'none';
+            document.getElementById('writingPrompt').value = '';
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+        }
+    </script>
+    
     <script src="{{ url_for('static', filename='js/chat.js') }}?v={{ range(1000000) | random }}"></script>
 </body>
 </html>

@@ -5443,6 +5443,248 @@ def api_chat():
         logger.error(f"Chat API error: {e}")
         return jsonify({"success": False, "response": "Sorry, I encountered an error."}), 500
 
+@app.route("/api/creative-writing", methods=["POST"])
+def api_creative_writing():
+    """Creative writing assistant API endpoint for Growth/Max tiers"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+            
+        # Check if user has access to creative writing (Growth/Max tiers or active trial)
+        user_plan = session.get('user_plan', 'foundation')
+        trial_active = session.get('trial_active', False)
+        
+        if user_plan not in ['growth', 'premium', 'enterprise'] and not trial_active:
+            return jsonify({"success": False, "error": "Creative Writing Assistant requires Growth or Max plan"}), 403
+            
+        data = request.get_json()
+        if not data:
+            return jsonify({"success": False, "error": "Invalid request data"}), 400
+            
+        mode = data.get("mode", "poetry")
+        prompt = data.get("prompt", "").strip()
+        mood = data.get("mood", "uplifting")
+        companion = data.get("companion", "AI Assistant")
+        
+        if not prompt or len(prompt) > 500:
+            return jsonify({"success": False, "error": "Prompt is required and must be under 500 characters"}), 400
+        
+        if not services["openai"]:
+            # Provide fallback creative content
+            fallback_content = generate_fallback_creative_content(mode, prompt, mood)
+            return jsonify({"success": True, "content": fallback_content})
+        
+        # Create mode-specific prompts
+        system_prompts = {
+            "poetry": f"You are a skilled poet and creative writing assistant. Create beautiful, inspiring poetry based on the user's request. Focus on {mood} themes and emotions. Keep poems between 8-16 lines.",
+            "inspiration": f"You are an inspirational writer. Create uplifting, motivational content that helps boost mood and confidence. Focus on {mood} themes. Provide 2-3 inspiring quotes or affirmations.",
+            "story": f"You are a creative storyteller. Write engaging short stories (3-4 paragraphs) that capture {mood} emotions. Create vivid characters and settings that resonate with the reader. Focus on themes of adventure, growth, hope, and human connection.",
+            "music": f"You are a talented songwriter and lyricist. Create {mood} song lyrics, verses, or musical ideas based on the user's request. Include rhythm, rhyme, and emotional depth. You can suggest chord progressions or musical styles when relevant.",
+            "thoughts": f"You are a thoughtful journaling companion. Help the user explore and organize their thoughts in a {mood} way. Provide gentle reflection prompts, insights, or help structure their ideas. Be supportive and non-judgmental.",
+            "letter": f"You are a compassionate letter writer. Help write heartfelt, personal letters that convey {mood} emotions and genuine care. Make it warm and authentic."
+        }
+        
+        user_message = f"Please create {mode} content about: {prompt}"
+        
+        try:
+            import openai
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": system_prompts.get(mode, system_prompts["poetry"])},
+                    {"role": "user", "content": user_message}
+                ],
+                max_tokens=400,
+                temperature=0.8
+            )
+            
+            creative_content = response.choices[0].message.content.strip()
+            
+            # Add a personal touch from the companion
+            companion_signature = f"\n\n— Created with {companion}'s creative guidance 💫"
+            final_content = creative_content + companion_signature
+            
+            logger.info(f"Creative writing generated: {mode} for user {session.get('user_email')}")
+            
+            return jsonify({
+                "success": True,
+                "content": final_content,
+                "mode": mode,
+                "mood": mood
+            })
+            
+        except Exception as openai_error:
+            logger.error(f"OpenAI creative writing error: {openai_error}")
+            # Fallback to predefined creative content
+            fallback_content = generate_fallback_creative_content(mode, prompt, mood)
+            return jsonify({"success": True, "content": fallback_content})
+            
+    except Exception as e:
+        logger.error(f"Creative writing API error: {e}")
+        return jsonify({"success": False, "error": "Failed to generate creative content"}), 500
+
+def generate_fallback_creative_content(mode, prompt, mood):
+    """Generate fallback creative content when OpenAI is unavailable"""
+    fallback_templates = {
+        "poetry": {
+            "uplifting": f"Like sunrise breaking through the night,\nYour spirit shines with inner light.\nThrough challenges that come your way,\nYou'll find the strength to face each day.\n\nThe theme of '{prompt}' inspires growth,\nA reminder of your inner worth.\nWith courage as your faithful guide,\nLet hope and joy walk by your side.",
+            "calming": f"In peaceful moments, soft and still,\nFind solace on a quiet hill.\nThe gentle thoughts of '{prompt}' flow,\nLike streams where healing waters go.\n\nBreathe deeply now, let worries fade,\nIn nature's calm, your peace is made.\nWith every breath, find sweet release,\nAnd wrap yourself in inner peace.",
+            "motivational": f"Rise up strong, embrace your power,\nThis is your moment, this is your hour!\nThe fire within you burns so bright,\nTurn '{prompt}' into your guiding light.\n\nNo mountain high, no valley low,\nCan stop the dreams that help you grow.\nWith determination as your key,\nUnlock the best you're meant to be!"
+        },
+        "inspiration": {
+            "uplifting": f"✨ Remember: Every step forward is progress, no matter how small.\n\n🌟 Your journey with '{prompt}' is uniquely yours - trust the process.\n\n💫 You have everything within you to create positive change.",
+            "calming": f"🌸 Take a moment to breathe and appreciate how far you've come.\n\n🕊️ Peace begins with accepting where you are right now with '{prompt}'.\n\n🌊 Let go of what you cannot control and focus on your inner calm.",
+            "motivational": f"🔥 You are stronger than you think and more capable than you know!\n\n⚡ Turn your thoughts about '{prompt}' into fuel for your success.\n\n🚀 Every challenge is an opportunity to prove your resilience!"
+        },
+        "story": {
+            "uplifting": f"Once upon a time, there was someone just like you who faced a challenge with '{prompt}'. They didn't know how strong they were until they had to be. Day by day, step by step, they discovered that every small action created ripples of positive change.\n\nTheir journey taught them that courage isn't the absence of fear—it's moving forward despite it. And in the end, they realized that the very thing they worried about became the catalyst for their greatest growth.",
+            "calming": f"In a quiet corner of the world, where time moves gently and worries fade away, there lived someone who understood that '{prompt}' didn't have to be rushed or forced. They learned the art of patience, the wisdom of stillness.\n\nEach day brought its own rhythm, and they discovered that sometimes the most powerful thing you can do is simply breathe, trust the process, and know that everything unfolds exactly as it should."
+        },
+        "music": {
+            "uplifting": f"🎵 Verse about '{prompt}':\n\"Every morning brings a chance to shine,\nLeave the worries of yesterday behind,\nWith every beat, my heart finds its way,\nToday's the day, today's the day!\"\n\n🎶 Chorus idea:\n\"Rise up, rise up, let your spirit soar,\nYou're stronger than you were before,\nThe rhythm of hope beats in your chest,\nYou've got this, you're at your best!\"",
+            "calming": f"🎵 Gentle melody about '{prompt}':\n\"Soft whispers in the evening breeze,\nCalm waters flowing through the trees,\nIn this moment, I find my peace,\nLet all the tension gently cease...\"\n\n🎶 Bridge:\n\"Breathe in light, breathe out fear,\nIn this stillness, all is clear...\""
+        },
+        "thoughts": {
+            "uplifting": f"Today I'm reflecting on '{prompt}' and I realize that every experience is teaching me something valuable. Even the challenging moments are shaping me into someone stronger and more compassionate.\n\nI'm grateful for this journey, for the lessons learned, and for the growth that comes from facing life with an open heart. My thoughts are becoming clearer, and I'm learning to trust the process.",
+            "reflective": f"As I think about '{prompt}', I notice how my perspective has been shifting. There's something powerful about taking time to really examine my thoughts and feelings without judgment.\n\nI'm learning that it's okay to sit with uncertainty, to explore different possibilities, and to let my understanding evolve naturally. These quiet moments of reflection are where real insight happens."
+        }
+    }
+    
+    # Get template based on mode and mood
+    if mode in fallback_templates and mood in fallback_templates[mode]:
+        content = fallback_templates[mode][mood]
+    else:
+        content = f"Here's some creative inspiration about '{prompt}':\n\nEvery moment is a chance to begin again. Your story is still being written, and you have the power to make it beautiful. Let this thought guide you forward with hope and determination."
+    
+    return content + "\n\n— Created with SoulBridge AI's Creative Assistant 💫"
+
+@app.route("/api/save-creative-content", methods=["POST"])
+def api_save_creative_content():
+    """Save creative content to user's library"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+            
+        # Check if user has access to creative writing (Growth/Max tiers or active trial)
+        user_plan = session.get('user_plan', 'foundation')
+        trial_active = session.get('trial_active', False)
+        
+        if user_plan not in ['growth', 'premium', 'enterprise'] and not trial_active:
+            return jsonify({"success": False, "error": "Saving creative content requires Growth or Max plan"}), 403
+            
+        data = request.get_json()
+        if not data:
+            return jsonify({"success": False, "error": "Invalid request data"}), 400
+            
+        content = data.get("content", "").strip()
+        mode = data.get("mode", "poetry")
+        prompt = data.get("prompt", "").strip()
+        mood = data.get("mood", "uplifting")
+        companion = data.get("companion", "AI Assistant")
+        
+        if not content:
+            return jsonify({"success": False, "error": "No content to save"}), 400
+        
+        # Initialize database if needed
+        if not services["database"]:
+            init_database()
+        
+        if not services["database"] or not db:
+            return jsonify({"success": False, "error": "Database service unavailable"}), 500
+        
+        user_email = session.get('user_email')
+        if not user_email:
+            return jsonify({"success": False, "error": "User session invalid"}), 401
+        
+        # Create a title based on mode and prompt
+        mode_titles = {
+            "poetry": "Poetry",
+            "inspiration": "Inspiration", 
+            "story": "Short Story",
+            "music": "Music & Lyrics",
+            "thoughts": "Thoughts & Notes",
+            "letter": "Personal Letter"
+        }
+        
+        title = f"{mode_titles.get(mode, 'Creative Writing')} - {prompt[:30]}{'...' if len(prompt) > 30 else ''}"
+        
+        # Save to library using similar structure as conversations
+        from datetime import datetime
+        current_date = datetime.now().strftime('%B %d, %Y at %I:%M %p')
+        
+        library_data = {
+            "title": title,
+            "type": "creative_writing",
+            "mode": mode,
+            "companion": companion,
+            "date": current_date,
+            "content": content,
+            "original_prompt": prompt,
+            "mood": mood,
+            "user_email": user_email
+        }
+        
+        # Store in database
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        
+        try:
+            if db.use_postgres:
+                cursor.execute("""
+                    INSERT INTO user_library (user_email, title, content, content_type, created_at, metadata)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                """, (
+                    user_email,
+                    title,
+                    content,
+                    'creative_writing',
+                    datetime.now(),
+                    json.dumps({
+                        "mode": mode,
+                        "companion": companion,
+                        "original_prompt": prompt,
+                        "mood": mood
+                    })
+                ))
+            else:
+                cursor.execute("""
+                    INSERT INTO user_library (user_email, title, content, content_type, created_at, metadata)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                """, (
+                    user_email,
+                    title,
+                    content,
+                    'creative_writing',
+                    datetime.now().isoformat(),
+                    json.dumps({
+                        "mode": mode,
+                        "companion": companion,
+                        "original_prompt": prompt,
+                        "mood": mood
+                    })
+                ))
+            
+            conn.commit()
+            logger.info(f"Creative content saved to library for user {user_email}: {mode}")
+            
+            return jsonify({
+                "success": True,
+                "message": "Creative content saved to your library!",
+                "title": title
+            })
+            
+        except Exception as db_error:
+            conn.rollback()
+            logger.error(f"Database error saving creative content: {db_error}")
+            return jsonify({"success": False, "error": "Failed to save to library"}), 500
+        finally:
+            cursor.close()
+            conn.close()
+            
+    except Exception as e:
+        logger.error(f"Save creative content API error: {e}")
+        return jsonify({"success": False, "error": "Failed to save creative content"}), 500
+
 def enhance_premium_response(response, tier, character):
     """Enhance responses for premium users"""
     try:
