@@ -893,6 +893,10 @@ def admin_init_database():
             cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_image TEXT")
             cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_image_data TEXT")
             cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS display_name TEXT")
+            # Add trial system columns
+            cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS trial_started_at TIMESTAMP")
+            cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS trial_companion TEXT")
+            cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS trial_used_permanently BOOLEAN DEFAULT FALSE")
         except:
             pass  # Columns might already exist
         
@@ -2981,51 +2985,24 @@ def start_trial():
         if not companion_id:
             return jsonify({"success": False, "error": "Missing companion_id"}), 400
             
-        user_id = session.get("user_id")
         user_email = session.get("user_email")
-        
-        if not user_id:
+        if not user_email:
             return jsonify({"success": False, "error": "No user session found"}), 401
+            
+        # Check if user has already used trial permanently (from session for now)
+        if session.get("trial_used_permanently"):
+            return jsonify({"success": False, "error": "Trial already used permanently"}), 400
             
         # Calculate trial expiration (5 hours from now)
         now = datetime.utcnow()
         expires_at = now + timedelta(hours=5)
         
-        # Connect to database and update user trial info
-        import psycopg2
-        database_url = os.environ.get('DATABASE_URL')
-        if not database_url:
-            return jsonify({"success": False, "error": "Database connection failed"}), 500
-            
-        conn = psycopg2.connect(database_url)
-        cursor = conn.cursor()
-        
-        # Check if user has already used trial permanently
-        cursor.execute("""
-            SELECT trial_used_permanently FROM users WHERE email = %s
-        """, (user_email,))
-        result = cursor.fetchone()
-        
-        if result and result[0]:
-            conn.close()
-            return jsonify({"success": False, "error": "Trial already used permanently"}), 400
-            
-        # Update user with trial information
-        cursor.execute("""
-            UPDATE users
-            SET trial_started_at = %s,
-                trial_companion = %s,
-                trial_used_permanently = TRUE
-            WHERE email = %s
-        """, (now, companion_id, user_email))
-        
-        conn.commit()
-        conn.close()
-        
         # Update session with trial info
         session["trial_active"] = True
         session["trial_companion"] = companion_id
         session["trial_expires"] = expires_at.isoformat()
+        session["trial_started_at"] = now.isoformat()
+        session["trial_used_permanently"] = True
         
         logger.info(f"Trial started for user {user_email}, companion {companion_id}, expires at {expires_at}")
         
@@ -3047,35 +3024,19 @@ def get_trial_status():
         if not is_logged_in():
             return jsonify({"trial_active": False})
             
-        user_email = session.get("user_email")
-        if not user_email:
-            return jsonify({"trial_active": False})
-            
-        # Connect to database and check trial status
-        import psycopg2
-        database_url = os.environ.get('DATABASE_URL')
-        if not database_url:
-            return jsonify({"trial_active": False})
-            
-        conn = psycopg2.connect(database_url)
-        cursor = conn.cursor()
+        # Check trial status from session
+        trial_started_at_str = session.get("trial_started_at")
+        trial_companion = session.get("trial_companion")
+        trial_used_permanently = session.get("trial_used_permanently", False)
         
-        cursor.execute("""
-            SELECT trial_started_at, trial_companion, trial_used_permanently 
-            FROM users WHERE email = %s
-        """, (user_email,))
-        result = cursor.fetchone()
-        conn.close()
-        
-        if not result or not result[0]:
+        if not trial_started_at_str:
             return jsonify({
                 "trial_active": False,
-                "trial_used_permanently": result[2] if result else False
+                "trial_used_permanently": trial_used_permanently
             })
             
-        trial_started_at = result[0]
-        trial_companion = result[1]
-        trial_used_permanently = result[2]
+        # Parse trial start time
+        trial_started_at = datetime.fromisoformat(trial_started_at_str.replace('Z', '+00:00'))
         
         # Check if trial is still active (within 5 hours)
         now = datetime.utcnow()
