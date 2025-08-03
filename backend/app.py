@@ -1773,38 +1773,18 @@ def decoder():
             return redirect("/login")
             
         # Get user's plan and decoder usage
+        user_id = session.get('user_id')
         user_plan = session.get('user_plan', 'foundation')
         decoder_usage = get_decoder_usage()
         
-        # Check if user has active trial (gives Max tier access)
-        trial_active, _, _ = check_trial_active_from_db()
+        # Get effective limits using shared function
+        daily_limit, effective_plan = get_effective_decoder_limits(user_id, user_plan)
         
         # DEBUG: Log decoder access info
         logger.info(f"🔍 DECODER DEBUG: user_plan = {user_plan}")
-        logger.info(f"🔍 DECODER DEBUG: trial_active = {trial_active}")
-        logger.info(f"🔍 DECODER DEBUG: decoder_usage = {decoder_usage}")
-        
-        # Define tier limits - ONLY give unlimited access if trial is genuinely active AND user plan is not already enterprise
-        tier_limits = {
-            'foundation': 3,    # Free: 3 per day
-            'premium': 15,      # Growth: 15 per day  
-            'enterprise': None  # Max: unlimited
-        }
-        
-        # First, set limits based on actual user plan
-        daily_limit = tier_limits.get(user_plan, 3)
-        effective_plan = user_plan
-        
-        # ONLY override if trial is active AND user is not already enterprise tier
-        if trial_active and user_plan != 'enterprise':
-            daily_limit = None  # Unlimited during trial
-            effective_plan = 'enterprise'  # Treat as Max tier during trial
-        elif trial_active and user_plan == 'enterprise':
-            # If already enterprise and trial active, just log it but don't change anything
-            logger.info(f"🔍 DECODER DEBUG: Enterprise user has active trial - no changes needed")
         logger.info(f"🔍 DECODER DEBUG: effective_plan = {effective_plan}")
         logger.info(f"🔍 DECODER DEBUG: daily_limit = {daily_limit}")
-        logger.info(f"🔍 DECODER DEBUG: Passing to template - effective_plan={effective_plan}, daily_limit={daily_limit}, current_usage={decoder_usage}")
+        logger.info(f"🔍 DECODER DEBUG: decoder_usage = {decoder_usage}")
         
         return render_template("decoder.html", 
                              user_plan=effective_plan,
@@ -4402,6 +4382,27 @@ def get_user_addons():
         logger.error(f"User addons error: {e}")
         return jsonify({"success": False, "error": "Failed to fetch add-ons"}), 500
 
+def get_effective_decoder_limits(user_id, user_plan):
+    """Get effective decoder limits for a user, considering trial status"""
+    trial_active, _, _ = check_trial_active_from_db(user_id=user_id)
+
+    # Base limits
+    tier_limits = {
+        'foundation': 3,
+        'premium': 15,
+        'enterprise': None
+    }
+
+    daily_limit = tier_limits.get(user_plan, 3)
+    effective_plan = user_plan
+
+    # If trial is active and user isn't already on Max, upgrade temporarily
+    if trial_active and user_plan != 'enterprise':
+        daily_limit = None
+        effective_plan = 'enterprise'
+
+    return daily_limit, effective_plan
+
 def get_decoder_usage():
     """Get user's decoder usage for today"""
     try:
@@ -4440,49 +4441,31 @@ def increment_decoder_usage():
 def check_decoder_limit():
     """Check if user can use decoder (within daily limits)"""
     try:
-        if not is_logged_in():
-            return jsonify({"success": False, "error": "Not logged in"}), 401
-            
-        user_plan = session.get('user_plan', 'foundation')
-        current_usage = get_decoder_usage()
-        
-        # Check if user has active trial (gives Max tier access)
-        trial_active, _, _ = check_trial_active_from_db()
-        
-        logger.info(f"🔍 DECODER LIMIT CHECK: user_plan = {user_plan}")
-        logger.info(f"🔍 DECODER LIMIT CHECK: trial_active = {trial_active}")
-        logger.info(f"🔍 DECODER LIMIT CHECK: current_usage = {current_usage}")
-        
-        # Define tier limits (trial users get unlimited access)
-        if trial_active:
-            daily_limit = None  # Unlimited during trial
-            effective_plan = 'enterprise'  # Treat as Max tier during trial
-        else:
-            tier_limits = {
-                'foundation': 3,    # Free: 3 per day
-                'premium': 15,      # Growth: 15 per day  
-                'enterprise': None  # Max: unlimited
-            }
-            daily_limit = tier_limits.get(user_plan, 3)
-            effective_plan = user_plan
-        logger.info(f"🔍 DECODER LIMIT CHECK: daily_limit = {daily_limit}")
+        user_id = session.get("user_id")
+        user_plan = session.get("user_plan", "foundation")
+
+        if not user_id:
+            return jsonify({"success": False, "error": "User not logged in"}), 403
+
+        # Get effective limits using shared function
+        daily_limit, effective_plan = get_effective_decoder_limits(user_id, user_plan)
+        usage_today = get_decoder_usage()
         
         # Check if at limit
         if daily_limit is None:  # Unlimited for Max tier
             can_use = True
             remaining = None
         else:
-            can_use = current_usage < daily_limit
-            remaining = max(0, daily_limit - current_usage)
-        
+            can_use = usage_today < daily_limit
+            remaining = max(0, daily_limit - usage_today)
+
         return jsonify({
             "success": True,
             "can_use": can_use,
-            "current_usage": current_usage,
+            "current_usage": usage_today,
             "daily_limit": daily_limit,
             "remaining": remaining,
-            "user_plan": effective_plan,
-            "trial_active": trial_active
+            "user_plan": effective_plan
         })
         
     except Exception as e:
