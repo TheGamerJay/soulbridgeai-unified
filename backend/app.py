@@ -95,6 +95,7 @@ os.makedirs("logs", exist_ok=True)
 # Helper function to check trial status from database
 # -- Trial Check Function --
 def check_trial_active_from_db(user_email=None, user_id=None):
+    """Check if trial is active based on database start_time - matches our 5-hour trial logic"""
     try:
         if not user_email and not user_id:
             user_email = session.get('user_email')
@@ -102,27 +103,49 @@ def check_trial_active_from_db(user_email=None, user_id=None):
         if not user_email and not user_id:
             return False, None, 0
 
-        database_url = os.environ.get("DATABASE_URL")
-        import psycopg2
-        conn = psycopg2.connect(database_url)
-        cursor = conn.cursor()
-
-        if user_email:
-            cursor.execute("SELECT trial_started_at, trial_expires_at FROM users WHERE email = %s", (user_email,))
-        else:
-            cursor.execute("SELECT trial_started_at, trial_expires_at FROM users WHERE id = %s", (user_id,))
-        result = cursor.fetchone()
-        conn.close()
-
-        if result:
-            trial_started, trial_expires = result
-            if trial_expires and datetime.utcnow() < trial_expires:
-                remaining = int((trial_expires - datetime.utcnow()).total_seconds() / 60)
-                return True, None, remaining
-
-        return False, None, 0
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            
+            # Use the correct column names that match our start-trial endpoint
+            if user_email:
+                cursor.execute("""
+                    SELECT trial_started_at, trial_used_permanently 
+                    FROM users 
+                    WHERE email = %s
+                """, (user_email,))
+            else:
+                cursor.execute("""
+                    SELECT trial_started_at, trial_used_permanently 
+                    FROM users 
+                    WHERE id = %s
+                """, (user_id,))
+            
+            result = cursor.fetchone()
+            if not result:
+                return False, None, 0
+                
+            trial_start, trial_used = result
+            
+            # If no trial start time or already used permanently, no active trial
+            if not trial_start or trial_used:
+                return False, None, 0
+            
+            # Convert to UTC timezone-aware datetime if needed
+            if isinstance(trial_start, str):
+                trial_start = datetime.fromisoformat(trial_start.replace('Z', '+00:00'))
+            
+            # Check if 5 hours have passed
+            time_elapsed = datetime.now(timezone.utc) - trial_start
+            trial_active = time_elapsed < timedelta(hours=5)
+            
+            if trial_active:
+                remaining_minutes = int((timedelta(hours=5) - time_elapsed).total_seconds() / 60)
+                return True, None, remaining_minutes
+            else:
+                return False, None, 0
+            
     except Exception as e:
-        print("Trial check error:", e)
+        print(f"Trial check error: {e}")
         return False, None, 0
 
 # Enhanced surveillance system with Flask context safety
@@ -4601,7 +4624,7 @@ def check_decoder_limit():
     trial_active, _, _ = check_trial_active_from_db(user_id=user_id)
 
     effective_plan = get_effective_plan(user_plan, trial_active)
-    daily_limit = get_feature_limit(effective_plan, "decoder")
+    daily_limit = get_effective_feature_limit(user_plan, trial_active, "decoder")
     
     # Get usage for frontend display
     usage_today = get_decoder_usage() if user_id else 0
@@ -4623,7 +4646,7 @@ def check_fortune_limit():
     trial_active, _, _ = check_trial_active_from_db(user_id=user_id)
 
     effective_plan = get_effective_plan(user_plan, trial_active)
-    daily_limit = get_feature_limit(effective_plan, "fortune")
+    daily_limit = get_effective_feature_limit(user_plan, trial_active, "fortune")
     
     # Get usage for frontend display
     usage_today = get_fortune_usage() if user_id else 0
@@ -4645,7 +4668,7 @@ def check_horoscope_limit():
     trial_active, _, _ = check_trial_active_from_db(user_id=user_id)
 
     effective_plan = get_effective_plan(user_plan, trial_active)
-    daily_limit = get_feature_limit(effective_plan, "horoscope")
+    daily_limit = get_effective_feature_limit(user_plan, trial_active, "horoscope")
     
     # Get usage for frontend display
     usage_today = get_horoscope_usage() if user_id else 0
