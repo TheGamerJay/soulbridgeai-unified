@@ -3937,8 +3937,8 @@ def api_users():
                             if os.path.exists(file_path):
                                 profile_image = result[0]
                                 logger.info(f"Loaded profile image from database: {profile_image}")
-                            elif len(result) > 2 and result[2]:  # File missing but have base64 backup
-                                profile_image = f"data:image/png;base64,{result[2]}"
+                            elif len(result) > 1 and result[1]:  # File missing but have base64 backup
+                                profile_image = f"data:image/png;base64,{result[1]}"
                                 logger.info(f"Profile image file missing, using base64 backup")
                         # If no URL but we have base64 data, use that as backup
                         elif result[1]:
@@ -4118,7 +4118,7 @@ def api_users():
 
 @app.route("/api/upload-profile-image", methods=["POST"])
 def upload_profile_image():
-    """Upload and set user profile image"""
+    """Upload and set user profile image - Database-only approach for Railway"""
     try:
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
@@ -4145,109 +4145,107 @@ def upload_profile_image():
         if file_size > 5 * 1024 * 1024:  # 5MB
             return jsonify({"success": False, "error": "File too large. Maximum size is 5MB"}), 400
         
-        # Create uploads directory if it doesn't exist
-        import os
-        upload_dir = os.path.join('static', 'uploads', 'profiles')
-        os.makedirs(upload_dir, exist_ok=True)
+        # Read and encode image as base64 (database-only approach)
+        import base64
+        file.seek(0)
+        image_data = file.read()
+        image_base64 = base64.b64encode(image_data).decode('utf-8')
         
-        # Log directory creation for debugging
-        logger.info(f"Upload directory: {os.path.abspath(upload_dir)}")
-        logger.info(f"Upload directory exists: {os.path.exists(upload_dir)}")
-        logger.info(f"Upload directory writable: {os.access(upload_dir, os.W_OK)}")
-        
-        # Generate unique filename
-        import uuid
-        file_extension = file.filename.rsplit('.', 1)[1].lower()
-        unique_filename = f"{uuid.uuid4()}.{file_extension}"
-        file_path = os.path.join(upload_dir, unique_filename)
-        
-        # Save file
-        try:
-            file.save(file_path)
-            logger.info(f"File saved successfully to: {file_path}")
-            
-            # Verify file was saved
-            if os.path.exists(file_path):
-                logger.info(f"File verified at: {file_path}, size: {os.path.getsize(file_path)} bytes")
-                profile_image_url = f"/static/uploads/profiles/{unique_filename}"
-            else:
-                logger.error(f"File save failed - file not found at: {file_path}")
-                return jsonify({"success": False, "error": "File save failed"}), 500
-                
-        except Exception as save_error:
-            logger.error(f"File save exception: {save_error}")
-            return jsonify({"success": False, "error": f"File save failed: {str(save_error)}"}), 500
-        
-        # Store in session and database
-        session['profile_image'] = profile_image_url
-        
-        # Also save to database for persistence
         user_id = session.get('user_id')
-        # Ensure database is initialized before checking
-        db_instance = get_database()
-        if user_id and db_instance:
-            try:
-                conn = db_instance.get_connection()
-                cursor = conn.cursor()
-                
-                placeholder = "%s" if hasattr(db_instance, 'postgres_url') and db_instance.postgres_url else "?"
-                
-                # Ensure profile_image columns exist (migration)
-                try:
-                    if hasattr(db_instance, 'postgres_url') and db_instance.postgres_url:
-                        # PostgreSQL
-                        cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_image TEXT")
-                        cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_image_data TEXT")
-                    logger.info("✅ Profile image columns ensured during upload")
-                except Exception as migration_error:
-                    logger.warning(f"Migration warning during upload: {migration_error}")
-                
-                # Update or insert profile_image in user record
-                cursor.execute(f"""
-                    UPDATE users SET profile_image = {placeholder} WHERE id = {placeholder}
-                """, (profile_image_url, user_id))
-                
-                if cursor.rowcount == 0:
-                    # If no rows updated, user might not exist in users table, try creating record
-                    user_email = session.get('user_email', session.get('email'))
-                    if user_email:
-                        cursor.execute(f"""
-                            INSERT INTO users (email, profile_image) 
-                            VALUES ({placeholder}, {placeholder})
-                            ON CONFLICT (email) DO UPDATE SET profile_image = EXCLUDED.profile_image
-                        """, (user_email, profile_image_url))
-                
-                # Also save file content as base64 backup in case filesystem is ephemeral
-                try:
-                    import base64
-                    with open(file_path, 'rb') as img_file:
-                        img_data = base64.b64encode(img_file.read()).decode('utf-8')
-                        
-                    cursor.execute(f"""
-                        UPDATE users SET profile_image_data = {placeholder} WHERE id = {placeholder}
-                    """, (img_data, user_id))
-                    logger.info(f"Profile image data backup saved to database for user {user_id}")
-                    
-                except Exception as backup_error:
-                    logger.warning(f"Failed to save image data backup: {backup_error}")
-                
-                conn.commit()
-                conn.close()
-                logger.info(f"Profile image saved to database: {profile_image_url} for user {user_id}")
-                
-            except Exception as db_error:
-                logger.error(f"Failed to save profile image to database: {db_error}")
-                # Continue anyway - session storage will work for now
+        if not user_id:
+            return jsonify({"success": False, "error": "User ID not found"}), 401
         
-        return jsonify({
-            "success": True,
-            "profileImage": profile_image_url,
-            "message": "Profile image updated successfully"
-        })
+        # Save to database only (no filesystem dependency)
+        db_instance = get_database()
+        if not db_instance:
+            return jsonify({"success": False, "error": "Database not available"}), 500
+        
+        try:
+            conn = db_instance.get_connection()
+            cursor = conn.cursor()
+            
+            placeholder = "%s" if hasattr(db_instance, 'postgres_url') and db_instance.postgres_url else "?"
+            
+            # Ensure profile_image columns exist
+            try:
+                if hasattr(db_instance, 'postgres_url') and db_instance.postgres_url:
+                    cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_image TEXT")
+                    cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_image_data TEXT")
+                logger.info("✅ Profile image columns ensured")
+            except Exception as migration_error:
+                logger.warning(f"Migration warning: {migration_error}")
+            
+            # Create unique image URL for this user
+            profile_image_url = f"/api/profile-image/{user_id}"
+            
+            # Update user record with base64 data
+            cursor.execute(f"""
+                UPDATE users SET profile_image = {placeholder}, profile_image_data = {placeholder} WHERE id = {placeholder}
+            """, (profile_image_url, image_base64, user_id))
+            
+            if cursor.rowcount == 0:
+                # User doesn't exist, try to create record
+                user_email = session.get('user_email', session.get('email'))
+                if user_email:
+                    cursor.execute(f"""
+                        INSERT INTO users (email, profile_image, profile_image_data) 
+                        VALUES ({placeholder}, {placeholder}, {placeholder})
+                        ON CONFLICT (email) DO UPDATE SET 
+                        profile_image = EXCLUDED.profile_image,
+                        profile_image_data = EXCLUDED.profile_image_data
+                    """, (user_email, profile_image_url, image_base64))
+            
+            conn.commit()
+            conn.close()
+            
+            # Store in session for immediate access
+            session['profile_image'] = profile_image_url
+            
+            logger.info(f"Profile image saved to database for user {user_id}, size: {len(image_base64)} chars")
+            
+            return jsonify({
+                "success": True,
+                "profileImage": profile_image_url,
+                "message": "Profile image updated successfully"
+            })
+            
+        except Exception as db_error:
+            logger.error(f"Database error saving profile image: {db_error}")
+            return jsonify({"success": False, "error": "Database save failed"}), 500
         
     except Exception as e:
         logger.error(f"Profile image upload error: {e}")
         return jsonify({"success": False, "error": "Failed to upload image"}), 500
+
+@app.route("/api/profile-image/<user_id>")
+def serve_profile_image(user_id):
+    """Serve profile image from database (no filesystem dependency)"""
+    try:
+        db_instance = get_database()
+        if not db_instance:
+            return redirect('/static/logos/IntroLogo.png')
+        
+        conn = db_instance.get_connection()
+        cursor = conn.cursor()
+        
+        placeholder = "%s" if hasattr(db_instance, 'postgres_url') and db_instance.postgres_url else "?"
+        cursor.execute(f"SELECT profile_image_data FROM users WHERE id = {placeholder}", (user_id,))
+        result = cursor.fetchone()
+        conn.close()
+        
+        if result and result[0]:
+            # Decode and serve base64 image
+            import base64
+            from flask import Response
+            image_bytes = base64.b64decode(result[0])
+            return Response(image_bytes, mimetype='image/png')
+        else:
+            # No image found, redirect to default
+            return redirect('/static/logos/IntroLogo.png')
+            
+    except Exception as e:
+        logger.error(f"Error serving profile image: {e}")
+        return redirect('/static/logos/IntroLogo.png')
 
 
 @app.route("/debug/profile-image-detailed")

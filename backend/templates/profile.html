@@ -1182,9 +1182,10 @@
                 console.log('📊 Upload result:', result);
                 
                 if (result.success) {
-                    // Update the profile image immediately
+                    // Update the profile image immediately with cache busting
                     const profileImg = document.getElementById('userProfileImage');
-                    profileImg.src = result.profileImage;
+                    const newSrc = result.profileImage + '?t=' + new Date().getTime();
+                    profileImg.src = newSrc;
                     
                     // Show success with green glow
                     profileImg.style.boxShadow = '0 4px 20px rgba(16, 185, 129, 0.6)';
