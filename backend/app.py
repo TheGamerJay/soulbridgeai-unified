@@ -4434,9 +4434,9 @@ def get_user_addons():
 
 # --- Tier Limits ---
 TIER_LIMITS = {
-    "foundation": {"decoder": 3, "fortune": 2, "horoscope": 3},
-    "premium": {"decoder": 15, "fortune": 8, "horoscope": 10},
-    "enterprise": {"decoder": None, "fortune": None, "horoscope": None}
+    "foundation": {"decoder": 3, "fortune": 2, "horoscope": 3, "ai_image_monthly": 0, "voice_journal_monthly": 0, "relationship_profiles": 0, "emotional_meditations": 0},
+    "premium": {"decoder": 15, "fortune": 8, "horoscope": 10, "ai_image_monthly": 25, "voice_journal_monthly": 50, "relationship_profiles": 10, "emotional_meditations": 20},
+    "enterprise": {"decoder": None, "fortune": None, "horoscope": None, "ai_image_monthly": None, "voice_journal_monthly": None, "relationship_profiles": None, "emotional_meditations": None}
 }
 
 def get_effective_plan(user_plan, trial_active):
@@ -6951,10 +6951,9 @@ def voice_journaling_page():
     user_plan = session.get('user_plan', 'foundation')
     user_addons = session.get('user_addons', [])
     
-    # Max tier users get all addon features included, trial users get access too
-    trial_active = check_trial_active_from_db(session.get('user_id'))
+    # Max tier users get all addon features included
     
-    if user_plan not in ['premium', 'enterprise'] and 'voice-journaling' not in user_addons and not trial_active:
+    if user_plan not in ['premium', 'enterprise'] and 'voice-journaling' not in user_addons:
         return redirect("/subscription?feature=voice-journaling")
     
     return render_template("voice_journaling.html")
@@ -6971,7 +6970,7 @@ def voice_journaling_transcribe():
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
-        if user_plan not in ['premium', 'enterprise'] and 'voice-journaling' not in user_addons and not trial_active:
+        if user_plan not in ['premium', 'enterprise'] and 'voice-journaling' not in user_addons:
             return jsonify({"success": False, "error": "Voice Journaling requires Max tier or addon"}), 403
         
         if 'audio' not in request.files:
@@ -7065,7 +7064,7 @@ def voice_journaling_save():
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
-        if user_plan not in ['premium', 'enterprise'] and 'voice-journaling' not in user_addons and not trial_active:
+        if user_plan not in ['premium', 'enterprise'] and 'voice-journaling' not in user_addons:
             return jsonify({"success": False, "error": "Voice Journaling requires Max tier or addon"}), 403
         
         data = request.get_json()
@@ -7112,7 +7111,7 @@ def voice_journaling_entries():
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
-        if user_plan not in ['premium', 'enterprise'] and 'voice-journaling' not in user_addons and not trial_active:
+        if user_plan not in ['premium', 'enterprise'] and 'voice-journaling' not in user_addons:
             return jsonify({"success": False, "error": "Voice Journaling requires Max tier or addon"}), 403
         
         # Get entries from session (in production, get from database)
@@ -7145,7 +7144,7 @@ def relationship_profiles_page():
     user_addons = session.get('user_addons', [])
     trial_active = check_trial_active_from_db(session.get('user_id'))
     
-    if user_plan not in ['premium', 'enterprise'] and 'relationship' not in user_addons and not trial_active:
+    if user_plan not in ['premium', 'enterprise'] and 'relationship' not in user_addons:
         return redirect("/subscription?feature=relationship")
     
     return render_template("relationship_profiles.html")
@@ -7162,7 +7161,7 @@ def relationship_profiles_add():
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
-        if user_plan not in ['premium', 'enterprise'] and 'relationship' not in user_addons and not trial_active:
+        if user_plan not in ['premium', 'enterprise'] and 'relationship' not in user_addons:
             return jsonify({"success": False, "error": "Relationship Profiles requires Max tier or addon"}), 403
         
         data = request.get_json()
@@ -7213,7 +7212,7 @@ def relationship_profiles_list():
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
-        if user_plan not in ['premium', 'enterprise'] and 'relationship' not in user_addons and not trial_active:
+        if user_plan not in ['premium', 'enterprise'] and 'relationship' not in user_addons:
             return jsonify({"success": False, "error": "Relationship Profiles requires Max tier or addon"}), 403
         
         # Get profiles from session (in production, get from database)
@@ -7240,7 +7239,7 @@ def relationship_profiles_delete(profile_id):
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
-        if user_plan not in ['premium', 'enterprise'] and 'relationship' not in user_addons and not trial_active:
+        if user_plan not in ['premium', 'enterprise'] and 'relationship' not in user_addons:
             return jsonify({"success": False, "error": "Relationship Profiles requires Max tier or addon"}), 403
         
         # Get profiles from session
@@ -7281,7 +7280,7 @@ def emotional_meditations_page():
     user_addons = session.get('user_addons', [])
     trial_active = check_trial_active_from_db(session.get('user_id'))
     
-    if user_plan not in ['premium', 'enterprise'] and 'emotional-meditations' not in user_addons and not trial_active:
+    if user_plan not in ['premium', 'enterprise'] and 'emotional-meditations' not in user_addons:
         return redirect("/subscription?feature=emotional-meditations")
     
     return render_template("emotional_meditations.html")
@@ -7298,7 +7297,7 @@ def emotional_meditations_save_session():
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
-        if user_plan not in ['premium', 'enterprise'] and 'emotional-meditations' not in user_addons and not trial_active:
+        if user_plan not in ['premium', 'enterprise'] and 'emotional-meditations' not in user_addons:
             return jsonify({"success": False, "error": "Emotional Meditations requires Growth/Max tier or addon"}), 403
         
         data = request.get_json()
@@ -7346,7 +7345,7 @@ def emotional_meditations_stats():
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
-        if user_plan not in ['premium', 'enterprise'] and 'emotional-meditations' not in user_addons and not trial_active:
+        if user_plan not in ['premium', 'enterprise'] and 'emotional-meditations' not in user_addons:
             return jsonify({"success": False, "error": "Emotional Meditations requires Growth/Max tier or addon"}), 403
         
         # Get sessions from session storage
@@ -7425,12 +7424,11 @@ def ai_image_generation_page():
     if not is_logged_in():
         return redirect("/login")
     
-    # Check if user has ai-image-generation access (Max tier, addon, or trial)
+    # Check if user has ai-image-generation access (Growth/Max tier or addon)
     user_plan = session.get('user_plan', 'foundation')
     user_addons = session.get('user_addons', [])
-    trial_active = check_trial_active_from_db(session.get('user_id'))
     
-    if user_plan not in ['premium', 'enterprise'] and 'ai-image-generation' not in user_addons and not trial_active:
+    if user_plan not in ['premium', 'enterprise'] and 'ai-image-generation' not in user_addons:
         return redirect("/subscription?feature=ai-image-generation")
     
     return render_template("ai_image_generation.html")
@@ -7442,12 +7440,11 @@ def ai_image_generation_generate():
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
-        # Check if user has ai-image-generation access (Max tier, addon, or trial)
+        # Check if user has ai-image-generation access (Growth/Max tier or addon)
         user_plan = session.get('user_plan', 'foundation')
         user_addons = session.get('user_addons', [])
-        trial_active = check_trial_active_from_db(session.get('user_id'))
         
-        if user_plan not in ['premium', 'enterprise'] and 'ai-image-generation' not in user_addons and not trial_active:
+        if user_plan not in ['premium', 'enterprise'] and 'ai-image-generation' not in user_addons:
             return jsonify({"success": False, "error": "AI Image Generation requires Max tier or addon"}), 403
         
         data = request.get_json()
@@ -7460,13 +7457,17 @@ def ai_image_generation_generate():
         if not prompt:
             return jsonify({"success": False, "error": "Prompt required"}), 400
         
-        # Check usage limit (50 per month)
+        # Check tier-based usage limit
+        effective_plan = get_effective_plan(user_plan, trial_active)
+        monthly_limit = get_feature_limit(effective_plan, "ai_image_monthly")
+        
         current_month = datetime.now().strftime('%Y-%m')
         usage_key = f'ai_image_usage_{current_month}'
         monthly_usage = session.get(usage_key, 0)
         
-        if monthly_usage >= 50:
-            return jsonify({"success": False, "error": "Monthly usage limit reached (50 images)"}), 403
+        if monthly_limit is not None and monthly_usage >= monthly_limit:
+            tier_name = {"foundation": "Free", "premium": "Growth", "enterprise": "Max"}[effective_plan]
+            return jsonify({"success": False, "error": f"Monthly AI image limit reached ({monthly_limit} images for {tier_name} tier)"}), 403
         
         # Generate image using OpenAI DALL-E API
         try:
@@ -7518,12 +7519,11 @@ def ai_image_generation_analyze_reference():
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
-        # Check if user has ai-image-generation access (Max tier, addon, or trial)
+        # Check if user has ai-image-generation access (Growth/Max tier or addon)
         user_plan = session.get('user_plan', 'foundation')
         user_addons = session.get('user_addons', [])
-        trial_active = check_trial_active_from_db(session.get('user_id'))
         
-        if user_plan not in ['premium', 'enterprise'] and 'ai-image-generation' not in user_addons and not trial_active:
+        if user_plan not in ['premium', 'enterprise'] and 'ai-image-generation' not in user_addons:
             return jsonify({"success": False, "error": "AI Image Generation requires Max tier or addon"}), 403
         
         data = request.get_json()
@@ -7589,12 +7589,11 @@ def ai_image_generation_save():
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
-        # Check if user has ai-image-generation access (Max tier, addon, or trial)
+        # Check if user has ai-image-generation access (Growth/Max tier or addon)
         user_plan = session.get('user_plan', 'foundation')
         user_addons = session.get('user_addons', [])
-        trial_active = check_trial_active_from_db(session.get('user_id'))
         
-        if user_plan not in ['premium', 'enterprise'] and 'ai-image-generation' not in user_addons and not trial_active:
+        if user_plan not in ['premium', 'enterprise'] and 'ai-image-generation' not in user_addons:
             return jsonify({"success": False, "error": "AI Image Generation requires Max tier or addon"}), 403
         
         data = request.get_json()
@@ -7636,12 +7635,11 @@ def ai_image_generation_gallery():
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
-        # Check if user has ai-image-generation access (Max tier, addon, or trial)
+        # Check if user has ai-image-generation access (Growth/Max tier or addon)
         user_plan = session.get('user_plan', 'foundation')
         user_addons = session.get('user_addons', [])
-        trial_active = check_trial_active_from_db(session.get('user_id'))
         
-        if user_plan not in ['premium', 'enterprise'] and 'ai-image-generation' not in user_addons and not trial_active:
+        if user_plan not in ['premium', 'enterprise'] and 'ai-image-generation' not in user_addons:
             return jsonify({"success": False, "error": "AI Image Generation requires Max tier or addon"}), 403
         
         # Get images from session (in production, get from database)
@@ -7666,12 +7664,11 @@ def ai_image_generation_usage():
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
-        # Check if user has ai-image-generation access (Max tier, addon, or trial)
+        # Check if user has ai-image-generation access (Growth/Max tier or addon)
         user_plan = session.get('user_plan', 'foundation')
         user_addons = session.get('user_addons', [])
-        trial_active = check_trial_active_from_db(session.get('user_id'))
         
-        if user_plan not in ['premium', 'enterprise'] and 'ai-image-generation' not in user_addons and not trial_active:
+        if user_plan not in ['premium', 'enterprise'] and 'ai-image-generation' not in user_addons:
             return jsonify({"success": False, "error": "AI Image Generation requires Max tier or addon"}), 403
         
         # Get current month usage
