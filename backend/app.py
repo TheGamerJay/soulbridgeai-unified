@@ -97,6 +97,10 @@ os.makedirs("logs", exist_ok=True)
 def check_trial_active_from_db(user_id):
     """Check if trial is active based on database trial_expires_at check"""
     try:
+        # Check if user is logged in
+        if not is_logged_in():
+            return False
+            
         database_url = os.environ.get('DATABASE_URL')
         if not database_url:
             return False
@@ -123,13 +127,17 @@ def check_trial_active_from_db(user_id):
         
         trial_started_at, trial_companion, trial_used_permanently, trial_expires_at = result
         
-        # Check trial status (same logic as /get-trial-status)
+        # Check trial status (ignore trial_used_permanently, only check time)
         now = datetime.utcnow()
         trial_active = False
         
         # Check if trial is still active based on expiration time only
+        # NOTE: trial_used_permanently=True just means trial was started, not that it's finished
         if trial_expires_at and now < trial_expires_at:
             trial_active = True
+            print(f"✅ Trial active for {user_email}: expires at {trial_expires_at} (used_permanently: {trial_used_permanently})")
+        else:
+            print(f"❌ Trial not active for {user_email}: expires_at={trial_expires_at}, now={now}")
         
         return trial_active
         
