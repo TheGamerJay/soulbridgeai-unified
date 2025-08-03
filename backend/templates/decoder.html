@@ -493,22 +493,27 @@ async function refreshDecoderLimits() {
             usageFill.style.width = Math.min(percentage, 100) + '%';
         }
 
-        // Update plan message
+        // Update tier-specific plan message
         const planNotice = document.getElementById("max-plan-message");
         const planDesc = document.getElementById("plan-description");
 
-        if (hasUnlimited) {
+        if (data.effective_plan === "enterprise") {
+            // 🔴 Max tier - show unlimited message
             if (planNotice) planNotice.style.display = "block";
             if (planDesc) planDesc.style.display = "none";
-        } else {
+        } else if (data.effective_plan === "premium") {
+            // 🔵 Growth tier (including trial users)
             if (planNotice) planNotice.style.display = "none";
             if (planDesc) {
                 planDesc.style.display = "block";
-                if (data.effective_plan === 'premium') {
-                    planDesc.textContent = `Growth users get ${limitDisplay} decodes per day. Upgrade to Max for unlimited.`;
-                } else {
-                    planDesc.textContent = `Free users get ${limitDisplay} decodes per day. Upgrade for more access.`;
-                }
+                planDesc.textContent = `Growth users get ${limitDisplay} decodes per day. Upgrade to Max for unlimited.`;
+            }
+        } else {
+            // 🟢 Free tier
+            if (planNotice) planNotice.style.display = "none";
+            if (planDesc) {
+                planDesc.style.display = "block";
+                planDesc.textContent = `Free users get ${limitDisplay} decodes per day. Upgrade to Growth for more.`;
             }
         }
 
