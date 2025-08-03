@@ -4439,10 +4439,11 @@ TIER_LIMITS = {
     "enterprise": {"decoder": None, "fortune": None, "horoscope": None, "ai_image_monthly": None, "voice_journal_monthly": None, "relationship_profiles": None, "emotional_meditations": None}
 }
 
-def get_effective_plan(user_plan, trial_active):
+def get_effective_plan(user_plan, trial_active=None):
     """
     Get effective plan for usage limits.
-    Trial only unlocks companions, does NOT change usage limits.
+    Trial NEVER affects usage limits - only companion access.
+    Always returns the user's actual plan tier.
     """
     if user_plan == 'enterprise':
         return 'enterprise'
@@ -7457,8 +7458,8 @@ def ai_image_generation_generate():
         if not prompt:
             return jsonify({"success": False, "error": "Prompt required"}), 400
         
-        # Check tier-based usage limit
-        effective_plan = get_effective_plan(user_plan, trial_active)
+        # Check tier-based usage limit (trial doesn't affect limits)
+        effective_plan = get_effective_plan(user_plan)
         monthly_limit = get_feature_limit(effective_plan, "ai_image_monthly")
         
         current_month = datetime.now().strftime('%Y-%m')
