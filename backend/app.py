@@ -4395,7 +4395,8 @@ def get_user_addons():
 
 def get_effective_decoder_limits(user_id, user_plan):
     """Get effective decoder limits for a user, considering trial status"""
-    trial_active, _, _ = check_trial_active_from_db(user_id=user_id)
+    user_email = session.get("user_email")  # ADD THIS
+    trial_active, _, _ = check_trial_active_from_db(user_email=user_email, user_id=user_id)
 
     # Base limits
     tier_limits = {
@@ -4407,10 +4408,14 @@ def get_effective_decoder_limits(user_id, user_plan):
     daily_limit = tier_limits.get(user_plan, 3)
     effective_plan = user_plan
 
+    # Debug logging
+    logger.info(f"🔍 DECODER LIMIT CHECK: user_plan={user_plan}, trial_active={trial_active}, daily_limit={daily_limit}")
+
     # If trial is active and user isn't already on Max, upgrade temporarily
     if trial_active and user_plan != 'enterprise':
         daily_limit = None
         effective_plan = 'enterprise'
+        logger.info(f"🔍 TRIAL BOOST: Upgraded {user_plan} to enterprise (unlimited)")
 
     return daily_limit, effective_plan
 
@@ -4454,23 +4459,36 @@ def check_decoder_limit():
     user_email = session.get("user_email")
     user_plan = session.get("user_plan", "foundation")
 
-    # Check trial status using shared function
+    # 🧠 Important: Check trial properly using both email and ID
     trial_active, _, _ = check_trial_active_from_db(user_email=user_email, user_id=user_id)
 
-    # Use shared function to get correct limits
-    daily_limit, effective_plan = get_effective_decoder_limits(user_id, user_plan)
+    # Define tier limits
+    tier_limits = {
+        "foundation": 3,
+        "premium": 15,
+        "enterprise": None
+    }
 
-    # Get usage
-    usage_today = get_decoder_usage()
+    # Default to user's actual plan
+    daily_limit = tier_limits.get(user_plan, 3)
+    effective_plan = user_plan
 
-    # Return JSON to frontend
+    # 🛡️ Apply trial logic only if user is NOT already Max
+    if trial_active and user_plan != "enterprise":
+        daily_limit = None
+        effective_plan = "enterprise"
+
+    usage = get_decoder_usage()  # Your existing function
+
+    logger.info(f"🧪 DECODER API: plan={effective_plan}, trial={trial_active}, usage={usage}, limit={daily_limit}")
+
     return jsonify({
         "success": True,
         "trial_active": trial_active,
         "effective_plan": effective_plan,
         "daily_limit": daily_limit,
-        "usage_today": usage_today,
-        "remaining": None if daily_limit is None else max(0, daily_limit - usage_today)
+        "usage_today": usage,
+        "remaining": None if daily_limit is None else max(0, daily_limit - usage)
     })
 
 @app.route("/api/subscription/upgrade", methods=["POST"])
