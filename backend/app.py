@@ -4451,46 +4451,63 @@ def get_user_addons():
         logger.error(f"User addons error: {e}")
         return jsonify({"success": False, "error": "Failed to fetch add-ons"}), 500
 
-# Global per-feature tier limits - each feature has its own tier structure
-DECODER_LIMITS = {
-    "foundation": 3,
-    "premium": 15,
-    "enterprise": None  # None = unlimited
+# Clean tier separation - fully isolated limits per tier
+FREE_LIMITS = {
+    "decoder": 3,
+    "fortune": 2,
+    "horoscope": 3
 }
 
-FORTUNE_LIMITS = {
-    "foundation": 2,
-    "premium": 8,
-    "enterprise": None
+PREMIUM_LIMITS = {
+    "decoder": 15,
+    "fortune": 8,
+    "horoscope": 10
 }
 
-HOROSCOPE_LIMITS = {
-    "foundation": 3,
-    "premium": 10,
-    "enterprise": None
+MAX_LIMITS = {
+    "decoder": None,       # None = unlimited
+    "fortune": None,
+    "horoscope": None
 }
+
+TIER_LIMITS = {
+    "free": FREE_LIMITS,
+    "premium": PREMIUM_LIMITS,
+    "enterprise": MAX_LIMITS
+}
+
+def get_effective_plan(user_plan, trial_active):
+    """
+    Returns one of: 'free', 'premium', or 'enterprise'
+    Clean tier determination with proper trial handling
+    """
+    if user_plan == 'enterprise':
+        return 'enterprise'  # Max tier users stay Max
+    elif trial_active:
+        return 'premium'     # During 5-hour trial, act as Growth (NOT Max!)
+    elif user_plan == 'premium':
+        return 'premium'     # Growth tier users
+    else:
+        return 'free'        # Free tier users (foundation)
+
+def get_feature_limit(effective_plan, feature_name):
+    """
+    Get limit for a specific feature based on effective plan
+    Returns None for unlimited, integer for limited
+    """
+    return TIER_LIMITS[effective_plan].get(feature_name)
 
 def get_effective_decoder_limits(user_id, user_plan):
     """Get effective decoder limits for a user, considering trial status"""
-    user_email = session.get("user_email")  # ADD THIS
+    user_email = session.get("user_email")
     trial_active, _, _ = check_trial_active_from_db(user_email=user_email, user_id=user_id)
     
-    # Trial check completed - use actual trial_active value
-
-    # Use global decoder limits
-    daily_limit = DECODER_LIMITS.get(user_plan, 3)
-    effective_plan = user_plan
+    # Clean tier determination
+    effective_plan = get_effective_plan(user_plan, trial_active)
+    daily_limit = get_feature_limit(effective_plan, "decoder")
 
     # Debug logging
-    logger.info(f"🔍 DECODER LIMIT CHECK: user_plan={user_plan}, trial_active={trial_active}, daily_limit={daily_limit}")
-
-    # If trial is active and user isn't already on Max, upgrade temporarily to Growth
-    if trial_active and user_plan != 'enterprise':
-        daily_limit = DECODER_LIMITS.get('premium', 15)
-        effective_plan = 'premium'
-        logger.info(f"🔍 TRIAL BOOST: Upgraded {user_plan} to premium (Growth-tier limits: {daily_limit})")
-    else:
-        logger.info(f"🔍 NO TRIAL BOOST: trial_active={trial_active}, user_plan={user_plan}")
+    logger.info(f"🔍 DECODER LIMIT CHECK: user_plan={user_plan}, trial_active={trial_active}, effective_plan={effective_plan}, daily_limit={daily_limit}")
 
     return daily_limit, effective_plan
 
@@ -4499,20 +4516,12 @@ def get_effective_fortune_limits(user_id, user_plan):
     user_email = session.get("user_email")
     trial_active, _, _ = check_trial_active_from_db(user_email=user_email, user_id=user_id)
     
-    # Trial check completed - use actual trial_active value
-
-    # Use global fortune limits
-    daily_limit = FORTUNE_LIMITS.get(user_plan, 2)
-    effective_plan = user_plan
+    # Clean tier determination
+    effective_plan = get_effective_plan(user_plan, trial_active)
+    daily_limit = get_feature_limit(effective_plan, "fortune")
 
     # Debug logging
-    logger.info(f"🔮 FORTUNE LIMIT CHECK: user_plan={user_plan}, trial_active={trial_active}, daily_limit={daily_limit}")
-
-    # If trial is active and user isn't already on Max, upgrade temporarily to Growth
-    if trial_active and user_plan != 'enterprise':
-        daily_limit = FORTUNE_LIMITS.get('premium', 8)
-        effective_plan = 'premium'
-        logger.info(f"🔮 TRIAL BOOST: Upgraded {user_plan} to premium (Growth-tier limits)")
+    logger.info(f"🔮 FORTUNE LIMIT CHECK: user_plan={user_plan}, trial_active={trial_active}, effective_plan={effective_plan}, daily_limit={daily_limit}")
 
     return daily_limit, effective_plan
 
@@ -4521,20 +4530,12 @@ def get_effective_horoscope_limits(user_id, user_plan):
     user_email = session.get("user_email")
     trial_active, _, _ = check_trial_active_from_db(user_email=user_email, user_id=user_id)
     
-    # Trial check completed - use actual trial_active value
-
-    # Use global horoscope limits
-    daily_limit = HOROSCOPE_LIMITS.get(user_plan, 3)
-    effective_plan = user_plan
+    # Clean tier determination
+    effective_plan = get_effective_plan(user_plan, trial_active)
+    daily_limit = get_feature_limit(effective_plan, "horoscope")
 
     # Debug logging
-    logger.info(f"⭐ HOROSCOPE LIMIT CHECK: user_plan={user_plan}, trial_active={trial_active}, daily_limit={daily_limit}")
-
-    # If trial is active and user isn't already on Max, upgrade temporarily to Growth
-    if trial_active and user_plan != 'enterprise':
-        daily_limit = HOROSCOPE_LIMITS.get('premium', 10)
-        effective_plan = 'premium'
-        logger.info(f"⭐ TRIAL BOOST: Upgraded {user_plan} to premium (Growth-tier limits)")
+    logger.info(f"⭐ HOROSCOPE LIMIT CHECK: user_plan={user_plan}, trial_active={trial_active}, effective_plan={effective_plan}, daily_limit={daily_limit}")
 
     return daily_limit, effective_plan
 
@@ -4649,18 +4650,12 @@ def check_decoder_limit():
     # 🧠 Important: Check trial properly using both email and ID
     trial_active, _, _ = check_trial_active_from_db(user_email=user_email, user_id=user_id)
     
-    # Trial check completed - use actual trial_active value
+    # Clean tier system - fully isolated limits per tier
 
     # Define tier limits - NEVER return null unless enterprise
-    # Use global decoder limits for API endpoint
-    daily_limit = DECODER_LIMITS.get(user_plan, 3)
-    effective_plan = user_plan
-
-    # 🛡️ Apply trial logic only if user is NOT already Max
-    if trial_active and user_plan != "enterprise":
-        # During trial, user gets premium (Growth-tier) access
-        daily_limit = DECODER_LIMITS.get("premium", 15)
-        effective_plan = "premium"
+    # Clean tier determination using new system
+    effective_plan = get_effective_plan(user_plan, trial_active)
+    daily_limit = get_feature_limit(effective_plan, "decoder")
 
     usage = get_decoder_usage()
 
@@ -4684,18 +4679,12 @@ def check_fortune_limit():
     # Check trial status using both email and ID
     trial_active, _, _ = check_trial_active_from_db(user_email=user_email, user_id=user_id)
     
-    # Trial check completed - use actual trial_active value
+    # Clean tier system - fully isolated limits per tier
 
     # Define tier limits for fortune telling - NEVER return null unless enterprise
-    # Use global fortune limits for API endpoint
-    daily_limit = FORTUNE_LIMITS.get(user_plan, 2)
-    effective_plan = user_plan
-
-    # Apply trial logic only if user is NOT already Max
-    if trial_active and user_plan != "enterprise":
-        # During trial, user gets premium (Growth-tier) access
-        daily_limit = FORTUNE_LIMITS.get("premium", 8)
-        effective_plan = "premium"
+    # Clean tier determination using new system
+    effective_plan = get_effective_plan(user_plan, trial_active)
+    daily_limit = get_feature_limit(effective_plan, "fortune")
 
     usage = get_fortune_usage()
 
@@ -4719,18 +4708,12 @@ def check_horoscope_limit():
     # Check trial status using both email and ID
     trial_active, _, _ = check_trial_active_from_db(user_email=user_email, user_id=user_id)
     
-    # Trial check completed - use actual trial_active value
+    # Clean tier system - fully isolated limits per tier
 
     # Define tier limits for horoscope readings - NEVER return null unless enterprise
-    # Use global horoscope limits for API endpoint
-    daily_limit = HOROSCOPE_LIMITS.get(user_plan, 3)
-    effective_plan = user_plan
-
-    # Apply trial logic only if user is NOT already Max
-    if trial_active and user_plan != "enterprise":
-        # During trial, user gets premium (Growth-tier) access
-        daily_limit = HOROSCOPE_LIMITS.get("premium", 10)
-        effective_plan = "premium"
+    # Clean tier determination using new system
+    effective_plan = get_effective_plan(user_plan, trial_active)
+    daily_limit = get_feature_limit(effective_plan, "horoscope")
 
     usage = get_horoscope_usage()
 
