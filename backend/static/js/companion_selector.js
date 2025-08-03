@@ -237,8 +237,8 @@ async function loadCompanions() {
             trialBtn.style.display = 'none';
         }
 
-        // Render companions with new logic
-        renderCompanionsWithTrialLogic(companions, trialActive, effectivePlan);
+        // Render companions using API response data
+        renderCompanionsFromAPI(companions, trialActive);
 
     } catch (error) {
         console.error('❌ Failed to load companions:', error);
@@ -247,44 +247,65 @@ async function loadCompanions() {
     }
 }
 
-function renderCompanionsWithTrialLogic(companions, trialActive, effectivePlan) {
-    console.log('🎬 Rendering companions with trial logic:', { trialActive, effectivePlan });
-
-    companions.forEach(companion => {
-        const companionCard = document.getElementById(`companion-${companion.id}`);
-        if (!companionCard) return;
-
-        const requiredPlan = companion.required_plan; // free, premium, enterprise
-        let locked = false;
-
-        // Determine if companion is locked
-        if (!trialActive) {
-            if (requiredPlan === 'premium' && effectivePlan === 'foundation') {
-                locked = true;
-            } else if (requiredPlan === 'enterprise' && effectivePlan !== 'enterprise') {
-                locked = true;
-            }
-        }
-        // If trial is active, no companions are locked
-
-        // Update UI elements
-        const lockBtn = companionCard.querySelector('.lock-btn');
-        const selectBtn = companionCard.querySelector('.select-btn');
-
-        if (locked) {
-            if (selectBtn) selectBtn.style.display = 'none';
-            if (lockBtn) {
-                lockBtn.style.display = 'block';
-                lockBtn.innerText = '🎯 Try 5hr Free';
-            }
-        } else {
-            if (lockBtn) lockBtn.style.display = 'none';
-            if (selectBtn) {
-                selectBtn.style.display = 'block';
-                selectBtn.innerText = '✅ Select';
-            }
+function renderCompanionsFromAPI(companionsData, trialActive) {
+    console.log('🎬 Rendering companions from API:', { companionsData, trialActive });
+    
+    // Clear existing content
+    const sections = ['free', 'growth', 'max', 'referral'];
+    sections.forEach(tier => {
+        const container = document.getElementById(`${tier}-companions`);
+        if (container) {
+            container.innerHTML = '';
         }
     });
+    
+    // Render each tier
+    Object.keys(companionsData).forEach(tier => {
+        const companions = companionsData[tier] || [];
+        const container = document.getElementById(`${tier}-companions`);
+        
+        if (!container) {
+            console.warn(`❌ Container not found for tier: ${tier}`);
+            return;
+        }
+        
+        companions.forEach(companion => {
+            const isLocked = companion.lock_reason !== null;
+            const companionCard = createCompanionCard(companion, isLocked);
+            container.appendChild(companionCard);
+        });
+    });
+}
+
+function createCompanionCard(companion, isLocked) {
+    const card = document.createElement('div');
+    card.className = 'companion-card';
+    card.id = `companion-${companion.companion_id}`;
+    
+    const buttonClass = isLocked ? 'btn-select btn-upgrade' : 'btn-select';
+    const buttonText = isLocked ? companion.lock_reason : 'Select';
+    const buttonOnClick = isLocked ? `showTrialModal('${companion.companion_id}')` : '';
+    
+    card.innerHTML = `
+        <div class="companion-avatar">
+            <img src="${companion.avatar_image}" alt="${companion.display_name}" loading="lazy">
+        </div>
+        <div class="companion-info">
+            <h3>${companion.display_name}</h3>
+            <p>${companion.description}</p>
+            <div class="companion-tier tier-${companion.tier}">${companion.tier}</div>
+        </div>
+        <div class="companion-actions">
+            <button class="${buttonClass}" 
+                    data-companion-id="${companion.companion_id}"
+                    ${buttonOnClick ? `onclick="${buttonOnClick}"` : ''}
+                    ${isLocked ? '' : `onclick="window.selectCompanion('${companion.companion_id}')"`}>
+                ${buttonText}
+            </button>
+        </div>
+    `;
+    
+    return card;
 }
 
 function loadFallbackCompanions() {
