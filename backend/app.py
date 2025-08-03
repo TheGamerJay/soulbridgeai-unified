@@ -4478,38 +4478,28 @@ TIER_LIMITS = {
 
 def get_effective_feature_limit(user_plan, trial_active, feature_name):
     """
-    Returns the correct limit for a feature based on their actual plan,
-    but applies trial logic to only unlock *Growth-tier features*, NOT change plans.
+    Returns the correct limit for a feature based on their actual plan.
+    Trial does NOT change limits - it only unlocks access to locked features/companions.
     """
-    # Define limits per tier - each plan stays separate
+    # Get limits based on actual plan - trial doesn't affect limits!
     base_limit = TIER_LIMITS.get(user_plan, TIER_LIMITS["foundation"]).get(feature_name)
-
-    # If trial is active and user is foundation (free), upgrade to premium tier limits
-    if trial_active and user_plan == "foundation":
-        trial_limit = TIER_LIMITS["premium"].get(feature_name)
-        logger.info(f"🔥 TRIAL BOOST: {user_plan} user gets {feature_name} limit {base_limit} → {trial_limit}")
-        return trial_limit
-
-    # All other cases (premium or enterprise) - no change during trial
-    logger.info(f"🔒 NO TRIAL BOOST: {user_plan} user keeps {feature_name} limit {base_limit} (trial_active={trial_active})")
+    
+    logger.info(f"💎 FEATURE LIMIT: {user_plan} user gets {feature_name} limit {base_limit} (trial_active={trial_active} - no limit changes)")
     return base_limit
 
 def get_effective_plan_for_display(user_plan, trial_active):
     """
     Returns display plan for frontend messaging
-    Only Free users show as 'premium' during trial for messaging purposes
+    Trial does NOT change the plan display - users always see their real plan
     """
     if user_plan == 'enterprise':
         result = 'enterprise'
     elif user_plan == 'premium':
         result = 'premium'
-    elif trial_active and user_plan == 'foundation':
-        result = 'premium'  # Free users show Growth messaging during trial
-        logger.info(f"🎭 TRIAL DISPLAY: {user_plan} user shows as {result} during trial")
     else:
-        result = 'free'  # Free tier for frontend (maps foundation->free)
+        result = 'free'  # foundation maps to 'free' for frontend
     
-    logger.info(f"🎭 DISPLAY PLAN: {user_plan} (trial={trial_active}) → display as {result}")
+    logger.info(f"🎭 DISPLAY PLAN: {user_plan} (trial={trial_active}) → always display real plan: {result}")
     return result
 
 def get_effective_decoder_limits(user_id, user_plan):
