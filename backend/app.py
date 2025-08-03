@@ -95,25 +95,44 @@ os.makedirs("logs", exist_ok=True)
 # Helper function to check trial status from database
 # -- Trial Check Function --
 def check_trial_active_from_db(user_id):
-    """Check if trial is active based on database time check"""
+    """Check if trial is active based on database trial_expires_at check"""
     try:
-        with get_db_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute("""
-                SELECT trial_started_at
-                FROM users
-                WHERE id = %s
-            """, (user_id,))
-            result = cursor.fetchone()
-            if not result or not result[0]:
-                return False
-
-            trial_start = result[0]
-            now = datetime.now(timezone.utc)
-            if now - trial_start < timedelta(hours=5):
-                return True
-            else:
-                return False
+        database_url = os.environ.get('DATABASE_URL')
+        if not database_url:
+            return False
+            
+        import psycopg2
+        conn = psycopg2.connect(database_url)
+        cursor = conn.cursor()
+        
+        # Get user trial data including expires_at (same logic as /get-trial-status)
+        user_email = session.get("user_email")
+        if not user_email:
+            conn.close()
+            return False
+            
+        cursor.execute("""
+            SELECT trial_started_at, trial_companion, trial_used_permanently, trial_expires_at
+            FROM users WHERE email = %s
+        """, (user_email,))
+        result = cursor.fetchone()
+        conn.close()
+        
+        if not result:
+            return False
+        
+        trial_started_at, trial_companion, trial_used_permanently, trial_expires_at = result
+        
+        # Check trial status (same logic as /get-trial-status)
+        now = datetime.utcnow()
+        trial_active = False
+        
+        # Check if trial is still active based on expiration time only
+        if trial_expires_at and now < trial_expires_at:
+            trial_active = True
+        
+        return trial_active
+        
     except Exception as e:
         print(f"Trial check error: {e}")
         return False
