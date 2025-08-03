@@ -4442,14 +4442,14 @@ TIER_LIMITS = {
 def get_effective_plan(user_plan, trial_active):
     """
     Get effective plan for usage limits.
-    Trial gives access to features, not upgraded limits.
+    During trial, users get premium-level usage limits.
     """
     if user_plan == 'enterprise':
         return 'enterprise'
     elif user_plan == 'premium':
         return 'premium'
     elif trial_active:
-        return 'foundation'  # Trial gives access to features, not limits
+        return 'premium'  # Trial gives premium usage limits
     else:
         return 'foundation'
 
