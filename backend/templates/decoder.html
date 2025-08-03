@@ -509,7 +509,7 @@ async function refreshDecoderLimits() {
                 planDesc.textContent = `Growth users get ${limitDisplay} decodes per day. Upgrade to Max for unlimited.`;
             }
         } else {
-            // 🟢 Free tier
+            // 🟢 Free tier (foundation or free)
             if (planNotice) planNotice.style.display = "none";
             if (planDesc) {
                 planDesc.style.display = "block";

@@ -4471,9 +4471,9 @@ MAX_LIMITS = {
 }
 
 TIER_LIMITS = {
-    "free": FREE_LIMITS,
-    "premium": PREMIUM_LIMITS,
-    "enterprise": MAX_LIMITS
+    "foundation": FREE_LIMITS,    # Free tier (matches session user_plan)
+    "premium": PREMIUM_LIMITS,    # Growth tier
+    "enterprise": MAX_LIMITS      # Max tier
 }
 
 def get_effective_feature_limit(user_plan, trial_active, feature_name):
@@ -4482,7 +4482,7 @@ def get_effective_feature_limit(user_plan, trial_active, feature_name):
     but applies trial logic to only unlock *Growth-tier features*, NOT change plans.
     """
     # Define limits per tier - each plan stays separate
-    base_limit = TIER_LIMITS.get(user_plan, TIER_LIMITS["free"]).get(feature_name)
+    base_limit = TIER_LIMITS.get(user_plan, TIER_LIMITS["foundation"]).get(feature_name)
 
     # If trial is active and user is foundation (free), upgrade to premium tier limits
     if trial_active and user_plan == "foundation":
@@ -4503,7 +4503,7 @@ def get_effective_plan_for_display(user_plan, trial_active):
     elif trial_active and user_plan == 'foundation':
         return 'premium'  # Free users show Growth messaging during trial
     else:
-        return 'free'
+        return 'free'  # Free tier for frontend (maps foundation->free)
 
 def get_effective_decoder_limits(user_id, user_plan):
     """Get effective decoder limits for a user, considering trial status"""
