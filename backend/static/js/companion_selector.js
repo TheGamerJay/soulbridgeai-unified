@@ -250,6 +250,9 @@ async function loadCompanions() {
 function renderCompanionsFromAPI(companionsData, trialActive) {
     console.log('🎬 Rendering companions from API:', { companionsData, trialActive });
     
+    // Store companion data globally for easy access
+    window.companionDataStore = {};
+    
     // Clear existing content
     const sections = ['free', 'growth', 'max', 'referral'];
     sections.forEach(tier => {
@@ -270,8 +273,12 @@ function renderCompanionsFromAPI(companionsData, trialActive) {
         }
         
         companions.forEach(companion => {
+            // Store companion data with tier info
+            const companionWithTier = { ...companion, tier: tier };
+            window.companionDataStore[companion.companion_id] = companionWithTier;
+            
             const isLocked = companion.lock_reason !== null;
-            const companionCard = createCompanionCard(companion, isLocked);
+            const companionCard = createCompanionCard(companionWithTier, isLocked);
             container.appendChild(companionCard);
         });
     });
@@ -284,7 +291,7 @@ function createCompanionCard(companion, isLocked) {
     
     const buttonClass = isLocked ? 'btn-select btn-upgrade' : 'btn-select';
     const buttonText = isLocked ? companion.lock_reason : 'Select';
-    const buttonOnClick = isLocked ? `showTrialModal('${companion.companion_id}')` : '';
+    const buttonOnClick = isLocked ? `showTrialModalByID('${companion.companion_id}')` : '';
     
     card.innerHTML = `
         <div class="companion-avatar">
@@ -293,13 +300,12 @@ function createCompanionCard(companion, isLocked) {
         <div class="companion-info">
             <h3>${companion.display_name}</h3>
             <p>${companion.description}</p>
-            <div class="companion-tier tier-${companion.tier}">${companion.tier}</div>
+            <div class="companion-tier tier-${companion.tier}">${companion.tier.toUpperCase()}</div>
         </div>
         <div class="companion-actions">
             <button class="${buttonClass}" 
                     data-companion-id="${companion.companion_id}"
-                    ${buttonOnClick ? `onclick="${buttonOnClick}"` : ''}
-                    ${isLocked ? '' : `onclick="window.selectCompanion('${companion.companion_id}')"`}>
+                    ${isLocked ? `onclick="${buttonOnClick}"` : `onclick="window.selectCompanion('${companion.companion_id}')"`}>
                 ${buttonText}
             </button>
         </div>
@@ -307,6 +313,21 @@ function createCompanionCard(companion, isLocked) {
     
     return card;
 }
+
+// Helper function to show trial modal using companion ID
+function showTrialModalByID(companionId) {
+    const companion = window.companionDataStore && window.companionDataStore[companionId];
+    if (companion) {
+        console.log('🎯 Found companion data:', companion);
+        showTrialModal(companionId, companion.tier, companion.display_name);
+    } else {
+        console.error('❌ Companion not found in data store:', companionId);
+        showTrialModal(companionId, 'unknown', 'Unknown Companion');
+    }
+}
+
+// Expose the function globally
+window.showTrialModalByID = showTrialModalByID;
 
 function loadFallbackCompanions() {
     console.log('🔄 Loading fallback companion data...');
