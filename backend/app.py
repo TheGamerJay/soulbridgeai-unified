@@ -4474,11 +4474,11 @@ def get_effective_decoder_limits(user_id, user_plan):
     # Debug logging
     logger.info(f"🔍 DECODER LIMIT CHECK: user_plan={user_plan}, trial_active={trial_active}, daily_limit={daily_limit}")
 
-    # If trial is active and user isn't already on Max, upgrade temporarily
+    # If trial is active and user isn't already on Max, upgrade temporarily to Growth
     if trial_active and user_plan != 'enterprise':
-        daily_limit = None
-        effective_plan = 'enterprise'
-        logger.info(f"🔍 TRIAL BOOST: Upgraded {user_plan} to enterprise (unlimited)")
+        daily_limit = tier_limits.get('premium', 15)
+        effective_plan = 'premium'
+        logger.info(f"🔍 TRIAL BOOST: Upgraded {user_plan} to premium (Growth-tier limits)")
 
     return daily_limit, effective_plan
 
@@ -4505,11 +4505,11 @@ def get_effective_fortune_limits(user_id, user_plan):
     # Debug logging
     logger.info(f"🔮 FORTUNE LIMIT CHECK: user_plan={user_plan}, trial_active={trial_active}, daily_limit={daily_limit}")
 
-    # If trial is active and user isn't already on Max, upgrade temporarily
+    # If trial is active and user isn't already on Max, upgrade temporarily to Growth
     if trial_active and user_plan != 'enterprise':
-        daily_limit = None
-        effective_plan = 'enterprise'
-        logger.info(f"🔮 TRIAL BOOST: Upgraded {user_plan} to enterprise (unlimited)")
+        daily_limit = tier_limits.get('premium', 8)
+        effective_plan = 'premium'
+        logger.info(f"🔮 TRIAL BOOST: Upgraded {user_plan} to premium (Growth-tier limits)")
 
     return daily_limit, effective_plan
 
@@ -4536,11 +4536,11 @@ def get_effective_horoscope_limits(user_id, user_plan):
     # Debug logging
     logger.info(f"⭐ HOROSCOPE LIMIT CHECK: user_plan={user_plan}, trial_active={trial_active}, daily_limit={daily_limit}")
 
-    # If trial is active and user isn't already on Max, upgrade temporarily
+    # If trial is active and user isn't already on Max, upgrade temporarily to Growth
     if trial_active and user_plan != 'enterprise':
-        daily_limit = None
-        effective_plan = 'enterprise'
-        logger.info(f"⭐ TRIAL BOOST: Upgraded {user_plan} to enterprise (unlimited)")
+        daily_limit = tier_limits.get('premium', 10)
+        effective_plan = 'premium'
+        logger.info(f"⭐ TRIAL BOOST: Upgraded {user_plan} to premium (Growth-tier limits)")
 
     return daily_limit, effective_plan
 
@@ -4673,9 +4673,9 @@ def check_decoder_limit():
 
     # 🛡️ Apply trial logic only if user is NOT already Max
     if trial_active and user_plan != "enterprise":
-        # During trial, user gets enterprise access
-        daily_limit = None
-        effective_plan = "enterprise"
+        # During trial, user gets premium (Growth-tier) access
+        daily_limit = tier_limits.get("premium", 15)
+        effective_plan = "premium"
 
     usage = get_decoder_usage()
 
@@ -4717,9 +4717,9 @@ def check_fortune_limit():
 
     # Apply trial logic only if user is NOT already Max
     if trial_active and user_plan != "enterprise":
-        # During trial, user gets enterprise access
-        daily_limit = None
-        effective_plan = "enterprise"
+        # During trial, user gets premium (Growth-tier) access
+        daily_limit = tier_limits.get("premium", 8)
+        effective_plan = "premium"
 
     usage = get_fortune_usage()
 
@@ -4761,9 +4761,9 @@ def check_horoscope_limit():
 
     # Apply trial logic only if user is NOT already Max
     if trial_active and user_plan != "enterprise":
-        # During trial, user gets enterprise access
-        daily_limit = None
-        effective_plan = "enterprise"
+        # During trial, user gets premium (Growth-tier) access
+        daily_limit = tier_limits.get("premium", 10)
+        effective_plan = "premium"
 
     usage = get_horoscope_usage()
 
