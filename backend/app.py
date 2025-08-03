@@ -4476,68 +4476,76 @@ TIER_LIMITS = {
     "enterprise": MAX_LIMITS
 }
 
-def get_effective_plan(user_plan, trial_active):
+def get_effective_feature_limit(user_plan, trial_active, feature_name):
     """
-    Returns one of: 'free', 'premium', or 'enterprise'
-    Clean tier determination with proper trial handling
+    Returns the correct limit for a feature based on their actual plan,
+    but applies trial logic to only unlock *Growth-tier features*, NOT change plans.
+    """
+    # Define limits per tier - each plan stays separate
+    base_limit = TIER_LIMITS.get(user_plan, TIER_LIMITS["free"]).get(feature_name)
+
+    # If trial is active and user is foundation (free), upgrade to premium tier limits
+    if trial_active and user_plan == "foundation":
+        return TIER_LIMITS["premium"].get(feature_name)
+
+    # All other cases (premium or enterprise) - no change during trial
+    return base_limit
+
+def get_effective_plan_for_display(user_plan, trial_active):
+    """
+    Returns display plan for frontend messaging
+    Only Free users show as 'premium' during trial for messaging purposes
     """
     if user_plan == 'enterprise':
-        return 'enterprise'  # Max tier users stay Max
-    elif trial_active:
-        return 'premium'     # During 5-hour trial, act as Growth (NOT Max!)
+        return 'enterprise'
     elif user_plan == 'premium':
-        return 'premium'     # Growth tier users
+        return 'premium'
+    elif trial_active and user_plan == 'foundation':
+        return 'premium'  # Free users show Growth messaging during trial
     else:
-        return 'free'        # Free tier users (foundation)
-
-def get_feature_limit(effective_plan, feature_name):
-    """
-    Get limit for a specific feature based on effective plan
-    Returns None for unlimited, integer for limited
-    """
-    return TIER_LIMITS[effective_plan].get(feature_name)
+        return 'free'
 
 def get_effective_decoder_limits(user_id, user_plan):
     """Get effective decoder limits for a user, considering trial status"""
     user_email = session.get("user_email")
     trial_active, _, _ = check_trial_active_from_db(user_email=user_email, user_id=user_id)
     
-    # Clean tier determination
-    effective_plan = get_effective_plan(user_plan, trial_active)
-    daily_limit = get_feature_limit(effective_plan, "decoder")
+    # New clean logic - only boost Free users during trial
+    daily_limit = get_effective_feature_limit(user_plan, trial_active, "decoder")
+    effective_plan_display = get_effective_plan_for_display(user_plan, trial_active)
 
     # Debug logging
-    logger.info(f"🔍 DECODER LIMIT CHECK: user_plan={user_plan}, trial_active={trial_active}, effective_plan={effective_plan}, daily_limit={daily_limit}")
+    logger.info(f"🔍 DECODER LIMIT CHECK: user_plan={user_plan}, trial_active={trial_active}, display_plan={effective_plan_display}, daily_limit={daily_limit}")
 
-    return daily_limit, effective_plan
+    return daily_limit, effective_plan_display
 
 def get_effective_fortune_limits(user_id, user_plan):
     """Get effective fortune limits for a user, considering trial status"""
     user_email = session.get("user_email")
     trial_active, _, _ = check_trial_active_from_db(user_email=user_email, user_id=user_id)
     
-    # Clean tier determination
-    effective_plan = get_effective_plan(user_plan, trial_active)
-    daily_limit = get_feature_limit(effective_plan, "fortune")
+    # New clean logic - only boost Free users during trial
+    daily_limit = get_effective_feature_limit(user_plan, trial_active, "fortune")
+    effective_plan_display = get_effective_plan_for_display(user_plan, trial_active)
 
     # Debug logging
-    logger.info(f"🔮 FORTUNE LIMIT CHECK: user_plan={user_plan}, trial_active={trial_active}, effective_plan={effective_plan}, daily_limit={daily_limit}")
+    logger.info(f"🔮 FORTUNE LIMIT CHECK: user_plan={user_plan}, trial_active={trial_active}, display_plan={effective_plan_display}, daily_limit={daily_limit}")
 
-    return daily_limit, effective_plan
+    return daily_limit, effective_plan_display
 
 def get_effective_horoscope_limits(user_id, user_plan):
     """Get effective horoscope limits for a user, considering trial status"""
     user_email = session.get("user_email")
     trial_active, _, _ = check_trial_active_from_db(user_email=user_email, user_id=user_id)
     
-    # Clean tier determination
-    effective_plan = get_effective_plan(user_plan, trial_active)
-    daily_limit = get_feature_limit(effective_plan, "horoscope")
+    # New clean logic - only boost Free users during trial
+    daily_limit = get_effective_feature_limit(user_plan, trial_active, "horoscope")
+    effective_plan_display = get_effective_plan_for_display(user_plan, trial_active)
 
     # Debug logging
-    logger.info(f"⭐ HOROSCOPE LIMIT CHECK: user_plan={user_plan}, trial_active={trial_active}, effective_plan={effective_plan}, daily_limit={daily_limit}")
+    logger.info(f"⭐ HOROSCOPE LIMIT CHECK: user_plan={user_plan}, trial_active={trial_active}, display_plan={effective_plan_display}, daily_limit={daily_limit}")
 
-    return daily_limit, effective_plan
+    return daily_limit, effective_plan_display
 
 def get_decoder_usage():
     """Get user's decoder usage for today"""
@@ -4653,21 +4661,21 @@ def check_decoder_limit():
     # Clean tier system - fully isolated limits per tier
 
     # Define tier limits - NEVER return null unless enterprise
-    # Clean tier determination using new system
-    effective_plan = get_effective_plan(user_plan, trial_active)
-    daily_limit = get_feature_limit(effective_plan, "decoder")
+    # New clean logic - only boost Free users during trial
+    daily_limit = get_effective_feature_limit(user_plan, trial_active, "decoder")
+    effective_plan_display = get_effective_plan_for_display(user_plan, trial_active)
 
     usage = get_decoder_usage()
 
-    logger.info(f"🧪 DECODER API: plan={effective_plan}, trial={trial_active}, usage={usage}, limit={daily_limit}")
+    logger.info(f"🧪 DECODER API: plan={effective_plan_display}, trial={trial_active}, usage={usage}, limit={daily_limit}")
 
     return jsonify({
         "success": True,
         "trial_active": trial_active,
-        "effective_plan": effective_plan,
+        "effective_plan": effective_plan_display,
         "daily_limit": daily_limit,
         "usage_today": usage,
-        "remaining": None if effective_plan == "enterprise" else max(0, daily_limit - usage)
+        "remaining": None if effective_plan_display == "enterprise" else max(0, daily_limit - usage)
     })
 
 @app.route("/api/fortune/check-limit")
@@ -4682,21 +4690,21 @@ def check_fortune_limit():
     # Clean tier system - fully isolated limits per tier
 
     # Define tier limits for fortune telling - NEVER return null unless enterprise
-    # Clean tier determination using new system
-    effective_plan = get_effective_plan(user_plan, trial_active)
-    daily_limit = get_feature_limit(effective_plan, "fortune")
+    # New clean logic - only boost Free users during trial
+    daily_limit = get_effective_feature_limit(user_plan, trial_active, "fortune")
+    effective_plan_display = get_effective_plan_for_display(user_plan, trial_active)
 
     usage = get_fortune_usage()
 
-    logger.info(f"🔮 FORTUNE API: plan={effective_plan}, trial={trial_active}, usage={usage}, limit={daily_limit}")
+    logger.info(f"🔮 FORTUNE API: plan={effective_plan_display}, trial={trial_active}, usage={usage}, limit={daily_limit}")
 
     return jsonify({
         "success": True,
         "trial_active": trial_active,
-        "effective_plan": effective_plan,
+        "effective_plan": effective_plan_display,
         "daily_limit": daily_limit,
         "usage_today": usage,
-        "remaining": None if effective_plan == "enterprise" else max(0, daily_limit - usage)
+        "remaining": None if effective_plan_display == "enterprise" else max(0, daily_limit - usage)
     })
 
 @app.route("/api/horoscope/check-limit")
@@ -4711,21 +4719,21 @@ def check_horoscope_limit():
     # Clean tier system - fully isolated limits per tier
 
     # Define tier limits for horoscope readings - NEVER return null unless enterprise
-    # Clean tier determination using new system
-    effective_plan = get_effective_plan(user_plan, trial_active)
-    daily_limit = get_feature_limit(effective_plan, "horoscope")
+    # New clean logic - only boost Free users during trial
+    daily_limit = get_effective_feature_limit(user_plan, trial_active, "horoscope")
+    effective_plan_display = get_effective_plan_for_display(user_plan, trial_active)
 
     usage = get_horoscope_usage()
 
-    logger.info(f"⭐ HOROSCOPE API: plan={effective_plan}, trial={trial_active}, usage={usage}, limit={daily_limit}")
+    logger.info(f"⭐ HOROSCOPE API: plan={effective_plan_display}, trial={trial_active}, usage={usage}, limit={daily_limit}")
 
     return jsonify({
         "success": True,
         "trial_active": trial_active,
-        "effective_plan": effective_plan,
+        "effective_plan": effective_plan_display,
         "daily_limit": daily_limit,
         "usage_today": usage,
-        "remaining": None if effective_plan == "enterprise" else max(0, daily_limit - usage)
+        "remaining": None if effective_plan_display == "enterprise" else max(0, daily_limit - usage)
     })
 
 @app.route("/api/subscription/upgrade", methods=["POST"])
