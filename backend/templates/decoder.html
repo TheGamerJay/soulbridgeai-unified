@@ -310,25 +310,17 @@
     <div class="usage-indicator" id="usage-indicator">
         <div>
             <strong>Daily Decodes:</strong> 
-            <span id="usage-count">{{ current_usage or 0 }}</span> / <span id="usage-limit">{{ daily_limit if daily_limit else "∞" }}</span> used
+            <span id="usage-count">...</span> / <span id="usage-limit">...</span> used
         </div>
         <div class="usage-bar">
             <div class="usage-fill" id="usage-fill"></div>
         </div>
-        <div style="font-size: 0.9rem; color: #94a3b8;">
-            <!-- DEBUG: Plan={{ user_plan }}, Limit={{ daily_limit }}, Usage={{ current_usage }} -->
-            {% if daily_limit %}
-                {% if user_plan == 'foundation' %}
-                    Free users get {{ daily_limit }} decodes per day. Upgrade for more access.
-                {% elif user_plan == 'premium' %}
-                    Growth users get {{ daily_limit }} decodes per day. Upgrade to Max for unlimited.
-                {% elif user_plan == 'enterprise' %}
-                    🎉 Max users have unlimited decoder access!
-                {% endif %}
-            {% else %}
-                🎉 Max users have unlimited decoder access!
-            {% endif %}
+        <div style="font-size: 0.9rem; color: #94a3b8;" id="plan-description">
+            Loading decoder limits...
         </div>
+        <p id="max-plan-message" style="display:none; color: #22d3ee; font-weight: 600;">
+            🎉 Max users have unlimited decoder access!
+        </p>
     </div>
 
     <div class="decoder-interface">
@@ -477,36 +469,59 @@ let dailyLimit = {{ daily_limit if daily_limit else "null" }};
 // Function to refresh decoder limits from server
 async function refreshDecoderLimits() {
     try {
-        const response = await fetch('/api/decoder/check-limit');
-        const data = await response.json();
-        
-        if (data.success) {
-            userUsage = data.usage_today;
-            userPlan = data.effective_plan;
-            dailyLimit = data.daily_limit;
-            
-            console.log(`🔄 Refreshed decoder limits: plan=${userPlan}, usage=${userUsage}, limit=${dailyLimit}`);
-            
-            // Update UI
-            updateUsageIndicator();
-            updatePlanDescription();
-        }
-    } catch (error) {
-        console.error('Failed to refresh decoder limits:', error);
-    }
-}
+        const res = await fetch('/api/decoder/check-limit');
+        const data = await res.json();
 
-// Function to update plan description based on current plan
-function updatePlanDescription() {
-    const planDesc = document.querySelector('.usage-bar + div');
-    if (planDesc) {
-        if (dailyLimit === null || dailyLimit === -1) {
-            planDesc.innerHTML = '🎉 Max users have unlimited decoder access!';
-        } else if (userPlan === 'premium') {
-            planDesc.innerHTML = `Growth users get ${dailyLimit} decodes per day. Upgrade to Max for unlimited.`;
+        if (!data.success) throw new Error("API error");
+
+        const usage = data.usage_today ?? 0;
+        const limit = data.daily_limit === null ? '∞' : data.daily_limit;
+
+        // Set values in DOM
+        document.getElementById("usage-count").textContent = usage;
+        document.getElementById("usage-limit").textContent = limit;
+
+        // Update usage bar
+        const usageFill = document.getElementById('usage-fill');
+        if (data.daily_limit === null) {
+            usageFill.style.width = '100%';
+            usageFill.style.background = 'linear-gradient(135deg, #22d3ee, #0891b2)';
         } else {
-            planDesc.innerHTML = `Free users get ${dailyLimit} decodes per day. Upgrade for more access.`;
+            const percentage = data.daily_limit > 0 ? (usage / data.daily_limit) * 100 : 0;
+            usageFill.style.width = Math.min(percentage, 100) + '%';
         }
+
+        // Show/hide Max plan message and update plan description
+        const planNotice = document.getElementById("max-plan-message");
+        const planDesc = document.getElementById("plan-description");
+        
+        if (data.daily_limit === null) {
+            if (planNotice) planNotice.style.display = "block";
+            if (planDesc) planDesc.style.display = "none";
+        } else {
+            if (planNotice) planNotice.style.display = "none";
+            if (planDesc) {
+                planDesc.style.display = "block";
+                if (data.effective_plan === 'premium') {
+                    planDesc.textContent = `Growth users get ${limit} decodes per day. Upgrade to Max for unlimited.`;
+                } else {
+                    planDesc.textContent = `Free users get ${limit} decodes per day. Upgrade for more access.`;
+                }
+            }
+        }
+
+        // Update global variables for other functions
+        userUsage = usage;
+        userPlan = data.effective_plan;
+        dailyLimit = data.daily_limit;
+
+        console.log(`🔄 Refreshed decoder limits: plan=${data.effective_plan}, usage=${usage}, limit=${limit}`);
+
+    } catch (err) {
+        console.error("❌ Failed to refresh decoder limits:", err);
+        document.getElementById("usage-count").textContent = "0";
+        document.getElementById("usage-limit").textContent = "?";
+        document.getElementById("plan-description").textContent = "Unable to load decoder limits.";
     }
 }
 
@@ -517,33 +532,6 @@ function updateModeDescription() {
     
     document.getElementById('mode-description').textContent = config.description;
     document.getElementById('input-text').placeholder = config.placeholder;
-}
-
-function updateUsageIndicator() {
-    const usageCount = document.getElementById('usage-count');
-    const usageLimit = document.getElementById('usage-limit');
-    const usageFill = document.getElementById('usage-fill');
-    const usageIndicator = document.getElementById('usage-indicator');
-    
-    // Safety check for NaN/undefined values
-    const safeUsage = userUsage || 0;
-    const safeDailyLimit = dailyLimit;
-    
-    usageCount.textContent = safeUsage;
-    
-    if (safeDailyLimit === null || safeDailyLimit === undefined || safeDailyLimit === -1) {
-        // Unlimited for Max tier
-        usageLimit.textContent = '∞';
-        usageFill.style.width = '100%';
-        usageFill.style.background = 'linear-gradient(135deg, #22d3ee, #0891b2)';
-        usageIndicator.style.display = 'block';
-    } else {
-        // Update the limit display with safety checks
-        usageLimit.textContent = safeDailyLimit;
-        const percentage = safeDailyLimit > 0 ? (safeUsage / safeDailyLimit) * 100 : 0;
-        usageFill.style.width = Math.min(percentage, 100) + '%';
-        usageIndicator.style.display = 'block';
-    }
 }
 
 function checkUsageLimit() {
@@ -664,8 +652,6 @@ function saveToJournal() {
 // Event listeners
 document.addEventListener('DOMContentLoaded', function() {
     updateModeDescription();
-    updateUsageIndicator();
-    checkUsageLimit();
     
     // Refresh decoder limits on page load to get current plan status
     refreshDecoderLimits();
