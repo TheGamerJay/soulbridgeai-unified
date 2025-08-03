@@ -4608,6 +4608,7 @@ def check_decoder_limit():
 
     return jsonify({
         "success": True,
+        "user_plan": user_plan,
         "trial_active": trial_active,
         "effective_plan": effective_plan,
         "daily_limit": daily_limit,
@@ -4629,6 +4630,7 @@ def check_fortune_limit():
 
     return jsonify({
         "success": True,
+        "user_plan": user_plan,
         "trial_active": trial_active,
         "effective_plan": effective_plan,
         "daily_limit": daily_limit,
@@ -4650,6 +4652,7 @@ def check_horoscope_limit():
 
     return jsonify({
         "success": True,
+        "user_plan": user_plan,
         "trial_active": trial_active,
         "effective_plan": effective_plan,
         "daily_limit": daily_limit,

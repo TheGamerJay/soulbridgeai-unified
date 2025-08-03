@@ -527,33 +527,37 @@ async function refreshFortuneLimits() {
             usageFill.style.width = Math.min(percentage, 100) + '%';
         }
 
-        // Update tier-specific plan message
+        // Update tier-specific plan message based on ACTUAL user plan, not effective plan
         const planNotice = document.getElementById("max-plan-message");
         const planDesc = document.getElementById("plan-description");
 
-        if (data.effective_plan === "enterprise") {
+        if (data.user_plan === "enterprise") {
             // 🔴 Max tier - show unlimited message
             if (planNotice) planNotice.style.display = "block";
             if (planDesc) planDesc.style.display = "none";
-        } else if (data.effective_plan === "premium") {
-            // 🔵 Growth tier (including trial users)
+        } else if (data.user_plan === "premium") {
+            // 🔵 Growth tier
             if (planNotice) planNotice.style.display = "none";
             if (planDesc) {
                 planDesc.style.display = "block";
                 planDesc.textContent = `Growth users get ${limitDisplay} fortunes per day. Upgrade to Max for unlimited.`;
             }
         } else {
-            // 🟢 Free tier
+            // 🟢 Free tier (foundation) - even during trial, show as free
             if (planNotice) planNotice.style.display = "none";
             if (planDesc) {
                 planDesc.style.display = "block";
-                planDesc.textContent = `Free users get ${limitDisplay} fortunes per day. Upgrade to Growth for more mystical insights.`;
+                if (data.trial_active) {
+                    planDesc.textContent = `Free users get ${limitDisplay} fortunes per day. You're on 5-hour trial with premium companions!`;
+                } else {
+                    planDesc.textContent = `Free users get ${limitDisplay} fortunes per day. Upgrade to Growth for more mystical insights.`;
+                }
             }
         }
 
         // Update global variables
         userUsage = usage;
-        userPlan = data.effective_plan;
+        userPlan = data.user_plan;  // Use actual user plan, not effective plan
         dailyLimit = data.daily_limit;
 
         console.log(`🔮 Refreshed fortune limits: plan=${data.effective_plan}, usage=${usage}, limit=${limitDisplay}`);
@@ -636,8 +640,8 @@ async function getFortune() {
             outputBox.className = 'output-box show';
             outputBox.innerHTML = result.response;
             
-            // Show save button for premium users (Growth/Max tiers)
-            if (userPlan === 'premium' || userPlan === 'enterprise') {
+            // Show save button for premium users (Growth/Max tiers) OR trial users
+            if (userPlan === 'premium' || userPlan === 'enterprise' || result.trial_active) {
                 document.getElementById('save-button').style.display = 'block';
             }
             
