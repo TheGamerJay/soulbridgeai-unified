@@ -144,7 +144,7 @@ def check_trial_active_from_db(user_email=None, user_id=None):
             trial_active = session.get('trial_active', False)
             trial_companion = session.get('trial_companion')
             
-            # Only trust trial_active if we have proper expiration data
+            # For local development, be extra strict - require ALL trial data to be present and valid
             if trial_active:
                 trial_expires_str = session.get('trial_expires')
                 trial_started_str = session.get('trial_started_at')
@@ -159,18 +159,29 @@ def check_trial_active_from_db(user_email=None, user_id=None):
                         # Validate trial is not too old and hasn't expired
                         if trial_started <= now <= trial_expires:
                             time_remaining = max(0, int((trial_expires - now).total_seconds() / 60))
+                            logger.info(f"✅ Valid trial found in session: {trial_companion}, {time_remaining} minutes left")
                             return True, trial_companion, time_remaining
                         else:
                             # Trial has expired or is invalid - clear the session
+                            logger.info(f"🚫 Trial expired/invalid in session - clearing trial data")
                             session.pop('trial_active', None)
                             session.pop('trial_expires', None)
                             session.pop('trial_started_at', None)
+                            session.pop('trial_companion', None)
                     except (ValueError, TypeError) as e:
                         # Invalid date format - clear trial from session
-                        logger.error(f"Invalid trial date format in session: {e}")
+                        logger.error(f"Invalid trial date format in session: {e} - clearing trial data")
                         session.pop('trial_active', None)
                         session.pop('trial_expires', None)
                         session.pop('trial_started_at', None)
+                        session.pop('trial_companion', None)
+                else:
+                    # Missing required trial data - clear all trial session data
+                    logger.warning(f"🚫 Incomplete trial data in session (missing expires or start time) - clearing all trial data")
+                    session.pop('trial_active', None)
+                    session.pop('trial_expires', None) 
+                    session.pop('trial_started_at', None)
+                    session.pop('trial_companion', None)
                         
             return False, trial_companion, 0
             
