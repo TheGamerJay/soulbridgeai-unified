@@ -4486,9 +4486,12 @@ def get_effective_feature_limit(user_plan, trial_active, feature_name):
 
     # If trial is active and user is foundation (free), upgrade to premium tier limits
     if trial_active and user_plan == "foundation":
-        return TIER_LIMITS["premium"].get(feature_name)
+        trial_limit = TIER_LIMITS["premium"].get(feature_name)
+        logger.info(f"🔥 TRIAL BOOST: {user_plan} user gets {feature_name} limit {base_limit} → {trial_limit}")
+        return trial_limit
 
     # All other cases (premium or enterprise) - no change during trial
+    logger.info(f"🔒 NO TRIAL BOOST: {user_plan} user keeps {feature_name} limit {base_limit} (trial_active={trial_active})")
     return base_limit
 
 def get_effective_plan_for_display(user_plan, trial_active):
@@ -4497,13 +4500,17 @@ def get_effective_plan_for_display(user_plan, trial_active):
     Only Free users show as 'premium' during trial for messaging purposes
     """
     if user_plan == 'enterprise':
-        return 'enterprise'
+        result = 'enterprise'
     elif user_plan == 'premium':
-        return 'premium'
+        result = 'premium'
     elif trial_active and user_plan == 'foundation':
-        return 'premium'  # Free users show Growth messaging during trial
+        result = 'premium'  # Free users show Growth messaging during trial
+        logger.info(f"🎭 TRIAL DISPLAY: {user_plan} user shows as {result} during trial")
     else:
-        return 'free'  # Free tier for frontend (maps foundation->free)
+        result = 'free'  # Free tier for frontend (maps foundation->free)
+    
+    logger.info(f"🎭 DISPLAY PLAN: {user_plan} (trial={trial_active}) → display as {result}")
+    return result
 
 def get_effective_decoder_limits(user_id, user_plan):
     """Get effective decoder limits for a user, considering trial status"""
