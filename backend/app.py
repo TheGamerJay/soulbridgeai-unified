@@ -1834,6 +1834,35 @@ def fortune():
         logger.error(f"Fortune template error: {e}")
         return jsonify({"error": "Fortune teller temporarily unavailable"}), 500
 
+@app.route("/horoscope")
+def horoscope():
+    """Horoscope page with zodiac readings and tier-based limits"""
+    try:
+        if not is_logged_in():
+            return redirect("/login")
+            
+        # Get user's plan and horoscope usage
+        user_id = session.get('user_id')
+        user_plan = session.get('user_plan', 'foundation')
+        horoscope_usage = get_horoscope_usage()
+        
+        # Get effective limits using similar logic to decoder
+        daily_limit, effective_plan = get_effective_horoscope_limits(user_id, user_plan)
+        
+        # DEBUG: Log horoscope access info
+        logger.info(f"⭐ HOROSCOPE DEBUG: user_plan = {user_plan}")
+        logger.info(f"⭐ HOROSCOPE DEBUG: effective_plan = {effective_plan}")
+        logger.info(f"⭐ HOROSCOPE DEBUG: daily_limit = {daily_limit}")
+        logger.info(f"⭐ HOROSCOPE DEBUG: horoscope_usage = {horoscope_usage}")
+        
+        return render_template("horoscope.html", 
+                             user_plan=effective_plan,
+                             daily_limit=daily_limit,
+                             current_usage=horoscope_usage)
+    except Exception as e:
+        logger.error(f"Horoscope template error: {e}")
+        return jsonify({"error": "Horoscope temporarily unavailable"}), 500
+
 # ========================================
 # ADDITIONAL ROUTES
 # ========================================
@@ -4474,6 +4503,32 @@ def get_effective_fortune_limits(user_id, user_plan):
 
     return daily_limit, effective_plan
 
+def get_effective_horoscope_limits(user_id, user_plan):
+    """Get effective horoscope limits for a user, considering trial status"""
+    user_email = session.get("user_email")
+    trial_active, _, _ = check_trial_active_from_db(user_email=user_email, user_id=user_id)
+
+    # Base limits for horoscope readings
+    tier_limits = {
+        'foundation': 3,    # Free: 3 horoscopes per day
+        'premium': 10,      # Growth: 10 horoscopes per day  
+        'enterprise': None  # Max: unlimited
+    }
+
+    daily_limit = tier_limits.get(user_plan, 3)
+    effective_plan = user_plan
+
+    # Debug logging
+    logger.info(f"⭐ HOROSCOPE LIMIT CHECK: user_plan={user_plan}, trial_active={trial_active}, daily_limit={daily_limit}")
+
+    # If trial is active and user isn't already on Max, upgrade temporarily
+    if trial_active and user_plan != 'enterprise':
+        daily_limit = None
+        effective_plan = 'enterprise'
+        logger.info(f"⭐ TRIAL BOOST: Upgraded {user_plan} to enterprise (unlimited)")
+
+    return daily_limit, effective_plan
+
 def get_decoder_usage():
     """Get user's decoder usage for today"""
     try:
@@ -4542,6 +4597,40 @@ def increment_fortune_usage():
         logger.error(f"Increment fortune usage error: {e}")
         return False
 
+def get_horoscope_usage():
+    """Get user's horoscope usage for today"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return 0
+            
+        # Use session-based tracking for now (in production, use database)
+        today = datetime.now().strftime('%Y-%m-%d')
+        usage_key = f'horoscope_usage_{user_id}_{today}'
+        
+        return session.get(usage_key, 0)
+    except Exception as e:
+        logger.error(f"Get horoscope usage error: {e}")
+        return 0
+
+def increment_horoscope_usage():
+    """Increment user's horoscope usage for today"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return False
+            
+        today = datetime.now().strftime('%Y-%m-%d')
+        usage_key = f'horoscope_usage_{user_id}_{today}'
+        
+        current_usage = session.get(usage_key, 0)
+        session[usage_key] = current_usage + 1
+        
+        return True
+    except Exception as e:
+        logger.error(f"Increment horoscope usage error: {e}")
+        return False
+
 @app.route("/api/decoder/check-limit")
 def check_decoder_limit():
     user_id = session.get("user_id")
@@ -4608,6 +4697,44 @@ def check_fortune_limit():
     usage = get_fortune_usage()
 
     logger.info(f"🔮 FORTUNE API: plan={effective_plan}, trial={trial_active}, usage={usage}, limit={daily_limit}")
+
+    return jsonify({
+        "success": True,
+        "trial_active": trial_active,
+        "effective_plan": effective_plan,
+        "daily_limit": daily_limit,
+        "usage_today": usage,
+        "remaining": None if daily_limit is None else max(0, daily_limit - usage)
+    })
+
+@app.route("/api/horoscope/check-limit")
+def check_horoscope_limit():
+    user_id = session.get("user_id")
+    user_email = session.get("user_email")
+    user_plan = session.get("user_plan", "foundation")
+
+    # Check trial status using both email and ID
+    trial_active, _, _ = check_trial_active_from_db(user_email=user_email, user_id=user_id)
+
+    # Define tier limits for horoscope readings
+    tier_limits = {
+        "foundation": 3,
+        "premium": 10,
+        "enterprise": None
+    }
+
+    # Default to user's actual plan
+    daily_limit = tier_limits.get(user_plan, 3)
+    effective_plan = user_plan
+
+    # Apply trial logic only if user is NOT already Max
+    if trial_active and user_plan != "enterprise":
+        daily_limit = None
+        effective_plan = "enterprise"
+
+    usage = get_horoscope_usage()
+
+    logger.info(f"⭐ HOROSCOPE API: plan={effective_plan}, trial={trial_active}, usage={usage}, limit={daily_limit}")
 
     return jsonify({
         "success": True,
