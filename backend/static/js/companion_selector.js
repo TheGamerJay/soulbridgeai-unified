@@ -215,49 +215,75 @@ async function loadCompanions() {
     console.log('🤖 Loading companions...');
     
     try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000);
-        
-        const response = await fetch('/api/companions', {
-            signal: controller.signal,
-            headers: {
-                'Cache-Control': 'no-cache'
-            }
-        });
-        
-        clearTimeout(timeoutId);
-        
-        const data = await response.json();
+        const res = await fetch('/api/companions');
+        const data = await res.json();
         console.log('📊 API Response data:', data);
-        
-        if (data.success && data.companions) {
-            companions = data.companions;
-            
-            // Store trial status from API response
-            if (data.trial_active !== undefined) {
-                window.trialStatus = {
-                    trial_active: data.trial_active,
-                    trial_used_permanently: false // Will be updated by checkTrialStatus()
-                };
-                console.log('🎯 Trial status from companions API:', window.trialStatus);
-            }
-            
-            console.log('✅ Companions loaded successfully:', companions);
-            renderCompanions();
-        } else {
-            console.error('❌ API returned error or no companions:', data);
-            console.log('🔄 Falling back to static companions');
-            loadFallbackCompanions();
+
+        const companions = data.companions || [];
+        const trialActive = data.trial_active === true;
+        const effectivePlan = data.effective_plan || 'foundation';
+
+        // Store global state
+        window.companionsData = companions;
+        window.trialStatus = { 
+            trial_active: trialActive,
+            effective_plan: effectivePlan
+        };
+
+        // Hide trial button if active
+        const trialBtn = document.getElementById('trial-button');
+        if (trialActive && trialBtn) {
+            trialBtn.style.display = 'none';
         }
+
+        // Render companions with new logic
+        renderCompanionsWithTrialLogic(companions, trialActive, effectivePlan);
+
     } catch (error) {
-        if (error.name === 'AbortError') {
-            console.log('⏰ API request timed out after 5 seconds');
-        } else {
-            console.error('❌ Error loading companions:', error);
-        }
-        console.log('🔄 Using fallback companions for better experience');
+        console.error('❌ Failed to load companions:', error);
+        // Fallback to static companions
         loadFallbackCompanions();
     }
+}
+
+function renderCompanionsWithTrialLogic(companions, trialActive, effectivePlan) {
+    console.log('🎬 Rendering companions with trial logic:', { trialActive, effectivePlan });
+
+    companions.forEach(companion => {
+        const companionCard = document.getElementById(`companion-${companion.id}`);
+        if (!companionCard) return;
+
+        const requiredPlan = companion.required_plan; // free, premium, enterprise
+        let locked = false;
+
+        // Determine if companion is locked
+        if (!trialActive) {
+            if (requiredPlan === 'premium' && effectivePlan === 'foundation') {
+                locked = true;
+            } else if (requiredPlan === 'enterprise' && effectivePlan !== 'enterprise') {
+                locked = true;
+            }
+        }
+        // If trial is active, no companions are locked
+
+        // Update UI elements
+        const lockBtn = companionCard.querySelector('.lock-btn');
+        const selectBtn = companionCard.querySelector('.select-btn');
+
+        if (locked) {
+            if (selectBtn) selectBtn.style.display = 'none';
+            if (lockBtn) {
+                lockBtn.style.display = 'block';
+                lockBtn.innerText = '🎯 Try 5hr Free';
+            }
+        } else {
+            if (lockBtn) lockBtn.style.display = 'none';
+            if (selectBtn) {
+                selectBtn.style.display = 'block';
+                selectBtn.innerText = '✅ Select';
+            }
+        }
+    });
 }
 
 function loadFallbackCompanions() {

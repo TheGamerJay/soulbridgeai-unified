@@ -4454,14 +4454,16 @@ TIER_LIMITS = {
 
 def get_effective_plan(user_plan, trial_active):
     """
-    Never upgrade limits during trial. Just keep the actual user plan.
+    Get effective plan for companion access.
+    Trial upgrades user to premium tier for companion access.
     """
     if user_plan == "enterprise":
         return "enterprise"
+    elif trial_active:
+        return "premium"  # Trial unlocks Growth tier, NOT Max
     elif user_plan == "premium":
         return "premium"
-    else:
-        return "foundation"  # Free remains Free, even during trial
+    return "foundation"
 
 def get_feature_limit(plan, feature):
     """
