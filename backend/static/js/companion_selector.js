@@ -57,12 +57,13 @@ function addClickListeners() {
                 
                 // Check if this is an upgrade/trial button with onclick handler
                 if (event.target.classList.contains('btn-upgrade') && event.target.onclick) {
-                    console.log('💎 UPGRADE/TRIAL BUTTON - Allowing onclick handler');
-                    return; // Let onclick="showTrialModal(...)" or onclick="showUpgradeModal(...)" handle it
+                    console.log('💎 UPGRADE/TRIAL BUTTON - Allowing onclick handler to execute');
+                    // Don't call preventDefault() - let the onclick handler work
+                    return;
                 }
                 
-                // Handle regular select buttons
-                if (companionId && !event.target.disabled) {
+                // Handle regular select buttons (not upgrade buttons)
+                if (companionId && !event.target.disabled && !event.target.classList.contains('btn-upgrade')) {
                     console.log('✅ SELECT BUTTON - Processing companion selection');
                     event.preventDefault();
                     window.selectCompanion(companionId);
@@ -1591,6 +1592,9 @@ function redirectToUpgrade(tier) {
 
 
 // Make functions globally accessible
+window.showTrialModal = showTrialModal;
+window.closeTrialModal = closeTrialModal;
+window.startPremiumTrial = startPremiumTrial;
 window.showUpgradeModal = showUpgradeModal;
 window.closeUpgradeModal = closeUpgradeModal;
 window.redirectToUpgrade = redirectToUpgrade;
