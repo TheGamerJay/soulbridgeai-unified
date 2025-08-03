@@ -140,18 +140,37 @@ def check_trial_active_from_db(user_email=None, user_id=None):
                     
             return False, trial_companion, 0
         else:
-            # Fallback to session for local development
+            # Fallback to session for local development - be more strict about validation
             trial_active = session.get('trial_active', False)
             trial_companion = session.get('trial_companion')
             
+            # Only trust trial_active if we have proper expiration data
             if trial_active:
                 trial_expires_str = session.get('trial_expires')
-                if trial_expires_str:
-                    trial_expires = datetime.fromisoformat(trial_expires_str)
-                    now = datetime.utcnow()
-                    if now < trial_expires:
-                        time_remaining = max(0, int((trial_expires - now).total_seconds() / 60))
-                        return True, trial_companion, time_remaining
+                trial_started_str = session.get('trial_started_at')
+                
+                # Must have both start time and expiration for valid trial
+                if trial_expires_str and trial_started_str:
+                    try:
+                        trial_expires = datetime.fromisoformat(trial_expires_str)
+                        trial_started = datetime.fromisoformat(trial_started_str)
+                        now = datetime.utcnow()
+                        
+                        # Validate trial is not too old and hasn't expired
+                        if trial_started <= now <= trial_expires:
+                            time_remaining = max(0, int((trial_expires - now).total_seconds() / 60))
+                            return True, trial_companion, time_remaining
+                        else:
+                            # Trial has expired or is invalid - clear the session
+                            session.pop('trial_active', None)
+                            session.pop('trial_expires', None)
+                            session.pop('trial_started_at', None)
+                    except (ValueError, TypeError) as e:
+                        # Invalid date format - clear trial from session
+                        logger.error(f"Invalid trial date format in session: {e}")
+                        session.pop('trial_active', None)
+                        session.pop('trial_expires', None)
+                        session.pop('trial_started_at', None)
                         
             return False, trial_companion, 0
             
@@ -1765,18 +1784,24 @@ def decoder():
         logger.info(f"🔍 DECODER DEBUG: trial_active = {trial_active}")
         logger.info(f"🔍 DECODER DEBUG: decoder_usage = {decoder_usage}")
         
-        # Define tier limits (trial users get unlimited access)
-        if trial_active:
+        # Define tier limits - ONLY give unlimited access if trial is genuinely active AND user plan is not already enterprise
+        tier_limits = {
+            'foundation': 3,    # Free: 3 per day
+            'premium': 15,      # Growth: 15 per day  
+            'enterprise': None  # Max: unlimited
+        }
+        
+        # First, set limits based on actual user plan
+        daily_limit = tier_limits.get(user_plan, 3)
+        effective_plan = user_plan
+        
+        # ONLY override if trial is active AND user is not already enterprise tier
+        if trial_active and user_plan != 'enterprise':
             daily_limit = None  # Unlimited during trial
             effective_plan = 'enterprise'  # Treat as Max tier during trial
-        else:
-            tier_limits = {
-                'foundation': 3,    # Free: 3 per day
-                'premium': 15,      # Growth: 15 per day  
-                'enterprise': None  # Max: unlimited
-            }
-            daily_limit = tier_limits.get(user_plan, 3)
-            effective_plan = user_plan
+        elif trial_active and user_plan == 'enterprise':
+            # If already enterprise and trial active, just log it but don't change anything
+            logger.info(f"🔍 DECODER DEBUG: Enterprise user has active trial - no changes needed")
         logger.info(f"🔍 DECODER DEBUG: effective_plan = {effective_plan}")
         logger.info(f"🔍 DECODER DEBUG: daily_limit = {daily_limit}")
         logger.info(f"🔍 DECODER DEBUG: Passing to template - effective_plan={effective_plan}, daily_limit={daily_limit}, current_usage={decoder_usage}")
