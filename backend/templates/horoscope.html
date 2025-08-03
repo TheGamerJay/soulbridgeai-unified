@@ -901,8 +901,8 @@ async function generateHoroscope() {
             outputBox.className = 'output-box show';
             outputBox.innerHTML = result.response;
             
-            // Show save button for premium users
-            if (userPlan !== 'foundation') {
+            // Show save button for premium users (Growth/Max tiers)
+            if (userPlan === 'premium' || userPlan === 'enterprise') {
                 document.getElementById('save-button').style.display = 'block';
             }
             

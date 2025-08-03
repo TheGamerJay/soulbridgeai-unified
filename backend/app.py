@@ -93,100 +93,36 @@ TRAP_LOG_FILE = "logs/trap_log.txt"
 os.makedirs("logs", exist_ok=True)
 
 # Helper function to check trial status from database
+# -- Trial Check Function --
 def check_trial_active_from_db(user_email=None, user_id=None):
-    """
-    Check if user has an active trial by querying database directly.
-    Returns: (trial_active: bool, trial_companion: str, time_remaining: int)
-    """
     try:
         if not user_email and not user_id:
             user_email = session.get('user_email')
             user_id = session.get('user_id')
-            
         if not user_email and not user_id:
             return False, None, 0
-            
-        database_url = os.environ.get('DATABASE_URL')
-        if database_url:
-            import psycopg2
-            conn = psycopg2.connect(database_url)
-            cursor = conn.cursor()
-            
-            if user_email:
-                cursor.execute("""
-                    SELECT trial_started_at, trial_companion, trial_used_permanently, trial_expires_at 
-                    FROM users WHERE email = %s
-                """, (user_email,))
-            else:
-                cursor.execute("""
-                    SELECT trial_started_at, trial_companion, trial_used_permanently, trial_expires_at 
-                    FROM users WHERE id = %s
-                """, (user_id,))
-            
-            result = cursor.fetchone()
-            conn.close()
-            
-            if not result:
-                return False, None, 0
-                
-            trial_started_at, trial_companion, trial_used_permanently, trial_expires_at = result
-            
-            # Check if trial is still active (regardless of trial_used_permanently flag)
-            if trial_expires_at:
-                now = datetime.utcnow()
-                if now < trial_expires_at:
-                    time_remaining = max(0, int((trial_expires_at - now).total_seconds() / 60))
-                    return True, trial_companion, time_remaining
-                    
-            return False, trial_companion, 0
+
+        database_url = os.environ.get("DATABASE_URL")
+        import psycopg2
+        conn = psycopg2.connect(database_url)
+        cursor = conn.cursor()
+
+        if user_email:
+            cursor.execute("SELECT trial_started_at, trial_expires_at FROM users WHERE email = %s", (user_email,))
         else:
-            # Fallback to session for local development - be more strict about validation
-            trial_active = session.get('trial_active', False)
-            trial_companion = session.get('trial_companion')
-            
-            # For local development, be extra strict - require ALL trial data to be present and valid
-            if trial_active:
-                trial_expires_str = session.get('trial_expires')
-                trial_started_str = session.get('trial_started_at')
-                
-                # Must have both start time and expiration for valid trial
-                if trial_expires_str and trial_started_str:
-                    try:
-                        trial_expires = datetime.fromisoformat(trial_expires_str)
-                        trial_started = datetime.fromisoformat(trial_started_str)
-                        now = datetime.utcnow()
-                        
-                        # Validate trial is not too old and hasn't expired
-                        if trial_started <= now <= trial_expires:
-                            time_remaining = max(0, int((trial_expires - now).total_seconds() / 60))
-                            logger.info(f"✅ Valid trial found in session: {trial_companion}, {time_remaining} minutes left")
-                            return True, trial_companion, time_remaining
-                        else:
-                            # Trial has expired or is invalid - clear the session
-                            logger.info(f"🚫 Trial expired/invalid in session - clearing trial data")
-                            session.pop('trial_active', None)
-                            session.pop('trial_expires', None)
-                            session.pop('trial_started_at', None)
-                            session.pop('trial_companion', None)
-                    except (ValueError, TypeError) as e:
-                        # Invalid date format - clear trial from session
-                        logger.error(f"Invalid trial date format in session: {e} - clearing trial data")
-                        session.pop('trial_active', None)
-                        session.pop('trial_expires', None)
-                        session.pop('trial_started_at', None)
-                        session.pop('trial_companion', None)
-                else:
-                    # Missing required trial data - clear all trial session data
-                    logger.warning(f"🚫 Incomplete trial data in session (missing expires or start time) - clearing all trial data")
-                    session.pop('trial_active', None)
-                    session.pop('trial_expires', None) 
-                    session.pop('trial_started_at', None)
-                    session.pop('trial_companion', None)
-                        
-            return False, trial_companion, 0
-            
+            cursor.execute("SELECT trial_started_at, trial_expires_at FROM users WHERE id = %s", (user_id,))
+        result = cursor.fetchone()
+        conn.close()
+
+        if result:
+            trial_started, trial_expires = result
+            if trial_expires and datetime.utcnow() < trial_expires:
+                remaining = int((trial_expires - datetime.utcnow()).total_seconds() / 60)
+                return True, None, remaining
+
+        return False, None, 0
     except Exception as e:
-        logger.error(f"Error checking trial status from database: {e}")
+        print("Trial check error:", e)
         return False, None, 0
 
 # Enhanced surveillance system with Flask context safety
@@ -4451,30 +4387,41 @@ def get_user_addons():
         logger.error(f"User addons error: {e}")
         return jsonify({"success": False, "error": "Failed to fetch add-ons"}), 500
 
-# Clean tier separation - fully isolated limits per tier
-FREE_LIMITS = {
-    "decoder": 3,
-    "fortune": 2,
-    "horoscope": 3
-}
-
-PREMIUM_LIMITS = {
-    "decoder": 15,
-    "fortune": 8,
-    "horoscope": 10
-}
-
-MAX_LIMITS = {
-    "decoder": None,       # None = unlimited
-    "fortune": None,
-    "horoscope": None
-}
-
+# --- Tier Limits ---
 TIER_LIMITS = {
-    "foundation": FREE_LIMITS,    # Free tier (matches session user_plan)
-    "premium": PREMIUM_LIMITS,    # Growth tier
-    "enterprise": MAX_LIMITS      # Max tier
+    "foundation": {  # Free
+        "decoder": 3,
+        "fortune": 2,
+        "horoscope": 3
+    },
+    "premium": {     # Growth
+        "decoder": 15,
+        "fortune": 8,
+        "horoscope": 10
+    },
+    "enterprise": {  # Max
+        "decoder": None,
+        "fortune": None,
+        "horoscope": None
+    }
 }
+
+def get_effective_plan(user_plan, trial_active):
+    """
+    Never upgrade limits during trial. Just keep the actual user plan.
+    """
+    if user_plan == "enterprise":
+        return "enterprise"
+    elif user_plan == "premium":
+        return "premium"
+    else:
+        return "foundation"  # Free remains Free, even during trial
+
+def get_feature_limit(plan, feature):
+    """
+    Return daily limit for that plan + feature.
+    """
+    return TIER_LIMITS.get(plan, {}).get(feature, 0)
 
 def get_effective_feature_limit(user_plan, trial_active, feature_name):
     """
@@ -4646,92 +4593,94 @@ def increment_horoscope_usage():
         logger.error(f"Increment horoscope usage error: {e}")
         return False
 
+# --- Example Route (Decoder) ---
 @app.route("/api/decoder/check-limit")
 def check_decoder_limit():
     user_id = session.get("user_id")
-    user_email = session.get("user_email")
     user_plan = session.get("user_plan", "foundation")
+    trial_active, _, _ = check_trial_active_from_db(user_id=user_id)
 
-    # 🧠 Important: Check trial properly using both email and ID
-    trial_active, _, _ = check_trial_active_from_db(user_email=user_email, user_id=user_id)
+    effective_plan = get_effective_plan(user_plan, trial_active)
+    daily_limit = get_feature_limit(effective_plan, "decoder")
     
-    # Clean tier system - fully isolated limits per tier
-
-    # Define tier limits - NEVER return null unless enterprise
-    # New clean logic - only boost Free users during trial
-    daily_limit = get_effective_feature_limit(user_plan, trial_active, "decoder")
-    effective_plan_display = get_effective_plan_for_display(user_plan, trial_active)
-
-    usage = get_decoder_usage()
-
-    logger.info(f"🧪 DECODER API: plan={effective_plan_display}, trial={trial_active}, usage={usage}, limit={daily_limit}")
+    # Get usage for frontend display
+    usage_today = get_decoder_usage() if user_id else 0
 
     return jsonify({
         "success": True,
         "trial_active": trial_active,
-        "effective_plan": effective_plan_display,
+        "effective_plan": effective_plan,
         "daily_limit": daily_limit,
-        "usage_today": usage,
-        "remaining": None if effective_plan_display == "enterprise" else max(0, daily_limit - usage)
+        "usage_today": usage_today,
+        "remaining": None if effective_plan == "enterprise" else max(0, (daily_limit or 0) - usage_today)
     })
 
 @app.route("/api/fortune/check-limit")
 def check_fortune_limit():
     user_id = session.get("user_id")
-    user_email = session.get("user_email")
     user_plan = session.get("user_plan", "foundation")
+    trial_active, _, _ = check_trial_active_from_db(user_id=user_id)
 
-    # Check trial status using both email and ID
-    trial_active, _, _ = check_trial_active_from_db(user_email=user_email, user_id=user_id)
+    effective_plan = get_effective_plan(user_plan, trial_active)
+    daily_limit = get_feature_limit(effective_plan, "fortune")
     
-    # Clean tier system - fully isolated limits per tier
-
-    # Define tier limits for fortune telling - NEVER return null unless enterprise
-    # New clean logic - only boost Free users during trial
-    daily_limit = get_effective_feature_limit(user_plan, trial_active, "fortune")
-    effective_plan_display = get_effective_plan_for_display(user_plan, trial_active)
-
-    usage = get_fortune_usage()
-
-    logger.info(f"🔮 FORTUNE API: plan={effective_plan_display}, trial={trial_active}, usage={usage}, limit={daily_limit}")
+    # Get usage for frontend display
+    usage_today = get_fortune_usage() if user_id else 0
 
     return jsonify({
         "success": True,
         "trial_active": trial_active,
-        "effective_plan": effective_plan_display,
+        "effective_plan": effective_plan,
         "daily_limit": daily_limit,
-        "usage_today": usage,
-        "remaining": None if effective_plan_display == "enterprise" else max(0, daily_limit - usage)
+        "usage_today": usage_today,
+        "remaining": None if effective_plan == "enterprise" else max(0, (daily_limit or 0) - usage_today)
     })
 
 @app.route("/api/horoscope/check-limit")
 def check_horoscope_limit():
     user_id = session.get("user_id")
-    user_email = session.get("user_email")
     user_plan = session.get("user_plan", "foundation")
+    trial_active, _, _ = check_trial_active_from_db(user_id=user_id)
 
-    # Check trial status using both email and ID
-    trial_active, _, _ = check_trial_active_from_db(user_email=user_email, user_id=user_id)
+    effective_plan = get_effective_plan(user_plan, trial_active)
+    daily_limit = get_feature_limit(effective_plan, "horoscope")
     
-    # Clean tier system - fully isolated limits per tier
-
-    # Define tier limits for horoscope readings - NEVER return null unless enterprise
-    # New clean logic - only boost Free users during trial
-    daily_limit = get_effective_feature_limit(user_plan, trial_active, "horoscope")
-    effective_plan_display = get_effective_plan_for_display(user_plan, trial_active)
-
-    usage = get_horoscope_usage()
-
-    logger.info(f"⭐ HOROSCOPE API: plan={effective_plan_display}, trial={trial_active}, usage={usage}, limit={daily_limit}")
+    # Get usage for frontend display
+    usage_today = get_horoscope_usage() if user_id else 0
 
     return jsonify({
         "success": True,
         "trial_active": trial_active,
-        "effective_plan": effective_plan_display,
+        "effective_plan": effective_plan,
         "daily_limit": daily_limit,
-        "usage_today": usage,
-        "remaining": None if effective_plan_display == "enterprise" else max(0, daily_limit - usage)
+        "usage_today": usage_today,
+        "remaining": None if effective_plan == "enterprise" else max(0, (daily_limit or 0) - usage_today)
     })
+
+# Manual upgrade endpoints for testing tiers
+@app.route("/debug/upgrade-to-free", methods=["POST"])
+def debug_upgrade_to_free():
+    """Debug endpoint to set user to Free tier"""
+    session['user_plan'] = 'foundation'
+    session['user_authenticated'] = True
+    session.modified = True
+    return jsonify({"success": True, "message": "Upgraded to Free tier", "user_plan": "foundation"})
+
+@app.route("/debug/upgrade-to-growth", methods=["POST"])
+def debug_upgrade_to_growth():
+    """Debug endpoint to set user to Growth tier"""
+    session['user_plan'] = 'premium'
+    session['user_authenticated'] = True
+    session.modified = True
+    return jsonify({"success": True, "message": "Upgraded to Growth tier", "user_plan": "premium"})
+
+@app.route("/debug/upgrade-to-max", methods=["POST"])
+def debug_upgrade_to_max():
+    """Debug endpoint to set user to Max tier"""
+    session['user_plan'] = 'enterprise'
+    session['user_authenticated'] = True
+    session.modified = True
+    return jsonify({"success": True, "message": "Upgraded to Max tier", "user_plan": "enterprise"})
 
 @app.route("/api/subscription/upgrade", methods=["POST"])
 def api_subscription_upgrade():

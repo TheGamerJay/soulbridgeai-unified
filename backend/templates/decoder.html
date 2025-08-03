@@ -596,14 +596,14 @@ async function decodeText() {
         if (result.success) {
             // Update usage count (backend handles the actual tracking)
             userUsage++;
-            updateUsageIndicator();
+            refreshDecoderLimits();
             
             // Show result with animation
             outputBox.className = 'output-box show';
             outputBox.innerHTML = result.response;
             
-            // Show save button for premium users
-            if (userPlan !== 'free') {
+            // Show save button for premium users (Growth/Max tiers)
+            if (userPlan === 'premium' || userPlan === 'enterprise') {
                 document.getElementById('save-button').style.display = 'block';
             }
             
