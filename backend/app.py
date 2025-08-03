@@ -4450,60 +4450,28 @@ def increment_decoder_usage():
 
 @app.route("/api/decoder/check-limit")
 def check_decoder_limit():
-    """Check if user can use decoder (within daily limits)"""
-    try:
-        user_id = session.get("user_id")
-        user_email = session.get("user_email")
-        user_plan = session.get("user_plan", "foundation")
+    user_id = session.get("user_id")
+    user_email = session.get("user_email")
+    user_plan = session.get("user_plan", "foundation")
 
-        if not user_id:
-            return jsonify({"success": False, "error": "User not logged in"}), 403
+    # Check trial status using shared function
+    trial_active, _, _ = check_trial_active_from_db(user_email=user_email, user_id=user_id)
 
-        # Check trial status directly (for debugging)
-        trial_active, _, _ = check_trial_active_from_db(user_email=user_email, user_id=user_id)
-        
-        # Set default tier limits
-        tier_limits = {
-            'foundation': 3,
-            'premium': 15,
-            'enterprise': None
-        }
+    # Use shared function to get correct limits
+    daily_limit, effective_plan = get_effective_decoder_limits(user_id, user_plan)
 
-        daily_limit = tier_limits.get(user_plan, 3)
-        effective_plan = user_plan
+    # Get usage
+    usage_today = get_decoder_usage()
 
-        # Apply trial logic - ONLY if trial is active AND user is not already enterprise
-        if trial_active and user_plan != 'enterprise':
-            daily_limit = None
-            effective_plan = 'enterprise'
-
-        # Calculate usage
-        usage_today = get_decoder_usage()
-        
-        # Check if at limit
-        if daily_limit is None:  # Unlimited for Max tier
-            can_use = True
-            remaining = None
-        else:
-            can_use = usage_today < daily_limit
-            remaining = max(0, daily_limit - usage_today)
-
-        # Return structured response with trial status for debugging
-        return jsonify({
-            "success": True,
-            "trial_active": trial_active,
-            "effective_plan": effective_plan,
-            "daily_limit": daily_limit,
-            "usage_today": usage_today,
-            "remaining": remaining,
-            "can_use": can_use,
-            "current_usage": usage_today,
-            "user_plan": user_plan  # Original plan for debugging
-        })
-        
-    except Exception as e:
-        logger.error(f"Check decoder limit error: {e}")
-        return jsonify({"success": False, "error": "Failed to check limit"}), 500
+    # Return JSON to frontend
+    return jsonify({
+        "success": True,
+        "trial_active": trial_active,
+        "effective_plan": effective_plan,
+        "daily_limit": daily_limit,
+        "usage_today": usage_today,
+        "remaining": None if daily_limit is None else max(0, daily_limit - usage_today)
+    })
 
 @app.route("/api/subscription/upgrade", methods=["POST"])
 def api_subscription_upgrade():
