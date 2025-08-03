@@ -4639,6 +4639,11 @@ def check_decoder_limit():
 
     # 🧠 Important: Check trial properly using both email and ID
     trial_active, _, _ = check_trial_active_from_db(user_email=user_email, user_id=user_id)
+    
+    # TEMPORARY DEBUG FIX: Force trial_active to False for local dev until session issue is resolved
+    if not os.environ.get('DATABASE_URL'):
+        logger.warning(f"🚨 LOCAL DEV: Forcing trial_active to False to prevent unlimited access bug")
+        trial_active = False
 
     # Define tier limits - NEVER return null unless enterprise
     tier_limits = {
@@ -4678,6 +4683,11 @@ def check_fortune_limit():
 
     # Check trial status using both email and ID
     trial_active, _, _ = check_trial_active_from_db(user_email=user_email, user_id=user_id)
+    
+    # TEMPORARY DEBUG FIX: Force trial_active to False for local dev until session issue is resolved
+    if not os.environ.get('DATABASE_URL'):
+        logger.warning(f"🚨 LOCAL DEV: Forcing trial_active to False to prevent unlimited access bug")
+        trial_active = False
 
     # Define tier limits for fortune telling - NEVER return null unless enterprise
     tier_limits = {
@@ -4717,6 +4727,11 @@ def check_horoscope_limit():
 
     # Check trial status using both email and ID
     trial_active, _, _ = check_trial_active_from_db(user_email=user_email, user_id=user_id)
+    
+    # TEMPORARY DEBUG FIX: Force trial_active to False for local dev until session issue is resolved
+    if not os.environ.get('DATABASE_URL'):
+        logger.warning(f"🚨 LOCAL DEV: Forcing trial_active to False to prevent unlimited access bug")
+        trial_active = False
 
     # Define tier limits for horoscope readings - NEVER return null unless enterprise
     tier_limits = {
