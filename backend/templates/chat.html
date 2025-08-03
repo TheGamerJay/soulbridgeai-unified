@@ -71,16 +71,16 @@
                     Library
                 </a>
                 
-                <!-- Growth & Max Tier Creative Writing -->
-                {% if session.get('user_plan') in ['premium', 'enterprise'] or (session.get('trial_active') and session.get('trial_companion')) %}
+                <!-- Growth & Max Tier Creative Writing (visible to Growth/Max + Trial users) -->
+                {% if session.get('user_plan') in ['premium', 'enterprise'] or session.get('trial_active') %}
                 <button onclick="openCreativeWriting()" class="action-btn creative-btn" title="Creative Writing Assistant - Growth/Max Feature">
                     <i class="fas fa-feather-alt"></i>
                     Write
                 </button>
                 {% endif %}
                 
-                <!-- Max Tier Addon Buttons -->
-                {% if session.get('user_plan') == 'enterprise' or session.get('trial_active') %}
+                <!-- Max Tier Addon Buttons (NOT available during trial - trial = Growth tier only) -->
+                {% if session.get('user_plan') == 'enterprise' %}
                 <a href="/voice-journaling" class="action-btn addon-btn" title="Voice Journaling - Max Tier Feature">
                     <i class="fas fa-microphone-alt"></i>
                     Journal
