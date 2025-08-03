@@ -6252,3 +6252,15 @@ hours
 [2025-08-03 14:05:04] 🔧 HEALTH_CHECK: System running for 44.2 hours
 [2025-08-03 14:05:04] 🔧 HEALTH_CHECK: System running for 70.9 hours
 [2025-08-03 14:05:04] 🔧 HEALTH_CHECK: System running for 6.2 hours
+[2025-08-03 14:10:04] 🔧 HEALTH_CHECK: System running for 70.9 hours
+[2025-08-03 14:10:04] 🔧 HEALTH_CHECK: System running for 34.7 hours
+[2025-08-03 14:10:04] 🔧 HEALTH_CHECK: System running for 34.1 hours
+[2025-08-03 14:10:04] 🔧 HEALTH_CHECK: System running for 113.8 hours
+[2025-08-03 14:10:04] 🔧 HEALTH_CHECK: System running for 71.0 hours
+[2025-08-03 14:12:42] 🔧 SYSTEM_START: Basic surveillance system initialized
+[2025-08-03 14:12:42] 🔧 HEALTH_CHECK: System running for 0.0 hours
+[2025-08-03 14:12:42] 🔧 MONITOR_START: Background monitoring thread started
+[2025-08-03 14:15:04] 🔧 HEALTH_CHECK: System running for 71.0 hours
+[2025-08-03 14:15:04] 🔧 HEALTH_CHECK: System running for 34.8 hours
+[2025-08-03 14:15:04] 🔧 HEALTH_CHECK: System running for 113.9 hours
+[2025-08-03 14:15:04] 🔧 HEALTH_CHECK: System running for 71.1 hours

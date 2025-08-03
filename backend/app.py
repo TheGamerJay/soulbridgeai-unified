@@ -106,18 +106,17 @@ def check_trial_active_from_db(user_id):
             """, (user_id,))
             result = cursor.fetchone()
             if not result or not result[0]:
-                return False, None, 0
+                return False
 
             trial_start = result[0]
             now = datetime.now(timezone.utc)
             if now - trial_start < timedelta(hours=5):
-                remaining_minutes = int((trial_start + timedelta(hours=5) - now).total_seconds() / 60)
-                return True, None, remaining_minutes
+                return True
             else:
-                return False, None, 0
+                return False
     except Exception as e:
         print(f"Trial check error: {e}")
-        return False, None, 0
+        return False
 
 # Enhanced surveillance system with Flask context safety
 class BasicSurveillanceSystem:
@@ -1264,7 +1263,7 @@ def chat():
         
         # Validate user has access to this companion tier (including trial status)
         user_plan = session.get('user_plan', 'foundation')
-        trial_active, trial_companion, time_remaining = check_trial_active_from_db()
+        trial_active = check_trial_active_from_db(session.get('user_id'))
         has_access = False
         
         if companion_tier:
@@ -1294,9 +1293,9 @@ def chat():
         user_tier = session.get('user_plan', 'foundation')
         
         # Check for active trial status from database (not session)
-        trial_active, trial_companion, time_remaining = check_trial_active_from_db()
+        trial_active = check_trial_active_from_db(session.get('user_id'))
         
-        logger.info(f"🔍 CHAT ROUTE DEBUG: user_tier={user_tier}, trial_active={trial_active}, selected_companion={selected_companion}, time_remaining={time_remaining}")
+        logger.info(f"🔍 CHAT ROUTE DEBUG: user_tier={user_tier}, trial_active={trial_active}, selected_companion={selected_companion}")
         
         # Validate companion access based on tier and trial status
         companion_access_valid = True
@@ -1523,10 +1522,10 @@ def api_companions_select():
             return jsonify({"success": False, "error": "Invalid companion ID"}), 400
         
         # Check trial status from database (not session)
-        trial_active, trial_companion, time_remaining = check_trial_active_from_db()
+        trial_active = check_trial_active_from_db(session.get('user_id'))
         
         # DEBUG: Log companion selection access check
-        logger.info(f"🔍 COMPANION SELECTION DEBUG: user_plan={user_plan}, trial_active={trial_active}, companion_tier={companion_tier}, companion_id={companion_id}, time_remaining={time_remaining}")
+        logger.info(f"🔍 COMPANION SELECTION DEBUG: user_plan={user_plan}, trial_active={trial_active}, companion_tier={companion_tier}, companion_id={companion_id}")
         
         # Check access based on tier
         has_access = False
@@ -3461,7 +3460,7 @@ def get_trial_status():
             if trial_active and trial_expires_at:
                 time_remaining = max(0, int((trial_expires_at - now).total_seconds() / 60))
             
-            logger.info(f"📊 Trial status: active={trial_active}, companion={trial_companion}, time_remaining={time_remaining}")
+            logger.info(f"📊 Trial status: active={trial_active}")
             
             return jsonify({
                 "trial_active": trial_active,
@@ -4462,7 +4461,7 @@ def get_effective_plan_for_display(user_plan, trial_active):
 def get_effective_decoder_limits(user_id, user_plan):
     """Get effective decoder limits for a user, considering trial status"""
     user_email = session.get("user_email")
-    trial_active, _, _ = check_trial_active_from_db(user_email=user_email, user_id=user_id)
+    trial_active = check_trial_active_from_db(user_id)
     
     # New clean logic - only boost Free users during trial
     daily_limit = get_effective_feature_limit(user_plan, trial_active, "decoder")
@@ -4476,7 +4475,7 @@ def get_effective_decoder_limits(user_id, user_plan):
 def get_effective_fortune_limits(user_id, user_plan):
     """Get effective fortune limits for a user, considering trial status"""
     user_email = session.get("user_email")
-    trial_active, _, _ = check_trial_active_from_db(user_email=user_email, user_id=user_id)
+    trial_active = check_trial_active_from_db(user_id)
     
     # New clean logic - only boost Free users during trial
     daily_limit = get_effective_feature_limit(user_plan, trial_active, "fortune")
@@ -4490,7 +4489,7 @@ def get_effective_fortune_limits(user_id, user_plan):
 def get_effective_horoscope_limits(user_id, user_plan):
     """Get effective horoscope limits for a user, considering trial status"""
     user_email = session.get("user_email")
-    trial_active, _, _ = check_trial_active_from_db(user_email=user_email, user_id=user_id)
+    trial_active = check_trial_active_from_db(user_id)
     
     # New clean logic - only boost Free users during trial
     daily_limit = get_effective_feature_limit(user_plan, trial_active, "horoscope")
@@ -4608,7 +4607,7 @@ def increment_horoscope_usage():
 def check_decoder_limit():
     user_id = session.get("user_id")
     user_plan = session.get("user_plan", "foundation")
-    trial_active, _, _ = check_trial_active_from_db(user_id)
+    trial_active = check_trial_active_from_db(user_id)
 
     effective_plan = get_effective_plan(user_plan, trial_active)
     daily_limit = get_feature_limit(effective_plan, "decoder")
@@ -4630,7 +4629,7 @@ def check_decoder_limit():
 def check_fortune_limit():
     user_id = session.get("user_id")
     user_plan = session.get("user_plan", "foundation")
-    trial_active, _, _ = check_trial_active_from_db(user_id)
+    trial_active = check_trial_active_from_db(user_id)
 
     effective_plan = get_effective_plan(user_plan, trial_active)
     daily_limit = get_feature_limit(effective_plan, "fortune")
@@ -5938,7 +5937,7 @@ def api_creative_writing():
             
         # Check if user has access to creative writing (Growth/Max tiers or active trial)
         user_plan = session.get('user_plan', 'foundation')
-        trial_active, _, _ = check_trial_active_from_db()
+        trial_active = check_trial_active_from_db(session.get('user_id'))
         
         if user_plan not in ['growth', 'premium', 'enterprise'] and not trial_active:
             return jsonify({"success": False, "error": "Creative Writing Assistant requires Growth or Max plan"}), 403
@@ -6053,7 +6052,7 @@ def api_save_creative_content():
             
         # Check if user has access to creative writing (Growth/Max tiers or active trial)
         user_plan = session.get('user_plan', 'foundation')
-        trial_active, _, _ = check_trial_active_from_db()
+        trial_active = check_trial_active_from_db(session.get('user_id'))
         
         if user_plan not in ['growth', 'premium', 'enterprise'] and not trial_active:
             return jsonify({"success": False, "error": "Saving creative content requires Growth or Max plan"}), 403
@@ -6180,7 +6179,7 @@ def api_save_canvas_art():
             
         # Check if user has access to creative canvas (Growth/Max tiers or active trial)
         user_plan = session.get('user_plan', 'foundation')
-        trial_active, _, _ = check_trial_active_from_db()
+        trial_active = check_trial_active_from_db(session.get('user_id'))
         
         if user_plan not in ['growth', 'premium', 'enterprise'] and not trial_active:
             return jsonify({"success": False, "error": "Creative Canvas requires Growth or Max plan"}), 403
@@ -6385,7 +6384,7 @@ def api_share_to_wellness_gallery():
             
         # Check if user has access (Growth/Max tiers or active trial)
         user_plan = session.get('user_plan', 'foundation')
-        trial_active, _, _ = check_trial_active_from_db()
+        trial_active = check_trial_active_from_db(session.get('user_id'))
         
         if user_plan not in ['growth', 'premium', 'enterprise'] and not trial_active:
             return jsonify({"success": False, "error": "Wellness Gallery sharing requires Growth or Max plan"}), 403
