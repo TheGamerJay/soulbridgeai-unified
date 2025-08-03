@@ -4475,9 +4475,7 @@ def get_effective_decoder_limits(user_id, user_plan):
     user_email = session.get("user_email")  # ADD THIS
     trial_active, _, _ = check_trial_active_from_db(user_email=user_email, user_id=user_id)
     
-    # TEMPORARY DEBUG FIX: Force trial_active to False until session issue is resolved
-    logger.warning(f"🚨 TEMP FIX: Forcing trial_active to False in decoder limits to prevent trial access bug")
-    trial_active = False
+    # Trial check completed - use actual trial_active value
 
     # Use global decoder limits
     daily_limit = DECODER_LIMITS.get(user_plan, 3)
@@ -4490,7 +4488,9 @@ def get_effective_decoder_limits(user_id, user_plan):
     if trial_active and user_plan != 'enterprise':
         daily_limit = DECODER_LIMITS.get('premium', 15)
         effective_plan = 'premium'
-        logger.info(f"🔍 TRIAL BOOST: Upgraded {user_plan} to premium (Growth-tier limits)")
+        logger.info(f"🔍 TRIAL BOOST: Upgraded {user_plan} to premium (Growth-tier limits: {daily_limit})")
+    else:
+        logger.info(f"🔍 NO TRIAL BOOST: trial_active={trial_active}, user_plan={user_plan}")
 
     return daily_limit, effective_plan
 
@@ -4499,9 +4499,7 @@ def get_effective_fortune_limits(user_id, user_plan):
     user_email = session.get("user_email")
     trial_active, _, _ = check_trial_active_from_db(user_email=user_email, user_id=user_id)
     
-    # TEMPORARY DEBUG FIX: Force trial_active to False until session issue is resolved
-    logger.warning(f"🚨 TEMP FIX: Forcing trial_active to False in fortune limits to prevent trial access bug")
-    trial_active = False
+    # Trial check completed - use actual trial_active value
 
     # Use global fortune limits
     daily_limit = FORTUNE_LIMITS.get(user_plan, 2)
@@ -4523,9 +4521,7 @@ def get_effective_horoscope_limits(user_id, user_plan):
     user_email = session.get("user_email")
     trial_active, _, _ = check_trial_active_from_db(user_email=user_email, user_id=user_id)
     
-    # TEMPORARY DEBUG FIX: Force trial_active to False until session issue is resolved
-    logger.warning(f"🚨 TEMP FIX: Forcing trial_active to False in horoscope limits to prevent trial access bug")
-    trial_active = False
+    # Trial check completed - use actual trial_active value
 
     # Use global horoscope limits
     daily_limit = HOROSCOPE_LIMITS.get(user_plan, 3)
@@ -4653,9 +4649,7 @@ def check_decoder_limit():
     # 🧠 Important: Check trial properly using both email and ID
     trial_active, _, _ = check_trial_active_from_db(user_email=user_email, user_id=user_id)
     
-    # TEMPORARY DEBUG FIX: Force trial_active to False until session issue is resolved
-    logger.warning(f"🚨 TEMP FIX: Forcing trial_active to False to prevent trial access bug")
-    trial_active = False
+    # Trial check completed - use actual trial_active value
 
     # Define tier limits - NEVER return null unless enterprise
     # Use global decoder limits for API endpoint
@@ -4690,9 +4684,7 @@ def check_fortune_limit():
     # Check trial status using both email and ID
     trial_active, _, _ = check_trial_active_from_db(user_email=user_email, user_id=user_id)
     
-    # TEMPORARY DEBUG FIX: Force trial_active to False until session issue is resolved
-    logger.warning(f"🚨 TEMP FIX: Forcing trial_active to False to prevent trial access bug")
-    trial_active = False
+    # Trial check completed - use actual trial_active value
 
     # Define tier limits for fortune telling - NEVER return null unless enterprise
     # Use global fortune limits for API endpoint
@@ -4727,9 +4719,7 @@ def check_horoscope_limit():
     # Check trial status using both email and ID
     trial_active, _, _ = check_trial_active_from_db(user_email=user_email, user_id=user_id)
     
-    # TEMPORARY DEBUG FIX: Force trial_active to False until session issue is resolved
-    logger.warning(f"🚨 TEMP FIX: Forcing trial_active to False to prevent trial access bug")
-    trial_active = False
+    # Trial check completed - use actual trial_active value
 
     # Define tier limits for horoscope readings - NEVER return null unless enterprise
     # Use global horoscope limits for API endpoint
