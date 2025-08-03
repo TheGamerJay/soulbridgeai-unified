@@ -1329,24 +1329,18 @@ def chat():
         
         # BLOCK ACCESS: Check companion tier requirements before allowing chat
         if selected_companion in ['companion_sky', 'companion_gamerjay_premium', 'companion_blayzo_premium', 'companion_watchdog', 'companion_crimson_growth', 'companion_violet_growth', 'companion_claude_growth']:
-            # Growth tier companion - requires premium plan OR active trial
-            if user_tier == 'foundation':
-                if trial_active:
-                    logger.info(f"✅ TRIAL ACCESS GRANTED: Foundation user accessing Growth companion {selected_companion} via active trial")
-                else:
-                    logger.warning(f"🚫 BLOCKING CHAT ACCESS: Foundation user {session.get('user_email')} tried to access Growth companion {selected_companion}")
-                    flash("This companion requires a Growth plan or active trial. Please upgrade or start a trial.")
-                    return redirect("/companion-selection")
+            # Growth tier companion - requires premium plan (trial doesn't help free users)
+            if user_tier != 'premium' and user_tier != 'enterprise':
+                logger.warning(f"🚫 BLOCKING CHAT ACCESS: {user_tier} user {session.get('user_email')} tried to access Growth companion {selected_companion}")
+                flash("This companion requires a Growth plan. Please upgrade.")
+                return redirect("/companion-selection")
             else:
                 logger.info(f"✅ CHAT ACCESS GRANTED: Growth companion {selected_companion} - user tier: {user_tier}")
         elif selected_companion in ['companion_crimson', 'companion_violet']:
-            # Max tier companion - requires enterprise plan OR active trial
+            # Max tier companion - requires enterprise plan only (trial doesn't help)
             if user_tier != 'enterprise':
-                if trial_active:
-                    logger.info(f"✅ TRIAL ACCESS GRANTED: User accessing Max companion {selected_companion} via active trial")
-                else:
-                    companion_access_valid = False
-                    logger.warning(f"🚫 Access denied to Max companion {selected_companion} - user tier: {user_tier}, no active trial")
+                companion_access_valid = False
+                logger.warning(f"🚫 Access denied to Max companion {selected_companion} - user tier: {user_tier}")
         
         # If access denied, redirect to companion selector
         if not companion_access_valid:
@@ -1384,17 +1378,17 @@ def api_companions():
             if tier == "free":
                 return None
             elif tier == "growth":
-                # Growth companions: unlocked by premium plan OR trial
-                if user_plan == 'premium' or user_plan == 'enterprise' or trial_active:
+                # Growth companions: unlocked by premium/enterprise plan (trial doesn't help free users)
+                if user_plan == 'premium' or user_plan == 'enterprise':
                     return None
                 else:
-                    return "🎯 Try 5hr Free"
+                    return "Upgrade Required"
             elif tier == "max":
-                # Max companions: unlocked by enterprise plan OR trial
-                if user_plan == 'enterprise' or trial_active:
+                # Max companions: unlocked by enterprise plan only (trial doesn't help free users)
+                if user_plan == 'enterprise':
                     return None
                 else:
-                    return "🎯 Try 5hr Free"
+                    return "Upgrade Required"
             return "Upgrade Required"
         
         # Define companions by tier
