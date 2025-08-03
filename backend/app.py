@@ -4455,6 +4455,11 @@ def get_effective_decoder_limits(user_id, user_plan):
     """Get effective decoder limits for a user, considering trial status"""
     user_email = session.get("user_email")  # ADD THIS
     trial_active, _, _ = check_trial_active_from_db(user_email=user_email, user_id=user_id)
+    
+    # TEMPORARY DEBUG FIX: Force trial_active to False for local dev until session issue is resolved
+    if not os.environ.get('DATABASE_URL'):
+        logger.warning(f"🚨 LOCAL DEV: Forcing trial_active to False in decoder limits to prevent unlimited access bug")
+        trial_active = False
 
     # Base limits
     tier_limits = {
@@ -4481,6 +4486,11 @@ def get_effective_fortune_limits(user_id, user_plan):
     """Get effective fortune limits for a user, considering trial status"""
     user_email = session.get("user_email")
     trial_active, _, _ = check_trial_active_from_db(user_email=user_email, user_id=user_id)
+    
+    # TEMPORARY DEBUG FIX: Force trial_active to False for local dev until session issue is resolved
+    if not os.environ.get('DATABASE_URL'):
+        logger.warning(f"🚨 LOCAL DEV: Forcing trial_active to False in fortune limits to prevent unlimited access bug")
+        trial_active = False
 
     # Base limits for fortune telling
     tier_limits = {
@@ -4507,6 +4517,11 @@ def get_effective_horoscope_limits(user_id, user_plan):
     """Get effective horoscope limits for a user, considering trial status"""
     user_email = session.get("user_email")
     trial_active, _, _ = check_trial_active_from_db(user_email=user_email, user_id=user_id)
+    
+    # TEMPORARY DEBUG FIX: Force trial_active to False for local dev until session issue is resolved
+    if not os.environ.get('DATABASE_URL'):
+        logger.warning(f"🚨 LOCAL DEV: Forcing trial_active to False in horoscope limits to prevent unlimited access bug")
+        trial_active = False
 
     # Base limits for horoscope readings
     tier_limits = {
