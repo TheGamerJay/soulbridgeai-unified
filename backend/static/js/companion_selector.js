@@ -232,6 +232,16 @@ async function loadCompanions() {
         
         if (data.success && data.companions) {
             companions = data.companions;
+            
+            // Store trial status from API response
+            if (data.trial_active !== undefined) {
+                window.trialStatus = {
+                    trial_active: data.trial_active,
+                    trial_used_permanently: false // Will be updated by checkTrialStatus()
+                };
+                console.log('🎯 Trial status from companions API:', window.trialStatus);
+            }
+            
             console.log('✅ Companions loaded successfully:', companions);
             renderCompanions();
         } else {
