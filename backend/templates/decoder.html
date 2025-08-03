@@ -475,15 +475,18 @@ async function refreshDecoderLimits() {
         if (!data.success) throw new Error("API error");
 
         const usage = data.usage_today ?? 0;
-        const limit = data.daily_limit === null ? '∞' : data.daily_limit;
+        const isMaxPlan = data.effective_plan === 'enterprise';
+        const hasUnlimited = data.daily_limit === null && isMaxPlan;
 
-        // Set values in DOM
+        const limitDisplay = hasUnlimited ? '∞' : data.daily_limit;
+
+        // Update usage display
         document.getElementById("usage-count").textContent = usage;
-        document.getElementById("usage-limit").textContent = limit;
+        document.getElementById("usage-limit").textContent = limitDisplay;
 
         // Update usage bar
         const usageFill = document.getElementById('usage-fill');
-        if (data.daily_limit === null) {
+        if (hasUnlimited) {
             usageFill.style.width = '100%';
             usageFill.style.background = 'linear-gradient(135deg, #22d3ee, #0891b2)';
         } else {
@@ -491,11 +494,11 @@ async function refreshDecoderLimits() {
             usageFill.style.width = Math.min(percentage, 100) + '%';
         }
 
-        // Show/hide Max plan message and update plan description
+        // Update plan message
         const planNotice = document.getElementById("max-plan-message");
         const planDesc = document.getElementById("plan-description");
-        
-        if (data.daily_limit === null) {
+
+        if (hasUnlimited) {
             if (planNotice) planNotice.style.display = "block";
             if (planDesc) planDesc.style.display = "none";
         } else {
@@ -503,19 +506,19 @@ async function refreshDecoderLimits() {
             if (planDesc) {
                 planDesc.style.display = "block";
                 if (data.effective_plan === 'premium') {
-                    planDesc.textContent = `Growth users get ${limit} decodes per day. Upgrade to Max for unlimited.`;
+                    planDesc.textContent = `Growth users get ${limitDisplay} decodes per day. Upgrade to Max for unlimited.`;
                 } else {
-                    planDesc.textContent = `Free users get ${limit} decodes per day. Upgrade for more access.`;
+                    planDesc.textContent = `Free users get ${limitDisplay} decodes per day. Upgrade for more access.`;
                 }
             }
         }
 
-        // Update global variables for other functions
+        // Update global variables
         userUsage = usage;
         userPlan = data.effective_plan;
         dailyLimit = data.daily_limit;
 
-        console.log(`🔄 Refreshed decoder limits: plan=${data.effective_plan}, usage=${usage}, limit=${limit}`);
+        console.log(`🔄 Refreshed decoder limits: plan=${data.effective_plan}, usage=${usage}, limit=${limitDisplay}`);
 
     } catch (err) {
         console.error("❌ Failed to refresh decoder limits:", err);
