@@ -509,10 +509,9 @@ async function refreshFortuneLimits() {
         if (!data.success) throw new Error("API error");
 
         const usage = data.usage_today ?? 0;
-        const isMaxPlan = data.effective_plan === 'enterprise';
-        const hasUnlimited = data.daily_limit === null && isMaxPlan;
+        const hasUnlimited = data.effective_plan === 'enterprise';
 
-        const limitDisplay = hasUnlimited ? '∞' : data.daily_limit;
+        const limitDisplay = hasUnlimited ? '∞' : (data.daily_limit ?? '?');
 
         // Update usage display
         document.getElementById("usage-count").textContent = usage;

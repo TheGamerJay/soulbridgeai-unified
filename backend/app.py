@@ -4640,11 +4640,11 @@ def check_decoder_limit():
     # 🧠 Important: Check trial properly using both email and ID
     trial_active, _, _ = check_trial_active_from_db(user_email=user_email, user_id=user_id)
 
-    # Define tier limits
+    # Define tier limits - NEVER return null unless enterprise
     tier_limits = {
         "foundation": 3,
         "premium": 15,
-        "enterprise": None
+        "enterprise": None  # Only enterprise gets unlimited
     }
 
     # Default to user's actual plan
@@ -4653,10 +4653,11 @@ def check_decoder_limit():
 
     # 🛡️ Apply trial logic only if user is NOT already Max
     if trial_active and user_plan != "enterprise":
+        # During trial, user gets enterprise access
         daily_limit = None
         effective_plan = "enterprise"
 
-    usage = get_decoder_usage()  # Your existing function
+    usage = get_decoder_usage()
 
     logger.info(f"🧪 DECODER API: plan={effective_plan}, trial={trial_active}, usage={usage}, limit={daily_limit}")
 
@@ -4666,7 +4667,7 @@ def check_decoder_limit():
         "effective_plan": effective_plan,
         "daily_limit": daily_limit,
         "usage_today": usage,
-        "remaining": None if daily_limit is None else max(0, daily_limit - usage)
+        "remaining": None if effective_plan == "enterprise" else max(0, daily_limit - usage)
     })
 
 @app.route("/api/fortune/check-limit")
@@ -4678,11 +4679,11 @@ def check_fortune_limit():
     # Check trial status using both email and ID
     trial_active, _, _ = check_trial_active_from_db(user_email=user_email, user_id=user_id)
 
-    # Define tier limits for fortune telling
+    # Define tier limits for fortune telling - NEVER return null unless enterprise
     tier_limits = {
         "foundation": 2,
         "premium": 8,
-        "enterprise": None
+        "enterprise": None  # Only enterprise gets unlimited
     }
 
     # Default to user's actual plan
@@ -4691,6 +4692,7 @@ def check_fortune_limit():
 
     # Apply trial logic only if user is NOT already Max
     if trial_active and user_plan != "enterprise":
+        # During trial, user gets enterprise access
         daily_limit = None
         effective_plan = "enterprise"
 
@@ -4704,7 +4706,7 @@ def check_fortune_limit():
         "effective_plan": effective_plan,
         "daily_limit": daily_limit,
         "usage_today": usage,
-        "remaining": None if daily_limit is None else max(0, daily_limit - usage)
+        "remaining": None if effective_plan == "enterprise" else max(0, daily_limit - usage)
     })
 
 @app.route("/api/horoscope/check-limit")
@@ -4716,11 +4718,11 @@ def check_horoscope_limit():
     # Check trial status using both email and ID
     trial_active, _, _ = check_trial_active_from_db(user_email=user_email, user_id=user_id)
 
-    # Define tier limits for horoscope readings
+    # Define tier limits for horoscope readings - NEVER return null unless enterprise
     tier_limits = {
         "foundation": 3,
         "premium": 10,
-        "enterprise": None
+        "enterprise": None  # Only enterprise gets unlimited
     }
 
     # Default to user's actual plan
@@ -4729,6 +4731,7 @@ def check_horoscope_limit():
 
     # Apply trial logic only if user is NOT already Max
     if trial_active and user_plan != "enterprise":
+        # During trial, user gets enterprise access
         daily_limit = None
         effective_plan = "enterprise"
 
@@ -4742,7 +4745,7 @@ def check_horoscope_limit():
         "effective_plan": effective_plan,
         "daily_limit": daily_limit,
         "usage_today": usage,
-        "remaining": None if daily_limit is None else max(0, daily_limit - usage)
+        "remaining": None if effective_plan == "enterprise" else max(0, daily_limit - usage)
     })
 
 @app.route("/api/subscription/upgrade", methods=["POST"])
