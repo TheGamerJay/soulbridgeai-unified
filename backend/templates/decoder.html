@@ -481,8 +481,8 @@ async function refreshDecoderLimits() {
         const data = await response.json();
         
         if (data.success) {
-            userUsage = data.current_usage;
-            userPlan = data.user_plan;
+            userUsage = data.usage_today;
+            userPlan = data.effective_plan;
             dailyLimit = data.daily_limit;
             
             console.log(`🔄 Refreshed decoder limits: plan=${userPlan}, usage=${userUsage}, limit=${dailyLimit}`);
@@ -525,18 +525,22 @@ function updateUsageIndicator() {
     const usageFill = document.getElementById('usage-fill');
     const usageIndicator = document.getElementById('usage-indicator');
     
-    usageCount.textContent = userUsage;
+    // Safety check for NaN/undefined values
+    const safeUsage = userUsage || 0;
+    const safeDailyLimit = dailyLimit;
     
-    if (dailyLimit === null || dailyLimit === -1) {
+    usageCount.textContent = safeUsage;
+    
+    if (safeDailyLimit === null || safeDailyLimit === undefined || safeDailyLimit === -1) {
         // Unlimited for Max tier
         usageLimit.textContent = '∞';
         usageFill.style.width = '100%';
         usageFill.style.background = 'linear-gradient(135deg, #22d3ee, #0891b2)';
         usageIndicator.style.display = 'block';
     } else {
-        // Update the limit display
-        usageLimit.textContent = dailyLimit;
-        const percentage = (userUsage / dailyLimit) * 100;
+        // Update the limit display with safety checks
+        usageLimit.textContent = safeDailyLimit;
+        const percentage = safeDailyLimit > 0 ? (safeUsage / safeDailyLimit) * 100 : 0;
         usageFill.style.width = Math.min(percentage, 100) + '%';
         usageIndicator.style.display = 'block';
     }
