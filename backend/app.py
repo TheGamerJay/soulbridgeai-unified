@@ -94,56 +94,27 @@ os.makedirs("logs", exist_ok=True)
 
 # Helper function to check trial status from database
 # -- Trial Check Function --
-def check_trial_active_from_db(user_email=None, user_id=None):
-    """Check if trial is active based on database start_time - matches our 5-hour trial logic"""
+def check_trial_active_from_db(user_id):
+    """Check if trial is active based on database time check"""
     try:
-        if not user_email and not user_id:
-            user_email = session.get('user_email')
-            user_id = session.get('user_id')
-        if not user_email and not user_id:
-            return False, None, 0
-
         with get_db_connection() as conn:
             cursor = conn.cursor()
-            
-            # Use the correct column names that match our start-trial endpoint
-            if user_email:
-                cursor.execute("""
-                    SELECT trial_started_at, trial_used_permanently 
-                    FROM users 
-                    WHERE email = %s
-                """, (user_email,))
-            else:
-                cursor.execute("""
-                    SELECT trial_started_at, trial_used_permanently 
-                    FROM users 
-                    WHERE id = %s
-                """, (user_id,))
-            
+            cursor.execute("""
+                SELECT trial_started_at
+                FROM users
+                WHERE id = %s
+            """, (user_id,))
             result = cursor.fetchone()
-            if not result:
+            if not result or not result[0]:
                 return False, None, 0
-                
-            trial_start, trial_used = result
-            
-            # If no trial start time or already used permanently, no active trial
-            if not trial_start or trial_used:
-                return False, None, 0
-            
-            # Convert to UTC timezone-aware datetime if needed
-            if isinstance(trial_start, str):
-                trial_start = datetime.fromisoformat(trial_start.replace('Z', '+00:00'))
-            
-            # Check if 5 hours have passed
-            time_elapsed = datetime.now(timezone.utc) - trial_start
-            trial_active = time_elapsed < timedelta(hours=5)
-            
-            if trial_active:
-                remaining_minutes = int((timedelta(hours=5) - time_elapsed).total_seconds() / 60)
+
+            trial_start = result[0]
+            now = datetime.now(timezone.utc)
+            if now - trial_start < timedelta(hours=5):
+                remaining_minutes = int((trial_start + timedelta(hours=5) - now).total_seconds() / 60)
                 return True, None, remaining_minutes
             else:
                 return False, None, 0
-            
     except Exception as e:
         print(f"Trial check error: {e}")
         return False, None, 0
@@ -1380,22 +1351,24 @@ def api_companions():
         trial_active = False
         if is_logged_in():
             user_id = session.get('user_id')
-            trial_active, _, _ = check_trial_active_from_db(user_id=user_id)
+            trial_active = check_trial_active_from_db(user_id)
         
         # Helper function to determine lock reason
-        def get_lock_reason(tier, required_plan):
+        def get_lock_reason(tier):
             if tier == "free":
                 return None
             elif tier == "growth":
-                if user_plan in ['premium', 'enterprise'] or trial_active:
+                # Growth companions: unlocked by premium plan OR trial
+                if user_plan == 'premium' or user_plan == 'enterprise' or trial_active:
                     return None
                 else:
-                    return "🎯 Try 5hr Free" if not trial_active else "Requires Growth Plan"
+                    return "🎯 Try 5hr Free"
             elif tier == "max":
+                # Max companions: unlocked by enterprise plan OR trial
                 if user_plan == 'enterprise' or trial_active:
                     return None
                 else:
-                    return "🎯 Try 5hr Free" if not trial_active else "Requires Max Plan"
+                    return "🎯 Try 5hr Free"
             return "Upgrade Required"
         
         # Define companions by tier
@@ -1409,23 +1382,23 @@ def api_companions():
                 {"companion_id": "claude_free", "display_name": "Claude", "description": "Your friendly coding assistant", "avatar_image": "/static/logos/Claude Free.png", "tier": "free", "is_recommended": False, "popularity_score": 85, "lock_reason": None}
             ],
             "growth": [
-                {"companion_id": "companion_sky", "display_name": "Sky", "description": "Premium companion with advanced features", "avatar_image": "/static/logos/Sky a primum companion.png", "tier": "growth", "is_recommended": True, "popularity_score": 90, "lock_reason": get_lock_reason("growth", "premium")},
-                {"companion_id": "blayzo_growth", "display_name": "Blayzo Pro", "description": "Advanced Blayzo with enhanced creativity", "avatar_image": "/static/logos/Blayzo premium companion.png", "tier": "growth", "is_recommended": True, "popularity_score": 92, "lock_reason": get_lock_reason("growth", "premium")},
-                {"companion_id": "blayzica_growth", "display_name": "Blayzica Pro", "description": "Enhanced emotional intelligence companion", "avatar_image": "/static/logos/Blayzica Pro.png", "tier": "growth", "is_recommended": True, "popularity_score": 91, "lock_reason": get_lock_reason("growth", "premium")},
-                {"companion_id": "companion_gamerjay_premium", "display_name": "GamerJay Premium", "description": "Enhanced GamerJay with premium features", "avatar_image": "/static/logos/GamgerJay premium companion.png", "tier": "growth", "is_recommended": False, "popularity_score": 88, "lock_reason": get_lock_reason("growth", "premium")},
-                {"companion_id": "watchdog_growth", "display_name": "WatchDog", "description": "Your protective guardian companion", "avatar_image": "/static/logos/WatchDog a Primum companion.png", "tier": "growth", "is_recommended": False, "popularity_score": 78, "lock_reason": get_lock_reason("growth", "premium")},
-                {"companion_id": "crimson_growth", "display_name": "Crimson", "description": "Motivational drive to overcome challenges", "avatar_image": "/static/logos/Crimson.png", "tier": "growth", "is_recommended": True, "popularity_score": 87, "lock_reason": get_lock_reason("growth", "premium")},
-                {"companion_id": "violet_growth", "display_name": "Violet", "description": "Creative inspiration and artistic guidance", "avatar_image": "/static/logos/Violet.png", "tier": "growth", "is_recommended": False, "popularity_score": 84, "lock_reason": get_lock_reason("growth", "premium")},
-                {"companion_id": "claude_growth", "display_name": "Claude Growth", "description": "Advanced coding guidance and architecture", "avatar_image": "/static/logos/Claude Growth.png", "tier": "growth", "is_recommended": True, "popularity_score": 93, "lock_reason": get_lock_reason("growth", "premium")}
+                {"companion_id": "companion_sky", "display_name": "Sky", "description": "Premium companion with advanced features", "avatar_image": "/static/logos/Sky a primum companion.png", "tier": "growth", "is_recommended": True, "popularity_score": 90, "lock_reason": get_lock_reason("growth")},
+                {"companion_id": "blayzo_growth", "display_name": "Blayzo Pro", "description": "Advanced Blayzo with enhanced creativity", "avatar_image": "/static/logos/Blayzo premium companion.png", "tier": "growth", "is_recommended": True, "popularity_score": 92, "lock_reason": get_lock_reason("growth")},
+                {"companion_id": "blayzica_growth", "display_name": "Blayzica Pro", "description": "Enhanced emotional intelligence companion", "avatar_image": "/static/logos/Blayzica Pro.png", "tier": "growth", "is_recommended": True, "popularity_score": 91, "lock_reason": get_lock_reason("growth")},
+                {"companion_id": "companion_gamerjay_premium", "display_name": "GamerJay Premium", "description": "Enhanced GamerJay with premium features", "avatar_image": "/static/logos/GamgerJay premium companion.png", "tier": "growth", "is_recommended": False, "popularity_score": 88, "lock_reason": get_lock_reason("growth")},
+                {"companion_id": "watchdog_growth", "display_name": "WatchDog", "description": "Your protective guardian companion", "avatar_image": "/static/logos/WatchDog a Primum companion.png", "tier": "growth", "is_recommended": False, "popularity_score": 78, "lock_reason": get_lock_reason("growth")},
+                {"companion_id": "crimson_growth", "display_name": "Crimson", "description": "Motivational drive to overcome challenges", "avatar_image": "/static/logos/Crimson.png", "tier": "growth", "is_recommended": True, "popularity_score": 87, "lock_reason": get_lock_reason("growth")},
+                {"companion_id": "violet_growth", "display_name": "Violet", "description": "Creative inspiration and artistic guidance", "avatar_image": "/static/logos/Violet.png", "tier": "growth", "is_recommended": False, "popularity_score": 84, "lock_reason": get_lock_reason("growth")},
+                {"companion_id": "claude_growth", "display_name": "Claude Growth", "description": "Advanced coding guidance and architecture", "avatar_image": "/static/logos/Claude Growth.png", "tier": "growth", "is_recommended": True, "popularity_score": 93, "lock_reason": get_lock_reason("growth")}
             ],
             "max": [
-                {"companion_id": "companion_crimson", "display_name": "Crimson Max", "description": "Elite transformation companion", "avatar_image": "/static/logos/Crimson a Max companion.png", "tier": "max", "is_recommended": True, "popularity_score": 98, "lock_reason": get_lock_reason("max", "enterprise")},
-                {"companion_id": "companion_violet", "display_name": "Violet Max", "description": "Premium creative companion", "avatar_image": "/static/logos/Violet a max companion.png", "tier": "max", "is_recommended": False, "popularity_score": 91, "lock_reason": get_lock_reason("max", "enterprise")},
-                {"companion_id": "royal_max", "display_name": "Royal", "description": "Majestic guide with sophisticated wisdom", "avatar_image": "/static/logos/Royal a max companion.png", "tier": "max", "is_recommended": False, "popularity_score": 95, "lock_reason": get_lock_reason("max", "enterprise")},
-                {"companion_id": "watchdog_max", "display_name": "WatchDog Max", "description": "Ultimate guardian companion", "avatar_image": "/static/logos/WatchDog a Max Companion.png", "tier": "max", "is_recommended": False, "popularity_score": 93, "lock_reason": get_lock_reason("max", "enterprise")},
-                {"companion_id": "ven_blayzica", "display_name": "Ven Blayzica", "description": "Enhanced healer with emotional mastery", "avatar_image": "/static/logos/Ven Blayzica a max companion.png", "tier": "max", "is_recommended": True, "popularity_score": 94, "lock_reason": get_lock_reason("max", "enterprise")},
-                {"companion_id": "ven_sky", "display_name": "Ven Sky", "description": "Ascended spiritual guide", "avatar_image": "/static/logos/Ven Sky a max companion.png", "tier": "max", "is_recommended": True, "popularity_score": 96, "lock_reason": get_lock_reason("max", "enterprise")},
-                {"companion_id": "claude_max", "display_name": "Claude Max", "description": "Elite coding mastery and system design", "avatar_image": "/static/logos/Claude Max.png", "tier": "max", "is_recommended": True, "popularity_score": 97, "lock_reason": get_lock_reason("max", "enterprise")}
+                {"companion_id": "companion_crimson", "display_name": "Crimson Max", "description": "Elite transformation companion", "avatar_image": "/static/logos/Crimson a Max companion.png", "tier": "max", "is_recommended": True, "popularity_score": 98, "lock_reason": get_lock_reason("max")},
+                {"companion_id": "companion_violet", "display_name": "Violet Max", "description": "Premium creative companion", "avatar_image": "/static/logos/Violet a max companion.png", "tier": "max", "is_recommended": False, "popularity_score": 91, "lock_reason": get_lock_reason("max")},
+                {"companion_id": "royal_max", "display_name": "Royal", "description": "Majestic guide with sophisticated wisdom", "avatar_image": "/static/logos/Royal a max companion.png", "tier": "max", "is_recommended": False, "popularity_score": 95, "lock_reason": get_lock_reason("max")},
+                {"companion_id": "watchdog_max", "display_name": "WatchDog Max", "description": "Ultimate guardian companion", "avatar_image": "/static/logos/WatchDog a Max Companion.png", "tier": "max", "is_recommended": False, "popularity_score": 93, "lock_reason": get_lock_reason("max")},
+                {"companion_id": "ven_blayzica", "display_name": "Ven Blayzica", "description": "Enhanced healer with emotional mastery", "avatar_image": "/static/logos/Ven Blayzica a max companion.png", "tier": "max", "is_recommended": True, "popularity_score": 94, "lock_reason": get_lock_reason("max")},
+                {"companion_id": "ven_sky", "display_name": "Ven Sky", "description": "Ascended spiritual guide", "avatar_image": "/static/logos/Ven Sky a max companion.png", "tier": "max", "is_recommended": True, "popularity_score": 96, "lock_reason": get_lock_reason("max")},
+                {"companion_id": "claude_max", "display_name": "Claude Max", "description": "Elite coding mastery and system design", "avatar_image": "/static/logos/Claude Max.png", "tier": "max", "is_recommended": True, "popularity_score": 97, "lock_reason": get_lock_reason("max")}
             ],
             "referral": [
                 {"companion_id": "blayzo", "display_name": "Blayzo Champion", "description": "Exclusive community champion", "avatar_image": "/static/logos/Blayzo Referral.png", "tier": "referral", "is_recommended": True, "popularity_score": 100, "lock_reason": "Unlock through referrals"},
@@ -4435,41 +4408,30 @@ def get_user_addons():
 
 # --- Tier Limits ---
 TIER_LIMITS = {
-    "foundation": {  # Free
-        "decoder": 3,
-        "fortune": 2,
-        "horoscope": 3
-    },
-    "premium": {     # Growth
-        "decoder": 15,
-        "fortune": 8,
-        "horoscope": 10
-    },
-    "enterprise": {  # Max
-        "decoder": None,
-        "fortune": None,
-        "horoscope": None
-    }
+    "foundation": {"decoder": 3, "fortune": 2, "horoscope": 3},
+    "premium": {"decoder": 15, "fortune": 8, "horoscope": 10},
+    "enterprise": {"decoder": None, "fortune": None, "horoscope": None}
 }
 
 def get_effective_plan(user_plan, trial_active):
     """
-    Get effective plan for companion access.
-    Trial upgrades user to premium tier for companion access.
+    Get effective plan for usage limits.
+    Trial gives access to features, not upgraded limits.
     """
-    if user_plan == "enterprise":
-        return "enterprise"
+    if user_plan == 'enterprise':
+        return 'enterprise'
+    elif user_plan == 'premium':
+        return 'premium'
     elif trial_active:
-        return "premium"  # Trial unlocks Growth tier, NOT Max
-    elif user_plan == "premium":
-        return "premium"
-    return "foundation"
+        return 'foundation'  # Trial gives access to features, not limits
+    else:
+        return 'foundation'
 
-def get_feature_limit(plan, feature):
+def get_feature_limit(effective_plan, feature):
     """
     Return daily limit for that plan + feature.
     """
-    return TIER_LIMITS.get(plan, {}).get(feature, 0)
+    return TIER_LIMITS.get(effective_plan, {}).get(feature)
 
 def get_effective_feature_limit(user_plan, trial_active, feature_name):
     """
@@ -4646,10 +4608,10 @@ def increment_horoscope_usage():
 def check_decoder_limit():
     user_id = session.get("user_id")
     user_plan = session.get("user_plan", "foundation")
-    trial_active, _, _ = check_trial_active_from_db(user_id=user_id)
+    trial_active, _, _ = check_trial_active_from_db(user_id)
 
     effective_plan = get_effective_plan(user_plan, trial_active)
-    daily_limit = get_effective_feature_limit(user_plan, trial_active, "decoder")
+    daily_limit = get_feature_limit(effective_plan, "decoder")
     
     # Get usage for frontend display
     usage_today = get_decoder_usage() if user_id else 0
@@ -4668,10 +4630,10 @@ def check_decoder_limit():
 def check_fortune_limit():
     user_id = session.get("user_id")
     user_plan = session.get("user_plan", "foundation")
-    trial_active, _, _ = check_trial_active_from_db(user_id=user_id)
+    trial_active, _, _ = check_trial_active_from_db(user_id)
 
     effective_plan = get_effective_plan(user_plan, trial_active)
-    daily_limit = get_effective_feature_limit(user_plan, trial_active, "fortune")
+    daily_limit = get_feature_limit(effective_plan, "fortune")
     
     # Get usage for frontend display
     usage_today = get_fortune_usage() if user_id else 0
@@ -4689,23 +4651,26 @@ def check_fortune_limit():
 @app.route("/api/horoscope/check-limit")
 def check_horoscope_limit():
     user_id = session.get("user_id")
-    user_plan = session.get("user_plan", "foundation")
-    trial_active, _, _ = check_trial_active_from_db(user_id=user_id)
+    if not user_id:
+        return jsonify({"success": False, "error": "Not logged in"})
 
+    user_plan = session.get("user_plan", "foundation")
+    trial_active = check_trial_active_from_db(user_id)
     effective_plan = get_effective_plan(user_plan, trial_active)
-    daily_limit = get_effective_feature_limit(user_plan, trial_active, "horoscope")
+    daily_limit = get_feature_limit(effective_plan, "horoscope")
     
     # Get usage for frontend display
     usage_today = get_horoscope_usage() if user_id else 0
+    can_use = daily_limit is None or usage_today < daily_limit
 
     return jsonify({
         "success": True,
+        "can_use": can_use,
         "user_plan": user_plan,
         "trial_active": trial_active,
         "effective_plan": effective_plan,
         "daily_limit": daily_limit,
-        "usage_today": usage_today,
-        "remaining": None if effective_plan == "enterprise" else max(0, (daily_limit or 0) - usage_today)
+        "usage_today": usage_today
     })
 
 # Manual upgrade endpoints for testing tiers

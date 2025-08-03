@@ -68,7 +68,8 @@
       "Bash(start /b python:*)",
       "WebFetch(domain:soulbridgeai.com)",
       "Bash(sed:*)",
-      "Bash(start \"\" \"C:\\Users\\jaaye\\OneDrive\\Desktop\\soulbridgeai-unified\\test_upgrade_modal.html\")"
+      "Bash(start \"\" \"C:\\Users\\jaaye\\OneDrive\\Desktop\\soulbridgeai-unified\\test_upgrade_modal.html\")",
+      "Bash(git restore:*)"
     ],
     "deny": []
   }
