@@ -8177,6 +8177,7 @@ def get_user_status():
         
         try:
             if user_id or user_email:
+                import psycopg2
                 conn = psycopg2.connect(os.environ.get('DATABASE_URL'))
                 cursor = conn.cursor()
                 
@@ -8203,9 +8204,15 @@ def get_user_status():
             logger.error(f"❌ Database error loading user status: {db_error}")
             # Continue with session data if database fails
         
+        # Get trial status
+        trial_active = is_trial_active(user_id) if user_id else False
+        effective_plan = get_effective_plan(user_plan, trial_active)
+        
         return jsonify({
             "success": True,
             "plan": user_plan,
+            "trial_active": trial_active,
+            "effective_plan": effective_plan,
             "selected_companion": selected_companion,
             "user_authenticated": True
         })
