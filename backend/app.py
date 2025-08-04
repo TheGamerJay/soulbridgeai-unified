@@ -4511,23 +4511,33 @@ def get_feature_limit(effective_plan: str, feature: str) -> int:
     return limit
 
 def get_effective_plan(user_plan: str, trial_active: bool) -> str:
-    """Get effective plan considering trial status - bulletproof implementation"""
+    """Get effective plan considering trial status - bulletproof implementation"""  
     if user_plan is None:
         return "free"
+    
+    # Map old plan names to new ones
+    plan_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
+    mapped_plan = plan_mapping.get(user_plan, user_plan)
+    
     if trial_active:
-        return user_plan  # Use their real plan during trial for limits
-    return user_plan
+        return mapped_plan  # Use their real plan during trial for limits
+    return mapped_plan
 
 def can_access_companion(user_plan: str, companion_tier: str, trial_active: bool) -> bool:
     """Check companion access - bulletproof implementation"""
     if trial_active:
         return True  # Trial users get access to all companions
+    
+    # Map old plan names to new ones
+    plan_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
+    mapped_plan = plan_mapping.get(user_plan, user_plan)
+    
     access_rules = {
         "free": ["free"],
         "growth": ["free", "growth"],
         "max": ["free", "growth", "max"]
     }
-    return companion_tier in access_rules.get(user_plan, [])
+    return companion_tier in access_rules.get(mapped_plan, [])
 
 # OLD tier block functions REMOVED - Using bulletproof functions instead
 
