@@ -1553,6 +1553,16 @@ Where emotion meets expression.
         async function emergencyDebugPremiumFeatures() {
             console.log('🚨 EMERGENCY DEBUG: Checking premium features...');
             
+            // Log template-side session data directly
+            console.log('📋 TEMPLATE SESSION DATA:', {
+                user_plan: '{{ session.get("user_plan") }}',
+                user_authenticated: '{{ session.get("user_authenticated") }}',
+                access_free: '{{ session.get("access_free") }}',
+                access_growth: '{{ session.get("access_growth") }}',
+                access_max: '{{ session.get("access_max") }}',
+                trial_active: '{{ session.get("trial_active") }}'
+            });
+            
             // Check if premium feature elements exist in HTML
             const voiceJournal = document.querySelector('a[href="/voice-journaling"]');
             const aiImages = document.querySelector('a[href="/ai-image-generation"]');
