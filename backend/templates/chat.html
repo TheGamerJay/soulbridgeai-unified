@@ -91,8 +91,8 @@
                 </a>
                 {% endif %}
                 
-                <!-- Growth & Max Tier Creative Writing (visible to Growth/Max + Trial users) -->
-                {% if session.get('user_plan') in ['growth', 'max'] or session.get('trial_active') %}
+                <!-- Growth & Max Tier Creative Writing (visible to Growth/Max users only) -->
+                {% if session.get('user_plan') in ['growth', 'max'] %}
                 <button onclick="openCreativeWriting()" class="action-btn creative-btn" title="Creative Writing Assistant - Growth/Max Feature">
                     <i class="fas fa-feather-alt"></i>
                     Write
