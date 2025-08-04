@@ -979,12 +979,13 @@ What specific area would you like help with? I know every feature of SoulBridge 
                 
                 if (result.success) {
                     const addOnSection = document.getElementById('addOnFeatures');
-                    const userPlan = result.plan || 'foundation';
+                    const userPlan = result.plan || 'free';
+                    const trialActive = result.trial_active || false;
                     
-                    console.log('🔍 User plan for premium features:', userPlan);
+                    console.log('🔍 User plan for premium features:', userPlan, 'trial:', trialActive);
                     
-                    // Show premium features based on plan (Growth/Max only)
-                    if (userPlan === 'premium' || userPlan === 'enterprise') {
+                    // Show premium features based on plan (Growth/Max only) OR active trial  
+                    if (userPlan === 'growth' || userPlan === 'max' || trialActive) {
                         // Growth (Premium) and Max (Enterprise) users get all premium features
                         document.getElementById('voiceJournalingBtn').style.display = 'block';
                         document.getElementById('relationshipBtn').style.display = 'block';
@@ -992,12 +993,18 @@ What specific area would you like help with? I know every feature of SoulBridge 
                         document.getElementById('aiImageBtn').style.display = 'block';
                         
                         // Update limits based on plan
-                        if (userPlan === 'enterprise') {
+                        if (userPlan === 'max') {
                             // Max users get unlimited
                             document.getElementById('voiceLimit').textContent = '∞ Unlimited';
                             document.getElementById('relationshipLimit').textContent = '∞ Unlimited';
                             document.getElementById('meditationLimit').textContent = '∞ Unlimited';
                             document.getElementById('aiImageLimit').textContent = '∞ Unlimited';
+                        } else if (trialActive) {
+                            // Trial users get growth-level limits
+                            document.getElementById('voiceLimit').textContent = '50/month (Trial)';
+                            document.getElementById('relationshipLimit').textContent = '10 profiles (Trial)';
+                            document.getElementById('meditationLimit').textContent = '20/month (Trial)';
+                            document.getElementById('aiImageLimit').textContent = '25/month (Trial)';
                         } else {
                             // Growth users get limited amounts
                             document.getElementById('voiceLimit').textContent = '50/month';
