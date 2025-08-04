@@ -1779,10 +1779,10 @@ def decoder():
         if not is_logged_in():
             return redirect("/login")
             
-        # Get user's plan - usage tracking removed
+        # Get user's plan and decoder usage
         user_id = session.get('user_id')
         user_plan = session.get('user_plan', 'free')
-        decoder_usage = 0  # TODO: Add database usage tracking
+        decoder_usage = get_decoder_usage()
         
         # Get effective limits using bulletproof functions
         trial_active = is_trial_active(user_id)
@@ -1810,10 +1810,10 @@ def fortune():
         if not is_logged_in():
             return redirect("/login")
             
-        # Get user's plan - usage tracking removed
+        # Get user's plan and fortune usage
         user_id = session.get('user_id')
         user_plan = session.get('user_plan', 'free')
-        fortune_usage = 0  # TODO: Add database usage tracking
+        fortune_usage = get_fortune_usage()
         
         # Get effective limits using bulletproof functions
         trial_active = is_trial_active(user_id)
@@ -1841,10 +1841,10 @@ def horoscope():
         if not is_logged_in():
             return redirect("/login")
             
-        # Get user's plan - usage tracking removed
+        # Get user's plan and horoscope usage
         user_id = session.get('user_id')
         user_plan = session.get('user_plan', 'free')
-        horoscope_usage = 0  # TODO: Add database usage tracking
+        horoscope_usage = get_horoscope_usage()
         
         # Get effective limits using bulletproof functions
         trial_active = is_trial_active(user_id)
@@ -4592,9 +4592,168 @@ def is_trial_active(user_id) -> bool:
 
 # OLD get_effective_*_limits() functions DELETED
 
-# ALL OLD USAGE TRACKING FUNCTIONS DELETED
+# Essential usage tracking functions restored for decoder functionality
+def get_decoder_usage():
+    """Get user's decoder usage for today"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return 0
+            
+        # Use session-based tracking for now (in production, use database)
+        today = datetime.now().strftime('%Y-%m-%d')
+        usage_key = f'decoder_usage_{user_id}_{today}'
+        
+        return session.get(usage_key, 0)
+    except Exception as e:
+        logger.error(f"Get decoder usage error: {e}")
+        return 0
 
-# OLD API ENDPOINTS DELETED - Use bulletproof functions directly in routes that need them
+def increment_decoder_usage():
+    """Increment user's decoder usage for today"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return False
+            
+        today = datetime.now().strftime('%Y-%m-%d')
+        usage_key = f'decoder_usage_{user_id}_{today}'
+        
+        current_usage = session.get(usage_key, 0)
+        session[usage_key] = current_usage + 1
+        session.modified = True
+        
+        logger.info(f"📊 DECODER USAGE: User {user_id} now at {session[usage_key]} uses today")
+        return True
+    except Exception as e:
+        logger.error(f"Increment decoder usage error: {e}")
+        return False
+
+def get_fortune_usage():
+    """Get user's fortune usage for today"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return 0
+            
+        today = datetime.now().strftime('%Y-%m-%d')
+        usage_key = f'fortune_usage_{user_id}_{today}'
+        
+        return session.get(usage_key, 0)
+    except Exception as e:
+        logger.error(f"Get fortune usage error: {e}")
+        return 0
+
+def increment_fortune_usage():
+    """Increment user's fortune usage for today"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return False
+            
+        today = datetime.now().strftime('%Y-%m-%d')
+        usage_key = f'fortune_usage_{user_id}_{today}'
+        
+        current_usage = session.get(usage_key, 0)
+        session[usage_key] = current_usage + 1
+        session.modified = True
+        return True
+    except Exception as e:
+        logger.error(f"Increment fortune usage error: {e}")
+        return False
+
+def get_horoscope_usage():
+    """Get user's horoscope usage for today"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return 0
+            
+        today = datetime.now().strftime('%Y-%m-%d')
+        usage_key = f'horoscope_usage_{user_id}_{today}'
+        
+        return session.get(usage_key, 0)
+    except Exception as e:
+        logger.error(f"Get horoscope usage error: {e}")
+        return 0
+
+def increment_horoscope_usage():
+    """Increment user's horoscope usage for today"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return False
+            
+        today = datetime.now().strftime('%Y-%m-%d')
+        usage_key = f'horoscope_usage_{user_id}_{today}'
+        
+        current_usage = session.get(usage_key, 0)
+        session[usage_key] = current_usage + 1
+        session.modified = True
+        return True
+    except Exception as e:
+        logger.error(f"Increment horoscope usage error: {e}")
+        return False
+
+# Essential API endpoints restored for frontend functionality
+@app.route("/api/decoder/check-limit")
+def check_decoder_limit():
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"success": False, "error": "Not logged in"})
+    
+    user_plan = session.get("user_plan", "free")
+    trial_active = is_trial_active(user_id)
+    effective_plan = get_effective_plan(user_plan, trial_active)
+    daily_limit = get_feature_limit(effective_plan, "decoder")
+    usage_today = get_decoder_usage()
+
+    return jsonify({
+        "success": True,
+        "effective_plan": effective_plan,
+        "daily_limit": daily_limit,
+        "trial_active": trial_active,
+        "usage_today": usage_today
+    })
+
+@app.route("/api/fortune/check-limit")
+def check_fortune_limit():
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"success": False, "error": "Not logged in"})
+    
+    user_plan = session.get("user_plan", "free")
+    trial_active = is_trial_active(user_id)
+    effective_plan = get_effective_plan(user_plan, trial_active)
+    daily_limit = get_feature_limit(effective_plan, "fortune")
+    usage_today = get_fortune_usage()
+
+    return jsonify({
+        "success": True,
+        "effective_plan": effective_plan,
+        "daily_limit": daily_limit,
+        "trial_active": trial_active,
+        "usage_today": usage_today
+    })
+
+@app.route("/api/horoscope/check-limit")
+def check_horoscope_limit():
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"success": False, "error": "Not logged in"})
+
+    user_plan = session.get("user_plan", "free")
+    trial_active = is_trial_active(user_id)
+    effective_plan = get_effective_plan(user_plan, trial_active)
+    daily_limit = get_feature_limit(effective_plan, "horoscope")
+    usage_today = get_horoscope_usage()
+
+    return jsonify({
+        "success": True,
+        "daily_limit": daily_limit,
+        "trial_active": trial_active,
+        "usage_today": usage_today
+    })
 
 # ========================================
 # NEW CLEAN TRIAL SYSTEM API ENDPOINTS
@@ -5959,8 +6118,22 @@ def api_chat():
             effective_plan = get_effective_plan(user_plan, trial_active)
             daily_limit = get_feature_limit(effective_plan, 'decoder')
             
-            # For now, skip usage tracking - can add database tracking later
-            # Check would go here if needed
+            # Check decoder usage limits
+            current_usage = get_decoder_usage()
+            
+            # Check if user has exceeded limit
+            if daily_limit != float('inf') and current_usage >= daily_limit:
+                return jsonify({
+                    "success": False, 
+                    "response": f"Daily decoder limit reached ({daily_limit} uses). Upgrade to Growth for 15 daily uses, or Max for unlimited access!",
+                    "limit_reached": True,
+                    "current_usage": current_usage,
+                    "daily_limit": daily_limit,
+                    "upgrade_required": True
+                }), 429
+            
+            # Increment usage for decoder requests
+            increment_decoder_usage()
         
         # Sanitize character input
         if character not in VALID_CHARACTERS:
