@@ -746,10 +746,11 @@ def auth_login():
             user_plan = session.get('user_plan', 'free')
             trial_active = session.get('trial_active', False)
             
-            # Define isolated access flags for each tier
+            # Define isolated access flags for each tier using effective_plan
+            effective_plan = get_effective_plan(user_plan, trial_active)
             session['access_free'] = True  # Everyone gets free features
-            session['access_growth'] = user_plan in ['growth', 'max'] or trial_active
-            session['access_max'] = user_plan == 'max' or trial_active  
+            session['access_growth'] = effective_plan in ['growth', 'max'] or trial_active
+            session['access_max'] = effective_plan == 'max' or trial_active  
             session['access_trial'] = trial_active
             session.modified = True  # Ensure session changes are saved
             
@@ -1322,10 +1323,10 @@ def intro():
     user_plan = session.get('user_plan', 'free')
     trial_active = session.get('trial_active', False)
     
-    # Define isolated access flags for each tier
+    # Define isolated access flags for each tier using effective_plan
     session['access_free'] = True  # Everyone gets free features
-    session['access_growth'] = user_plan in ['growth', 'max'] or trial_active
-    session['access_max'] = user_plan == 'max' or trial_active  
+    session['access_growth'] = effective_plan in ['growth', 'max'] or trial_active
+    session['access_max'] = effective_plan == 'max' or trial_active  
     session['access_trial'] = trial_active
     session.modified = True  # Ensure session changes are saved
     
@@ -4775,7 +4776,8 @@ def get_user_plan():
         plan_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
         user_plan = plan_mapping.get(user_plan, user_plan)
         
-        trial_active = is_trial_active(user_id) if user_id else False
+        # Use session values set by @app.before_request 
+        trial_active = session.get('trial_active', False)
         
         return jsonify({
             "success": True,
