@@ -463,7 +463,7 @@ Focus on depth and meaningful interpretation. Content to decode:`
 
 // User state from backend (initial values)
 let userUsage = {{ current_usage or 0 }};
-let userPlan = '{{ user_plan or "foundation" }}';
+let userPlan = '{{ user_plan or "free" }}';
 let dailyLimit = {{ daily_limit if daily_limit else "null" }};
 
 // Function to refresh decoder limits from server

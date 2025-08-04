@@ -497,7 +497,7 @@ Be deeply spiritual, mystical, and transformative. Spiritual reading for:`
 
 // User state from backend (initial values)
 let userUsage = {{ current_usage or 0 }};
-let userPlan = '{{ user_plan or "foundation" }}';
+let userPlan = '{{ user_plan or "free" }}';
 let dailyLimit = {{ daily_limit if daily_limit else "null" }};
 
 // Function to refresh fortune limits from server
@@ -512,8 +512,8 @@ async function refreshFortuneLimits() {
 
         document.getElementById('usage-limit').textContent = limit;
 
-        // If trial is active but plan is foundation, show unlocked UI
-        if (trialActive && plan === 'foundation') {
+        // If trial is active but plan is free, show unlocked UI
+        if (trialActive && plan === 'free') {
             document.querySelectorAll('.companion-card.locked').forEach(card => {
                 card.classList.remove('locked');
                 card.classList.add('trial-unlocked');
@@ -522,7 +522,7 @@ async function refreshFortuneLimits() {
         }
 
         const usage = data.usage_today ?? 0;
-        const hasUnlimited = data.effective_plan === 'enterprise';
+        const hasUnlimited = data.effective_plan === 'max';
 
         const limitDisplay = hasUnlimited ? '∞' : (data.daily_limit ?? '?');
 

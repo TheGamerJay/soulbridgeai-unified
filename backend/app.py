@@ -1220,14 +1220,14 @@ def auth_register():
         user_id = cursor.fetchone()[0]
         conn.close()
         
-        # Login with security and set default foundation plan
+        # Login with security and set default free plan
         # Session expires when browser closes
         session['user_id'] = user_id
         session['email'] = email
         session['user_authenticated'] = True
         session['session_version'] = "2025-07-28-banking-security"  # Required for auth
         session['last_activity'] = datetime.now().isoformat()
-        session['user_plan'] = 'free'  # Default all new users to foundation plan
+        session['user_plan'] = 'free'  # Default all new users to free plan
         
         return jsonify({"success": True, "redirect": "/plan-selection"})
         
@@ -1251,12 +1251,15 @@ def intro():
     if not is_logged_in():
         return redirect("/login")
     
-    # CRITICAL: Ensure session has correct plan names for templates
+    # CRITICAL: Ensure session has correct plan names for templates (ONLY migrate old names)
     user_plan = session.get('user_plan', 'free')
     plan_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
-    if user_plan in plan_mapping:
+    # ONLY migrate if it's an OLD plan name that needs updating
+    if user_plan in plan_mapping and user_plan != plan_mapping[user_plan]:
         session['user_plan'] = plan_mapping[user_plan]
-        logger.info(f"🔄 INTRO: Migrated plan {user_plan} → {session['user_plan']}")
+        logger.info(f"🔄 INTRO: Migrated OLD plan {user_plan} → {session['user_plan']}")
+    else:
+        logger.info(f"✅ INTRO: Plan {user_plan} already using new naming - no migration needed")
     
     logger.info(f"✅ INTRO: Showing intro page for authenticated user with plan: {session.get('user_plan')}")
     return render_template("intro.html")
@@ -1286,12 +1289,15 @@ def chat():
             return redirect(f"/login?return_to=chat&companion={companion}")
         return redirect("/login?return_to=chat")
     
-    # CRITICAL: Ensure session has correct plan names for templates
+    # CRITICAL: Ensure session has correct plan names for templates (ONLY migrate old names)
     user_plan = session.get('user_plan', 'free')
     plan_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
-    if user_plan in plan_mapping:
+    # ONLY migrate if it's an OLD plan name that needs updating
+    if user_plan in plan_mapping and user_plan != plan_mapping[user_plan]:
         session['user_plan'] = plan_mapping[user_plan]
-        logger.info(f"🔄 CHAT: Migrated plan {user_plan} → {session['user_plan']}")
+        logger.info(f"🔄 CHAT: Migrated OLD plan {user_plan} → {session['user_plan']}")
+    else:
+        logger.info(f"✅ CHAT: Plan {user_plan} already using new naming - no migration needed")
     
     # Get selected companion from session or URL parameter
     selected_companion = session.get('selected_companion')
@@ -1371,7 +1377,7 @@ def chat():
         
         # BLOCK ACCESS: Check companion tier requirements before allowing chat
         if selected_companion in ['companion_sky', 'companion_gamerjay_premium', 'companion_blayzo_premium', 'companion_watchdog', 'companion_crimson_growth', 'companion_violet_growth', 'companion_claude_growth']:
-            # Growth tier companion - requires premium plan (trial doesn't help free users)
+            # Growth tier companion - requires growth plan (trial doesn't help free users)
             if user_tier != 'growth' and user_tier != 'max':
                 logger.warning(f"🚫 BLOCKING CHAT ACCESS: {user_tier} user {session.get('user_email')} tried to access Growth companion {selected_companion}")
                 flash("This companion requires a Growth plan. Please upgrade.")
@@ -1379,7 +1385,7 @@ def chat():
             else:
                 logger.info(f"✅ CHAT ACCESS GRANTED: Growth companion {selected_companion} - user tier: {user_tier}")
         elif selected_companion in ['companion_crimson', 'companion_violet']:
-            # Max tier companion - requires enterprise plan only (trial doesn't help)
+            # Max tier companion - requires max plan only (trial doesn't help)
             if user_tier != 'max':
                 companion_access_valid = False
                 logger.warning(f"🚫 Access denied to Max companion {selected_companion} - user tier: {user_tier}")
@@ -1407,7 +1413,7 @@ def api_companions():
     """Get available companions organized by tiers"""
     try:
         # Allow access without authentication so users can see companions before login
-        user_plan = session.get('user_plan', 'free') if is_logged_in() else 'foundation'
+        user_plan = session.get('user_plan', 'free') if is_logged_in() else 'free'
         
         # Check trial status if user is logged in
         trial_active = False
@@ -3362,7 +3368,7 @@ def select_plan():
             # Redirect back to subscription page with success message
             redirect_url = "/subscription?plan_selected=foundation"
         else:
-            plan_names = {"premium": "Growth", "enterprise": "Transformation"}
+            plan_names = {"growth": "Growth", "max": "Max"}
             plan_display = plan_names.get(plan_type, plan_type.title())
             message = f"Great choice! {plan_display} plan selected. Complete payment to activate premium features."
             # Redirect paid plan users to real payment processing
@@ -3581,7 +3587,7 @@ def payment_page():
         if plan not in VALID_PLANS or plan == "foundation":
             return redirect("/subscription")
             
-        plan_names = {"premium": "Growth", "enterprise": "Max"}
+        plan_names = {"growth": "Growth", "max": "Max"}
         plan_display = plan_names.get(plan, plan.title())
         
         # Prices in cents - Updated for accurate yearly pricing
@@ -6140,12 +6146,12 @@ def api_chat():
         user_tier = session.get('user_plan', 'free')
         
         # Tier-specific AI model and parameters - simple pay model
-        if user_tier == 'enterprise':  # Max Plan
+        if user_tier == 'max':  # Max Plan
             model = "gpt-4"
             max_tokens = 300
             temperature = 0.8
             system_prompt = f"You are {character}, an advanced AI companion from SoulBridge AI Max Plan. You have enhanced emotional intelligence, deeper insights, and provide more thoughtful, nuanced responses. You can engage in complex discussions and offer premium-level guidance."
-        elif user_tier == 'premium':  # Growth Plan
+        elif user_tier == 'growth':  # Growth Plan
             model = "gpt-3.5-turbo"
             max_tokens = 200
             temperature = 0.75
@@ -6891,11 +6897,11 @@ def enhance_premium_response(response, tier, character):
     """Enhance responses for premium users"""
     try:
         # Add tier-specific enhancements
-        if tier == 'enterprise':  # Max Plan
+        if tier == 'max':  # Max Plan
             # Add advanced insights marker
             if len(response) > 100:
                 response += f"\n\n✨ *Enhanced Max Plan insight from {character}*"
-        elif tier == 'premium':  # Growth Plan
+        elif tier == 'growth':  # Growth Plan
             # Add premium marker for growth plan
             if len(response) > 80:
                 response += f"\n\n🌱 *Growth Plan enhanced response*"
