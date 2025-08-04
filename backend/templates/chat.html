@@ -1574,9 +1574,16 @@ Where emotion meets expression.
                 const sessionData = await response.json();
                 console.log('🔍 Current Session State:', sessionData);
                 
-                // Show alert with debug info
-                if (!voiceJournal && !aiImages && !relationships && !meditations && !writeBtn) {
+                // Show alert with debug info ONLY if user SHOULD have premium features but doesn't
+                const shouldHavePremium = sessionData.session_data.access_growth || sessionData.session_data.access_max || sessionData.trial_active;
+                const hasPremiumFeatures = voiceJournal || aiImages || relationships || meditations || writeBtn;
+                
+                if (shouldHavePremium && !hasPremiumFeatures) {
                     alert(`🚨 BUG DETECTED! Premium features missing!\nSession Plan: ${sessionData.user_plan}\nAccess Growth: ${sessionData.session_data.access_growth}\nAccess Max: ${sessionData.session_data.access_max}\nTrial Active: ${sessionData.trial_active}`);
+                } else if (!shouldHavePremium && !hasPremiumFeatures) {
+                    console.log('✅ Free user correctly showing no premium features');
+                } else {
+                    console.log('✅ Premium user correctly showing premium features');
                 }
             } catch (error) {
                 console.error('🚨 Debug session check failed:', error);

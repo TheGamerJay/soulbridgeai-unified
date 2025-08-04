@@ -5119,11 +5119,22 @@ def debug_session_state():
         session['user_plan'] = plan_mapping[user_plan]
         logger.info(f"🔄 DEBUG: Migrated OLD plan {old_plan} → {session['user_plan']}")
     
+    # CRITICAL: Refresh access flags to ensure they're set
+    if session.get('user_authenticated'):
+        access_info = refresh_session_access_flags()
+        logger.info(f"🔧 DEBUG: Refreshed access flags - {access_info}")
+    
     return jsonify({
         "session_data": dict(session),
         "user_plan": session.get('user_plan'),
         "user_authenticated": session.get('user_authenticated'),
         "trial_active": session.get('trial_active'),
+        "access_flags": {
+            "access_free": session.get('access_free'),
+            "access_growth": session.get('access_growth'),
+            "access_max": session.get('access_max'),
+            "access_trial": session.get('access_trial')
+        },
         "template_condition_check": {
             "user_plan_in_growth_max": session.get('user_plan') in ['growth', 'max'],
             "user_plan_equals_growth": session.get('user_plan') == 'growth',
