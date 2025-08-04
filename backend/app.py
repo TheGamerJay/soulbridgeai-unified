@@ -1498,7 +1498,7 @@ def api_companions():
                 {"companion_id": "companion_sky", "display_name": "Sky", "description": "Premium companion with advanced features", "avatar_image": "/static/logos/Sky a primum companion.png", "tier": "growth", "is_recommended": True, "popularity_score": 90, "lock_reason": get_lock_reason("growth")},
                 {"companion_id": "blayzo_growth", "display_name": "Blayzo Pro", "description": "Advanced Blayzo with enhanced creativity", "avatar_image": "/static/logos/Blayzo premium companion.png", "tier": "growth", "is_recommended": True, "popularity_score": 92, "lock_reason": get_lock_reason("growth")},
                 {"companion_id": "blayzica_growth", "display_name": "Blayzica Pro", "description": "Enhanced emotional intelligence companion", "avatar_image": "/static/logos/Blayzica Pro.png", "tier": "growth", "is_recommended": True, "popularity_score": 91, "lock_reason": get_lock_reason("growth")},
-                {"companion_id": "companion_gamerjay_premium", "display_name": "GamerJay Premium", "description": "Enhanced GamerJay with premium features", "avatar_image": "/static/logos/GamgerJay premium companion.png", "tier": "growth", "is_recommended": False, "popularity_score": 88, "lock_reason": get_lock_reason("growth")},
+                {"companion_id": "companion_gamerjay_premium", "display_name": "GamerJay Premium", "description": "Enhanced GamerJay with premium features", "avatar_image": "/static/logos/GamerJay premium companion.png", "tier": "growth", "is_recommended": False, "popularity_score": 88, "lock_reason": get_lock_reason("growth")},
                 {"companion_id": "watchdog_growth", "display_name": "WatchDog", "description": "Your protective guardian companion", "avatar_image": "/static/logos/WatchDog a Primum companion.png", "tier": "growth", "is_recommended": False, "popularity_score": 78, "lock_reason": get_lock_reason("growth")},
                 {"companion_id": "crimson_growth", "display_name": "Crimson", "description": "Motivational drive to overcome challenges", "avatar_image": "/static/logos/Crimson.png", "tier": "growth", "is_recommended": True, "popularity_score": 87, "lock_reason": get_lock_reason("growth")},
                 {"companion_id": "violet_growth", "display_name": "Violet", "description": "Creative inspiration and artistic guidance", "avatar_image": "/static/logos/Violet.png", "tier": "growth", "is_recommended": False, "popularity_score": 84, "lock_reason": get_lock_reason("growth")},
@@ -8917,7 +8917,7 @@ def get_companions():
                 {
                     "companion_id": "companion_gamerjay_premium",
                     "display_name": "GamerJay Premium",
-                    "avatar_image": "/static/logos/GamgerJay premium companion.png",
+                    "avatar_image": "/static/logos/GamerJay premium companion.png",
                     "short_bio": "Enhanced GamerJay with premium features",
                     "personality_tags": ["Gaming", "Premium"],
                     "special_features": ["Pro gaming strategies", "Performance analysis", "Competitive coaching", "Advanced metrics"],
