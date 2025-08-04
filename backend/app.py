@@ -4641,7 +4641,9 @@ def get_effective_plan(user):
 def get_feature_limit(plan, feature):
     """Get feature usage limits based on real plan using NEW isolated tier system"""
     tier_class = get_tier_block(plan)
-    return tier_class.LIMITS.get(feature, 0)
+    limit = tier_class.LIMITS.get(feature, 0)
+    logger.info(f"🎯 GET_FEATURE_LIMIT: plan='{plan}' feature='{feature}' → limit={limit} (from {tier_class.__name__})")
+    return limit
 
 # OLD get_tier_limits_safe() REMOVED - Using isolated tier blocks instead
 
@@ -4722,15 +4724,19 @@ def get_effective_feature_limit(user_id, feature_name):
     user_plan = session.get('user_plan', 'free')
     trial_active = is_trial_active(user_id)
     
+    logger.info(f"🔍 EFFECTIVE_LIMIT INPUT: user_plan='{user_plan}' feature='{feature_name}' trial={trial_active}")
+    
     # Map old plan names
     plan_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
-    user_plan = plan_mapping.get(user_plan, user_plan)
+    mapped_plan = plan_mapping.get(user_plan, user_plan)
+    
+    logger.info(f"🔄 PLAN MAPPING: '{user_plan}' → '{mapped_plan}'")
     
     # IMPORTANT: Trial ONLY unlocks features, does NOT change limits
     # Users always keep their original plan limits
-    limit = get_feature_limit(user_plan, feature_name)
+    limit = get_feature_limit(mapped_plan, feature_name)
     
-    logger.info(f"💎 LIMIT: {user_plan} user (trial={trial_active}) gets {feature_name} limit: {limit}")
+    logger.info(f"💎 FINAL LIMIT: {mapped_plan} user (trial={trial_active}) gets {feature_name} limit: {limit}")
     return limit
 
 def get_effective_plan_for_display(user_plan, trial_active):
