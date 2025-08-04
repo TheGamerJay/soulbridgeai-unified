@@ -201,6 +201,18 @@
             font-size: 0.9rem !important;
             line-height: 1.4 !important;
         }
+
+        .addon-limit {
+            margin-top: 8px;
+            padding: 4px 8px;
+            background: rgba(34, 211, 238, 0.2);
+            border: 1px solid rgba(34, 211, 238, 0.4);
+            border-radius: 12px;
+            color: #22d3ee;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-align: center;
+        }
         
         /* Responsive adjustments */
         @media (max-width: 768px) {
@@ -332,27 +344,31 @@
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 15px; max-width: 1000px; margin: 0 auto;">
                 
                 <a href="/voice-journaling" id="voiceJournalingBtn" class="addon-btn" style="display: none;">
-                    <div class="addon-icon">🔊</div>
+                    <div class="addon-icon">🎙️</div>
                     <div class="addon-title">Voice Journaling</div>
                     <div class="addon-desc">Record and analyze emotional voice entries</div>
+                    <div class="addon-limit" id="voiceLimit">50/month</div>
                 </a>
                 
                 <a href="/relationship-profiles" id="relationshipBtn" class="addon-btn" style="display: none;">
-                    <div class="addon-icon">👤</div>
+                    <div class="addon-icon">💕</div>
                     <div class="addon-title">Relationship Profiles</div>
                     <div class="addon-desc">Track and improve your relationships</div>
+                    <div class="addon-limit" id="relationshipLimit">10 profiles</div>
                 </a>
                 
                 <a href="/emotional-meditations" id="meditationBtn" class="addon-btn" style="display: none;">
                     <div class="addon-icon">🧘</div>
                     <div class="addon-title">Emotional Meditations</div>
                     <div class="addon-desc">Guided meditations for healing</div>
+                    <div class="addon-limit" id="meditationLimit">20/month</div>
                 </a>
                 
                 <a href="/ai-image-generation" id="aiImageBtn" class="addon-btn" style="display: none;">
-                    <div class="addon-icon">🤖</div>
+                    <div class="addon-icon">🎨</div>
                     <div class="addon-title">AI Image Generation</div>
                     <div class="addon-desc">Create stunning AI-generated images</div>
+                    <div class="addon-limit" id="aiImageLimit">25/month</div>
                 </a>
                 
             </div>
@@ -952,41 +968,56 @@ What specific area would you like help with? I know every feature of SoulBridge 
         
         console.log('🔒 BANKING SECURITY: Session protection active - sessions clear on navigation/inactivity');
 
-        // Load and display user's add-ons
+        // Load and display premium features based on user plan
         async function loadUserAddons() {
             try {
-                const response = await fetch('/api/user-addons', {
+                const response = await fetch('/api/user/status', {
                     credentials: 'include'
                 });
                 
                 const result = await response.json();
                 
-                if (result.success && result.active_addons && result.active_addons.length > 0) {
+                if (result.success) {
                     const addOnSection = document.getElementById('addOnFeatures');
-                    const addons = result.active_addons;
+                    const userPlan = result.plan || 'foundation';
                     
-                    // Show add-on buttons based on what user owns
-                    if (addons.includes('voice-journaling')) {
+                    console.log('🔍 User plan for premium features:', userPlan);
+                    
+                    // Show premium features based on plan (Growth/Max only)
+                    if (userPlan === 'premium' || userPlan === 'enterprise') {
+                        // Growth (Premium) and Max (Enterprise) users get all premium features
                         document.getElementById('voiceJournalingBtn').style.display = 'block';
-                    }
-                    if (addons.includes('relationship')) {
                         document.getElementById('relationshipBtn').style.display = 'block';
-                    }
-                    if (addons.includes('emotional-meditations')) {
                         document.getElementById('meditationBtn').style.display = 'block';
-                    }
-                    if (addons.includes('ai-image-generation')) {
                         document.getElementById('aiImageBtn').style.display = 'block';
+                        
+                        // Update limits based on plan
+                        if (userPlan === 'enterprise') {
+                            // Max users get unlimited
+                            document.getElementById('voiceLimit').textContent = '∞ Unlimited';
+                            document.getElementById('relationshipLimit').textContent = '∞ Unlimited';
+                            document.getElementById('meditationLimit').textContent = '∞ Unlimited';
+                            document.getElementById('aiImageLimit').textContent = '∞ Unlimited';
+                        } else {
+                            // Growth users get limited amounts
+                            document.getElementById('voiceLimit').textContent = '50/month';
+                            document.getElementById('relationshipLimit').textContent = '10 profiles';
+                            document.getElementById('meditationLimit').textContent = '20/month';
+                            document.getElementById('aiImageLimit').textContent = '25/month';
+                        }
+                        
+                        // Show the entire add-on section
+                        addOnSection.style.display = 'block';
+                        
+                        console.log('✨ Premium features unlocked for plan:', userPlan);
+                    } else {
+                        // Foundation users see nothing (features hidden)
+                        console.log('📝 Foundation user - premium features hidden');
                     }
-                    
-                    // Show the entire add-on section if user has any add-ons
-                    addOnSection.style.display = 'block';
-                    
-                    console.log('✨ User add-ons loaded:', addons);
                 }
                 
             } catch (error) {
-                console.error('Error loading user add-ons:', error);
+                console.error('Error loading premium features:', error);
             }
         }
 

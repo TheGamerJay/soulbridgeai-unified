@@ -79,21 +79,21 @@
                 </button>
                 {% endif %}
                 
-                <!-- Max Tier Addon Buttons (NOT available during trial - trial = Growth tier only) -->
-                {% if session.get('user_plan') == 'enterprise' %}
-                <a href="/voice-journaling" class="action-btn addon-btn" title="Voice Journaling - Max Tier Feature">
+                <!-- Premium Features (Growth & Max users only - NOT available during trial) -->
+                {% if session.get('user_plan') in ['premium', 'enterprise'] %}
+                <a href="/voice-journaling" class="action-btn addon-btn" title="Voice Journaling - Premium Feature">
                     <i class="fas fa-microphone-alt"></i>
                     Journal
                 </a>
-                <a href="/relationship-profiles" class="action-btn addon-btn" title="Relationship Tools - Max Tier Feature">
+                <a href="/relationship-profiles" class="action-btn addon-btn" title="Relationship Profiles - Premium Feature">
                     <i class="fas fa-heart"></i>
                     Relations
                 </a>
-                <a href="/emotional-meditations" class="action-btn addon-btn" title="Emotional Meditations - Max Tier Feature">
+                <a href="/emotional-meditations" class="action-btn addon-btn" title="Emotional Meditations - Premium Feature">
                     <i class="fas fa-om"></i>
                     Meditate
                 </a>
-                <a href="/ai-image-generation" class="action-btn addon-btn" title="AI Image Generation - Max Tier Feature">
+                <a href="/ai-image-generation" class="action-btn addon-btn" title="AI Image Generation - Premium Feature">
                     <i class="fas fa-image"></i>
                     Images
                 </a>

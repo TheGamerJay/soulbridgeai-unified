@@ -901,16 +901,22 @@ function hasAccessToCompanion(companion, user, trialStatus) {
     const tier = companion.tier; // free, growth, max, referral
     const userPlan = user.plan;
 
+    console.log(`🔍 Access check for ${companion.display_name}: tier=${tier}, userPlan=${userPlan}, trialActive=${trialStatus?.trial_active}`);
+
     if (tier === 'free') return true;
 
     if (tier === 'growth') {
-        return userPlan === 'growth' || userPlan === 'premium' || userPlan === 'enterprise' || 
+        const hasAccess = userPlan === 'growth' || userPlan === 'premium' || userPlan === 'enterprise' || 
                (trialStatus?.trial_active === true);
+        console.log(`🔍 Growth access for ${companion.display_name}: ${hasAccess}`);
+        return hasAccess;
     }
 
     if (tier === 'max') {
-        return userPlan === 'max' || userPlan === 'enterprise' || 
+        const hasAccess = userPlan === 'max' || userPlan === 'enterprise' || 
                (trialStatus?.trial_active === true);
+        console.log(`🔍 Max access for ${companion.display_name}: ${hasAccess} (trial_active=${trialStatus?.trial_active})`);
+        return hasAccess;
     }
 
     if (tier === 'referral') {

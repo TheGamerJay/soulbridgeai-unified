@@ -1378,17 +1378,17 @@ def api_companions():
             if tier == "free":
                 return None
             elif tier == "growth":
-                # Growth companions: unlocked by premium/enterprise plan (trial doesn't help free users)
-                if user_plan == 'premium' or user_plan == 'enterprise':
+                # Growth companions: unlocked by premium/enterprise plan OR active 5-hour trial
+                if user_plan == 'premium' or user_plan == 'enterprise' or trial_active:
                     return None
                 else:
-                    return "Upgrade Required"
+                    return "Try 5hr Free or Upgrade"
             elif tier == "max":
-                # Max companions: unlocked by enterprise plan only (trial doesn't help free users)
-                if user_plan == 'enterprise':
+                # Max companions: unlocked by enterprise plan OR active 5-hour trial
+                if user_plan == 'enterprise' or trial_active:
                     return None
                 else:
-                    return "Upgrade Required"
+                    return "Try 5hr Free or Upgrade"
             return "Upgrade Required"
         
         # Define companions by tier
@@ -1432,7 +1432,8 @@ def api_companions():
             "success": True,
             "companions": companions,
             "user_plan": user_plan,
-            "trial_active": trial_active
+            "trial_active": trial_active,
+            "effective_plan": user_plan  # For JavaScript compatibility
         })
         
     except Exception as e:
@@ -4428,46 +4429,84 @@ def get_user_addons():
 
 # --- Tier Limits ---
 TIER_LIMITS = {
-    "foundation": {"decoder": 3, "fortune": 2, "horoscope": 3, "ai_image_monthly": 0, "voice_journal_monthly": 0, "relationship_profiles": 0, "emotional_meditations": 0},
-    "premium": {"decoder": 15, "fortune": 8, "horoscope": 10, "ai_image_monthly": 25, "voice_journal_monthly": 50, "relationship_profiles": 10, "emotional_meditations": 20},
-    "enterprise": {"decoder": None, "fortune": None, "horoscope": None, "ai_image_monthly": None, "voice_journal_monthly": None, "relationship_profiles": None, "emotional_meditations": None}
+    "foundation": {
+        "decoder": 3, "fortune": 2, "horoscope": 3, 
+        "ai_image_monthly": 0, "voice_journal_monthly": 0, 
+        "relationship_profiles": 0, "emotional_meditations": 0,
+        "priority_response": False, "advanced_voice_ai": False,
+        "custom_personality_modes": 0, "full_color_customization": False,
+        "crisis_support": False, "transformation_coaching": False
+    },
+    "premium": {
+        "decoder": 15, "fortune": 8, "horoscope": 10, 
+        "ai_image_monthly": 25, "voice_journal_monthly": 50, 
+        "relationship_profiles": 10, "emotional_meditations": 20,
+        "priority_response": True, "advanced_voice_ai": True,
+        "custom_personality_modes": 3, "full_color_customization": True,
+        "crisis_support": True, "transformation_coaching": True
+    },
+    "enterprise": {
+        "decoder": None, "fortune": None, "horoscope": None, 
+        "ai_image_monthly": None, "voice_journal_monthly": None, 
+        "relationship_profiles": None, "emotional_meditations": None,
+        "priority_response": True, "advanced_voice_ai": True,
+        "custom_personality_modes": None, "full_color_customization": True,
+        "crisis_support": True, "transformation_coaching": True
+    }
 }
 
-def get_effective_plan(user_plan, trial_active=None):
+def get_effective_plan(user_plan):
     """
-    Get effective plan for usage limits.
-    Trial NEVER affects usage limits - only companion access.
-    Always returns the user's actual plan tier.
+    Always return the real base plan for limits — trial never changes this.
     """
-    if user_plan == 'enterprise':
-        return 'enterprise'
-    elif user_plan == 'premium':
-        return 'premium'
-    else:
-        return 'foundation'  # Always return user's actual plan for limits
+    if user_plan in ["foundation", "premium", "enterprise"]:
+        return user_plan
+    return "foundation"
 
-def get_feature_limit(effective_plan, feature):
+def get_feature_limit(feature, user_plan):
     """
-    Return daily limit for that plan + feature.
+    Return correct usage limits based on user's real plan only.
     """
-    return TIER_LIMITS.get(effective_plan, {}).get(feature)
+    return TIER_LIMITS.get(user_plan, {}).get(feature, 0)
+
+def is_trial_active(user_id):
+    """
+    This just checks if they have trial access to companions.
+    """
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT trial_started_at FROM users
+                WHERE id = %s AND trial_started_at IS NOT NULL
+            """, (user_id,))
+            result = cursor.fetchone()
+            if not result:
+                return False
+            trial_start = result[0]
+            if isinstance(trial_start, str):
+                trial_start = datetime.fromisoformat(trial_start.replace('Z', '+00:00'))
+            return datetime.utcnow() < (trial_start + timedelta(hours=5))
+    except:
+        return False
 
 def get_effective_feature_limit(user_plan, trial_active, feature_name):
     """
-    Returns the correct limit for a feature based on their actual plan.
-    Trial does NOT change limits - it only unlocks access to locked features/companions.
+    Returns the correct limit for a feature.
+    Trial ONLY unlocks companions - NEVER changes limits.
     """
-    # Get limits based on actual plan - trial doesn't affect limits!
+    # Get limits based on actual plan - trial doesn't change limits!
     base_limit = TIER_LIMITS.get(user_plan, TIER_LIMITS["foundation"]).get(feature_name)
     
-    logger.info(f"💎 FEATURE LIMIT: {user_plan} user gets {feature_name} limit {base_limit} (trial_active={trial_active} - no limit changes)")
+    logger.info(f"💎 FEATURE LIMIT: {user_plan} user gets {feature_name} limit {base_limit} (trial_active={trial_active} - NO limit changes)")
     return base_limit
 
 def get_effective_plan_for_display(user_plan, trial_active):
     """
-    Returns display plan for frontend messaging
-    Trial does NOT change the plan display - users always see their real plan
+    Returns display plan for frontend messaging.
+    Trial ONLY unlocks companions - users always see their real plan limits.
     """
+    # Always show actual plan - trial doesn't change plan display
     if user_plan == 'enterprise':
         result = 'enterprise'
     elif user_plan == 'premium':
@@ -4475,7 +4514,7 @@ def get_effective_plan_for_display(user_plan, trial_active):
     else:
         result = 'free'  # foundation maps to 'free' for frontend
     
-    logger.info(f"🎭 DISPLAY PLAN: {user_plan} (trial={trial_active}) → always display real plan: {result}")
+    logger.info(f"🎭 DISPLAY PLAN: {user_plan} (trial={trial_active}) → always show real plan: {result}")
     return result
 
 def get_effective_decoder_limits(user_id, user_plan):
@@ -4627,44 +4666,44 @@ def increment_horoscope_usage():
 def check_decoder_limit():
     user_id = session.get("user_id")
     user_plan = session.get("user_plan", "foundation")
-    trial_active = check_trial_active_from_db(user_id)
 
-    effective_plan = get_effective_plan(user_plan, trial_active)
-    daily_limit = get_feature_limit(effective_plan, "decoder")
+    # TRUE plan-based limit
+    real_plan = get_effective_plan(user_plan)
+    limit = get_feature_limit("decoder", real_plan)
+
+    # Trial flag (used for unlocking companions, not limits!)
+    trial_active = is_trial_active(user_id)
     
     # Get usage for frontend display
     usage_today = get_decoder_usage() if user_id else 0
 
     return jsonify({
-        "success": True,
-        "user_plan": user_plan,
+        "effective_plan": real_plan,
+        "daily_limit": limit,
         "trial_active": trial_active,
-        "effective_plan": effective_plan,
-        "daily_limit": daily_limit,
-        "usage_today": usage_today,
-        "remaining": None if effective_plan == "enterprise" else max(0, (daily_limit or 0) - usage_today)
+        "usage_today": usage_today
     })
 
 @app.route("/api/fortune/check-limit")
 def check_fortune_limit():
     user_id = session.get("user_id")
     user_plan = session.get("user_plan", "foundation")
-    trial_active = check_trial_active_from_db(user_id)
 
-    effective_plan = get_effective_plan(user_plan, trial_active)
-    daily_limit = get_feature_limit(effective_plan, "fortune")
+    # TRUE plan-based limit
+    real_plan = get_effective_plan(user_plan)
+    limit = get_feature_limit("fortune", real_plan)
+
+    # Trial flag (used for unlocking companions, not limits!)
+    trial_active = is_trial_active(user_id)
     
     # Get usage for frontend display
     usage_today = get_fortune_usage() if user_id else 0
 
     return jsonify({
-        "success": True,
-        "user_plan": user_plan,
+        "effective_plan": real_plan,
+        "daily_limit": limit,
         "trial_active": trial_active,
-        "effective_plan": effective_plan,
-        "daily_limit": daily_limit,
-        "usage_today": usage_today,
-        "remaining": None if effective_plan == "enterprise" else max(0, (daily_limit or 0) - usage_today)
+        "usage_today": usage_today
     })
 
 @app.route("/api/horoscope/check-limit")
@@ -4674,21 +4713,21 @@ def check_horoscope_limit():
         return jsonify({"success": False, "error": "Not logged in"})
 
     user_plan = session.get("user_plan", "foundation")
-    trial_active = check_trial_active_from_db(user_id)
-    effective_plan = get_effective_plan(user_plan, trial_active)
-    daily_limit = get_feature_limit(effective_plan, "horoscope")
+
+    # TRUE plan-based limit
+    real_plan = get_effective_plan(user_plan)
+    limit = get_feature_limit("horoscope", real_plan)
+
+    # Trial flag (used for unlocking companions, not limits!)
+    trial_active = is_trial_active(user_id)
     
     # Get usage for frontend display
     usage_today = get_horoscope_usage() if user_id else 0
-    can_use = daily_limit is None or usage_today < daily_limit
 
     return jsonify({
-        "success": True,
-        "can_use": can_use,
-        "user_plan": user_plan,
+        "effective_plan": real_plan,
+        "daily_limit": limit,
         "trial_active": trial_active,
-        "effective_plan": effective_plan,
-        "daily_limit": daily_limit,
         "usage_today": usage_today
     })
 

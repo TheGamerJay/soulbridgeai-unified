@@ -735,7 +735,21 @@ async function refreshHoroscopeLimits() {
         const res = await fetch('/api/horoscope/check-limit');
         const data = await res.json();
 
-        if (!data.success) throw new Error("API error");
+        const trialActive = data.trial_active;
+        const plan = data.effective_plan;
+        const limit = data.daily_limit ?? '∞';
+
+        document.getElementById('usage-limit').textContent = limit;
+        document.getElementById('user-plan-display').textContent = plan;
+
+        // If trial is active but plan is foundation, show unlocked UI
+        if (trialActive && plan === 'foundation') {
+            document.querySelectorAll('.companion-card.locked').forEach(card => {
+                card.classList.remove('locked');
+                card.classList.add('trial-unlocked');
+                card.querySelector('.btn-upgrade').textContent = '✅ Trial Active';
+            });
+        }
 
         const usage = data.usage_today ?? 0;
         const hasUnlimited = data.effective_plan === 'enterprise';
@@ -765,14 +779,14 @@ async function refreshHoroscopeLimits() {
             if (planNotice) planNotice.style.display = "block";
             if (planDesc) planDesc.style.display = "none";
         } else if (data.user_plan === "premium") {
-            // 🔵 Growth tier
+            // 🔵 Growth tier - show growth limits (should be 8, not 3)
             if (planNotice) planNotice.style.display = "none";
             if (planDesc) {
                 planDesc.style.display = "block";
                 planDesc.textContent = `Growth users get ${limitDisplay} horoscopes per day. Upgrade to Max for unlimited.`;
             }
         } else {
-            // 🟢 Free tier (foundation) - even during trial, show as free
+            // 🟢 Free tier (foundation) - show foundation limits (should be 3)
             if (planNotice) planNotice.style.display = "none";
             if (planDesc) {
                 planDesc.style.display = "block";
