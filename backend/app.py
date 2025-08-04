@@ -5071,14 +5071,24 @@ def admin_clean_old_plans():
         conn = psycopg2.connect(database_url)
         cursor = conn.cursor()
         
-        # Update old plan names in database
-        cursor.execute("UPDATE users SET plan_type = 'free' WHERE plan_type = 'foundation'")
+        # First check what columns exist
+        cursor.execute("SELECT column_name FROM information_schema.columns WHERE table_name = 'users'")
+        columns = cursor.fetchall()
+        logger.info(f"📋 USER TABLE COLUMNS: {[col[0] for col in columns]}")
+        
+        # Check current plan values
+        cursor.execute("SELECT email, plan FROM users LIMIT 5")
+        sample_users = cursor.fetchall()
+        logger.info(f"📊 SAMPLE USER PLANS: {sample_users}")
+        
+        # Update old plan names in database (correct column name is 'plan')
+        cursor.execute("UPDATE users SET plan = 'free' WHERE plan = 'foundation'")
         foundation_updated = cursor.rowcount
         
-        cursor.execute("UPDATE users SET plan_type = 'growth' WHERE plan_type = 'premium'") 
+        cursor.execute("UPDATE users SET plan = 'growth' WHERE plan = 'premium'") 
         premium_updated = cursor.rowcount
         
-        cursor.execute("UPDATE users SET plan_type = 'max' WHERE plan_type = 'enterprise'")
+        cursor.execute("UPDATE users SET plan = 'max' WHERE plan = 'enterprise'")
         enterprise_updated = cursor.rowcount
         
         conn.commit()
