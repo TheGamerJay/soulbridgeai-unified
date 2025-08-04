@@ -74,22 +74,18 @@ def enforce_trial_effective_plan():
         trial_active = is_trial_active(user_id)
         session['trial_active'] = trial_active
         
-        # Set effective plan in session - THIS IS THE KEY FIX
-        user_plan = session.get('user_plan', 'free')
+        # Get raw plan but DON'T overwrite it!
+        raw_plan = session.get('user_plan', 'free')
         
         # Map old plan names to new ones consistently
         plan_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
-        mapped_plan = plan_mapping.get(user_plan, user_plan)
+        mapped_plan = plan_mapping.get(raw_plan, raw_plan)
         
-        # Update user_plan in session to use new naming
-        session['user_plan'] = mapped_plan
+        # Store mapped_plan separately - DON'T overwrite user_plan!
+        session['mapped_plan'] = mapped_plan
+        session['effective_plan'] = 'max' if trial_active else mapped_plan
         
-        if trial_active:
-            session['effective_plan'] = 'max'  # Trial gives Max-tier access
-            logger.info(f"🎯 SESSION OVERRIDE: Trial active - effective_plan set to 'max' for user_id={user_id}")
-        else:
-            session['effective_plan'] = mapped_plan
-            logger.info(f"🎯 SESSION OVERRIDE: No trial - effective_plan set to '{mapped_plan}' for user_id={user_id}")
+        logger.info(f"🎯 SESSION OVERRIDE: user_id={user_id}, raw_plan='{raw_plan}', mapped_plan='{mapped_plan}', effective_plan='{session['effective_plan']}', trial_active={trial_active}")
             
     except Exception as e:
         # Don't break the app if trial check fails
@@ -4702,21 +4698,23 @@ def check_decoder_limit():
     if not user_id:
         return jsonify({"success": False, "error": "Not logged in"})
     
-    # Use effective_plan from session (set by @app.before_request)
+    # Use bulletproof isolation values from session
     effective_plan = session.get("effective_plan", "free")
-    user_plan = session.get("user_plan", "free")  # Original plan for display
+    mapped_plan = session.get("mapped_plan", "free") 
+    raw_plan = session.get("user_plan", "free")  # Original plan for display
     trial_active = session.get("trial_active", False)
     daily_limit = get_feature_limit(effective_plan, "decoder")
     usage_today = get_decoder_usage()
     
-    logger.info(f"🎯 DECODER API: user_id={user_id}, effective_plan='{effective_plan}', user_plan='{user_plan}', trial_active={trial_active}, daily_limit={daily_limit}, usage={usage_today}")
+    logger.info(f"🎯 DECODER API: user_id={user_id}, raw_plan='{raw_plan}', mapped_plan='{mapped_plan}', effective_plan='{effective_plan}', trial_active={trial_active}, daily_limit={daily_limit}, usage={usage_today}")
 
     return jsonify({
         "success": True,
         "effective_plan": effective_plan,
-        "user_plan": user_plan,
-        "daily_limit": daily_limit,
+        "mapped_plan": mapped_plan,
+        "user_plan": raw_plan,
         "trial_active": trial_active,
+        "daily_limit": daily_limit,
         "usage_today": usage_today
     })
 
