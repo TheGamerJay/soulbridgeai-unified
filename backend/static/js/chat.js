@@ -630,9 +630,9 @@ function updateTierDisplay() {
                 if (requiredTier === "free") {
                     hasAccess = true;
                 } else if (requiredTier === "growth") {
-                    hasAccess = plan === "growth" || plan === "max" || trial;
+                    hasAccess = effectivePlan === "growth" || effectivePlan === "max" || trial;
                 } else if (requiredTier === "max") {
-                    hasAccess = plan === "max" || trial;
+                    hasAccess = effectivePlan === "max" || trial;
                 }
                 
                 el.style.display = hasAccess ? "block" : "none";

@@ -1369,11 +1369,10 @@ def chat():
     
     # Get user data
     user_id = session.get('user_id')
+    # Use session values set by @app.before_request (already calculated)
     user_plan = session.get('user_plan', 'free') or 'free'
-    trial_active = is_trial_active(user_id)
-    
-    # Get effective plan using bulletproof logic
-    effective_plan = get_effective_plan(user_plan, trial_active)
+    effective_plan = session.get('effective_plan', 'free')
+    trial_active = session.get('trial_active', False)
     
     # Handle companion selection
     companion_id = request.args.get('companion')
@@ -1812,9 +1811,9 @@ def decoder():
         user_plan = session.get('user_plan', 'free')
         decoder_usage = get_decoder_usage()
         
-        # Get effective limits using bulletproof functions
-        trial_active = is_trial_active(user_id)
-        effective_plan = get_effective_plan(user_plan, trial_active)
+        # Use session values set by @app.before_request (more efficient)
+        effective_plan = session.get('effective_plan', 'free')
+        trial_active = session.get('trial_active', False)
         daily_limit = get_feature_limit(effective_plan, 'decoder')
         
         # DEBUG: Log decoder access info
@@ -1843,9 +1842,9 @@ def fortune():
         user_plan = session.get('user_plan', 'free')
         fortune_usage = get_fortune_usage()
         
-        # Get effective limits using bulletproof functions
-        trial_active = is_trial_active(user_id)
-        effective_plan = get_effective_plan(user_plan, trial_active)
+        # Use session values set by @app.before_request (more efficient)
+        effective_plan = session.get('effective_plan', 'free')
+        trial_active = session.get('trial_active', False)
         daily_limit = get_feature_limit(effective_plan, 'fortune')
         
         # DEBUG: Log fortune access info
@@ -1874,9 +1873,9 @@ def horoscope():
         user_plan = session.get('user_plan', 'free')
         horoscope_usage = get_horoscope_usage()
         
-        # Get effective limits using bulletproof functions
-        trial_active = is_trial_active(user_id)
-        effective_plan = get_effective_plan(user_plan, trial_active)
+        # Use session values set by @app.before_request (more efficient)
+        effective_plan = session.get('effective_plan', 'free')
+        trial_active = session.get('trial_active', False)
         daily_limit = get_feature_limit(effective_plan, 'horoscope')
         
         # DEBUG: Log horoscope access info
@@ -4535,28 +4534,14 @@ def get_user_addons():
 # NEW CLEAN TRIAL SYSTEM FUNCTIONS
 # ========================================
 
-def get_effective_plan(user):
-    """Get effective user plan during trial"""
-    now = datetime.utcnow()
-    if hasattr(user, 'trial_started_at') and hasattr(user, 'trial_expires_at'):
-        if user.trial_started_at and user.trial_expires_at:
-            if now < user.trial_expires_at:
-                return 'trial'
-    # Map old plan names to new consistent naming
-    plan_mapping = {
-        'foundation': 'free',
-        'premium': 'growth', 
-        'enterprise': 'max'
-    }
-    user_plan = getattr(user, 'plan', 'free') if hasattr(user, 'plan') else user
-    return plan_mapping.get(user_plan, user_plan)
+# REMOVED: Old duplicate get_effective_plan function - using bulletproof version below
 
 def get_feature_limit(effective_plan: str, feature: str) -> int:
     """Get feature usage limits - bulletproof implementation"""
     plan_limits = {
-        "free": {"decoder": 3, "fortune": 2, "horoscope": 3},
-        "growth": {"decoder": 15, "fortune": 8, "horoscope": 10},
-        "max": {"decoder": float("inf"), "fortune": float("inf"), "horoscope": float("inf")},
+        "free": {"decoder": 3, "fortune": 2, "horoscope": 3, "ai_image_monthly": 5},
+        "growth": {"decoder": 15, "fortune": 8, "horoscope": 10, "ai_image_monthly": 50},
+        "max": {"decoder": float("inf"), "fortune": float("inf"), "horoscope": float("inf"), "ai_image_monthly": float("inf")},
     }
     limit = plan_limits.get(effective_plan, {}).get(feature, 0)
     logger.info(f"🎯 GET_FEATURE_LIMIT: plan='{effective_plan}' feature='{feature}' → limit={limit}")
@@ -4572,7 +4557,7 @@ def get_effective_plan(user_plan: str, trial_active: bool) -> str:
     mapped_plan = plan_mapping.get(user_plan, user_plan)
     
     if trial_active:
-        return mapped_plan  # Use their real plan during trial for limits
+        return "max"  # Trial users get MAX-tier access for 5 hours
     return mapped_plan
 
 def can_access_companion(user_plan: str, companion_tier: str, trial_active: bool) -> bool:
@@ -7750,9 +7735,9 @@ def ai_image_generation_generate():
         if not prompt:
             return jsonify({"success": False, "error": "Prompt required"}), 400
         
-        # Check tier-based usage limit (trial doesn't affect limits)
-        effective_plan = get_effective_plan(user_plan)
-        monthly_limit = get_feature_limit("ai_image_monthly", effective_plan)
+        # Check tier-based usage limit using session values
+        effective_plan = session.get('effective_plan', 'free')
+        monthly_limit = get_feature_limit(effective_plan, "ai_image_monthly")
         
         current_month = datetime.now().strftime('%Y-%m')
         usage_key = f'ai_image_usage_{current_month}'
@@ -8104,11 +8089,11 @@ def get_user_tier_status():
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
-        # Get user's current subscription tier
-        user_tier = session.get('user_plan', 'free')
+        # Get user's effective tier (includes trial upgrades)
+        user_tier = session.get('effective_plan', 'free')  # Use effective_plan for features
         user_email = session.get('user_email', session.get('email'))
         
-        # Use consistent plan naming (no mapping needed)
+        # Use effective plan for tier features
         mapped_tier = user_tier
         
         # Define tier features directly
@@ -8213,9 +8198,9 @@ def get_user_status():
             logger.error(f"❌ Database error loading user status: {db_error}")
             # Continue with session data if database fails
         
-        # Get trial status
-        trial_active = is_trial_active(user_id) if user_id else False
-        effective_plan = get_effective_plan(user_plan, trial_active)
+        # Use session values set by @app.before_request
+        trial_active = session.get('trial_active', False) if user_id else False
+        effective_plan = session.get('effective_plan', 'free')
         
         return jsonify({
             "success": True,
