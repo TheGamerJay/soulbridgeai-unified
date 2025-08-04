@@ -4681,6 +4681,7 @@ def check_decoder_limit():
     usage_today = get_decoder_usage() if user_id else 0
 
     return jsonify({
+        "success": True,
         "effective_plan": real_plan,
         "daily_limit": limit,
         "trial_active": trial_active,
@@ -4703,6 +4704,7 @@ def check_fortune_limit():
     usage_today = get_fortune_usage() if user_id else 0
 
     return jsonify({
+        "success": True,
         "effective_plan": real_plan,
         "daily_limit": limit,
         "trial_active": trial_active,
@@ -4728,6 +4730,7 @@ def check_horoscope_limit():
     usage_today = get_horoscope_usage() if user_id else 0
 
     return jsonify({
+        "success": True,
         "effective_plan": real_plan,
         "daily_limit": limit,
         "trial_active": trial_active,
