@@ -1201,7 +1201,14 @@ def intro():
     if not is_logged_in():
         return redirect("/login")
     
-    logger.info(f"✅ INTRO: Showing intro page for authenticated user")
+    # CRITICAL: Ensure session has correct plan names for templates
+    user_plan = session.get('user_plan', 'free')
+    plan_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
+    if user_plan in plan_mapping:
+        session['user_plan'] = plan_mapping[user_plan]
+        logger.info(f"🔄 INTRO: Migrated plan {user_plan} → {session['user_plan']}")
+    
+    logger.info(f"✅ INTRO: Showing intro page for authenticated user with plan: {session.get('user_plan')}")
     return render_template("intro.html")
 
 @app.route("/companion-selection")
@@ -1228,6 +1235,13 @@ def chat():
         if companion:
             return redirect(f"/login?return_to=chat&companion={companion}")
         return redirect("/login?return_to=chat")
+    
+    # CRITICAL: Ensure session has correct plan names for templates
+    user_plan = session.get('user_plan', 'free')
+    plan_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
+    if user_plan in plan_mapping:
+        session['user_plan'] = plan_mapping[user_plan]
+        logger.info(f"🔄 CHAT: Migrated plan {user_plan} → {session['user_plan']}")
     
     # Get selected companion from session or URL parameter
     selected_companion = session.get('selected_companion')
