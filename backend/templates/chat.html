@@ -176,6 +176,15 @@
                 <button class="close-btn" onclick="closeCreativeWriting()">&times;</button>
             </div>
             <div class="modal-body">
+                <div class="writing-intro">
+                    <p class="assistant-greeting">
+                        <i class="fas fa-sparkles"></i> 
+                        Welcome to your personal Creative Writing Assistant! I'm here to help you craft beautiful poetry, inspiring stories, personal reflections, and more. 
+                        Whether you're looking to express emotions through verse, create compelling narratives, or simply explore your creativity, I'll provide personalized guidance and suggestions to bring your ideas to life.
+                        <br><br>
+                        <strong>Choose a writing mode below to get started:</strong>
+                    </p>
+                </div>
                 <div class="writing-modes">
                     <h3>Choose Your Creative Mode:</h3>
                     <div class="mode-grid">
@@ -338,6 +347,26 @@
             width: 90%;
             max-height: 90vh;
             overflow-y: auto;
+        }
+        
+        .writing-intro {
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        
+        .assistant-greeting {
+            background: rgba(34, 211, 238, 0.1);
+            border: 1px solid rgba(34, 211, 238, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            color: #e2e8f0;
+            line-height: 1.6;
+            margin: 0;
+        }
+        
+        .assistant-greeting i {
+            color: #22d3ee;
+            margin-right: 8px;
         }
         
         .mode-grid {

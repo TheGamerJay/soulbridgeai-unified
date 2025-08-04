@@ -666,8 +666,10 @@ body.theme-blayzion .message.assistant .message-content {
 /* Header actions */
 .header-actions {
     display: flex;
+    flex-wrap: wrap;
     gap: 10px;
     align-items: center;
+    justify-content: center;
 }
 
 .action-btn {
@@ -739,6 +741,29 @@ body.theme-blayzion .message.assistant .message-content {
 
 .action-btn.addon-btn::before {
     content: '👑';
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    font-size: 0.7rem;
+    opacity: 0.8;
+}
+
+/* Premium Feature Buttons */
+.action-btn.premium-feature {
+    border-color: rgba(34, 211, 238, 0.4);
+    color: #22d3ee;
+    background: rgba(34, 211, 238, 0.1);
+    position: relative;
+}
+
+.action-btn.premium-feature:hover {
+    background: rgba(34, 211, 238, 0.2);
+    box-shadow: 0 4px 15px rgba(34, 211, 238, 0.3);
+    transform: translateY(-2px);
+}
+
+.action-btn.premium-feature::before {
+    content: '✨';
     position: absolute;
     top: -5px;
     right: -5px;
