@@ -469,15 +469,17 @@ let dailyLimit = {{ daily_limit if daily_limit else "null" }};
 // Function to refresh decoder limits from server
 async function refreshDecoderLimits() {
     try {
+        console.log("🔄 Fetching decoder limits...");
         const res = await fetch('/api/decoder/check-limit');
         const data = await res.json();
+        console.log("📊 Decoder API response:", data);
 
         const trialActive = data.trial_active;
         const effectivePlan = data.effective_plan;
-        const userPlan = data.user_plan;  // Original plan for display
+        const currentUserPlan = data.user_plan;  // Original plan for display
 
         // If trial is active but user plan is foundation/free, show unlocked UI
-        if (trialActive && (userPlan === 'foundation' || userPlan === 'free')) {
+        if (trialActive && (currentUserPlan === 'foundation' || currentUserPlan === 'free')) {
             document.querySelectorAll('.companion-card.locked').forEach(card => {
                 card.classList.remove('locked');
                 card.classList.add('trial-unlocked');
@@ -486,7 +488,7 @@ async function refreshDecoderLimits() {
         }
 
         const usage = data.usage_today ?? 0;
-        const hasUnlimited = data.effective_plan === 'max';  // Use effective_plan for unlimited check
+        const hasUnlimited = data.effective_plan === 'max' || data.daily_limit === Infinity;  // Check for max plan or Infinity limit
 
         const limitDisplay = hasUnlimited ? '∞' : (data.daily_limit ?? '?');
 
@@ -508,11 +510,11 @@ async function refreshDecoderLimits() {
         const planNotice = document.getElementById("max-plan-message");
         const planDesc = document.getElementById("plan-description");
 
-        if (data.user_plan === "max") {
+        if (currentUserPlan === "max") {
             // 🔴 Max tier - show unlimited message
             if (planNotice) planNotice.style.display = "block";
             if (planDesc) planDesc.style.display = "none";
-        } else if (data.user_plan === "growth") {
+        } else if (currentUserPlan === "growth") {
             // 🔵 Growth tier
             if (planNotice) planNotice.style.display = "none";
             if (planDesc) {
@@ -534,7 +536,7 @@ async function refreshDecoderLimits() {
 
         // Update global variables
         userUsage = usage;
-        userPlan = data.user_plan;  // Use actual user plan, not effective plan
+        userPlan = currentUserPlan;  // Use actual user plan, not effective plan
         dailyLimit = data.daily_limit;
 
         console.log(`🔄 Refreshed decoder limits: plan=${data.effective_plan}, usage=${usage}, limit=${limitDisplay}`);
