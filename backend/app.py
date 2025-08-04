@@ -14,6 +14,7 @@ import sys
 import logging
 import time
 import json
+from copy import deepcopy
 from datetime import datetime, timezone, timedelta
 from flask import Flask, jsonify, render_template, request, session, redirect, url_for, flash, make_response
 
@@ -4523,6 +4524,27 @@ def get_feature_limit(plan, feature):
     """Get feature usage limits based on real plan or trial"""
     return TIER_LIMITS.get(plan, TIER_LIMITS['free']).get(feature, 0)
 
+def get_tier_limits_safe(plan):
+    """Get INDEPENDENT copy of tier limits to prevent mutation"""
+    return deepcopy(TIER_LIMITS.get(plan, TIER_LIMITS['free']))
+
+def test_tier_isolation():
+    """Test that tier limits remain independent when modified"""
+    # Get independent copies
+    free_limits = get_tier_limits_safe('free')
+    growth_limits = get_tier_limits_safe('growth')
+    
+    # Modify one copy
+    free_limits['decoder'] = 999
+    growth_limits['fortune'] = 888
+    
+    # Verify original TIER_LIMITS unchanged
+    assert TIER_LIMITS['free']['decoder'] == 3, "Free tier contaminated!"
+    assert TIER_LIMITS['growth']['fortune'] == 8, "Growth tier contaminated!"
+    
+    logger.info("✅ Tier isolation test PASSED - no contamination detected")
+    return True
+
 def is_companion_unlocked(user, companion_tier):
     """Check if companion is accessible"""
     plan = get_effective_plan(user)
@@ -4904,6 +4926,31 @@ def debug_upgrade_to_growth():
     session['user_authenticated'] = True
     session.modified = True
     return jsonify({"success": True, "message": "Upgraded to Growth tier", "user_plan": "growth"})
+
+@app.route("/debug/test-tier-isolation", methods=["GET"])
+def debug_test_tier_isolation():
+    """Test that tier limits don't contaminate each other"""
+    try:
+        test_tier_isolation()
+        return jsonify({
+            "success": True, 
+            "message": "Tier isolation test PASSED",
+            "original_limits": {
+                "free": TIER_LIMITS['free'],
+                "growth": TIER_LIMITS['growth'], 
+                "max": TIER_LIMITS['max']
+            }
+        })
+    except Exception as e:
+        return jsonify({
+            "success": False, 
+            "error": f"Tier isolation test FAILED: {str(e)}",
+            "current_limits": {
+                "free": TIER_LIMITS['free'],
+                "growth": TIER_LIMITS['growth'],
+                "max": TIER_LIMITS['max']
+            }
+        }), 500
 
 @app.route("/debug/upgrade-to-max", methods=["POST"])
 def debug_upgrade_to_max():
