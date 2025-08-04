@@ -42,8 +42,8 @@ if not secret_key:
 
 app.secret_key = secret_key
 
-# Simple session configuration
-app.config['SESSION_COOKIE_DOMAIN'] = '.soulbridgeai.com' if os.environ.get('RAILWAY_ENVIRONMENT') else None  # Cross-subdomain sessions
+# Simple session configuration - FIXED: Remove shared session domain that was causing user contamination
+# app.config['SESSION_COOKIE_DOMAIN'] = '.soulbridgeai.com' if os.environ.get('RAILWAY_ENVIRONMENT') else None  # DISABLED: This was causing session sharing between users!
 
 # Ensure sessions expire when browser closes
 @app.before_request
@@ -56,29 +56,30 @@ def reset_session_if_cookie_missing():
     if not request.cookies.get('session'):
         session.clear()
 
-@app.before_request
-def update_trial_status():
-    """Update trial status in session on every request for trial users"""
-    try:
-        # Skip for static files and API calls to avoid overhead
-        if request.endpoint in ['static', 'favicon'] or request.path.startswith('/static/'):
-            return
-            
-        user_id = session.get('user_id')
-        if user_id:
-            # Check current trial status from database
-            trial_active = is_trial_active(user_id)
-            # Update session with current trial status
-            session['trial_active'] = trial_active
-            
-            # If trial just expired, clear trial flag
-            if not trial_active and session.get('trial_active'):
-                session['trial_active'] = False
-                
-    except Exception as e:
-        # Don't break the app if trial check fails
-        logger.error(f"Trial status update error: {e}")
-        pass
+# DISABLED: This function was potentially causing session contamination
+# @app.before_request
+# def update_trial_status():
+#     """Update trial status in session on every request for trial users"""
+#     try:
+#         # Skip for static files and API calls to avoid overhead
+#         if request.endpoint in ['static', 'favicon'] or request.path.startswith('/static/'):
+#             return
+#             
+#         user_id = session.get('user_id')
+#         if user_id:
+#             # Check current trial status from database
+#             trial_active = is_trial_active(user_id)
+#             # Update session with current trial status
+#             session['trial_active'] = trial_active
+#             
+#             # If trial just expired, clear trial flag
+#             if not trial_active and session.get('trial_active'):
+#                 session['trial_active'] = False
+#                 
+#     except Exception as e:
+#         # Don't break the app if trial check fails
+#         logger.error(f"Trial status update error: {e}")
+#         pass
 
 # Prevent caching to force fresh login checks
 @app.after_request
