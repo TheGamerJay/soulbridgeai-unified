@@ -1000,11 +1000,20 @@ What specific area would you like help with? I know every feature of SoulBridge 
                             document.getElementById('meditationLimit').textContent = '∞ Unlimited';
                             document.getElementById('aiImageLimit').textContent = '∞ Unlimited';
                         } else if (trialActive) {
-                            // Trial users get growth-level limits
-                            document.getElementById('voiceLimit').textContent = '50/month (Trial)';
-                            document.getElementById('relationshipLimit').textContent = '10 profiles (Trial)';
-                            document.getElementById('meditationLimit').textContent = '20/month (Trial)';
-                            document.getElementById('aiImageLimit').textContent = '25/month (Trial)';
+                            // Trial: users experience the next tier up
+                            if (userPlan === 'free') {
+                                // Free users experience Growth tier
+                                document.getElementById('voiceLimit').textContent = '50/month (Growth Trial)';
+                                document.getElementById('relationshipLimit').textContent = '10 profiles (Growth Trial)';
+                                document.getElementById('meditationLimit').textContent = '20/month (Growth Trial)';
+                                document.getElementById('aiImageLimit').textContent = '25/month (Growth Trial)';
+                            } else {
+                                // Growth users experience Max tier
+                                document.getElementById('voiceLimit').textContent = '∞ Unlimited (Max Trial)';
+                                document.getElementById('relationshipLimit').textContent = '∞ Unlimited (Max Trial)';
+                                document.getElementById('meditationLimit').textContent = '∞ Unlimited (Max Trial)';
+                                document.getElementById('aiImageLimit').textContent = '∞ Unlimited (Max Trial)';
+                            }
                         } else {
                             // Growth users get limited amounts
                             document.getElementById('voiceLimit').textContent = '50/month';

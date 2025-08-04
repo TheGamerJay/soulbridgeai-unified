@@ -4434,14 +4434,6 @@ TIER_LIMITS = {
         "priority_response": True, "advanced_voice_ai": True,
         "custom_personality_modes": float('inf'), "full_color_customization": True,
         "crisis_support": True, "transformation_coaching": True
-    },
-    "trial": {
-        "decoder": 15, "fortune": 8, "horoscope": 10, 
-        "ai_image_monthly": 25, "voice_journal_monthly": 50, 
-        "relationship_profiles": 10, "emotional_meditations": 20,
-        "priority_response": True, "advanced_voice_ai": True,
-        "custom_personality_modes": 3, "full_color_customization": True,
-        "crisis_support": True, "transformation_coaching": True
     }
 }
 
@@ -4529,11 +4521,25 @@ def get_effective_feature_limit(user_id, feature_name):
     plan_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
     user_plan = plan_mapping.get(user_plan, user_plan)
     
-    # During trial, use trial limits (growth-level)
-    effective_plan = 'trial' if trial_active else user_plan
-    limit = get_feature_limit(effective_plan, feature_name)
+    if trial_active:
+        # During trial: give users authentic experience of the next tier up
+        if user_plan == 'free':
+            # Free users experience Growth tier (15/8/10 + premium features)
+            effective_plan = 'growth'
+        elif user_plan == 'growth':
+            # Growth users experience Max tier (unlimited + max features)
+            effective_plan = 'max'
+        else:
+            # Max users already have everything
+            effective_plan = user_plan
+        
+        limit = get_feature_limit(effective_plan, feature_name)
+        logger.info(f"🎯 TRIAL: {user_plan} user experiencing {effective_plan} tier - {feature_name} limit: {limit}")
+    else:
+        # Normal: users get their plan limits
+        limit = get_feature_limit(user_plan, feature_name)
+        logger.info(f"💎 NORMAL: {user_plan} user gets {feature_name} limit: {limit}")
     
-    logger.info(f"💎 FEATURE LIMIT: {user_plan} user (trial={trial_active}) gets {feature_name} limit {limit}")
     return limit
 
 def get_effective_plan_for_display(user_plan, trial_active):
