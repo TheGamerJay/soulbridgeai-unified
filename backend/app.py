@@ -66,7 +66,7 @@ def update_trial_status():
         user_id = session.get('user_id')
         if user_id:
             # Check current trial status from database
-            trial_active = check_trial_active_from_db(user_id)
+            trial_active = is_trial_active(user_id)
             # Update session with current trial status
             session['trial_active'] = trial_active
             
@@ -119,55 +119,9 @@ os.makedirs("logs", exist_ok=True)
 # Helper function to check trial status from database
 # -- Trial Check Function --
 def check_trial_active_from_db(user_id):
-    """Check if trial is active based on database trial_expires_at check"""
-    try:
-        # Check if user is logged in
-        if not is_logged_in():
-            return False
-            
-        database_url = os.environ.get('DATABASE_URL')
-        if not database_url:
-            return False
-            
-        import psycopg2
-        conn = psycopg2.connect(database_url)
-        cursor = conn.cursor()
-        
-        # Get user trial data including expires_at (same logic as /get-trial-status)
-        user_email = session.get("user_email")
-        if not user_email:
-            conn.close()
-            return False
-            
-        cursor.execute("""
-            SELECT trial_started_at, trial_companion, trial_used_permanently, trial_expires_at
-            FROM users WHERE email = %s
-        """, (user_email,))
-        result = cursor.fetchone()
-        conn.close()
-        
-        if not result:
-            return False
-        
-        trial_started_at, trial_companion, trial_used_permanently, trial_expires_at = result
-        
-        # Check trial status (ignore trial_used_permanently, only check time)
-        now = datetime.utcnow()
-        trial_active = False
-        
-        # Check if trial is still active based on expiration time only
-        # NOTE: trial_used_permanently=True just means trial was started, not that it's finished
-        if trial_expires_at and now < trial_expires_at:
-            trial_active = True
-            print(f"✅ Trial active for {user_email}: expires at {trial_expires_at} (used_permanently: {trial_used_permanently})")
-        else:
-            print(f"❌ Trial not active for {user_email}: expires_at={trial_expires_at}, now={now}")
-        
-        return trial_active
-        
-    except Exception as e:
-        print(f"Trial check error: {e}")
-        return False
+    """Check if trial is active using the new clean trial system"""
+    # Use the cleaner is_trial_active function
+    return is_trial_active(user_id)
 
 # Enhanced surveillance system with Flask context safety
 class BasicSurveillanceSystem:
@@ -4455,8 +4409,9 @@ def get_user_addons():
         return jsonify({"success": False, "error": "Failed to fetch add-ons"}), 500
 
 # --- Tier Limits ---
+# New clean tier limits with consistent naming
 TIER_LIMITS = {
-    "foundation": {
+    "free": {
         "decoder": 3, "fortune": 2, "horoscope": 3, 
         "ai_image_monthly": 0, "voice_journal_monthly": 0, 
         "relationship_profiles": 0, "emotional_meditations": 0,
@@ -4464,7 +4419,7 @@ TIER_LIMITS = {
         "custom_personality_modes": 0, "full_color_customization": False,
         "crisis_support": False, "transformation_coaching": False
     },
-    "premium": {
+    "growth": {
         "decoder": 15, "fortune": 8, "horoscope": 10, 
         "ai_image_monthly": 25, "voice_journal_monthly": 50, 
         "relationship_profiles": 10, "emotional_meditations": 20,
@@ -4472,117 +4427,144 @@ TIER_LIMITS = {
         "custom_personality_modes": 3, "full_color_customization": True,
         "crisis_support": True, "transformation_coaching": True
     },
-    "enterprise": {
-        "decoder": None, "fortune": None, "horoscope": None, 
-        "ai_image_monthly": None, "voice_journal_monthly": None, 
-        "relationship_profiles": None, "emotional_meditations": None,
+    "max": {
+        "decoder": float('inf'), "fortune": float('inf'), "horoscope": float('inf'), 
+        "ai_image_monthly": float('inf'), "voice_journal_monthly": float('inf'), 
+        "relationship_profiles": float('inf'), "emotional_meditations": float('inf'),
         "priority_response": True, "advanced_voice_ai": True,
-        "custom_personality_modes": None, "full_color_customization": True,
+        "custom_personality_modes": float('inf'), "full_color_customization": True,
+        "crisis_support": True, "transformation_coaching": True
+    },
+    "trial": {
+        "decoder": 15, "fortune": 8, "horoscope": 10, 
+        "ai_image_monthly": 25, "voice_journal_monthly": 50, 
+        "relationship_profiles": 10, "emotional_meditations": 20,
+        "priority_response": True, "advanced_voice_ai": True,
+        "custom_personality_modes": 3, "full_color_customization": True,
         "crisis_support": True, "transformation_coaching": True
     }
 }
 
-def get_effective_plan(user_plan):
-    """
-    Always return the real base plan for limits — trial never changes this.
-    """
-    if user_plan in ["foundation", "premium", "enterprise"]:
-        return user_plan
-    return "foundation"
+# ========================================
+# NEW CLEAN TRIAL SYSTEM FUNCTIONS
+# ========================================
 
-def get_feature_limit(feature, user_plan):
-    """
-    Return correct usage limits based on user's real plan only.
-    """
-    return TIER_LIMITS.get(user_plan, {}).get(feature, 0)
+def get_effective_plan(user):
+    """Get effective user plan during trial"""
+    now = datetime.utcnow()
+    if hasattr(user, 'trial_started_at') and hasattr(user, 'trial_expires_at'):
+        if user.trial_started_at and user.trial_expires_at:
+            if now < user.trial_expires_at:
+                return 'trial'
+    # Map old plan names to new consistent naming
+    plan_mapping = {
+        'foundation': 'free',
+        'premium': 'growth', 
+        'enterprise': 'max'
+    }
+    user_plan = getattr(user, 'plan', 'free') if hasattr(user, 'plan') else user
+    return plan_mapping.get(user_plan, user_plan)
+
+def get_feature_limit(plan, feature):
+    """Get feature usage limits based on real plan or trial"""
+    return TIER_LIMITS.get(plan, TIER_LIMITS['free']).get(feature, 0)
+
+def is_companion_unlocked(user, companion_tier):
+    """Check if companion is accessible"""
+    plan = get_effective_plan(user)
+    if plan == 'trial':
+        return True  # All companions unlocked during trial
+    if companion_tier == 'free':
+        return True
+    if companion_tier == 'growth' and plan in ['growth', 'max']:
+        return True
+    if companion_tier == 'max' and plan == 'max':
+        return True
+    return False
+
+def start_trial(user):
+    """Start trial (only once)"""
+    if getattr(user, 'trial_used_permanently', False):
+        return False
+    user.trial_started_at = datetime.utcnow()
+    user.trial_expires_at = user.trial_started_at + timedelta(hours=5)
+    user.trial_used_permanently = True
+    # Save to DB here - implementation depends on your ORM/database setup
+    return True
 
 def is_trial_active(user_id):
-    """
-    This just checks if they have trial access to companions.
-    """
+    """Check if trial is currently active using new trial_expires_at"""
     try:
-        with get_db_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute("""
-                SELECT trial_started_at FROM users
-                WHERE id = %s AND trial_started_at IS NOT NULL
-            """, (user_id,))
-            result = cursor.fetchone()
-            if not result:
-                return False
-            trial_start = result[0]
-            if isinstance(trial_start, str):
-                trial_start = datetime.fromisoformat(trial_start.replace('Z', '+00:00'))
-            return datetime.utcnow() < (trial_start + timedelta(hours=5))
-    except:
+        database_url = os.environ.get('DATABASE_URL')
+        if not database_url:
+            return False
+            
+        import psycopg2
+        conn = psycopg2.connect(database_url)
+        cursor = conn.cursor()
+        
+        cursor.execute("""
+            SELECT trial_expires_at FROM users
+            WHERE id = %s AND trial_expires_at IS NOT NULL
+        """, (user_id,))
+        result = cursor.fetchone()
+        conn.close()
+        
+        if not result or not result[0]:
+            return False
+        trial_expires = result[0]
+        if isinstance(trial_expires, str):
+            trial_expires = datetime.fromisoformat(trial_expires.replace('Z', '+00:00'))
+        return datetime.utcnow() < trial_expires
+    except Exception as e:
+        logger.error(f"Trial check error: {e}")
         return False
 
-def get_effective_feature_limit(user_plan, trial_active, feature_name):
-    """
-    Returns the correct limit for a feature.
-    Trial ONLY unlocks companions - NEVER changes limits.
-    """
-    # Get limits based on actual plan - trial doesn't change limits!
-    base_limit = TIER_LIMITS.get(user_plan, TIER_LIMITS["foundation"]).get(feature_name)
+def get_effective_feature_limit(user_id, feature_name):
+    """Get effective feature limit considering trial status"""
+    user_plan = session.get('user_plan', 'free')
+    trial_active = is_trial_active(user_id)
     
-    logger.info(f"💎 FEATURE LIMIT: {user_plan} user gets {feature_name} limit {base_limit} (trial_active={trial_active} - NO limit changes)")
-    return base_limit
+    # Map old plan names
+    plan_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
+    user_plan = plan_mapping.get(user_plan, user_plan)
+    
+    # During trial, use trial limits (growth-level)
+    effective_plan = 'trial' if trial_active else user_plan
+    limit = get_feature_limit(effective_plan, feature_name)
+    
+    logger.info(f"💎 FEATURE LIMIT: {user_plan} user (trial={trial_active}) gets {feature_name} limit {limit}")
+    return limit
 
 def get_effective_plan_for_display(user_plan, trial_active):
-    """
-    Returns display plan for frontend messaging.
-    Trial ONLY unlocks companions - users always see their real plan limits.
-    """
-    # Always show actual plan - trial doesn't change plan display
-    if user_plan == 'enterprise':
-        result = 'enterprise'
-    elif user_plan == 'premium':
-        result = 'premium'
-    else:
-        result = 'free'  # foundation maps to 'free' for frontend
+    """Returns display plan for frontend messaging"""
+    # Map old plan names to new ones
+    plan_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
+    result = plan_mapping.get(user_plan, user_plan)
     
-    logger.info(f"🎭 DISPLAY PLAN: {user_plan} (trial={trial_active}) → always show real plan: {result}")
+    logger.info(f"🎭 DISPLAY PLAN: {user_plan} (trial={trial_active}) → {result}")
     return result
 
 def get_effective_decoder_limits(user_id, user_plan):
     """Get effective decoder limits for a user, considering trial status"""
-    user_email = session.get("user_email")
-    trial_active = check_trial_active_from_db(user_id)
-    
-    # New clean logic - only boost Free users during trial
-    daily_limit = get_effective_feature_limit(user_plan, trial_active, "decoder")
+    daily_limit = get_effective_feature_limit(user_id, "decoder")
+    trial_active = is_trial_active(user_id)
     effective_plan_display = get_effective_plan_for_display(user_plan, trial_active)
-
-    # Debug logging
-    logger.info(f"🔍 DECODER LIMIT CHECK: user_plan={user_plan}, trial_active={trial_active}, display_plan={effective_plan_display}, daily_limit={daily_limit}")
-
     return daily_limit, effective_plan_display
 
 def get_effective_fortune_limits(user_id, user_plan):
     """Get effective fortune limits for a user, considering trial status"""
-    user_email = session.get("user_email")
-    trial_active = check_trial_active_from_db(user_id)
-    
-    # New clean logic - only boost Free users during trial
-    daily_limit = get_effective_feature_limit(user_plan, trial_active, "fortune")
+    daily_limit = get_effective_feature_limit(user_id, "fortune")
+    trial_active = is_trial_active(user_id)
     effective_plan_display = get_effective_plan_for_display(user_plan, trial_active)
-
-    # Debug logging
-    logger.info(f"🔮 FORTUNE LIMIT CHECK: user_plan={user_plan}, trial_active={trial_active}, display_plan={effective_plan_display}, daily_limit={daily_limit}")
-
     return daily_limit, effective_plan_display
 
 def get_effective_horoscope_limits(user_id, user_plan):
     """Get effective horoscope limits for a user, considering trial status"""
-    user_email = session.get("user_email")
-    trial_active = check_trial_active_from_db(user_id)
-    
-    # New clean logic - only boost Free users during trial
-    daily_limit = get_effective_feature_limit(user_plan, trial_active, "horoscope")
+    daily_limit = get_effective_feature_limit(user_id, "horoscope")
+    trial_active = is_trial_active(user_id)
     effective_plan_display = get_effective_plan_for_display(user_plan, trial_active)
-
-    # Debug logging
-    logger.info(f"⭐ HOROSCOPE LIMIT CHECK: user_plan={user_plan}, trial_active={trial_active}, display_plan={effective_plan_display}, daily_limit={daily_limit}")
+    return daily_limit, effective_plan_display
 
     return daily_limit, effective_plan_display
 
@@ -4692,22 +4674,23 @@ def increment_horoscope_usage():
 @app.route("/api/decoder/check-limit")
 def check_decoder_limit():
     user_id = session.get("user_id")
-    user_plan = session.get("user_plan", "foundation")
-
-    # TRUE plan-based limit
-    real_plan = get_effective_plan(user_plan)
-    limit = get_feature_limit("decoder", real_plan)
-
-    # Trial flag (used for unlocking companions, not limits!)
-    trial_active = check_trial_active_from_db(user_id)
+    if not user_id:
+        return jsonify({"success": False, "error": "Not logged in"})
+    
+    user_plan = session.get("user_plan", "free")
+    
+    # Get effective limit (considers trial)
+    daily_limit = get_effective_feature_limit(user_id, "decoder")
+    trial_active = is_trial_active(user_id)
+    effective_plan_display = get_effective_plan_for_display(user_plan, trial_active)
     
     # Get usage for frontend display
     usage_today = get_decoder_usage() if user_id else 0
 
     return jsonify({
         "success": True,
-        "effective_plan": real_plan,
-        "daily_limit": limit,
+        "effective_plan": effective_plan_display,
+        "daily_limit": daily_limit,
         "trial_active": trial_active,
         "usage_today": usage_today
     })
@@ -4715,22 +4698,23 @@ def check_decoder_limit():
 @app.route("/api/fortune/check-limit")
 def check_fortune_limit():
     user_id = session.get("user_id")
-    user_plan = session.get("user_plan", "foundation")
-
-    # TRUE plan-based limit
-    real_plan = get_effective_plan(user_plan)
-    limit = get_feature_limit("fortune", real_plan)
-
-    # Trial flag (used for unlocking companions, not limits!)
-    trial_active = check_trial_active_from_db(user_id)
+    if not user_id:
+        return jsonify({"success": False, "error": "Not logged in"})
+    
+    user_plan = session.get("user_plan", "free")
+    
+    # Get effective limit (considers trial)
+    daily_limit = get_effective_feature_limit(user_id, "fortune")
+    trial_active = is_trial_active(user_id)
+    effective_plan_display = get_effective_plan_for_display(user_plan, trial_active)
     
     # Get usage for frontend display
     usage_today = get_fortune_usage() if user_id else 0
 
     return jsonify({
         "success": True,
-        "effective_plan": real_plan,
-        "daily_limit": limit,
+        "effective_plan": effective_plan_display,
+        "daily_limit": daily_limit,
         "trial_active": trial_active,
         "usage_today": usage_today
     })
@@ -4741,25 +4725,114 @@ def check_horoscope_limit():
     if not user_id:
         return jsonify({"success": False, "error": "Not logged in"})
 
-    user_plan = session.get("user_plan", "foundation")
+    user_plan = session.get("user_plan", "free")
 
-    # TRUE plan-based limit
-    real_plan = get_effective_plan(user_plan)
-    limit = get_feature_limit("horoscope", real_plan)
-
-    # Trial flag (used for unlocking companions, not limits!)
-    trial_active = check_trial_active_from_db(user_id)
+    # Get effective limit (considers trial)
+    daily_limit = get_effective_feature_limit(user_id, "horoscope")
+    trial_active = is_trial_active(user_id)
+    effective_plan_display = get_effective_plan_for_display(user_plan, trial_active)
     
     # Get usage for frontend display
     usage_today = get_horoscope_usage() if user_id else 0
 
     return jsonify({
         "success": True,
-        "effective_plan": real_plan,
-        "daily_limit": limit,
+        "daily_limit": daily_limit,
         "trial_active": trial_active,
         "usage_today": usage_today
     })
+
+# ========================================
+# NEW CLEAN TRIAL SYSTEM API ENDPOINTS
+# ========================================
+
+@app.route("/api/user-plan")
+def get_user_plan():
+    """Get user plan and trial status for frontend"""
+    try:
+        if not is_logged_in():
+            return jsonify({"plan": "free", "trial_active": False})
+        
+        user_id = session.get('user_id')
+        user_plan = session.get('user_plan', 'free')
+        
+        # Map old plan names to new consistent naming
+        plan_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
+        user_plan = plan_mapping.get(user_plan, user_plan)
+        
+        trial_active = is_trial_active(user_id) if user_id else False
+        
+        return jsonify({
+            "success": True,
+            "plan": user_plan,
+            "trial_active": trial_active
+        })
+        
+    except Exception as e:
+        logger.error(f"Get user plan error: {e}")
+        return jsonify({"plan": "free", "trial_active": False})
+
+@app.route("/api/start-trial", methods=["POST"])
+def api_start_trial():
+    """Start 5-hour trial using new clean system"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        user_id = session.get('user_id')
+        user_email = session.get('user_email')
+        
+        if not user_email:
+            return jsonify({"success": False, "error": "No user session found"}), 401
+        
+        # Check if trial already used
+        database_url = os.environ.get('DATABASE_URL')
+        if not database_url:
+            return jsonify({"success": False, "error": "Database not available"}), 500
+        
+        import psycopg2
+        conn = psycopg2.connect(database_url)
+        cursor = conn.cursor()
+        
+        # Check if trial was already used
+        cursor.execute("SELECT trial_used_permanently FROM users WHERE email = %s", (user_email,))
+        result = cursor.fetchone()
+        
+        if not result:
+            conn.close()
+            return jsonify({"success": False, "error": "User not found"}), 404
+        
+        if result[0]:  # trial_used_permanently is True
+            conn.close()
+            return jsonify({"success": False, "error": "Trial already used"}), 403
+        
+        # Start trial with new system
+        now = datetime.utcnow()
+        expires_at = now + timedelta(hours=5)
+        
+        cursor.execute("""
+            UPDATE users 
+            SET trial_started_at = %s,
+                trial_expires_at = %s,
+                trial_used_permanently = TRUE
+            WHERE email = %s
+        """, (now, expires_at, user_email))
+        
+        conn.commit()
+        conn.close()
+        
+        # Update session
+        session['trial_active'] = True
+        
+        return jsonify({
+            "success": True,
+            "message": "5-hour trial started successfully!",
+            "expires_at": expires_at.isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"Start trial error: {e}")
+        return jsonify({"success": False, "error": "Failed to start trial"}), 500
 
 # Manual upgrade endpoints for testing tiers
 @app.route("/debug/upgrade-to-free", methods=["POST"])
