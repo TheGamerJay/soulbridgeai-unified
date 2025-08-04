@@ -4611,7 +4611,7 @@ def refresh_session_access_flags():
     session['access_trial'] = trial_active
     session.modified = True  # Ensure session changes are saved
     
-    return {
+    result = {
         'user_plan': user_plan,
         'trial_active': trial_active,
         'access_free': session['access_free'],
@@ -4619,6 +4619,9 @@ def refresh_session_access_flags():
         'access_max': session['access_max'],
         'access_trial': session['access_trial']
     }
+    
+    logger.info(f"🔧 REFRESH_ACCESS_FLAGS: {result}")
+    return result
 
 # ========================================
 # NEW CLEAN TRIAL SYSTEM FUNCTIONS
@@ -5146,10 +5149,15 @@ def debug_session_state():
         session['user_plan'] = plan_mapping[user_plan]
         logger.info(f"🔄 DEBUG: Migrated OLD plan {old_plan} → {session['user_plan']}")
     
-    # CRITICAL: Refresh access flags to ensure they're set
-    if session.get('user_authenticated'):
-        access_info = refresh_session_access_flags()
-        logger.info(f"🔧 DEBUG: Refreshed access flags - {access_info}")
+    # CRITICAL: Refresh access flags to ensure they're set (always try, even if session seems empty)
+    try:
+        if session.get('user_authenticated') or session.get('user_plan'):
+            access_info = refresh_session_access_flags()
+            logger.info(f"🔧 DEBUG: Refreshed access flags - {access_info}")
+        else:
+            logger.warning(f"🚫 DEBUG: No authenticated session found - cannot refresh access flags")
+    except Exception as e:
+        logger.error(f"❌ DEBUG: Failed to refresh access flags - {e}")
     
     return jsonify({
         "session_data": dict(session),
