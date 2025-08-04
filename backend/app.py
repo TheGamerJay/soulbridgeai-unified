@@ -3515,103 +3515,63 @@ def start_trial():
 
 @app.route("/get-trial-status", methods=["GET", "POST"])
 def get_trial_status():
-    """Get current trial status for the user"""
+    """Get current trial status for the user - bulletproof unified version"""
     try:
         if not is_logged_in():
             return jsonify({"trial_active": False})
             
-        user_email = session.get("user_email")
-        if not user_email:
+        user_id = session.get("user_id")
+        if not user_id:
             return jsonify({"trial_active": False})
         
-        # Helper function to check if trial is still active
-        def is_trial_active(trial_started_at):
-            if not trial_started_at:
-                return False
-            return datetime.utcnow() < (trial_started_at + timedelta(hours=5))
+        # Use bulletproof trial checking function
+        trial_active = is_trial_active(user_id)
         
-        # Database connection
+        # Get additional trial info for frontend
         database_url = os.environ.get('DATABASE_URL')
-        if database_url:
+        if database_url and trial_active:
             import psycopg2
             conn = psycopg2.connect(database_url)
             cursor = conn.cursor()
             
-            # Get user trial data including expires_at
             cursor.execute("""
-                SELECT trial_started_at, trial_companion, trial_used_permanently, trial_expires_at
-                FROM users WHERE email = %s
-            """, (user_email,))
+                SELECT trial_companion, trial_used_permanently, trial_expires_at
+                FROM users WHERE id = %s
+            """, (user_id,))
             result = cursor.fetchone()
-            
-            if not result:
-                conn.close()
-                return jsonify({"trial_active": False, "error": "User not found"})
-            
-            trial_started_at, trial_companion, trial_used_permanently, trial_expires_at = result
-            
-            # Check trial status according to your specifications
-            now = datetime.utcnow()
-            trial_active = False
-            
-            # Check if trial is still active based on expiration time only
-            if trial_expires_at and now < trial_expires_at:
-                # Trial is still active
-                logger.info(f"✅ Trial active until {trial_expires_at}")
-                trial_active = True
-            else:
-                # Trial has expired or was never started
-                if trial_expires_at:
-                    logger.info(f"⏰ Trial expired at {trial_expires_at}")
-                else:
-                    logger.info("❌ No trial found")
-                trial_active = False
-            
             conn.close()
             
-            # Calculate time remaining if trial is active
-            time_remaining = 0
-            if trial_active and trial_expires_at:
-                time_remaining = max(0, int((trial_expires_at - now).total_seconds() / 60))
-            
-            logger.info(f"📊 Trial status: active={trial_active}")
-            
-            return jsonify({
-                "trial_active": trial_active,
-                "trial_companion": trial_companion if trial_active else None,
-                "trial_used_permanently": bool(trial_used_permanently),
-                "time_remaining": time_remaining
-            })
-        else:
-            # Fallback to session for local development
-            trial_active = session.get("trial_active", False)
-            trial_companion = session.get("trial_companion")
-            trial_expires_str = session.get("trial_expires")
-            trial_used_permanently = session.get("trial_used_permanently", False)
-            
-            if trial_active and trial_expires_str:
-                try:
-                    expires_at = datetime.fromisoformat(trial_expires_str.replace('Z', '+00:00') if trial_expires_str.endswith('Z') else trial_expires_str)
+            if result:
+                trial_companion, trial_used_permanently, trial_expires_at = result
+                
+                # Calculate time remaining
+                time_remaining = 0
+                if trial_expires_at:
                     now = datetime.utcnow()
-                    trial_active = now < expires_at
-                    
-                    return jsonify({
-                        "trial_active": trial_active,
-                        "trial_companion": trial_companion if trial_active else None,
-                        "trial_used_permanently": trial_used_permanently,
-                        "time_remaining": int((expires_at - now).total_seconds() / 60) if trial_active else 0
-                    })
-                except Exception as date_error:
-                    logger.error(f"Date parsing error: {date_error}")
-            
-            return jsonify({
-                "trial_active": False,
-                "trial_used_permanently": trial_used_permanently
-            })
-            
+                    time_remaining = max(0, int((trial_expires_at - now).total_seconds() / 60))
+                
+                return jsonify({
+                    "trial_active": trial_active,
+                    "trial_companion": trial_companion,
+                    "trial_used_permanently": bool(trial_used_permanently),
+                    "time_remaining": time_remaining
+                })
+        
+        return jsonify({
+            "trial_active": trial_active,
+            "trial_companion": None,
+            "trial_used_permanently": False,
+            "time_remaining": 0
+        })
+        
     except Exception as e:
         logger.error(f"Trial status check error: {e}")
-        return jsonify({"trial_active": False})
+        return jsonify({
+            "trial_active": False,
+            "trial_companion": None,
+            "trial_used_permanently": False,
+            "time_remaining": 0
+        })
 
 @app.route("/payment")
 def payment_page():
@@ -4595,23 +4555,27 @@ def is_trial_active(user_id) -> bool:
         conn = psycopg2.connect(database_url)
         cursor = conn.cursor()
         
+        # Use same logic as working /get-trial-status endpoint
         cursor.execute("""
-            SELECT trial_started_at, trial_used_permanently FROM users
+            SELECT trial_expires_at FROM users
             WHERE id = %s
         """, (user_id,))
         result = cursor.fetchone()
         conn.close()
         
-        if not result or not result[0] or result[1]:  # No trial started or permanently used
+        if not result or not result[0]:  # No trial or no expiration time
             return False
             
-        trial_started = result[0]
-        if isinstance(trial_started, str):
-            trial_started = datetime.fromisoformat(trial_started.replace('Z', '+00:00'))
+        trial_expires_at = result[0]
+        if isinstance(trial_expires_at, str):
+            trial_expires_at = datetime.fromisoformat(trial_expires_at.replace('Z', '+00:00'))
             
-        # 5-hour trial window
+        # Check if trial is still active based on expiration time
         now = datetime.utcnow()
-        return (now - trial_started) < timedelta(hours=5)
+        trial_active = now < trial_expires_at
+        
+        logger.info(f"🎯 BULLETPROOF TRIAL CHECK: user_id={user_id}, expires={trial_expires_at}, now={now}, active={trial_active}")
+        return trial_active
         
     except Exception as e:
         logger.error(f"Trial check error: {e}")
