@@ -719,8 +719,19 @@
 
     <script>
         function openCreativeWriting() {
-            document.getElementById('creativeWritingModal').style.display = 'flex';
-            document.body.style.overflow = 'hidden';
+            try {
+                const modal = document.getElementById('creativeWritingModal');
+                if (modal) {
+                    modal.style.display = 'flex';
+                    document.body.style.overflow = 'hidden';
+                } else {
+                    console.error('Creative Writing modal not found');
+                    alert('Creative Writing feature is loading, please try again in a moment.');
+                }
+            } catch (error) {
+                console.error('Error opening Creative Writing:', error);
+                alert('Unable to open Creative Writing. Please refresh the page and try again.');
+            }
         }
         
         function closeCreativeWriting() {

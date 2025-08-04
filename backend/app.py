@@ -6028,8 +6028,8 @@ def api_creative_writing():
         user_plan = session.get('user_plan', 'foundation')
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
-        if user_plan not in ['growth', 'premium', 'enterprise'] and not trial_active:
-            return jsonify({"success": False, "error": "Creative Writing Assistant requires Growth or Max plan"}), 403
+        if user_plan not in ['premium', 'enterprise'] and not trial_active:
+            return jsonify({"success": False, "error": "Creative Writing Assistant requires Growth/Max plan or trial access"}), 403
             
         data = request.get_json()
         if not data:
@@ -6143,8 +6143,8 @@ def api_save_creative_content():
         user_plan = session.get('user_plan', 'foundation')
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
-        if user_plan not in ['growth', 'premium', 'enterprise'] and not trial_active:
-            return jsonify({"success": False, "error": "Saving creative content requires Growth or Max plan"}), 403
+        if user_plan not in ['premium', 'enterprise'] and not trial_active:
+            return jsonify({"success": False, "error": "Saving creative content requires Growth/Max plan or trial access"}), 403
             
         data = request.get_json()
         if not data:
