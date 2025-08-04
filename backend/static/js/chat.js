@@ -609,13 +609,14 @@ function updateTierDisplay() {
     fetch("/debug/session-state")
         .then(res => res.json())
         .then(data => {
-            const plan = data.user_plan || "free";
+            const userPlan = data.user_plan || "free";  // Original plan for display
+            const effectivePlan = data.effective_plan || "free";  // Effective plan for access
             const trial = data.trial_active || false;
             
-            console.log(`🎯 TIER UPDATE: plan=${plan}, trial=${trial}`);
+            console.log(`🎯 TIER UPDATE: user_plan=${userPlan}, effective_plan=${effectivePlan}, trial=${trial}`);
             
-            // Update premium feature visibility
-            if (plan === "free" && !trial) {
+            // Update premium feature visibility using effective_plan
+            if (effectivePlan === "free" && !trial) {
                 document.querySelectorAll(".premium-feature").forEach(el => el.style.display = "none");
             } else {
                 document.querySelectorAll(".premium-feature").forEach(el => el.style.display = "inline-block");

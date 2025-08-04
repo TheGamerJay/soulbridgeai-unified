@@ -473,13 +473,14 @@ async function refreshDecoderLimits() {
         const data = await res.json();
 
         const trialActive = data.trial_active;
-        const plan = data.effective_plan;
+        const effectivePlan = data.effective_plan;
+        const userPlan = data.user_plan;  // Original plan for display
         const limit = data.daily_limit === null ? '∞' : (data.daily_limit ?? '?');
 
         document.getElementById('usage-limit').textContent = limit;
 
-        // If trial is active but plan is foundation, show unlocked UI
-        if (trialActive && plan === 'foundation') {
+        // If trial is active but user plan is foundation/free, show unlocked UI
+        if (trialActive && (userPlan === 'foundation' || userPlan === 'free')) {
             document.querySelectorAll('.companion-card.locked').forEach(card => {
                 card.classList.remove('locked');
                 card.classList.add('trial-unlocked');
@@ -488,7 +489,7 @@ async function refreshDecoderLimits() {
         }
 
         const usage = data.usage_today ?? 0;
-        const hasUnlimited = data.effective_plan === 'enterprise';
+        const hasUnlimited = data.effective_plan === 'max';  // Use effective_plan for unlimited check
 
         const limitDisplay = hasUnlimited ? '∞' : (data.daily_limit ?? '?');
 

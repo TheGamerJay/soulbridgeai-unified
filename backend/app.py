@@ -56,6 +56,36 @@ def reset_session_if_cookie_missing():
     if not request.cookies.get('session'):
         session.clear()
 
+@app.before_request
+def enforce_trial_effective_plan():
+    """Override user_plan with trial state on every request"""
+    # Skip for static files and API calls to avoid overhead
+    if request.endpoint in ['static', 'favicon'] or request.path.startswith('/static/'):
+        return
+        
+    user_id = session.get('user_id')
+    if not user_id:
+        return  # not logged in
+
+    try:
+        # Check if trial is active
+        trial_active = is_trial_active(user_id)
+        session['trial_active'] = trial_active
+        
+        # Set effective plan in session - THIS IS THE KEY FIX
+        user_plan = session.get('user_plan', 'free')
+        if trial_active:
+            session['effective_plan'] = 'max'  # Trial gives Max-tier access
+        else:
+            # Map old plan names to new ones
+            plan_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
+            session['effective_plan'] = plan_mapping.get(user_plan, user_plan)
+            
+    except Exception as e:
+        # Don't break the app if trial check fails
+        logger.error(f"Trial effective plan error: {e}")
+        session['effective_plan'] = session.get('user_plan', 'free')
+
 # DISABLED: This function was potentially causing session contamination
 # @app.before_request
 # def update_trial_status():
@@ -1382,31 +1412,30 @@ def api_companions():
     """Get available companions organized by tiers"""
     try:
         # Allow access without authentication so users can see companions before login
-        user_plan = session.get('user_plan', 'free') if is_logged_in() else 'free'
-        
-        # Check trial status if user is logged in
-        trial_active = False
         if is_logged_in():
-            user_id = session.get('user_id')
-            trial_active = check_trial_active_from_db(user_id)
+            # Use effective_plan from session (set by @app.before_request)
+            effective_plan = session.get('effective_plan', 'free')
+            user_plan = session.get('user_plan', 'free')  # Original plan for display
+            trial_active = session.get('trial_active', False)
+        else:
+            effective_plan = 'free'
+            user_plan = 'free'
+            trial_active = False
         
-        # Helper function to determine lock reason
+        # Helper function to determine lock reason using bulletproof access control
         def get_lock_reason(tier):
             if tier == "free":
                 return None
             elif tier == "growth":
-                # Growth companions: unlocked by growth/max plan OR active 5-hour trial
-                if user_plan == 'growth' or user_plan == 'max' or trial_active:
+                # Growth companions: use bulletproof access control
+                if can_access_companion(user_plan, 'growth', trial_active):
                     return None
                 else:
                     return "Try 5hr Free or Upgrade"
             elif tier == "max":
-                # Max companions: ONLY unlocked by max plan OR active 5-hour trial
-                # After trial expires, you MUST purchase Max plan to access
-                if user_plan == 'max':
-                    return None  # Purchased max - full access
-                elif trial_active:
-                    return None  # Active trial - temporary access
+                # Max companions: use bulletproof access control
+                if can_access_companion(user_plan, 'max', trial_active):
+                    return None
                 else:
                     return "Try 5hr Free or Purchase Max Plan"
             return "Upgrade Required"
@@ -1512,8 +1541,10 @@ def api_companions_select():
         if not companion_id:
             return jsonify({"success": False, "error": "Companion ID required"}), 400
         
-        # Check if user has access to this companion
+        # Check if user has access to this companion using bulletproof access control
         user_plan = session.get('user_plan', 'free')
+        effective_plan = session.get('effective_plan', 'free')
+        trial_active = session.get('trial_active', False)
         
         # Get companion details to check tier
         companion_found = False
@@ -1563,20 +1594,11 @@ def api_companions_select():
         if not companion_found:
             return jsonify({"success": False, "error": "Invalid companion ID"}), 400
         
-        # Check trial status from database (not session)
-        trial_active = check_trial_active_from_db(session.get('user_id'))
+        # Use bulletproof access control with session data (already set by @app.before_request)
+        logger.info(f"🔍 COMPANION SELECTION DEBUG: user_plan={user_plan}, effective_plan={effective_plan}, trial_active={trial_active}, companion_tier={companion_tier}, companion_id={companion_id}")
         
-        # DEBUG: Log companion selection access check
-        logger.info(f"🔍 COMPANION SELECTION DEBUG: user_plan={user_plan}, trial_active={trial_active}, companion_tier={companion_tier}, companion_id={companion_id}")
-        
-        # Check access based on tier
-        has_access = False
-        if companion_tier == "free":
-            has_access = True
-        elif companion_tier == "growth":
-            has_access = user_plan in ['growth', 'max'] or trial_active
-        elif companion_tier == "max":
-            has_access = user_plan == 'max' or trial_active
+        # Use bulletproof companion access control
+        has_access = can_access_companion(user_plan, companion_tier, trial_active)
         
         if not has_access:
             logger.warning(f"🚫 COMPANION SELECTION BLOCKED: user_plan={user_plan}, trial_active={trial_active}, companion_tier={companion_tier}, companion_id={companion_id}")
@@ -4720,15 +4742,17 @@ def check_decoder_limit():
     if not user_id:
         return jsonify({"success": False, "error": "Not logged in"})
     
-    user_plan = session.get("user_plan", "free")
-    trial_active = is_trial_active(user_id)
-    effective_plan = get_effective_plan(user_plan, trial_active)
+    # Use effective_plan from session (set by @app.before_request)
+    effective_plan = session.get("effective_plan", "free")
+    user_plan = session.get("user_plan", "free")  # Original plan for display
+    trial_active = session.get("trial_active", False)
     daily_limit = get_feature_limit(effective_plan, "decoder")
     usage_today = get_decoder_usage()
 
     return jsonify({
         "success": True,
         "effective_plan": effective_plan,
+        "user_plan": user_plan,
         "daily_limit": daily_limit,
         "trial_active": trial_active,
         "usage_today": usage_today
@@ -4740,15 +4764,17 @@ def check_fortune_limit():
     if not user_id:
         return jsonify({"success": False, "error": "Not logged in"})
     
-    user_plan = session.get("user_plan", "free")
-    trial_active = is_trial_active(user_id)
-    effective_plan = get_effective_plan(user_plan, trial_active)
+    # Use effective_plan from session (set by @app.before_request)
+    effective_plan = session.get("effective_plan", "free")
+    user_plan = session.get("user_plan", "free")  # Original plan for display
+    trial_active = session.get("trial_active", False)
     daily_limit = get_feature_limit(effective_plan, "fortune")
     usage_today = get_fortune_usage()
 
     return jsonify({
         "success": True,
         "effective_plan": effective_plan,
+        "user_plan": user_plan,
         "daily_limit": daily_limit,
         "trial_active": trial_active,
         "usage_today": usage_today
@@ -4760,14 +4786,17 @@ def check_horoscope_limit():
     if not user_id:
         return jsonify({"success": False, "error": "Not logged in"})
 
-    user_plan = session.get("user_plan", "free")
-    trial_active = is_trial_active(user_id)
-    effective_plan = get_effective_plan(user_plan, trial_active)
+    # Use effective_plan from session (set by @app.before_request)
+    effective_plan = session.get("effective_plan", "free")
+    user_plan = session.get("user_plan", "free")  # Original plan for display
+    trial_active = session.get("trial_active", False)
     daily_limit = get_feature_limit(effective_plan, "horoscope")
     usage_today = get_horoscope_usage()
 
     return jsonify({
         "success": True,
+        "effective_plan": effective_plan,
+        "user_plan": user_plan,
         "daily_limit": daily_limit,
         "trial_active": trial_active,
         "usage_today": usage_today
@@ -4966,22 +4995,25 @@ def debug_session_state():
     if not is_logged_in():
         return jsonify({
             "user_plan": "free",
+            "effective_plan": "free",
             "trial_active": False,
             "access_free": True,
             "access_growth": False,
             "access_max": False
         })
     
-    user_id = session.get('user_id')
+    # Use session values set by @app.before_request
     user_plan = session.get('user_plan', 'free') or 'free'
-    trial_active = is_trial_active(user_id)
+    effective_plan = session.get('effective_plan', 'free') or 'free'
+    trial_active = session.get('trial_active', False)
     
     return jsonify({
         "user_plan": user_plan,
+        "effective_plan": effective_plan,
         "trial_active": trial_active,
         "access_free": True,
-        "access_growth": user_plan in ["growth", "max"] or trial_active,
-        "access_max": user_plan == "max" or trial_active
+        "access_growth": effective_plan in ["growth", "max"] or trial_active,
+        "access_max": effective_plan == "max" or trial_active
     })
 
 @app.route("/debug/upgrade-to-max", methods=["POST"])
@@ -6140,11 +6172,11 @@ def api_chat():
         
         # Check decoder usage limits if this is a decoder request
         if context == 'decoder_mode':
+            # Use effective_plan from session (set by @app.before_request)
+            effective_plan = session.get('effective_plan', 'free')
             user_plan = session.get('user_plan', 'free')
-            # Use bulletproof limit checking
+            trial_active = session.get('trial_active', False)
             user_id = session.get('user_id')
-            trial_active = is_trial_active(user_id)
-            effective_plan = get_effective_plan(user_plan, trial_active)
             daily_limit = get_feature_limit(effective_plan, 'decoder')
             
             # Check decoder usage limits
@@ -6168,8 +6200,8 @@ def api_chat():
         if character not in VALID_CHARACTERS:
             character = "Blayzo"  # Default fallback
         
-        # Get user's subscription tier for enhanced features
-        user_tier = session.get('user_plan', 'free')
+        # Get user's subscription tier for enhanced features (use effective_plan)
+        user_tier = session.get('effective_plan', 'free')
         
         # Tier-specific AI model and parameters - simple pay model
         if user_tier == 'max':  # Max Plan
