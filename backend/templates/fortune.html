@@ -654,7 +654,7 @@ async function getFortune() {
             outputBox.innerHTML = result.response;
             
             // Show save button for premium users (Growth/Max tiers) OR trial users
-            if (userPlan === 'premium' || userPlan === 'enterprise' || result.trial_active) {
+            if (userPlan === 'growth' || userPlan === 'max' || result.trial_active) {
                 document.getElementById('save-button').style.display = 'block';
             }
             
