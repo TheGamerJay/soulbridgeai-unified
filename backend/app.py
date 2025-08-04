@@ -105,7 +105,7 @@ _service_lock = threading.RLock()
 
 # Constants
 VALID_CHARACTERS = ["Blayzo", "Sapphire", "Violet", "Crimson", "Blayzia", "Blayzica", "Blayzike", "Blayzion", "Blazelian"]
-VALID_PLANS = ["foundation", "premium", "enterprise"]
+VALID_PLANS = ["free", "growth", "max"]
 
 # Admin and surveillance constants
 ADMIN_DASH_KEY = os.environ.get("ADMIN_DASH_KEY", "soulbridge_admin_2024")
@@ -292,7 +292,7 @@ def is_logged_in():
 
 def get_user_plan():
     """Get user's selected plan"""
-    return session.get("user_plan", "foundation")
+    return session.get("user_plan", "free")
 
 def parse_request_data():
     """Parse request data from both JSON and form data"""
@@ -313,7 +313,7 @@ def setup_user_session(email, user_id=None, is_admin=False, dev_mode=False):
     session["session_version"] = "2025-07-28-banking-security"  # Required for auth
     session["user_email"] = email
     session["login_timestamp"] = datetime.now().isoformat()
-    session["user_plan"] = "foundation"
+    session["user_plan"] = "free"
     if user_id:
         session["user_id"] = user_id
     if is_admin:
@@ -651,7 +651,7 @@ def auth_login():
             )
             
             # Set user plan from database result
-            session['user_plan'] = result.get('plan_type', 'foundation')
+            session['user_plan'] = result.get('plan_type', 'free')
             session['display_name'] = result.get('display_name', 'User')
             
             # Restore active trial status from database if exists
@@ -819,17 +819,17 @@ def clear_session():
         logger.error(f"Error clearing session: {e}")
         return jsonify({"success": False, "error": "Failed to clear session"}), 500
 
-@app.route("/api/debug/reset-to-foundation")
-def reset_to_foundation():
-    """Reset current user to foundation plan (for testing)"""
+@app.route("/api/debug/reset-to-free")
+def reset_to_free():
+    """Reset current user to free plan (for testing)"""
     if not is_logged_in():
         return jsonify({"success": False, "error": "Authentication required"}), 401
     
-    session['user_plan'] = 'foundation'
+    session['user_plan'] = 'free'
     
     return jsonify({
         "success": True,
-        "message": "User reset to foundation plan",
+        "message": "User reset to free plan",
         "user_plan": session.get('user_plan')
     })
 
@@ -839,7 +839,7 @@ def upgrade_to_growth():
     if not is_logged_in():
         return jsonify({"success": False, "error": "Authentication required"}), 401
     
-    session['user_plan'] = 'premium'  # Growth plan in backend
+    session['user_plan'] = 'growth'  # Growth plan in backend
     
     return jsonify({
         "success": True,
@@ -853,7 +853,7 @@ def upgrade_to_max():
     if not is_logged_in():
         return jsonify({"success": False, "error": "Authentication required"}), 401
     
-    session['user_plan'] = 'enterprise'  # Max plan in backend
+    session['user_plan'] = 'max'  # Max plan in backend
     
     return jsonify({
         "success": True,
@@ -861,9 +861,9 @@ def upgrade_to_max():
         "user_plan": session.get('user_plan')
     })
 
-@app.route("/api/debug/force-enterprise-for-live")
-def force_enterprise_for_live():
-    """Force current user to enterprise plan in both session and database"""
+@app.route("/api/debug/force-max-for-live")
+def force_max_for_live():
+    """Force current user to max plan in both session and database"""
     if not is_logged_in():
         return jsonify({"success": False, "error": "Authentication required"}), 401
     
@@ -884,23 +884,23 @@ def force_enterprise_for_live():
             
             # Update user plan in users table
             if user_id:
-                cursor.execute(f"UPDATE users SET plan_type = {placeholder} WHERE id = {placeholder}", ('enterprise', user_id))
+                cursor.execute(f"UPDATE users SET plan_type = {placeholder} WHERE id = {placeholder}", ('max', user_id))
             elif user_email:
-                cursor.execute(f"UPDATE users SET plan_type = {placeholder} WHERE email = {placeholder}", ('enterprise', user_email))
+                cursor.execute(f"UPDATE users SET plan_type = {placeholder} WHERE email = {placeholder}", ('max', user_email))
             
             # Also add to subscriptions table
             cursor.execute(f"""
                 INSERT OR REPLACE INTO subscriptions 
                 (user_email, plan_type, status, created_at) 
                 VALUES ({placeholder}, {placeholder}, 'active', datetime('now'))
-            """, (user_email, 'enterprise'))
+            """, (user_email, 'max'))
             
             conn.commit()
             conn.close()
             
             return jsonify({
                 "success": True,
-                "message": "User set to enterprise plan in session and database",
+                "message": "User set to max plan in session and database",
                 "user_plan": session.get('user_plan'),
                 "user_email": user_email,
                 "user_id": user_id
@@ -918,7 +918,7 @@ def get_current_plan():
     if not is_logged_in():
         return jsonify({"success": False, "error": "Authentication required"}), 401
     
-    user_plan = session.get('user_plan', 'foundation')
+    user_plan = session.get('user_plan', 'free')
     
     return jsonify({
         "success": True,
@@ -1057,7 +1057,7 @@ def admin_init_database():
         
         # Add missing columns if they don't exist
         try:
-            cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS plan_type VARCHAR(50) DEFAULT 'foundation'")
+            cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS plan_type VARCHAR(50) DEFAULT 'free'")
             cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE")
             cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_image TEXT")
             cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_image_data TEXT")
@@ -1177,7 +1177,7 @@ def auth_register():
         session['user_authenticated'] = True
         session['session_version'] = "2025-07-28-banking-security"  # Required for auth
         session['last_activity'] = datetime.now().isoformat()
-        session['user_plan'] = 'foundation'  # Default all new users to foundation plan
+        session['user_plan'] = 'free'  # Default all new users to foundation plan
         
         return jsonify({"success": True, "redirect": "/plan-selection"})
         
@@ -1281,7 +1281,7 @@ def chat():
                 break
         
         # Validate user has access to this companion tier (including trial status)
-        user_plan = session.get('user_plan', 'foundation')
+        user_plan = session.get('user_plan', 'free')
         trial_active = check_trial_active_from_db(session.get('user_id'))
         has_access = False
         
@@ -1289,9 +1289,9 @@ def chat():
             if companion_tier == 'free':
                 has_access = True
             elif companion_tier == 'growth':
-                has_access = user_plan in ['premium', 'enterprise'] or trial_active
+                has_access = user_plan in ['growth', 'max'] or trial_active
             elif companion_tier == 'max':
-                has_access = user_plan in ['enterprise', 'max'] or trial_active
+                has_access = user_plan in ['max'] or trial_active
         else:
             logger.warning(f"🚫 CHAT: No companion found for URL param: {url_param}, tried: {potential_companions}")
             
@@ -1309,7 +1309,7 @@ def chat():
     
     if selected_companion:
         # Check if user has access to this companion
-        user_tier = session.get('user_plan', 'foundation')
+        user_tier = session.get('user_plan', 'free')
         
         # Check for active trial status from database (not session)
         trial_active = check_trial_active_from_db(session.get('user_id'))
@@ -1322,7 +1322,7 @@ def chat():
         # BLOCK ACCESS: Check companion tier requirements before allowing chat
         if selected_companion in ['companion_sky', 'companion_gamerjay_premium', 'companion_blayzo_premium', 'companion_watchdog', 'companion_crimson_growth', 'companion_violet_growth', 'companion_claude_growth']:
             # Growth tier companion - requires premium plan (trial doesn't help free users)
-            if user_tier != 'premium' and user_tier != 'enterprise':
+            if user_tier != 'growth' and user_tier != 'max':
                 logger.warning(f"🚫 BLOCKING CHAT ACCESS: {user_tier} user {session.get('user_email')} tried to access Growth companion {selected_companion}")
                 flash("This companion requires a Growth plan. Please upgrade.")
                 return redirect("/companion-selection")
@@ -1330,7 +1330,7 @@ def chat():
                 logger.info(f"✅ CHAT ACCESS GRANTED: Growth companion {selected_companion} - user tier: {user_tier}")
         elif selected_companion in ['companion_crimson', 'companion_violet']:
             # Max tier companion - requires enterprise plan only (trial doesn't help)
-            if user_tier != 'enterprise':
+            if user_tier != 'max':
                 companion_access_valid = False
                 logger.warning(f"🚫 Access denied to Max companion {selected_companion} - user tier: {user_tier}")
         
@@ -1357,7 +1357,7 @@ def api_companions():
     """Get available companions organized by tiers"""
     try:
         # Allow access without authentication so users can see companions before login
-        user_plan = session.get('user_plan', 'foundation') if is_logged_in() else 'foundation'
+        user_plan = session.get('user_plan', 'free') if is_logged_in() else 'foundation'
         
         # Check trial status if user is logged in
         trial_active = False
@@ -1370,16 +1370,16 @@ def api_companions():
             if tier == "free":
                 return None
             elif tier == "growth":
-                # Growth companions: unlocked by premium/enterprise plan OR active 5-hour trial
-                if user_plan == 'premium' or user_plan == 'enterprise' or trial_active:
+                # Growth companions: unlocked by growth/max plan OR active 5-hour trial
+                if user_plan == 'growth' or user_plan == 'max' or trial_active:
                     return None
                 else:
                     return "Try 5hr Free or Upgrade"
             elif tier == "max":
-                # Max companions: ONLY unlocked by enterprise plan OR active 5-hour trial
-                # After trial expires, you MUST purchase Enterprise plan to access
-                if user_plan == 'enterprise':
-                    return None  # Purchased enterprise - full access
+                # Max companions: ONLY unlocked by max plan OR active 5-hour trial
+                # After trial expires, you MUST purchase Max plan to access
+                if user_plan == 'max':
+                    return None  # Purchased max - full access
                 elif trial_active:
                     return None  # Active trial - temporary access
                 else:
@@ -1488,7 +1488,7 @@ def api_companions_select():
             return jsonify({"success": False, "error": "Companion ID required"}), 400
         
         # Check if user has access to this companion
-        user_plan = session.get('user_plan', 'foundation')
+        user_plan = session.get('user_plan', 'free')
         
         # Get companion details to check tier
         companion_found = False
@@ -1549,9 +1549,9 @@ def api_companions_select():
         if companion_tier == "free":
             has_access = True
         elif companion_tier == "growth":
-            has_access = user_plan in ['premium', 'enterprise'] or trial_active
+            has_access = user_plan in ['growth', 'max'] or trial_active
         elif companion_tier == "max":
-            has_access = user_plan == 'enterprise' or trial_active
+            has_access = user_plan == 'max' or trial_active
         
         if not has_access:
             logger.warning(f"🚫 COMPANION SELECTION BLOCKED: user_plan={user_plan}, trial_active={trial_active}, companion_tier={companion_tier}, companion_id={companion_id}")
@@ -1650,7 +1650,7 @@ def profile():
         if not session.get('display_name') and not session.get('user_name'):
             session['display_name'] = 'SoulBridge User'
         if not session.get('user_plan'):
-            session['user_plan'] = 'foundation'
+            session['user_plan'] = 'free'
         
         # Update last activity
         session['last_activity'] = datetime.now().isoformat()
@@ -1756,7 +1756,7 @@ def decoder():
             
         # Get user's plan and decoder usage
         user_id = session.get('user_id')
-        user_plan = session.get('user_plan', 'foundation')
+        user_plan = session.get('user_plan', 'free')
         decoder_usage = get_decoder_usage()
         
         # Get effective limits using shared function
@@ -1785,7 +1785,7 @@ def fortune():
             
         # Get user's plan and fortune usage
         user_id = session.get('user_id')
-        user_plan = session.get('user_plan', 'foundation')
+        user_plan = session.get('user_plan', 'free')
         fortune_usage = get_fortune_usage()
         
         # Get effective limits using similar logic to decoder
@@ -1814,7 +1814,7 @@ def horoscope():
             
         # Get user's plan and horoscope usage
         user_id = session.get('user_id')
-        user_plan = session.get('user_plan', 'foundation')
+        user_plan = session.get('user_plan', 'free')
         horoscope_usage = get_horoscope_usage()
         
         # Get effective limits using similar logic to decoder
@@ -4844,7 +4844,7 @@ def api_start_trial():
 @app.route("/debug/upgrade-to-free", methods=["POST"])
 def debug_upgrade_to_free():
     """Debug endpoint to set user to Free tier"""
-    session['user_plan'] = 'foundation'
+    session['user_plan'] = 'free'
     session['user_authenticated'] = True
     session.modified = True
     return jsonify({"success": True, "message": "Upgraded to Free tier", "user_plan": "foundation"})
@@ -6013,7 +6013,7 @@ def api_chat():
         
         # Check decoder usage limits if this is a decoder request
         if context == 'decoder_mode':
-            user_plan = session.get('user_plan', 'foundation')
+            user_plan = session.get('user_plan', 'free')
             current_usage = get_decoder_usage()
             
             # Define tier limits
@@ -6044,7 +6044,7 @@ def api_chat():
             character = "Blayzo"  # Default fallback
         
         # Get user's subscription tier for enhanced features
-        user_tier = session.get('user_plan', 'foundation')
+        user_tier = session.get('user_plan', 'free')
         
         # Tier-specific AI model and parameters - simple pay model
         if user_tier == 'enterprise':  # Max Plan
@@ -6104,7 +6104,7 @@ def api_creative_writing():
             return jsonify({"success": False, "error": "Authentication required"}), 401
             
         # Check if user has access to creative writing (Growth/Max tiers or active trial)
-        user_plan = session.get('user_plan', 'foundation')
+        user_plan = session.get('user_plan', 'free')
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
         if user_plan not in ['premium', 'enterprise'] and not trial_active:
@@ -6219,7 +6219,7 @@ def api_save_creative_content():
             return jsonify({"success": False, "error": "Authentication required"}), 401
             
         # Check if user has access to creative writing (Growth/Max tiers or active trial)
-        user_plan = session.get('user_plan', 'foundation')
+        user_plan = session.get('user_plan', 'free')
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
         if user_plan not in ['premium', 'enterprise'] and not trial_active:
@@ -6346,7 +6346,7 @@ def api_save_canvas_art():
             return jsonify({"success": False, "error": "Authentication required"}), 401
             
         # Check if user has access to creative canvas (Growth/Max tiers or active trial)
-        user_plan = session.get('user_plan', 'foundation')
+        user_plan = session.get('user_plan', 'free')
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
         if user_plan not in ['growth', 'premium', 'enterprise'] and not trial_active:
@@ -6551,7 +6551,7 @@ def api_share_to_wellness_gallery():
             return jsonify({"success": False, "error": "Authentication required"}), 401
             
         # Check if user has access (Growth/Max tiers or active trial)
-        user_plan = session.get('user_plan', 'foundation')
+        user_plan = session.get('user_plan', 'free')
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
         if user_plan not in ['growth', 'premium', 'enterprise'] and not trial_active:
@@ -7091,7 +7091,7 @@ def voice_journaling_page():
         return redirect("/login")
     
     # Check if user has voice-journaling access (Max tier, addon, or trial)
-    user_plan = session.get('user_plan', 'foundation')
+    user_plan = session.get('user_plan', 'free')
     user_addons = session.get('user_addons', [])
     trial_active = check_trial_active_from_db(session.get('user_id'))
     
@@ -7110,7 +7110,7 @@ def voice_journaling_transcribe():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
         # Check if user has voice-journaling access (Max tier, addon, or trial)
-        user_plan = session.get('user_plan', 'foundation')
+        user_plan = session.get('user_plan', 'free')
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
@@ -7204,7 +7204,7 @@ def voice_journaling_save():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
         # Check if user has voice-journaling access (Max tier, addon, or trial)
-        user_plan = session.get('user_plan', 'foundation')
+        user_plan = session.get('user_plan', 'free')
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
@@ -7251,7 +7251,7 @@ def voice_journaling_entries():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
         # Check if user has voice-journaling access (Max tier, addon, or trial)
-        user_plan = session.get('user_plan', 'foundation')
+        user_plan = session.get('user_plan', 'free')
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
@@ -7284,7 +7284,7 @@ def relationship_profiles_page():
         return redirect("/login")
     
     # Check if user has relationship access (Max tier, addon, or trial)
-    user_plan = session.get('user_plan', 'foundation')
+    user_plan = session.get('user_plan', 'free')
     user_addons = session.get('user_addons', [])
     trial_active = check_trial_active_from_db(session.get('user_id'))
     
@@ -7301,7 +7301,7 @@ def relationship_profiles_add():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
         # Check if user has relationship access (Max tier, addon, or trial)
-        user_plan = session.get('user_plan', 'foundation')
+        user_plan = session.get('user_plan', 'free')
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
@@ -7352,7 +7352,7 @@ def relationship_profiles_list():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
         # Check if user has relationship access (Max tier, addon, or trial)
-        user_plan = session.get('user_plan', 'foundation')
+        user_plan = session.get('user_plan', 'free')
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
@@ -7379,7 +7379,7 @@ def relationship_profiles_delete(profile_id):
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
         # Check if user has relationship access (Max tier, addon, or trial)
-        user_plan = session.get('user_plan', 'foundation')
+        user_plan = session.get('user_plan', 'free')
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
@@ -7420,7 +7420,7 @@ def emotional_meditations_page():
         return redirect("/login")
     
     # Check if user has emotional-meditations access (Growth/Max tier, addon, or trial)
-    user_plan = session.get('user_plan', 'foundation')
+    user_plan = session.get('user_plan', 'free')
     user_addons = session.get('user_addons', [])
     trial_active = check_trial_active_from_db(session.get('user_id'))
     
@@ -7437,7 +7437,7 @@ def emotional_meditations_save_session():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
         # Check if user has emotional-meditations access (Growth/Max tier, addon, or trial)
-        user_plan = session.get('user_plan', 'foundation')
+        user_plan = session.get('user_plan', 'free')
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
@@ -7485,7 +7485,7 @@ def emotional_meditations_stats():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
         # Check if user has emotional-meditations access (Growth/Max tier, addon, or trial)
-        user_plan = session.get('user_plan', 'foundation')
+        user_plan = session.get('user_plan', 'free')
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
@@ -7569,7 +7569,7 @@ def ai_image_generation_page():
         return redirect("/login")
     
     # Check if user has ai-image-generation access (Growth/Max tier, addon, or trial)
-    user_plan = session.get('user_plan', 'foundation')
+    user_plan = session.get('user_plan', 'free')
     user_addons = session.get('user_addons', [])
     trial_active = check_trial_active_from_db(session.get('user_id'))
     
@@ -7586,7 +7586,7 @@ def ai_image_generation_generate():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
         # Check if user has ai-image-generation access (Growth/Max tier, addon, or trial)
-        user_plan = session.get('user_plan', 'foundation')
+        user_plan = session.get('user_plan', 'free')
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
@@ -7669,7 +7669,7 @@ def ai_image_generation_analyze_reference():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
         # Check if user has ai-image-generation access (Growth/Max tier, addon, or trial)
-        user_plan = session.get('user_plan', 'foundation')
+        user_plan = session.get('user_plan', 'free')
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
@@ -7740,7 +7740,7 @@ def ai_image_generation_save():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
         # Check if user has ai-image-generation access (Growth/Max tier, addon, or trial)
-        user_plan = session.get('user_plan', 'foundation')
+        user_plan = session.get('user_plan', 'free')
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
@@ -7787,7 +7787,7 @@ def ai_image_generation_gallery():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
         # Check if user has ai-image-generation access (Growth/Max tier, addon, or trial)
-        user_plan = session.get('user_plan', 'foundation')
+        user_plan = session.get('user_plan', 'free')
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
@@ -7817,7 +7817,7 @@ def ai_image_generation_usage():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
         # Check if user has ai-image-generation access (Growth/Max tier, addon, or trial)
-        user_plan = session.get('user_plan', 'foundation')
+        user_plan = session.get('user_plan', 'free')
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
@@ -7958,7 +7958,7 @@ def get_user_tier_status():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
         # Get user's current subscription tier
-        user_tier = session.get('user_plan', 'foundation')
+        user_tier = session.get('user_plan', 'free')
         user_email = session.get('user_email', session.get('email'))
         
         # Map backend plan names to frontend tier names
@@ -8029,7 +8029,7 @@ def get_user_status():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
         # Get basic user data
-        user_plan = session.get('user_plan', 'foundation')
+        user_plan = session.get('user_plan', 'free')
         user_email = session.get('user_email', session.get('email'))
         user_id = session.get('user_id')
         
@@ -8104,9 +8104,9 @@ def get_user_status():
 #                 placeholder = "%s" if hasattr(db_instance, 'postgres_url') and db_instance.postgres_url else "?"
 #                 
 #                 if user_id:
-#                     cursor.execute(f"UPDATE users SET plan_type = {placeholder} WHERE id = {placeholder}", ('enterprise', user_id))
+#                     cursor.execute(f"UPDATE users SET plan_type = {placeholder} WHERE id = {placeholder}", ('max', user_id))
 #                 elif user_email:
-#                     cursor.execute(f"UPDATE users SET plan_type = {placeholder} WHERE email = {placeholder}", ('enterprise', user_email))
+#                     cursor.execute(f"UPDATE users SET plan_type = {placeholder} WHERE email = {placeholder}", ('max', user_email))
 #                 
 #                 conn.commit()
 #                 conn.close()
@@ -8228,7 +8228,7 @@ def emergency_login_foundation(email):
         session['user_authenticated'] = True
         session['user_email'] = email.lower()
         session['email'] = email.lower()
-        session['user_plan'] = 'foundation'  # Set to Foundation tier (NOT enterprise)
+        session['user_plan'] = 'free'  # Set to Foundation tier (NOT enterprise)
         session['display_name'] = 'GamerJay'
         session['session_version'] = "2025-07-28-banking-security"
         session['last_activity'] = datetime.now().isoformat()
@@ -8270,7 +8270,7 @@ def reset_user_to_foundation():
             return jsonify({"success": False, "error": "Not logged in"}), 401
             
         # Reset session to foundation
-        session['user_plan'] = 'foundation'
+        session['user_plan'] = 'free'
         session['last_activity'] = datetime.now().isoformat()
         
         user_email = session.get('user_email', 'unknown')
