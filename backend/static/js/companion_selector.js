@@ -913,9 +913,11 @@ function hasAccessToCompanion(companion, user, trialStatus) {
     }
 
     if (tier === 'max') {
-        const hasAccess = userPlan === 'max' || userPlan === 'enterprise' || 
+        // Max companions: ONLY unlocked by enterprise plan OR active 5-hour trial
+        // After trial expires, you MUST purchase Enterprise plan to access
+        const hasAccess = userPlan === 'enterprise' || 
                (trialStatus?.trial_active === true);
-        console.log(`🔍 Max access for ${companion.display_name}: ${hasAccess} (trial_active=${trialStatus?.trial_active})`);
+        console.log(`🔍 Max access for ${companion.display_name}: ${hasAccess} (enterprise=${userPlan === 'enterprise'}, trial_active=${trialStatus?.trial_active})`);
         return hasAccess;
     }
 

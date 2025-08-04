@@ -1384,11 +1384,14 @@ def api_companions():
                 else:
                     return "Try 5hr Free or Upgrade"
             elif tier == "max":
-                # Max companions: unlocked by enterprise plan OR active 5-hour trial
-                if user_plan == 'enterprise' or trial_active:
-                    return None
+                # Max companions: ONLY unlocked by enterprise plan OR active 5-hour trial
+                # After trial expires, you MUST purchase Enterprise plan to access
+                if user_plan == 'enterprise':
+                    return None  # Purchased enterprise - full access
+                elif trial_active:
+                    return None  # Active trial - temporary access
                 else:
-                    return "Try 5hr Free or Upgrade"
+                    return "Try 5hr Free or Purchase Max Plan"
             return "Upgrade Required"
         
         # Define companions by tier
