@@ -984,8 +984,8 @@ What specific area would you like help with? I know every feature of SoulBridge 
                     
                     console.log('🔍 User plan for premium features:', userPlan, 'trial:', trialActive);
                     
-                    // Show premium features based on plan (Growth/Max only) OR active trial  
-                    if (userPlan === 'growth' || userPlan === 'max' || trialActive) {
+                    // Show premium features based on plan (Growth/Max only)  
+                    if (userPlan === 'growth' || userPlan === 'max') {
                         // Growth (Premium) and Max (Enterprise) users get all premium features
                         document.getElementById('voiceJournalingBtn').style.display = 'block';
                         document.getElementById('relationshipBtn').style.display = 'block';
@@ -999,21 +999,6 @@ What specific area would you like help with? I know every feature of SoulBridge 
                             document.getElementById('relationshipLimit').textContent = '∞ Unlimited';
                             document.getElementById('meditationLimit').textContent = '∞ Unlimited';
                             document.getElementById('aiImageLimit').textContent = '∞ Unlimited';
-                        } else if (trialActive) {
-                            // Trial: users keep their limits but get feature access
-                            if (userPlan === 'free') {
-                                // Free users keep Free limits but get access to premium features
-                                document.getElementById('voiceLimit').textContent = '0/month (Unlocked via Trial)';
-                                document.getElementById('relationshipLimit').textContent = '0 profiles (Unlocked via Trial)';
-                                document.getElementById('meditationLimit').textContent = '0/month (Unlocked via Trial)';
-                                document.getElementById('aiImageLimit').textContent = '0/month (Unlocked via Trial)';
-                            } else {
-                                // Growth users keep Growth limits but get Max features unlocked
-                                document.getElementById('voiceLimit').textContent = '50/month (Max Features Unlocked)';
-                                document.getElementById('relationshipLimit').textContent = '10 profiles (Max Features Unlocked)';
-                                document.getElementById('meditationLimit').textContent = '20/month (Max Features Unlocked)';
-                                document.getElementById('aiImageLimit').textContent = '25/month (Max Features Unlocked)';
-                            }
                         } else {
                             // Growth users get limited amounts
                             document.getElementById('voiceLimit').textContent = '50/month';

@@ -71,8 +71,8 @@
                     Library
                 </a>
                 
-                <!-- Premium Features (Growth/Max users or Trial users) -->
-                {% if session.get('user_plan') in ['growth', 'max'] or session.get('trial_active') %}
+                <!-- Premium Features (Growth/Max users only) -->
+                {% if session.get('user_plan') in ['growth', 'max'] %}
                 <a href="/voice-journaling" class="action-btn premium-feature">
                     <i class="fas fa-microphone"></i>
                     Voice Journal
