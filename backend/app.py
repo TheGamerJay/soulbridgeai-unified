@@ -4478,26 +4478,38 @@ def get_user_addons():
         logger.error(f"User addons error: {e}")
         return jsonify({"success": False, "error": "Failed to fetch add-ons"}), 500
 
-# --- Tier Limits ---
-# New clean tier limits with consistent naming
-TIER_LIMITS = {
-    "free": {
+# --- ISOLATED TIER BLOCKS ---
+# Each tier has its own completely isolated configuration block
+
+class FreeTier:
+    """Isolated Free Tier - Cannot be contaminated by other tiers"""
+    LIMITS = {
         "decoder": 3, "fortune": 2, "horoscope": 3, 
         "ai_image_monthly": 0, "voice_journal_monthly": 0, 
         "relationship_profiles": 0, "emotional_meditations": 0,
         "priority_response": False, "advanced_voice_ai": False,
         "custom_personality_modes": 0, "full_color_customization": False,
         "crisis_support": False, "transformation_coaching": False
-    },
-    "growth": {
+    }
+    FEATURES = ["decoder", "fortune", "horoscope", "library"]
+    COMPANIONS = ["blayzo_free", "blayzica_free", "claude_free"]
+
+class GrowthTier:
+    """Isolated Growth Tier - Cannot be contaminated by other tiers"""
+    LIMITS = {
         "decoder": 15, "fortune": 8, "horoscope": 10, 
         "ai_image_monthly": 25, "voice_journal_monthly": 50, 
         "relationship_profiles": 10, "emotional_meditations": 20,
         "priority_response": True, "advanced_voice_ai": True,
         "custom_personality_modes": 3, "full_color_customization": True,
         "crisis_support": True, "transformation_coaching": True
-    },
-    "max": {
+    }
+    FEATURES = ["decoder", "fortune", "horoscope", "library", "voice_journal", "ai_images", "relationships", "meditations", "creative_writing"]
+    COMPANIONS = ["blayzo_growth", "blayzica_growth", "claude_growth", "companion_sky"]
+
+class MaxTier:
+    """Isolated Max Tier - Cannot be contaminated by other tiers"""
+    LIMITS = {
         "decoder": float('inf'), "fortune": float('inf'), "horoscope": float('inf'), 
         "ai_image_monthly": float('inf'), "voice_journal_monthly": float('inf'), 
         "relationship_profiles": float('inf'), "emotional_meditations": float('inf'),
@@ -4505,6 +4517,14 @@ TIER_LIMITS = {
         "custom_personality_modes": float('inf'), "full_color_customization": True,
         "crisis_support": True, "transformation_coaching": True
     }
+    FEATURES = ["decoder", "fortune", "horoscope", "library", "voice_journal", "ai_images", "relationships", "meditations", "creative_writing"]
+    COMPANIONS = ["blayzo_max", "blayzica_max", "claude_max", "companion_crimson", "companion_violet"]
+
+# Legacy compatibility - maps to isolated tier blocks
+TIER_LIMITS = {
+    "free": FreeTier.LIMITS,
+    "growth": GrowthTier.LIMITS, 
+    "max": MaxTier.LIMITS
 }
 
 # ========================================
@@ -4534,6 +4554,25 @@ def get_feature_limit(plan, feature):
 def get_tier_limits_safe(plan):
     """Get INDEPENDENT copy of tier limits to prevent mutation"""
     return deepcopy(TIER_LIMITS.get(plan, TIER_LIMITS['free']))
+
+def get_tier_block(plan):
+    """Get isolated tier block - CANNOT be contaminated"""
+    tier_blocks = {
+        'free': FreeTier,
+        'growth': GrowthTier,
+        'max': MaxTier
+    }
+    return tier_blocks.get(plan, FreeTier)
+
+def has_feature_access(user_plan, feature):
+    """Check if user has access to specific feature - ISOLATED"""
+    tier_block = get_tier_block(user_plan)
+    return feature in tier_block.FEATURES
+
+def get_isolated_limits(user_plan):
+    """Get limits from isolated tier block"""
+    tier_block = get_tier_block(user_plan)
+    return deepcopy(tier_block.LIMITS)
 
 def test_tier_isolation():
     """Test that tier limits remain independent when modified"""
