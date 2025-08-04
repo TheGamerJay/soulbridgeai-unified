@@ -544,11 +544,11 @@ async function refreshFortuneLimits() {
         const planNotice = document.getElementById("max-plan-message");
         const planDesc = document.getElementById("plan-description");
 
-        if (data.user_plan === "enterprise") {
+        if (data.user_plan === "max") {
             // 🔴 Max tier - show unlimited message
             if (planNotice) planNotice.style.display = "block";
             if (planDesc) planDesc.style.display = "none";
-        } else if (data.user_plan === "premium") {
+        } else if (data.user_plan === "growth") {
             // 🔵 Growth tier
             if (planNotice) planNotice.style.display = "none";
             if (planDesc) {
@@ -556,7 +556,7 @@ async function refreshFortuneLimits() {
                 planDesc.textContent = `Growth users get ${limitDisplay} fortunes per day. Upgrade to Max for unlimited.`;
             }
         } else {
-            // 🟢 Free tier (foundation) - even during trial, show as free
+            // 🟢 Free tier - even during trial, show as free
             if (planNotice) planNotice.style.display = "none";
             if (planDesc) {
                 planDesc.style.display = "block";

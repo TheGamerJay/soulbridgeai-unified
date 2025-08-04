@@ -773,19 +773,19 @@ async function refreshHoroscopeLimits() {
         const planNotice = document.getElementById("max-plan-message");
         const planDesc = document.getElementById("plan-description");
 
-        if (data.user_plan === "enterprise") {
+        if (data.user_plan === "max") {
             // 🔴 Max tier - show unlimited message
             if (planNotice) planNotice.style.display = "block";
             if (planDesc) planDesc.style.display = "none";
-        } else if (data.user_plan === "premium") {
-            // 🔵 Growth tier - show growth limits (should be 8, not 3)
+        } else if (data.user_plan === "growth") {
+            // 🔵 Growth tier - show growth limits (should be 10, not 3)
             if (planNotice) planNotice.style.display = "none";
             if (planDesc) {
                 planDesc.style.display = "block";
                 planDesc.textContent = `Growth users get ${limitDisplay} horoscopes per day. Upgrade to Max for unlimited.`;
             }
         } else {
-            // 🟢 Free tier (foundation) - show foundation limits (should be 3)
+            // 🟢 Free tier - show free limits (should be 3)
             if (planNotice) planNotice.style.display = "none";
             if (planDesc) {
                 planDesc.style.display = "block";
