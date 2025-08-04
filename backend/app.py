@@ -66,6 +66,8 @@ def enforce_trial_effective_plan():
     user_id = session.get('user_id')
     if not user_id:
         return  # not logged in
+    
+    logger.info(f"🎯 @app.before_request called for user_id={user_id}, path={request.path}, endpoint={request.endpoint}")
 
     try:
         # Check if trial is active
@@ -84,8 +86,10 @@ def enforce_trial_effective_plan():
         
         if trial_active:
             session['effective_plan'] = 'max'  # Trial gives Max-tier access
+            logger.info(f"🎯 SESSION OVERRIDE: Trial active - effective_plan set to 'max' for user_id={user_id}")
         else:
             session['effective_plan'] = mapped_plan
+            logger.info(f"🎯 SESSION OVERRIDE: No trial - effective_plan set to '{mapped_plan}' for user_id={user_id}")
             
     except Exception as e:
         # Don't break the app if trial check fails
@@ -4704,6 +4708,8 @@ def check_decoder_limit():
     trial_active = session.get("trial_active", False)
     daily_limit = get_feature_limit(effective_plan, "decoder")
     usage_today = get_decoder_usage()
+    
+    logger.info(f"🎯 DECODER API: user_id={user_id}, effective_plan='{effective_plan}', user_plan='{user_plan}', trial_active={trial_active}, daily_limit={daily_limit}, usage={usage_today}")
 
     return jsonify({
         "success": True,
