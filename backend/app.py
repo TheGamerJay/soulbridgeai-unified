@@ -5152,8 +5152,16 @@ def debug_upgrade_to_max():
     """Debug endpoint to set user to Max tier"""
     session['user_plan'] = 'max'
     session['user_authenticated'] = True
-    session.modified = True
+    refresh_session_access_flags()
     return jsonify({"success": True, "message": "Upgraded to Max tier", "user_plan": "max"})
+
+@app.route("/debug/upgrade-to-growth", methods=["POST"])
+def debug_upgrade_to_growth():
+    """Debug endpoint to set user to Growth tier"""
+    session['user_plan'] = 'growth'
+    session['user_authenticated'] = True
+    refresh_session_access_flags()
+    return jsonify({"success": True, "message": "Upgraded to Growth tier", "user_plan": "growth"})
 
 
 @app.route("/api/subscription/upgrade", methods=["POST"])
