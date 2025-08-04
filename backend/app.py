@@ -6064,14 +6064,11 @@ def api_chat():
             user_plan = session.get('user_plan', 'free')
             current_usage = get_decoder_usage()
             
-            # Define tier limits
-            tier_limits = {
-                'foundation': 3,    # Free: 3 per day
-                'premium': 15,      # Growth: 15 per day  
-                'enterprise': None  # Max: unlimited
-            }
-            
-            daily_limit = tier_limits.get(user_plan, 3)
+            # Use centralized TIER_LIMITS with proper deepcopy to avoid mutation
+            from copy import deepcopy
+            daily_limit = get_feature_limit(user_plan, 'decoder')
+            if daily_limit == float('inf'):
+                daily_limit = None  # Unlimited for Max tier
             
             # Check if user has exceeded limit
             if daily_limit is not None and current_usage >= daily_limit:
@@ -7660,7 +7657,7 @@ def ai_image_generation_generate():
         monthly_usage = session.get(usage_key, 0)
         
         if monthly_limit is not None and monthly_usage >= monthly_limit:
-            tier_name = {"foundation": "Free", "premium": "Growth", "enterprise": "Max"}[effective_plan]
+            tier_name = {"free": "Free", "growth": "Growth", "max": "Max"}[effective_plan]
             if monthly_limit == 0 and trial_active:
                 return jsonify({"success": False, "error": f"AI Image Generation requires Growth/Max subscription (trial unlocks access but uses your {tier_name} plan limits: {monthly_limit} images/month)"}), 403
             else:
@@ -8009,18 +8006,13 @@ def get_user_tier_status():
         user_tier = session.get('user_plan', 'free')
         user_email = session.get('user_email', session.get('email'))
         
-        # Map backend plan names to frontend tier names
-        tier_mapping = {
-            'foundation': 'foundation',
-            'premium': 'premium',     # Growth plan
-            'enterprise': 'enterprise' # Max plan
-        }
+        # Use consistent plan naming (no mapping needed)
+        mapped_tier = user_tier
         
-        mapped_tier = tier_mapping.get(user_tier, 'foundation')
-        
-        # Define tier features
+        # Define tier features using TIER_LIMITS for consistency
+        from copy import deepcopy
         tier_features = {
-            'foundation': {
+            'free': {
                 'voice_chat': False,
                 'advanced_ai': False,
                 'priority_support': False,
@@ -8029,7 +8021,7 @@ def get_user_tier_status():
                 'premium_animations': False,
                 'max_companions': 'free_only'
             },
-            'premium': {  # Growth Plan
+            'growth': {  # Growth Plan
                 'voice_chat': True,
                 'advanced_ai': True,
                 'priority_support': True,
@@ -8038,7 +8030,7 @@ def get_user_tier_status():
                 'premium_animations': False,
                 'max_companions': 'growth'
             },
-            'enterprise': {  # Max Plan
+            'max': {  # Max Plan
                 'voice_chat': True,
                 'advanced_ai': True,
                 'priority_support': True,
@@ -8049,7 +8041,7 @@ def get_user_tier_status():
             }
         }
         
-        features = tier_features.get(mapped_tier, tier_features['foundation'])
+        features = deepcopy(tier_features.get(mapped_tier, tier_features['free']))
         
         logger.info(f"Tier status check for {user_email}: {mapped_tier}")
         
@@ -8057,10 +8049,10 @@ def get_user_tier_status():
             "success": True,
             "tier": mapped_tier,
             "tier_display": {
-                'foundation': 'Foundation (Free)',
-                'premium': 'Growth Plan',
-                'enterprise': 'Max Plan'
-            }.get(mapped_tier, 'Foundation'),
+                'free': 'Free',
+                'growth': 'Growth Plan',
+                'max': 'Max Plan'
+            }.get(mapped_tier, 'Free'),
             "features": features,
             "switching_unlocked": session.get('switching_unlocked', False)
         })
