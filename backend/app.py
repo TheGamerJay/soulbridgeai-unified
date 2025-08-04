@@ -5071,6 +5071,45 @@ def debug_upgrade_to_growth():
     refresh_session_access_flags()
     return jsonify({"success": True, "message": "Upgraded to Growth tier", "user_plan": "growth"})
 
+@app.route("/admin/clean-old-plans", methods=["POST"])
+def admin_clean_old_plans():
+    """ADMIN: Update database to use new plan names and remove old migration code"""
+    try:
+        database_url = os.environ.get('DATABASE_URL')
+        if not database_url:
+            return jsonify({"success": False, "error": "Database not available"}), 500
+        
+        import psycopg2
+        conn = psycopg2.connect(database_url)
+        cursor = conn.cursor()
+        
+        # Update old plan names in database
+        cursor.execute("UPDATE users SET plan_type = 'free' WHERE plan_type = 'foundation'")
+        foundation_updated = cursor.rowcount
+        
+        cursor.execute("UPDATE users SET plan_type = 'growth' WHERE plan_type = 'premium'") 
+        premium_updated = cursor.rowcount
+        
+        cursor.execute("UPDATE users SET plan_type = 'max' WHERE plan_type = 'enterprise'")
+        enterprise_updated = cursor.rowcount
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({
+            "success": True, 
+            "message": "Database cleaned up successfully",
+            "updated": {
+                "foundation_to_free": foundation_updated,
+                "premium_to_growth": premium_updated, 
+                "enterprise_to_max": enterprise_updated
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Database cleanup error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
 @app.route("/debug/test-tier-isolation", methods=["GET"])
 def debug_test_tier_isolation():
     """Test that tier limits don't contaminate each other"""
