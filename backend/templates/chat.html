@@ -72,7 +72,7 @@
                 </a>
                 
                 <!-- ISOLATED GROWTH TIER BLOCK -->
-                {% if session.get('user_plan') == 'growth' %}
+                {% if session.get('access_growth') %}
                 <a href="/voice-journaling" class="action-btn premium-feature growth-tier-feature">
                     <i class="fas fa-microphone"></i>
                     Voice Journal
@@ -92,7 +92,7 @@
                 {% endif %}
                 
                 <!-- ISOLATED MAX TIER BLOCK -->
-                {% if session.get('user_plan') == 'max' %}
+                {% if session.get('access_max') %}
                 <a href="/voice-journaling" class="action-btn premium-feature max-tier-feature">
                     <i class="fas fa-microphone"></i>
                     Voice Journal
@@ -112,7 +112,7 @@
                 {% endif %}
                 
                 <!-- ISOLATED GROWTH TIER CREATIVE WRITING -->
-                {% if session.get('user_plan') == 'growth' %}
+                {% if session.get('access_growth') %}
                 <button onclick="openCreativeWriting()" class="action-btn creative-btn growth-tier-feature" title="Creative Writing Assistant - Growth Feature">
                     <i class="fas fa-feather-alt"></i>
                     Write
@@ -120,7 +120,7 @@
                 {% endif %}
                 
                 <!-- ISOLATED MAX TIER CREATIVE WRITING -->
-                {% if session.get('user_plan') == 'max' %}
+                {% if session.get('access_max') %}
                 <button onclick="openCreativeWriting()" class="action-btn creative-btn max-tier-feature" title="Creative Writing Assistant - Max Feature">
                     <i class="fas fa-feather-alt"></i>
                     Write
@@ -1576,7 +1576,7 @@ Where emotion meets expression.
                 
                 // Show alert with debug info
                 if (!voiceJournal && !aiImages && !relationships && !meditations && !writeBtn) {
-                    alert(`🚨 BUG DETECTED! Premium features missing!\nSession Plan: ${sessionData.user_plan}\nTemplate Check: ${sessionData.template_condition_check.user_plan_in_growth_max}`);
+                    alert(`🚨 BUG DETECTED! Premium features missing!\nSession Plan: ${sessionData.user_plan}\nAccess Growth: ${sessionData.session_data.access_growth}\nAccess Max: ${sessionData.session_data.access_max}\nTrial Active: ${sessionData.trial_active}`);
                 }
             } catch (error) {
                 console.error('🚨 Debug session check failed:', error);

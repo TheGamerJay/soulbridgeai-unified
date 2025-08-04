@@ -703,7 +703,18 @@ def auth_login():
             except Exception as trial_error:
                 logger.warning(f"Failed to restore trial status on login: {trial_error}")
             
-            logger.info(f"Login successful: {email} (plan: {session['user_plan']})")
+            # ISOLATED TIER ACCESS FLAGS - Prevents cross-contamination
+            user_plan = session.get('user_plan', 'free')
+            trial_active = session.get('trial_active', False)
+            
+            # Define isolated access flags for each tier
+            session['access_free'] = True  # Everyone gets free features
+            session['access_growth'] = user_plan in ['growth', 'max'] or trial_active
+            session['access_max'] = user_plan == 'max' or trial_active  
+            session['access_trial'] = trial_active
+            
+            logger.info(f"Login successful: {email} (plan: {session['user_plan']}, trial: {trial_active})")
+            logger.info(f"Access flags: free={session['access_free']}, growth={session['access_growth']}, max={session['access_max']}, trial={session['access_trial']}")
             
             # Handle both form submissions and AJAX requests
             if request.headers.get('Content-Type') == 'application/json' or request.is_json:
@@ -1267,7 +1278,18 @@ def intro():
     else:
         logger.info(f"✅ INTRO: Plan {user_plan} already using new naming - no migration needed")
     
+    # ISOLATED TIER ACCESS FLAGS - Prevents cross-contamination 
+    user_plan = session.get('user_plan', 'free')
+    trial_active = session.get('trial_active', False)
+    
+    # Define isolated access flags for each tier
+    session['access_free'] = True  # Everyone gets free features
+    session['access_growth'] = user_plan in ['growth', 'max'] or trial_active
+    session['access_max'] = user_plan == 'max' or trial_active  
+    session['access_trial'] = trial_active
+    
     logger.info(f"✅ INTRO: Showing intro page for authenticated user with plan: {session.get('user_plan')}")
+    logger.info(f"Access flags: free={session['access_free']}, growth={session['access_growth']}, max={session['access_max']}, trial={session['access_trial']}")
     return render_template("intro.html")
 
 @app.route("/companion-selection")
@@ -1314,6 +1336,16 @@ def chat():
         logger.info(f"🔄 CHAT: Migrated OLD plan {user_plan} → {session['user_plan']}")
     else:
         logger.info(f"✅ CHAT: Plan {user_plan} already using new naming - no migration needed")
+    
+    # ISOLATED TIER ACCESS FLAGS - Prevents cross-contamination 
+    user_plan = session.get('user_plan', 'free')
+    trial_active = session.get('trial_active', False)
+    
+    # Define isolated access flags for each tier
+    session['access_free'] = True  # Everyone gets free features
+    session['access_growth'] = user_plan in ['growth', 'max'] or trial_active
+    session['access_max'] = user_plan == 'max' or trial_active  
+    session['access_trial'] = trial_active
     
     # Get selected companion from session or URL parameter
     selected_companion = session.get('selected_companion')
