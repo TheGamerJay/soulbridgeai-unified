@@ -1418,6 +1418,13 @@ def chat():
     companion_name = None
     
     if selected_companion:
+        # CRITICAL: Migrate old plan names BEFORE checking companion access
+        user_plan = session.get('user_plan', 'free')
+        plan_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
+        if user_plan in plan_mapping and user_plan != plan_mapping[user_plan]:
+            session['user_plan'] = plan_mapping[user_plan]
+            logger.info(f"🔄 CHAT COMPANION ACCESS: Migrated OLD plan {user_plan} → {session['user_plan']}")
+        
         # Check if user has access to this companion
         user_tier = session.get('user_plan', 'free')
         
