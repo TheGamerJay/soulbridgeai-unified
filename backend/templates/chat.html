@@ -72,7 +72,7 @@
                 </a>
                 
                 <!-- Premium Features (Growth/Max users or Trial users) -->
-                {% if session.get('user_plan') in ['premium', 'enterprise'] or session.get('trial_active') %}
+                {% if session.get('user_plan') in ['premium', 'enterprise', 'max'] or session.get('trial_active') %}
                 <a href="/voice-journaling" class="action-btn premium-feature">
                     <i class="fas fa-microphone"></i>
                     Voice Journal
@@ -92,7 +92,7 @@
                 {% endif %}
                 
                 <!-- Growth & Max Tier Creative Writing (visible to Growth/Max + Trial users) -->
-                {% if session.get('user_plan') in ['premium', 'enterprise'] or session.get('trial_active') %}
+                {% if session.get('user_plan') in ['premium', 'enterprise', 'max'] or session.get('trial_active') %}
                 <button onclick="openCreativeWriting()" class="action-btn creative-btn" title="Creative Writing Assistant - Growth/Max Feature">
                     <i class="fas fa-feather-alt"></i>
                     Write

@@ -508,7 +508,7 @@ async function refreshFortuneLimits() {
 
         const trialActive = data.trial_active;
         const plan = data.effective_plan;
-        const limit = data.daily_limit ?? '∞';
+        const limit = data.daily_limit === null ? '∞' : (data.daily_limit ?? '?');
 
         document.getElementById('usage-limit').textContent = limit;
         document.getElementById('user-plan-display').textContent = plan;

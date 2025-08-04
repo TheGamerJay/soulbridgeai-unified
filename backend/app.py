@@ -4675,7 +4675,7 @@ def check_decoder_limit():
     limit = get_feature_limit("decoder", real_plan)
 
     # Trial flag (used for unlocking companions, not limits!)
-    trial_active = is_trial_active(user_id)
+    trial_active = check_trial_active_from_db(user_id)
     
     # Get usage for frontend display
     usage_today = get_decoder_usage() if user_id else 0
@@ -4698,7 +4698,7 @@ def check_fortune_limit():
     limit = get_feature_limit("fortune", real_plan)
 
     # Trial flag (used for unlocking companions, not limits!)
-    trial_active = is_trial_active(user_id)
+    trial_active = check_trial_active_from_db(user_id)
     
     # Get usage for frontend display
     usage_today = get_fortune_usage() if user_id else 0
@@ -4724,7 +4724,7 @@ def check_horoscope_limit():
     limit = get_feature_limit("horoscope", real_plan)
 
     # Trial flag (used for unlocking companions, not limits!)
-    trial_active = is_trial_active(user_id)
+    trial_active = check_trial_active_from_db(user_id)
     
     # Get usage for frontend display
     usage_today = get_horoscope_usage() if user_id else 0
