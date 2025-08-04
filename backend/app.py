@@ -1437,7 +1437,7 @@ def chat():
         companion_access_valid = True
         
         # BLOCK ACCESS: Check companion tier requirements before allowing chat
-        if selected_companion in ['companion_sky', 'companion_gamerjay_premium', 'companion_blayzo_premium', 'companion_watchdog', 'companion_crimson_growth', 'companion_violet_growth', 'companion_claude_growth']:
+        if selected_companion in ['companion_sky', 'companion_gamerjay_premium', 'blayzo_growth', 'watchdog_growth', 'crimson_growth', 'violet_growth', 'claude_growth']:
             # Growth tier companion - requires growth plan (trial doesn't help free users)
             if user_tier != 'growth' and user_tier != 'max':
                 logger.warning(f"🚫 BLOCKING CHAT ACCESS: {user_tier} user {session.get('user_email')} tried to access Growth companion {selected_companion}")
