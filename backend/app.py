@@ -663,6 +663,9 @@ def auth_login():
                 logger.info(f"🔄 AUTH: Migrated OLD plan {raw_plan} → {session['user_plan']} during login")
             
             # Restore active trial status from database if exists
+            # Initialize trial status to False by default
+            session["trial_active"] = False
+            
             try:
                 database_url = os.environ.get('DATABASE_URL')
                 if database_url:
@@ -712,6 +715,7 @@ def auth_login():
             session['access_growth'] = user_plan in ['growth', 'max'] or trial_active
             session['access_max'] = user_plan == 'max' or trial_active  
             session['access_trial'] = trial_active
+            session.modified = True  # Ensure session changes are saved
             
             logger.info(f"Login successful: {email} (plan: {session['user_plan']}, trial: {trial_active})")
             logger.info(f"Access flags: free={session['access_free']}, growth={session['access_growth']}, max={session['access_max']}, trial={session['access_trial']}")
@@ -1287,6 +1291,7 @@ def intro():
     session['access_growth'] = user_plan in ['growth', 'max'] or trial_active
     session['access_max'] = user_plan == 'max' or trial_active  
     session['access_trial'] = trial_active
+    session.modified = True  # Ensure session changes are saved
     
     logger.info(f"✅ INTRO: Showing intro page for authenticated user with plan: {session.get('user_plan')}")
     logger.info(f"Access flags: free={session['access_free']}, growth={session['access_growth']}, max={session['access_max']}, trial={session['access_trial']}")
@@ -1346,6 +1351,7 @@ def chat():
     session['access_growth'] = user_plan in ['growth', 'max'] or trial_active
     session['access_max'] = user_plan == 'max' or trial_active  
     session['access_trial'] = trial_active
+    session.modified = True  # Ensure session changes are saved
     
     # Get selected companion from session or URL parameter
     selected_companion = session.get('selected_companion')
