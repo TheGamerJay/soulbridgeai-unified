@@ -916,7 +916,7 @@ def force_max_for_live():
         return jsonify({"success": False, "error": "Authentication required"}), 401
     
     # Set in session
-    session['user_plan'] = 'enterprise'
+    session['user_plan'] = 'max'
     
     # Also save to database for persistence
     user_email = session.get('user_email') or session.get('email')
@@ -4900,18 +4900,18 @@ def debug_upgrade_to_free():
 @app.route("/debug/upgrade-to-growth", methods=["POST"])
 def debug_upgrade_to_growth():
     """Debug endpoint to set user to Growth tier"""
-    session['user_plan'] = 'premium'
+    session['user_plan'] = 'growth'
     session['user_authenticated'] = True
     session.modified = True
-    return jsonify({"success": True, "message": "Upgraded to Growth tier", "user_plan": "premium"})
+    return jsonify({"success": True, "message": "Upgraded to Growth tier", "user_plan": "growth"})
 
 @app.route("/debug/upgrade-to-max", methods=["POST"])
 def debug_upgrade_to_max():
     """Debug endpoint to set user to Max tier"""
-    session['user_plan'] = 'enterprise'
+    session['user_plan'] = 'max'
     session['user_authenticated'] = True
     session.modified = True
-    return jsonify({"success": True, "message": "Upgraded to Max tier", "user_plan": "enterprise"})
+    return jsonify({"success": True, "message": "Upgraded to Max tier", "user_plan": "max"})
 
 
 @app.route("/api/subscription/upgrade", methods=["POST"])
