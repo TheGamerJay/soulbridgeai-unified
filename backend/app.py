@@ -1779,13 +1779,15 @@ def decoder():
         if not is_logged_in():
             return redirect("/login")
             
-        # Get user's plan and decoder usage
+        # Get user's plan - usage tracking removed
         user_id = session.get('user_id')
         user_plan = session.get('user_plan', 'free')
-        decoder_usage = get_decoder_usage()
+        decoder_usage = 0  # TODO: Add database usage tracking
         
-        # Get effective limits using shared function
-        daily_limit, effective_plan = get_effective_decoder_limits(user_id, user_plan)
+        # Get effective limits using bulletproof functions
+        trial_active = is_trial_active(user_id)
+        effective_plan = get_effective_plan(user_plan, trial_active)
+        daily_limit = get_feature_limit(effective_plan, 'decoder')
         
         # DEBUG: Log decoder access info
         logger.info(f"🔍 DECODER DEBUG: user_plan = {user_plan}")
@@ -1808,13 +1810,15 @@ def fortune():
         if not is_logged_in():
             return redirect("/login")
             
-        # Get user's plan and fortune usage
+        # Get user's plan - usage tracking removed
         user_id = session.get('user_id')
         user_plan = session.get('user_plan', 'free')
-        fortune_usage = get_fortune_usage()
+        fortune_usage = 0  # TODO: Add database usage tracking
         
-        # Get effective limits using similar logic to decoder
-        daily_limit, effective_plan = get_effective_fortune_limits(user_id, user_plan)
+        # Get effective limits using bulletproof functions
+        trial_active = is_trial_active(user_id)
+        effective_plan = get_effective_plan(user_plan, trial_active)
+        daily_limit = get_feature_limit(effective_plan, 'fortune')
         
         # DEBUG: Log fortune access info
         logger.info(f"🔮 FORTUNE DEBUG: user_plan = {user_plan}")
@@ -1837,13 +1841,15 @@ def horoscope():
         if not is_logged_in():
             return redirect("/login")
             
-        # Get user's plan and horoscope usage
+        # Get user's plan - usage tracking removed
         user_id = session.get('user_id')
         user_plan = session.get('user_plan', 'free')
-        horoscope_usage = get_horoscope_usage()
+        horoscope_usage = 0  # TODO: Add database usage tracking
         
-        # Get effective limits using similar logic to decoder
-        daily_limit, effective_plan = get_effective_horoscope_limits(user_id, user_plan)
+        # Get effective limits using bulletproof functions
+        trial_active = is_trial_active(user_id)
+        effective_plan = get_effective_plan(user_plan, trial_active)
+        daily_limit = get_feature_limit(effective_plan, 'horoscope')
         
         # DEBUG: Log horoscope access info
         logger.info(f"⭐ HOROSCOPE DEBUG: user_plan = {user_plan}")
@@ -4543,28 +4549,9 @@ def can_access_companion(user_plan: str, companion_tier: str, trial_active: bool
 
 # OLD test_tier_isolation() DELETED - No longer needed with isolated tier blocks
 
-def is_companion_unlocked(user, companion_tier):
-    """Check if companion is accessible"""
-    plan = get_effective_plan(user)
-    if plan == 'trial':
-        return True  # All companions unlocked during trial
-    if companion_tier == 'free':
-        return True
-    if companion_tier == 'growth' and plan in ['growth', 'max']:
-        return True
-    if companion_tier == 'max' and plan == 'max':
-        return True
-    return False
+# OLD is_companion_unlocked() DELETED - Using can_access_companion() instead
 
-def start_trial(user):
-    """Start trial (only once)"""
-    if getattr(user, 'trial_used_permanently', False):
-        return False
-    user.trial_started_at = datetime.utcnow()
-    user.trial_expires_at = user.trial_started_at + timedelta(hours=5)
-    user.trial_used_permanently = True
-    # Save to DB here - implementation depends on your ORM/database setup
-    return True
+# OLD start_trial() DELETED
 
 def is_trial_active(user_id) -> bool:
     """Check if trial is currently active - bulletproof implementation"""
@@ -4601,212 +4588,13 @@ def is_trial_active(user_id) -> bool:
 
 # OLD get_effective_feature_limit() REMOVED - Using bulletproof get_feature_limit() directly
 
-def get_effective_plan_for_display(user_plan, trial_active):
-    """Returns display plan for frontend messaging"""
-    # Map old plan names to new ones
-    plan_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
-    result = plan_mapping.get(user_plan, user_plan)
-    
-    logger.info(f"🎭 DISPLAY PLAN: {user_plan} (trial={trial_active}) → {result}")
-    return result
+# OLD get_effective_plan_for_display() DELETED
 
-def get_effective_decoder_limits(user_id, user_plan):
-    """Get effective decoder limits for a user, considering trial status"""
-    trial_active = is_trial_active(user_id)
-    effective_plan = get_effective_plan(user_plan, trial_active)
-    daily_limit = get_feature_limit(effective_plan, "decoder")
-    effective_plan_display = get_effective_plan_for_display(user_plan, trial_active)
-    return daily_limit, effective_plan_display
+# OLD get_effective_*_limits() functions DELETED
 
-def get_effective_fortune_limits(user_id, user_plan):
-    """Get effective fortune limits for a user, considering trial status"""
-    trial_active = is_trial_active(user_id)
-    effective_plan = get_effective_plan(user_plan, trial_active)
-    daily_limit = get_feature_limit(effective_plan, "fortune")
-    effective_plan_display = get_effective_plan_for_display(user_plan, trial_active)
-    return daily_limit, effective_plan_display
+# ALL OLD USAGE TRACKING FUNCTIONS DELETED
 
-def get_effective_horoscope_limits(user_id, user_plan):
-    """Get effective horoscope limits for a user, considering trial status"""
-    trial_active = is_trial_active(user_id)
-    effective_plan = get_effective_plan(user_plan, trial_active)
-    daily_limit = get_feature_limit(effective_plan, "horoscope")
-    effective_plan_display = get_effective_plan_for_display(user_plan, trial_active)
-    return daily_limit, effective_plan_display
-
-def get_decoder_usage():
-    """Get user's decoder usage for today"""
-    try:
-        user_id = session.get('user_id')
-        if not user_id:
-            return 0
-            
-        # Use session-based tracking for now (in production, use database)
-        today = datetime.now().strftime('%Y-%m-%d')
-        usage_key = f'decoder_usage_{user_id}_{today}'
-        
-        return session.get(usage_key, 0)
-    except Exception as e:
-        logger.error(f"Get decoder usage error: {e}")
-        return 0
-
-def increment_decoder_usage():
-    """Increment user's decoder usage for today"""
-    try:
-        user_id = session.get('user_id')
-        if not user_id:
-            return False
-            
-        today = datetime.now().strftime('%Y-%m-%d')
-        usage_key = f'decoder_usage_{user_id}_{today}'
-        
-        current_usage = session.get(usage_key, 0)
-        session[usage_key] = current_usage + 1
-        
-        return True
-    except Exception as e:
-        logger.error(f"Increment decoder usage error: {e}")
-        return False
-
-def get_fortune_usage():
-    """Get user's fortune usage for today"""
-    try:
-        user_id = session.get('user_id')
-        if not user_id:
-            return 0
-            
-        # Use session-based tracking for now (in production, use database)
-        today = datetime.now().strftime('%Y-%m-%d')
-        usage_key = f'fortune_usage_{user_id}_{today}'
-        
-        return session.get(usage_key, 0)
-    except Exception as e:
-        logger.error(f"Get fortune usage error: {e}")
-        return 0
-
-def increment_fortune_usage():
-    """Increment user's fortune usage for today"""
-    try:
-        user_id = session.get('user_id')
-        if not user_id:
-            return False
-            
-        today = datetime.now().strftime('%Y-%m-%d')
-        usage_key = f'fortune_usage_{user_id}_{today}'
-        
-        current_usage = session.get(usage_key, 0)
-        session[usage_key] = current_usage + 1
-        
-        return True
-    except Exception as e:
-        logger.error(f"Increment fortune usage error: {e}")
-        return False
-
-def get_horoscope_usage():
-    """Get user's horoscope usage for today"""
-    try:
-        user_id = session.get('user_id')
-        if not user_id:
-            return 0
-            
-        # Use session-based tracking for now (in production, use database)
-        today = datetime.now().strftime('%Y-%m-%d')
-        usage_key = f'horoscope_usage_{user_id}_{today}'
-        
-        return session.get(usage_key, 0)
-    except Exception as e:
-        logger.error(f"Get horoscope usage error: {e}")
-        return 0
-
-def increment_horoscope_usage():
-    """Increment user's horoscope usage for today"""
-    try:
-        user_id = session.get('user_id')
-        if not user_id:
-            return False
-            
-        today = datetime.now().strftime('%Y-%m-%d')
-        usage_key = f'horoscope_usage_{user_id}_{today}'
-        
-        current_usage = session.get(usage_key, 0)
-        session[usage_key] = current_usage + 1
-        
-        return True
-    except Exception as e:
-        logger.error(f"Increment horoscope usage error: {e}")
-        return False
-
-# --- Example Route (Decoder) ---
-@app.route("/api/decoder/check-limit")
-def check_decoder_limit():
-    user_id = session.get("user_id")
-    if not user_id:
-        return jsonify({"success": False, "error": "Not logged in"})
-    
-    user_plan = session.get("user_plan", "free")
-    
-    # Get effective limit (considers trial)
-    daily_limit = get_effective_feature_limit(user_id, "decoder")
-    trial_active = is_trial_active(user_id)
-    effective_plan_display = get_effective_plan_for_display(user_plan, trial_active)
-    
-    # Get usage for frontend display
-    usage_today = get_decoder_usage() if user_id else 0
-
-    return jsonify({
-        "success": True,
-        "effective_plan": effective_plan_display,
-        "daily_limit": daily_limit,
-        "trial_active": trial_active,
-        "usage_today": usage_today
-    })
-
-@app.route("/api/fortune/check-limit")
-def check_fortune_limit():
-    user_id = session.get("user_id")
-    if not user_id:
-        return jsonify({"success": False, "error": "Not logged in"})
-    
-    user_plan = session.get("user_plan", "free")
-    
-    # Get effective limit (considers trial)
-    daily_limit = get_effective_feature_limit(user_id, "fortune")
-    trial_active = is_trial_active(user_id)
-    effective_plan_display = get_effective_plan_for_display(user_plan, trial_active)
-    
-    # Get usage for frontend display
-    usage_today = get_fortune_usage() if user_id else 0
-
-    return jsonify({
-        "success": True,
-        "effective_plan": effective_plan_display,
-        "daily_limit": daily_limit,
-        "trial_active": trial_active,
-        "usage_today": usage_today
-    })
-
-@app.route("/api/horoscope/check-limit")
-def check_horoscope_limit():
-    user_id = session.get("user_id")
-    if not user_id:
-        return jsonify({"success": False, "error": "Not logged in"})
-
-    user_plan = session.get("user_plan", "free")
-
-    # Get effective limit (considers trial)
-    daily_limit = get_effective_feature_limit(user_id, "horoscope")
-    trial_active = is_trial_active(user_id)
-    effective_plan_display = get_effective_plan_for_display(user_plan, trial_active)
-    
-    # Get usage for frontend display
-    usage_today = get_horoscope_usage() if user_id else 0
-
-    return jsonify({
-        "success": True,
-        "daily_limit": daily_limit,
-        "trial_active": trial_active,
-        "usage_today": usage_today
-    })
+# OLD API ENDPOINTS DELETED - Use bulletproof functions directly in routes that need them
 
 # ========================================
 # NEW CLEAN TRIAL SYSTEM API ENDPOINTS
@@ -6165,27 +5953,14 @@ def api_chat():
         # Check decoder usage limits if this is a decoder request
         if context == 'decoder_mode':
             user_plan = session.get('user_plan', 'free')
-            current_usage = get_decoder_usage()
+            # Use bulletproof limit checking
+            user_id = session.get('user_id')
+            trial_active = is_trial_active(user_id)
+            effective_plan = get_effective_plan(user_plan, trial_active)
+            daily_limit = get_feature_limit(effective_plan, 'decoder')
             
-            # Use centralized TIER_LIMITS with proper deepcopy to avoid mutation
-            from copy import deepcopy
-            daily_limit = get_feature_limit(user_plan, 'decoder')
-            if daily_limit == float('inf'):
-                daily_limit = None  # Unlimited for Max tier
-            
-            # Check if user has exceeded limit
-            if daily_limit is not None and current_usage >= daily_limit:
-                return jsonify({
-                    "success": False, 
-                    "response": f"Daily decoder limit reached ({daily_limit} uses). Upgrade to Growth for 15 daily uses, or Max for unlimited access!",
-                    "limit_reached": True,
-                    "current_usage": current_usage,
-                    "daily_limit": daily_limit,
-                    "upgrade_required": True
-                }), 429
-            
-            # Increment usage for decoder requests
-            increment_decoder_usage()
+            # For now, skip usage tracking - can add database tracking later
+            # Check would go here if needed
         
         # Sanitize character input
         if character not in VALID_CHARACTERS:
@@ -6226,8 +6001,7 @@ def api_chat():
             
             # Add tier-specific response enhancements
             if user_tier in ['premium', 'enterprise']:
-                # Premium users get enhanced response formatting
-                ai_response = enhance_premium_response(ai_response, user_tier, character)
+                # Premium users get enhanced response formatting - removed old function
         except Exception as ai_error:
             logger.warning(f"OpenAI API error: {ai_error}")
             # Provide a more natural fallback response
@@ -6942,23 +6716,7 @@ def api_heart_wellness_content():
         logger.error(f"Heart wellness content API error: {e}")
         return jsonify({"success": False, "error": "Failed to heart content"}), 500
 
-def enhance_premium_response(response, tier, character):
-    """Enhance responses for premium users"""
-    try:
-        # Add tier-specific enhancements
-        if tier == 'max':  # Max Plan
-            # Add advanced insights marker
-            if len(response) > 100:
-                response += f"\n\n✨ *Enhanced Max Plan insight from {character}*"
-        elif tier == 'growth':  # Growth Plan
-            # Add premium marker for growth plan
-            if len(response) > 80:
-                response += f"\n\n🌱 *Growth Plan enhanced response*"
-        
-        return response
-    except Exception as e:
-        logger.error(f"Premium response enhancement error: {e}")
-        return response  # Return original response if enhancement fails
+# OLD enhance_premium_response() DELETED
 
 # ========================================
 # OAUTH ROUTES
