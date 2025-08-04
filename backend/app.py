@@ -4959,6 +4959,26 @@ def debug_test_tier_isolation():
             }
         }), 500
 
+@app.route("/debug/session-state")
+def debug_session_state():
+    """EMERGENCY: Show current session state to hunt the culprit"""
+    return jsonify({
+        "session_data": dict(session),
+        "user_plan": session.get('user_plan'),
+        "user_authenticated": session.get('user_authenticated'),
+        "trial_active": session.get('trial_active'),
+        "template_condition_check": {
+            "user_plan_in_growth_max": session.get('user_plan') in ['growth', 'max'],
+            "user_plan_equals_growth": session.get('user_plan') == 'growth',
+            "user_plan_equals_max": session.get('user_plan') == 'max'
+        },
+        "debug_info": {
+            "session_id": request.cookies.get('session'),
+            "current_route": request.endpoint,
+            "request_path": request.path
+        }
+    })
+
 @app.route("/debug/upgrade-to-max", methods=["POST"])
 def debug_upgrade_to_max():
     """Debug endpoint to set user to Max tier"""

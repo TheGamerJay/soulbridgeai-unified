@@ -1535,7 +1535,43 @@ Where emotion meets expression.
         // Initialize speech recognition when page loads
         document.addEventListener('DOMContentLoaded', () => {
             initializeSpeechRecognition();
+            
+            // EMERGENCY DEBUG: Check why premium features are missing
+            emergencyDebugPremiumFeatures();
         });
+        
+        async function emergencyDebugPremiumFeatures() {
+            console.log('🚨 EMERGENCY DEBUG: Checking premium features...');
+            
+            // Check if premium feature elements exist in HTML
+            const voiceJournal = document.querySelector('a[href="/voice-journaling"]');
+            const aiImages = document.querySelector('a[href="/ai-image-generation"]');
+            const relationships = document.querySelector('a[href="/relationship-profiles"]');
+            const meditations = document.querySelector('a[href="/emotional-meditations"]');
+            const writeBtn = document.querySelector('button[onclick="openCreativeWriting()"]');
+            
+            console.log('🔍 Premium Feature Elements Found:', {
+                voiceJournal: voiceJournal ? 'EXISTS' : 'MISSING',
+                aiImages: aiImages ? 'EXISTS' : 'MISSING', 
+                relationships: relationships ? 'EXISTS' : 'MISSING',
+                meditations: meditations ? 'EXISTS' : 'MISSING',
+                writeBtn: writeBtn ? 'EXISTS' : 'MISSING'
+            });
+            
+            // Check session state from backend
+            try {
+                const response = await fetch('/debug/session-state');
+                const sessionData = await response.json();
+                console.log('🔍 Current Session State:', sessionData);
+                
+                // Show alert with debug info
+                if (!voiceJournal && !aiImages && !relationships && !meditations && !writeBtn) {
+                    alert(`🚨 BUG DETECTED! Premium features missing!\nSession Plan: ${sessionData.user_plan}\nTemplate Check: ${sessionData.template_condition_check.user_plan_in_growth_max}`);
+                }
+            } catch (error) {
+                console.error('🚨 Debug session check failed:', error);
+            }
+        }
     </script>
     
     <script src="{{ url_for('static', filename='js/chat.js') }}?v={{ range(1000000) | random }}"></script>
