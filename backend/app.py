@@ -7526,7 +7526,7 @@ def ai_image_generation_generate():
         
         # Check tier-based usage limit (trial doesn't affect limits)
         effective_plan = get_effective_plan(user_plan)
-        monthly_limit = get_feature_limit(effective_plan, "ai_image_monthly")
+        monthly_limit = get_feature_limit("ai_image_monthly", effective_plan)
         
         current_month = datetime.now().strftime('%Y-%m')
         usage_key = f'ai_image_usage_{current_month}'
@@ -7534,7 +7534,10 @@ def ai_image_generation_generate():
         
         if monthly_limit is not None and monthly_usage >= monthly_limit:
             tier_name = {"foundation": "Free", "premium": "Growth", "enterprise": "Max"}[effective_plan]
-            return jsonify({"success": False, "error": f"Monthly AI image limit reached ({monthly_limit} images for {tier_name} tier)"}), 403
+            if monthly_limit == 0 and trial_active:
+                return jsonify({"success": False, "error": f"AI Image Generation requires Growth/Max subscription (trial unlocks access but uses your {tier_name} plan limits: {monthly_limit} images/month)"}), 403
+            else:
+                return jsonify({"success": False, "error": f"Monthly AI image limit reached ({monthly_limit} images for {tier_name} tier)"}), 403
         
         # Generate image using OpenAI DALL-E API
         try:

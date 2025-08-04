@@ -546,7 +546,7 @@ async function refreshDecoderLimits() {
         console.error("❌ Failed to refresh decoder limits:", err);
         document.getElementById("usage-count").textContent = "0";
         document.getElementById("usage-limit").textContent = "?";
-        document.getElementById("plan-description").textContent = "Unable to load decoder limits.";
+        document.getElementById("plan-description").textContent = `API Error: ${err.message}`;
     }
 }
 

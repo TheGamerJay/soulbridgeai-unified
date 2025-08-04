@@ -580,7 +580,7 @@ async function refreshFortuneLimits() {
         console.error("❌ Failed to refresh fortune limits:", err);
         document.getElementById("usage-count").textContent = "0";
         document.getElementById("usage-limit").textContent = "?";
-        document.getElementById("plan-description").textContent = "Unable to load fortune limits.";
+        document.getElementById("plan-description").textContent = `API Error: ${err.message}`;
     }
 }
 
