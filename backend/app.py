@@ -4521,25 +4521,11 @@ def get_effective_feature_limit(user_id, feature_name):
     plan_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
     user_plan = plan_mapping.get(user_plan, user_plan)
     
-    if trial_active:
-        # During trial: give users authentic experience of the next tier up
-        if user_plan == 'free':
-            # Free users experience Growth tier (15/8/10 + premium features)
-            effective_plan = 'growth'
-        elif user_plan == 'growth':
-            # Growth users experience Max tier (unlimited + max features)
-            effective_plan = 'max'
-        else:
-            # Max users already have everything
-            effective_plan = user_plan
-        
-        limit = get_feature_limit(effective_plan, feature_name)
-        logger.info(f"🎯 TRIAL: {user_plan} user experiencing {effective_plan} tier - {feature_name} limit: {limit}")
-    else:
-        # Normal: users get their plan limits
-        limit = get_feature_limit(user_plan, feature_name)
-        logger.info(f"💎 NORMAL: {user_plan} user gets {feature_name} limit: {limit}")
+    # IMPORTANT: Trial ONLY unlocks features, does NOT change limits
+    # Users always keep their original plan limits
+    limit = get_feature_limit(user_plan, feature_name)
     
+    logger.info(f"💎 LIMIT: {user_plan} user (trial={trial_active}) gets {feature_name} limit: {limit}")
     return limit
 
 def get_effective_plan_for_display(user_plan, trial_active):
