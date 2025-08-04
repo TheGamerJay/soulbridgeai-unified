@@ -4492,7 +4492,10 @@ class FreeTier:
         "crisis_support": False, "transformation_coaching": False
     }
     FEATURES = ["decoder", "fortune", "horoscope", "library"]
-    COMPANIONS = ["blayzo_free", "blayzica_free", "claude_free"]
+    COMPANIONS = [
+        "blayzo_free", "blayzica_free", "companion_gamerjay", 
+        "blayzia_free", "blayzion_free", "claude_free"
+    ]
 
 class GrowthTier:
     """Isolated Growth Tier - Cannot be contaminated by other tiers"""
@@ -4505,7 +4508,10 @@ class GrowthTier:
         "crisis_support": True, "transformation_coaching": True
     }
     FEATURES = ["decoder", "fortune", "horoscope", "library", "voice_journal", "ai_images", "relationships", "meditations", "creative_writing"]
-    COMPANIONS = ["blayzo_growth", "blayzica_growth", "claude_growth", "companion_sky"]
+    COMPANIONS = [
+        "companion_sky", "blayzo_growth", "blayzica_growth", "companion_gamerjay_premium", 
+        "watchdog_growth", "crimson_growth", "violet_growth", "claude_growth"
+    ]
 
 class MaxTier:
     """Isolated Max Tier - Cannot be contaminated by other tiers"""
@@ -4518,7 +4524,10 @@ class MaxTier:
         "crisis_support": True, "transformation_coaching": True
     }
     FEATURES = ["decoder", "fortune", "horoscope", "library", "voice_journal", "ai_images", "relationships", "meditations", "creative_writing"]
-    COMPANIONS = ["blayzo_max", "blayzica_max", "claude_max", "companion_crimson", "companion_violet"]
+    COMPANIONS = [
+        "companion_crimson", "companion_violet", "royal_max", "watchdog_max", 
+        "ven_blayzica", "ven_sky", "claude_max"
+    ]
 
 # Legacy compatibility - maps to isolated tier blocks
 TIER_LIMITS = {
