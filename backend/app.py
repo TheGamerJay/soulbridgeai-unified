@@ -4571,12 +4571,7 @@ class MaxTier:
         "ven_blayzica", "ven_sky", "claude_max"
     ]
 
-# Legacy compatibility - maps to isolated tier blocks
-TIER_LIMITS = {
-    "free": FreeTier.LIMITS,
-    "growth": GrowthTier.LIMITS, 
-    "max": MaxTier.LIMITS
-}
+# OLD TIER_LIMITS SYSTEM REMOVED - Using only isolated tier blocks now
 
 def get_tier_features(user_plan):
     """Get features available for a specific user plan using isolated tier classes"""
@@ -4648,9 +4643,7 @@ def get_feature_limit(plan, feature):
     tier_class = get_tier_block(plan)
     return tier_class.LIMITS.get(feature, 0)
 
-def get_tier_limits_safe(plan):
-    """Get INDEPENDENT copy of tier limits to prevent mutation"""
-    return deepcopy(TIER_LIMITS.get(plan, TIER_LIMITS['free']))
+# OLD get_tier_limits_safe() REMOVED - Using isolated tier blocks instead
 
 def get_tier_block(plan):
     """Get isolated tier block - CANNOT be contaminated"""
@@ -4671,22 +4664,7 @@ def get_isolated_limits(user_plan):
     tier_block = get_tier_block(user_plan)
     return deepcopy(tier_block.LIMITS)
 
-def test_tier_isolation():
-    """Test that tier limits remain independent when modified"""
-    # Get independent copies
-    free_limits = get_tier_limits_safe('free')
-    growth_limits = get_tier_limits_safe('growth')
-    
-    # Modify one copy
-    free_limits['decoder'] = 999
-    growth_limits['fortune'] = 888
-    
-    # Verify original TIER_LIMITS unchanged
-    assert TIER_LIMITS['free']['decoder'] == 3, "Free tier contaminated!"
-    assert TIER_LIMITS['growth']['fortune'] == 8, "Growth tier contaminated!"
-    
-    logger.info("✅ Tier isolation test PASSED - no contamination detected")
-    return True
+# OLD test_tier_isolation() DELETED - No longer needed with isolated tier blocks
 
 def is_companion_unlocked(user, companion_tier):
     """Check if companion is accessible"""
@@ -5114,30 +5092,7 @@ def admin_clean_old_plans():
         logger.error(f"Database cleanup error: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
 
-@app.route("/debug/test-tier-isolation", methods=["GET"])
-def debug_test_tier_isolation():
-    """Test that tier limits don't contaminate each other"""
-    try:
-        test_tier_isolation()
-        return jsonify({
-            "success": True, 
-            "message": "Tier isolation test PASSED",
-            "original_limits": {
-                "free": TIER_LIMITS['free'],
-                "growth": TIER_LIMITS['growth'], 
-                "max": TIER_LIMITS['max']
-            }
-        })
-    except Exception as e:
-        return jsonify({
-            "success": False, 
-            "error": f"Tier isolation test FAILED: {str(e)}",
-            "current_limits": {
-                "free": TIER_LIMITS['free'],
-                "growth": TIER_LIMITS['growth'],
-                "max": TIER_LIMITS['max']
-            }
-        }), 500
+# OLD /debug/test-tier-isolation ENDPOINT DELETED - No longer needed
 
 @app.route("/debug/session-state")
 def debug_session_state():
