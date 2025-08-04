@@ -4556,7 +4556,6 @@ def has_feature_access(user_plan, feature_name, trial_active=False):
     # Otherwise check their actual plan tier
     tier_features = get_tier_features(user_plan)
     return feature_name in tier_features
-}
 
 # ========================================
 # NEW CLEAN TRIAL SYSTEM FUNCTIONS
