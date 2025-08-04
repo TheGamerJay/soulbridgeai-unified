@@ -475,9 +475,6 @@ async function refreshDecoderLimits() {
         const trialActive = data.trial_active;
         const effectivePlan = data.effective_plan;
         const userPlan = data.user_plan;  // Original plan for display
-        const limit = data.daily_limit === null ? '∞' : (data.daily_limit ?? '?');
-
-        document.getElementById('usage-limit').textContent = limit;
 
         // If trial is active but user plan is foundation/free, show unlocked UI
         if (trialActive && (userPlan === 'foundation' || userPlan === 'free')) {

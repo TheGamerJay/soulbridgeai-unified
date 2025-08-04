@@ -74,12 +74,18 @@ def enforce_trial_effective_plan():
         
         # Set effective plan in session - THIS IS THE KEY FIX
         user_plan = session.get('user_plan', 'free')
+        
+        # Map old plan names to new ones consistently
+        plan_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
+        mapped_plan = plan_mapping.get(user_plan, user_plan)
+        
+        # Update user_plan in session to use new naming
+        session['user_plan'] = mapped_plan
+        
         if trial_active:
             session['effective_plan'] = 'max'  # Trial gives Max-tier access
         else:
-            # Map old plan names to new ones
-            plan_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
-            session['effective_plan'] = plan_mapping.get(user_plan, user_plan)
+            session['effective_plan'] = mapped_plan
             
     except Exception as e:
         # Don't break the app if trial check fails
@@ -1482,7 +1488,7 @@ def api_companions():
             "companions": companions,
             "user_plan": user_plan,
             "trial_active": trial_active,
-            "effective_plan": user_plan  # For JavaScript compatibility
+            "effective_plan": effective_plan  # Use actual effective_plan
         })
         
     except Exception as e:
