@@ -604,6 +604,47 @@ function showTrialBanner(timeRemaining) {
 // Initialize trial status check
 checkTrialStatus();
 
+// Bulletproof tier display logic
+function updateTierDisplay() {
+    fetch("/debug/session-state")
+        .then(res => res.json())
+        .then(data => {
+            const plan = data.user_plan || "free";
+            const trial = data.trial_active || false;
+            
+            console.log(`🎯 TIER UPDATE: plan=${plan}, trial=${trial}`);
+            
+            // Update premium feature visibility
+            if (plan === "free" && !trial) {
+                document.querySelectorAll(".premium-feature").forEach(el => el.style.display = "none");
+            } else {
+                document.querySelectorAll(".premium-feature").forEach(el => el.style.display = "inline-block");
+            }
+            
+            // Update tier-specific elements
+            document.querySelectorAll("[data-tier]").forEach(el => {
+                const requiredTier = el.dataset.tier;
+                let hasAccess = false;
+                
+                if (requiredTier === "free") {
+                    hasAccess = true;
+                } else if (requiredTier === "growth") {
+                    hasAccess = plan === "growth" || plan === "max" || trial;
+                } else if (requiredTier === "max") {
+                    hasAccess = plan === "max" || trial;
+                }
+                
+                el.style.display = hasAccess ? "block" : "none";
+            });
+        })
+        .catch(err => {
+            console.error("Failed to update tier display:", err);
+        });
+}
+
+// Call tier display update on page load
+document.addEventListener('DOMContentLoaded', updateTierDisplay);
+
 // Utility functions
 function showNotification(message, type = 'info') {
     const notification = document.createElement('div');

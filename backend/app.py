@@ -1324,131 +1324,56 @@ def companion_selection():
 
 @app.route("/chat")
 def chat():
-    """Chat page with selected companion"""
+    """Chat page with bulletproof tier system"""
     if not is_logged_in():
-        # Preserve intended companion selection
         companion = request.args.get('companion')
         if companion:
             return redirect(f"/login?return_to=chat&companion={companion}")
         return redirect("/login?return_to=chat")
     
-    # CRITICAL: Ensure session has correct plan names for templates (ONLY migrate old names)
-    user_plan = session.get('user_plan', 'free')
-    plan_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
-    # ONLY migrate if it's an OLD plan name that needs updating
-    if user_plan in plan_mapping and user_plan != plan_mapping[user_plan]:
-        session['user_plan'] = plan_mapping[user_plan]
-        logger.info(f"🔄 CHAT: Migrated OLD plan {user_plan} → {session['user_plan']}")
-    else:
-        logger.info(f"✅ CHAT: Plan {user_plan} already using new naming - no migration needed")
+    # Get user data
+    user_id = session.get('user_id')
+    user_plan = session.get('user_plan', 'free') or 'free'
+    trial_active = is_trial_active(user_id)
     
-    # ISOLATED TIER ACCESS FLAGS - Prevents cross-contamination 
-    user_plan = session.get('user_plan', 'free')
-    trial_active = session.get('trial_active', False)
+    # Get effective plan using bulletproof logic
+    effective_plan = get_effective_plan(user_plan, trial_active)
     
-    # Define isolated access flags for each tier
-    session['access_free'] = True  # Everyone gets free features
-    session['access_growth'] = user_plan in ['growth', 'max'] or trial_active
-    session['access_max'] = user_plan == 'max' or trial_active  
-    session['access_trial'] = trial_active
-    session.modified = True  # Ensure session changes are saved
-    
-    # Get selected companion from session or URL parameter
-    selected_companion = session.get('selected_companion')
-    url_companion = request.args.get('companion')
-    
-    # If companion passed via URL, validate access before setting
-    if url_companion and not selected_companion:
-        # Define companion tiers for validation
+    # Handle companion selection
+    companion_id = request.args.get('companion')
+    if companion_id:
+        # Define companion tiers
         companion_tiers = {
             # Free companions
             'blayzo_free': 'free', 'blayzica_free': 'free', 'companion_gamerjay': 'free',
             'blayzia_free': 'free', 'blayzion_free': 'free', 'claude_free': 'free',
             # Growth companions  
             'companion_sky': 'growth', 'blayzo_growth': 'growth', 'blayzica_growth': 'growth',
-            'companion_gamerjay_premium': 'growth', 'watchdog_growth': 'growth', 
+            'companion_gamerjay_premium': 'growth', 'watchdog_growth': 'growth',
             'crimson_growth': 'growth', 'violet_growth': 'growth', 'claude_growth': 'growth',
             # Max companions
             'companion_crimson': 'max', 'companion_violet': 'max', 'royal_max': 'max',
             'watchdog_max': 'max', 'ven_blayzica': 'max', 'ven_sky': 'max', 'claude_max': 'max'
         }
         
-        # Try multiple potential companion ID formats to handle URL parameter variations
-        url_param = url_companion.lower()
-        potential_companions = [
-            url_param,                    # Direct match (e.g., blayzo_free)
-            f"companion_{url_param}",     # Add companion_ prefix (e.g., companion_gamerjay)
-        ]
+        companion_tier = companion_tiers.get(companion_id, 'free')
         
-        # Find the first match in companion tiers
-        potential_companion = None
-        companion_tier = None
-        for candidate in potential_companions:
-            if candidate in companion_tiers:
-                potential_companion = candidate
-                companion_tier = companion_tiers[candidate]
-                logger.info(f"🔍 CHAT: Found companion match: {candidate} → tier: {companion_tier}")
-                break
+        # Check access using bulletproof logic
+        can_access = can_access_companion(user_plan, companion_tier, trial_active)
         
-        # Validate user has access to this companion tier (including trial status)
-        user_plan = session.get('user_plan', 'free')
-        trial_active = check_trial_active_from_db(session.get('user_id'))
-        has_access = False
-        
-        if companion_tier:
-            if companion_tier == 'free':
-                has_access = True
-            elif companion_tier == 'growth':
-                has_access = user_plan in ['growth', 'max'] or trial_active
-            elif companion_tier == 'max':
-                has_access = user_plan in ['max'] or trial_active
-        else:
-            logger.warning(f"🚫 CHAT: No companion found for URL param: {url_param}, tried: {potential_companions}")
+        if not can_access:
+            return redirect("/subscribe")
             
-        logger.info(f"🔍 CHAT URL ACCESS CHECK: user_plan={user_plan}, trial_active={trial_active}, companion_tier={companion_tier}, has_access={has_access}")
-        
-        if has_access:
-            session['selected_companion'] = potential_companion
-            selected_companion = session['selected_companion']
-            logger.info(f"🔄 CHAT: Updated companion from URL: {selected_companion}")
-        else:
-            logger.warning(f"🚫 CHAT: Access denied to {potential_companion} for user with plan {user_plan} (trial_active={trial_active})")
-            return redirect("/companion-selection?error=access_denied")
+        session['selected_companion'] = companion_id
     
-    companion_name = None
+    companion_name = session.get('selected_companion', 'blayzo_free')
     
-    if selected_companion:
-        # CRITICAL: Migrate old plan names BEFORE checking companion access
-        user_plan = session.get('user_plan', 'free')
-        plan_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
-        if user_plan in plan_mapping and user_plan != plan_mapping[user_plan]:
-            session['user_plan'] = plan_mapping[user_plan]
-            logger.info(f"🔄 CHAT COMPANION ACCESS: Migrated OLD plan {user_plan} → {session['user_plan']}")
-        
-        # Check if user has access to this companion
-        user_tier = session.get('user_plan', 'free')
-        
-        # Check for active trial status from database (not session)
-        trial_active = check_trial_active_from_db(session.get('user_id'))
-        
-        logger.info(f"🔍 CHAT ROUTE DEBUG: user_tier={user_tier}, trial_active={trial_active}, selected_companion={selected_companion}")
-        
-        # MODERN ACCESS CHECK: Use new isolated tier system (removed old blocking system)
-        # Companion access is now handled by the isolated tier access flags in templates
-        logger.info(f"✅ CHAT ACCESS: Using new isolated tier system - user_tier: {user_tier}, companion: {selected_companion}")
-        
-        # Convert companion_id to display name
-        companion_name = selected_companion.replace('companion_', '')
-        if companion_name == 'gamerjay':
-            companion_name = 'GamerJay'
-        elif companion_name == 'gamerjay_premium':
-            companion_name = 'GamerJay Premium'
-        elif companion_name in ['sky', 'crimson', 'violet', 'blayzo', 'blayzica', 'blayzia', 'blayzion']:
-            companion_name = companion_name.capitalize()
-        
-        logger.info(f"✅ CHAT ACCESS: User accessing {companion_name} with tier {user_tier}")
-    
-    return render_template("chat.html", selected_companion=companion_name)
+    return render_template("chat.html",
+        companion=companion_name,
+        user_plan=user_plan,
+        trial_active=trial_active, 
+        effective_plan=effective_plan
+    )
 
 @app.route("/api/companions", methods=["GET"])
 def api_companions():
@@ -4638,12 +4563,35 @@ def get_effective_plan(user):
     user_plan = getattr(user, 'plan', 'free') if hasattr(user, 'plan') else user
     return plan_mapping.get(user_plan, user_plan)
 
-def get_feature_limit(plan, feature):
-    """Get feature usage limits based on real plan using NEW isolated tier system"""
-    tier_class = get_tier_block(plan)
-    limit = tier_class.LIMITS.get(feature, 0)
-    logger.info(f"🎯 GET_FEATURE_LIMIT: plan='{plan}' feature='{feature}' → limit={limit} (from {tier_class.__name__})")
+def get_feature_limit(effective_plan: str, feature: str) -> int:
+    """Get feature usage limits - bulletproof implementation"""
+    plan_limits = {
+        "free": {"decoder": 3, "fortune": 2, "horoscope": 3},
+        "growth": {"decoder": 15, "fortune": 8, "horoscope": 10},
+        "max": {"decoder": float("inf"), "fortune": float("inf"), "horoscope": float("inf")},
+    }
+    limit = plan_limits.get(effective_plan, {}).get(feature, 0)
+    logger.info(f"🎯 GET_FEATURE_LIMIT: plan='{effective_plan}' feature='{feature}' → limit={limit}")
     return limit
+
+def get_effective_plan(user_plan: str, trial_active: bool) -> str:
+    """Get effective plan considering trial status - bulletproof implementation"""
+    if user_plan is None:
+        return "free"
+    if trial_active:
+        return user_plan  # Use their real plan during trial for limits
+    return user_plan
+
+def can_access_companion(user_plan: str, companion_tier: str, trial_active: bool) -> bool:
+    """Check companion access - bulletproof implementation"""
+    if trial_active:
+        return True  # Trial users get access to all companions
+    access_rules = {
+        "free": ["free"],
+        "growth": ["free", "growth"],
+        "max": ["free", "growth", "max"]
+    }
+    return companion_tier in access_rules.get(user_plan, [])
 
 # OLD get_tier_limits_safe() REMOVED - Using isolated tier blocks instead
 
@@ -4691,8 +4639,8 @@ def start_trial(user):
     # Save to DB here - implementation depends on your ORM/database setup
     return True
 
-def is_trial_active(user_id):
-    """Check if trial is currently active using new trial_expires_at"""
+def is_trial_active(user_id) -> bool:
+    """Check if trial is currently active - bulletproof implementation"""
     try:
         database_url = os.environ.get('DATABASE_URL')
         if not database_url:
@@ -4703,18 +4651,23 @@ def is_trial_active(user_id):
         cursor = conn.cursor()
         
         cursor.execute("""
-            SELECT trial_expires_at FROM users
-            WHERE id = %s AND trial_expires_at IS NOT NULL
+            SELECT trial_started_at, trial_used_permanently FROM users
+            WHERE id = %s
         """, (user_id,))
         result = cursor.fetchone()
         conn.close()
         
-        if not result or not result[0]:
+        if not result or not result[0] or result[1]:  # No trial started or permanently used
             return False
-        trial_expires = result[0]
-        if isinstance(trial_expires, str):
-            trial_expires = datetime.fromisoformat(trial_expires.replace('Z', '+00:00'))
-        return datetime.utcnow() < trial_expires
+            
+        trial_started = result[0]
+        if isinstance(trial_started, str):
+            trial_started = datetime.fromisoformat(trial_started.replace('Z', '+00:00'))
+            
+        # 5-hour trial window
+        now = datetime.utcnow()
+        return (now - trial_started) < timedelta(hours=5)
+        
     except Exception as e:
         logger.error(f"Trial check error: {e}")
         return False
@@ -5112,46 +5065,26 @@ def admin_clean_old_plans():
 
 @app.route("/debug/session-state")
 def debug_session_state():
-    """EMERGENCY: Show current session state to hunt the culprit"""
-    # CRITICAL: Migrate old plan names in session before returning debug info
-    user_plan = session.get('user_plan', 'free')
-    plan_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
-    if user_plan in plan_mapping:
-        old_plan = user_plan
-        session['user_plan'] = plan_mapping[user_plan]
-        logger.info(f"🔄 DEBUG: Migrated OLD plan {old_plan} → {session['user_plan']}")
+    """Bulletproof session state API for frontend"""
+    if not is_logged_in():
+        return jsonify({
+            "user_plan": "free",
+            "trial_active": False,
+            "access_free": True,
+            "access_growth": False,
+            "access_max": False
+        })
     
-    # CRITICAL: Refresh access flags to ensure they're set (always try, even if session seems empty)
-    try:
-        if session.get('user_authenticated') or session.get('user_plan'):
-            access_info = refresh_session_access_flags()
-            logger.info(f"🔧 DEBUG: Refreshed access flags - {access_info}")
-        else:
-            logger.warning(f"🚫 DEBUG: No authenticated session found - cannot refresh access flags")
-    except Exception as e:
-        logger.error(f"❌ DEBUG: Failed to refresh access flags - {e}")
+    user_id = session.get('user_id')
+    user_plan = session.get('user_plan', 'free') or 'free'
+    trial_active = is_trial_active(user_id)
     
     return jsonify({
-        "session_data": dict(session),
-        "user_plan": session.get('user_plan'),
-        "user_authenticated": session.get('user_authenticated'),
-        "trial_active": session.get('trial_active'),
-        "access_flags": {
-            "access_free": session.get('access_free'),
-            "access_growth": session.get('access_growth'),
-            "access_max": session.get('access_max'),
-            "access_trial": session.get('access_trial')
-        },
-        "template_condition_check": {
-            "user_plan_in_growth_max": session.get('user_plan') in ['growth', 'max'],
-            "user_plan_equals_growth": session.get('user_plan') == 'growth',
-            "user_plan_equals_max": session.get('user_plan') == 'max'
-        },
-        "debug_info": {
-            "session_id": request.cookies.get('session'),
-            "current_route": request.endpoint,
-            "request_path": request.path
-        }
+        "user_plan": user_plan,
+        "trial_active": trial_active,
+        "access_free": True,
+        "access_growth": user_plan in ["growth", "max"] or trial_active,
+        "access_max": user_plan == "max" or trial_active
     })
 
 @app.route("/debug/upgrade-to-max", methods=["POST"])
