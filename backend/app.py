@@ -1433,28 +1433,9 @@ def chat():
         
         logger.info(f"🔍 CHAT ROUTE DEBUG: user_tier={user_tier}, trial_active={trial_active}, selected_companion={selected_companion}")
         
-        # Validate companion access based on tier and trial status
-        companion_access_valid = True
-        
-        # BLOCK ACCESS: Check companion tier requirements before allowing chat
-        if selected_companion in ['companion_sky', 'companion_gamerjay_premium', 'blayzo_growth', 'watchdog_growth', 'crimson_growth', 'violet_growth', 'claude_growth']:
-            # Growth tier companion - requires growth plan (trial doesn't help free users)
-            if user_tier != 'growth' and user_tier != 'max':
-                logger.warning(f"🚫 BLOCKING CHAT ACCESS: {user_tier} user {session.get('user_email')} tried to access Growth companion {selected_companion}")
-                flash("This companion requires a Growth plan. Please upgrade.")
-                return redirect("/companion-selection")
-            else:
-                logger.info(f"✅ CHAT ACCESS GRANTED: Growth companion {selected_companion} - user tier: {user_tier}")
-        elif selected_companion in ['companion_crimson', 'companion_violet']:
-            # Max tier companion - requires max plan only (trial doesn't help)
-            if user_tier != 'max':
-                companion_access_valid = False
-                logger.warning(f"🚫 Access denied to Max companion {selected_companion} - user tier: {user_tier}")
-        
-        # If access denied, redirect to companion selector
-        if not companion_access_valid:
-            session['selected_companion'] = None  # Clear invalid selection
-            return redirect("/companion-selection?error=access_denied")
+        # MODERN ACCESS CHECK: Use new isolated tier system (removed old blocking system)
+        # Companion access is now handled by the isolated tier access flags in templates
+        logger.info(f"✅ CHAT ACCESS: Using new isolated tier system - user_tier: {user_tier}, companion: {selected_companion}")
         
         # Convert companion_id to display name
         companion_name = selected_companion.replace('companion_', '')
