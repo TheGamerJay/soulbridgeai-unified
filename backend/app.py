@@ -3416,8 +3416,26 @@ def start_trial():
             
             # If trial was used and is not active, block new trial
             if trial_used:
-                conn.close()
-                return jsonify({"success": False, "error": "Trial already used"}), 403
+                # Double-check if trial is still active (safety check)
+                trial_active = is_trial_active(user_id)
+                if trial_active:
+                    # Trial is still active, allow companion switching
+                    cursor.execute("UPDATE users SET trial_companion = %s WHERE email = %s", (companion_id, user_email))
+                    conn.commit()
+                    conn.close()
+                    
+                    session["trial_companion"] = companion_id
+                    logger.info(f"✅ Trial companion updated to {companion_id} for {user_email} (safety check)")
+                    
+                    return jsonify({
+                        "success": True,
+                        "message": f"Switched to {companion_id} during active trial!",
+                        "trial_companion": companion_id
+                    })
+                else:
+                    # Trial expired, block new trial
+                    conn.close()
+                    return jsonify({"success": False, "error": "Trial already used"}), 403
             
             # Start trial - use CURRENT_TIMESTAMP for PostgreSQL compatibility
             cursor.execute("""
@@ -4828,10 +4846,21 @@ def api_start_trial():
                     "trial_active": True
                 })
         
-        # If trial was used and is not active, block new trial
+        # If trial was used, check if it's still active
         if trial_used:
-            conn.close()
-            return jsonify({"success": False, "error": "Trial already used"}), 403
+            trial_active = is_trial_active(user_id)
+            if trial_active:
+                # Trial is still active
+                conn.close()
+                return jsonify({
+                    "success": True, 
+                    "message": "Trial is already active!",
+                    "trial_active": True
+                })
+            else:
+                # Trial expired, block new trial
+                conn.close()
+                return jsonify({"success": False, "error": "Trial already used"}), 403
         
         # Start trial with new system
         now = datetime.utcnow()
