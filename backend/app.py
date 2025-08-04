@@ -3381,14 +3381,35 @@ def start_trial():
             cursor = conn.cursor()
             
             # Get current user data
-            cursor.execute("SELECT trial_used_permanently FROM users WHERE email = %s", (user_email,))
+            cursor.execute("SELECT trial_used_permanently, trial_started_at FROM users WHERE email = %s", (user_email,))
             user_data = cursor.fetchone()
             
             if not user_data:
                 conn.close()
                 return jsonify({"success": False, "error": "User not found"}), 404
             
-            if user_data[0]:  # trial_used_permanently is True
+            trial_used, trial_started = user_data
+            
+            # If trial is currently active, allow companion switching
+            if trial_used and trial_started:
+                trial_active = is_trial_active(user_id)
+                if trial_active:
+                    # Update trial companion for current trial
+                    cursor.execute("UPDATE users SET trial_companion = %s WHERE email = %s", (companion_id, user_email))
+                    conn.commit()
+                    conn.close()
+                    
+                    session["trial_companion"] = companion_id
+                    logger.info(f"✅ Trial companion updated to {companion_id} for {user_email}")
+                    
+                    return jsonify({
+                        "success": True,
+                        "message": f"Switched to {companion_id} during active trial!",
+                        "trial_companion": companion_id
+                    })
+            
+            # If trial was used and is not active, block new trial
+            if trial_used:
                 conn.close()
                 return jsonify({"success": False, "error": "Trial already used"}), 403
             
@@ -4829,15 +4850,29 @@ def api_start_trial():
         conn = psycopg2.connect(database_url)
         cursor = conn.cursor()
         
-        # Check if trial was already used
-        cursor.execute("SELECT trial_used_permanently FROM users WHERE email = %s", (user_email,))
+        # Check trial status - allow access during active trial
+        cursor.execute("SELECT trial_used_permanently, trial_started_at FROM users WHERE email = %s", (user_email,))
         result = cursor.fetchone()
         
         if not result:
             conn.close()
             return jsonify({"success": False, "error": "User not found"}), 404
         
-        if result[0]:  # trial_used_permanently is True
+        trial_used, trial_started = result
+        
+        # If trial is currently active, allow access without starting new trial
+        if trial_used and trial_started:
+            trial_active = is_trial_active(user_id)
+            if trial_active:
+                conn.close()
+                return jsonify({
+                    "success": True, 
+                    "message": "Trial is already active!",
+                    "trial_active": True
+                })
+        
+        # If trial was used and is not active, block new trial
+        if trial_used:
             conn.close()
             return jsonify({"success": False, "error": "Trial already used"}), 403
         
