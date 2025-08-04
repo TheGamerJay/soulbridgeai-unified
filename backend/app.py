@@ -4491,7 +4491,7 @@ class FreeTier:
         "custom_personality_modes": 0, "full_color_customization": False,
         "crisis_support": False, "transformation_coaching": False
     }
-    FEATURES = ["decoder", "fortune", "horoscope", "library"]
+    FEATURES = ["decoder", "fortune", "horoscope", "library", "companion_selection", "profile", "help", "terms"]
     COMPANIONS = [
         "blayzo_free", "blayzica_free", "companion_gamerjay", 
         "blayzia_free", "blayzion_free", "claude_free"
@@ -4507,7 +4507,7 @@ class GrowthTier:
         "custom_personality_modes": 3, "full_color_customization": True,
         "crisis_support": True, "transformation_coaching": True
     }
-    FEATURES = ["decoder", "fortune", "horoscope", "library", "voice_journal", "ai_images", "relationships", "meditations", "creative_writing"]
+    FEATURES = ["decoder", "fortune", "horoscope", "library", "voice_journal", "ai_images", "relationships", "meditations", "creative_writing", "companion_selection", "profile", "subscription", "community_dashboard", "wellness_gallery", "referrals", "help", "terms"]
     COMPANIONS = [
         "companion_sky", "blayzo_growth", "blayzica_growth", "companion_gamerjay_premium", 
         "watchdog_growth", "crimson_growth", "violet_growth", "claude_growth"
@@ -4523,7 +4523,7 @@ class MaxTier:
         "custom_personality_modes": float('inf'), "full_color_customization": True,
         "crisis_support": True, "transformation_coaching": True
     }
-    FEATURES = ["decoder", "fortune", "horoscope", "library", "voice_journal", "ai_images", "relationships", "meditations", "creative_writing"]
+    FEATURES = ["decoder", "fortune", "horoscope", "library", "voice_journal", "ai_images", "relationships", "meditations", "creative_writing", "companion_selection", "profile", "subscription", "community_dashboard", "wellness_gallery", "referrals", "help", "terms"]
     COMPANIONS = [
         "companion_crimson", "companion_violet", "royal_max", "watchdog_max", 
         "ven_blayzica", "ven_sky", "claude_max"
@@ -4534,6 +4534,28 @@ TIER_LIMITS = {
     "free": FreeTier.LIMITS,
     "growth": GrowthTier.LIMITS, 
     "max": MaxTier.LIMITS
+}
+
+def get_tier_features(user_plan):
+    """Get features available for a specific user plan using isolated tier classes"""
+    tier_classes = {
+        "free": FreeTier,
+        "growth": GrowthTier,
+        "max": MaxTier
+    }
+    
+    tier_class = tier_classes.get(user_plan, FreeTier)
+    return tier_class.FEATURES
+
+def has_feature_access(user_plan, feature_name, trial_active=False):
+    """Check if user has access to a specific feature"""
+    # During trial, users get max tier access
+    if trial_active:
+        return feature_name in MaxTier.FEATURES
+    
+    # Otherwise check their actual plan tier
+    tier_features = get_tier_features(user_plan)
+    return feature_name in tier_features
 }
 
 # ========================================
