@@ -474,22 +474,12 @@ async function refreshDecoderLimits() {
         const data = await res.json();
         console.log("📊 Decoder API response:", data);
 
-        const effectivePlan = data.effective_plan;
-        const mappedPlan = data.mapped_plan;
-        const trialActive = data.trial_active;
+        const { effective_plan, trial_active, usage_today, daily_limit, user_plan } = data;
 
-        // If trial is active but user plan is foundation/free, show unlocked UI
-        if (trialActive && (mappedPlan === 'free')) {
-            document.querySelectorAll('.companion-card.locked').forEach(card => {
-                card.classList.remove('locked');
-                card.classList.add('trial-unlocked');
-                card.querySelector('.btn-upgrade').textContent = '✅ Trial Active';
-            });
-        }
+        const hasUnlimited = effective_plan === "max" || daily_limit === Infinity;
+        const displayLimit = hasUnlimited ? "∞" : daily_limit;
 
-        const usage = data.usage_today ?? 0;
-        const isUnlimited = effectivePlan === "max" || data.daily_limit === Infinity;
-        const displayLimit = isUnlimited ? '∞' : data.daily_limit;
+        const usage = usage_today ?? 0;
 
         // Update usage display
         document.getElementById("usage-count").textContent = usage;
@@ -497,48 +487,38 @@ async function refreshDecoderLimits() {
 
         // Update usage bar
         const usageFill = document.getElementById('usage-fill');
-        if (isUnlimited) {
+        if (hasUnlimited) {
             usageFill.style.width = '100%';
             usageFill.style.background = 'linear-gradient(135deg, #22d3ee, #0891b2)';
         } else {
-            const percentage = data.daily_limit > 0 ? (usage / data.daily_limit) * 100 : 0;
+            const percentage = daily_limit > 0 ? (usage / daily_limit) * 100 : 0;
             usageFill.style.width = Math.min(percentage, 100) + '%';
         }
 
-        // UI logic based on true tier (mapped_plan)
-        const planNotice = document.getElementById("max-plan-message");
-        const planDesc = document.getElementById("plan-description");
+        // UI logic based on user's actual tier
+        const msg = document.getElementById("plan-description");
+        const maxMsg = document.getElementById("max-plan-message");
 
-        if (mappedPlan === "max") {
-            // Max tier - show unlimited message
-            if (planNotice) planNotice.style.display = "block";
-            if (planDesc) planDesc.style.display = "none";
-        } else if (mappedPlan === "growth") {
-            // Growth tier
-            if (planNotice) planNotice.style.display = "none";
-            if (planDesc) {
-                planDesc.style.display = "block";
-                planDesc.textContent = `Growth users get ${displayLimit} decodes per day. Upgrade to Max for unlimited.`;
-            }
+        if (user_plan === "max") {
+            maxMsg.style.display = "block";
+            msg.style.display = "none";
+        } else if (user_plan === "growth") {
+            maxMsg.style.display = "none";
+            msg.textContent = `Growth users get ${displayLimit} decodes per day. Upgrade to Max for unlimited.`;
+        } else if (trial_active) {
+            maxMsg.style.display = "none";
+            msg.textContent = `You're on a 5-hour trial — enjoy Max-tier access with ${displayLimit} decodes.`;
         } else {
-            // Free tier
-            if (planNotice) planNotice.style.display = "none";
-            if (planDesc) {
-                planDesc.style.display = "block";
-                if (trialActive) {
-                    planDesc.textContent = `You're on a 5-hour free trial. Enjoy premium features with ${displayLimit} decodes per day!`;
-                } else {
-                    planDesc.textContent = `Free users get ${displayLimit} decodes per day. Upgrade to Growth for more.`;
-                }
-            }
+            maxMsg.style.display = "none";
+            msg.textContent = `Free users get ${displayLimit} decodes per day. Upgrade to Growth for more.`;
         }
 
         // Update global variables
         userUsage = usage;
-        userPlan = mappedPlan;  // Use mapped plan for consistency
-        dailyLimit = data.daily_limit;
+        userPlan = user_plan;  // Use normalized user plan
+        dailyLimit = daily_limit;
 
-        console.log(`🔄 Refreshed decoder limits: mapped_plan=${mappedPlan}, effective_plan=${effectivePlan}, usage=${usage}, limit=${displayLimit}`);
+        console.log(`🔄 Refreshed decoder limits: user_plan=${user_plan}, effective_plan=${effective_plan}, usage=${usage}, limit=${displayLimit}`);
 
     } catch (err) {
         console.error("❌ Failed to refresh decoder limits:", err);
