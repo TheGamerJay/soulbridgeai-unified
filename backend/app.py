@@ -4611,6 +4611,27 @@ def has_feature_access(user_plan, feature_name, trial_active=False):
     tier_features = get_tier_features(user_plan)
     return feature_name in tier_features
 
+def refresh_session_access_flags():
+    """Helper function to refresh isolated tier access flags in session"""
+    user_plan = session.get('user_plan', 'free')
+    trial_active = session.get('trial_active', False)
+    
+    # Define isolated access flags for each tier
+    session['access_free'] = True  # Everyone gets free features
+    session['access_growth'] = user_plan in ['growth', 'max'] or trial_active
+    session['access_max'] = user_plan == 'max' or trial_active  
+    session['access_trial'] = trial_active
+    session.modified = True  # Ensure session changes are saved
+    
+    return {
+        'user_plan': user_plan,
+        'trial_active': trial_active,
+        'access_free': session['access_free'],
+        'access_growth': session['access_growth'],
+        'access_max': session['access_max'],
+        'access_trial': session['access_trial']
+    }
+
 # ========================================
 # NEW CLEAN TRIAL SYSTEM FUNCTIONS
 # ========================================
@@ -5027,8 +5048,13 @@ def api_start_trial():
         conn.commit()
         conn.close()
         
-        # Update session
+        # Update session with trial status and refresh access flags
         session['trial_active'] = True
+        
+        # CRITICAL: Update isolated access flags immediately after trial start
+        access_info = refresh_session_access_flags()
+        
+        logger.info(f"🎉 TRIAL STARTED: Updated access flags - growth={access_info['access_growth']}, max={access_info['access_max']}, trial={access_info['access_trial']}")
         
         return jsonify({
             "success": True,
