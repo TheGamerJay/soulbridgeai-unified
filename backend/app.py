@@ -1342,7 +1342,7 @@ def chat():
     # Handle companion selection
     companion_id = request.args.get('companion')
     if companion_id:
-        # Define companion tiers
+        # Define companion tiers - handle different companion ID formats
         companion_tiers = {
             # Free companions
             'blayzo_free': 'free', 'blayzica_free': 'free', 'companion_gamerjay': 'free',
@@ -1353,7 +1353,9 @@ def chat():
             'crimson_growth': 'growth', 'violet_growth': 'growth', 'claude_growth': 'growth',
             # Max companions
             'companion_crimson': 'max', 'companion_violet': 'max', 'royal_max': 'max',
-            'watchdog_max': 'max', 'ven_blayzica': 'max', 'ven_sky': 'max', 'claude_max': 'max'
+            'watchdog_max': 'max', 'ven_blayzica': 'max', 'ven_sky': 'max', 'claude_max': 'max',
+            # Handle direct names (violet -> companion_violet)
+            'violet': 'max', 'crimson': 'max', 'sky': 'growth'
         }
         
         companion_tier = companion_tiers.get(companion_id, 'free')
@@ -1362,7 +1364,7 @@ def chat():
         can_access = can_access_companion(user_plan, companion_tier, trial_active)
         
         if not can_access:
-            return redirect("/subscribe")
+            return redirect("/companion-selection?error=upgrade_required")
             
         session['selected_companion'] = companion_id
     
@@ -4448,100 +4450,13 @@ def get_user_addons():
 # --- ISOLATED TIER BLOCKS ---
 # Each tier has its own completely isolated configuration block
 
-class FreeTier:
-    """Isolated Free Tier - Cannot be contaminated by other tiers"""
-    LIMITS = {
-        "decoder": 3, "fortune": 2, "horoscope": 3, 
-        "ai_image_monthly": 0, "voice_journal_monthly": 0, 
-        "relationship_profiles": 0, "emotional_meditations": 0,
-        "priority_response": False, "advanced_voice_ai": False,
-        "custom_personality_modes": 0, "full_color_customization": False,
-        "crisis_support": False, "transformation_coaching": False
-    }
-    FEATURES = ["decoder", "fortune", "horoscope", "library", "companion_selection", "profile", "help", "terms"]
-    COMPANIONS = [
-        "blayzo_free", "blayzica_free", "companion_gamerjay", 
-        "blayzia_free", "blayzion_free", "claude_free"
-    ]
-
-class GrowthTier:
-    """Isolated Growth Tier - Cannot be contaminated by other tiers"""
-    LIMITS = {
-        "decoder": 15, "fortune": 8, "horoscope": 10, 
-        "ai_image_monthly": 25, "voice_journal_monthly": 50, 
-        "relationship_profiles": 10, "emotional_meditations": 20,
-        "priority_response": True, "advanced_voice_ai": True,
-        "custom_personality_modes": 3, "full_color_customization": True,
-        "crisis_support": True, "transformation_coaching": True
-    }
-    FEATURES = ["decoder", "fortune", "horoscope", "library", "voice_journal", "ai_images", "relationships", "meditations", "creative_writing", "companion_selection", "profile", "subscription", "community_dashboard", "wellness_gallery", "referrals", "help", "terms"]
-    COMPANIONS = [
-        "companion_sky", "blayzo_growth", "blayzica_growth", "companion_gamerjay_premium", 
-        "watchdog_growth", "crimson_growth", "violet_growth", "claude_growth"
-    ]
-
-class MaxTier:
-    """Isolated Max Tier - Cannot be contaminated by other tiers"""
-    LIMITS = {
-        "decoder": float('inf'), "fortune": float('inf'), "horoscope": float('inf'), 
-        "ai_image_monthly": float('inf'), "voice_journal_monthly": float('inf'), 
-        "relationship_profiles": float('inf'), "emotional_meditations": float('inf'),
-        "priority_response": True, "advanced_voice_ai": True,
-        "custom_personality_modes": float('inf'), "full_color_customization": True,
-        "crisis_support": True, "transformation_coaching": True
-    }
-    FEATURES = ["decoder", "fortune", "horoscope", "library", "voice_journal", "ai_images", "relationships", "meditations", "creative_writing", "companion_selection", "profile", "subscription", "community_dashboard", "wellness_gallery", "referrals", "help", "terms"]
-    COMPANIONS = [
-        "companion_crimson", "companion_violet", "royal_max", "watchdog_max", 
-        "ven_blayzica", "ven_sky", "claude_max"
-    ]
+# OLD TIER CLASSES REMOVED - Using bulletproof functions instead
 
 # OLD TIER_LIMITS SYSTEM REMOVED - Using only isolated tier blocks now
 
-def get_tier_features(user_plan):
-    """Get features available for a specific user plan using isolated tier classes"""
-    tier_classes = {
-        "free": FreeTier,
-        "growth": GrowthTier,
-        "max": MaxTier
-    }
-    
-    tier_class = tier_classes.get(user_plan, FreeTier)
-    return tier_class.FEATURES
+# OLD get_tier_features() and has_feature_access() REMOVED - Using bulletproof functions
 
-def has_feature_access(user_plan, feature_name, trial_active=False):
-    """Check if user has access to a specific feature"""
-    # During trial, users get max tier access
-    if trial_active:
-        return feature_name in MaxTier.FEATURES
-    
-    # Otherwise check their actual plan tier
-    tier_features = get_tier_features(user_plan)
-    return feature_name in tier_features
-
-def refresh_session_access_flags():
-    """Helper function to refresh isolated tier access flags in session"""
-    user_plan = session.get('user_plan', 'free')
-    trial_active = session.get('trial_active', False)
-    
-    # Define isolated access flags for each tier
-    session['access_free'] = True  # Everyone gets free features
-    session['access_growth'] = user_plan in ['growth', 'max'] or trial_active
-    session['access_max'] = user_plan == 'max' or trial_active  
-    session['access_trial'] = trial_active
-    session.modified = True  # Ensure session changes are saved
-    
-    result = {
-        'user_plan': user_plan,
-        'trial_active': trial_active,
-        'access_free': session['access_free'],
-        'access_growth': session['access_growth'],
-        'access_max': session['access_max'],
-        'access_trial': session['access_trial']
-    }
-    
-    logger.info(f"🔧 REFRESH_ACCESS_FLAGS: {result}")
-    return result
+# OLD refresh_session_access_flags() REMOVED - Using bulletproof API instead
 
 # ========================================
 # NEW CLEAN TRIAL SYSTEM FUNCTIONS
@@ -4593,26 +4508,7 @@ def can_access_companion(user_plan: str, companion_tier: str, trial_active: bool
     }
     return companion_tier in access_rules.get(user_plan, [])
 
-# OLD get_tier_limits_safe() REMOVED - Using isolated tier blocks instead
-
-def get_tier_block(plan):
-    """Get isolated tier block - CANNOT be contaminated"""
-    tier_blocks = {
-        'free': FreeTier,
-        'growth': GrowthTier,
-        'max': MaxTier
-    }
-    return tier_blocks.get(plan, FreeTier)
-
-def has_feature_access(user_plan, feature):
-    """Check if user has access to specific feature - ISOLATED"""
-    tier_block = get_tier_block(user_plan)
-    return feature in tier_block.FEATURES
-
-def get_isolated_limits(user_plan):
-    """Get limits from isolated tier block"""
-    tier_block = get_tier_block(user_plan)
-    return deepcopy(tier_block.LIMITS)
+# OLD tier block functions REMOVED - Using bulletproof functions instead
 
 # OLD test_tier_isolation() DELETED - No longer needed with isolated tier blocks
 
@@ -4672,25 +4568,7 @@ def is_trial_active(user_id) -> bool:
         logger.error(f"Trial check error: {e}")
         return False
 
-def get_effective_feature_limit(user_id, feature_name):
-    """Get effective feature limit considering trial status"""
-    user_plan = session.get('user_plan', 'free')
-    trial_active = is_trial_active(user_id)
-    
-    logger.info(f"🔍 EFFECTIVE_LIMIT INPUT: user_plan='{user_plan}' feature='{feature_name}' trial={trial_active}")
-    
-    # Map old plan names
-    plan_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
-    mapped_plan = plan_mapping.get(user_plan, user_plan)
-    
-    logger.info(f"🔄 PLAN MAPPING: '{user_plan}' → '{mapped_plan}'")
-    
-    # IMPORTANT: Trial ONLY unlocks features, does NOT change limits
-    # Users always keep their original plan limits
-    limit = get_feature_limit(mapped_plan, feature_name)
-    
-    logger.info(f"💎 FINAL LIMIT: {mapped_plan} user (trial={trial_active}) gets {feature_name} limit: {limit}")
-    return limit
+# OLD get_effective_feature_limit() REMOVED - Using bulletproof get_feature_limit() directly
 
 def get_effective_plan_for_display(user_plan, trial_active):
     """Returns display plan for frontend messaging"""
@@ -4703,25 +4581,26 @@ def get_effective_plan_for_display(user_plan, trial_active):
 
 def get_effective_decoder_limits(user_id, user_plan):
     """Get effective decoder limits for a user, considering trial status"""
-    daily_limit = get_effective_feature_limit(user_id, "decoder")
     trial_active = is_trial_active(user_id)
+    effective_plan = get_effective_plan(user_plan, trial_active)
+    daily_limit = get_feature_limit(effective_plan, "decoder")
     effective_plan_display = get_effective_plan_for_display(user_plan, trial_active)
     return daily_limit, effective_plan_display
 
 def get_effective_fortune_limits(user_id, user_plan):
     """Get effective fortune limits for a user, considering trial status"""
-    daily_limit = get_effective_feature_limit(user_id, "fortune")
     trial_active = is_trial_active(user_id)
+    effective_plan = get_effective_plan(user_plan, trial_active)
+    daily_limit = get_feature_limit(effective_plan, "fortune")
     effective_plan_display = get_effective_plan_for_display(user_plan, trial_active)
     return daily_limit, effective_plan_display
 
 def get_effective_horoscope_limits(user_id, user_plan):
     """Get effective horoscope limits for a user, considering trial status"""
-    daily_limit = get_effective_feature_limit(user_id, "horoscope")
     trial_active = is_trial_active(user_id)
+    effective_plan = get_effective_plan(user_plan, trial_active)
+    daily_limit = get_feature_limit(effective_plan, "horoscope")
     effective_plan_display = get_effective_plan_for_display(user_plan, trial_active)
-    return daily_limit, effective_plan_display
-
     return daily_limit, effective_plan_display
 
 def get_decoder_usage():
@@ -4980,10 +4859,8 @@ def api_start_trial():
         # Update session with trial status and refresh access flags
         session['trial_active'] = True
         
-        # CRITICAL: Update isolated access flags immediately after trial start
-        access_info = refresh_session_access_flags()
-        
-        logger.info(f"🎉 TRIAL STARTED: Updated access flags - growth={access_info['access_growth']}, max={access_info['access_max']}, trial={access_info['access_trial']}")
+        # CRITICAL: Trial started successfully
+        logger.info(f"🎉 TRIAL STARTED: Trial active for user {user_id} until {expires_at}")
         
         return jsonify({
             "success": True,
@@ -5009,7 +4886,6 @@ def debug_upgrade_to_growth():
     """Debug endpoint to set user to Growth tier"""
     session['user_plan'] = 'growth'
     session['user_authenticated'] = True
-    refresh_session_access_flags()
     return jsonify({"success": True, "message": "Upgraded to Growth tier", "user_plan": "growth"})
 
 @app.route("/admin/clean-old-plans", methods=["POST"])
@@ -5092,7 +4968,6 @@ def debug_upgrade_to_max():
     """Debug endpoint to set user to Max tier"""
     session['user_plan'] = 'max'
     session['user_authenticated'] = True
-    refresh_session_access_flags()
     return jsonify({"success": True, "message": "Upgraded to Max tier", "user_plan": "max"})
 
 
