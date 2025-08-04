@@ -5999,9 +5999,10 @@ def api_chat():
             )
             ai_response = response.choices[0].message.content
             
-            # Add tier-specific response enhancements
-            if user_tier in ['premium', 'enterprise']:
-                # Premium users get enhanced response formatting - removed old function
+            # Add tier-specific response enhancements - old function removed
+            # if user_tier in ['premium', 'enterprise']:
+            #     # Premium users get enhanced response formatting - removed old function
+            pass  # Old enhancement logic removed
         except Exception as ai_error:
             logger.warning(f"OpenAI API error: {ai_error}")
             # Provide a more natural fallback response
@@ -7870,7 +7871,7 @@ def get_user_tier_status():
         # Use consistent plan naming (no mapping needed)
         mapped_tier = user_tier
         
-        # Define tier features using TIER_LIMITS for consistency
+        # Define tier features directly
         from copy import deepcopy
         tier_features = {
             'free': {
