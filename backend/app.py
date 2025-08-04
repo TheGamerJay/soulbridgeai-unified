@@ -652,9 +652,15 @@ def auth_login():
                 user_id=result["user_id"]
             )
             
-            # Set user plan from database result
-            session['user_plan'] = result.get('plan_type', 'free')
+            # Set user plan from database result (migrate old plan names immediately)
+            raw_plan = result.get('plan_type', 'free')
+            plan_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
+            session['user_plan'] = plan_mapping.get(raw_plan, raw_plan)
             session['display_name'] = result.get('display_name', 'User')
+            
+            # Log plan migration if it occurred
+            if raw_plan in plan_mapping:
+                logger.info(f"🔄 AUTH: Migrated OLD plan {raw_plan} → {session['user_plan']} during login")
             
             # Restore active trial status from database if exists
             try:
@@ -1275,6 +1281,16 @@ def companion_selection():
     if not is_logged_in():
         logger.warning(f"🚫 COMPANION SELECTION: User not authenticated, redirecting to login")
         return redirect("/login")
+    
+    # CRITICAL: Ensure session has correct plan names for templates (ONLY migrate old names)
+    user_plan = session.get('user_plan', 'free')
+    plan_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
+    # ONLY migrate if it's an OLD plan name that needs updating
+    if user_plan in plan_mapping and user_plan != plan_mapping[user_plan]:
+        session['user_plan'] = plan_mapping[user_plan]
+        logger.info(f"🔄 COMPANION: Migrated OLD plan {user_plan} → {session['user_plan']}")
+    else:
+        logger.info(f"✅ COMPANION: Plan {user_plan} already using new naming - no migration needed")
     
     logger.info(f"✅ COMPANION SELECTION: User authenticated, showing companion selector")
     return render_template("companion_selector.html")
@@ -5031,6 +5047,14 @@ def debug_test_tier_isolation():
 @app.route("/debug/session-state")
 def debug_session_state():
     """EMERGENCY: Show current session state to hunt the culprit"""
+    # CRITICAL: Migrate old plan names in session before returning debug info
+    user_plan = session.get('user_plan', 'free')
+    plan_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
+    if user_plan in plan_mapping:
+        old_plan = user_plan
+        session['user_plan'] = plan_mapping[user_plan]
+        logger.info(f"🔄 DEBUG: Migrated OLD plan {old_plan} → {session['user_plan']}")
+    
     return jsonify({
         "session_data": dict(session),
         "user_plan": session.get('user_plan'),
