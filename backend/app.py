@@ -4644,8 +4644,9 @@ def get_effective_plan(user):
     return plan_mapping.get(user_plan, user_plan)
 
 def get_feature_limit(plan, feature):
-    """Get feature usage limits based on real plan or trial"""
-    return TIER_LIMITS.get(plan, TIER_LIMITS['free']).get(feature, 0)
+    """Get feature usage limits based on real plan using NEW isolated tier system"""
+    tier_class = get_tier_block(plan)
+    return tier_class.LIMITS.get(feature, 0)
 
 def get_tier_limits_safe(plan):
     """Get INDEPENDENT copy of tier limits to prevent mutation"""
