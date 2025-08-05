@@ -3680,8 +3680,14 @@ def create_checkout_session():
         plan_type = data.get("plan_type")
         billing = data.get("billing", "monthly")
         
-        if plan_type not in ["premium", "enterprise"]:
+        # Accept both old and new plan names for payment
+        valid_plans = ["premium", "enterprise", "growth", "max"]
+        if plan_type not in valid_plans:
             return jsonify({"success": False, "error": "Invalid plan type"}), 400
+        
+        # Map old plan names to new ones
+        plan_mapping = {"premium": "growth", "enterprise": "max"}
+        normalized_plan = plan_mapping.get(plan_type, plan_type)
         
         if billing not in ["monthly", "yearly"]:
             return jsonify({"success": False, "error": "Invalid billing period"}), 400
@@ -3696,21 +3702,24 @@ def create_checkout_session():
                 "debug": "STRIPE_SECRET_KEY not set"
             }), 503
         
-        logger.info(f"Creating Stripe checkout for {plan_type} plan")
+        logger.info(f"Creating Stripe checkout for {plan_type} → {normalized_plan} plan")
         
         import stripe
         stripe.api_key = stripe_secret_key
         
-        # Plan details
-        plan_names = {"premium": "Growth Plan", "enterprise": "Max Plan"}
+        # Plan details (use normalized plan names)
+        plan_names = {
+            "premium": "Growth Plan", "growth": "Growth Plan",
+            "enterprise": "Max Plan", "max": "Max Plan"
+        }
         plan_prices = {
             "monthly": {
-                "premium": 1299,  # $12.99/month
-                "enterprise": 1999  # $19.99/month
+                "premium": 1299, "growth": 1299,  # $12.99/month
+                "enterprise": 1999, "max": 1999  # $19.99/month
             },
             "yearly": {
-                "premium": 11700,  # $117/year (25% savings)
-                "enterprise": 18000  # $180/year (25% savings)
+                "premium": 11700, "growth": 11700,  # $117/year (25% savings)
+                "enterprise": 18000, "max": 18000  # $180/year (25% savings)
             }
         }
         
@@ -3739,10 +3748,10 @@ def create_checkout_session():
                     'quantity': 1,
                 }],
                 mode='subscription',
-                success_url=f"{request.host_url}payment/success?session_id={{CHECKOUT_SESSION_ID}}&plan={plan_type}",
-                cancel_url=f"{request.host_url}payment/cancel?plan={plan_type}",
+                success_url=f"{request.host_url}payment/success?session_id={{CHECKOUT_SESSION_ID}}&plan={normalized_plan}",
+                cancel_url=f"{request.host_url}payment/cancel?plan={normalized_plan}",
                 metadata={
-                    'plan_type': plan_type,
+                    'plan_type': normalized_plan,
                     'user_email': user_email
                 }
             )
