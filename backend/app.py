@@ -68,6 +68,7 @@ def enforce_trial_effective_plan():
         return  # not logged in
     
     logger.info(f"🎯 @app.before_request called for user_id={user_id}, path={request.path}, endpoint={request.endpoint}")
+    logger.info(f"🔍 BEFORE SESSION STATE: {dict(session)}")
 
     try:
         # Check if trial is active
@@ -84,11 +85,13 @@ def enforce_trial_effective_plan():
         session['effective_plan'] = 'max' if trial_active else mapped_plan
         
         logger.info(f"🔄 Plan setup for user_id={user_id} → real_plan={mapped_plan}, trial={trial_active}, effective={session['effective_plan']}")
+        logger.info(f"🔍 AFTER SESSION STATE: {dict(session)}")
             
     except Exception as e:
         # Don't break the app if trial check fails
         logger.error(f"Trial effective plan error: {e}")
         session['effective_plan'] = session.get('user_plan', 'free')
+        logger.info(f"🚨 ERROR FALLBACK SESSION STATE: {dict(session)}")
 
 # DISABLED: This function was potentially causing session contamination
 # @app.before_request
@@ -5017,6 +5020,32 @@ def debug_session_state():
         "access_free": True,
         "access_growth": effective_plan in ["growth", "max"] or trial_active,
         "access_max": effective_plan == "max" or trial_active
+    })
+
+@app.route("/debug/session-info")
+def debug_session_info():
+    """Debug endpoint to show current session state"""
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({"error": "Not logged in", "session": dict(session)})
+    
+    # Get fresh trial check
+    fresh_trial_check = None
+    try:
+        fresh_trial_check = is_trial_active(user_id)
+    except Exception as e:
+        fresh_trial_check = f"ERROR: {e}"
+    
+    return jsonify({
+        "user_id": user_id,
+        "session_contents": dict(session),
+        "fresh_trial_check": fresh_trial_check,
+        "session_trial_active": session.get('trial_active'),
+        "session_user_plan": session.get('user_plan'),
+        "session_effective_plan": session.get('effective_plan'),
+        "decoder_limit": get_feature_limit(session.get('effective_plan', 'free'), 'decoder', session.get('trial_active', False)),
+        "fortune_limit": get_feature_limit(session.get('effective_plan', 'free'), 'fortune', session.get('trial_active', False)),
+        "horoscope_limit": get_feature_limit(session.get('effective_plan', 'free'), 'horoscope', session.get('trial_active', False))
     })
 
 @app.route("/debug/upgrade-to-max", methods=["POST"])
