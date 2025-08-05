@@ -147,7 +147,7 @@ _service_lock = threading.RLock()
 
 # Constants
 VALID_CHARACTERS = ["Blayzo", "Sapphire", "Violet", "Crimson", "Blayzia", "Blayzica", "Blayzike", "Blayzion", "Blazelian"]
-VALID_PLANS = ["free", "growth", "max"]
+VALID_PLANS = ["free", "growth", "max"]  # Internal normalized plan names
 
 # Admin and surveillance constants
 ADMIN_DASH_KEY = os.environ.get("ADMIN_DASH_KEY", "soulbridge_admin_2024")
@@ -3338,37 +3338,65 @@ def select_plan():
         if not data:
             return jsonify({"success": False, "error": "Invalid request data"}), 400
             
-        plan_type = data.get("plan_type", "free")
+        raw_plan = data.get("plan_type", "").lower()
         billing = data.get("billing", "monthly")
         
-        logger.info(f"Select plan request: plan_type={plan_type}, billing={billing}, data={data}")
+        # ✅ Bulletproof plan normalization - handle ALL aliases and inconsistencies
+        plan_map = {
+            'free': 'free',
+            'foundation': 'free', 
+            'basic': 'free',
+            'growth': 'growth',
+            'premium': 'growth',
+            'max': 'max',
+            'enterprise': 'max'
+        }
         
-        if plan_type not in VALID_PLANS:
+        normalized_plan = plan_map.get(raw_plan)
+        if not normalized_plan:
+            logger.error(f"Invalid plan type received: '{raw_plan}' from data: {data}")
             return jsonify({"success": False, "error": "Invalid plan type"}), 400
         
-        session["user_plan"] = plan_type
+        logger.info(f"Plan normalization: '{raw_plan}' → '{normalized_plan}'")
+        
+        session["user_plan"] = normalized_plan
         session["plan_selected_at"] = time.time()
         session["first_time_user"] = False
         # Session expires when browser closes
         
-        logger.info(f"Plan selected: {plan_type} by {session.get('user_email')}")
+        # ✅ Update database for persistence 
+        user_id = session.get('user_id')
+        if user_id:
+            try:
+                database_url = os.environ.get('DATABASE_URL')
+                if database_url:
+                    import psycopg2
+                    conn = psycopg2.connect(database_url)
+                    conn.autocommit = True
+                    cursor = conn.cursor()
+                    cursor.execute("UPDATE users SET subscription_tier = %s WHERE id = %s", (normalized_plan, user_id))
+                    cursor.close()
+                    conn.close()
+                    logger.info(f"✅ Database updated: User {user_id} set to '{normalized_plan}'")
+            except Exception as db_error:
+                logger.error(f"Database update failed: {db_error}")
+        
+        logger.info(f"Plan selected: '{normalized_plan}' by {session.get('user_email')}")
         logger.info(f"Session after plan selection: {dict(session)}")
         
-        # Create appropriate success message and redirect
-        if plan_type == "foundation":
+        # ✅ Create appropriate success message and redirect
+        if normalized_plan == "free":
             message = "Welcome to SoulBridge AI! Your free plan is now active."
-            # Redirect back to subscription page with success message
-            redirect_url = "/subscription?plan_selected=foundation"
+            redirect_url = "/intro"
         else:
             plan_names = {"growth": "Growth", "max": "Max"}
-            plan_display = plan_names.get(plan_type, plan_type.title())
+            plan_display = plan_names.get(normalized_plan, normalized_plan.title())
             message = f"Great choice! {plan_display} plan selected. Complete payment to activate premium features."
-            # Redirect paid plan users to real payment processing
-            redirect_url = f"/payment?plan={plan_type}&billing={billing}"
+            redirect_url = f"/payment?plan={normalized_plan}&billing={billing}"
         
         return jsonify({
             "success": True,
-            "plan": plan_type,
+            "plan": normalized_plan,
             "message": message,
             "redirect": redirect_url
         })
