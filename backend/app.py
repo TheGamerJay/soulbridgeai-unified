@@ -5077,6 +5077,83 @@ def debug_test():
     """Simple test endpoint"""
     return jsonify({"status": "working", "user_id": session.get('user_id')})
 
+@app.route("/debug/fix-database-schema", methods=["GET"])
+def debug_fix_database_schema():
+    """DEBUG: Add missing columns to users table"""
+    try:
+        database_url = os.environ.get('DATABASE_URL')
+        if not database_url:
+            return jsonify({"error": "No database connection"})
+        
+        import psycopg2
+        conn = psycopg2.connect(database_url)
+        conn.autocommit = True
+        cursor = conn.cursor()
+        
+        # Add missing columns with proper error handling
+        fixes_applied = []
+        
+        try:
+            cursor.execute("""
+                ALTER TABLE users 
+                ADD COLUMN subscription_tier TEXT DEFAULT 'free'
+            """)
+            fixes_applied.append("Added subscription_tier column")
+        except psycopg2.errors.DuplicateColumn:
+            fixes_applied.append("subscription_tier column already exists")
+        
+        try:
+            cursor.execute("""
+                ALTER TABLE users 
+                ADD COLUMN trial_started_at TIMESTAMP
+            """)
+            fixes_applied.append("Added trial_started_at column")
+        except psycopg2.errors.DuplicateColumn:
+            fixes_applied.append("trial_started_at column already exists")
+            
+        try:
+            cursor.execute("""
+                ALTER TABLE users 
+                ADD COLUMN trial_expires_at TIMESTAMP
+            """)
+            fixes_applied.append("Added trial_expires_at column")
+        except psycopg2.errors.DuplicateColumn:
+            fixes_applied.append("trial_expires_at column already exists")
+            
+        try:
+            cursor.execute("""
+                ALTER TABLE users 
+                ADD COLUMN trial_used_permanently BOOLEAN DEFAULT FALSE
+            """)
+            fixes_applied.append("Added trial_used_permanently column")
+        except psycopg2.errors.DuplicateColumn:
+            fixes_applied.append("trial_used_permanently column already exists")
+        
+        # Show current table structure
+        cursor.execute("""
+            SELECT column_name, data_type, column_default, is_nullable
+            FROM information_schema.columns 
+            WHERE table_name = 'users'
+            ORDER BY ordinal_position
+        """)
+        columns = cursor.fetchall()
+        
+        cursor.close()
+        conn.close()
+        
+        return jsonify({
+            "success": True,
+            "fixes_applied": fixes_applied,
+            "current_columns": [{"name": c[0], "type": c[1], "default": c[2], "nullable": c[3]} for c in columns]
+        })
+        
+    except Exception as e:
+        import traceback
+        return jsonify({
+            "error": str(e),
+            "traceback": traceback.format_exc()
+        }), 500
+
 @app.route("/debug/force-free-plan", methods=["GET"])
 def debug_force_free_plan():
     """DEBUG: Force current user to free plan (bypass broken signup)"""
