@@ -1277,11 +1277,13 @@ def auth_register():
         session['plan_selected_at'] = time.time()
         session['first_time_user'] = False
         
-        return jsonify({
+        response_data = {
             "success": True, 
             "message": "🎉 Welcome to SoulBridge AI! Your free account is ready - you get 3 daily decodes, 2 fortunes, and 3 horoscopes!",
             "redirect": "/intro"
-        })
+        }
+        logger.info(f"✅ SIGNUP SUCCESS: Returning JSON response: {response_data}")
+        return jsonify(response_data)
         
     except Exception as e:
         logger.error(f"Signup error: {e}")
