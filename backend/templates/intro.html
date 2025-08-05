@@ -685,7 +685,7 @@
                 } else if (q.includes('decoder') || q.includes('decode')) {
                     return "🧠 Decoder Mode: Available in chat - click the Decoder button to analyze text, decode emotions, get insights, and more! Great for understanding complex messages or situations.";
                 } else if (q.includes('subscription') || q.includes('upgrade') || q.includes('billing')) {
-                    return "💳 Subscription: Go to /subscription page or Profile → Subscription section to upgrade from Foundation to Growth/Max plans. Manage billing and access premium features!";
+                    return "💳 Subscription: Go to /subscription page or Profile → Subscription section to upgrade from Free to Growth/Max plans. Manage billing and access premium features!";
                 }
             }
             
@@ -707,7 +707,7 @@
             }
             
             if (q.includes('subscription') || q.includes('billing') || q.includes('payment') || q.includes('upgrade')) {
-                return "💳 Subscription: Go to Profile → Subscription section to upgrade from Foundation to Plus or Galaxy plans. Manage billing, view usage, and access premium features!";
+                return "💳 Subscription: Go to Profile → Subscription section to upgrade from Free to Growth or Max plans. Manage billing, view usage, and access premium features!";
             }
             
             if (q.includes('dark') || q.includes('theme') || q.includes('colors') || q.includes('appearance')) {
@@ -986,7 +986,7 @@ What specific area would you like help with? I know every feature of SoulBridge 
                     
                     // Show premium features based on plan (Growth/Max only)  
                     if (userPlan === 'growth' || userPlan === 'max') {
-                        // Growth (Premium) and Max (Enterprise) users get all premium features
+                        // Growth and Max users get all premium features
                         document.getElementById('voiceJournalingBtn').style.display = 'block';
                         document.getElementById('relationshipBtn').style.display = 'block';
                         document.getElementById('meditationBtn').style.display = 'block';
@@ -1013,7 +1013,7 @@ What specific area would you like help with? I know every feature of SoulBridge 
                         console.log('✨ Premium features unlocked for plan:', userPlan);
                     } else {
                         // Foundation users see nothing (features hidden)
-                        console.log('📝 Foundation user - premium features hidden');
+                        console.log('📝 Free user - premium features hidden');
                     }
                 }
                 
