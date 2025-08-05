@@ -6,7 +6,7 @@
 // Global variables
 let companions = {};
 let currentUser = {
-    plan: 'foundation',
+    plan: 'free',
     selected_companion: null
 };
 
@@ -194,18 +194,18 @@ async function loadUserDataFromBackend() {
         const response = await fetch('/api/user/status');
         if (response.ok) {
             const userData = await response.json();
-            currentUser.plan = userData.plan || 'foundation';
+            currentUser.plan = userData.plan || 'free';
             currentUser.selected_companion = userData.selected_companion || null;
             
             
             console.log('✅ User data loaded from backend:', currentUser);
         } else {
             console.warn('⚠️ Failed to load user data from backend, using defaults');
-            currentUser.plan = 'foundation';
+            currentUser.plan = 'free';
         }
     } catch (error) {
         console.error('❌ Error loading user data from backend:', error);
-        currentUser.plan = 'foundation';
+        currentUser.plan = 'free';
     }
 }
 
@@ -222,7 +222,7 @@ async function loadCompanions() {
 
         const companions = data.companions || [];
         const trialActive = data.trial_active === true;
-        const effectivePlan = data.effective_plan || 'foundation';
+        const effectivePlan = data.effective_plan || 'free';
 
         // Store global state
         window.companionsData = companions;
@@ -906,18 +906,18 @@ function hasAccessToCompanion(companion, user, trialStatus) {
     if (tier === 'free') return true;
 
     if (tier === 'growth') {
-        const hasAccess = userPlan === 'growth' || userPlan === 'premium' || userPlan === 'enterprise' || 
+        const hasAccess = userPlan === 'growth' || userPlan === 'max' || 
                (trialStatus?.trial_active === true);
         console.log(`🔍 Growth access for ${companion.display_name}: ${hasAccess}`);
         return hasAccess;
     }
 
     if (tier === 'max') {
-        // Max companions: ONLY unlocked by enterprise plan OR active 5-hour trial
-        // After trial expires, you MUST purchase Enterprise plan to access
-        const hasAccess = userPlan === 'enterprise' || 
+        // Max companions: ONLY unlocked by max plan OR active 5-hour trial
+        // After trial expires, you MUST purchase Max plan to access
+        const hasAccess = userPlan === 'max' || 
                (trialStatus?.trial_active === true);
-        console.log(`🔍 Max access for ${companion.display_name}: ${hasAccess} (enterprise=${userPlan === 'enterprise'}, trial_active=${trialStatus?.trial_active})`);
+        console.log(`🔍 Max access for ${companion.display_name}: ${hasAccess} (max=${userPlan === 'max'}, trial_active=${trialStatus?.trial_active})`);
         return hasAccess;
     }
 
@@ -933,7 +933,7 @@ function hasAccessToCompanion(companion, user, trialStatus) {
 // ========================================
 
 async function startPremiumTrial(companionId) {
-    console.log('🎯 Starting premium trial for:', companionId);
+    console.log('🎯 Starting 5-hour trial for:', companionId);
     
     try {
         const response = await fetch('/start-trial', {
@@ -1217,7 +1217,7 @@ function showTrialModal(companionId, tier, companionName) {
                             ⏰ 5 Hours Free Access
                         </p>
                         <p style="color: #94a3b8; font-size: 14px;">
-                            Experience premium features with no commitment
+                            Experience Max-tier features with no commitment
                         </p>
                     </div>
                     
