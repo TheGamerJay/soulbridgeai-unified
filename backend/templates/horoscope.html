@@ -751,7 +751,7 @@ async function refreshHoroscopeLimits() {
         }
 
         const usage = data.usage_today ?? 0;
-        const hasUnlimited = data.effective_plan === 'enterprise';
+        const hasUnlimited = data.effective_plan === 'max' && !data.trial_active;  // Only if REAL Max
 
         const limitDisplay = hasUnlimited ? '∞' : (data.daily_limit ?? '?');
 
@@ -790,7 +790,7 @@ async function refreshHoroscopeLimits() {
             if (planDesc) {
                 planDesc.style.display = "block";
                 if (data.trial_active) {
-                    planDesc.textContent = `Free users get ${limitDisplay} horoscopes per day. You're on 5-hour trial with premium companions!`;
+                    planDesc.textContent = `You're on a 5-hour trial — enjoy Max-tier access with ${data.daily_limit} horoscopes.`;
                 } else {
                     planDesc.textContent = `Free users get ${limitDisplay} horoscopes per day. Upgrade to Growth for more cosmic insights.`;
                 }

@@ -522,7 +522,7 @@ async function refreshFortuneLimits() {
         }
 
         const usage = data.usage_today ?? 0;
-        const hasUnlimited = data.effective_plan === 'max';
+        const hasUnlimited = data.effective_plan === 'max' && !data.trial_active;  // Only if REAL Max
 
         const limitDisplay = hasUnlimited ? '∞' : (data.daily_limit ?? '?');
 
@@ -561,7 +561,7 @@ async function refreshFortuneLimits() {
             if (planDesc) {
                 planDesc.style.display = "block";
                 if (data.trial_active) {
-                    planDesc.textContent = `Free users get ${limitDisplay} fortunes per day. You're on 5-hour trial with premium companions!`;
+                    planDesc.textContent = `You're on a 5-hour trial — enjoy Max-tier access with ${data.daily_limit} fortunes.`;
                 } else {
                     planDesc.textContent = `Free users get ${limitDisplay} fortunes per day. Upgrade to Growth for more mystical insights.`;
                 }
