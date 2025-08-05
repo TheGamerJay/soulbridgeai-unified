@@ -148,20 +148,7 @@
         </div>
         
         <div class="plan-grid">
-            <!-- Free Plan -->
-            <div class="plan-card">
-                <h3 class="plan-name">Foundation</h3>
-                <div class="plan-price">Free</div>
-                <ul class="plan-features">
-                    <li>Basic AI companions</li>
-                    <li>Limited daily conversations</li>
-                    <li>Standard responses</li>
-                    <li>Community support</li>
-                </ul>
-                <button class="plan-btn" onclick="selectPlan('foundation')">Get Started Free</button>
-            </div>
-            
-            <!-- Pro Plan -->
+            <!-- Growth Plan -->
             <div class="plan-card popular">
                 <div class="plan-badge">Most Popular</div>
                 <h3 class="plan-name">Growth</h3>
@@ -207,13 +194,8 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    // For free plan, go directly to original chat interface
-                    if (planType === 'foundation') {
-                        window.location.href = '/';
-                    } else {
-                        // For paid plans, go to payment
-                        window.location.href = data.redirect_url || `/payment?plan=${planType}`;
-                    }
+                    // All plans now go to payment (no free plan selection)
+                    window.location.href = data.redirect_url || `/payment?plan=${planType}`;
                 } else {
                     alert(data.error || 'Failed to select plan');
                 }
