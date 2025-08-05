@@ -5260,7 +5260,7 @@ def api_subscription_upgrade():
         plan_type = data.get("plan")
         billing = data.get("billing", "monthly")
         
-        if not plan_type or plan_type not in ["growth", "max", "premium", "enterprise"]:
+        if not plan_type or plan_type not in ["free", "growth", "max", "premium", "enterprise"]:
             return jsonify({"success": False, "error": "Invalid plan type"}), 400
         
         if billing not in ["monthly", "yearly"]:
