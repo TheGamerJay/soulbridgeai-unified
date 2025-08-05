@@ -5052,7 +5052,7 @@ def debug_session_info():
         "horoscope_limit": get_feature_limit(session.get('effective_plan', 'free'), 'horoscope', session.get('trial_active', False))
     })
 
-@app.route("/debug/force-free-user", methods=["POST"])
+@app.route("/debug/force-free-user", methods=["GET"])
 def debug_force_free_user():
     """DEBUG: Force current user to be truly free (no trial, no paid plan)"""
     try:
