@@ -4480,12 +4480,11 @@ def get_user_addons():
 
 def get_feature_limit(effective_plan: str, feature: str, trial_active: bool = False) -> int:
     """
-    Bulletproof feature limit logic - handles trial as Growth tier (not Max-unlimited)
-    Trial users get Growth limits while appearing to have Max features
+    Bulletproof feature limit logic - trial users get true Max-tier access during 5-hour window
     """
     if trial_active:
-        # Trial only simulates max features visually — it should use Growth limits
-        plan_to_use = "growth"
+        # Trial users get TRUE Max-tier access (unlimited) during their 5-hour window
+        plan_to_use = "max"
     else:
         plan_to_use = effective_plan
 
