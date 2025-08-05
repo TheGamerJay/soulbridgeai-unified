@@ -1302,6 +1302,7 @@ def intro():
     # ISOLATED TIER ACCESS FLAGS - Prevents cross-contamination 
     user_plan = session.get('user_plan', 'free')
     trial_active = session.get('trial_active', False)
+    effective_plan = session.get('effective_plan', 'free')  # FIX: Get from session
     
     # Define isolated access flags for each tier using effective_plan
     session['access_free'] = True  # Everyone gets free features
@@ -1310,7 +1311,7 @@ def intro():
     session['access_trial'] = trial_active
     session.modified = True  # Ensure session changes are saved
     
-    logger.info(f"✅ INTRO: Showing intro page for authenticated user with plan: {session.get('user_plan')}")
+    logger.info(f"✅ INTRO: trial_active={trial_active}, effective_plan={effective_plan}, access_growth={session['access_growth']}, access_max={session['access_max']}")
     logger.info(f"Access flags: free={session['access_free']}, growth={session['access_growth']}, max={session['access_max']}, trial={session['access_trial']}")
     return render_template("intro.html")
 
