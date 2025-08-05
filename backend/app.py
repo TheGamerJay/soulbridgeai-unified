@@ -1274,8 +1274,14 @@ def auth_register():
         session['session_version'] = "2025-07-28-banking-security"  # Required for auth
         session['last_activity'] = datetime.now().isoformat()
         session['user_plan'] = 'free'  # Default all new users to free plan
+        session['plan_selected_at'] = time.time()
+        session['first_time_user'] = False
         
-        return jsonify({"success": True, "redirect": "/plan-selection"})
+        return jsonify({
+            "success": True, 
+            "message": "🎉 Welcome to SoulBridge AI! Your free account is ready - you get 3 daily decodes, 2 fortunes, and 3 horoscopes!",
+            "redirect": "/intro"
+        })
         
     except Exception as e:
         return jsonify({"success": False, "error": f"Error: {str(e)}"}), 500
