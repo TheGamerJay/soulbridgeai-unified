@@ -3333,7 +3333,7 @@ def select_plan():
         if not data:
             return jsonify({"success": False, "error": "Invalid request data"}), 400
             
-        plan_type = data.get("plan_type", "foundation")
+        plan_type = data.get("plan_type", "free")
         billing = data.get("billing", "monthly")
         
         logger.info(f"Select plan request: plan_type={plan_type}, billing={billing}, data={data}")
