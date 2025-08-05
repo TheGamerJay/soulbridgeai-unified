@@ -5072,6 +5072,48 @@ def debug_test():
     """Simple test endpoint"""
     return jsonify({"status": "working", "user_id": session.get('user_id')})
 
+@app.route("/debug/force-free-plan", methods=["GET"])
+def debug_force_free_plan():
+    """DEBUG: Force current user to free plan (bypass broken signup)"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({"error": "Not logged in"})
+        
+        # Force session to free plan
+        session['user_plan'] = 'free'
+        session['effective_plan'] = 'free'
+        session['trial_active'] = False
+        
+        # Also update database if possible
+        database_url = os.environ.get('DATABASE_URL')
+        if database_url:
+            import psycopg2
+            conn = psycopg2.connect(database_url)
+            conn.autocommit = True
+            cursor = conn.cursor()
+            
+            cursor.execute("""
+                UPDATE users 
+                SET subscription_tier = 'free', trial_expires_at = NULL
+                WHERE id = %s
+            """, (user_id,))
+            
+            cursor.close()
+            conn.close()
+        
+        return jsonify({
+            "success": True,
+            "message": "User forced to free plan",
+            "user_id": user_id,
+            "user_plan": session.get('user_plan'),
+            "effective_plan": session.get('effective_plan'),
+            "trial_active": session.get('trial_active')
+        })
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route("/debug/fix-plan-names", methods=["GET"])
 def debug_fix_plan_names():
     """DEBUG: Update all old plan names in database to new names"""
