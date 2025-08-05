@@ -5587,7 +5587,10 @@ def upload_profile_image():
         allowed_extensions = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
         file_ext = file.filename.rsplit('.', 1)[1].lower() if '.' in file.filename else ''
         
+        logger.info(f"📷 PROFILE: Upload attempt - file: {file.filename}, ext: {file_ext}")
+        
         if file_ext not in allowed_extensions:
+            logger.warning(f"❌ PROFILE: Invalid file type: {file_ext}")
             return jsonify({"success": False, "error": "Invalid file type. Please use PNG, JPG, JPEG, GIF, or WebP"}), 400
         
         # Validate file size (max 5MB)
@@ -5624,17 +5627,30 @@ def upload_profile_image():
                 if hasattr(db_instance, 'postgres_url') and db_instance.postgres_url:
                     cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_image TEXT")
                     cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_image_data TEXT")
-                logger.info("✅ Profile image columns ensured")
+                else:
+                    cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_image TEXT")
+                    cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_image_data TEXT")
+                logger.info("✅ PROFILE: Profile image columns ensured")
             except Exception as migration_error:
-                logger.warning(f"Migration warning: {migration_error}")
+                logger.error(f"❌ PROFILE: Migration failed: {migration_error}")
+                return jsonify({"success": False, "error": f"Database migration failed: {str(migration_error)}"}), 500
             
             # Create unique image URL for this user
             profile_image_url = f"/api/profile-image/{user_id}"
+            logger.info(f"📷 PROFILE: Updating user {user_id} with image URL: {profile_image_url}")
             
             # Update user record with base64 data
-            cursor.execute(f"""
-                UPDATE users SET profile_image = {placeholder}, profile_image_data = {placeholder} WHERE id = {placeholder}
-            """, (profile_image_url, image_base64, user_id))
+            try:
+                cursor.execute(f"""
+                    UPDATE users SET profile_image = {placeholder}, profile_image_data = {placeholder} WHERE id = {placeholder}
+                """, (profile_image_url, image_base64, user_id))
+                
+                rows_updated = cursor.rowcount
+                logger.info(f"📷 PROFILE: UPDATE affected {rows_updated} rows for user {user_id}")
+                
+            except Exception as update_error:
+                logger.error(f"❌ PROFILE: UPDATE failed: {update_error}")
+                return jsonify({"success": False, "error": f"Database update failed: {str(update_error)}"}), 500
             
             if cursor.rowcount == 0:
                 # User doesn't exist, try to create record
