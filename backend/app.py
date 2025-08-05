@@ -1550,7 +1550,10 @@ def auth_register():
             password = request.form.get('password', '')
             name = request.form.get('display_name', '') or email.split('@')[0]
         
+        logger.info(f"📥 REGISTER: Attempting to register user: {email}")
+        
         if not email or not password:
+            logger.warning(f"❌ REGISTER: Missing data - email: {bool(email)}, password: {bool(password)}")
             return jsonify({"success": False, "error": "Email and password required"}), 400
         
         # Use the proper database instance with compatibility
@@ -1562,6 +1565,7 @@ def auth_register():
         cursor = conn.cursor()
         
         # Check if user already exists
+        logger.info(f"🔍 REGISTER: Checking if {email} already exists...")
         if db_instance.use_postgres:
             cursor.execute("SELECT id FROM users WHERE email = %s", (email,))
         else:
@@ -1569,31 +1573,44 @@ def auth_register():
         
         existing_user = cursor.fetchone()
         if existing_user:
+            logger.warning(f"❌ REGISTER: Email {email} already exists in database")
             conn.close()
             return jsonify({"success": False, "error": "Email already registered. Please try logging in instead."}), 400
+        
+        logger.info(f"✅ REGISTER: Email {email} is available, proceeding with registration")
         
         # Create new user with all trial system columns
         import bcrypt
         hash_pw = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
         
-        if db_instance.use_postgres:
-            cursor.execute("""
-                INSERT INTO users (email, password_hash, display_name)
-                VALUES (%s, %s, %s)
-                RETURNING id
-            """, (email, hash_pw, name))
-        else:
-            cursor.execute("""
-                INSERT INTO users (email, password_hash, display_name)
-                VALUES (?, ?, ?)
-            """, (email, hash_pw, name))
+        logger.info(f"💾 REGISTER: Inserting user {email} into database...")
+        
+        try:
+            if db_instance.use_postgres:
+                cursor.execute("""
+                    INSERT INTO users (email, password_hash, display_name)
+                    VALUES (%s, %s, %s)
+                    RETURNING id
+                """, (email, hash_pw, name))
+                user_id = cursor.fetchone()[0]
+            else:
+                cursor.execute("""
+                    INSERT INTO users (email, password_hash, display_name)
+                    VALUES (?, ?, ?)
+                """, (email, hash_pw, name))
+                user_id = cursor.lastrowid
             
-            user_id = cursor.lastrowid
+            logger.info(f"✅ REGISTER: User {email} inserted with ID: {user_id}")
+            
+            conn.commit()
+            logger.info(f"✅ REGISTER: Database commit successful for user {email}")
+            
+        except Exception as insert_error:
+            logger.error(f"❌ REGISTER: Database insert failed for {email}: {insert_error}")
+            conn.rollback()
+            conn.close()
+            return jsonify({"success": False, "error": f"Database error: {str(insert_error)}"}), 500
         
-        if db_instance.use_postgres:
-            user_id = cursor.fetchone()[0]
-        
-        conn.commit()
         conn.close()
         
         # Initialize comprehensive session for new user
