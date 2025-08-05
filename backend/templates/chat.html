@@ -270,6 +270,12 @@
                             <button onclick="copyCreativeContent()" class="copy-btn">
                                 <i class="fas fa-copy"></i> Copy
                             </button>
+                            <button onclick="readContentAloud()" class="read-btn" id="readBtn">
+                                <i class="fas fa-volume-up"></i> Read Aloud
+                            </button>
+                            <button onclick="toggleTranslation()" class="translate-btn" id="translateBtn">
+                                <i class="fas fa-language"></i> Translate
+                            </button>
                             <button onclick="saveToLibrary()" class="save-btn">
                                 <i class="fas fa-bookmark"></i> Save
                             </button>
@@ -282,6 +288,41 @@
                         </div>
                     </div>
                     <div class="generated-content" id="generatedContent"></div>
+                    
+                    <!-- Translation Panel -->
+                    <div class="translation-panel" id="translationPanel" style="display: none;">
+                        <h4><i class="fas fa-language"></i> Translation Options</h4>
+                        <div class="language-controls">
+                            <label for="targetLanguage">Translate to:</label>
+                            <select id="targetLanguage">
+                                <option value="es">Spanish (Español)</option>
+                                <option value="fr">French (Français)</option>
+                                <option value="de">German (Deutsch)</option>
+                                <option value="it">Italian (Italiano)</option>
+                                <option value="pt">Portuguese (Português)</option>
+                                <option value="ru">Russian (Русский)</option>
+                                <option value="ja">Japanese (日本語)</option>
+                                <option value="ko">Korean (한국어)</option>
+                                <option value="zh">Chinese (中文)</option>
+                                <option value="ar">Arabic (العربية)</option>
+                                <option value="hi">Hindi (हिन्दी)</option>
+                                <option value="nl">Dutch (Nederlands)</option>
+                                <option value="sv">Swedish (Svenska)</option>
+                                <option value="no">Norwegian (Norsk)</option>
+                                <option value="da">Danish (Dansk)</option>
+                                <option value="pl">Polish (Polski)</option>
+                                <option value="tr">Turkish (Türkçe)</option>
+                                <option value="he">Hebrew (עברית)</option>
+                                <option value="th">Thai (ไทย)</option>
+                                <option value="vi">Vietnamese (Tiếng Việt)</option>
+                            </select>
+                            <button onclick="translateContent()" class="translate-action-btn">
+                                <i class="fas fa-globe"></i> Translate
+                            </button>
+                        </div>
+                        <div class="translated-content" id="translatedContent" style="display: none;"></div>
+                    </div>
+                    
                     <button onclick="resetCreativeWriting()" class="reset-btn">
                         <i class="fas fa-redo"></i> Create Another
                     </button>
@@ -503,7 +544,7 @@
             gap: 10px;
         }
         
-        .copy-btn, .save-btn, .export-btn, .share-btn, .reset-btn {
+        .copy-btn, .save-btn, .export-btn, .share-btn, .reset-btn, .read-btn, .translate-btn {
             background: rgba(34, 211, 238, 0.2);
             border: 1px solid #22d3ee;
             border-radius: 6px;
@@ -513,7 +554,7 @@
             transition: all 0.3s ease;
         }
         
-        .copy-btn:hover, .save-btn:hover, .export-btn:hover, .share-btn:hover, .reset-btn:hover {
+        .copy-btn:hover, .save-btn:hover, .export-btn:hover, .share-btn:hover, .reset-btn:hover, .read-btn:hover, .translate-btn:hover {
             background: rgba(34, 211, 238, 0.3);
         }
         
@@ -536,6 +577,99 @@
         .creative-btn:hover {
             background: linear-gradient(135deg, #7c3aed, #6d28d9) !important;
             border-color: #8b5cf6 !important;
+        }
+        
+        /* Text-to-Speech and Translation Button Styles */
+        .read-btn {
+            background: rgba(34, 197, 94, 0.2) !important;
+            border-color: #22c55e !important;
+            color: #22c55e !important;
+        }
+        
+        .read-btn:hover {
+            background: rgba(34, 197, 94, 0.3) !important;
+        }
+        
+        .read-btn.speaking {
+            background: rgba(239, 68, 68, 0.2) !important;
+            border-color: #ef4444 !important;
+            color: #ef4444 !important;
+        }
+        
+        .translate-btn {
+            background: rgba(168, 85, 247, 0.2) !important;
+            border-color: #a855f7 !important;
+            color: #a855f7 !important;
+        }
+        
+        .translate-btn:hover {
+            background: rgba(168, 85, 247, 0.3) !important;
+        }
+        
+        /* Translation Panel Styles */
+        .translation-panel {
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(168, 85, 247, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        
+        .translation-panel h4 {
+            color: #a855f7;
+            margin: 0 0 15px 0;
+            font-size: 1.1rem;
+        }
+        
+        .language-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+        
+        .language-controls label {
+            color: #e2e8f0;
+            font-weight: 600;
+        }
+        
+        .language-controls select {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 6px;
+            padding: 8px 12px;
+            color: #e2e8f0;
+            cursor: pointer;
+        }
+        
+        .language-controls select:focus {
+            outline: none;
+            border-color: #a855f7;
+        }
+        
+        .translate-action-btn {
+            background: rgba(168, 85, 247, 0.2);
+            border: 1px solid #a855f7;
+            border-radius: 6px;
+            padding: 8px 16px;
+            color: #a855f7;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .translate-action-btn:hover {
+            background: rgba(168, 85, 247, 0.3);
+        }
+        
+        .translated-content {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(168, 85, 247, 0.2);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            color: #e2e8f0;
+            line-height: 1.6;
         }
         
         /* Canvas Interface Styles */
@@ -1398,6 +1532,162 @@ Where emotion meets expression.
                 shareBtn.innerHTML = originalText;
                 shareBtn.disabled = false;
             }
+        }
+        
+        // Text-to-Speech functionality
+        let currentSpeech = null;
+        
+        function readContentAloud() {
+            const readBtn = document.getElementById('readBtn');
+            const content = document.getElementById('generatedContent').textContent;
+            
+            if (!content.trim()) {
+                alert('No content to read!');
+                return;
+            }
+            
+            // Check if already speaking
+            if (currentSpeech && !currentSpeech.paused) {
+                // Stop current speech
+                speechSynthesis.cancel();
+                currentSpeech = null;
+                readBtn.innerHTML = '<i class="fas fa-volume-up"></i> Read Aloud';
+                readBtn.classList.remove('speaking');
+                return;
+            }
+            
+            // Create new speech synthesis
+            currentSpeech = new SpeechSynthesisUtterance(content);
+            
+            // Configure speech settings
+            currentSpeech.rate = 0.8; // Slightly slower for better comprehension
+            currentSpeech.pitch = 1.0;
+            currentSpeech.volume = 0.8;
+            
+            // Try to use a more natural voice if available
+            const voices = speechSynthesis.getVoices();
+            const preferredVoice = voices.find(voice => 
+                voice.name.includes('Google') || 
+                voice.name.includes('Microsoft') || 
+                voice.localService === false
+            );
+            if (preferredVoice) {
+                currentSpeech.voice = preferredVoice;
+            }
+            
+            // Update button during speech
+            readBtn.innerHTML = '<i class="fas fa-stop"></i> Stop Reading';
+            readBtn.classList.add('speaking');
+            
+            // Handle speech events
+            currentSpeech.onend = () => {
+                readBtn.innerHTML = '<i class="fas fa-volume-up"></i> Read Aloud';
+                readBtn.classList.remove('speaking');
+                currentSpeech = null;
+            };
+            
+            currentSpeech.onerror = (event) => {
+                console.error('Speech synthesis error:', event);
+                readBtn.innerHTML = '<i class="fas fa-volume-up"></i> Read Aloud';
+                readBtn.classList.remove('speaking');
+                currentSpeech = null;
+                alert('Sorry, there was an error with text-to-speech. Please check your browser settings.');
+            };
+            
+            // Start speaking
+            speechSynthesis.speak(currentSpeech);
+        }
+        
+        // Translation functionality
+        function toggleTranslation() {
+            const translationPanel = document.getElementById('translationPanel');
+            const translateBtn = document.getElementById('translateBtn');
+            
+            if (translationPanel.style.display === 'none' || !translationPanel.style.display) {
+                translationPanel.style.display = 'block';
+                translateBtn.innerHTML = '<i class="fas fa-times"></i> Close Translation';
+            } else {
+                translationPanel.style.display = 'none';
+                translateBtn.innerHTML = '<i class="fas fa-language"></i> Translate';
+            }
+        }
+        
+        async function translateContent() {
+            const content = document.getElementById('generatedContent').textContent;
+            const targetLanguage = document.getElementById('targetLanguage').value;
+            const translatedContentDiv = document.getElementById('translatedContent');
+            const translateActionBtn = document.querySelector('.translate-action-btn');
+            
+            if (!content.trim()) {
+                alert('No content to translate!');
+                return;
+            }
+            
+            // Show loading state
+            const originalBtnText = translateActionBtn.innerHTML;
+            translateActionBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Translating...';
+            translateActionBtn.disabled = true;
+            
+            try {
+                // Use the chat API to translate content
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: `Please translate the following text to ${getLanguageName(targetLanguage)}. Keep the formatting and structure exactly the same, only translate the words:\n\n${content}`,
+                        companion: 'AI Assistant',
+                        context: 'translation'
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    translatedContentDiv.innerHTML = `
+                        <h5><i class="fas fa-globe"></i> Translated to ${getLanguageName(targetLanguage)}:</h5>
+                        <div style="white-space: pre-wrap;">${result.response}</div>
+                    `;
+                    translatedContentDiv.style.display = 'block';
+                } else {
+                    throw new Error(result.error || 'Translation failed');
+                }
+                
+            } catch (error) {
+                console.error('Translation error:', error);
+                alert('Sorry, there was an error translating your content. Please try again.');
+            }
+            
+            // Reset button
+            translateActionBtn.innerHTML = originalBtnText;
+            translateActionBtn.disabled = false;
+        }
+        
+        function getLanguageName(code) {
+            const languageNames = {
+                'es': 'Spanish',
+                'fr': 'French',
+                'de': 'German',
+                'it': 'Italian',
+                'pt': 'Portuguese',
+                'ru': 'Russian',
+                'ja': 'Japanese',
+                'ko': 'Korean',
+                'zh': 'Chinese',
+                'ar': 'Arabic',
+                'hi': 'Hindi',
+                'nl': 'Dutch',
+                'sv': 'Swedish',
+                'no': 'Norwegian',
+                'da': 'Danish',
+                'pl': 'Polish',
+                'tr': 'Turkish',
+                'he': 'Hebrew',
+                'th': 'Thai',
+                'vi': 'Vietnamese'
+            };
+            return languageNames[code] || code.toUpperCase();
         }
         
         async function shareCanvasToWellnessGallery() {
