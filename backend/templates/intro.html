@@ -251,12 +251,47 @@
                 transform: scale(1.02);
             }
         }
+        
+        /* Trial Timer Styles */
+        .hidden {
+            display: none !important;
+        }
+        
+        @keyframes pulse-gold {
+            0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 215, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); }
+        }
     </style>
 </head>
 <body class="intro-page" style="background: #000000 !important; background-attachment: fixed !important; background-size: 100% 100% !important; min-height: 100vh !important; margin: 0 !important; font-family: system-ui, -apple-system, sans-serif !important; color: #00ffff !important;">
     <!-- Navigation -->
-    <div class="top-nav" style="position: fixed; top: 0; left: 0; right: 0; z-index: 1000; padding: 15px 20px; display: flex; justify-content: flex-end; align-items: center;">
+    <div class="top-nav" style="position: fixed; top: 0; left: 0; right: 0; z-index: 1000; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;">
+        <!-- Trial Timer (left side) -->
+        <div id="trial-ring-container" class="ring-wrapper hidden" style="position: relative; width: 60px; height: 60px; margin: 5px;">
+            <svg class="progress-ring" width="60" height="60" style="transform: rotate(-90deg);">
+                <circle
+                    class="progress-ring-circle"
+                    stroke="gold"
+                    stroke-width="3"
+                    fill="transparent"
+                    r="26"
+                    cx="30"
+                    cy="30"
+                    style="transition: stroke-dashoffset 0.35s, stroke 0.3s ease;"
+                />
+            </svg>
+            <div id="ring-text" class="ring-text" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 10px; font-weight: bold; color: #ffd700; text-shadow: 0 0 3px rgba(0,0,0,0.5);">5:00</div>
+        </div>
+        
+        <!-- Right side buttons -->
         <div style="display: flex; gap: 15px; align-items: center;">
+            <!-- Trial Button -->
+            {% if not session.get('trial_used_permanently') and not session.get('trial_active') %}
+            <button id="start-trial-btn" onclick="startTrial()" style="background: linear-gradient(135deg, #ffd700, #ffb347); color: #000; border: none; padding: 8px 16px; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 12px; animation: pulse-gold 2s infinite;">
+                ⭐ Start 5h Trial
+            </button>
+            {% endif %}
             <a href="/auth/logout" class="btn-danger">Logout</a>
         </div>
     </div>
@@ -1030,6 +1065,97 @@ What specific area would you like help with? I know every feature of SoulBridge 
 
         // Load add-ons when page is ready
         document.addEventListener('DOMContentLoaded', loadUserAddons);
+
+        // ====== TRIAL TIMER SYSTEM ======
+        const ring = document.querySelector('.progress-ring-circle');
+        const ringText = document.getElementById('ring-text');
+        const ringWrapper = document.getElementById('trial-ring-container');
+
+        let alertPlayed = false;
+        const RADIUS = 26;
+        const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+        
+        if (ring) {
+            ring.style.strokeDasharray = `${CIRCUMFERENCE} ${CIRCUMFERENCE}`;
+            ring.style.strokeDashoffset = `${CIRCUMFERENCE}`;
+        }
+
+        function setRingProgress(percent) {
+            if (!ring) return;
+            const offset = CIRCUMFERENCE - (percent * CIRCUMFERENCE);
+            ring.style.strokeDashoffset = offset;
+        }
+
+        async function refreshUserStatus() {
+            try {
+                const res = await fetch('/api/user-info');
+                const data = await res.json();
+
+                if (!data.success) {
+                    console.error('Failed to get user info:', data.error);
+                    return;
+                }
+
+                const { trial_active, trial_remaining, effective_plan, trial_used_permanently } = data;
+
+                // Show Ring if Trial Active
+                if (trial_active && trial_remaining > 0 && ringWrapper) {
+                    ringWrapper.classList.remove('hidden');
+
+                    const mins = Math.floor(trial_remaining / 60);
+                    const secs = Math.floor(trial_remaining % 60);
+                    if (ringText) {
+                        ringText.innerText = `${mins}:${secs.toString().padStart(2, '0')}`;
+                    }
+
+                    const percentLeft = trial_remaining / 18000;
+                    setRingProgress(percentLeft);
+
+                    // Turn ring red at final 10 min
+                    if (ring) {
+                        ring.style.stroke = trial_remaining < 600 ? 'red' : 'gold';
+                    }
+                } else if (ringWrapper) {
+                    ringWrapper.classList.add('hidden');
+                }
+
+                // Hide trial button if used or active
+                const trialBtn = document.getElementById("start-trial-btn");
+                if (trialBtn && (trial_active || trial_used_permanently)) {
+                    trialBtn.classList.add("hidden");
+                }
+
+            } catch (error) {
+                console.error('Error refreshing user status:', error);
+            }
+        }
+
+        async function startTrial() {
+            try {
+                const res = await fetch('/api/start-trial', { method: 'POST' });
+                const data = await res.json();
+                
+                if (data.success) {
+                    alert("🌟 5-Hour Trial started! Enjoy all premium features!");
+                    refreshUserStatus();
+                    
+                    // Hide the trial button immediately
+                    const trialBtn = document.getElementById("start-trial-btn");
+                    if (trialBtn) {
+                        trialBtn.classList.add("hidden");
+                    }
+                } else {
+                    alert("Trial could not be started: " + (data.error || "Unknown error"));
+                }
+            } catch (error) {
+                console.error('Error starting trial:', error);
+                alert("Error starting trial. Please try again.");
+            }
+        }
+
+        // Start refreshing user status
+        setInterval(refreshUserStatus, 5000);  // auto refresh every 5 sec
+        refreshUserStatus();
     </script>
 </body>
 </html>

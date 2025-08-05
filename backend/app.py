@@ -16,7 +16,7 @@ import time
 import json
 from copy import deepcopy
 from datetime import datetime, timezone, timedelta
-from flask import Flask, jsonify, render_template, request, session, redirect, url_for, flash, make_response
+from flask import Flask, jsonify, render_template, request, session, redirect, url_for, flash, make_response, g
 
 # Configure logging first
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -57,8 +57,8 @@ def reset_session_if_cookie_missing():
         session.clear()
 
 @app.before_request
-def enforce_trial_effective_plan():
-    """Override user_plan with trial state on every request - ISOLATED per user"""
+def load_user_context():
+    """Load user context and handle trial expiration"""
     # Skip for static files and API calls to avoid overhead
     if request.endpoint in ['static', 'favicon'] or request.path.startswith('/static/'):
         return
@@ -67,34 +67,67 @@ def enforce_trial_effective_plan():
     if not user_id:
         return  # not logged in
     
-    # CRITICAL: Ensure this user's session is completely isolated
-    # Only modify THIS user's session, never affect other users
-    session_id = request.cookies.get('session', 'no-session')
-    logger.info(f"🎯 @app.before_request called for user_id={user_id}, session_id={session_id[:8]}..., path={request.path}")
-
-    try:
-        # CRITICAL: Check trial status ONLY for THIS specific user_id
-        trial_active = is_trial_active(user_id)
-        
-        # CRITICAL: Only update THIS user's session variables
-        session['trial_active'] = trial_active
-        
-        # Normalize user_plan (map old names to new ones) - ONLY for THIS user
-        real_plan = session.get('user_plan', 'free')
-        plan_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
-        mapped_plan = plan_mapping.get(real_plan, real_plan or 'free')
-        
-        # CRITICAL: Update ONLY this user's session variables
-        session['user_plan'] = mapped_plan
-        session['effective_plan'] = 'max' if trial_active else mapped_plan
-        
-        logger.info(f"🔄 Plan setup for user_id={user_id} → real_plan={mapped_plan}, trial={trial_active}, effective={session['effective_plan']}")
-            
-    except Exception as e:
-        # Don't break the app if trial check fails - ONLY affect this user's session
-        logger.error(f"Trial effective plan error for user_id={user_id}: {e}")
-        session['effective_plan'] = session.get('user_plan', 'free')
-        logger.info(f"🚨 ERROR FALLBACK for user_id={user_id}")
+    session.permanent = True
+    
+    # Get user plan and normalize old plan names
+    user_plan = session.get('user_plan', 'free')
+    plan_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
+    user_plan = plan_mapping.get(user_plan, user_plan or 'free')
+    session['user_plan'] = user_plan
+    
+    # Get trial status from database
+    trial_active = is_trial_active(user_id)
+    trial_started_at = None
+    
+    if trial_active:
+        # Get trial start time from database
+        try:
+            if services["database"] and db:
+                trial_data = db.get_trial_data(user_id)
+                if trial_data and trial_data.get('trial_started_at'):
+                    trial_started_at = trial_data['trial_started_at']
+                    session['trial_started_at'] = trial_started_at.isoformat() if hasattr(trial_started_at, 'isoformat') else str(trial_started_at)
+        except Exception as e:
+            logger.error(f"Error getting trial start time for user {user_id}: {e}")
+    
+    # Set context variables
+    g.user_plan = user_plan
+    g.trial_active = trial_active
+    g.trial_started_at = trial_started_at
+    g.effective_plan = get_effective_plan(user_plan, trial_active)
+    
+    # Trial expiration auto-cleanup (5 hrs = 18000 sec)
+    if trial_active and trial_started_at:
+        try:
+            if isinstance(trial_started_at, str):
+                trial_start_time = datetime.fromisoformat(trial_started_at.replace('Z', '+00:00'))
+            else:
+                trial_start_time = trial_started_at
+                
+            elapsed = (datetime.utcnow() - trial_start_time).total_seconds()
+            if elapsed > 18000:  # 5 hours
+                # Expire trial
+                session['trial_active'] = False
+                session['trial_used_permanently'] = True
+                session.pop('trial_started_at', None)
+                g.trial_active = False
+                g.effective_plan = g.user_plan
+                
+                # Update database
+                try:
+                    if services["database"] and db:
+                        db.expire_trial(user_id)
+                        logger.info(f"Trial expired for user {user_id} after {elapsed} seconds")
+                except Exception as e:
+                    logger.error(f"Error expiring trial for user {user_id}: {e}")
+        except Exception as e:
+            logger.error(f"Error checking trial expiration for user {user_id}: {e}")
+    
+    # Update session with current values
+    session['trial_active'] = g.trial_active
+    session['effective_plan'] = g.effective_plan
+    
+    logger.info(f"🔄 User context loaded: user_id={user_id}, plan={user_plan}, trial={trial_active}, effective={g.effective_plan}")
 
 # DISABLED: This function was potentially causing session contamination
 # @app.before_request
@@ -882,6 +915,112 @@ def clear_session():
     except Exception as e:
         logger.error(f"Error clearing session: {e}")
         return jsonify({"success": False, "error": "Failed to clear session"}), 500
+
+@app.route('/api/user-info')
+def user_info():
+    """Get comprehensive user information including trial status and limits"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        user_id = session.get('user_id')
+        user_plan = session.get('user_plan', 'free')
+        trial_active = session.get('trial_active', False)
+        trial_started = session.get('trial_started_at')
+        trial_used_permanently = session.get('trial_used_permanently', False)
+        
+        trial_remaining = 0
+        if trial_active and trial_started:
+            try:
+                if isinstance(trial_started, str):
+                    trial_start_time = datetime.fromisoformat(trial_started.replace('Z', '+00:00'))
+                else:
+                    trial_start_time = trial_started
+                elapsed = (datetime.utcnow() - trial_start_time).total_seconds()
+                trial_remaining = max(0, 18000 - elapsed)  # 5 hours = 18000 seconds
+            except Exception as e:
+                logger.error(f"Error calculating trial remaining time: {e}")
+                trial_remaining = 0
+
+        effective_plan = get_effective_plan(user_plan, trial_active)
+
+        # Get current usage counts from database
+        usage_counts = {}
+        try:
+            if services["database"] and db:
+                usage_counts = {
+                    "decoder": db.get_daily_usage(user_id, "decoder"),
+                    "fortune": db.get_daily_usage(user_id, "fortune"), 
+                    "horoscope": db.get_daily_usage(user_id, "horoscope")
+                }
+        except Exception as e:
+            logger.error(f"Error getting usage counts: {e}")
+            usage_counts = {"decoder": 0, "fortune": 0, "horoscope": 0}
+
+        return jsonify({
+            "success": True,
+            "user_plan": user_plan,
+            "trial_active": trial_active,
+            "trial_used_permanently": trial_used_permanently,
+            "effective_plan": effective_plan,
+            "trial_remaining": trial_remaining,
+            "limits": {
+                "decoder": get_feature_limit(user_plan, "decoder"), 
+                "fortune": get_feature_limit(user_plan, "fortune"),
+                "horoscope": get_feature_limit(user_plan, "horoscope")
+            },
+            "usage": usage_counts
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting user info: {e}")
+        return jsonify({"success": False, "error": "Failed to get user information"}), 500
+
+@app.route('/api/start-trial', methods=['POST'])
+def start_trial():
+    """Start 5-hour trial for user"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        user_id = session.get('user_id')
+        
+        # Check if trial already used
+        if session.get('trial_used_permanently', False):
+            return jsonify({"success": False, "error": "Trial already used"}), 400
+        
+        # Check if trial is already active
+        if session.get('trial_active', False):
+            return jsonify({"success": False, "error": "Trial is already active"}), 400
+        
+        # Start trial in database
+        try:
+            if services["database"] and db:
+                success = db.start_trial(user_id)
+                if not success:
+                    return jsonify({"success": False, "error": "Failed to start trial in database"}), 500
+        except Exception as e:
+            logger.error(f"Database error starting trial: {e}")
+            return jsonify({"success": False, "error": "Database error"}), 500
+        
+        # Update session
+        trial_start_time = datetime.utcnow()
+        session['trial_active'] = True
+        session['trial_started_at'] = trial_start_time.isoformat()
+        session['effective_plan'] = get_effective_plan(session.get('user_plan', 'free'), True)
+        
+        logger.info(f"Trial started for user {user_id}")
+        
+        return jsonify({
+            "success": True, 
+            "message": "5-hour trial started!",
+            "trial_remaining": 18000,  # 5 hours in seconds
+            "effective_plan": session['effective_plan']
+        })
+        
+    except Exception as e:
+        logger.error(f"Error starting trial: {e}")
+        return jsonify({"success": False, "error": "Failed to start trial"}), 500
 
 # REMOVED: Duplicate debug_session_info function - using the more comprehensive one at /debug/session-info
 
@@ -3434,8 +3573,9 @@ def select_plan():
         logger.error(f"Plan selection error: {e}")
         return jsonify({"success": False, "error": "Plan selection failed"}), 500
 
-@app.route("/start-trial", methods=["POST"])
-def start_trial():
+# REMOVED: Duplicate route - using /api/start-trial instead
+# @app.route("/start-trial", methods=["POST"])
+def start_trial_old():
     """Start a 5-hour premium companion trial"""
     try:
         if not is_logged_in():
@@ -4569,10 +4709,10 @@ def get_feature_limit(plan: str, feature: str) -> int:
     return limit
 
 def get_effective_plan(user_plan: str, trial_active: bool) -> str:
-    """Get effective plan considering trial status - bulletproof implementation"""  
+    """Get effective plan considering trial status - follows new specification"""  
     if trial_active:
-        return "max"  # Trial users get Max features but keep their plan limits
-    return user_plan or "free"
+        return 'growth' if user_plan == 'free' else user_plan
+    return user_plan or 'free'
 
 def can_access_companion(user_plan: str, companion_tier: str, trial_active: bool) -> bool:
     """Check companion access - bulletproof implementation"""
@@ -4894,8 +5034,9 @@ def get_user_plan():
         logger.error(f"Get user plan error: {e}")
         return jsonify({"plan": "free", "trial_active": False})
 
-@app.route("/api/start-trial", methods=["POST"])
-def api_start_trial():
+# REMOVED: Another duplicate route - using the newer one at line 979
+# @app.route("/api/start-trial", methods=["POST"])
+def api_start_trial_old():
     """Start 5-hour trial using new clean system"""
     try:
         if not is_logged_in():
@@ -6773,7 +6914,7 @@ def api_creative_writing():
         user_plan = session.get('user_plan', 'free')
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
-        if user_plan not in ['premium', 'enterprise'] and not trial_active:
+        if user_plan not in ['growth', 'max', 'premium', 'enterprise'] and not trial_active:
             return jsonify({"success": False, "error": "Creative Writing Assistant requires Growth/Max plan or trial access"}), 403
             
         data = request.get_json()
@@ -6799,6 +6940,7 @@ def api_creative_writing():
             "inspiration": f"You are an inspirational writer. Create uplifting, motivational content that helps boost mood and confidence. Focus on {mood} themes. Provide 2-3 inspiring quotes or affirmations.",
             "story": f"You are a creative storyteller. Write engaging short stories (3-4 paragraphs) that capture {mood} emotions. Create vivid characters and settings that resonate with the reader. Focus on themes of adventure, growth, hope, and human connection.",
             "music": f"You are a talented songwriter and lyricist. Create {mood} song lyrics, verses, or musical ideas based on the user's request. Include rhythm, rhyme, and emotional depth. You can suggest chord progressions or musical styles when relevant.",
+            "songs": f"You are a talented songwriter and lyricist. Create complete {mood} songs with proper structure including intro, verse, chorus, bridge, and outro. Include rhythm, rhyme, and emotional depth based on the user's request. Make it feel like a real song with proper lyrics structure.",
             "thoughts": f"You are a thoughtful journaling companion. Help the user explore and organize their thoughts in a {mood} way. Provide gentle reflection prompts, insights, or help structure their ideas. Be supportive and non-judgmental.",
             "letter": f"You are a compassionate letter writer. Help write heartfelt, personal letters that convey {mood} emotions and genuine care. Make it warm and authentic."
         }
@@ -6806,8 +6948,11 @@ def api_creative_writing():
         user_message = f"Please create {mode} content about: {prompt}"
         
         try:
-            import openai
-            response = openai.ChatCompletion.create(
+            # Use the initialized OpenAI client
+            if not openai_client:
+                raise Exception("OpenAI client not available")
+                
+            response = openai_client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
                     {"role": "system", "content": system_prompts.get(mode, system_prompts["poetry"])},
@@ -6848,20 +6993,35 @@ def generate_fallback_creative_content(mode, prompt, mood):
         "poetry": {
             "uplifting": f"Like sunrise breaking through the night,\nYour spirit shines with inner light.\nThrough challenges that come your way,\nYou'll find the strength to face each day.\n\nThe theme of '{prompt}' inspires growth,\nA reminder of your inner worth.\nWith courage as your faithful guide,\nLet hope and joy walk by your side.",
             "calming": f"In peaceful moments, soft and still,\nFind solace on a quiet hill.\nThe gentle thoughts of '{prompt}' flow,\nLike streams where healing waters go.\n\nBreathe deeply now, let worries fade,\nIn nature's calm, your peace is made.\nWith every breath, find sweet release,\nAnd wrap yourself in inner peace.",
-            "motivational": f"Rise up strong, embrace your power,\nThis is your moment, this is your hour!\nThe fire within you burns so bright,\nTurn '{prompt}' into your guiding light.\n\nNo mountain high, no valley low,\nCan stop the dreams that help you grow.\nWith determination as your key,\nUnlock the best you're meant to be!"
+            "motivational": f"Rise up strong, embrace your power,\nThis is your moment, this is your hour!\nThe fire within you burns so bright,\nTurn '{prompt}' into your guiding light.\n\nNo mountain high, no valley low,\nCan stop the dreams that help you grow.\nWith determination as your key,\nUnlock the best you're meant to be!",
+            "romantic": f"In tender moments when hearts align,\nYour '{prompt}' becomes divine.\nLike roses blooming in the spring,\nLove makes the sweetest melodies sing.\n\nTwo souls that dance in perfect time,\nYour story reads like gentle rhyme.\nIn whispered words and soft caress,\nTrue love brings endless happiness.",
+            "playful": f"Come dance and laugh, let spirits play,\nWith '{prompt}' brighten up your day!\nSkip through meadows, sing out loud,\nBe silly, joyful, and be proud.\n\nLife's too short for serious frowns,\nTurn your worries upside down.\nEmbrace the fun that comes your way,\nMake every moment count today!"
         },
         "inspiration": {
             "uplifting": f"✨ Remember: Every step forward is progress, no matter how small.\n\n🌟 Your journey with '{prompt}' is uniquely yours - trust the process.\n\n💫 You have everything within you to create positive change.",
             "calming": f"🌸 Take a moment to breathe and appreciate how far you've come.\n\n🕊️ Peace begins with accepting where you are right now with '{prompt}'.\n\n🌊 Let go of what you cannot control and focus on your inner calm.",
-            "motivational": f"🔥 You are stronger than you think and more capable than you know!\n\n⚡ Turn your thoughts about '{prompt}' into fuel for your success.\n\n🚀 Every challenge is an opportunity to prove your resilience!"
+            "motivational": f"🔥 You are stronger than you think and more capable than you know!\n\n⚡ Turn your thoughts about '{prompt}' into fuel for your success.\n\n🚀 Every challenge is an opportunity to prove your resilience!",
+            "romantic": f"💕 Love grows in the most beautiful ways when we're open to '{prompt}'.\n\n💖 Your heart knows exactly what it needs - trust its wisdom.\n\n🌹 Every moment of connection is a gift to be treasured.",
+            "playful": f"🎉 Life is meant to be enjoyed - let '{prompt}' bring out your playful side!\n\n🌈 Don't forget to laugh, dance, and celebrate the little things.\n\n✨ Your joy is contagious - spread it everywhere you go!"
         },
         "story": {
             "uplifting": f"Once upon a time, there was someone just like you who faced a challenge with '{prompt}'. They didn't know how strong they were until they had to be. Day by day, step by step, they discovered that every small action created ripples of positive change.\n\nTheir journey taught them that courage isn't the absence of fear—it's moving forward despite it. And in the end, they realized that the very thing they worried about became the catalyst for their greatest growth.",
-            "calming": f"In a quiet corner of the world, where time moves gently and worries fade away, there lived someone who understood that '{prompt}' didn't have to be rushed or forced. They learned the art of patience, the wisdom of stillness.\n\nEach day brought its own rhythm, and they discovered that sometimes the most powerful thing you can do is simply breathe, trust the process, and know that everything unfolds exactly as it should."
+            "calming": f"In a quiet corner of the world, where time moves gently and worries fade away, there lived someone who understood that '{prompt}' didn't have to be rushed or forced. They learned the art of patience, the wisdom of stillness.\n\nEach day brought its own rhythm, and they discovered that sometimes the most powerful thing you can do is simply breathe, trust the process, and know that everything unfolds exactly as it should.",
+            "motivational": f"There once lived a dreamer who refused to give up on '{prompt}'. When others said it was impossible, they said 'watch me.' When obstacles appeared, they found creative ways around them.\n\nEvery setback became a setup for a comeback. Every 'no' fueled their determination to find a 'yes.' And in the end, their persistence turned their wildest dreams into reality, inspiring everyone around them.",
+            "romantic": f"In a charming little town, two hearts discovered something magical about '{prompt}'. Their love story began with a simple glance, but grew into something extraordinary. Every shared moment, every whispered secret, every gentle touch wrote another chapter in their beautiful tale.\n\nTheir connection transcended the ordinary, proving that true love has the power to transform both hearts and souls. And they lived happily, knowing that their love story was just beginning.",
+            "playful": f"Once upon a time, in a world full of laughter and wonder, someone discovered the pure joy hidden within '{prompt}'. They embarked on the silliest, most delightful adventure, meeting quirky characters and finding magic in the most unexpected places.\n\nWith each giggle and every playful moment, they remembered that life's greatest treasures are often found when we're brave enough to be silly, curious enough to explore, and wise enough to play."
         },
         "music": {
-            "uplifting": f"🎵 Verse about '{prompt}':\n\"Every morning brings a chance to shine,\nLeave the worries of yesterday behind,\nWith every beat, my heart finds its way,\nToday's the day, today's the day!\"\n\n🎶 Chorus idea:\n\"Rise up, rise up, let your spirit soar,\nYou're stronger than you were before,\nThe rhythm of hope beats in your chest,\nYou've got this, you're at your best!\"",
-            "calming": f"🎵 Gentle melody about '{prompt}':\n\"Soft whispers in the evening breeze,\nCalm waters flowing through the trees,\nIn this moment, I find my peace,\nLet all the tension gently cease...\"\n\n🎶 Bridge:\n\"Breathe in light, breathe out fear,\nIn this stillness, all is clear...\""
+            "uplifting": f"🎵 **[Intro]**\nOh, oh, oh...\nThis one's about '{prompt}'\n\n**[Verse 1]**\nEvery morning brings a chance to shine,\nLeave the worries of yesterday behind,\nWith every beat, my heart finds its way,\nToday's the day, today's the day!\n\n**[Chorus]**\nRise up, rise up, let your spirit soar,\nYou're stronger than you were before,\nThe rhythm of hope beats in your chest,\nYou've got this, you're at your best!\n\n**[Verse 2]**\nEvery step forward is a victory dance,\nTaking every single shot, every single chance,\nWith '{prompt}' guiding me along the way,\nI know tomorrow starts with today!\n\n**[Bridge]**\nAnd when the world gets heavy,\nWhen the road seems long,\nI'll remember this feeling,\nI'll remember this song!\n\n**[Outro]**\nOh, oh, oh...\nWe're rising up!",
+            "calming": f"🎵 **[Intro]**\nMmm, mmm, mmm...\nSoft and gentle now...\n\n**[Verse 1]**\nSoft whispers in the evening breeze,\nCalm waters flowing through the trees,\nWhen '{prompt}' brings me inner peace,\nI let all tension gently cease...\n\n**[Chorus]**\nBreathe in slowly, let it go,\nFeel the calm begin to flow,\nEvery worry melts away,\nIn this peaceful, gentle space...\n\n**[Verse 2]**\nLike a river flowing to the sea,\nI release what's not meant to be,\nIn this moment, I am free,\nJust to be, just to breathe...\n\n**[Bridge]**\nClose your eyes and feel the peace,\nLet all tension find release...\n\n**[Outro]**\nMmm, mmm, mmm...\nJust breathe...",
+            "motivational": f"🎵 **[Intro]**\nYeah! Let's go!\nThis is for '{prompt}'!\n\n**[Verse 1]**\nI've got fire in my soul, dreams that won't let go,\nEvery step I take, watch my spirit grow,\nTurn the music up loud, let the world know,\nThis is my time to shine, this is my show!\n\n**[Chorus]**\nCan't stop, won't stop, rising to the top,\nEvery beat drops, making hearts pop!\nI'm unstoppable, unbreakable,\nNothing's gonna hold me down!\n\n**[Verse 2]**\nThey said I'd never make it here,\nBut I conquered every fear,\nTurned my pain into my power,\nThis is my defining hour!\n\n**[Bridge]**\nEvery mountain that I climb,\nMakes me stronger every time,\nNothing left but victory!\n\n**[Outro]**\nUnstoppable! Yeah!\nI'm reaching for the sky!",
+            "romantic": f"🎵 **[Intro]**\nFor you, my love...\nThis is our song about '{prompt}'\n\n**[Verse 1]**\nWhen I think about you, my heart skips a beat,\nEvery moment with you makes my life complete,\nYou're the melody that plays in my head,\nThe sweetest words that could ever be said...\n\n**[Chorus]**\nYou're my sunshine when the skies are gray,\nMy forever love in every way,\nWith you beside me, I can face anything,\nYou make my heart dance and sing!\n\n**[Verse 2]**\nIn your eyes I see my future bright,\nIn your arms everything feels right,\nEvery kiss, every gentle touch,\nRemds me why I love you so much...\n\n**[Bridge]**\nThrough all the seasons, through all the years,\nThrough all the laughter and all the tears,\nI'll love you more with each passing day...\n\n**[Outro]**\nFor you, my love...\nForever and always...",
+            "playful": f"🎵 **[Intro]**\nHey, hey, hey!\nTime to play with '{prompt}'!\n\n**[Verse 1]**\nLet's dance around and have some fun,\nLife's too short to just get things done,\nPut on your favorite song and sing along,\nThis is where our hearts belong!\n\n**[Chorus]**\nTurn it up, turn it loud,\nSing it out, sing it proud,\nLife's a party, come and play,\nLet's make music every day!\n\n**[Verse 2]**\nJump around and make some noise,\nRediscover all your joys,\nLaugh until your sides hurt,\nSpread that happiness for all it's worth!\n\n**[Bridge]**\nWhen life gets too serious,\nJust remember to be curious,\nPlay like nobody's watching!\n\n**[Outro]**\nHey, hey, hey!\nLet's play all day!"
+        },
+        "songs": {
+            "uplifting": f"🎵 **[Intro]**\nOh, oh, oh...\nThis one's about '{prompt}'\n\n**[Verse 1]**\nWoke up this morning with a brand new light,\nYesterday's troubles fading out of sight,\nGot that feeling deep inside my chest,\nToday I'm giving life my very best!\n\n**[Chorus]**\nWe're rising up, rising up, like the morning sun,\nEvery dream we've got, we're gonna make them run,\nNo looking back, we're moving fast,\nThis moment here is gonna last!\n\n**[Verse 2]**\nEvery step forward is a victory dance,\nTaking every single shot, every single chance,\nWith '{prompt}' guiding me along the way,\nI know tomorrow starts with today!\n\n**[Chorus]**\nWe're rising up, rising up, like the morning sun,\nEvery dream we've got, we're gonna make them run,\nNo looking back, we're moving fast,\nThis moment here is gonna last!\n\n**[Bridge]**\nAnd when the world gets heavy,\nWhen the road seems long,\nI'll remember this feeling,\nI'll remember this song!\n\n**[Outro]**\nOh, oh, oh...\nWe're rising up!\nOh, oh, oh...\nWe're rising up!",
+            "calming": f"🎵 **[Intro]**\nMmm, mmm, mmm...\nSoft and gentle now...\n\n**[Verse 1]**\nIn the quiet of the evening light,\nWhen '{prompt}' whispers soft and right,\nI find my peace in simple things,\nThe comfort that the silence brings...\n\n**[Chorus]**\nBreathe in slowly, let it go,\nFeel the calm begin to flow,\nEvery worry melts away,\nIn this peaceful, gentle space...\n\n**[Verse 2]**\nLike a river flowing to the sea,\nI release what's not meant to be,\nIn this moment, I am free,\nJust to be, just to breathe...\n\n**[Chorus]**\nBreathe in slowly, let it go,\nFeel the calm begin to flow,\nEvery worry melts away,\nIn this peaceful, gentle space...\n\n**[Bridge]**\nClose your eyes and feel the peace,\nLet all tension find release...\n\n**[Outro]**\nMmm, mmm, mmm...\nJust breathe...",
+            "motivational": f"🎵 **[Intro]**\nYeah! Let's go!\nThis is for '{prompt}'!\n\n**[Verse 1]**\nI've been down but I'm not out,\nGot that fire, got no doubt,\nEvery setback made me strong,\nThis is where I belong!\n\n**[Chorus]**\nI'm unstoppable, unbreakable,\nNothing's gonna hold me down,\nI'm unstoppable, unshakeable,\nThe strongest in this town!\nWith '{prompt}' as my battle cry,\nI'm reaching for the sky!\n\n**[Verse 2]**\nThey said I'd never make it here,\nBut I conquered every fear,\nTurned my pain into my power,\nThis is my defining hour!\n\n**[Chorus]**\nI'm unstoppable, unbreakable,\nNothing's gonna hold me down,\nI'm unstoppable, unshakeable,\nThe strongest in this town!\nWith '{prompt}' as my battle cry,\nI'm reaching for the sky!\n\n**[Bridge]**\nEvery mountain that I climb,\nMakes me stronger every time,\nNothing left but victory,\nThis is who I'm meant to be!\n\n**[Outro]**\nUnstoppable! Yeah!\nUnbreakable! Let's go!\nI'm reaching for the sky!"
         },
         "thoughts": {
             "uplifting": f"Today I'm reflecting on '{prompt}' and I realize that every experience is teaching me something valuable. Even the challenging moments are shaping me into someone stronger and more compassionate.\n\nI'm grateful for this journey, for the lessons learned, and for the growth that comes from facing life with an open heart. My thoughts are becoming clearer, and I'm learning to trust the process.",
@@ -6888,7 +7048,7 @@ def api_save_creative_content():
         user_plan = session.get('user_plan', 'free')
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
-        if user_plan not in ['premium', 'enterprise'] and not trial_active:
+        if user_plan not in ['growth', 'max', 'premium', 'enterprise'] and not trial_active:
             return jsonify({"success": False, "error": "Saving creative content requires Growth/Max plan or trial access"}), 403
             
         data = request.get_json()
@@ -7133,7 +7293,7 @@ def moderate_content(content, content_type="text"):
         import openai
         
         # Use OpenAI's moderation endpoint
-        moderation_response = openai.Moderation.create(input=content)
+        moderation_response = openai_client.moderations.create(input=content)
         result = moderation_response.results[0]
         
         if result.flagged:

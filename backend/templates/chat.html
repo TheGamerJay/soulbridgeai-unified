@@ -113,6 +113,30 @@
                     <i class="fas fa-home"></i>
                     Home
                 </a>
+                
+                <!-- Trial Timer Ring Container -->
+                <div id="trial-ring-container" class="ring-wrapper hidden">
+                    <svg class="progress-ring" width="80" height="80">
+                        <circle
+                            class="progress-ring-circle"
+                            stroke="gold"
+                            stroke-width="4"
+                            fill="transparent"
+                            r="36"
+                            cx="40"
+                            cy="40"
+                        />
+                    </svg>
+                    <div id="ring-text" class="ring-text">5:00</div>
+                </div>
+
+                <!-- Trial Button -->
+                {% if not session.get('trial_used_permanently') and not session.get('trial_active') %}
+                <button id="start-trial-btn" onclick="startTrial()" class="action-btn trial-btn" style="background: linear-gradient(135deg, #ffd700, #ffb347); color: #000; font-weight: bold;">
+                    <i class="fas fa-star"></i>
+                    Start 5h Trial
+                </button>
+                {% endif %}
             </div>
         </div>
         
@@ -140,6 +164,18 @@
             <div id="speechStatus" class="speech-status">Click microphone to start voice input</div>
         </div>
     </div>
+
+    <!-- Trial Audio Alert -->
+    <audio id="trial-alert-sound" preload="auto">
+        <source src="/static/sounds/trial-alert.mp3" type="audio/mpeg">
+        <source src="/static/sounds/trial-alert.ogg" type="audio/ogg">
+    </audio>
+
+    <!-- Confetti Canvas -->
+    <canvas id="confetti-canvas" class="hidden" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999;"></canvas>
+
+    <!-- Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
 
     <!-- JavaScript -->
     <script>
@@ -767,6 +803,68 @@
             color: #fff;
             background: rgba(34, 211, 238, 0.2);
             border-radius: 50%;
+        }
+        
+        /* Trial Timer Ring Styles */
+        .ring-wrapper {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            margin: 5px;
+            z-index: 10;
+            display: inline-block;
+        }
+
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+
+        .progress-ring-circle {
+            transition: stroke-dashoffset 0.35s, stroke 0.3s ease;
+            transform: rotate(0deg);
+            transform-origin: 50% 50%;
+        }
+
+        .ring-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 12px;
+            font-weight: bold;
+            color: #ffd700;
+            text-shadow: 0 0 3px rgba(0,0,0,0.5);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+        
+        .trial-btn {
+            animation: pulse-gold 2s infinite;
+        }
+        
+        @keyframes pulse-gold {
+            0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 215, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); }
+        }
+
+        /* Mobile responsive */
+        @media screen and (max-width: 768px) {
+            .ring-wrapper {
+                width: 60px;
+                height: 60px;
+            }
+
+            .progress-ring {
+                width: 60px;
+                height: 60px;
+            }
+
+            .ring-text {
+                font-size: 10px;
+            }
         }
     </style>
 
@@ -1645,6 +1743,128 @@ Where emotion meets expression.
                 console.error('🚨 Debug session check failed:', error);
             }
         }
+
+        // ====== TRIAL TIMER SYSTEM ======
+        const ring = document.querySelector('.progress-ring-circle');
+        const ringText = document.getElementById('ring-text');
+        const ringWrapper = document.getElementById('trial-ring-container');
+        const alertSound = document.getElementById('trial-alert-sound');
+        const confettiCanvas = document.getElementById('confetti-canvas');
+
+        let alertPlayed = false;
+        const RADIUS = 36;
+        const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+        
+        if (ring) {
+            ring.style.strokeDasharray = `${CIRCUMFERENCE} ${CIRCUMFERENCE}`;
+            ring.style.strokeDashoffset = `${CIRCUMFERENCE}`;
+        }
+
+        function setRingProgress(percent) {
+            if (!ring) return;
+            const offset = CIRCUMFERENCE - (percent * CIRCUMFERENCE);
+            ring.style.strokeDashoffset = offset;
+        }
+
+        function playConfetti() {
+            if (!confettiCanvas || !window.confetti) return;
+            confettiCanvas.classList.remove("hidden");
+            window.confetti({
+                particleCount: 200,
+                spread: 100,
+                origin: { y: 0.6 }
+            });
+            setTimeout(() => confettiCanvas.classList.add("hidden"), 3000);
+        }
+
+        async function refreshUserStatus() {
+            try {
+                const res = await fetch('/api/user-info');
+                const data = await res.json();
+
+                if (!data.success) {
+                    console.error('Failed to get user info:', data.error);
+                    return;
+                }
+
+                const { trial_active, trial_remaining, effective_plan, user_plan, trial_used_permanently } = data;
+
+                // Show Ring if Trial Active
+                if (trial_active && trial_remaining > 0 && ringWrapper) {
+                    ringWrapper.classList.remove('hidden');
+
+                    const mins = Math.floor(trial_remaining / 60);
+                    const secs = Math.floor(trial_remaining % 60);
+                    if (ringText) {
+                        ringText.innerText = `${mins}:${secs.toString().padStart(2, '0')}`;
+                    }
+
+                    const percentLeft = trial_remaining / 18000;
+                    setRingProgress(percentLeft);
+
+                    // Turn ring red at final 10 min
+                    if (ring) {
+                        ring.style.stroke = trial_remaining < 600 ? 'red' : 'gold';
+                    }
+
+                    // Sound alert at 5 minutes left
+                    if (trial_remaining < 300 && !alertPlayed && alertSound) {
+                        alertSound.play().catch(e => console.log('Audio play failed:', e));
+                        alertPlayed = true;
+                    }
+                } else if (ringWrapper) {
+                    ringWrapper.classList.add('hidden');
+                }
+
+                // Hide trial button if used or active
+                const trialBtn = document.getElementById("start-trial-btn");
+                if (trialBtn && (trial_active || trial_used_permanently)) {
+                    trialBtn.classList.add("hidden");
+                }
+
+                // Show/hide premium features
+                document.querySelectorAll(".premium-feature").forEach(btn => {
+                    btn.style.display = (effective_plan === 'growth' || effective_plan === 'max')
+                        ? 'inline-block' : 'none';
+                });
+
+                // Confetti if user subscribed after trial
+                if (!trial_active && user_plan !== "free" && alertPlayed) {
+                    playConfetti();
+                    alertPlayed = false;
+                }
+
+            } catch (error) {
+                console.error('Error refreshing user status:', error);
+            }
+        }
+
+        async function startTrial() {
+            try {
+                const res = await fetch('/api/start-trial', { method: 'POST' });
+                const data = await res.json();
+                
+                if (data.success) {
+                    alert("🌟 5-Hour Trial started! Enjoy all premium features!");
+                    refreshUserStatus();
+                    
+                    // Hide the trial button immediately
+                    const trialBtn = document.getElementById("start-trial-btn");
+                    if (trialBtn) {
+                        trialBtn.classList.add("hidden");
+                    }
+                } else {
+                    alert("Trial could not be started: " + (data.error || "Unknown error"));
+                }
+            } catch (error) {
+                console.error('Error starting trial:', error);
+                alert("Error starting trial. Please try again.");
+            }
+        }
+
+        // Start refreshing user status
+        setInterval(refreshUserStatus, 5000);  // auto refresh every 5 sec
+        refreshUserStatus();
     </script>
     
     <script src="{{ url_for('static', filename='js/chat.js') }}?v={{ range(1000000) | random }}"></script>
