@@ -168,7 +168,7 @@ function updateCharacterDisplay() {
             'Blayzo Champion': '/static/logos/Blayzo Referral.png',
             'Blayzica': '/static/logos/Blayzica.png', // Free version
             'Blayzica Pro': '/static/logos/Blayzica Pro.png', // Using correct Pro image
-            'GamerJay Premium': '/static/logos/GamgerJay premium companion.png', // Using existing filename
+            'GamerJay Premium': '/static/logos/GamerJay premium companion.png', // Fixed typo: GamgerJay -> GamerJay
             'Claude Growth': '/static/logos/Claude Growth.png',
             'WatchDog': '/static/logos/WatchDog a Primum companion.png',
             

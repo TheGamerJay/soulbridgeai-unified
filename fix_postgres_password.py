@@ -36,9 +36,13 @@ def fix_postgres_password():
         conn.autocommit = True
         cursor = conn.cursor()
         
-        # Change the postgres user password
-        new_password = "Yar1el_2025_Secure!"
-        print(f"🔑 Changing postgres user password to: {new_password}")
+        # Change the postgres user password - SECURITY: Get from environment
+        new_password = os.environ.get('POSTGRES_PASSWORD')
+        if not new_password:
+            print("❌ ERROR: POSTGRES_PASSWORD environment variable not set")
+            print("💡 Set POSTGRES_PASSWORD environment variable before running this script")
+            return
+        print(f"🔑 Changing postgres user password...")
         
         cursor.execute(
             sql.SQL("ALTER USER postgres PASSWORD %s"),
