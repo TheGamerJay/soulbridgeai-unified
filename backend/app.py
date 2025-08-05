@@ -147,7 +147,7 @@ _service_lock = threading.RLock()
 
 # Constants
 VALID_CHARACTERS = ["Blayzo", "Sapphire", "Violet", "Crimson", "Blayzia", "Blayzica", "Blayzike", "Blayzion", "Blazelian"]
-VALID_PLANS = ["free", "growth", "max"]  # Internal normalized plan names
+VALID_PLANS = ["growth", "max"]  # Only Growth/Max selectable - Free is automatic default
 
 # Admin and surveillance constants
 ADMIN_DASH_KEY = os.environ.get("ADMIN_DASH_KEY", "soulbridge_admin_2024")
@@ -3352,11 +3352,9 @@ def select_plan():
         raw_plan = data.get("plan_type", "").lower()
         billing = data.get("billing", "monthly")
         
-        # ✅ Bulletproof plan normalization - handle ALL aliases and inconsistencies
+        # ✅ Bulletproof plan normalization - ONLY accept Growth/Max for manual selection
+        # Free tier is assigned automatically during signup, not selectable
         plan_map = {
-            'free': 'free',
-            'foundation': 'free', 
-            'basic': 'free',
             'growth': 'growth',
             'premium': 'growth',
             'max': 'max',
@@ -5517,7 +5515,7 @@ def api_subscription_upgrade():
         plan_type = data.get("plan")
         billing = data.get("billing", "monthly")
         
-        if not plan_type or plan_type not in ["free", "growth", "max", "premium", "enterprise"]:
+        if not plan_type or plan_type not in ["growth", "max", "premium", "enterprise"]:
             return jsonify({"success": False, "error": "Invalid plan type"}), 400
         
         if billing not in ["monthly", "yearly"]:
