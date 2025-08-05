@@ -5659,12 +5659,12 @@ def upload_profile_image():
                     # Get display_name from session or use email prefix as fallback
                     display_name = session.get('display_name', user_email.split('@')[0])
                     cursor.execute(f"""
-                        INSERT INTO users (email, display_name, profile_image, profile_image_data, user_plan, plan_type, effective_plan) 
-                        VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder})
+                        INSERT INTO users (email, display_name, profile_image, profile_image_data, user_plan, plan_type) 
+                        VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder})
                         ON CONFLICT (email) DO UPDATE SET 
                         profile_image = EXCLUDED.profile_image,
                         profile_image_data = EXCLUDED.profile_image_data
-                    """, (user_email, display_name, profile_image_url, image_base64, 'free', 'free', 'free'))
+                    """, (user_email, display_name, profile_image_url, image_base64, 'free', 'free'))
             
             conn.commit()
             conn.close()
