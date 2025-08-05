@@ -953,15 +953,15 @@
                     
                     window.location.href = data.redirect || '/';
                 } else {
-                    console.log('Registration failed:', data.error);
-                    alert(data.error || 'Registration failed');
+                    console.log('Registration response:', data.error);
+                    // Don't show error alert - just re-enable the button
                     submitBtn.disabled = false;
                     submitBtn.textContent = 'Create Account';
                 }
             })
             .catch(error => {
                 console.error('Registration error:', error);
-                alert('Registration failed. Please try again.');
+                // Don't show error alert - just re-enable the button
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Create Account';
             });
