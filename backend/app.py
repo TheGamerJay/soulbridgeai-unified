@@ -1796,7 +1796,7 @@ def decoder():
         # Use session values set by @app.before_request (more efficient)
         effective_plan = session.get('effective_plan', 'free')
         trial_active = session.get('trial_active', False)
-        daily_limit = get_feature_limit(effective_plan, 'decoder', trial_active)
+        daily_limit = get_feature_limit(user_plan, 'decoder')
         
         # DEBUG: Log decoder access info
         logger.info(f"🔍 DECODER DEBUG: user_plan = {user_plan}")
@@ -1827,7 +1827,7 @@ def fortune():
         # Use session values set by @app.before_request (more efficient)
         effective_plan = session.get('effective_plan', 'free')
         trial_active = session.get('trial_active', False)
-        daily_limit = get_feature_limit(effective_plan, 'fortune', trial_active)
+        daily_limit = get_feature_limit(user_plan, 'fortune')
         
         # DEBUG: Log fortune access info
         logger.info(f"🔮 FORTUNE DEBUG: user_plan = {user_plan}")
@@ -1858,7 +1858,7 @@ def horoscope():
         # Use session values set by @app.before_request (more efficient)
         effective_plan = session.get('effective_plan', 'free')
         trial_active = session.get('trial_active', False)
-        daily_limit = get_feature_limit(effective_plan, 'horoscope', trial_active)
+        daily_limit = get_feature_limit(user_plan, 'horoscope')
         
         # DEBUG: Log horoscope access info
         logger.info(f"⭐ HOROSCOPE DEBUG: user_plan = {user_plan}")
@@ -4478,54 +4478,38 @@ def get_user_addons():
 
 # REMOVED: Old duplicate get_effective_plan function - using bulletproof version below
 
-def get_feature_limit(effective_plan: str, feature: str, trial_active: bool = False) -> int:
+def get_feature_limit(plan: str, feature: str) -> int:
     """
-    Bulletproof feature limit logic - trial users get true Max-tier access during 5-hour window
+    Bulletproof feature limit logic - uses actual plan, not trial status
+    Trial users get Max features but keep their original plan limits
     """
-    if trial_active:
-        # Trial users get TRUE Max-tier access (unlimited) during their 5-hour window
-        plan_to_use = "max"
-    else:
-        plan_to_use = effective_plan
-
-    plan_limits = {
+    tier_limits = {
         "free": {"decoder": 3, "fortune": 2, "horoscope": 3, "ai_image_monthly": 5},
         "growth": {"decoder": 15, "fortune": 8, "horoscope": 10, "ai_image_monthly": 50},
         "max": {"decoder": float("inf"), "fortune": float("inf"), "horoscope": float("inf"), "ai_image_monthly": float("inf")},
     }
-
-    limit = plan_limits.get(plan_to_use, {}).get(feature, 0)
-    logger.info(f"🎯 LIMIT: plan='{plan_to_use}' trial={trial_active} feature='{feature}' → limit={limit}")
+    
+    limit = tier_limits.get(plan, {}).get(feature, 0)
+    logger.info(f"🎯 LIMIT: plan='{plan}' feature='{feature}' → limit={limit}")
     return limit
 
 def get_effective_plan(user_plan: str, trial_active: bool) -> str:
     """Get effective plan considering trial status - bulletproof implementation"""  
-    if user_plan is None:
-        return "free"
-    
-    # Map old plan names to new ones
-    plan_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
-    mapped_plan = plan_mapping.get(user_plan, user_plan)
-    
     if trial_active:
-        return "max"  # Trial users get MAX-tier access for 5 hours
-    return mapped_plan
+        return "max"  # Trial users get Max features but keep their plan limits
+    return user_plan or "free"
 
 def can_access_companion(user_plan: str, companion_tier: str, trial_active: bool) -> bool:
     """Check companion access - bulletproof implementation"""
     if trial_active:
         return True  # Trial users get access to all companions
-    
-    # Map old plan names to new ones
-    plan_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
-    mapped_plan = plan_mapping.get(user_plan, user_plan)
-    
-    access_rules = {
-        "free": ["free"],
-        "growth": ["free", "growth"],
-        "max": ["free", "growth", "max"]
-    }
-    return companion_tier in access_rules.get(mapped_plan, [])
+    if companion_tier == "free":
+        return True
+    if companion_tier == "growth":
+        return user_plan in ["growth", "max"]
+    if companion_tier == "max":
+        return user_plan == "max"
+    return False
 
 # OLD tier block functions REMOVED - Using bulletproof functions instead
 
@@ -4723,7 +4707,7 @@ def check_decoder_limit():
             user_plan = "free"
             trial_active = False
     
-    daily_limit = get_feature_limit(effective_plan, "decoder", trial_active)
+    daily_limit = get_feature_limit(user_plan, "decoder")
     usage_today = get_decoder_usage()
     
     # Check if trial should be active by calling is_trial_active directly
@@ -4752,7 +4736,7 @@ def check_fortune_limit():
     effective_plan = session.get("effective_plan", "free")
     user_plan = session.get("user_plan", "free")  # Original plan for display
     trial_active = session.get("trial_active", False)
-    daily_limit = get_feature_limit(effective_plan, "fortune", trial_active)
+    daily_limit = get_feature_limit(user_plan, "fortune")
     usage_today = get_fortune_usage()
 
     return jsonify({
@@ -4774,7 +4758,7 @@ def check_horoscope_limit():
     effective_plan = session.get("effective_plan", "free")
     user_plan = session.get("user_plan", "free")  # Original plan for display
     trial_active = session.get("trial_active", False)
-    daily_limit = get_feature_limit(effective_plan, "horoscope", trial_active)
+    daily_limit = get_feature_limit(user_plan, "horoscope")
     usage_today = get_horoscope_usage()
 
     return jsonify({
@@ -5046,9 +5030,20 @@ def debug_session_info():
         "session_trial_active": session.get('trial_active'),
         "session_user_plan": session.get('user_plan'),
         "session_effective_plan": session.get('effective_plan'),
-        "decoder_limit": get_feature_limit(session.get('effective_plan', 'free'), 'decoder', session.get('trial_active', False)),
-        "fortune_limit": get_feature_limit(session.get('effective_plan', 'free'), 'fortune', session.get('trial_active', False)),
-        "horoscope_limit": get_feature_limit(session.get('effective_plan', 'free'), 'horoscope', session.get('trial_active', False))
+        "decoder_limit": get_feature_limit(session.get('user_plan', 'free'), 'decoder'),
+        "fortune_limit": get_feature_limit(session.get('user_plan', 'free'), 'fortune'),
+        "horoscope_limit": get_feature_limit(session.get('user_plan', 'free'), 'horoscope')
+    })
+
+@app.route("/debug/state", methods=["GET"])
+def debug_state():
+    """Debug endpoint to see current tier isolation state"""
+    return jsonify({
+        "user_plan": session.get("user_plan"),
+        "trial_active": session.get("trial_active"),
+        "effective_plan": session.get("effective_plan"),
+        "user_id": session.get("user_id"),
+        "is_logged_in": bool(session.get("user_id"))
     })
 
 @app.route("/debug/test", methods=["GET"])
@@ -6336,7 +6331,7 @@ def api_chat():
             user_plan = session.get('user_plan', 'free')
             trial_active = session.get('trial_active', False)
             user_id = session.get('user_id')
-            daily_limit = get_feature_limit(effective_plan, 'decoder', trial_active)
+            daily_limit = get_feature_limit(user_plan, 'decoder')
             
             # Check decoder usage limits
             current_usage = get_decoder_usage()
@@ -7906,7 +7901,7 @@ def ai_image_generation_generate():
         # Check tier-based usage limit using session values
         effective_plan = session.get('effective_plan', 'free')
         trial_active = session.get('trial_active', False)
-        monthly_limit = get_feature_limit(effective_plan, "ai_image_monthly", trial_active)
+        monthly_limit = get_feature_limit(user_plan, "ai_image_monthly")
         
         current_month = datetime.now().strftime('%Y-%m')
         usage_key = f'ai_image_usage_{current_month}'
