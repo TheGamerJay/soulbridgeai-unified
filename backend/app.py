@@ -5740,8 +5740,9 @@ def serve_profile_image(user_id):
 def fix_session():
     """Fix session user_id based on email"""
     try:
-        if not is_logged_in():
-            return jsonify({"success": False, "error": "Not logged in"}), 401
+        # Check if user has any session data (more lenient than is_logged_in)
+        if not (session.get('user_id') or session.get('user_email') or session.get('email')):
+            return jsonify({"success": False, "error": "No session data found"}), 401
         
         session_email = session.get('user_email', session.get('email'))
         if not session_email:
@@ -5763,11 +5764,16 @@ def fix_session():
         if not user_record:
             return jsonify({"success": False, "error": f"No user found with email {session_email}"}), 404
         
-        # Update session with correct user_id
+        # Update session with correct user_id and repair session
         old_user_id = session.get('user_id')
         new_user_id = user_record[0]
         
+        # Repair session authentication
+        session['user_authenticated'] = True
+        session['session_version'] = "2025-07-28-banking-security"
+        session['last_activity'] = datetime.now().isoformat()
         session['user_id'] = new_user_id
+        session['user_email'] = session_email
         if user_record[2]:  # display_name
             session['display_name'] = user_record[2]
         
