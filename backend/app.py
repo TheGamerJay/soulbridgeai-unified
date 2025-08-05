@@ -880,28 +880,7 @@ def clear_session():
         logger.error(f"Error clearing session: {e}")
         return jsonify({"success": False, "error": "Failed to clear session"}), 500
 
-@app.route("/api/debug/session-info")
-def debug_session_info():
-    """Debug: Show current session information"""
-    if not is_logged_in():
-        return jsonify({"error": "Not logged in"}), 401
-    
-    session_data = {
-        "user_plan": session.get('user_plan'),
-        "user_authenticated": session.get('user_authenticated'),
-        "user_id": session.get('user_id'),
-        "user_email": session.get('user_email'),
-        "trial_active": session.get('trial_active'),
-        "session_version": session.get('session_version'),
-        "all_session_keys": list(session.keys())
-    }
-    
-    return jsonify({
-        "success": True,
-        "session_data": session_data,
-        "expected_plan": "free",
-        "needs_reset": session.get('user_plan') not in ['free', 'growth', 'max']
-    })
+# REMOVED: Duplicate debug_session_info function - using the more comprehensive one at /debug/session-info
 
 @app.route("/api/debug/force-session-reset")
 def force_session_reset():
