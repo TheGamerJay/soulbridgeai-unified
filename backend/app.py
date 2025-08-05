@@ -5736,6 +5736,55 @@ def serve_profile_image(user_id):
         return redirect('/static/logos/IntroLogo.png')
 
 
+@app.route("/api/fix-session")
+def fix_session():
+    """Fix session user_id based on email"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Not logged in"}), 401
+        
+        session_email = session.get('user_email', session.get('email'))
+        if not session_email:
+            return jsonify({"success": False, "error": "No email in session"}), 400
+        
+        # Get correct user_id from database
+        db_instance = get_database()
+        if not db_instance:
+            return jsonify({"success": False, "error": "Database not available"}), 500
+        
+        conn = db_instance.get_connection()
+        cursor = conn.cursor()
+        placeholder = "%s" if hasattr(db_instance, 'postgres_url') and db_instance.postgres_url else "?"
+        
+        cursor.execute(f"SELECT id, email, display_name FROM users WHERE email = {placeholder}", (session_email,))
+        user_record = cursor.fetchone()
+        conn.close()
+        
+        if not user_record:
+            return jsonify({"success": False, "error": f"No user found with email {session_email}"}), 404
+        
+        # Update session with correct user_id
+        old_user_id = session.get('user_id')
+        new_user_id = user_record[0]
+        
+        session['user_id'] = new_user_id
+        if user_record[2]:  # display_name
+            session['display_name'] = user_record[2]
+        
+        logger.info(f"🔧 SESSION FIX: Updated user_id from {old_user_id} to {new_user_id} for {session_email}")
+        
+        return jsonify({
+            "success": True,
+            "message": "Session fixed",
+            "old_user_id": old_user_id,
+            "new_user_id": new_user_id,
+            "email": session_email
+        })
+        
+    except Exception as e:
+        logger.error(f"Session fix error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
 @app.route("/debug/session-user-id")
 def debug_session_user_id():
     """Debug session user_id mismatch issues"""
