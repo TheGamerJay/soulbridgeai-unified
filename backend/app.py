@@ -5736,6 +5736,43 @@ def serve_profile_image(user_id):
         return redirect('/static/logos/IntroLogo.png')
 
 
+@app.route("/debug/session-user-id")
+def debug_session_user_id():
+    """Debug session user_id mismatch issues"""
+    try:
+        session_user_id = session.get('user_id')
+        session_email = session.get('user_email', session.get('email'))
+        
+        debug_info = {
+            "session_user_id": session_user_id,
+            "session_email": session_email,
+            "session_data": dict(session)
+        }
+        
+        # Check if session user_id exists in database
+        if session_user_id:
+            db_instance = get_database()
+            if db_instance:
+                conn = db_instance.get_connection()
+                cursor = conn.cursor()
+                placeholder = "%s" if hasattr(db_instance, 'postgres_url') and db_instance.postgres_url else "?"
+                
+                cursor.execute(f"SELECT id, email, display_name FROM users WHERE id = {placeholder}", (session_user_id,))
+                user_by_id = cursor.fetchone()
+                debug_info["user_by_id"] = user_by_id
+                
+                # Check by email too
+                if session_email:
+                    cursor.execute(f"SELECT id, email, display_name FROM users WHERE email = {placeholder}", (session_email,))
+                    user_by_email = cursor.fetchone()
+                    debug_info["user_by_email"] = user_by_email
+                
+                conn.close()
+        
+        return jsonify(debug_info)
+    except Exception as e:
+        return jsonify({"error": str(e)})
+
 @app.route("/debug/profile-image-detailed")
 def debug_profile_image_detailed():
     """Detailed debug endpoint to check profile image state"""
