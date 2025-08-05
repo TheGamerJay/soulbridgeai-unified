@@ -5653,16 +5653,18 @@ def upload_profile_image():
                 return jsonify({"success": False, "error": f"Database update failed: {str(update_error)}"}), 500
             
             if cursor.rowcount == 0:
-                # User doesn't exist, try to create record
+                # User doesn't exist, try to create record with required fields
                 user_email = session.get('user_email', session.get('email'))
                 if user_email:
+                    # Get display_name from session or use email prefix as fallback
+                    display_name = session.get('display_name', user_email.split('@')[0])
                     cursor.execute(f"""
-                        INSERT INTO users (email, profile_image, profile_image_data) 
-                        VALUES ({placeholder}, {placeholder}, {placeholder})
+                        INSERT INTO users (email, display_name, profile_image, profile_image_data, user_plan, plan_type, effective_plan) 
+                        VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder})
                         ON CONFLICT (email) DO UPDATE SET 
                         profile_image = EXCLUDED.profile_image,
                         profile_image_data = EXCLUDED.profile_image_data
-                    """, (user_email, profile_image_url, image_base64))
+                    """, (user_email, display_name, profile_image_url, image_base64, 'free', 'free', 'free'))
             
             conn.commit()
             conn.close()
