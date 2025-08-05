@@ -4696,12 +4696,48 @@ def check_decoder_limit():
     if not user_id:
         return jsonify({"success": False, "error": "Not logged in"})
     
+    # Debug: Log full session contents
+    logger.info(f"🔍 DECODER API SESSION DEBUG: user_id={user_id}")
+    logger.info(f"🔍 Full session contents: {dict(session)}")
+    
     # Use bulletproof isolation values from session
-    effective_plan = session.get("effective_plan", "free")
-    user_plan = session.get("user_plan", "free")  # Normalized plan for display
-    trial_active = session.get("trial_active", False)
+    effective_plan = session.get("effective_plan")
+    user_plan = session.get("user_plan")
+    trial_active = session.get("trial_active")
+    
+    # Fallback: If session values are missing, force update them
+    if effective_plan is None or user_plan is None or trial_active is None:
+        logger.warning(f"⚠️ MISSING SESSION VALUES - forcing update")
+        try:
+            trial_check = is_trial_active(user_id)
+            session['trial_active'] = trial_check
+            
+            real_plan = session.get('user_plan') or get_user_plan() or 'free'
+            plan_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
+            mapped_plan = plan_mapping.get(real_plan, real_plan or 'free')
+            
+            session['user_plan'] = mapped_plan
+            session['effective_plan'] = 'max' if trial_check else mapped_plan
+            
+            # Update local variables
+            effective_plan = session['effective_plan']
+            user_plan = session['user_plan']
+            trial_active = session['trial_active']
+            
+            logger.info(f"🔄 FORCED SESSION UPDATE: user_plan={user_plan}, effective_plan={effective_plan}, trial_active={trial_active}")
+        except Exception as e:
+            logger.error(f"❌ Failed to update session: {e}")
+            effective_plan = "free"
+            user_plan = "free"
+            trial_active = False
+    
     daily_limit = get_feature_limit(effective_plan, "decoder")
     usage_today = get_decoder_usage()
+    
+    # Check if trial should be active by calling is_trial_active directly
+    direct_trial_check = is_trial_active(user_id)
+    if direct_trial_check != trial_active:
+        logger.warning(f"⚠️ TRIAL MISMATCH: session={trial_active}, direct_check={direct_trial_check}")
     
     logger.info(f"🎯 DECODER API: user_id={user_id}, user_plan='{user_plan}', effective_plan='{effective_plan}', trial_active={trial_active}, daily_limit={daily_limit}, usage={usage_today}")
 
