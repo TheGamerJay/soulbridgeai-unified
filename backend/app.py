@@ -5736,6 +5736,38 @@ def serve_profile_image(user_id):
         return redirect('/static/logos/IntroLogo.png')
 
 
+@app.route("/api/fix-session-thegamer")
+def fix_session_thegamer():
+    """Fix session specifically for thegamerjay11309@gmail.com (User ID 91)"""
+    try:
+        target_email = "thegamerjay11309@gmail.com"
+        target_user_id = 91
+        
+        # Force set session for thegamerjay11309@gmail.com
+        session.clear()
+        session['user_authenticated'] = True
+        session['session_version'] = "2025-07-28-banking-security"
+        session['last_activity'] = datetime.now().isoformat()
+        session['user_id'] = target_user_id
+        session['user_email'] = target_email
+        session['email'] = target_email
+        session['display_name'] = "The Game r"
+        session['user_plan'] = 'free'
+        session['plan_type'] = 'free'
+        
+        logger.info(f"🔧 SESSION FIX: Set session for {target_email} (User ID {target_user_id})")
+        
+        return jsonify({
+            "success": True,
+            "message": "Session fixed for thegamerjay11309@gmail.com",
+            "user_id": target_user_id,
+            "email": target_email
+        })
+        
+    except Exception as e:
+        logger.error(f"Session fix error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
 @app.route("/api/fix-session")
 def fix_session():
     """Fix session user_id based on email"""
