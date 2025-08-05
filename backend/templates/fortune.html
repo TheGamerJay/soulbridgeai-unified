@@ -522,7 +522,7 @@ async function refreshFortuneLimits() {
         }
 
         const usage = data.usage_today ?? 0;
-        const hasUnlimited = data.effective_plan === 'max' && !data.trial_active;  // Only if REAL Max
+        const hasUnlimited = data.user_plan === 'max' && !data.trial_active;  // Only if REAL Max tier (not trial)
 
         const limitDisplay = hasUnlimited ? '∞' : (data.daily_limit ?? '?');
 
