@@ -2181,19 +2181,19 @@ def profile():
                         conn.close()
                         
                         if result:
-                            if result[0] and result[0] not in ['/static/logos/Sapphire.png', '/static/logos/IntroLogo.png']:
-                                # Check if file exists, if not use base64 backup
-                                file_path = result[0].replace('/static/', 'static/')
-                                if os.path.exists(file_path):
-                                    profile_image = result[0]
-                                    session['profile_image'] = profile_image  # Cache in session
-                                elif result[2]:  # File missing but have base64 backup
-                                    profile_image = f"data:image/png;base64,{result[2]}"
-                                    session['profile_image'] = profile_image
-                                    logger.info(f"Profile image file missing, using base64 backup for user {user_id}")
-                            elif result[1] and result[1] not in ['/static/logos/Sapphire.png', '/static/logos/IntroLogo.png']:
-                                profile_image = result[1]
-                                session['profile_image'] = profile_image  # Cache in session
+                            # Use same logic as /api/users route - prioritize API endpoints
+                            if result[0] and result[0].startswith('/api/profile-image/'):
+                                # Already correct API endpoint format
+                                profile_image = result[0]
+                                logger.info(f"Using correct API profile image URL: {profile_image}")
+                            elif result[1]:  # Have base64 data, use API endpoint
+                                profile_image = f"/api/profile-image/{user_id}"
+                                logger.info(f"Using profile image API endpoint: {profile_image}")
+                            elif result[0]:  # Old filesystem path, convert to API endpoint
+                                profile_image = f"/api/profile-image/{user_id}"
+                                logger.info(f"Converting old filesystem path to API endpoint: {profile_image}")
+                            
+                            session['profile_image'] = profile_image  # Cache in session
                 except Exception as e:
                     logger.warning(f"Failed to load profile image for template: {e}")
         
