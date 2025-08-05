@@ -1319,7 +1319,41 @@ def plan_selection():
 @app.route("/intro")
 def intro():
     """Show intro/home page"""
-    return "<h1>Hello, world! Intro route works!</h1><p>If you see this, the backend is fine.</p>"
+    try:
+        if not is_logged_in():
+            return redirect("/login")
+        
+        # CRITICAL: Ensure session has correct plan names for templates (ONLY migrate old names)
+        user_plan = session.get('user_plan', 'free')
+        plan_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
+        # ONLY migrate if it's an OLD plan name that needs updating
+        if user_plan in plan_mapping and user_plan != plan_mapping[user_plan]:
+            session['user_plan'] = plan_mapping[user_plan]
+            logger.info(f"🔄 INTRO: Migrated OLD plan {user_plan} → {session['user_plan']}")
+        else:
+            logger.info(f"✅ INTRO: Plan {user_plan} already using new naming - no migration needed")
+        
+        # ISOLATED TIER ACCESS FLAGS - Prevents cross-contamination 
+        user_plan = session.get('user_plan', 'free')
+        trial_active = session.get('trial_active', False)
+        effective_plan = session.get('effective_plan', 'free')  # FIX: Get from session
+        
+        # Define isolated access flags for each tier using effective_plan
+        session['access_free'] = True  # Everyone gets free features
+        session['access_growth'] = effective_plan in ['growth', 'max'] or trial_active
+        session['access_max'] = effective_plan == 'max' or trial_active  
+        session['access_trial'] = trial_active
+        session.modified = True  # Ensure session changes are saved
+        
+        logger.info(f"✅ INTRO: trial_active={trial_active}, effective_plan={effective_plan}, access_growth={session['access_growth']}, access_max={session['access_max']}")
+        logger.info(f"Access flags: free={session['access_free']}, growth={session['access_growth']}, max={session['access_max']}, trial={session['access_trial']}")
+        
+        return render_template("intro.html")
+    except Exception as e:
+        logger.error(f"❌ INTRO ERROR: {e}")
+        import traceback
+        logger.error(f"❌ INTRO TRACEBACK: {traceback.format_exc()}")
+        return f"<h1>Intro Error</h1><p>Error: {str(e)}</p>", 500
 
 @app.route("/companion-selection")
 def companion_selection():
