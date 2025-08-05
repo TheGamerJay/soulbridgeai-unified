@@ -296,27 +296,6 @@
 
   <!-- Plans Grid -->
   <div class="plans-grid">
-    <!-- Free Tier -->
-    <div class="plan-card" onclick="selectPlan('foundation')">
-      <div class="plan-icon">🆓</div>
-      <div class="plan-name">Free Tier</div>
-      <div class="plan-price">Free</div>
-      <div class="plan-period">Forever</div>
-      
-      <ul class="plan-features">
-        <li><span class="feature-icon">✅</span> Free-tier companions (GamerJay, Blayzo, etc.)</li>
-        <li><span class="feature-icon">✅</span> Basic AI chat responses</li>
-        <li><span class="feature-icon">✅</span> 🧠 3 Decoder uses per day</li>
-        <li><span class="feature-icon">✅</span> 15 companion messages per session</li>
-        <li><span class="feature-icon">✅</span> Basic security</li>
-        <li><span class="feature-icon none">❌</span> No history saved</li>
-        <li><span class="feature-icon none">❌</span> No premium companions</li>
-        <li><span class="feature-icon none">❌</span> No voice narration</li>
-      </ul>
-      
-      <button class="select-btn free">Get Started Free</button>
-    </div>
-
     <!-- Growth Plan (Recommended) -->
     <div class="plan-card recommended" onclick="selectPlan('premium')">
       <div class="badge">Most Popular</div>
@@ -723,29 +702,18 @@ async function selectPlanViaAPI(planType, billing) {
         price: pricing[billing][planType]?.price || 'Free'
       };
       localStorage.setItem('selectedPlan', JSON.stringify(planData));
-      // Set subscription status for premium companion access
-      if (planType === 'foundation') {
-        localStorage.setItem('soulbridge_subscription', 'free');
-      } else {
-        // For paid plans, set them as premium for companion access
-        localStorage.setItem('soulbridge_subscription', planType);
-      }
+      // Set subscription status for premium companion access (all plans are paid now)
+      localStorage.setItem('soulbridge_subscription', planType);
       
       // Show success message
       alert(result.message);
       
-      // Redirect based on plan type
-      if (planType === 'foundation') {
-        // Free plan - go directly to chat
-        window.location.href = '/';
+      // Paid plans - show confirmation modal or go to payment
+      if (result.redirect) {
+        window.location.href = result.redirect;
       } else {
-        // Paid plans - show confirmation modal or go to payment
-        if (result.redirect) {
-          window.location.href = result.redirect;
-        } else {
-          // Show upgrade confirmation modal
-          showUpgradeConfirmation(planType, billing);
-        }
+        // Show upgrade confirmation modal
+        showUpgradeConfirmation(planType, billing);
       }
     } else {
       alert('Error: ' + result.error);
