@@ -354,9 +354,9 @@ def parse_request_data():
     """Parse request data from both JSON and form data"""
     if request.is_json:
         data = request.get_json()
-        return data.get("email", "").strip(), data.get("password", "").strip(), data.get("display_name", "").strip()
+        return data.get("email", "").strip().lower(), data.get("password", "").strip(), data.get("display_name", "").strip()
     else:
-        return (request.form.get("email", "").strip(), 
+        return (request.form.get("email", "").strip().lower(), 
                 request.form.get("password", "").strip(),
                 request.form.get("display_name", "").strip())
 
@@ -3696,7 +3696,7 @@ def get_comprehensive_trial_stats():
             cursor.execute("SELECT COUNT(*) FROM users WHERE trial_active = 1")
             stats['active_trials'] = cursor.fetchone()[0]
             
-            cursor.execute("SELECT COUNT(*) FROM users WHERE trial_used_permanently = 1")
+            cursor.execute("SELECT COUNT(*) FROM users WHERE trial_used_permanently = TRUE")
             stats['used_trials'] = cursor.fetchone()[0]
             
             cursor.execute("SELECT COUNT(*) FROM users WHERE user_plan = 'growth'")
@@ -3713,7 +3713,7 @@ def get_comprehensive_trial_stats():
             cursor.execute("SELECT COUNT(*) FROM users WHERE trial_active = 1")
             stats['active_trials'] = cursor.fetchone()[0]
             
-            cursor.execute("SELECT COUNT(*) FROM users WHERE trial_used_permanently = 1")
+            cursor.execute("SELECT COUNT(*) FROM users WHERE trial_used_permanently = TRUE")
             stats['used_trials'] = cursor.fetchone()[0]
             
             cursor.execute("SELECT COUNT(*) FROM users WHERE user_plan = 'growth'")
