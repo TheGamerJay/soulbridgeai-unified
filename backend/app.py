@@ -5052,6 +5052,88 @@ def debug_session_info():
         "horoscope_limit": get_feature_limit(session.get('effective_plan', 'free'), 'horoscope', session.get('trial_active', False))
     })
 
+@app.route("/debug/test", methods=["GET"])
+def debug_test():
+    """Simple test endpoint"""
+    return jsonify({"status": "working", "user_id": session.get('user_id')})
+
+@app.route("/debug/fix-free-users", methods=["GET"])
+def debug_fix_free_users():
+    """DEBUG: Check and fix users who should be free"""
+    try:
+        database_url = os.environ.get('DATABASE_URL')
+        if not database_url:
+            return jsonify({"error": "No database connection"})
+        
+        import psycopg2
+        from psycopg2.extras import RealDictCursor
+        
+        conn = psycopg2.connect(database_url)
+        conn.autocommit = True
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        
+        # Get recent users
+        cursor.execute("""
+            SELECT 
+                u.id, u.username, u.subscription_tier,
+                u.trial_expires_at,
+                CASE 
+                    WHEN u.trial_expires_at > NOW() THEN true 
+                    ELSE false 
+                END as trial_active_db
+            FROM users u 
+            ORDER BY u.created_at DESC 
+            LIMIT 10
+        """)
+        
+        users = cursor.fetchall()
+        results = []
+        fixed_count = 0
+        
+        for user in users:
+            user_info = {
+                "username": user['username'],
+                "id": user['id'],
+                "tier": user['subscription_tier'],
+                "trial_expires": str(user['trial_expires_at']) if user['trial_expires_at'] else None,
+                "trial_active": user['trial_active_db'],
+                "action": "none"
+            }
+            
+            # Fix users that should be free
+            tier = user['subscription_tier']
+            trial_active = user['trial_active_db']
+            
+            if tier is None or tier == '' or (tier in ['foundation'] and not trial_active):
+                cursor.execute("""
+                    UPDATE users 
+                    SET subscription_tier = 'free', 
+                        trial_expires_at = NULL
+                    WHERE id = %s
+                """, (user['id'],))
+                
+                user_info["action"] = "fixed_to_free"
+                fixed_count += 1
+            
+            results.append(user_info)
+        
+        cursor.close()
+        conn.close()
+        
+        return jsonify({
+            "success": True,
+            "users_checked": len(users),
+            "users_fixed": fixed_count,
+            "users": results
+        })
+        
+    except Exception as e:
+        import traceback
+        return jsonify({
+            "error": str(e),
+            "traceback": traceback.format_exc()
+        }), 500
+
 @app.route("/debug/force-free-user", methods=["GET"])
 def debug_force_free_user():
     """DEBUG: Force current user to be truly free (no trial, no paid plan)"""
