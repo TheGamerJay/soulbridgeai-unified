@@ -184,6 +184,17 @@ class SimpleAuth:
                         logger.info(f"Profile image loaded from profile_picture_url column: {result[2]}")
                 
                 if profile_img:
+                    # 🔧 MIGRATION: Convert old filesystem paths to API endpoints
+                    if profile_img.startswith('/static/uploads/profiles/'):
+                        # Get user_id from the current result or session
+                        user_id = user_data.get('id') or user_data.get('user_id')
+                        if user_id:
+                            profile_img = f"/api/profile-image/{user_id}"
+                            logger.info(f"🔄 Migrated old filesystem path to API endpoint: {profile_img}")
+                        else:
+                            profile_img = '/static/logos/IntroLogo.png'
+                            logger.warning("Could not migrate filesystem path, using default")
+                    
                     session['profile_image'] = profile_img
                 else:
                     # Set default profile image if none exists
