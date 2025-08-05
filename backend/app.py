@@ -1813,7 +1813,7 @@ def decoder():
         # Use session values set by @app.before_request (more efficient)
         effective_plan = session.get('effective_plan', 'free')
         trial_active = session.get('trial_active', False)
-        daily_limit = get_feature_limit(effective_plan, 'decoder')
+        daily_limit = get_feature_limit(effective_plan, 'decoder', trial_active)
         
         # DEBUG: Log decoder access info
         logger.info(f"🔍 DECODER DEBUG: user_plan = {user_plan}")
@@ -1844,7 +1844,7 @@ def fortune():
         # Use session values set by @app.before_request (more efficient)
         effective_plan = session.get('effective_plan', 'free')
         trial_active = session.get('trial_active', False)
-        daily_limit = get_feature_limit(effective_plan, 'fortune')
+        daily_limit = get_feature_limit(effective_plan, 'fortune', trial_active)
         
         # DEBUG: Log fortune access info
         logger.info(f"🔮 FORTUNE DEBUG: user_plan = {user_plan}")
@@ -1875,7 +1875,7 @@ def horoscope():
         # Use session values set by @app.before_request (more efficient)
         effective_plan = session.get('effective_plan', 'free')
         trial_active = session.get('trial_active', False)
-        daily_limit = get_feature_limit(effective_plan, 'horoscope')
+        daily_limit = get_feature_limit(effective_plan, 'horoscope', trial_active)
         
         # DEBUG: Log horoscope access info
         logger.info(f"⭐ HOROSCOPE DEBUG: user_plan = {user_plan}")
@@ -4495,15 +4495,25 @@ def get_user_addons():
 
 # REMOVED: Old duplicate get_effective_plan function - using bulletproof version below
 
-def get_feature_limit(effective_plan: str, feature: str) -> int:
-    """Get feature usage limits - bulletproof implementation"""
+def get_feature_limit(effective_plan: str, feature: str, trial_active: bool = False) -> int:
+    """
+    Bulletproof feature limit logic - handles trial as Growth tier (not Max-unlimited)
+    Trial users get Growth limits while appearing to have Max features
+    """
+    if trial_active:
+        # Trial only simulates max features visually — it should use Growth limits
+        plan_to_use = "growth"
+    else:
+        plan_to_use = effective_plan
+
     plan_limits = {
         "free": {"decoder": 3, "fortune": 2, "horoscope": 3, "ai_image_monthly": 5},
         "growth": {"decoder": 15, "fortune": 8, "horoscope": 10, "ai_image_monthly": 50},
         "max": {"decoder": float("inf"), "fortune": float("inf"), "horoscope": float("inf"), "ai_image_monthly": float("inf")},
     }
-    limit = plan_limits.get(effective_plan, {}).get(feature, 0)
-    logger.info(f"🎯 GET_FEATURE_LIMIT: plan='{effective_plan}' feature='{feature}' → limit={limit}")
+
+    limit = plan_limits.get(plan_to_use, {}).get(feature, 0)
+    logger.info(f"🎯 LIMIT: plan='{plan_to_use}' trial={trial_active} feature='{feature}' → limit={limit}")
     return limit
 
 def get_effective_plan(user_plan: str, trial_active: bool) -> str:
@@ -4731,7 +4741,7 @@ def check_decoder_limit():
             user_plan = "free"
             trial_active = False
     
-    daily_limit = get_feature_limit(effective_plan, "decoder")
+    daily_limit = get_feature_limit(effective_plan, "decoder", trial_active)
     usage_today = get_decoder_usage()
     
     # Check if trial should be active by calling is_trial_active directly
@@ -4760,7 +4770,7 @@ def check_fortune_limit():
     effective_plan = session.get("effective_plan", "free")
     user_plan = session.get("user_plan", "free")  # Original plan for display
     trial_active = session.get("trial_active", False)
-    daily_limit = get_feature_limit(effective_plan, "fortune")
+    daily_limit = get_feature_limit(effective_plan, "fortune", trial_active)
     usage_today = get_fortune_usage()
 
     return jsonify({
@@ -4782,7 +4792,7 @@ def check_horoscope_limit():
     effective_plan = session.get("effective_plan", "free")
     user_plan = session.get("user_plan", "free")  # Original plan for display
     trial_active = session.get("trial_active", False)
-    daily_limit = get_feature_limit(effective_plan, "horoscope")
+    daily_limit = get_feature_limit(effective_plan, "horoscope", trial_active)
     usage_today = get_horoscope_usage()
 
     return jsonify({
@@ -6170,7 +6180,7 @@ def api_chat():
             user_plan = session.get('user_plan', 'free')
             trial_active = session.get('trial_active', False)
             user_id = session.get('user_id')
-            daily_limit = get_feature_limit(effective_plan, 'decoder')
+            daily_limit = get_feature_limit(effective_plan, 'decoder', trial_active)
             
             # Check decoder usage limits
             current_usage = get_decoder_usage()
@@ -7739,7 +7749,8 @@ def ai_image_generation_generate():
         
         # Check tier-based usage limit using session values
         effective_plan = session.get('effective_plan', 'free')
-        monthly_limit = get_feature_limit(effective_plan, "ai_image_monthly")
+        trial_active = session.get('trial_active', False)
+        monthly_limit = get_feature_limit(effective_plan, "ai_image_monthly", trial_active)
         
         current_month = datetime.now().strftime('%Y-%m')
         usage_key = f'ai_image_usage_{current_month}'

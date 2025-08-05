@@ -476,7 +476,7 @@ async function refreshDecoderLimits() {
 
         const { effective_plan, trial_active, usage_today, daily_limit, user_plan } = data;
 
-        const hasUnlimited = effective_plan === "max" || daily_limit === Infinity;
+        const hasUnlimited = effective_plan === "max" && !trial_active;  // Only if REAL Max
         const displayLimit = hasUnlimited ? "∞" : daily_limit;
 
         const usage = usage_today ?? 0;
