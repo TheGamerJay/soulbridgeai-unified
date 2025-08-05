@@ -26,12 +26,21 @@ def main():
         
         print("✅ Connected to PostgreSQL")
         
-        # Add trial columns
+        # Add all missing columns for registration to work
         sql_commands = [
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS plan_type TEXT DEFAULT 'free';",
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS user_plan TEXT DEFAULT 'free';",
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS trial_active INTEGER DEFAULT 0;",
             "ALTER TABLE users ADD COLUMN IF NOT EXISTS trial_started_at TIMESTAMP;",
             "ALTER TABLE users ADD COLUMN IF NOT EXISTS trial_companion TEXT;", 
             "ALTER TABLE users ADD COLUMN IF NOT EXISTS trial_used_permanently BOOLEAN DEFAULT FALSE;",
-            "ALTER TABLE users ADD COLUMN IF NOT EXISTS trial_expires_at TIMESTAMP;"
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS trial_expires_at TIMESTAMP;",
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS trial_warning_sent INTEGER DEFAULT 0;",
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin INTEGER DEFAULT 0;",
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS decoder_used INTEGER DEFAULT 0;",
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS fortune_used INTEGER DEFAULT 0;",
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS horoscope_used INTEGER DEFAULT 0;",
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS feature_preview_seen INTEGER DEFAULT 0;"
         ]
         
         for sql in sql_commands:
@@ -42,7 +51,7 @@ def main():
         cursor.close()
         conn.close()
         
-        print("🎉 Trial columns added successfully to PostgreSQL!")
+        print("🎉 All missing columns added successfully to PostgreSQL!")
         
     except Exception as e:
         print(f"❌ Error: {e}")
