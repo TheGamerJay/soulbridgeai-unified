@@ -561,7 +561,7 @@ async function refreshFortuneLimits() {
             if (planDesc) {
                 planDesc.style.display = "block";
                 if (data.trial_active) {
-                    planDesc.textContent = `You're on a 5-hour trial — enjoy Max-tier access with ${data.daily_limit} fortunes.`;
+                    planDesc.textContent = `You're on a 5-hour trial — enjoy premium companions & features with your ${limitDisplay} fortunes.`;
                 } else {
                     planDesc.textContent = `Free users get ${limitDisplay} fortunes per day. Upgrade to Growth for more mystical insights.`;
                 }
