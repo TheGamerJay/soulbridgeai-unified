@@ -5052,6 +5052,48 @@ def debug_session_info():
         "horoscope_limit": get_feature_limit(session.get('effective_plan', 'free'), 'horoscope', session.get('trial_active', False))
     })
 
+@app.route("/debug/force-free-user", methods=["POST"])
+def debug_force_free_user():
+    """DEBUG: Force current user to be truly free (no trial, no paid plan)"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({"error": "Not logged in"})
+        
+        # Clear trial data in database
+        database_url = os.environ.get('DATABASE_URL')
+        if database_url:
+            import psycopg2
+            conn = psycopg2.connect(database_url)
+            cursor = conn.cursor()
+            
+            # Reset user to completely free
+            cursor.execute("""
+                UPDATE users 
+                SET plan = 'free', 
+                    trial_expires_at = NULL,
+                    trial_started_at = NULL,
+                    trial_used_permanently = TRUE
+                WHERE id = %s
+            """, (user_id,))
+            conn.commit()
+            conn.close()
+            
+        # Reset session
+        session['user_plan'] = 'free'
+        session['effective_plan'] = 'free' 
+        session['trial_active'] = False
+        
+        return jsonify({
+            "success": True, 
+            "message": "User forced to Free tier with no trial",
+            "user_plan": "free",
+            "trial_active": False
+        })
+        
+    except Exception as e:
+        return jsonify({"error": f"Failed to reset user: {e}"})
+
 @app.route("/debug/upgrade-to-max", methods=["POST"])
 def debug_upgrade_to_max():
     """Debug endpoint to set user to Max tier"""
