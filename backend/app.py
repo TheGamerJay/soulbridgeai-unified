@@ -5195,10 +5195,18 @@ def debug_test_signup_direct():
             "traceback": traceback.format_exc()
         })
 
-@app.route("/debug/test", methods=["GET"])
+@app.route("/debug/test", methods=["GET", "POST"])
 def debug_test():
-    """Simple test endpoint"""
-    return jsonify({"status": "working", "user_id": session.get('user_id')})
+    """Test endpoint that handles both GET and POST"""
+    return jsonify({
+        "status": "working", 
+        "method": request.method,
+        "user_id": session.get('user_id'),
+        "host": request.host,
+        "url": request.url,
+        "is_json": request.is_json,
+        "content_type": request.content_type
+    })
 
 @app.route("/debug/fix-database-schema", methods=["GET"])
 def debug_fix_database_schema():
