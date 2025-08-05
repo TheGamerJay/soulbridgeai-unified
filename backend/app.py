@@ -1284,7 +1284,10 @@ def auth_register():
         })
         
     except Exception as e:
-        return jsonify({"success": False, "error": f"Error: {str(e)}"}), 500
+        logger.error(f"Signup error: {e}")
+        import traceback
+        logger.error(f"Signup traceback: {traceback.format_exc()}")
+        return jsonify({"success": False, "error": f"Registration failed: {str(e)}"}), 500
 
 # ========================================
 # USER FLOW ROUTES
@@ -5105,6 +5108,47 @@ def debug_state():
         "user_id": session.get("user_id"),
         "is_logged_in": bool(session.get("user_id"))
     })
+
+@app.route("/debug/test-signup", methods=["GET"])
+def debug_test_signup():
+    """Test signup process step by step"""
+    try:
+        # Test database connection
+        database_url = os.environ.get('DATABASE_URL')
+        if not database_url:
+            return jsonify({"error": "No DATABASE_URL"})
+        
+        import psycopg2
+        conn = psycopg2.connect(database_url)
+        cursor = conn.cursor()
+        
+        # Test table exists and columns
+        cursor.execute("""
+            SELECT column_name FROM information_schema.columns 
+            WHERE table_name = 'users'
+        """)
+        columns = [row[0] for row in cursor.fetchall()]
+        
+        # Test insert capability
+        test_email = "test@example.com"
+        cursor.execute("DELETE FROM users WHERE email = %s", (test_email,))
+        
+        conn.close()
+        
+        return jsonify({
+            "success": True,
+            "database_url_exists": bool(database_url),
+            "columns": columns,
+            "required_columns": ["email", "password_hash", "display_name", "subscription_tier"],
+            "missing_columns": [col for col in ["email", "password_hash", "display_name", "subscription_tier"] if col not in columns]
+        })
+        
+    except Exception as e:
+        import traceback
+        return jsonify({
+            "error": str(e),
+            "traceback": traceback.format_exc()
+        })
 
 @app.route("/debug/test", methods=["GET"])
 def debug_test():
