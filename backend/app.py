@@ -1038,7 +1038,7 @@ def start_trial():
                 if db_instance.use_postgres:
                     cursor.execute("""
                         UPDATE users 
-                        SET trial_active = TRUE, 
+                        SET trial_active = 1, 
                             trial_started_at = %s
                         WHERE id = %s
                     """, (trial_start_time, user_id))
@@ -1147,7 +1147,7 @@ def reset_trial_state():
                     SET trial_active = FALSE, 
                         trial_started_at = NULL,
                         trial_used_permanently = FALSE,
-                        trial_warning_sent = FALSE
+                        trial_warning_sent = 0
                     WHERE id = %s
                 """, (user_id,))
             else:
@@ -3693,7 +3693,7 @@ def get_comprehensive_trial_stats():
         
         # Active trials
         if db_instance.use_postgres:
-            cursor.execute("SELECT COUNT(*) FROM users WHERE trial_active = TRUE")
+            cursor.execute("SELECT COUNT(*) FROM users WHERE trial_active = 1")
             stats['active_trials'] = cursor.fetchone()[0]
             
             cursor.execute("SELECT COUNT(*) FROM users WHERE trial_used_permanently = TRUE")
@@ -3806,7 +3806,7 @@ def admin_reset_all_trials():
                 SET trial_active = FALSE, 
                     trial_started_at = NULL,
                     trial_used_permanently = FALSE,
-                    trial_warning_sent = FALSE
+                    trial_warning_sent = 0
             """)
         else:
             cursor.execute("""
@@ -3853,7 +3853,7 @@ def admin_expire_all_trials():
                 UPDATE users 
                 SET trial_active = FALSE, 
                     trial_used_permanently = TRUE
-                WHERE trial_active = TRUE
+                WHERE trial_active = 1
             """)
         else:
             cursor.execute("""
@@ -3899,7 +3899,7 @@ def admin_send_trial_warnings():
                 cursor.execute("""
                     SELECT email, display_name, trial_started_at 
                     FROM users 
-                    WHERE trial_active = TRUE AND (trial_warning_sent = FALSE OR trial_warning_sent IS NULL)
+                    WHERE trial_active = 1 AND (trial_warning_sent = 0 OR trial_warning_sent IS NULL)
                 """)
             else:
                 cursor.execute("""
@@ -3917,7 +3917,7 @@ def admin_send_trial_warnings():
                     cursor.execute("""
                         UPDATE users 
                         SET trial_warning_sent = TRUE 
-                        WHERE trial_active = TRUE AND (trial_warning_sent = FALSE OR trial_warning_sent IS NULL)
+                        WHERE trial_active = 1 AND (trial_warning_sent = 0 OR trial_warning_sent IS NULL)
                     """)
                 else:
                     cursor.execute("""

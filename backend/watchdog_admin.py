@@ -291,7 +291,7 @@ def get_active_trial_count():
         conn = db.get_connection()
         cursor = conn.cursor()
         if db.use_postgres:
-            cursor.execute("SELECT COUNT(*) FROM users WHERE trial_active = TRUE")
+            cursor.execute("SELECT COUNT(*) FROM users WHERE trial_active = 1")
         else:
             cursor.execute("SELECT COUNT(*) FROM users WHERE trial_active = 1")
         count = cursor.fetchone()[0]
@@ -586,7 +586,7 @@ def get_active_trials_detailed():
                 SELECT id, email, display_name, trial_started_at, 
                        EXTRACT(EPOCH FROM (NOW() - trial_started_at::timestamp)) as elapsed_seconds
                 FROM users 
-                WHERE trial_active = TRUE 
+                WHERE trial_active = 1 
                 ORDER BY trial_started_at DESC
             """)
         else:
