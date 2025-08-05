@@ -564,6 +564,10 @@ def initialize_services():
     total = len(results)
     logger.info(f"📊 Service initialization complete: {working}/{total} services operational")
     
+    # Run periodic plan migration as safety net during startup
+    logger.info("🧼 Running periodic plan migration safety check...")
+    run_periodic_plan_migration()
+    
     return results
 
 # ========================================
@@ -3694,6 +3698,7 @@ def admin_surveillance():
                     <a href="/admin/dashboard?key={ADMIN_DASH_KEY}" class="control-btn">📊 DASHBOARD</a>
                     <a href="/admin/users/manage?key={ADMIN_DASH_KEY}" class="control-btn">👥 MANAGE USERS [v2]</a>
                     <a href="/admin/database?key={ADMIN_DASH_KEY}" class="control-btn">🗄️ DATABASE</a>
+                    <a href="/admin/migrate-plans?key={ADMIN_DASH_KEY}" class="control-btn">🧼 MIGRATE PLANS</a>
                 </div>
                 
                 <div class="grid-container">
@@ -4311,6 +4316,33 @@ def admin_manage_users():
         
     except Exception as e:
         logger.error(f"Error in user management: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/admin/migrate-plans")
+def admin_migrate_plans():
+    """🧼 ADMIN: Manually trigger periodic plan migration"""
+    key = request.args.get("key")
+    if key != ADMIN_DASH_KEY:
+        return jsonify({"error": "Unauthorized"}), 403
+    
+    try:
+        logger.info("🧼 Admin triggered manual plan migration")
+        success = run_periodic_plan_migration()
+        
+        if success:
+            return jsonify({
+                "success": True, 
+                "message": "Plan migration completed successfully",
+                "redirect": f"/admin/surveillance?key={ADMIN_DASH_KEY}"
+            })
+        else:
+            return jsonify({
+                "success": False, 
+                "error": "Plan migration failed - check logs for details"
+            }), 500
+            
+    except Exception as e:
+        logger.error(f"Error in admin plan migration: {e}")
         return jsonify({"error": str(e)}), 500
 
 @app.route("/admin/users/delete/<int:user_id>", methods=["DELETE"])
@@ -5766,6 +5798,15 @@ def get_feature_limit(plan: str, feature: str) -> int:
     Bulletproof feature limit logic - uses actual plan, not trial status
     Trial users get Max features but keep their original plan limits
     """
+    # Defensive migration for any legacy plans
+    legacy_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
+    plan = legacy_mapping.get(plan, plan)
+    
+    # Ensure we only work with valid plans
+    if plan not in ['free', 'growth', 'max']:
+        logger.warning(f"⚠️ Unknown plan '{plan}' in feature limits, defaulting to 'free'")
+        plan = 'free'
+    
     tier_limits = {
         "free": {"decoder": 3, "fortune": 2, "horoscope": 3, "ai_image_monthly": 5},
         "growth": {"decoder": 15, "fortune": 8, "horoscope": 10, "ai_image_monthly": 50},
@@ -5778,18 +5819,90 @@ def get_feature_limit(plan: str, feature: str) -> int:
 
 def get_effective_plan(user_plan: str, trial_active: bool) -> str:
     """Get effective plan considering trial status - comprehensive system"""  
+    # Defensive migration for any legacy plans that slip through
+    legacy_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
+    user_plan = legacy_mapping.get(user_plan, user_plan)
+    
+    # Ensure we only work with valid plans
+    if user_plan not in ['free', 'growth', 'max']:
+        logger.warning(f"⚠️ Unknown plan '{user_plan}' defaulting to 'free'")
+        user_plan = 'free'
+    
     if trial_active and user_plan == "free":
         return "growth"
     return user_plan
 
-def get_feature_limit(effective_plan: str, feature: str) -> int:
-    """Get feature limit for plan - comprehensive system"""
+def get_feature_limit_v2(effective_plan: str, feature: str) -> int:
+    """Get feature limit for plan - comprehensive system (duplicate - kept for compatibility)"""
+    # Defensive migration for any legacy plans
+    legacy_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
+    effective_plan = legacy_mapping.get(effective_plan, effective_plan)
+    
+    # Ensure we only work with valid plans
+    if effective_plan not in ['free', 'growth', 'max']:
+        logger.warning(f"⚠️ Unknown plan '{effective_plan}' in feature limits v2, defaulting to 'free'")
+        effective_plan = 'free'
+    
     plan_limits = {
         "free":   {"decoder": 3, "fortune": 2, "horoscope": 3},
         "growth": {"decoder": 15, "fortune": 8, "horoscope": 10},
         "max":    {"decoder": float("inf"), "fortune": float("inf"), "horoscope": float("inf")}
     }
     return plan_limits.get(effective_plan, {}).get(feature, 0)
+
+def run_periodic_plan_migration():
+    """Periodic safety net to migrate any remaining legacy plans in database"""
+    try:
+        db_instance = get_database()
+        if not db_instance:
+            logger.warning("Database not available for periodic plan migration")
+            return False
+        
+        conn = db_instance.get_connection()
+        cursor = conn.cursor()
+        
+        # Check for any remaining legacy plans
+        legacy_plans = ['foundation', 'premium', 'enterprise']
+        total_migrated = 0
+        
+        for legacy_plan in legacy_plans:
+            plan_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
+            new_plan = plan_mapping[legacy_plan]
+            
+            if db_instance.use_postgres:
+                # Update user_plan
+                cursor.execute("UPDATE users SET user_plan = %s WHERE user_plan = %s", (new_plan, legacy_plan))
+                user_plan_migrated = cursor.rowcount
+                
+                # Update plan_type
+                cursor.execute("UPDATE users SET plan_type = %s WHERE plan_type = %s", (new_plan, legacy_plan))
+                plan_type_migrated = cursor.rowcount
+            else:
+                # Update user_plan
+                cursor.execute("UPDATE users SET user_plan = ? WHERE user_plan = ?", (new_plan, legacy_plan))
+                user_plan_migrated = cursor.rowcount
+                
+                # Update plan_type
+                cursor.execute("UPDATE users SET plan_type = ? WHERE plan_type = ?", (new_plan, legacy_plan))
+                plan_type_migrated = cursor.rowcount
+            
+            migrated_count = user_plan_migrated + plan_type_migrated
+            if migrated_count > 0:
+                total_migrated += migrated_count
+                logger.info(f"🧼 Periodic migration: {legacy_plan} → {new_plan} ({migrated_count} records)")
+        
+        if total_migrated > 0:
+            conn.commit()
+            logger.info(f"✅ Periodic plan migration completed: {total_migrated} total records updated")
+        else:
+            logger.info("✅ Periodic plan migration: No legacy plans found")
+        
+        conn.close()
+        return True
+        
+    except Exception as e:
+        logger.error(f"❌ Periodic plan migration failed: {e}")
+        return False
 
 # Feature access control system
 FEATURE_ACCESS = {
