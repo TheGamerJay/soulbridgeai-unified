@@ -1564,18 +1564,40 @@ def auth_register():
         conn = db_instance.get_connection()
         cursor = conn.cursor()
         
-        # Check if user already exists
+        # Check if user already exists with detailed debugging
         logger.info(f"🔍 REGISTER: Checking if {email} already exists...")
         if db_instance.use_postgres:
-            cursor.execute("SELECT id FROM users WHERE email = %s", (email,))
+            cursor.execute("SELECT id, email, created_at FROM users WHERE email = %s", (email,))
         else:
-            cursor.execute("SELECT id FROM users WHERE email = ?", (email,))
+            cursor.execute("SELECT id, email, created_at FROM users WHERE email = ?", (email,))
         
         existing_user = cursor.fetchone()
         if existing_user:
-            logger.warning(f"❌ REGISTER: Email {email} already exists in database")
+            logger.warning(f"❌ REGISTER: Email {email} already exists in database - ID: {existing_user[0]}, Created: {existing_user[2]}")
+            
+            # Also check for case-insensitive matches
+            if db_instance.use_postgres:
+                cursor.execute("SELECT COUNT(*) FROM users WHERE LOWER(email) = LOWER(%s)", (email,))
+            else:
+                cursor.execute("SELECT COUNT(*) FROM users WHERE LOWER(email) = LOWER(?)", (email,))
+            
+            case_matches = cursor.fetchone()[0]
+            logger.warning(f"❌ REGISTER: Case-insensitive matches for {email}: {case_matches}")
+            
             conn.close()
             return jsonify({"success": False, "error": "Email already registered. Please try logging in instead."}), 400
+        
+        # Double-check with case-insensitive search
+        if db_instance.use_postgres:
+            cursor.execute("SELECT id, email FROM users WHERE LOWER(email) = LOWER(%s)", (email,))
+        else:
+            cursor.execute("SELECT id, email FROM users WHERE LOWER(email) = LOWER(?)", (email,))
+        
+        case_existing = cursor.fetchone()
+        if case_existing:
+            logger.warning(f"❌ REGISTER: Case-insensitive match found: {case_existing[1]} (ID: {case_existing[0]})")
+            conn.close()
+            return jsonify({"success": False, "error": f"Email already registered as '{case_existing[1]}'. Please try logging in instead."}), 400
         
         logger.info(f"✅ REGISTER: Email {email} is available, proceeding with registration")
         
