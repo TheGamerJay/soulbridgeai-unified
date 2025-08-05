@@ -93,7 +93,7 @@
                 
                 <!-- CREATIVE WRITING FOR PREMIUM USERS -->
                 {% if user_plan in ['growth', 'max'] or trial_active %}
-                <button onclick="openCreativeWriting()" class="action-btn creative-btn premium-feature" data-tier="growth" title="Creative Writing Assistant">
+                <button onclick="console.log('Write button clicked!'); openCreativeWriting();" class="action-btn creative-btn premium-feature" data-tier="growth" title="Creative Writing Assistant" style="cursor: pointer;">
                     <i class="fas fa-feather-alt"></i>
                     Write
                 </button>
@@ -701,17 +701,20 @@
 
     <script>
         function openCreativeWriting() {
+            console.log('🖋️ Write button clicked - opening Creative Writing Assistant');
             try {
                 const modal = document.getElementById('creativeWritingModal');
+                console.log('Creative Writing modal found:', !!modal);
                 if (modal) {
                     modal.style.display = 'flex';
                     document.body.style.overflow = 'hidden';
+                    console.log('✅ Creative Writing modal opened successfully');
                 } else {
-                    console.error('Creative Writing modal not found');
+                    console.error('❌ Creative Writing modal not found');
                     alert('Creative Writing feature is loading, please try again in a moment.');
                 }
             } catch (error) {
-                console.error('Error opening Creative Writing:', error);
+                console.error('❌ Error opening Creative Writing:', error);
                 alert('Unable to open Creative Writing. Please refresh the page and try again.');
             }
         }
