@@ -5383,21 +5383,17 @@ def api_users():
                     logger.info(f"🔍 DEBUG: Database query result: {result}")
                     
                     if result and (result[0] or result[1]):
-                        # Check if we have a URL that isn't the default
-                        if result[0] and result[0] not in ['/static/logos/Sapphire.png', '/static/logos/IntroLogo.png']:
-                            # Check if file exists, if not use base64 backup
-                            file_path = result[0].replace('/static/', 'static/')
-                            if os.path.exists(file_path):
-                                profile_image = result[0]
-                                logger.info(f"Loaded profile image from database: {profile_image}")
-                            elif len(result) > 1 and result[1]:  # File missing but have base64 backup
-                                profile_image = f"data:image/png;base64,{result[1]}"
-                                logger.info(f"Profile image file missing, using base64 backup")
-                        # If no URL but we have base64 data, use that as backup
-                        elif result[1]:
-                            # For now, keep the URL if we have base64 backup
-                            profile_image = result[0] if result[0] else '/static/logos/IntroLogo.png'
-                            logger.info(f"Using profile image with base64 backup: {profile_image}")
+                        # DATABASE-ONLY APPROACH: Use /api/profile-image/{user_id} URLs
+                        if result[0] and result[0].startswith('/api/profile-image/'):
+                            # Already correct format
+                            profile_image = result[0]
+                            logger.info(f"Using correct API profile image URL: {profile_image}")
+                        elif result[1]:  # Have base64 data, use API endpoint
+                            profile_image = f"/api/profile-image/{user_id}"
+                            logger.info(f"Using profile image API endpoint: {profile_image}")
+                        elif result[0]:  # Old filesystem path, convert to API endpoint
+                            profile_image = f"/api/profile-image/{user_id}"
+                            logger.info(f"Converting old filesystem path to API endpoint: {profile_image}")
                     
                     # If no profile image found in database, check session but don't default to Sapphire
                     if not profile_image:
