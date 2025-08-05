@@ -3696,7 +3696,7 @@ def get_comprehensive_trial_stats():
             cursor.execute("SELECT COUNT(*) FROM users WHERE trial_active = 1")
             stats['active_trials'] = cursor.fetchone()[0]
             
-            cursor.execute("SELECT COUNT(*) FROM users WHERE trial_used_permanently = TRUE")
+            cursor.execute("SELECT COUNT(*) FROM users WHERE trial_used_permanently = 1")
             stats['used_trials'] = cursor.fetchone()[0]
             
             cursor.execute("SELECT COUNT(*) FROM users WHERE user_plan = 'growth'")
@@ -4047,7 +4047,7 @@ def admin_manage_users():
         # Get all users
         cursor.execute("""
             SELECT id, email, display_name, user_plan, plan_type, trial_active, 
-                   trial_used_permanently, created_at, last_login
+                   trial_used_permanently, created_at
             FROM users 
             ORDER BY created_at DESC
         """)
@@ -4063,7 +4063,7 @@ def admin_manage_users():
                 'trial_active': bool(row[5]) if row[5] is not None else False,
                 'trial_used': bool(row[6]) if row[6] is not None else False,
                 'created_at': row[7],
-                'last_login': row[8]
+                'last_login': 'N/A'
             })
         
         conn.close()
