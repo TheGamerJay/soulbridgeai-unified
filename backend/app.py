@@ -4117,27 +4117,42 @@ def admin_manage_users():
         conn = db_instance.get_connection()
         cursor = conn.cursor()
         
-        # Get all users
-        cursor.execute("""
-            SELECT id, email, display_name, user_plan, plan_type, trial_active, 
-                   trial_used_permanently, created_at
-            FROM users 
-            ORDER BY created_at DESC
-        """)
-        
-        users = []
-        for row in cursor.fetchall():
-            users.append({
-                'id': row[0],
-                'email': row[1],
-                'display_name': row[2] or 'Unknown',
-                'user_plan': row[3] or 'free',
-                'plan_type': row[4] or 'free',
-                'trial_active': bool(row[5]) if row[5] is not None else False,
-                'trial_used': bool(row[6]) if row[6] is not None else False,
-                'created_at': row[7],
-                'last_login': 'N/A'
-            })
+        # Get all users with error handling
+        try:
+            cursor.execute("""
+                SELECT id, email, display_name, user_plan, plan_type, trial_active, 
+                       trial_used_permanently, created_at
+                FROM users 
+                ORDER BY created_at DESC
+            """)
+            
+            rows = cursor.fetchall()
+            logger.info(f"Admin users query returned {len(rows)} rows")
+            
+            users = []
+            for row in rows:
+                users.append({
+                    'id': row[0],
+                    'email': row[1],
+                    'display_name': row[2] or 'Unknown',
+                    'user_plan': row[3] or 'free',
+                    'plan_type': row[4] or 'free',
+                    'trial_active': bool(row[5]) if row[5] is not None else False,
+                    'trial_used': bool(row[6]) if row[6] is not None else False,
+                    'created_at': row[7],
+                    'last_login': 'N/A'
+                })
+                
+        except Exception as query_error:
+            logger.error(f"Error querying users table: {query_error}")
+            # Try a simpler query to see what columns exist
+            try:
+                cursor.execute("SELECT id, email FROM users LIMIT 5")
+                simple_rows = cursor.fetchall()
+                logger.info(f"Simple query returned {len(simple_rows)} rows: {simple_rows}")
+            except Exception as simple_error:
+                logger.error(f"Even simple query failed: {simple_error}")
+            users = []
         
         conn.close()
         
