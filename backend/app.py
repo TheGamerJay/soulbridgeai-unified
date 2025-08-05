@@ -5009,17 +5009,41 @@ def debug_session_info():
     if not user_id:
         return jsonify({"error": "Not logged in", "session": dict(session)})
     
-    # Get fresh trial check
+    # Get fresh trial check and database info
     fresh_trial_check = None
+    database_trial_data = None
     try:
         fresh_trial_check = is_trial_active(user_id)
+        
+        # Get raw database data for debugging
+        database_url = os.environ.get('DATABASE_URL')
+        if database_url:
+            import psycopg2
+            conn = psycopg2.connect(database_url)
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT trial_expires_at, trial_started_at, trial_used_permanently, plan 
+                FROM users WHERE id = %s
+            """, (user_id,))
+            raw_data = cursor.fetchone()
+            conn.close()
+            
+            if raw_data:
+                database_trial_data = {
+                    "trial_expires_at": str(raw_data[0]) if raw_data[0] else None,
+                    "trial_started_at": str(raw_data[1]) if raw_data[1] else None,
+                    "trial_used_permanently": raw_data[2],
+                    "database_plan": raw_data[3]
+                }
     except Exception as e:
         fresh_trial_check = f"ERROR: {e}"
+        database_trial_data = f"ERROR: {e}"
     
     return jsonify({
         "user_id": user_id,
         "session_contents": dict(session),
         "fresh_trial_check": fresh_trial_check,
+        "database_trial_data": database_trial_data,
         "session_trial_active": session.get('trial_active'),
         "session_user_plan": session.get('user_plan'),
         "session_effective_plan": session.get('effective_plan'),
