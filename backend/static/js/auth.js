@@ -73,7 +73,8 @@
 
   document.addEventListener("DOMContentLoaded", () => {
     hookForm("loginForm",     { action: "/auth/login",     onSuccessRedirect: "/", failMessage: "Login failed." });
-    hookForm("registerForm",  { action: "/auth/register",  onSuccessRedirect: "/intro", failMessage: "" });
+    // Disabled registerForm hook - register.html has its own AJAX handler
+    // hookForm("registerForm",  { action: "/auth/register",  onSuccessRedirect: "/intro", failMessage: "" });
     hookForm("resetForm",     { action: "/auth/reset",     onSuccessRedirect: "/login", failMessage: "Reset failed." });
   });
 })();
