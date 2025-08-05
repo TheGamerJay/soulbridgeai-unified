@@ -5610,11 +5610,19 @@ def upload_profile_image():
         user_id = session.get('user_id')
         user_email = session.get('user_email', session.get('email'))
         
+        logger.info(f"🔍 SESSION DEBUG: user_id={user_id}, user_email={user_email}, all_session_keys={list(session.keys())}")
+        
         # AGGRESSIVE SESSION FIX: Clear old stale session data
         if user_id and user_id <= 94:  # Old user IDs that should be cleared
             logger.info(f"🔧 AGGRESSIVE FIX: Clearing stale session with old user_id {user_id}")
             session.clear()
             return jsonify({"success": False, "error": "Session cleared due to stale data. Please login again."}), 401
+        
+        # EMERGENCY FIX: If we still have thegamerjay11309@gmail.com, force correct user_id
+        if user_email == "thegamerjay11309@gmail.com":
+            logger.info(f"🚨 EMERGENCY FIX: Found thegamerjay11309@gmail.com with user_id {user_id}, correcting to 96")
+            user_id = 96
+            session['user_id'] = 96
         
         if not user_id:
             return jsonify({"success": False, "error": "User ID not found"}), 401
