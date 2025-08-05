@@ -5051,6 +5051,55 @@ def debug_test():
     """Simple test endpoint"""
     return jsonify({"status": "working", "user_id": session.get('user_id')})
 
+@app.route("/debug/fix-plan-names", methods=["GET"])
+def debug_fix_plan_names():
+    """DEBUG: Update all old plan names in database to new names"""
+    try:
+        database_url = os.environ.get('DATABASE_URL')
+        if not database_url:
+            return jsonify({"error": "No database connection"})
+        
+        import psycopg2
+        from psycopg2.extras import RealDictCursor
+        
+        conn = psycopg2.connect(database_url)
+        conn.autocommit = True
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        
+        # Update old plan names to new ones
+        updates = [
+            ("foundation", "free"),
+            ("premium", "growth"), 
+            ("enterprise", "max")
+        ]
+        
+        results = []
+        for old_name, new_name in updates:
+            cursor.execute("""
+                UPDATE users 
+                SET subscription_tier = %s 
+                WHERE subscription_tier = %s
+            """, (new_name, old_name))
+            
+            count = cursor.rowcount
+            results.append({"old": old_name, "new": new_name, "updated": count})
+        
+        cursor.close()
+        conn.close()
+        
+        return jsonify({
+            "success": True,
+            "updates": results,
+            "message": "Plan names updated in database"
+        })
+        
+    except Exception as e:
+        import traceback
+        return jsonify({
+            "error": str(e),
+            "traceback": traceback.format_exc()
+        }), 500
+
 @app.route("/debug/fix-free-users", methods=["GET"])
 def debug_fix_free_users():
     """DEBUG: Check and fix users who should be free"""
