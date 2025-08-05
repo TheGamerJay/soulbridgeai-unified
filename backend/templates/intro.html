@@ -399,14 +399,12 @@
     
     <script src="{{ url_for('static', filename='js/login-fixed.js') }}"></script>
     <script>
-        // If not flagged in sessionStorage, log out immediately
-        console.log('🔍 INTRO: Checking sessionStorage loggedIn flag:', sessionStorage.getItem('loggedIn'));
-        if (!sessionStorage.getItem('loggedIn')) {
-            console.log('❌ INTRO: No sessionStorage flag - redirecting to login');
-            fetch('/auth/logout').then(() => window.location = '/login');
-        } else {
-            console.log('✅ INTRO: sessionStorage flag found - allowing page to load');
-        }
+        // REMOVED: Auto-logout check that was breaking new user signups
+        // The backend already handles authentication properly via Flask sessions
+        console.log('✅ INTRO: Page loaded successfully - backend handles authentication')
+        
+        // Set sessionStorage flag for any future checks
+        sessionStorage.setItem('loggedIn', 'true')
         
         // AGGRESSIVE intro page styling enforcement
         function forceIntroStyling() {
