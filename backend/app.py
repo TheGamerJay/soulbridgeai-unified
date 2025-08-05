@@ -1531,31 +1531,14 @@ def auth_register():
         
         if db_instance.use_postgres:
             cursor.execute("""
-                INSERT INTO users (
-                    email, password_hash, display_name, email_verified, plan_type,
-                    user_plan, trial_active, trial_started_at, trial_used_permanently,
-                    trial_warning_sent, is_admin, decoder_used, fortune_used, horoscope_used,
-                    feature_preview_seen, created_at
-                ) VALUES (
-                    %s, %s, %s, TRUE, 'free',
-                    'free', FALSE, NULL, FALSE,
-                    FALSE, FALSE, 0, 0, 0,
-                    FALSE, NOW()
-                ) RETURNING id
+                INSERT INTO users (email, password_hash, display_name)
+                VALUES (%s, %s, %s)
+                RETURNING id
             """, (email, hash_pw, name))
         else:
             cursor.execute("""
-                INSERT INTO users (
-                    email, password_hash, display_name, email_verified, plan_type,
-                    user_plan, trial_active, trial_started_at, trial_used_permanently,
-                    trial_warning_sent, is_admin, decoder_used, fortune_used, horoscope_used,
-                    feature_preview_seen
-                ) VALUES (
-                    ?, ?, ?, 1, 'free',
-                    'free', 0, NULL, 0,
-                    0, 0, 0, 0, 0,
-                    0
-                )
+                INSERT INTO users (email, password_hash, display_name)
+                VALUES (?, ?, ?)
             """, (email, hash_pw, name))
             
             user_id = cursor.lastrowid
