@@ -1252,12 +1252,17 @@ def auth_register():
         conn.autocommit = True
         cursor = conn.cursor()
         
-        # DELETE FIRST, then create (handles caching issues)
-        cursor.execute("DELETE FROM users WHERE email = %s", (email,))
-        
-        # Create user
+        # Use proper UPSERT to handle duplicates gracefully
         hash_pw = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
-        cursor.execute("INSERT INTO users (email, password_hash, display_name, email_verified) VALUES (%s, %s, %s, 1) RETURNING id", (email, hash_pw, name))
+        cursor.execute("""
+            INSERT INTO users (email, password_hash, display_name, email_verified, subscription_tier) 
+            VALUES (%s, %s, %s, 1, 'free')
+            ON CONFLICT (email) DO UPDATE SET
+                password_hash = EXCLUDED.password_hash,
+                display_name = EXCLUDED.display_name,
+                subscription_tier = 'free'
+            RETURNING id
+        """, (email, hash_pw, name))
         user_id = cursor.fetchone()[0]
         conn.close()
         
