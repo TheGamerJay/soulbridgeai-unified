@@ -58,55 +58,34 @@ def reset_session_if_cookie_missing():
 
 @app.before_request
 def load_user_context():
-    """Load user context and handle trial expiration"""
+    """Load user context and handle trial expiration - comprehensive system"""
     # Skip for static files and API calls to avoid overhead
     if request.endpoint in ['static', 'favicon'] or request.path.startswith('/static/'):
         return
-        
+
     user_id = session.get('user_id')
     if not user_id:
         return  # not logged in
     
     session.permanent = True
-    
-    # Get user plan and normalize old plan names
-    user_plan = session.get('user_plan', 'free')
-    plan_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
-    user_plan = plan_mapping.get(user_plan, user_plan or 'free')
-    session['user_plan'] = user_plan
-    
-    # Get trial status from database
-    trial_active = is_trial_active(user_id)
-    trial_started_at = None
-    
-    if trial_active:
-        # Get trial start time from database
+    g.user_plan = session.get("user_plan", "free")
+    g.trial_active = session.get("trial_active", False)
+    g.trial_started_at = session.get("trial_started_at")
+    g.effective_plan = get_effective_plan(g.user_plan, g.trial_active)
+    g.is_admin = is_admin()
+    session['last_seen'] = datetime.utcnow().isoformat()
+
+    if g.trial_active and g.trial_started_at:
         try:
-            if services["database"] and db:
-                trial_data = db.get_trial_data(user_id)
-                if trial_data and trial_data.get('trial_started_at'):
-                    trial_started_at = trial_data['trial_started_at']
-                    session['trial_started_at'] = trial_started_at.isoformat() if hasattr(trial_started_at, 'isoformat') else str(trial_started_at)
-        except Exception as e:
-            logger.error(f"Error getting trial start time for user {user_id}: {e}")
-    
-    # Set context variables
-    g.user_plan = user_plan
-    g.trial_active = trial_active
-    g.trial_started_at = trial_started_at
-    g.effective_plan = get_effective_plan(user_plan, trial_active)
-    
-    # Trial expiration auto-cleanup (5 hrs = 18000 sec)
-    if trial_active and trial_started_at:
-        try:
-            if isinstance(trial_started_at, str):
-                trial_start_time = datetime.fromisoformat(trial_started_at.replace('Z', '+00:00'))
-            else:
-                trial_start_time = trial_started_at
-                
-            elapsed = (datetime.utcnow() - trial_start_time).total_seconds()
-            if elapsed > 18000:  # 5 hours
-                # Expire trial
+            elapsed = (datetime.utcnow() - datetime.fromisoformat(g.trial_started_at)).total_seconds()
+
+            # Send 10-minute warning email if not already sent
+            if elapsed > 17400 and not session.get("trial_warning_sent"):
+                send_trial_warning_email(session.get("user_email"), 10)
+                session['trial_warning_sent'] = True
+
+            # Expire trial after 5 hours (18000 seconds)
+            if elapsed > 18000:
                 session['trial_active'] = False
                 session['trial_used_permanently'] = True
                 session.pop('trial_started_at', None)
@@ -115,19 +94,21 @@ def load_user_context():
                 
                 # Update database
                 try:
-                    if services["database"] and db:
-                        db.expire_trial(user_id)
+                    db_instance = get_database()
+                    if db_instance:
+                        conn = db_instance.get_connection()
+                        cursor = conn.cursor()
+                        if db_instance.use_postgres:
+                            cursor.execute("UPDATE users SET trial_active = FALSE, trial_used_permanently = TRUE WHERE id = %s", (user_id,))
+                        else:
+                            cursor.execute("UPDATE users SET trial_active = 0, trial_used_permanently = 1 WHERE id = ?", (user_id,))
+                        conn.commit()
+                        conn.close()
                         logger.info(f"Trial expired for user {user_id} after {elapsed} seconds")
                 except Exception as e:
                     logger.error(f"Error expiring trial for user {user_id}: {e}")
         except Exception as e:
-            logger.error(f"Error checking trial expiration for user {user_id}: {e}")
-    
-    # Update session with current values
-    session['trial_active'] = g.trial_active
-    session['effective_plan'] = g.effective_plan
-    
-    logger.info(f"🔄 User context loaded: user_id={user_id}, plan={user_plan}, trial={trial_active}, effective={g.effective_plan}")
+            logger.error(f"Error processing trial logic for user {user_id}: {e}")
 
 # DISABLED: This function was potentially causing session contamination
 # @app.before_request
@@ -583,6 +564,45 @@ def initialize_services():
 def health():
     """Production health check with service status and lazy initialization"""
     try:
+        # Check for trial sync parameter
+        sync_trial = request.args.get('sync_trial')
+        if sync_trial == 'true' and is_logged_in():
+            try:
+                user_id = session.get('user_id')
+                db_instance = get_database()
+                
+                if db_instance and user_id:
+                    conn = db_instance.get_connection()
+                    cursor = conn.cursor()
+                    
+                    # Get current trial state from database
+                    if db_instance.use_postgres:
+                        cursor.execute("SELECT trial_active, trial_started_at, trial_used_permanently FROM users WHERE id = %s", (user_id,))
+                    else:
+                        cursor.execute("SELECT trial_active, trial_started_at, trial_used_permanently FROM users WHERE id = ?", (user_id,))
+                    
+                    result = cursor.fetchone()
+                    conn.close()
+                    
+                    if result:
+                        trial_active, trial_started_at, trial_used_permanently = result
+                        
+                        # Update session to match database
+                        session['trial_active'] = bool(trial_active) if trial_active is not None else False
+                        session['trial_started_at'] = trial_started_at
+                        session['trial_used_permanently'] = bool(trial_used_permanently) if trial_used_permanently is not None else False
+                        session['effective_plan'] = get_effective_plan(session.get('user_plan', 'free'), session['trial_active'])
+                        
+                        return jsonify({
+                            "status": "healthy",
+                            "service": "SoulBridge AI",
+                            "trial_sync": "success",
+                            "trial_active": session['trial_active'],
+                            "effective_plan": session['effective_plan']
+                        })
+            except Exception as e:
+                logger.error(f"Trial sync error: {e}")
+        
         # Ensure services are initialized
         if not any(services.values()):
             logger.info("Lazy initializing services for health check...")
@@ -945,14 +965,26 @@ def user_info():
         effective_plan = get_effective_plan(user_plan, trial_active)
 
         # Get current usage counts from database
-        usage_counts = {}
+        usage_counts = {"decoder": 0, "fortune": 0, "horoscope": 0}
         try:
-            if services["database"] and db:
-                usage_counts = {
-                    "decoder": db.get_daily_usage(user_id, "decoder"),
-                    "fortune": db.get_daily_usage(user_id, "fortune"), 
-                    "horoscope": db.get_daily_usage(user_id, "horoscope")
-                }
+            db_instance = get_database()
+            if db_instance:
+                conn = db_instance.get_connection()
+                cursor = conn.cursor()
+                
+                if db_instance.use_postgres:
+                    cursor.execute("SELECT decoder_used, fortune_used, horoscope_used FROM users WHERE id = %s", (user_id,))
+                else:
+                    cursor.execute("SELECT decoder_used, fortune_used, horoscope_used FROM users WHERE id = ?", (user_id,))
+                
+                result = cursor.fetchone()
+                if result:
+                    usage_counts = {
+                        "decoder": result[0] or 0,
+                        "fortune": result[1] or 0,
+                        "horoscope": result[2] or 0
+                    }
+                conn.close()
         except Exception as e:
             logger.error(f"Error getting usage counts: {e}")
             usage_counts = {"decoder": 0, "fortune": 0, "horoscope": 0}
@@ -995,19 +1027,50 @@ def start_trial():
         
         # Start trial in database
         try:
-            if services["database"] and db:
-                success = db.start_trial(user_id)
-                if not success:
-                    return jsonify({"success": False, "error": "Failed to start trial in database"}), 500
+            db_instance = get_database()
+            if db_instance:
+                conn = db_instance.get_connection()
+                cursor = conn.cursor()
+                
+                trial_start_time = datetime.utcnow()
+                
+                # Simplified update without trial_warning_sent in case column doesn't exist
+                if db_instance.use_postgres:
+                    cursor.execute("""
+                        UPDATE users 
+                        SET trial_active = TRUE, 
+                            trial_started_at = %s
+                        WHERE id = %s
+                    """, (trial_start_time, user_id))
+                else:
+                    cursor.execute("""
+                        UPDATE users 
+                        SET trial_active = 1, 
+                            trial_started_at = ?
+                        WHERE id = ?
+                    """, (trial_start_time.isoformat(), user_id))
+                
+                # Check if update affected any rows
+                if cursor.rowcount == 0:
+                    conn.close()
+                    return jsonify({"success": False, "error": "User not found in database"}), 404
+                
+                conn.commit()
+                conn.close()
+                logger.info(f"Trial started in database for user {user_id}")
+            else:
+                return jsonify({"success": False, "error": "Database connection failed"}), 500
         except Exception as e:
             logger.error(f"Database error starting trial: {e}")
-            return jsonify({"success": False, "error": "Database error"}), 500
+            import traceback
+            logger.error(f"Trial start traceback: {traceback.format_exc()}")
+            return jsonify({"success": False, "error": f"Database error: {str(e)}"}), 500
         
         # Update session
-        trial_start_time = datetime.utcnow()
         session['trial_active'] = True
         session['trial_started_at'] = trial_start_time.isoformat()
         session['effective_plan'] = get_effective_plan(session.get('user_plan', 'free'), True)
+        session['trial_warning_sent'] = False
         
         logger.info(f"Trial started for user {user_id}")
         
@@ -1062,6 +1125,64 @@ def reset_to_free():
         "message": "User reset to free plan",
         "user_plan": session.get('user_plan')
     })
+
+@app.route("/api/debug/reset-trial-state")
+def reset_trial_state():
+    """Reset trial state for testing - allows trial to be started again"""
+    if not is_logged_in():
+        return jsonify({"success": False, "error": "Authentication required"}), 401
+    
+    user_id = session.get('user_id')
+    
+    try:
+        # Reset in database
+        db_instance = get_database()
+        if db_instance and user_id:
+            conn = db_instance.get_connection()
+            cursor = conn.cursor()
+            
+            if db_instance.use_postgres:
+                cursor.execute("""
+                    UPDATE users 
+                    SET trial_active = FALSE, 
+                        trial_started_at = NULL,
+                        trial_used_permanently = FALSE,
+                        trial_warning_sent = FALSE
+                    WHERE id = %s
+                """, (user_id,))
+            else:
+                cursor.execute("""
+                    UPDATE users 
+                    SET trial_active = 0, 
+                        trial_started_at = NULL,
+                        trial_used_permanently = 0,
+                        trial_warning_sent = 0
+                    WHERE id = ?
+                """, (user_id,))
+            
+            conn.commit()
+            conn.close()
+            logger.info(f"Trial state reset in database for user {user_id}")
+        
+        # Reset in session
+        session['trial_active'] = False
+        session['trial_started_at'] = None
+        session['trial_used_permanently'] = False
+        session['trial_warning_sent'] = False
+        session['user_plan'] = 'free'
+        session['effective_plan'] = 'free'
+        
+        return jsonify({
+            "success": True,
+            "message": "Trial state reset - you can now start a new trial",
+            "trial_active": False,
+            "trial_used_permanently": False,
+            "user_plan": "free"
+        })
+        
+    except Exception as e:
+        logger.error(f"Error resetting trial state: {e}")
+        return jsonify({"success": False, "error": f"Database error: {str(e)}"}), 500
 
 @app.route("/api/debug/upgrade-to-growth")
 def upgrade_to_growth():
@@ -1385,36 +1506,88 @@ def auth_register():
         if not email or not password:
             return jsonify({"success": False, "error": "Email and password required"}), 400
         
-        # Direct database
-        import os, psycopg2, bcrypt
-        conn = psycopg2.connect(os.environ.get('DATABASE_URL'))
-        conn.autocommit = True
+        # Use the proper database instance with compatibility
+        db_instance = get_database()
+        if not db_instance:
+            return jsonify({"success": False, "error": "Database connection failed"}), 500
+        
+        conn = db_instance.get_connection()
         cursor = conn.cursor()
         
-        # Use proper UPSERT to handle duplicates gracefully
+        # Check if user already exists
+        if db_instance.use_postgres:
+            cursor.execute("SELECT id FROM users WHERE email = %s", (email,))
+        else:
+            cursor.execute("SELECT id FROM users WHERE email = ?", (email,))
+        
+        existing_user = cursor.fetchone()
+        if existing_user:
+            conn.close()
+            return jsonify({"success": False, "error": "Email already registered. Please try logging in instead."}), 400
+        
+        # Create new user with all trial system columns
+        import bcrypt
         hash_pw = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
-        cursor.execute("""
-            INSERT INTO users (email, password_hash, display_name, email_verified, subscription_tier) 
-            VALUES (%s, %s, %s, 1, 'free')
-            ON CONFLICT (email) DO UPDATE SET
-                password_hash = EXCLUDED.password_hash,
-                display_name = EXCLUDED.display_name,
-                subscription_tier = 'free'
-            RETURNING id
-        """, (email, hash_pw, name))
-        user_id = cursor.fetchone()[0]
+        
+        if db_instance.use_postgres:
+            cursor.execute("""
+                INSERT INTO users (
+                    email, password_hash, display_name, email_verified, plan_type,
+                    user_plan, trial_active, trial_started_at, trial_used_permanently,
+                    trial_warning_sent, is_admin, decoder_used, fortune_used, horoscope_used,
+                    feature_preview_seen, created_at
+                ) VALUES (
+                    %s, %s, %s, TRUE, 'free',
+                    'free', FALSE, NULL, FALSE,
+                    FALSE, FALSE, 0, 0, 0,
+                    FALSE, NOW()
+                ) RETURNING id
+            """, (email, hash_pw, name))
+        else:
+            cursor.execute("""
+                INSERT INTO users (
+                    email, password_hash, display_name, email_verified, plan_type,
+                    user_plan, trial_active, trial_started_at, trial_used_permanently,
+                    trial_warning_sent, is_admin, decoder_used, fortune_used, horoscope_used,
+                    feature_preview_seen
+                ) VALUES (
+                    ?, ?, ?, 1, 'free',
+                    'free', 0, NULL, 0,
+                    0, 0, 0, 0, 0,
+                    0
+                )
+            """, (email, hash_pw, name))
+            
+            user_id = cursor.lastrowid
+        
+        if db_instance.use_postgres:
+            user_id = cursor.fetchone()[0]
+        
+        conn.commit()
         conn.close()
         
-        # Login with security and set default free plan
-        # Session expires when browser closes
+        # Initialize comprehensive session for new user
         session['user_id'] = user_id
+        session['user_email'] = email
         session['email'] = email
         session['user_authenticated'] = True
-        session['session_version'] = "2025-07-28-banking-security"  # Required for auth
+        session['session_version'] = "2025-07-28-banking-security"
         session['last_activity'] = datetime.now().isoformat()
-        session['user_plan'] = 'free'  # Default all new users to free plan
+        session['user_plan'] = 'free'
         session['plan_selected_at'] = time.time()
         session['first_time_user'] = False
+        
+        # Initialize trial system session variables
+        session['trial_active'] = False
+        session['trial_started_at'] = None
+        session['trial_used_permanently'] = False
+        session['trial_warning_sent'] = False
+        session['effective_plan'] = 'free'
+        
+        # Initialize usage counters
+        session['decoder_used'] = 0
+        session['fortune_used'] = 0  
+        session['horoscope_used'] = 0
         
         # Send welcome email to new user
         try:
@@ -1439,10 +1612,28 @@ def auth_register():
         return jsonify(response_data)
         
     except Exception as e:
-        logger.error(f"Signup error: {e}")
+        logger.error(f"Registration error: {e}")
         import traceback
-        logger.error(f"Signup traceback: {traceback.format_exc()}")
-        return jsonify({"success": False, "error": f"Registration failed: {str(e)}"}), 500
+        logger.error(f"Registration traceback: {traceback.format_exc()}")
+        
+        # Clean up any partial user data if registration failed
+        try:
+            if 'email' in locals():
+                db_instance = get_database()
+                if db_instance:
+                    conn = db_instance.get_connection()
+                    cursor = conn.cursor()
+                    if db_instance.use_postgres:
+                        cursor.execute("DELETE FROM users WHERE email = %s AND created_at > NOW() - INTERVAL '1 minute'", (email,))
+                    else:
+                        cursor.execute("DELETE FROM users WHERE email = ? AND created_at > datetime('now', '-1 minute')", (email,))
+                    conn.commit()
+                    conn.close()
+                    logger.info(f"Cleaned up partial registration for {email}")
+        except Exception as cleanup_error:
+            logger.error(f"Error during registration cleanup: {cleanup_error}")
+        
+        return jsonify({"success": False, "error": "Registration failed. Please try again."}), 500
 
 # ========================================
 # USER FLOW ROUTES
@@ -3028,7 +3219,7 @@ def admin_dashboard():
                 <div class="nav">
                     <a href="/admin/dashboard?key={ADMIN_DASH_KEY}" class="active">📊 DASHBOARD</a>
                     <a href="/admin/surveillance?key={ADMIN_DASH_KEY}">🚨 SURVEILLANCE</a>
-                    <a href="/admin/users?key={ADMIN_DASH_KEY}">👥 USERS</a>
+                    <a href="/admin/users/manage?key={ADMIN_DASH_KEY}">👥 MANAGE USERS</a>
                     <a href="/admin/database?key={ADMIN_DASH_KEY}">🗄️ DATABASE</a>
                 </div>
             </div>
@@ -3109,74 +3300,13 @@ def admin_dashboard():
 
 @app.route("/admin/users")
 def admin_users():
-    """👥 USER MANAGEMENT - View and manage users"""
+    """👥 USER MANAGEMENT - Redirect to new management page"""
     key = request.args.get("key")
     if key != ADMIN_DASH_KEY:
         return jsonify({"error": "Unauthorized"}), 403
     
-    try:
-        users = get_all_users_admin()
-        
-        return f"""
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>👥 User Management - WatchDog</title>
-            <style>
-                {get_admin_css()}
-            </style>
-        </head>
-        <body>
-            <div class="header">
-                <h1>👥 USER MANAGEMENT</h1>
-                <div class="nav">
-                    <a href="/admin/dashboard?key={ADMIN_DASH_KEY}">📊 DASHBOARD</a>
-                    <a href="/admin/surveillance?key={ADMIN_DASH_KEY}">🚨 SURVEILLANCE</a>
-                    <a href="/admin/users?key={ADMIN_DASH_KEY}" class="active">👥 USERS</a>
-                    <a href="/admin/database?key={ADMIN_DASH_KEY}">🗄️ DATABASE</a>
-                </div>
-            </div>
-            
-            <div class="container">
-                <div class="section">
-                    <h2>📋 User List ({len(users)} total)</h2>
-                    <div class="table-container">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Email</th>
-                                    <th>Display Name</th>
-                                    <th>Plan</th>
-                                    <th>Created</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {''.join([f'''
-                                <tr>
-                                    <td>{user.get('id', 'N/A')}</td>
-                                    <td>{user.get('email', 'N/A')}</td>
-                                    <td>{user.get('display_name', 'N/A')}</td>
-                                    <td>{user.get('user_plan', 'foundation')}</td>
-                                    <td>{user.get('created_at', 'N/A')}</td>
-                                    <td>{"🟢 Active" if user.get('email_verified') else "🔴 Pending"}</td>
-                                </tr>
-                                ''' for user in users[:50]])}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </body>
-        </html>
-        """
-        
-    except Exception as e:
-        logger.error(f"Admin users error: {e}")
-        return jsonify({"error": "Users management error"}), 500
+    # Redirect to the new user management page
+    return redirect(f"/admin/users/manage?key={key}")
 
 # ========================================
 # ADMIN SURVEILLANCE ROUTES
@@ -3216,6 +3346,9 @@ def admin_surveillance():
         # Calculate system metrics
         uptime = int((datetime.now() - surveillance_system.system_start_time).total_seconds())
         uptime_str = f"{uptime//3600}h {(uptime%3600)//60}m {uptime%60}s"
+        
+        # Get comprehensive trial system stats
+        trial_stats = get_comprehensive_trial_stats()
         
         # Generate comprehensive surveillance dashboard
         html = f"""
@@ -3437,11 +3570,78 @@ def admin_surveillance():
                     </div>
                 </div>
                 
+                <!-- TRIAL SYSTEM METRICS -->
+                <div class="panel" style="margin: 20px 0;">
+                    <h2>🎯 TRIAL SYSTEM DASHBOARD</h2>
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-value">{trial_stats.get('total_users', 0)}</div>
+                            <div class="metric-label">👥 TOTAL USERS</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">{trial_stats.get('active_trials', 0)}</div>
+                            <div class="metric-label">🔥 ACTIVE TRIALS</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">{trial_stats.get('trials_started_today', 0)}</div>
+                            <div class="metric-label">📈 TRIALS TODAY</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">{trial_stats.get('conversion_rate', 0)}%</div>
+                            <div class="metric-label">💰 CONVERSION RATE</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">{trial_stats.get('free_users', 0)}</div>
+                            <div class="metric-label">🆓 FREE USERS</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">{trial_stats.get('growth_users', 0)}</div>
+                            <div class="metric-label">📊 GROWTH USERS</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">{trial_stats.get('max_users', 0)}</div>
+                            <div class="metric-label">⭐ MAX USERS</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">{trial_stats.get('used_trials', 0)}</div>
+                            <div class="metric-label">✅ USED TRIALS</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- TRIAL MANAGEMENT CONTROLS -->
+                <div class="panel">
+                    <h2>🎮 TRIAL MANAGEMENT CONTROLS</h2>
+                    <div class="controls" style="margin-bottom: 20px;">
+                        <a href="/admin/trials/reset-all?key={ADMIN_DASH_KEY}" class="control-btn" style="background: #ef4444;">🔄 RESET ALL TRIALS</a>
+                        <a href="/admin/trials/expire-all?key={ADMIN_DASH_KEY}" class="control-btn" style="background: #f59e0b;">⏰ EXPIRE ALL TRIALS</a>
+                        <a href="/admin/trials/send-warnings?key={ADMIN_DASH_KEY}" class="control-btn" style="background: #10b981;">📧 SEND WARNINGS</a>
+                        <a href="/admin/users/cleanup?key={ADMIN_DASH_KEY}" class="control-btn" style="background: #8b5cf6;">🧹 CLEANUP USERS</a>
+                        <a href="/admin/users/fix-plans?key={ADMIN_DASH_KEY}" class="control-btn" style="background: #06b6d4;">🔧 FIX USER PLANS</a>
+                        <a href="/admin/users/manage?key={ADMIN_DASH_KEY}" class="control-btn" style="background: #dc2626;">👥 MANAGE USERS</a>
+                    </div>
+                    
+                    <h3>📊 Recent Trial Activity</h3>
+                    <div class="log-container" style="max-height: 300px; overflow-y: auto;">
+                        {''.join([f'''
+                        <div class="log-entry info" style="display: flex; justify-content: space-between; align-items: center; padding: 10px; margin: 5px 0; background: rgba(34, 211, 238, 0.1); border-left: 3px solid #22d3ee;">
+                            <div>
+                                <strong>{trial["display_name"]}</strong> ({trial["email"]})
+                                <br><small>Plan: {trial["plan"]} | Status: {"🟢 Active" if trial["active"] else "🔴 Expired"}</small>
+                            </div>
+                            <div style="text-align: right; font-size: 0.8em; color: #94a3b8;">
+                                {trial["started_at"]}
+                            </div>
+                        </div>
+                        ''' for trial in trial_stats.get('recent_trials', [])]) if trial_stats.get('recent_trials') else '<div class="log-entry info">No recent trial activity</div>'}
+                    </div>
+                </div>
+                
                 <div class="controls">
                     <a href="/admin/surveillance?key={ADMIN_DASH_KEY}" class="control-btn">🔄 REFRESH</a>
                     <a href="/health" class="control-btn">💓 HEALTH CHECK</a>
                     <a href="/admin/dashboard?key={ADMIN_DASH_KEY}" class="control-btn">📊 DASHBOARD</a>
-                    <a href="/admin/users?key={ADMIN_DASH_KEY}" class="control-btn">👥 USERS</a>
+                    <a href="/admin/users/manage?key={ADMIN_DASH_KEY}" class="control-btn">👥 MANAGE USERS [v2]</a>
                     <a href="/admin/database?key={ADMIN_DASH_KEY}" class="control-btn">🗄️ DATABASE</a>
                 </div>
                 
@@ -3491,6 +3691,823 @@ def admin_surveillance():
     except Exception as e:
         logger.error(f"Surveillance dashboard error: {e}")
         return jsonify({"error": "Surveillance system error", "details": str(e)}), 500
+
+def get_comprehensive_trial_stats():
+    """Get comprehensive trial system statistics for admin dashboard"""
+    try:
+        db_instance = get_database()
+        if not db_instance:
+            return {"error": "Database not available"}
+        
+        conn = db_instance.get_connection()
+        cursor = conn.cursor()
+        
+        stats = {}
+        
+        # Total users
+        cursor.execute("SELECT COUNT(*) FROM users")
+        stats['total_users'] = cursor.fetchone()[0]
+        
+        # Active trials
+        if db_instance.use_postgres:
+            cursor.execute("SELECT COUNT(*) FROM users WHERE trial_active = TRUE")
+            stats['active_trials'] = cursor.fetchone()[0]
+            
+            cursor.execute("SELECT COUNT(*) FROM users WHERE trial_used_permanently = TRUE")
+            stats['used_trials'] = cursor.fetchone()[0]
+            
+            cursor.execute("SELECT COUNT(*) FROM users WHERE user_plan = 'growth'")
+            stats['growth_users'] = cursor.fetchone()[0]
+            
+            cursor.execute("SELECT COUNT(*) FROM users WHERE user_plan = 'max'")
+            stats['max_users'] = cursor.fetchone()[0]
+            
+            # Recent trial starts (last 24 hours)
+            cursor.execute("SELECT COUNT(*) FROM users WHERE trial_started_at > NOW() - INTERVAL '24 hours'")
+            stats['trials_started_today'] = cursor.fetchone()[0]
+            
+        else:
+            cursor.execute("SELECT COUNT(*) FROM users WHERE trial_active = 1")
+            stats['active_trials'] = cursor.fetchone()[0]
+            
+            cursor.execute("SELECT COUNT(*) FROM users WHERE trial_used_permanently = 1")
+            stats['used_trials'] = cursor.fetchone()[0]
+            
+            cursor.execute("SELECT COUNT(*) FROM users WHERE user_plan = 'growth'")
+            stats['growth_users'] = cursor.fetchone()[0]
+            
+            cursor.execute("SELECT COUNT(*) FROM users WHERE user_plan = 'max'")
+            stats['max_users'] = cursor.fetchone()[0]
+            
+            # Recent trial starts (last 24 hours)
+            cursor.execute("SELECT COUNT(*) FROM users WHERE trial_started_at > datetime('now', '-24 hours')")
+            stats['trials_started_today'] = cursor.fetchone()[0]
+        
+        # Calculate conversion rate
+        if stats['used_trials'] > 0:
+            converted_users = stats['growth_users'] + stats['max_users']
+            stats['conversion_rate'] = round((converted_users / stats['used_trials']) * 100, 1)
+        else:
+            stats['conversion_rate'] = 0
+        
+        # Free users
+        stats['free_users'] = stats['total_users'] - stats['growth_users'] - stats['max_users']
+        
+        # Get recent trial activity
+        if db_instance.use_postgres:
+            cursor.execute("""
+                SELECT email, display_name, trial_started_at, user_plan, trial_active
+                FROM users 
+                WHERE trial_started_at IS NOT NULL 
+                ORDER BY trial_started_at DESC 
+                LIMIT 10
+            """)
+        else:
+            cursor.execute("""
+                SELECT email, display_name, trial_started_at, user_plan, trial_active
+                FROM users 
+                WHERE trial_started_at IS NOT NULL 
+                ORDER BY trial_started_at DESC 
+                LIMIT 10
+            """)
+        
+        recent_trials = []
+        for row in cursor.fetchall():
+            recent_trials.append({
+                'email': row[0],
+                'display_name': row[1] or 'Unknown',
+                'started_at': row[2],
+                'plan': row[3] or 'free',
+                'active': bool(row[4]) if row[4] is not None else False
+            })
+        
+        stats['recent_trials'] = recent_trials
+        
+        conn.close()
+        return stats
+        
+    except Exception as e:
+        logger.error(f"Error getting trial stats: {e}")
+        return {
+            "error": str(e),
+            "total_users": 0,
+            "active_trials": 0,
+            "used_trials": 0,
+            "conversion_rate": 0,
+            "recent_trials": []
+        }
+
+# ========================================
+# TRIAL MANAGEMENT ADMIN ROUTES
+# ========================================
+
+@app.route("/admin/trials/reset-all")  
+def admin_reset_all_trials():
+    """🔄 ADMIN: Reset all user trials (DANGEROUS)"""
+    key = request.args.get("key")
+    if key != ADMIN_DASH_KEY:
+        return jsonify({"error": "Unauthorized"}), 403
+    
+    try:
+        db_instance = get_database()
+        if not db_instance:
+            return jsonify({"error": "Database not available"}), 500
+        
+        conn = db_instance.get_connection()
+        cursor = conn.cursor()
+        
+        # Reset all trials
+        if db_instance.use_postgres:
+            cursor.execute("""
+                UPDATE users 
+                SET trial_active = FALSE, 
+                    trial_started_at = NULL,
+                    trial_used_permanently = FALSE,
+                    trial_warning_sent = FALSE
+            """)
+        else:
+            cursor.execute("""
+                UPDATE users 
+                SET trial_active = 0, 
+                    trial_started_at = NULL,
+                    trial_used_permanently = 0,
+                    trial_warning_sent = 0
+            """)
+        
+        affected_rows = cursor.rowcount
+        conn.commit()
+        conn.close()
+        
+        log_admin_action(f"RESET ALL TRIALS - {affected_rows} users affected")
+        return jsonify({
+            "success": True, 
+            "message": f"Reset {affected_rows} user trials",
+            "redirect": f"/admin/surveillance?key={ADMIN_DASH_KEY}"
+        })
+        
+    except Exception as e:
+        logger.error(f"Error resetting all trials: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/admin/trials/expire-all")
+def admin_expire_all_trials():
+    """⏰ ADMIN: Expire all active trials"""
+    key = request.args.get("key")
+    if key != ADMIN_DASH_KEY:
+        return jsonify({"error": "Unauthorized"}), 403
+    
+    try:
+        db_instance = get_database()
+        if not db_instance:
+            return jsonify({"error": "Database not available"}), 500
+        
+        conn = db_instance.get_connection()
+        cursor = conn.cursor()
+        
+        # Expire all active trials
+        if db_instance.use_postgres:
+            cursor.execute("""
+                UPDATE users 
+                SET trial_active = FALSE, 
+                    trial_used_permanently = TRUE
+                WHERE trial_active = TRUE
+            """)
+        else:
+            cursor.execute("""
+                UPDATE users 
+                SET trial_active = 0, 
+                    trial_used_permanently = 1
+                WHERE trial_active = 1
+            """)
+        
+        affected_rows = cursor.rowcount
+        conn.commit()
+        conn.close()
+        
+        log_admin_action(f"EXPIRED ALL TRIALS - {affected_rows} active trials expired")
+        return jsonify({
+            "success": True, 
+            "message": f"Expired {affected_rows} active trials",
+            "redirect": f"/admin/surveillance?key={ADMIN_DASH_KEY}"
+        })
+        
+    except Exception as e:
+        logger.error(f"Error expiring all trials: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/admin/trials/send-warnings")
+def admin_send_trial_warnings():
+    """📧 ADMIN: Send warning emails to trial users"""
+    key = request.args.get("key")
+    if key != ADMIN_DASH_KEY:
+        return jsonify({"error": "Unauthorized"}), 403
+    
+    try:
+        # This would integrate with your email system
+        warnings_sent = 0
+        
+        db_instance = get_database()
+        if db_instance:
+            conn = db_instance.get_connection()
+            cursor = conn.cursor()
+            
+            # Get active trial users who haven't been warned
+            if db_instance.use_postgres:
+                cursor.execute("""
+                    SELECT email, display_name, trial_started_at 
+                    FROM users 
+                    WHERE trial_active = TRUE AND (trial_warning_sent = FALSE OR trial_warning_sent IS NULL)
+                """)
+            else:
+                cursor.execute("""
+                    SELECT email, display_name, trial_started_at 
+                    FROM users 
+                    WHERE trial_active = 1 AND (trial_warning_sent = 0 OR trial_warning_sent IS NULL)
+                """)
+            
+            users_to_warn = cursor.fetchall()
+            warnings_sent = len(users_to_warn)
+            
+            # Mark as warned (without actually sending emails for now)
+            if warnings_sent > 0:
+                if db_instance.use_postgres:
+                    cursor.execute("""
+                        UPDATE users 
+                        SET trial_warning_sent = TRUE 
+                        WHERE trial_active = TRUE AND (trial_warning_sent = FALSE OR trial_warning_sent IS NULL)
+                    """)
+                else:
+                    cursor.execute("""
+                        UPDATE users 
+                        SET trial_warning_sent = 1 
+                        WHERE trial_active = 1 AND (trial_warning_sent = 0 OR trial_warning_sent IS NULL)
+                    """)
+                
+                conn.commit()
+            
+            conn.close()
+        
+        log_admin_action(f"SENT TRIAL WARNINGS - {warnings_sent} users warned")
+        return jsonify({
+            "success": True, 
+            "message": f"Sent warnings to {warnings_sent} trial users",
+            "redirect": f"/admin/surveillance?key={ADMIN_DASH_KEY}"
+        })
+        
+    except Exception as e:
+        logger.error(f"Error sending trial warnings: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/admin/users/cleanup")
+def admin_cleanup_users():
+    """🧹 ADMIN: Clean up corrupted/incomplete user registrations"""
+    key = request.args.get("key")
+    if key != ADMIN_DASH_KEY:
+        return jsonify({"error": "Unauthorized"}), 403
+    
+    try:
+        db_instance = get_database()
+        if not db_instance:
+            return jsonify({"error": "Database not available"}), 500
+        
+        conn = db_instance.get_connection()
+        cursor = conn.cursor()
+        
+        # Find users with missing trial system columns (corrupted registrations)
+        if db_instance.use_postgres:
+            cursor.execute("""
+                DELETE FROM users 
+                WHERE (user_plan IS NULL OR trial_active IS NULL) 
+                AND created_at > NOW() - INTERVAL '24 hours'
+            """)
+        else:
+            cursor.execute("""
+                DELETE FROM users 
+                WHERE (user_plan IS NULL OR trial_active IS NULL) 
+                AND created_at > datetime('now', '-24 hours')
+            """)
+        
+        cleaned_users = cursor.rowcount
+        conn.commit()
+        conn.close()
+        
+        log_admin_action(f"CLEANED UP CORRUPTED USERS - {cleaned_users} incomplete registrations removed")
+        return jsonify({
+            "success": True,
+            "message": f"Cleaned up {cleaned_users} corrupted user registrations",
+            "redirect": f"/admin/surveillance?key={ADMIN_DASH_KEY}"
+        })
+        
+    except Exception as e:
+        logger.error(f"Error cleaning up users: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/admin/users/fix-plans")
+def admin_fix_user_plans():
+    """🔧 ADMIN: Fix user plans - convert foundation to free"""
+    key = request.args.get("key")
+    if key != ADMIN_DASH_KEY:
+        return jsonify({"error": "Unauthorized"}), 403
+    
+    try:
+        db_instance = get_database()
+        if not db_instance:
+            return jsonify({"error": "Database not available"}), 500
+        
+        conn = db_instance.get_connection()
+        cursor = conn.cursor()
+        
+        # Convert foundation plans to free (since foundation is legacy)
+        if db_instance.use_postgres:
+            cursor.execute("""
+                UPDATE users 
+                SET plan_type = 'free', user_plan = 'free'
+                WHERE plan_type = 'foundation' OR user_plan = 'foundation'
+            """)
+        else:
+            cursor.execute("""
+                UPDATE users 
+                SET plan_type = 'free', user_plan = 'free'
+                WHERE plan_type = 'foundation' OR user_plan = 'foundation'
+            """)
+        
+        fixed_users = cursor.rowcount
+        conn.commit()
+        conn.close()
+        
+        log_admin_action(f"FIXED USER PLANS - {fixed_users} users converted from foundation to free")
+        return jsonify({
+            "success": True,
+            "message": f"Fixed {fixed_users} user plans (foundation → free)",
+            "redirect": f"/admin/surveillance?key={ADMIN_DASH_KEY}"
+        })
+        
+    except Exception as e:
+        logger.error(f"Error fixing user plans: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/admin/users/manage")
+def admin_manage_users():
+    """👥 ADMIN: User Management Dashboard"""
+    key = request.args.get("key")
+    if key != ADMIN_DASH_KEY:
+        return jsonify({"error": "Unauthorized"}), 403
+    
+    try:
+        db_instance = get_database()
+        if not db_instance:
+            return jsonify({"error": "Database not available"}), 500
+        
+        conn = db_instance.get_connection()
+        cursor = conn.cursor()
+        
+        # Get all users
+        cursor.execute("""
+            SELECT id, email, display_name, user_plan, plan_type, trial_active, 
+                   trial_used_permanently, created_at, last_login
+            FROM users 
+            ORDER BY created_at DESC
+        """)
+        
+        users = []
+        for row in cursor.fetchall():
+            users.append({
+                'id': row[0],
+                'email': row[1],
+                'display_name': row[2] or 'Unknown',
+                'user_plan': row[3] or 'free',
+                'plan_type': row[4] or 'free',
+                'trial_active': bool(row[5]) if row[5] is not None else False,
+                'trial_used': bool(row[6]) if row[6] is not None else False,
+                'created_at': row[7],
+                'last_login': row[8]
+            })
+        
+        conn.close()
+        
+        # Generate user management HTML
+        html = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>👥 User Management - SoulBridge AI Admin</title>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <style>
+                * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+                body {{ 
+                    font-family: 'Courier New', monospace; 
+                    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+                    color: #e2e8f0; 
+                    min-height: 100vh;
+                    padding: 20px;
+                }}
+                
+                .header {{
+                    text-align: center;
+                    margin-bottom: 30px;
+                    border-bottom: 3px solid #22d3ee;
+                    padding-bottom: 20px;
+                }}
+                
+                .header h1 {{
+                    color: #22d3ee;
+                    font-size: 2em;
+                    text-shadow: 0 0 10px #22d3ee;
+                }}
+                
+                .controls {{
+                    margin-bottom: 20px;
+                    text-align: center;
+                }}
+                
+                .control-btn {{
+                    display: inline-block;
+                    padding: 10px 20px;
+                    background: #374151;
+                    color: #e2e8f0;
+                    text-decoration: none;
+                    border-radius: 5px;
+                    margin: 0 5px;
+                    font-weight: bold;
+                    transition: background 0.3s;
+                }}
+                
+                .control-btn:hover {{
+                    background: #4b5563;
+                }}
+                
+                .users-table {{
+                    background: rgba(30, 41, 59, 0.8);
+                    border-radius: 10px;
+                    padding: 20px;
+                    overflow-x: auto;
+                }}
+                
+                table {{
+                    width: 100%;
+                    border-collapse: collapse;
+                    font-size: 0.9em;
+                }}
+                
+                th, td {{
+                    padding: 12px 8px;
+                    text-align: left;
+                    border-bottom: 1px solid #374151;
+                }}
+                
+                th {{
+                    background: rgba(34, 211, 238, 0.2);
+                    color: #22d3ee;
+                    font-weight: bold;
+                }}
+                
+                tr:hover {{
+                    background: rgba(34, 211, 238, 0.1);
+                }}
+                
+                .delete-btn {{
+                    background: #ef4444;
+                    color: white;
+                    border: none;
+                    padding: 5px 10px;
+                    border-radius: 3px;
+                    cursor: pointer;
+                    font-size: 0.8em;
+                }}
+                
+                .delete-btn:hover {{
+                    background: #dc2626;
+                }}
+                
+                .status-active {{ color: #10b981; }}
+                .status-trial {{ color: #f59e0b; }}
+                .status-expired {{ color: #ef4444; }}
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h1>👥 User Management Dashboard</h1>
+                <p>Manage all SoulBridge AI users</p>
+            </div>
+            
+            <div class="controls">
+                <a href="/admin/surveillance?key={ADMIN_DASH_KEY}" class="control-btn">← Back to Surveillance</a>
+                <a href="/admin/users/manage?key={ADMIN_DASH_KEY}" class="control-btn">🔄 Refresh</a>
+            </div>
+            
+            <div class="users-table">
+                <h2>📋 All Users ({len(users)} total)</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Email</th>
+                            <th>Display Name</th>
+                            <th>Plan</th>
+                            <th>Trial Status</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {''.join([f'''
+                        <tr>
+                            <td>{user['id']}</td>
+                            <td>{user['email']}</td>
+                            <td>{user['display_name']}</td>
+                            <td>{user['user_plan']}</td>
+                            <td class="{'status-trial' if user['trial_active'] else 'status-expired' if user['trial_used'] else 'status-active'}">
+                                {'🔥 Active Trial' if user['trial_active'] else '✅ Used Trial' if user['trial_used'] else '🆓 No Trial'}
+                            </td>
+                            <td>{user['created_at']}</td>
+                            <td>
+                                <button class="delete-btn" onclick="deleteUser({user['id']}, '{user['email']}')">
+                                    🗑️ Delete
+                                </button>
+                            </td>
+                        </tr>
+                        ''' for user in users])}
+                    </tbody>
+                </table>
+            </div>
+            
+            <script>
+                function deleteUser(userId, email) {{
+                    if (confirm(`Are you sure you want to delete user: ${{email}}?\\n\\nThis action cannot be undone!`)) {{
+                        fetch(`/admin/users/delete/${{userId}}?key={ADMIN_DASH_KEY}`, {{
+                            method: 'DELETE'
+                        }})
+                        .then(response => response.json())
+                        .then(data => {{
+                            if (data.success) {{
+                                alert(`User ${{email}} deleted successfully!`);
+                                location.reload();
+                            }} else {{
+                                alert(`Error deleting user: ${{data.error}}`);
+                            }}
+                        }})
+                        .catch(error => {{
+                            alert(`Error: ${{error}}`);
+                        }});
+                    }}
+                }}
+            </script>
+        </body>
+        </html>
+        """
+        
+        return html
+        
+    except Exception as e:
+        logger.error(f"Error in user management: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/admin/users/delete/<int:user_id>", methods=["DELETE"])
+def admin_delete_user(user_id):
+    """🗑️ ADMIN: Delete a specific user"""
+    key = request.args.get("key")
+    if key != ADMIN_DASH_KEY:
+        return jsonify({"error": "Unauthorized"}), 403
+    
+    try:
+        db_instance = get_database()
+        if not db_instance:
+            return jsonify({"error": "Database not available"}), 500
+        
+        conn = db_instance.get_connection()
+        cursor = conn.cursor()
+        
+        # Get user email before deletion for logging
+        if db_instance.use_postgres:
+            cursor.execute("SELECT email FROM users WHERE id = %s", (user_id,))
+        else:
+            cursor.execute("SELECT email FROM users WHERE id = ?", (user_id,))
+        
+        user_data = cursor.fetchone()
+        if not user_data:
+            conn.close()
+            return jsonify({"error": "User not found"}), 404
+        
+        user_email = user_data[0]
+        
+        # Delete the user
+        if db_instance.use_postgres:
+            cursor.execute("DELETE FROM users WHERE id = %s", (user_id,))
+        else:
+            cursor.execute("DELETE FROM users WHERE id = ?", (user_id,))
+        
+        conn.commit()
+        conn.close()
+        
+        log_admin_action(f"DELETED USER - ID: {user_id}, Email: {user_email}")
+        return jsonify({
+            "success": True,
+            "message": f"User {user_email} deleted successfully"
+        })
+        
+    except Exception as e:
+        logger.error(f"Error deleting user: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/admin/test-update")
+def admin_test_update():
+    """Test if code updates are live"""
+    return jsonify({
+        "status": "UPDATED - v2.1", 
+        "timestamp": datetime.now().isoformat(),
+        "message": "If you see this, the server has the latest code!"
+    })
+
+@app.route("/api/sync-trial-session")
+def sync_trial_session():
+    """Sync session with database trial state"""
+    if not is_logged_in():
+        return jsonify({"error": "Not logged in"}), 401
+    
+    try:
+        user_id = session.get('user_id')
+        db_instance = get_database()
+        
+        if db_instance and user_id:
+            conn = db_instance.get_connection()
+            cursor = conn.cursor()
+            
+            # Get current trial state from database
+            if db_instance.use_postgres:
+                cursor.execute("SELECT trial_active, trial_started_at, trial_used_permanently FROM users WHERE id = %s", (user_id,))
+            else:
+                cursor.execute("SELECT trial_active, trial_started_at, trial_used_permanently FROM users WHERE id = ?", (user_id,))
+            
+            result = cursor.fetchone()
+            conn.close()
+            
+            if result:
+                trial_active, trial_started_at, trial_used_permanently = result
+                
+                # Update session to match database
+                session['trial_active'] = bool(trial_active) if trial_active is not None else False
+                session['trial_started_at'] = trial_started_at
+                session['trial_used_permanently'] = bool(trial_used_permanently) if trial_used_permanently is not None else False
+                session['effective_plan'] = get_effective_plan(session.get('user_plan', 'free'), session['trial_active'])
+                
+                return jsonify({
+                    "success": True,
+                    "message": "Session synced with database",
+                    "trial_active": session['trial_active'],
+                    "trial_started_at": session['trial_started_at'],
+                    "effective_plan": session['effective_plan']
+                })
+            else:
+                return jsonify({"error": "User not found"}), 404
+        else:
+            return jsonify({"error": "Database connection failed"}), 500
+            
+    except Exception as e:
+        logger.error(f"Error syncing trial session: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/admin/sql")
+def admin_sql():
+    """Execute admin SQL commands"""
+    key = request.args.get("key")
+    if key != ADMIN_DASH_KEY:
+        return jsonify({"error": "Unauthorized"}), 403
+    
+    cmd = request.args.get("cmd")
+    if not cmd:
+        return jsonify({"error": "No command provided"}), 400
+    
+    try:
+        db_instance = get_database()
+        if not db_instance:
+            return jsonify({"error": "Database not available"}), 500
+        
+        conn = db_instance.get_connection()
+        cursor = conn.cursor()
+        
+        if cmd == "delete_user_42":
+            # Delete user ID 42
+            if db_instance.use_postgres:
+                cursor.execute("DELETE FROM users WHERE id = %s", (42,))
+            else:
+                cursor.execute("DELETE FROM users WHERE id = ?", (42,))
+            
+            affected = cursor.rowcount
+            conn.commit()
+            conn.close()
+            
+            log_admin_action("DELETED USER ID 42 via SQL endpoint")
+            return jsonify({
+                "success": True,
+                "message": f"Deleted user ID 42. Affected rows: {affected}",
+                "action": "User deleted successfully!"
+            })
+        
+        elif cmd == "list_users":
+            cursor.execute("SELECT id, email, display_name FROM users ORDER BY id")
+            users = cursor.fetchall()
+            conn.close()
+            return jsonify({
+                "users": [{"id": u[0], "email": u[1], "name": u[2]} for u in users]
+            })
+        
+        elif cmd == "debug_trial":
+            # Debug trial start issues
+            user_id = request.args.get("user_id")
+            if not user_id:
+                return jsonify({"error": "No user_id provided"}), 400
+            
+            # Check if user exists and get their data
+            cursor.execute("SELECT id, email, trial_active, trial_started_at, trial_used_permanently FROM users WHERE id = ?", (user_id,))
+            user_data = cursor.fetchone()
+            
+            if not user_data:
+                conn.close()
+                return jsonify({"error": f"User {user_id} not found"})
+            
+            # Check table structure
+            cursor.execute("PRAGMA table_info(users)")
+            columns = [col[1] for col in cursor.fetchall()]
+            
+            conn.close()
+            return jsonify({
+                "user_exists": True,
+                "user_data": {
+                    "id": user_data[0],
+                    "email": user_data[1], 
+                    "trial_active": user_data[2],
+                    "trial_started_at": user_data[3],
+                    "trial_used_permanently": user_data[4]
+                },
+                "columns": columns,
+                "has_trial_columns": {
+                    "trial_active": "trial_active" in columns,
+                    "trial_started_at": "trial_started_at" in columns,
+                    "trial_used_permanently": "trial_used_permanently" in columns,
+                    "trial_warning_sent": "trial_warning_sent" in columns
+                }
+            })
+        
+        else:
+            return jsonify({"error": "Invalid command"}), 400
+            
+    except Exception as e:
+        logger.error(f"SQL admin error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/admin/delete-user/<int:user_id>")
+def admin_delete_user_simple(user_id):
+    """🗑️ Simple user deletion"""
+    key = request.args.get("key")
+    if key != ADMIN_DASH_KEY:
+        return jsonify({"error": "Unauthorized"}), 403
+    
+    try:
+        db_instance = get_database()
+        if not db_instance:
+            return jsonify({"error": "Database not available"}), 500
+        
+        conn = db_instance.get_connection()
+        cursor = conn.cursor()
+        
+        # Get user email before deletion
+        if db_instance.use_postgres:
+            cursor.execute("SELECT email FROM users WHERE id = %s", (user_id,))
+        else:
+            cursor.execute("SELECT email FROM users WHERE id = ?", (user_id,))
+        
+        user_data = cursor.fetchone()
+        if not user_data:
+            return jsonify({"error": "User not found"}), 404
+        
+        user_email = user_data[0]
+        
+        # Delete the user
+        if db_instance.use_postgres:
+            cursor.execute("DELETE FROM users WHERE id = %s", (user_id,))
+        else:
+            cursor.execute("DELETE FROM users WHERE id = ?", (user_id,))
+        
+        conn.commit()
+        conn.close()
+        
+        log_admin_action(f"DELETED USER - ID: {user_id}, Email: {user_email}")
+        return jsonify({
+            "success": True,
+            "message": f"User {user_email} deleted successfully! Refresh the page to see changes."
+        })
+        
+    except Exception as e:
+        logger.error(f"Error deleting user: {e}")
+        return jsonify({"error": str(e)}), 500
+
+def log_admin_action(action):
+    """Log admin actions for audit trail"""
+    try:
+        with open(MAINTENANCE_LOG_FILE, "a", encoding="utf-8") as f:
+            f.write(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - ADMIN ACTION: {action}\n")
+    except Exception as e:
+        logger.error(f"Error logging admin action: {e}")
 
 # ========================================
 # API ROUTES
@@ -3574,7 +4591,7 @@ def select_plan():
         return jsonify({"success": False, "error": "Plan selection failed"}), 500
 
 # REMOVED: Duplicate route - using /api/start-trial instead
-# @app.route("/start-trial", methods=["POST"])
+@app.route("/start-trial", methods=["POST"])
 def start_trial_old():
     """Start a 5-hour premium companion trial"""
     try:
@@ -4823,60 +5840,7 @@ def increment_feature_usage(user_id, feature):
         except Exception as e:
             logger.error(f"Failed to increment {feature} usage: {e}")
 
-# Comprehensive before_request hook
-@app.before_request
-def load_user_context():
-    """Load user context and handle trial expiration - comprehensive system"""
-    # Skip for static files and API calls to avoid overhead
-    if request.endpoint in ['static', 'favicon'] or request.path.startswith('/static/'):
-        return
-
-    user_id = session.get('user_id')
-    if not user_id:
-        return  # not logged in
-    
-    session.permanent = True
-    g.user_plan = session.get("user_plan", "free")
-    g.trial_active = session.get("trial_active", False)
-    g.trial_started_at = session.get("trial_started_at")
-    g.effective_plan = get_effective_plan(g.user_plan, g.trial_active)
-    g.is_admin = is_admin()
-    session['last_seen'] = datetime.utcnow().isoformat()
-
-    if g.trial_active and g.trial_started_at:
-        try:
-            elapsed = (datetime.utcnow() - datetime.fromisoformat(g.trial_started_at)).total_seconds()
-
-            # Send 10-minute warning email if not already sent
-            if elapsed > 17400 and not session.get("trial_warning_sent"):
-                send_trial_warning_email(session.get("user_email"), 10)
-                session['trial_warning_sent'] = True
-
-            # Expire trial after 5 hours (18000 seconds)
-            if elapsed > 18000:
-                session['trial_active'] = False
-                session['trial_used_permanently'] = True
-                session.pop('trial_started_at', None)
-                g.trial_active = False
-                g.effective_plan = g.user_plan
-                
-                # Update database
-                try:
-                    db_instance = get_database()
-                    if db_instance:
-                        conn = db_instance.get_connection()
-                        cursor = conn.cursor()
-                        if db_instance.use_postgres:
-                            cursor.execute("UPDATE users SET trial_active = FALSE, trial_used_permanently = TRUE WHERE id = %s", (user_id,))
-                        else:
-                            cursor.execute("UPDATE users SET trial_active = 0, trial_used_permanently = 1 WHERE id = ?", (user_id,))
-                        conn.commit()
-                        conn.close()
-                        logger.info(f"Trial expired for user {user_id} after {elapsed} seconds")
-                except Exception as e:
-                    logger.error(f"Error expiring trial for user {user_id}: {e}")
-        except Exception as e:
-            logger.error(f"Error processing trial logic for user {user_id}: {e}")
+# REMOVED: Duplicate before_request function - using the one at line 59
 
 # API Routes for comprehensive system
 @app.route('/api/feature-preview-seen', methods=['POST'])
