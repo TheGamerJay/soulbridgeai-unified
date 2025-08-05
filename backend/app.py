@@ -5150,6 +5150,51 @@ def debug_test_signup():
             "traceback": traceback.format_exc()
         })
 
+@app.route("/debug/test-signup-direct", methods=["GET"])
+def debug_test_signup_direct():
+    """Test signup with hardcoded values to isolate the issue"""
+    try:
+        email = "test123@example.com"
+        password = "testpass123"
+        name = "Test User"
+        
+        # Direct database operation
+        import os, psycopg2, bcrypt
+        conn = psycopg2.connect(os.environ.get('DATABASE_URL'))
+        conn.autocommit = True
+        cursor = conn.cursor()
+        
+        # Delete test user first
+        cursor.execute("DELETE FROM users WHERE email = %s", (email,))
+        
+        # Use proper UPSERT
+        hash_pw = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+        cursor.execute("""
+            INSERT INTO users (email, password_hash, display_name, email_verified, subscription_tier) 
+            VALUES (%s, %s, %s, 1, 'free')
+            ON CONFLICT (email) DO UPDATE SET
+                password_hash = EXCLUDED.password_hash,
+                display_name = EXCLUDED.display_name,
+                subscription_tier = 'free'
+            RETURNING id
+        """, (email, hash_pw, name))
+        user_id = cursor.fetchone()[0]
+        conn.close()
+        
+        return jsonify({
+            "success": True,
+            "message": "Direct signup test successful",
+            "user_id": user_id,
+            "email": email
+        })
+        
+    except Exception as e:
+        import traceback
+        return jsonify({
+            "error": str(e),
+            "traceback": traceback.format_exc()
+        })
+
 @app.route("/debug/test", methods=["GET"])
 def debug_test():
     """Simple test endpoint"""
