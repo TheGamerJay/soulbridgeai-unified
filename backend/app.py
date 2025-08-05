@@ -68,7 +68,17 @@ def load_user_context():
         return  # not logged in
     
     session.permanent = True
-    g.user_plan = session.get("user_plan", "free")
+    
+    # Auto-migrate legacy plan values in session
+    legacy_plan_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
+    current_plan = session.get("user_plan", "free")
+    if current_plan in legacy_plan_mapping:
+        new_plan = legacy_plan_mapping[current_plan]
+        logger.info(f"🧼 Fixing session user_plan from {current_plan} → {new_plan}")
+        session["user_plan"] = new_plan
+        current_plan = new_plan
+    
+    g.user_plan = current_plan
     g.trial_active = session.get("trial_active", False)
     g.trial_started_at = session.get("trial_started_at")
     g.effective_plan = get_effective_plan(g.user_plan, g.trial_active)
@@ -747,9 +757,42 @@ def auth_login():
             
             # Set user plan from database result (migrate old plan names immediately)
             raw_plan = result.get('plan_type', 'free')
+            raw_user_plan = result.get('user_plan', 'free')
             plan_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
             session['user_plan'] = plan_mapping.get(raw_plan, raw_plan)
             session['display_name'] = result.get('display_name', 'User')
+            
+            # Auto-migrate legacy plans in database
+            needs_migration = False
+            if raw_plan in plan_mapping or raw_user_plan in plan_mapping:
+                try:
+                    db_instance = get_database()
+                    if db_instance:
+                        conn = db_instance.get_connection()
+                        cursor = conn.cursor()
+                        
+                        new_plan_type = plan_mapping.get(raw_plan, raw_plan)
+                        new_user_plan = plan_mapping.get(raw_user_plan, raw_user_plan)
+                        
+                        if db_instance.use_postgres:
+                            cursor.execute("""
+                                UPDATE users 
+                                SET plan_type = %s, user_plan = %s 
+                                WHERE id = %s AND (plan_type = %s OR user_plan = %s)
+                            """, (new_plan_type, new_user_plan, result["user_id"], raw_plan, raw_user_plan))
+                        else:
+                            cursor.execute("""
+                                UPDATE users 
+                                SET plan_type = ?, user_plan = ? 
+                                WHERE id = ? AND (plan_type = ? OR user_plan = ?)
+                            """, (new_plan_type, new_user_plan, result["user_id"], raw_plan, raw_user_plan))
+                        
+                        if cursor.rowcount > 0:
+                            conn.commit()
+                            logger.info(f"🧼 Migrated legacy database plans for user {result['user_id']}: {raw_plan}/{raw_user_plan} → {new_plan_type}/{new_user_plan}")
+                        conn.close()
+                except Exception as migrate_error:
+                    logger.error(f"Error migrating legacy plans: {migrate_error}")
             
             # Log plan migration if it occurred
             if raw_plan in plan_mapping:
