@@ -934,6 +934,9 @@
                 if (data.success) {
                     console.log('Registration successful, redirecting...');
                     
+                    // Set session flag for persistence across page visits
+                    sessionStorage.setItem('loggedIn', 'true');
+                    
                     // Clear any previous user's trial data to prevent trial carryover
                     console.log('🧹 Clearing previous user trial data on new registration...');
                     localStorage.removeItem('trialActive');
@@ -942,6 +945,11 @@
                     localStorage.removeItem('trialSelectedCompanion');
                     localStorage.removeItem('premiumCompanionsLocked');
                     localStorage.removeItem('unlockedPremiumCompanion');
+                    
+                    // Show welcome message before redirect
+                    if (data.message) {
+                        alert(data.message);
+                    }
                     
                     window.location.href = data.redirect || '/';
                 } else {
