@@ -444,7 +444,15 @@
                              style="max-width: 280px; max-height: 280px; width: auto; height: auto;
                                     box-shadow: 0 8px 30px rgba(34, 211, 238, 0.5); display: block; margin: 0 auto;
                                     border-radius: 12px;"
-                             onerror="this.src='/static/logos/IntroLogo.png'; console.log('⚠️ Profile image failed to load, using default')">
+                             onerror="
+                                 if (!this.dataset.retry) {
+                                     console.log('⚠️ Profile image failed to load, retrying once with cache bust');
+                                     this.dataset.retry = true;
+                                     this.src = this.src.split('?')[0] + '?retry=' + Date.now();
+                                 } else {
+                                     this.src='/static/logos/IntroLogo.png';
+                                     console.log('⚠️ Profile image failed again, using default');
+                                 }">
                     </div>
                     <div style="margin-bottom: 15px;">
                         <input type="file" id="profileImageInput" accept="image/*" style="display: none;" onchange="handleProfileImageUpload()">
@@ -802,17 +810,22 @@
                     userEmailElement.textContent = this.userData.email || 'Not provided';
                 }
                 
-                // Update profile image and display name
+                // Update profile image and display name with enhanced cache busting
                 const profileImage = document.getElementById('userProfileImage');
                 console.log('🖼️ Setting profile image. Element found:', !!profileImage);
                 console.log('🖼️ Profile image URL from userData:', this.userData.profileImage);
+                
                 if (profileImage) {
-                    const newImageSrc = this.userData.profileImage && this.userData.profileImage.trim() !== '' 
-                        ? this.userData.profileImage 
+                    const imgPath = this.userData.profileImage;
+                    const newImageSrc = (imgPath && imgPath.trim() !== '')
+                        ? imgPath + '?v=' + Date.now()  // ✅ Stronger cache busting
                         : '/static/logos/IntroLogo.png';
                     
                     // Only update if the image source is different (prevents flash)
-                    if (profileImage.src !== newImageSrc) {
+                    const currentSrcBase = profileImage.src.split('?')[0]; // Remove query params for comparison
+                    const newSrcBase = newImageSrc.split('?')[0];
+                    
+                    if (currentSrcBase !== newSrcBase) {
                         console.log('✅ Updating profile image src from', profileImage.src, 'to:', newImageSrc);
                         profileImage.src = newImageSrc;
                     } else {
@@ -1151,57 +1164,79 @@
             alert('Companion statistics feature coming soon!');
         };
 
-        // Simple profile image upload handler - no complex adjustments needed
-        window.handleProfileImageUpload = async function() {
+        // Enhanced profile image upload with proper session handling
+        window.handleProfileImageUpload = async function () {
             const fileInput = document.getElementById('profileImageInput');
-            if (!fileInput.files || !fileInput.files[0]) {
-                return;
-            }
-            
+            if (!fileInput.files || !fileInput.files[0]) return;
+
             const file = fileInput.files[0];
-            
-            // Simple file size check (5MB)
+
+            // ✅ Size validation
             if (file.size > 5 * 1024 * 1024) {
-                alert('File size must be less than 5MB');
+                alert('❌ File size exceeds 5MB. Please choose a smaller image.');
                 fileInput.value = '';
                 return;
             }
-            
+
             const formData = new FormData();
             formData.append('profileImage', file);
-            
+
+            const profileImg = document.getElementById('userProfileImage');
+            const uploadButton = document.querySelector('button[onclick*="profileImageInput"]');
+
+            // 🔄 Show loading spinner
+            let originalButtonText = '';
+            if (uploadButton) {
+                originalButtonText = uploadButton.innerHTML;
+                uploadButton.disabled = true;
+                uploadButton.innerHTML = 'Uploading... ⏳';
+            }
+
             try {
                 console.log('📤 Uploading profile image...', file.name, file.size);
+
                 const response = await fetch('/api/upload-profile-image', {
                     method: 'POST',
-                    body: formData
+                    body: formData,
+                    credentials: 'include' // ✅ Send session cookies!
                 });
-                
+
                 console.log('📡 Upload response status:', response.status);
+
                 const result = await response.json();
                 console.log('📊 Upload result:', result);
-                
+
+                if (response.status === 401) {
+                    alert('⚠️ Session expired. Please log in again.');
+                    window.location.href = '/login'; // Redirect on auth failure
+                    return;
+                }
+
                 if (result.success) {
-                    // Update the profile image immediately with cache busting
-                    const profileImg = document.getElementById('userProfileImage');
-                    const newSrc = result.profileImage + '?t=' + new Date().getTime();
+                    const newSrc = result.profileImage + '?t=' + Date.now();
                     profileImg.src = newSrc;
-                    
-                    // Show success with green glow
+
                     profileImg.style.boxShadow = '0 4px 20px rgba(16, 185, 129, 0.6)';
                     setTimeout(() => {
                         profileImg.style.boxShadow = '0 4px 20px rgba(34, 211, 238, 0.3)';
                     }, 2000);
-                    
-                    console.log('✅ Profile image updated successfully:', result.profileImage);
-                    alert('Profile image uploaded successfully!');
+
+                    alert('✅ Profile image uploaded successfully!');
+                    fileInput.value = ''; // ✅ Clear input
+
                 } else {
-                    console.error('❌ Upload failed:', result.error);
-                    alert('Upload failed: ' + result.error);
+                    alert('❌ Upload failed: ' + (result.error || 'Unknown error'));
                 }
+
             } catch (error) {
                 console.error('💥 Upload error:', error);
-                alert('Upload failed. Please try again. Error: ' + error.message);
+                alert('❌ Upload error: ' + error.message);
+            } finally {
+                // ✅ Restore UI
+                if (uploadButton) {
+                    uploadButton.disabled = false;
+                    uploadButton.innerHTML = originalButtonText;
+                }
             }
         };
 
