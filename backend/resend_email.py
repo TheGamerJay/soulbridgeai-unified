@@ -23,7 +23,9 @@ def send_email(to_email, subject, html_content):
 
     if response.status_code == 200:
         print("✅ Email sent successfully!")
+        return {"success": True}
     else:
         print("❌ Failed to send email:")
         print(response.status_code)
         print(response.text)
+        return {"success": False, "error": f"Failed to send: {response.status_code}"}

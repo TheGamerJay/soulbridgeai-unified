@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Welcome to SoulBridge AI</title>
     
     <!-- Favicon -->
@@ -399,28 +402,30 @@
     
     <script src="{{ url_for('static', filename='js/login-fixed.js') }}"></script>
     <script>
-        // Check session persistence but give new users a grace period
-        console.log('🔍 INTRO: Checking sessionStorage loggedIn flag:', sessionStorage.getItem('loggedIn'));
-        
-        // If no sessionStorage flag, this could be a new user or returning user
-        if (!sessionStorage.getItem('loggedIn')) {
-            console.log('⚠️ INTRO: No sessionStorage flag found');
+        // Wrap in IIFE to handle early returns properly
+        (function() {
+            // Check session persistence but give new users a grace period
+            console.log('🔍 INTRO: Checking sessionStorage loggedIn flag:', sessionStorage.getItem('loggedIn'));
             
-            // Check if this is a new user by looking for recent signup activity
-            const urlParams = new URLSearchParams(window.location.search);
-            const isNewUser = urlParams.get('new_user') === 'true' || document.referrer.includes('/auth/register');
-            
-            if (isNewUser) {
-                console.log('✅ INTRO: New user detected - setting sessionStorage flag');
-                sessionStorage.setItem('loggedIn', 'true');
+            // If no sessionStorage flag, this could be a new user or returning user
+            if (!sessionStorage.getItem('loggedIn')) {
+                console.log('⚠️ INTRO: No sessionStorage flag found');
+                
+                // Check if this is a new user by looking for recent signup activity
+                const urlParams = new URLSearchParams(window.location.search);
+                const isNewUser = urlParams.get('new_user') === 'true' || document.referrer.includes('/auth/register');
+                
+                if (isNewUser) {
+                    console.log('✅ INTRO: New user detected - setting sessionStorage flag');
+                    sessionStorage.setItem('loggedIn', 'true');
+                } else {
+                    console.log('❌ INTRO: Returning user without sessionStorage - setting flag anyway');
+                    sessionStorage.setItem('loggedIn', 'true');
+                }
             } else {
-                console.log('❌ INTRO: Returning user without sessionStorage - logging out');
-                fetch('/auth/logout').then(() => window.location = '/login');
-                return;
+                console.log('✅ INTRO: sessionStorage flag found - user can stay logged in');
             }
-        } else {
-            console.log('✅ INTRO: sessionStorage flag found - user can stay logged in');
-        }
+        })();
         
         // AGGRESSIVE intro page styling enforcement
         function forceIntroStyling() {

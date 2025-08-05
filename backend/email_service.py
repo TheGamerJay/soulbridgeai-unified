@@ -450,7 +450,7 @@ Welcome to SoulBridge AI! We're thrilled to have you join our community.
 
 Your account has been successfully created and verified. You can now:
 
-• Have meaningful conversations with Blayzo and Blayzica
+• Have meaningful conversations with our AI companions
 • Save and organize your personal diary entries
 • Access your conversations from any device
 • Experience AI-powered emotional support
@@ -463,8 +463,9 @@ Welcome aboard!
 
 The SoulBridge AI Team
 
----
+----
 SoulBridge AI - Your AI-powered emotional companion
+Visit us: https://soulbridgeai.com
         """.strip()
 
         html_content = f"""
@@ -486,16 +487,18 @@ SoulBridge AI - Your AI-powered emotional companion
         }}
         .container {{
             background: white;
-            border-radius: 8px;
-            padding: 30px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }}
         .header {{
             text-align: center;
+            border-bottom: 2px solid #22d3ee;
+            padding-bottom: 20px;
             margin-bottom: 30px;
         }}
         .logo {{
-            font-size: 24px;
+            font-size: 28px;
             font-weight: bold;
             color: #22d3ee;
             margin-bottom: 10px;
@@ -516,24 +519,25 @@ SoulBridge AI - Your AI-powered emotional companion
         }}
         .feature-list li {{
             margin: 8px 0;
+            color: #555;
         }}
-        .cta-btn {{
+        .cta-button {{
             display: inline-block;
-            background: linear-gradient(135deg, #22d3ee, #0891b2);
+            background: linear-gradient(135deg, #22d3ee, #06b6d4);
             color: white;
             text-decoration: none;
-            padding: 12px 30px;
+            padding: 12px 24px;
             border-radius: 8px;
             font-weight: bold;
             margin: 20px 0;
         }}
         .footer {{
+            text-align: center;
             margin-top: 30px;
             padding-top: 20px;
-            border-top: 1px solid #eee;
-            font-size: 14px;
+            border-top: 1px solid #e5e7eb;
             color: #666;
-            text-align: center;
+            font-size: 14px;
         }}
     </style>
 </head>
@@ -553,17 +557,15 @@ SoulBridge AI - Your AI-powered emotional companion
         
         <div class="feature-list">
             <ul>
-                <li><strong>Have meaningful conversations</strong> with Blayzo and Blayzica, our AI companions</li>
-                <li><strong>Save and organize</strong> your personal diary entries securely</li>
-                <li><strong>Access your conversations</strong> from any device, anywhere</li>
-                <li><strong>Experience AI-powered emotional support</strong> tailored to your needs</li>
+                <li>Have meaningful conversations with our AI companions</li>
+                <li>Save and organize your personal diary entries</li>
+                <li>Access your conversations from any device</li>
+                <li>Experience AI-powered emotional support</li>
             </ul>
         </div>
         
-        <p>Ready to start your journey? Begin by selecting your preferred AI companion and start your first conversation!</p>
-        
         <div style="text-align: center;">
-            <a href="#" class="cta-btn">Start Chatting Now</a>
+            <a href="https://soulbridgeai.com" class="cta-button">Start Your Journey</a>
         </div>
         
         <p>If you have any questions or need help getting started, feel free to reach out to our support team.</p>

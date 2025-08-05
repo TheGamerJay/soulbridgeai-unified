@@ -1277,9 +1277,23 @@ def auth_register():
         session['plan_selected_at'] = time.time()
         session['first_time_user'] = False
         
+        # Send welcome email to new user
+        try:
+            if email_service:
+                logger.info(f"📧 Sending welcome email to {email}")
+                email_result = email_service.send_welcome_email(email, name)
+                if email_result.get('success'):
+                    logger.info(f"✅ Welcome email sent successfully to {email}")
+                else:
+                    logger.warning(f"⚠️ Welcome email failed for {email}: {email_result.get('error')}")
+            else:
+                logger.warning(f"⚠️ Email service not available for welcome email to {email}")
+        except Exception as e:
+            logger.error(f"❌ Welcome email error for {email}: {e}")
+        
         response_data = {
             "success": True, 
-            "message": "🎉 Welcome to SoulBridge AI! Your free account is ready - you get 3 daily decodes, 2 fortunes, and 3 horoscopes!",
+            "message": "🎉 Welcome to SoulBridge AI! Your free account is ready - you get 3 daily decodes, 2 fortunes, and 3 horoscopes! Check your email for a welcome message.",
             "redirect": "/intro"
         }
         logger.info(f"✅ SIGNUP SUCCESS: Returning JSON response: {response_data}")
@@ -1305,34 +1319,7 @@ def plan_selection():
 @app.route("/intro")
 def intro():
     """Show intro/home page"""
-    if not is_logged_in():
-        return redirect("/login")
-    
-    # CRITICAL: Ensure session has correct plan names for templates (ONLY migrate old names)
-    user_plan = session.get('user_plan', 'free')
-    plan_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
-    # ONLY migrate if it's an OLD plan name that needs updating
-    if user_plan in plan_mapping and user_plan != plan_mapping[user_plan]:
-        session['user_plan'] = plan_mapping[user_plan]
-        logger.info(f"🔄 INTRO: Migrated OLD plan {user_plan} → {session['user_plan']}")
-    else:
-        logger.info(f"✅ INTRO: Plan {user_plan} already using new naming - no migration needed")
-    
-    # ISOLATED TIER ACCESS FLAGS - Prevents cross-contamination 
-    user_plan = session.get('user_plan', 'free')
-    trial_active = session.get('trial_active', False)
-    effective_plan = session.get('effective_plan', 'free')  # FIX: Get from session
-    
-    # Define isolated access flags for each tier using effective_plan
-    session['access_free'] = True  # Everyone gets free features
-    session['access_growth'] = effective_plan in ['growth', 'max'] or trial_active
-    session['access_max'] = effective_plan == 'max' or trial_active  
-    session['access_trial'] = trial_active
-    session.modified = True  # Ensure session changes are saved
-    
-    logger.info(f"✅ INTRO: trial_active={trial_active}, effective_plan={effective_plan}, access_growth={session['access_growth']}, access_max={session['access_max']}")
-    logger.info(f"Access flags: free={session['access_free']}, growth={session['access_growth']}, max={session['access_max']}, trial={session['access_trial']}")
-    return render_template("intro.html")
+    return "<h1>Hello, world! Intro route works!</h1><p>If you see this, the backend is fine.</p>"
 
 @app.route("/companion-selection")
 def companion_selection():
