@@ -58,7 +58,7 @@ def reset_session_if_cookie_missing():
 
 @app.before_request
 def enforce_trial_effective_plan():
-    """Override user_plan with trial state on every request"""
+    """Override user_plan with trial state on every request - ISOLATED per user"""
     # Skip for static files and API calls to avoid overhead
     if request.endpoint in ['static', 'favicon'] or request.path.startswith('/static/'):
         return
@@ -67,31 +67,34 @@ def enforce_trial_effective_plan():
     if not user_id:
         return  # not logged in
     
-    logger.info(f"🎯 @app.before_request called for user_id={user_id}, path={request.path}, endpoint={request.endpoint}")
-    logger.info(f"🔍 BEFORE SESSION STATE: {dict(session)}")
+    # CRITICAL: Ensure this user's session is completely isolated
+    # Only modify THIS user's session, never affect other users
+    session_id = request.cookies.get('session', 'no-session')
+    logger.info(f"🎯 @app.before_request called for user_id={user_id}, session_id={session_id[:8]}..., path={request.path}")
 
     try:
-        # Check if trial is active
+        # CRITICAL: Check trial status ONLY for THIS specific user_id
         trial_active = is_trial_active(user_id)
+        
+        # CRITICAL: Only update THIS user's session variables
         session['trial_active'] = trial_active
         
-        # Normalize user_plan (map old names to new ones)
+        # Normalize user_plan (map old names to new ones) - ONLY for THIS user
         real_plan = session.get('user_plan', 'free')
         plan_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
         mapped_plan = plan_mapping.get(real_plan, real_plan or 'free')
         
-        # Update user_plan to normalized value
+        # CRITICAL: Update ONLY this user's session variables
         session['user_plan'] = mapped_plan
         session['effective_plan'] = 'max' if trial_active else mapped_plan
         
         logger.info(f"🔄 Plan setup for user_id={user_id} → real_plan={mapped_plan}, trial={trial_active}, effective={session['effective_plan']}")
-        logger.info(f"🔍 AFTER SESSION STATE: {dict(session)}")
             
     except Exception as e:
-        # Don't break the app if trial check fails
-        logger.error(f"Trial effective plan error: {e}")
+        # Don't break the app if trial check fails - ONLY affect this user's session
+        logger.error(f"Trial effective plan error for user_id={user_id}: {e}")
         session['effective_plan'] = session.get('user_plan', 'free')
-        logger.info(f"🚨 ERROR FALLBACK SESSION STATE: {dict(session)}")
+        logger.info(f"🚨 ERROR FALLBACK for user_id={user_id}")
 
 # DISABLED: This function was potentially causing session contamination
 # @app.before_request
@@ -4520,28 +4523,46 @@ def can_access_companion(user_plan: str, companion_tier: str, trial_active: bool
 # OLD start_trial() DELETED
 
 def is_trial_active(user_id) -> bool:
-    """Check if trial is currently active - bulletproof implementation"""
+    """Check if trial is currently active - bulletproof implementation with strict isolation"""
+    if not user_id:
+        logger.warning("🚨 is_trial_active called with no user_id - returning False")
+        return False
+        
     try:
         database_url = os.environ.get('DATABASE_URL')
         if not database_url:
+            logger.warning("🚨 No DATABASE_URL - returning False for trial check")
             return False
             
         import psycopg2
+        # CRITICAL: Use new connection for each check to prevent contamination
         conn = psycopg2.connect(database_url)
         cursor = conn.cursor()
         
-        # Use same logic as working /get-trial-status endpoint
+        # CRITICAL: Use parameterized query with explicit user_id to prevent mix-ups
         cursor.execute("""
-            SELECT trial_expires_at FROM users
+            SELECT id, trial_expires_at FROM users
             WHERE id = %s
-        """, (user_id,))
+        """, (str(user_id),))
         result = cursor.fetchone()
+        cursor.close()
         conn.close()
         
-        if not result or not result[0]:  # No trial or no expiration time
+        if not result:
+            logger.info(f"🎯 TRIAL CHECK: user_id={user_id} not found in database - returning False")
             return False
             
-        trial_expires_at = result[0]
+        db_user_id, trial_expires_at = result
+        
+        # CRITICAL: Verify we got the right user back from database
+        if str(db_user_id) != str(user_id):
+            logger.error(f"🚨 CRITICAL: Database returned wrong user! Expected {user_id}, got {db_user_id}")
+            return False
+            
+        if not trial_expires_at:  # No trial or no expiration time
+            logger.info(f"🎯 TRIAL CHECK: user_id={user_id} has no trial_expires_at - returning False")
+            return False
+            
         if isinstance(trial_expires_at, str):
             trial_expires_at = datetime.fromisoformat(trial_expires_at.replace('Z', '+00:00'))
             
@@ -4549,11 +4570,11 @@ def is_trial_active(user_id) -> bool:
         now = datetime.utcnow()
         trial_active = now < trial_expires_at
         
-        logger.info(f"🎯 BULLETPROOF TRIAL CHECK: user_id={user_id}, expires={trial_expires_at}, now={now}, active={trial_active}")
+        logger.info(f"🎯 BULLETPROOF TRIAL CHECK: user_id={user_id} (verified), expires={trial_expires_at}, now={now}, active={trial_active}")
         return trial_active
         
     except Exception as e:
-        logger.error(f"Trial check error: {e}")
+        logger.error(f"Trial check error for user_id={user_id}: {e}")
         return False
 
 # OLD get_effective_feature_limit() REMOVED - Using bulletproof get_feature_limit() directly
