@@ -4709,10 +4709,303 @@ def get_feature_limit(plan: str, feature: str) -> int:
     return limit
 
 def get_effective_plan(user_plan: str, trial_active: bool) -> str:
-    """Get effective plan considering trial status - follows new specification"""  
-    if trial_active:
-        return 'growth' if user_plan == 'free' else user_plan
-    return user_plan or 'free'
+    """Get effective plan considering trial status - comprehensive system"""  
+    if trial_active and user_plan == "free":
+        return "growth"
+    return user_plan
+
+def get_feature_limit(effective_plan: str, feature: str) -> int:
+    """Get feature limit for plan - comprehensive system"""
+    plan_limits = {
+        "free":   {"decoder": 3, "fortune": 2, "horoscope": 3},
+        "growth": {"decoder": 15, "fortune": 8, "horoscope": 10},
+        "max":    {"decoder": float("inf"), "fortune": float("inf"), "horoscope": float("inf")}
+    }
+    return plan_limits.get(effective_plan, {}).get(feature, 0)
+
+# Feature access control system
+FEATURE_ACCESS = {
+    "voice_journaling": {"free": False, "growth": True, "max": True},
+    "ai_image": {"free": False, "growth": True, "max": True},
+    "relationship_profiles": {"free": False, "growth": True, "max": True},
+    "decoder": {"free": True, "growth": True, "max": True},
+    "horoscope": {"free": True, "growth": True, "max": True},
+    "fortune": {"free": True, "growth": True, "max": True},
+    "creative_writing": {"free": False, "growth": True, "max": True}
+}
+
+def can_access_feature(effective_plan: str, feature: str) -> bool:
+    """Check if user can access a feature based on their effective plan"""
+    return FEATURE_ACCESS.get(feature, {}).get(effective_plan, False)
+
+def is_admin():
+    """Check if current user is an admin"""
+    return session.get('is_admin') == True
+
+# Email notification system
+def send_trial_warning_email(user_email, minutes_left):
+    """Send trial warning email using comprehensive system"""
+    if not user_email:
+        return
+        
+    templates = {
+        10: "⏳ 10 Minutes Left on Your Trial!",
+        5: "🚨 5 Minutes Left - Don't Lose Access!",
+        1: "⚠️ Trial Ending in 1 Minute!"
+    }
+    subject = templates.get(minutes_left, "Trial Ending Soon")
+    message = f"""
+Your SoulBridge AI trial is ending in {minutes_left} minutes!
+
+Don't lose access to:
+• Creative Writing Assistant
+• Premium AI Companions  
+• Enhanced Features
+• Unlimited Usage
+
+Upgrade now to keep all premium features:
+https://soulbridgeai.com/subscription
+
+Thanks for trying SoulBridge AI!
+The SoulBridge Team
+    """
+    
+    send_email(user_email, subject, message)
+
+def send_email(to_email, subject, message):
+    """Send email using Resend API"""
+    try:
+        import requests
+        resend_api_key = os.environ.get("RESEND_API_KEY")
+        if not resend_api_key:
+            logger.warning("RESEND_API_KEY not set - email not sent")
+            return
+            
+        response = requests.post(
+            "https://api.resend.com/emails", 
+            headers={"Authorization": f"Bearer {resend_api_key}"},
+            json={
+                "from": "SoulBridge AI <support@soulbridgeai.com>",
+                "to": [to_email],
+                "subject": subject,
+                "text": message
+            }
+        )
+        if response.status_code == 200:
+            logger.info(f"Email sent successfully to {to_email}")
+        else:
+            logger.error(f"Failed to send email: {response.status_code} - {response.text}")
+    except Exception as e:
+        logger.error(f"Email failed: {e}")
+
+# Feature usage tracking
+def increment_feature_usage(user_id, feature):
+    """Increment feature usage count - comprehensive system"""
+    table_map = {
+        "decoder": "decoder_used",
+        "fortune": "fortune_used", 
+        "horoscope": "horoscope_used"
+    }
+    if feature in table_map:
+        column = table_map[feature]
+        try:
+            db_instance = get_database()
+            if db_instance:
+                conn = db_instance.get_connection()
+                cursor = conn.cursor()
+                if db_instance.use_postgres:
+                    cursor.execute(f"UPDATE users SET {column} = COALESCE({column}, 0) + 1 WHERE id = %s", (user_id,))
+                else:
+                    cursor.execute(f"UPDATE users SET {column} = COALESCE({column}, 0) + 1 WHERE id = ?", (user_id,))
+                conn.commit()
+                conn.close()
+                logger.info(f"Incremented {feature} usage for user {user_id}")
+        except Exception as e:
+            logger.error(f"Failed to increment {feature} usage: {e}")
+
+# Comprehensive before_request hook
+@app.before_request
+def load_user_context():
+    """Load user context and handle trial expiration - comprehensive system"""
+    # Skip for static files and API calls to avoid overhead
+    if request.endpoint in ['static', 'favicon'] or request.path.startswith('/static/'):
+        return
+
+    user_id = session.get('user_id')
+    if not user_id:
+        return  # not logged in
+    
+    session.permanent = True
+    g.user_plan = session.get("user_plan", "free")
+    g.trial_active = session.get("trial_active", False)
+    g.trial_started_at = session.get("trial_started_at")
+    g.effective_plan = get_effective_plan(g.user_plan, g.trial_active)
+    g.is_admin = is_admin()
+    session['last_seen'] = datetime.utcnow().isoformat()
+
+    if g.trial_active and g.trial_started_at:
+        try:
+            elapsed = (datetime.utcnow() - datetime.fromisoformat(g.trial_started_at)).total_seconds()
+
+            # Send 10-minute warning email if not already sent
+            if elapsed > 17400 and not session.get("trial_warning_sent"):
+                send_trial_warning_email(session.get("user_email"), 10)
+                session['trial_warning_sent'] = True
+
+            # Expire trial after 5 hours (18000 seconds)
+            if elapsed > 18000:
+                session['trial_active'] = False
+                session['trial_used_permanently'] = True
+                session.pop('trial_started_at', None)
+                g.trial_active = False
+                g.effective_plan = g.user_plan
+                
+                # Update database
+                try:
+                    db_instance = get_database()
+                    if db_instance:
+                        conn = db_instance.get_connection()
+                        cursor = conn.cursor()
+                        if db_instance.use_postgres:
+                            cursor.execute("UPDATE users SET trial_active = FALSE, trial_used_permanently = TRUE WHERE id = %s", (user_id,))
+                        else:
+                            cursor.execute("UPDATE users SET trial_active = 0, trial_used_permanently = 1 WHERE id = ?", (user_id,))
+                        conn.commit()
+                        conn.close()
+                        logger.info(f"Trial expired for user {user_id} after {elapsed} seconds")
+                except Exception as e:
+                    logger.error(f"Error expiring trial for user {user_id}: {e}")
+        except Exception as e:
+            logger.error(f"Error processing trial logic for user {user_id}: {e}")
+
+# API Routes for comprehensive system
+@app.route('/api/feature-preview-seen', methods=['POST'])
+def mark_feature_preview_seen():
+    """Mark feature preview popup as seen"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        user_id = session.get('user_id')
+        session['feature_preview_seen'] = True
+        
+        # Update database
+        try:
+            db_instance = get_database()
+            if db_instance:
+                conn = db_instance.get_connection()
+                cursor = conn.cursor()
+                if db_instance.use_postgres:
+                    cursor.execute("UPDATE users SET feature_preview_seen = TRUE WHERE id = %s", (user_id,))
+                else:
+                    cursor.execute("UPDATE users SET feature_preview_seen = 1 WHERE id = ?", (user_id,))
+                conn.commit()
+                conn.close()
+                logger.info(f"Feature preview marked as seen for user {user_id}")
+        except Exception as e:
+            logger.error(f"Failed to update feature_preview_seen: {e}")
+        
+        return jsonify({"success": True})
+    except Exception as e:
+        logger.error(f"Error marking feature preview as seen: {e}")
+        return jsonify({"success": False, "error": "Failed to update preview status"}), 500
+
+@app.route('/api/protected-feature')
+def protected_feature_check():
+    """Check access to protected features"""
+    try:
+        if not is_logged_in():
+            return jsonify({"error": "Authentication required"}), 401
+        
+        feature = request.args.get('feature', 'ai_image')
+        user_plan = session.get('user_plan', 'free')
+        trial_active = session.get('trial_active', False)
+        effective_plan = get_effective_plan(user_plan, trial_active)
+        
+        if not can_access_feature(effective_plan, feature):
+            return jsonify({
+                "error": f"Feature '{feature}' requires Growth or Max plan",
+                "locked": True,
+                "current_plan": user_plan,
+                "effective_plan": effective_plan,
+                "trial_active": trial_active
+            }), 403
+        
+        return jsonify({
+            "success": True,
+            "access_granted": True,
+            "current_plan": user_plan,
+            "effective_plan": effective_plan
+        })
+        
+    except Exception as e:
+        logger.error(f"Error checking protected feature access: {e}")
+        return jsonify({"error": "Failed to check feature access"}), 500
+
+@app.route('/api/log-action', methods=['POST'])
+def log_user_action():
+    """Log user actions for analytics"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        data = request.get_json()
+        action = data.get("action") if data else None
+        user_id = session.get('user_id')
+        
+        if not action:
+            return jsonify({"success": False, "error": "Action required"}), 400
+        
+        # Log to database (create simple action log table)
+        try:
+            db_instance = get_database()
+            if db_instance:
+                conn = db_instance.get_connection()
+                cursor = conn.cursor()
+                
+                # Create action_logs table if it doesn't exist
+                if db_instance.use_postgres:
+                    cursor.execute("""
+                        CREATE TABLE IF NOT EXISTS action_logs (
+                            id SERIAL PRIMARY KEY,
+                            user_id INTEGER,
+                            action TEXT,
+                            timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                            ip_address TEXT,
+                            user_agent TEXT
+                        )
+                    """)
+                    cursor.execute("""
+                        INSERT INTO action_logs (user_id, action, ip_address, user_agent)
+                        VALUES (%s, %s, %s, %s)
+                    """, (user_id, action, request.remote_addr, request.headers.get('User-Agent')))
+                else:
+                    cursor.execute("""
+                        CREATE TABLE IF NOT EXISTS action_logs (
+                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            user_id INTEGER,
+                            action TEXT,
+                            timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                            ip_address TEXT,
+                            user_agent TEXT
+                        )
+                    """)
+                    cursor.execute("""
+                        INSERT INTO action_logs (user_id, action, ip_address, user_agent)
+                        VALUES (?, ?, ?, ?)
+                    """, (user_id, action, request.remote_addr, request.headers.get('User-Agent')))
+                
+                conn.commit()
+                conn.close()
+                logger.info(f"Action logged: {action} for user {user_id}")
+        except Exception as e:
+            logger.error(f"Failed to log action: {e}")
+        
+        return jsonify({"logged": True, "action": action})
+        
+    except Exception as e:
+        logger.error(f"Error logging user action: {e}")
+        return jsonify({"success": False, "error": "Failed to log action"}), 500
 
 def can_access_companion(user_plan: str, companion_tier: str, trial_active: bool) -> bool:
     """Check companion access - bulletproof implementation"""

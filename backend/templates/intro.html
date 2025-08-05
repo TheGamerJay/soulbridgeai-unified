@@ -262,6 +262,21 @@
             70% { box-shadow: 0 0 0 10px rgba(255, 215, 0, 0); }
             100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); }
         }
+        
+        /* Trial Badge */
+        .trial-badge {
+            background: linear-gradient(135deg, #ffd700, #ffb347);
+            color: #000;
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            animation: pulse-gold 2s infinite;
+            box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
+        }
     </style>
 </head>
 <body class="intro-page" style="background: #000000 !important; background-attachment: fixed !important; background-size: 100% 100% !important; min-height: 100vh !important; margin: 0 !important; font-family: system-ui, -apple-system, sans-serif !important; color: #00ffff !important;">
@@ -291,6 +306,13 @@
             <button id="start-trial-btn" onclick="startTrial()" style="background: linear-gradient(135deg, #ffd700, #ffb347); color: #000; border: none; padding: 8px 16px; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 12px; animation: pulse-gold 2s infinite;">
                 ⭐ Start 5h Trial
             </button>
+            {% endif %}
+            
+            <!-- Trial Badge -->
+            {% if session.get('trial_active') %}
+            <span class="trial-badge">
+                🕐 Trial Active
+            </span>
             {% endif %}
             <a href="/auth/logout" class="btn-danger">Logout</a>
         </div>
