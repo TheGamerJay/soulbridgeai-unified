@@ -34,7 +34,7 @@
         
         .nav {
             display: flex;
-            gap: 20px;
+            gap: 15px;
         }
         
         .nav a {
@@ -43,9 +43,10 @@
             padding: 8px 15px;
             border-radius: 5px;
             transition: all 0.3s ease;
+            font-size: 0.9rem;
         }
         
-        .nav a:hover {
+        .nav a:hover, .nav a.active {
             background: rgba(0, 255, 255, 0.2);
             color: #00ffff;
         }
@@ -130,21 +131,83 @@
         .status-healthy { background: #4ade80; }
         .status-warning { background: #fbbf24; }
         .status-error { background: #ef4444; }
+        
+        /* Feature Usage Styles */
+        .feature-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .feature-item {
+            background: rgba(0, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .feature-name {
+            font-weight: 600;
+            color: #00ffff;
+        }
+        
+        .feature-count {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #fff;
+        }
+        
+        /* Action List Styles */
+        .action-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .action-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px 15px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            display: grid;
+            grid-template-columns: 100px 1fr auto;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .action-user {
+            color: #00ffff;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .action-name {
+            color: #fff;
+        }
+        
+        .action-time {
+            color: #ccc;
+            font-size: 0.8rem;
+        }
     </style>
 </head>
 <body>
     <div class="header">
         <h1>🐕 WatchDog Admin Dashboard</h1>
         <nav class="nav">
-            <a href="/admin/home">Dashboard</a>
+            <a href="/admin/home" class="active">Dashboard</a>
             <a href="/admin/users">Users</a>
-            <a href="/admin/database">Database</a>
-            <a href="/admin/surveillance">Surveillance</a>
+            <a href="/admin/trials">Trials</a>
+            <a href="/admin/analytics">Analytics</a>
+            <a href="/admin/system">System</a>
             <a href="/admin/logout" class="logout">Logout</a>
         </nav>
     </div>
     
     <div class="container">
+        <!-- Comprehensive Stats Grid -->
         <div class="stats-grid">
             <div class="stat-card">
                 <h3>Total Users</h3>
@@ -153,15 +216,39 @@
             </div>
             
             <div class="stat-card">
-                <h3>Active Sessions</h3>
-                <div class="value">{{ stats.active_sessions or 0 }}</div>
-                <div class="label">Currently Online</div>
+                <h3>Active Trials</h3>
+                <div class="value">{{ stats.active_trials or 0 }}</div>
+                <div class="label">Currently Active</div>
             </div>
             
             <div class="stat-card">
-                <h3>Trial Users</h3>
-                <div class="value">{{ stats.trial_users or 0 }}</div>
-                <div class="label">Free Trials</div>
+                <h3>Growth Users</h3>
+                <div class="value">{{ stats.growth_users or 0 }}</div>
+                <div class="label">Paid Plan</div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>Max Users</h3>
+                <div class="value">{{ stats.max_users or 0 }}</div>
+                <div class="label">Premium Plan</div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>Admin Users</h3>
+                <div class="value">{{ stats.admin_users or 0 }}</div>
+                <div class="label">Administrators</div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>Trial Conversion</h3>
+                <div class="value">{{ stats.trial_conversions or 0 }}%</div>
+                <div class="label">Success Rate</div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>Daily Actions</h3>
+                <div class="value">{{ stats.total_actions_today or 0 }}</div>
+                <div class="label">Today</div>
             </div>
             
             <div class="stat-card">
@@ -174,12 +261,44 @@
             </div>
         </div>
         
+        <!-- Feature Usage Stats -->
         <div class="section">
-            <h2>🔍 System Overview</h2>
-            <p><strong>Server Uptime:</strong> {{ stats.server_uptime or 'Unknown' }}</p>
-            <p><strong>Last Updated:</strong> {{ moment().format('YYYY-MM-DD HH:mm:ss') if moment else 'Just now' }}</p>
+            <h2>📊 Feature Usage Today</h2>
+            <div class="feature-stats">
+                <div class="feature-item">
+                    <span class="feature-name">Decoder:</span>
+                    <span class="feature-count">{{ stats.daily_decoder_usage or 0 }}</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-name">Fortune:</span>
+                    <span class="feature-count">{{ stats.daily_fortune_usage or 0 }}</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-name">Horoscope:</span>
+                    <span class="feature-count">{{ stats.daily_horoscope_usage or 0 }}</span>
+                </div>
+            </div>
         </div>
         
+        <!-- Recent Actions -->
+        <div class="section">
+            <h2>⚡ Recent User Actions</h2>
+            {% if stats.recent_actions %}
+                <div class="action-list">
+                    {% for action in stats.recent_actions %}
+                    <div class="action-item">
+                        <span class="action-user">User {{ action.user_id }}</span>
+                        <span class="action-name">{{ action.action }}</span>
+                        <span class="action-time">{{ action.timestamp }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p>No recent actions recorded.</p>
+            {% endif %}
+        </div>
+        
+        <!-- Quick Links -->
         <div class="section">
             <h2>📊 Recent Activity</h2>
             <p>System monitoring and activity logs appear here.</p>
