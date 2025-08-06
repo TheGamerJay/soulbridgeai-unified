@@ -747,7 +747,7 @@ function renderSection(sectionId, companionList) {
                                 `;
                             } else if (companion.tier === 'growth' || companion.tier === 'max') {
                                 console.log(`🔘 Rendering TRIAL/UPGRADE buttons for ${companion.display_name} (${companion.tier} tier)`);
-                                const canTrial = !window.trialStatus || !window.trialStatus.trial_used_permanently;
+                                const canTrial = !window.trialStatus || (!window.trialStatus.trial_used_permanently && !window.trialStatus.trial_active);
                                 
                                 // Check if this specific companion has an active trial
                                 const hasActiveTrial = window.trialStatus?.trial_active === true;
