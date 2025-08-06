@@ -1118,10 +1118,11 @@ What specific area would you like help with? I know every feature of SoulBridge 
                 if (trial_active && trial_remaining > 0 && ringWrapper) {
                     ringWrapper.classList.remove('hidden');
 
-                    const mins = Math.floor(trial_remaining / 60);
+                    const hours = Math.floor(trial_remaining / 3600);
+                    const mins = Math.floor((trial_remaining % 3600) / 60);
                     const secs = Math.floor(trial_remaining % 60);
                     if (ringText) {
-                        ringText.innerText = `${mins}:${secs.toString().padStart(2, '0')}`;
+                        ringText.innerText = `${hours}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
                     }
 
                     const percentLeft = trial_remaining / 18000;
