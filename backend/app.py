@@ -402,6 +402,24 @@ def is_logged_in():
             return False
         return True
 
+def has_accepted_terms():
+    """Check if user has accepted terms and conditions"""
+    try:
+        return session.get('terms_accepted', False)
+    except Exception:
+        return False
+
+def requires_terms_acceptance():
+    """Decorator/helper to check if user needs to accept terms before accessing content"""
+    if not is_logged_in():
+        return redirect("/login")
+    
+    if not has_accepted_terms():
+        logger.info(f"User {session.get('user_email')} needs to accept terms, redirecting to terms-acceptance")
+        return redirect("/terms-acceptance")
+    
+    return None  # No redirect needed
+
 def get_user_plan():
     """Get user's selected plan"""
     return session.get("user_plan", "free")
@@ -436,6 +454,10 @@ def setup_user_session(email, user_id=None, is_admin=False, dev_mode=False):
     # Restore companion data if available
     if user_id:
         restore_companion_data(user_id)
+        
+    # Load terms acceptance status
+    if user_id:
+        load_terms_acceptance_status(user_id)
 
 def restore_companion_data(user_id):
     """Restore companion data from persistence file"""
@@ -457,6 +479,52 @@ def restore_companion_data(user_id):
         logger.info(f"PERSISTENCE: No companion data found for user {user_id}")
     except Exception as e:
         logger.warning(f"Failed to restore companion data for user {user_id}: {e}")
+
+def load_terms_acceptance_status(user_id):
+    """Load terms acceptance status from database into session"""
+    try:
+        db_instance = get_database()
+        if not db_instance:
+            logger.warning("Database connection failed when loading terms status")
+            return
+        
+        conn = db_instance.get_connection()
+        cursor = conn.cursor()
+        
+        if db_instance.use_postgres:
+            cursor.execute("""
+                SELECT terms_accepted, terms_accepted_at, terms_version 
+                FROM users WHERE id = %s
+            """, (user_id,))
+        else:
+            cursor.execute("""
+                SELECT terms_accepted, terms_accepted_at, terms_version 
+                FROM users WHERE id = ?
+            """, (user_id,))
+        
+        result = cursor.fetchone()
+        conn.close()
+        
+        if result:
+            terms_accepted, terms_accepted_at, terms_version = result
+            session['terms_accepted'] = bool(terms_accepted) if terms_accepted is not None else False
+            session['terms_accepted_at'] = terms_accepted_at.isoformat() if terms_accepted_at else None
+            session['terms_version'] = terms_version or 'v1.0'
+            
+            logger.info(f"TERMS: Loaded terms status for user {user_id}: accepted={session['terms_accepted']}")
+        else:
+            # Default values for new users
+            session['terms_accepted'] = False
+            session['terms_accepted_at'] = None
+            session['terms_version'] = 'v1.0'
+            logger.info(f"TERMS: No terms status found for user {user_id}, using defaults")
+            
+    except Exception as e:
+        logger.error(f"Failed to load terms acceptance status for user {user_id}: {e}")
+        # Default to False for safety
+        session['terms_accepted'] = False
+        session['terms_accepted_at'] = None
+        session['terms_version'] = 'v1.0'
 
 def login_success_response(redirect_to="/"):
     """Return appropriate response for successful login (JSON for AJAX, redirect for forms)"""
@@ -689,8 +757,13 @@ def home():
     try:
         # Check if user is logged in
         if is_logged_in():
-            logger.info(f"🏠 HOME ROUTE: User authenticated, redirecting to intro")
-            return redirect("/intro")
+            # Check if user has accepted terms
+            if not session.get('terms_accepted', False):
+                logger.info(f"🏠 HOME ROUTE: User authenticated but needs to accept terms")
+                return redirect("/terms-acceptance")
+            else:
+                logger.info(f"🏠 HOME ROUTE: User authenticated, redirecting to intro")
+                return redirect("/intro")
         else:
             logger.info(f"🏠 HOME ROUTE: User not authenticated, redirecting to login")
             return redirect("/login")
@@ -908,12 +981,18 @@ def auth_login():
             logger.info(f"Access flags: free={session['access_free']}, growth={session['access_growth']}, max={session['access_max']}, trial={session['access_trial']}")
             
             # Handle both form submissions and AJAX requests
+            # Check if user needs to accept terms
+            if not session.get('terms_accepted', False):
+                redirect_url = "/terms-acceptance"
+            else:
+                redirect_url = "/intro"
+                
             if request.headers.get('Content-Type') == 'application/json' or request.is_json:
                 # AJAX request - return JSON
-                return jsonify({"success": True, "redirect": "/intro"})
+                return jsonify({"success": True, "redirect": redirect_url})
             else:
                 # Form submission - redirect directly
-                return redirect("/intro")
+                return redirect(redirect_url)
         else:
             logger.warning(f"Login failed: {email}")
             
@@ -1100,6 +1179,66 @@ def user_info():
     except Exception as e:
         logger.error(f"Error getting user info: {e}")
         return jsonify({"success": False, "error": "Failed to get user information"}), 500
+
+@app.route('/api/accept-terms', methods=['POST'])
+def accept_terms():
+    """Accept terms and conditions"""
+    if not session.get('user_id'):
+        return jsonify({"success": False, "error": "Login required"}), 401
+    
+    try:
+        data = request.get_json()
+        user_id = session.get('user_id')
+        
+        # Validate that all required checkboxes are checked
+        required_fields = ['ai_understanding', 'terms_privacy', 'age_confirmation', 'responsible_use']
+        for field in required_fields:
+            if not data.get(field):
+                return jsonify({"success": False, "error": f"Missing required acceptance: {field}"}), 400
+        
+        # Get database connection
+        db_instance = get_database()
+        if not db_instance:
+            return jsonify({"success": False, "error": "Database connection failed"}), 500
+        
+        conn = db_instance.get_connection()
+        cursor = conn.cursor()
+        
+        # Update user's terms acceptance
+        from datetime import datetime
+        acceptance_date = datetime.utcnow()
+        
+        if db_instance.use_postgres:
+            cursor.execute("""
+                UPDATE users 
+                SET terms_accepted = %s, terms_accepted_at = %s, terms_version = %s 
+                WHERE id = %s
+            """, (True, acceptance_date, 'v1.0', user_id))
+        else:
+            cursor.execute("""
+                UPDATE users 
+                SET terms_accepted = ?, terms_accepted_at = ?, terms_version = ? 
+                WHERE id = ?
+            """, (True, acceptance_date, 'v1.0', user_id))
+        
+        conn.commit()
+        conn.close()
+        
+        # Update session to reflect terms acceptance
+        session['terms_accepted'] = True
+        session['terms_accepted_at'] = acceptance_date.isoformat()
+        
+        logger.info(f"✅ TERMS: User {session.get('user_email')} accepted terms at {acceptance_date}")
+        
+        return jsonify({
+            "success": True,
+            "message": "Terms accepted successfully",
+            "redirect": "/intro"
+        })
+        
+    except Exception as e:
+        logger.error(f"❌ TERMS ACCEPTANCE ERROR: {e}")
+        return jsonify({"success": False, "error": "Failed to save terms acceptance"}), 500
 
 @app.route('/api/start-trial', methods=['POST'])
 def start_trial():
@@ -1507,6 +1646,10 @@ def admin_init_database():
             cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS trial_started_at TIMESTAMP")
             cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS trial_companion TEXT")
             cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS trial_used_permanently BOOLEAN DEFAULT FALSE")
+            # Add terms acceptance tracking columns
+            cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS terms_accepted BOOLEAN DEFAULT FALSE")
+            cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS terms_accepted_at TIMESTAMP")
+            cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS terms_version TEXT DEFAULT 'v1.0'")
         except:
             pass  # Columns might already exist
         
@@ -1717,8 +1860,8 @@ def auth_register():
         
         response_data = {
             "success": True, 
-            "message": "🎉 Welcome to SoulBridge AI! Your free account is ready - you get 3 daily decodes, 2 fortunes, and 3 horoscopes! Check your email for a welcome message.",
-            "redirect": "/intro"
+            "message": "🎉 Welcome to SoulBridge AI! Please review and accept our terms to continue.",
+            "redirect": "/terms-acceptance"
         }
         logger.info(f"✅ SIGNUP SUCCESS: Returning JSON response: {response_data}")
         return jsonify(response_data)
@@ -1764,8 +1907,8 @@ def auth_register():
                     logger.info(f"Registration completed despite error - redirecting user {email}")
                     return jsonify({
                         "success": True, 
-                        "message": "🎉 Welcome to SoulBridge AI! Your account is ready.",
-                        "redirect": "/intro"
+                        "message": "🎉 Welcome to SoulBridge AI! Please accept our terms to continue.",
+                        "redirect": "/terms-acceptance"
                     })
         except:
             pass
@@ -1789,6 +1932,11 @@ def intro():
     try:
         if not is_logged_in():
             return redirect("/login")
+            
+        # Check if user has accepted terms
+        terms_check = requires_terms_acceptance()
+        if terms_check:
+            return terms_check
         
         # CRITICAL: Ensure session has correct plan names for templates (ONLY migrate old names)
         user_plan = session.get('user_plan', 'free')
@@ -1833,6 +1981,11 @@ def companion_selection():
     if not is_logged_in():
         logger.warning(f"🚫 COMPANION SELECTION: User not authenticated, redirecting to login")
         return redirect("/login")
+        
+    # Check if user has accepted terms
+    terms_check = requires_terms_acceptance()
+    if terms_check:
+        return terms_check
     
     # CRITICAL: Ensure session has correct plan names for templates (ONLY migrate old names)
     user_plan = session.get('user_plan', 'free')
@@ -1855,6 +2008,11 @@ def chat():
         if companion:
             return redirect(f"/login?return_to=chat&companion={companion}")
         return redirect("/login?return_to=chat")
+        
+    # Check if user has accepted terms
+    terms_check = requires_terms_acceptance()
+    if terms_check:
+        return terms_check
     
     # Get user data
     user_id = session.get('user_id')
@@ -2493,6 +2651,23 @@ def terms_page():
             <a href="/register" style="color: #22d3ee;">← Back to Registration</a>
         </body></html>
         """
+
+@app.route("/terms-acceptance")
+def terms_acceptance_page():
+    """Terms acceptance page - required for new users"""
+    try:
+        if not is_logged_in():
+            return redirect("/login")
+            
+        # Check if user already accepted terms
+        if session.get('terms_accepted'):
+            logger.info(f"Terms already accepted by {session.get('user_email')}, redirecting to intro")
+            return redirect("/intro")
+            
+        return render_template("terms_acceptance.html")
+    except Exception as e:
+        logger.error(f"Terms acceptance page error: {e}")
+        return redirect("/login")
 
 @app.route("/library")
 def library_page():
