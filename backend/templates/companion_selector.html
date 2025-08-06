@@ -275,6 +275,87 @@
             childList: true,
             subtree: true
         });
+        
+        // AGGRESSIVE DEBUGGING: Override createElement to catch old timer creation
+        const originalCreateElement = document.createElement;
+        document.createElement = function(tagName) {
+            const element = originalCreateElement.call(this, tagName);
+            
+            // Set up a watcher for when ID gets set
+            const originalSetAttribute = element.setAttribute;
+            element.setAttribute = function(name, value) {
+                if (name === 'id' && (value === 'trialTimer' || value === 'trialTimeDisplay')) {
+                    console.error('🚨 CAUGHT OLD TIMER CREATION!', {
+                        id: value,
+                        tagName: tagName,
+                        stack: new Error().stack
+                    });
+                    // Don't actually set the ID - block it!
+                    return;
+                }
+                return originalSetAttribute.call(this, name, value);
+            };
+            
+            // Also watch for direct id property assignment
+            let originalId = element.id;
+            Object.defineProperty(element, 'id', {
+                get() { return originalId; },
+                set(value) {
+                    if (value === 'trialTimer' || value === 'trialTimeDisplay') {
+                        console.error('🚨 CAUGHT OLD TIMER ID ASSIGNMENT!', {
+                            id: value,
+                            tagName: tagName,
+                            stack: new Error().stack
+                        });
+                        // Don't actually set the ID - block it!
+                        return;
+                    }
+                    originalId = value;
+                }
+            });
+            
+            return element;
+        };
+        
+        // AGGRESSIVE MONITORING: Check every 100ms for old timer elements
+        setInterval(function() {
+            const oldTimer = document.getElementById('trialTimer');
+            const oldDisplay = document.getElementById('trialTimeDisplay');
+            
+            if (oldTimer) {
+                console.error('🚨 OLD TIMER FOUND!', {
+                    element: oldTimer,
+                    style: oldTimer.style.cssText,
+                    parent: oldTimer.parentElement,
+                    innerHTML: oldTimer.innerHTML,
+                    stack: new Error().stack
+                });
+                // Force remove it
+                oldTimer.remove();
+                console.log('🗑️ Forcibly removed old timer');
+            }
+            
+            if (oldDisplay) {
+                console.error('🚨 OLD TIMER DISPLAY FOUND!', {
+                    element: oldDisplay,
+                    textContent: oldDisplay.textContent,
+                    parent: oldDisplay.parentElement
+                });
+                // Force remove it
+                oldDisplay.remove();
+                console.log('🗑️ Forcibly removed old timer display');
+            }
+        }, 100); // Check every 100ms
+        
+        // ULTIMATE NUCLEAR OPTION: Override getElementById to block old timer access
+        const originalGetElementById = document.getElementById;
+        document.getElementById = function(id) {
+            if (id === 'trialTimer' || id === 'trialTimeDisplay') {
+                console.warn('🚫 BLOCKED access to old timer element:', id);
+                return null; // Return null instead of the element
+            }
+            return originalGetElementById.call(this, id);
+        };
     </script>
     <script src="{{ url_for('static', filename='js/companion_selector.js') }}?v={{ range(1000000) | random }}"></script>
 </body>
