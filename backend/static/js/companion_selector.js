@@ -1103,15 +1103,16 @@ async function checkTrialStatus() {
 //     }
 // }
 
-function updateTrialTimerDisplay(minutesRemaining) {
-    const timeDisplay = document.getElementById('trialTimeDisplay');
-    if (timeDisplay) {
-        const hours = Math.floor(minutesRemaining / 60);
-        const minutes = minutesRemaining % 60;
-        const formattedTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:00`;
-        timeDisplay.textContent = formattedTime;
-    }
-}
+// OLD TIMER DISPLAY FUNCTION - REMOVED TO PREVENT CONFLICTS
+// function updateTrialTimerDisplay(minutesRemaining) {
+//     const timeDisplay = document.getElementById('trialTimeDisplay');
+//     if (timeDisplay) {
+//         const hours = Math.floor(minutesRemaining / 60);
+//         const minutes = minutesRemaining % 60;
+//         const formattedTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:00`;
+//         timeDisplay.textContent = formattedTime;
+//     }
+// }
 
 async function refreshTrialUI() {
     console.log('🔄 Refreshing trial UI lock states...');

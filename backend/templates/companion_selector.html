@@ -43,9 +43,18 @@
         
         /* Hide old timer elements to prevent conflicts */
         #trialTimer, 
+        #trialTimeDisplay,
         .trial-timer-old,
+        .old-timer,
+        [id*="trialTimer"],
+        [id*="trialTimeDisplay"],
+        [class*="trial-timer"]:not(.trial-badge),
         [id*="trial-timer"]:not(#trial-timer-container):not(#trial-timer-circle):not(#trial-time-text) {
             display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            position: absolute !important;
+            left: -9999px !important;
         }
     </style>
 </head>
@@ -209,6 +218,35 @@
         } else {
             console.log('✅ sessionStorage flag found - allowing page to load');
         }
+        
+        // Forcibly remove any old timer elements that might appear
+        function removeOldTimerElements() {
+            const oldTimers = [
+                'trialTimer',
+                'trialTimeDisplay', 
+                'trial-timer-old',
+                'old-timer'
+            ];
+            
+            oldTimers.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    console.log('🗑️ Removing old timer element:', id);
+                    element.remove();
+                }
+            });
+            
+            // Remove any elements with old timer classes
+            const oldTimerClasses = document.querySelectorAll('.trial-timer-old, .old-timer');
+            oldTimerClasses.forEach(el => {
+                console.log('🗑️ Removing old timer class element');
+                el.remove();
+            });
+        }
+        
+        // Run removal on page load and periodically to catch dynamic elements
+        document.addEventListener('DOMContentLoaded', removeOldTimerElements);
+        setInterval(removeOldTimerElements, 1000); // Check every second
     </script>
     <script src="{{ url_for('static', filename='js/companion_selector.js') }}?v={{ range(1000000) | random }}"></script>
 </body>
