@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat with {{ selected_companion or 'AI Assistant' }} - SoulBridge AI</title>
+    <title>Chat with {{ companion_display_name or 'AI Assistant' }} - SoulBridge AI</title>
     
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
@@ -12,7 +12,7 @@
     <meta name="theme-color" content="#00ffff">
     
     <!-- Open Graph / Social Media Meta Tags -->
-    <meta property="og:title" content="SoulBridge AI - Chat with {{ selected_companion or 'AI Assistant' }}">
+    <meta property="og:title" content="SoulBridge AI - Chat with {{ companion_display_name or 'AI Assistant' }}">
     <meta property="og:description" content="Your AI companion for emotional wellness and spiritual growth">
     <meta property="og:image" content="{{ url_for('static', filename='logos/IntroLogo.png', _external=True) }}">
     <meta property="og:url" content="{{ request.url }}">
@@ -35,9 +35,9 @@
         <!-- Header -->
         <div class="chat-header">
             <div class="character-info">
-                <img src="/static/logos/IntroLogo.png" alt="AI Companion" class="character-avatar">
+                <img src="{{ companion_avatar or '/static/logos/IntroLogo.png' }}" alt="{{ companion_display_name or 'AI Companion' }}" class="character-avatar">
                 <div class="character-details">
-                    <h2 data-character="{{ selected_companion or 'AI Assistant' }}">{{ selected_companion or 'AI Assistant' }}</h2>
+                    <h2 data-character="{{ companion or 'AI Assistant' }}">{{ companion_display_name or 'AI Assistant' }}</h2>
                     <div class="character-status">
                         <span class="status-indicator"></span>
                         Online and ready to chat

@@ -1894,8 +1894,53 @@ def chat():
     
     companion_name = session.get('selected_companion', 'blayzo_free')
     
+    # Get companion avatar and display name
+    def get_companion_info(companion_id):
+        """Get companion display name and avatar image"""
+        companion_data = {
+            # Free companions
+            'blayzo_free': {'name': 'Blayzo', 'avatar': '/static/logos/Blayzo.png'},
+            'blayzica_free': {'name': 'Blayzica', 'avatar': '/static/logos/Blayzica.png'},
+            'companion_gamerjay': {'name': 'GamerJay', 'avatar': '/static/logos/GamerJay Free companion.png'},
+            'blayzia_free': {'name': 'Blayzia', 'avatar': '/static/logos/Blayzia.png'},
+            'blayzion_free': {'name': 'Blayzion', 'avatar': '/static/logos/Blayzion.png'},
+            'claude_free': {'name': 'Claude', 'avatar': '/static/logos/Claude Free.png'},
+            
+            # Growth companions  
+            'companion_sky': {'name': 'Sky', 'avatar': '/static/logos/Sky a primum companion.png'},
+            'blayzo_premium': {'name': 'Blayzo Pro', 'avatar': '/static/logos/Blayzo premium companion.png'},
+            'blayzica_growth': {'name': 'Blayzica Pro', 'avatar': '/static/logos/Blayzica Pro.png'},
+            'gamerjay_premium': {'name': 'GamerJay Premium', 'avatar': '/static/logos/GamerJay premium companion.png'},
+            'watchdog_growth': {'name': 'WatchDog', 'avatar': '/static/logos/WatchDog a Primum companion.png'},
+            'crimson_growth': {'name': 'Crimson', 'avatar': '/static/logos/Crimson.png'},
+            'violet_growth': {'name': 'Violet', 'avatar': '/static/logos/Violet.png'},
+            'claude_growth': {'name': 'Claude Growth', 'avatar': '/static/logos/Claude Growth.png'},
+            
+            # Max companions
+            'companion_crimson': {'name': 'Crimson', 'avatar': '/static/logos/Crimson a Max companion.png'},
+            'companion_violet': {'name': 'Violet', 'avatar': '/static/logos/Violet a max companion.png'},
+            'royal_max': {'name': 'Royal', 'avatar': '/static/logos/Royal a max companion.png'},
+            'watchdog_max': {'name': 'WatchDog Max', 'avatar': '/static/logos/WatchDog a Max Companion.png'},
+            'ven_blayzica': {'name': 'Ven Blayzica', 'avatar': '/static/logos/Ven Blayzica a max companion.png'},
+            'ven_sky': {'name': 'Ven Sky', 'avatar': '/static/logos/Ven Sky a max companion.png'},
+            'claude_max': {'name': 'Claude Max', 'avatar': '/static/logos/Claude Max.png'},
+            
+            # Referral companions
+            'blayzo_referral': {'name': 'Blayzo Referral', 'avatar': '/static/logos/Blayzo Referral.png'},
+            'claude_referral': {'name': 'Claude Referral', 'avatar': '/static/logos/Claude Referral.png'},
+        }
+        
+        return companion_data.get(companion_id, {
+            'name': companion_id.replace('_', ' ').title(),
+            'avatar': '/static/logos/IntroLogo.png'  # fallback
+        })
+    
+    companion_info = get_companion_info(companion_name)
+    
     return render_template("chat.html",
         companion=companion_name,
+        companion_display_name=companion_info['name'],
+        companion_avatar=companion_info['avatar'],
         user_plan=user_plan,
         trial_active=trial_active, 
         effective_plan=effective_plan
