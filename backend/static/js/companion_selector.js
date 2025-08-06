@@ -1038,9 +1038,14 @@ async function checkTrialStatus() {
             // Disable trial buttons since trial is active
             disableTrialButtonsIfActive(true);
             
-            // Show trial timer if we have time remaining
+            // Show trial timer if we have time remaining (using new timer system)
             if (data.time_remaining > 0) {
-                showTrialTimer(data.trial_companion, data.time_remaining);
+                // Convert minutes to seconds for the new timer system
+                const secondsRemaining = data.time_remaining * 60;
+                const now = new Date();
+                const expiresAt = new Date(now.getTime() + secondsRemaining * 1000);
+                console.log('🕒 Starting new trial timer system');
+                initTrialTimer(expiresAt.toISOString());
             }
             
         } else {
@@ -1051,8 +1056,12 @@ async function checkTrialStatus() {
             
             console.log('ℹ️ No active trial');
             
-            // Hide trial timer if no active trial
-            hideTrialTimer();
+            // Hide trial timer if no active trial (using new timer system)
+            const container = document.getElementById('trial-timer-container');
+            if (container) {
+                container.style.display = 'none';
+                console.log('⏰ New trial timer hidden');
+            }
         }
         
         return data;
