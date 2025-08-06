@@ -17,6 +17,7 @@ import json
 from copy import deepcopy
 from datetime import datetime, timezone, timedelta
 from flask import Flask, jsonify, render_template, request, session, redirect, url_for, flash, make_response, g
+from trial_utils import is_trial_active, get_trial_time_remaining
 
 # Configure logging first
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -1082,12 +1083,11 @@ def start_trial():
                 trial_start_time = datetime.utcnow()
                 trial_expires_time = trial_start_time + timedelta(hours=5)  # 5-hour trial
                 
-                # Update both trial systems for compatibility
+                # Update trial start time and mark as used (no trial_active column needed)
                 if db_instance.use_postgres:
                     cursor.execute("""
                         UPDATE users 
-                        SET trial_active = 1,
-                            trial_started_at = %s,
+                        SET trial_started_at = %s,
                             trial_expires_at = %s,
                             trial_used_permanently = 1
                         WHERE id = %s
@@ -1095,8 +1095,7 @@ def start_trial():
                 else:
                     cursor.execute("""
                         UPDATE users 
-                        SET trial_active = 1,
-                            trial_started_at = ?,
+                        SET trial_started_at = ?,
                             trial_expires_at = ?,
                             trial_used_permanently = 1
                         WHERE id = ?
@@ -1118,12 +1117,12 @@ def start_trial():
             logger.error(f"Trial start traceback: {traceback.format_exc()}")
             return jsonify({"success": False, "error": f"Database error: {str(e)}"}), 500
         
-        # Update session
-        session['trial_active'] = True
+        # Update session with calculated trial status
+        session['trial_active'] = is_trial_active(trial_start_time, True)
         session['trial_started_at'] = trial_start_time.isoformat()
         session['trial_expires_at'] = trial_expires_time.isoformat()
         session['trial_used_permanently'] = True
-        session['effective_plan'] = get_effective_plan(session.get('user_plan', 'free'), True)
+        session['effective_plan'] = get_effective_plan(session.get('user_plan', 'free'), session['trial_active'])
         session['trial_warning_sent'] = False
         
         logger.info(f"Trial started for user {user_id}")
@@ -1131,7 +1130,7 @@ def start_trial():
         return jsonify({
             "success": True, 
             "message": "5-hour trial started!",
-            "trial_remaining": 18000,  # 5 hours in seconds
+            "trial_remaining": get_trial_time_remaining(trial_start_time),
             "effective_plan": session['effective_plan']
         })
         
