@@ -115,20 +115,7 @@
                 </a>
                 
                 <!-- Trial Timer Ring Container -->
-                <div id="trial-ring-container" class="ring-wrapper hidden">
-                    <svg class="progress-ring" width="80" height="80">
-                        <circle
-                            class="progress-ring-circle"
-                            stroke="gold"
-                            stroke-width="4"
-                            fill="transparent"
-                            r="36"
-                            cx="40"
-                            cy="40"
-                        />
-                    </svg>
-                    <div id="ring-text" class="ring-text">5:00</div>
-                </div>
+                <!-- OLD trial-ring-container removed - using new trial-timer-container system -->
 
                 
                 <!-- Trial Badge (shows when trial is active) -->
@@ -1002,37 +989,7 @@
             border-radius: 50%;
         }
         
-        /* Trial Timer Ring Styles */
-        .ring-wrapper {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            width: 80px;
-            height: 80px;
-            z-index: 1000;
-            display: inline-block;
-        }
-
-        .progress-ring {
-            transform: rotate(-90deg);
-        }
-
-        .progress-ring-circle {
-            transition: stroke-dashoffset 0.35s, stroke 0.3s ease;
-            transform: rotate(0deg);
-            transform-origin: 50% 50%;
-        }
-
-        .ring-text {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 12px;
-            font-weight: bold;
-            color: #ffd700;
-            text-shadow: 0 0 3px rgba(0,0,0,0.5);
-        }
+        /* OLD trial ring timer CSS removed - using new trial-timer-container system */
 
         .hidden {
             display: none !important;
@@ -1050,19 +1007,7 @@
 
         /* Mobile responsive */
         @media screen and (max-width: 768px) {
-            .ring-wrapper {
-                width: 60px;
-                height: 60px;
-            }
-
-            .progress-ring {
-                width: 60px;
-                height: 60px;
-            }
-
-            .ring-text {
-                font-size: 10px;
-            }
+            /* OLD ring timer mobile styles removed */
         }
     </style>
 
@@ -2105,14 +2050,7 @@ Where emotion meets expression.
         const alertSound = document.getElementById('trial-alert-sound');
         const confettiCanvas = document.getElementById('confetti-canvas');
 
-        let alertPlayed = false;
-        const RADIUS = 36;
-        const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
-        
-        if (ring) {
-            ring.style.strokeDasharray = `${CIRCUMFERENCE} ${CIRCUMFERENCE}`;
-            ring.style.strokeDashoffset = `${CIRCUMFERENCE}`;
-        }
+        // OLD ring timer variables removed - using new trial-timer-container system
 
         // DISABLED: setRingProgress function - old ring timer system disabled
         // function setRingProgress(percent) {

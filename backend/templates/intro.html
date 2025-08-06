@@ -282,22 +282,7 @@
 <body class="intro-page" style="background: #000000 !important; background-attachment: fixed !important; background-size: 100% 100% !important; min-height: 100vh !important; margin: 0 !important; font-family: system-ui, -apple-system, sans-serif !important; color: #00ffff !important;">
     <!-- Navigation -->
     <div class="top-nav" style="position: fixed; top: 0; left: 0; right: 0; z-index: 1000; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;">
-        <!-- Trial Timer (left side) -->
-        <div id="trial-ring-container" class="ring-wrapper hidden" style="position: fixed; top: 20px; right: 20px; width: 60px; height: 60px; z-index: 1000;">
-            <svg class="progress-ring" width="60" height="60" style="transform: rotate(-90deg);">
-                <circle
-                    class="progress-ring-circle"
-                    stroke="gold"
-                    stroke-width="3"
-                    fill="transparent"
-                    r="26"
-                    cx="30"
-                    cy="30"
-                    style="transition: stroke-dashoffset 0.35s, stroke 0.3s ease;"
-                />
-            </svg>
-            <div id="ring-text" class="ring-text" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 10px; font-weight: bold; color: #ffd700; text-shadow: 0 0 3px rgba(0,0,0,0.5);">5:00</div>
-        </div>
+        <!-- OLD trial-ring-container removed - using new trial-timer-container system -->
         
         <!-- Right side buttons -->
         <div style="display: flex; gap: 15px; align-items: center;">
@@ -1087,20 +1072,8 @@ What specific area would you like help with? I know every feature of SoulBridge 
         // DISABLED: const ringText = document.getElementById('ring-text');
         // DISABLED: const ringWrapper = document.getElementById('trial-ring-container');
 
-        let alertPlayed = false;
-        const RADIUS = 26;
-        const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
-        
-        if (ring) {
-            ring.style.strokeDasharray = `${CIRCUMFERENCE} ${CIRCUMFERENCE}`;
-            ring.style.strokeDashoffset = `${CIRCUMFERENCE}`;
-        }
-
-        function setRingProgress(percent) {
-            if (!ring) return;
-            const offset = CIRCUMFERENCE - (percent * CIRCUMFERENCE);
-            ring.style.strokeDashoffset = offset;
-        }
+        // OLD ring timer variables removed - using new trial-timer-container system
+        // OLD ring timer initialization and functions removed
 
         async function refreshUserStatus() {
             try {
