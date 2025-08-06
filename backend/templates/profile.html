@@ -440,11 +440,22 @@
                 <!-- Profile Image Section -->
                 <div style="text-align: center; margin-bottom: 20px; padding: 30px 20px;">
                     <div style="margin-bottom: 20px;">
-                        <img id="userProfileImage" src="{{ user_profile_image or '/static/logos/IntroLogo.png' }}" alt="Profile Picture" 
+                        <img id="userProfileImage"
+                             alt="Profile Picture"
                              style="max-width: 280px; max-height: 280px; width: auto; height: auto;
-                                    box-shadow: 0 8px 30px rgba(34, 211, 238, 0.5); display: block;
-                                    margin: 0 auto; border-radius: 12px;"
-                             onerror="this.onerror=null; this.src='/static/logos/IntroLogo.png'; console.warn('⚠️ Profile image failed to load')">
+                                    box-shadow: 0 8px 30px rgba(34, 211, 238, 0.5); display: none; margin: 0 auto;
+                                    border-radius: 12px;"
+                             onload="this.style.display='block';"
+                             onerror="
+                                 if (!this.dataset.retry) {
+                                     console.log('⚠️ Profile image failed, retrying...');
+                                     this.dataset.retry = true;
+                                     this.src = this.src.split('?')[0] + '?retry=' + Date.now();
+                                 } else {
+                                     this.src='/static/logos/IntroLogo.png';
+                                     this.style.display='block';
+                                     console.log('⚠️ Profile image failed again, using default');
+                                 }">
                     </div>
                     <div style="margin-bottom: 15px;">
                         <input type="file" id="profileImageInput" accept="image/*" style="display: none;" onchange="handleProfileImageUpload()">
