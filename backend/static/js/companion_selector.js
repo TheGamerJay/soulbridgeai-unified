@@ -289,9 +289,28 @@ function createCompanionCard(companion, isLocked) {
     card.className = 'companion-card';
     card.id = `companion-${companion.companion_id}`;
     
-    const buttonClass = isLocked ? 'btn-select btn-upgrade' : 'btn-select';
-    const buttonText = isLocked ? companion.lock_reason : 'Select';
-    const buttonOnClick = isLocked ? `showTrialModalByID('${companion.companion_id}')` : '';
+    // Check if trial is active globally
+    const trialActive = window.trialStatus && window.trialStatus.trial_active;
+    
+    let buttonClass, buttonText, buttonOnClick, buttonDisabled = '';
+    
+    if (trialActive && isLocked) {
+        // Trial is active - show premium access active
+        buttonClass = 'btn-select btn-active';
+        buttonText = 'Premium Access Active';
+        buttonOnClick = '';
+        buttonDisabled = 'disabled';
+    } else if (isLocked) {
+        // No trial - show upgrade/trial button
+        buttonClass = 'btn-select btn-upgrade';
+        buttonText = companion.lock_reason;
+        buttonOnClick = `showTrialModalByID('${companion.companion_id}')`;
+    } else {
+        // Free companion - show select
+        buttonClass = 'btn-select';
+        buttonText = 'Select';
+        buttonOnClick = `window.selectCompanion('${companion.companion_id}')`;
+    }
     
     card.innerHTML = `
         <div class="companion-avatar">
@@ -305,7 +324,8 @@ function createCompanionCard(companion, isLocked) {
         <div class="companion-actions">
             <button class="${buttonClass}" 
                     data-companion-id="${companion.companion_id}"
-                    ${isLocked ? `onclick="${buttonOnClick}"` : `onclick="window.selectCompanion('${companion.companion_id}')"`}>
+                    ${buttonDisabled}
+                    ${buttonOnClick ? `onclick="${buttonOnClick}"` : ''}>
                 ${buttonText}
             </button>
         </div>
@@ -932,8 +952,31 @@ function hasAccessToCompanion(companion, user, trialStatus) {
 // TRIAL SYSTEM FUNCTIONS
 // ========================================
 
+function disableTrialButtonsIfActive(trialActive) {
+    if (!trialActive) return;
+
+    const upgradeButtons = document.querySelectorAll('.btn-select.btn-upgrade');
+
+    upgradeButtons.forEach((button) => {
+        button.disabled = true;
+        button.textContent = 'Premium Access Active';
+        button.classList.remove('btn-upgrade');
+        button.classList.add('btn-active');
+    });
+
+    console.log('🛑 Trial is active — trial buttons disabled');
+}
+
 async function startPremiumTrial(companionId) {
     console.log('🎯 Starting 5-hour trial for:', companionId);
+    
+    // Check if trial is already active
+    const trialActive = window.trialStatus && window.trialStatus.trial_active;
+    if (trialActive) {
+        console.log("Trial already active — skipping modal.");
+        showNotification("Trial is already active!", "info");
+        return;
+    }
     
     try {
         const response = await fetch('/api/start-trial', {
@@ -997,6 +1040,9 @@ async function checkTrialStatus() {
             };
             
             console.log(`✅ Trial is active for ${data.trial_companion}, ${data.time_remaining} minutes remaining`);
+            
+            // Disable trial buttons since trial is active
+            disableTrialButtonsIfActive(true);
             
             // Show trial timer if we have time remaining
             if (data.time_remaining > 0) {

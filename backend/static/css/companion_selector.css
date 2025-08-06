@@ -705,3 +705,24 @@ body::before {
         font-size: 1.2rem;
     }
 }
+
+/* Active trial button styling */
+.btn-active {
+    background-color: #28a745 !important;
+    color: white !important;
+    cursor: not-allowed !important;
+    opacity: 0.8 !important;
+}
+
+.btn-active:hover {
+    background-color: #28a745 !important;
+    opacity: 0.8 !important;
+}
+
+/* Trial active button styling */
+button.trial-active {
+    background-color: #555 !important;
+    cursor: not-allowed !important;
+    opacity: 0.6 !important;
+    color: white !important;
+}
