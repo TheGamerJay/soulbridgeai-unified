@@ -73,78 +73,9 @@ body::before {
     background: linear-gradient(135deg, #22d3ee 0%, #0891b2 100%);
 }
 
-/* OLD TRIAL TIMER STYLES - REMOVED TO PREVENT CONFLICTS */
-/*
-#trialTimer {
-    position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 100;
-    background: linear-gradient(45deg, #FF6B6B, #FF8E53);
-    color: white;
-    padding: 12px 20px;
-    border-radius: 25px;
-    font-weight: bold;
-    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
-    display: none;
-    text-align: center;
-    min-width: 200px;
-    animation: pulse 2s infinite;
-}
+/* OLD TRIAL TIMER STYLES - COMPLETELY REMOVED */
 
-#trialTimer .timer-content {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-}
-
-#trialTimeDisplay {
-    font-family: monospace;
-    font-size: 1.1rem;
-}
-
-#trialTimer .timer-subtitle {
-    font-size: 0.8rem;
-    opacity: 0.9;
-    margin-top: 2px;
-}
-*/
-
-/* MAXIMUM NUCLEAR OPTION: Destroy any old timer elements */
-#trialTimer, 
-#trialTimeDisplay,
-*[id*="trial"][id*="Timer"],
-*[id*="trialTimer"],
-div[style*="gradient(45deg, #FF6B6B, #FF8E53)"],
-div[style*="linear-gradient(45deg, #FF6B6B, #FF8E53)"],
-div[style*="#FF6B6B"],
-div[style*="rgb(255, 107, 107)"],
-div[style*="position: fixed"][style*="top: 20px"][style*="left: 50%"]:not(#trial-timer-container),
-div[id="trialTimer"], 
-span[id="trialTimeDisplay"],
-*[class*="trial-timer"]:not(.trial-badge),
-*[style*="pulse"],
-*[style*="animation: pulse"],
-*[style*="background: linear-gradient(45deg"] {
-    display: none !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-    position: absolute !important;
-    left: -99999px !important;
-    top: -99999px !important;
-    width: 0 !important;
-    height: 0 !important;
-    overflow: hidden !important;
-    pointer-events: none !important;
-    z-index: -9999 !important;
-    font-size: 0 !important;
-    color: transparent !important;
-    background: transparent !important;
-    border: none !important;
-    animation: none !important;
-}
+/* Old timer source eliminated - cleanup rules no longer needed */
 
 /* PROTECT NEW TIMER - Prevent accidental hiding by other rules */
 #trial-timer-container {
