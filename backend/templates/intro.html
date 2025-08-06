@@ -1143,9 +1143,9 @@ What specific area would you like help with? I know every feature of SoulBridge 
         }
 
 
-        // Start refreshing user status
-        setInterval(refreshUserStatus, 5000);  // auto refresh every 5 sec
-        refreshUserStatus();
+        // DISABLED: Start refreshing user status - causing timer flickering
+        // setInterval(refreshUserStatus, 5000);  // auto refresh every 5 sec - DISABLED
+        refreshUserStatus(); // Run once on load only
     </script>
 </body>
 </html>

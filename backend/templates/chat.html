@@ -2217,9 +2217,9 @@ Where emotion meets expression.
             }
         }
 
-        // Start refreshing user status
-        setInterval(refreshUserStatus, 5000);  // auto refresh every 5 sec
-        refreshUserStatus();
+        // DISABLED: Start refreshing user status - causing timer flickering
+        // setInterval(refreshUserStatus, 5000);  // auto refresh every 5 sec - DISABLED
+        refreshUserStatus(); // Run once on load only
     </script>
     
     <script src="{{ url_for('static', filename='js/chat.js') }}?v={{ range(1000000) | random }}"></script>

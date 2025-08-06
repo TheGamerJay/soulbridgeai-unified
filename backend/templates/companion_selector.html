@@ -242,9 +242,9 @@
             });
         }
         
-        // Run removal on page load and periodically to catch dynamic elements
+        // Run removal on page load only - DISABLED interval to prevent flickering
         document.addEventListener('DOMContentLoaded', removeOldTimerElements);
-        setInterval(removeOldTimerElements, 500); // Check every 500ms
+        // DISABLED: setInterval(removeOldTimerElements, 500); // Causing flickering
         
         // Use MutationObserver to catch dynamically created old timer elements
         const observer = new MutationObserver(function(mutations) {
@@ -393,27 +393,12 @@
             });
         }
         
-        // Run immediately and then every 10ms
+        // Run once only - DISABLED aggressive interval to prevent flickering
         destroySuspiciousElements();
-        setInterval(destroySuspiciousElements, 10); // ULTRA ULTRA fast checking (100x per second!)
+        // DISABLED: setInterval(destroySuspiciousElements, 10); // Was causing major flickering (100x per second!)
         
-        // DEBUG: Check new timer visibility every 2 seconds
-        setInterval(function() {
-            const newTimer = document.getElementById('trial-timer-container');
-            if (newTimer) {
-                console.log('🔍 NEW TIMER STATUS:', {
-                    id: newTimer.id,
-                    display: newTimer.style.display,
-                    visibility: newTimer.style.visibility,
-                    opacity: newTimer.style.opacity,
-                    computedDisplay: window.getComputedStyle(newTimer).display,
-                    computedVisibility: window.getComputedStyle(newTimer).visibility,
-                    isVisible: newTimer.offsetWidth > 0 && newTimer.offsetHeight > 0
-                });
-            } else {
-                console.warn('❌ NEW TIMER NOT FOUND IN DOM!');
-            }
-        }, 2000); // Check every 2 seconds
+        // DISABLED DEBUG: Timer visibility check - was causing flickering
+        // Timer debug check disabled to prevent interference
         
         // ULTIMATE NUCLEAR OPTION: Override getElementById to block old timer access
         const originalGetElementById = document.getElementById;
