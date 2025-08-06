@@ -14,9 +14,11 @@ def is_trial_active(trial_started_at, trial_used_permanently=False):
     Returns:
         bool: True if trial is currently active
     """
-    if not trial_started_at or trial_used_permanently:
+    if not trial_started_at:
         return False
     
+    # If trial was used permanently, it means they started the trial
+    # Check if it's still within the 5-hour window
     elapsed = datetime.utcnow() - trial_started_at
     return elapsed.total_seconds() < 5 * 3600  # 5 hours
 

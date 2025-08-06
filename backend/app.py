@@ -1065,13 +1065,46 @@ def start_trial():
         
         user_id = session.get('user_id')
         
-        # Check if trial already used
-        if session.get('trial_used_permanently', False):
-            return jsonify({"success": False, "error": "Trial already used"}), 400
+        # Check trial status from database (not session)
+        db_instance = get_database()
+        if not db_instance:
+            return jsonify({"success": False, "error": "Database connection failed"}), 500
+            
+        conn = db_instance.get_connection()
+        cursor = conn.cursor()
+        
+        # Get current trial status from database
+        if db_instance.use_postgres:
+            cursor.execute("SELECT trial_started_at, trial_used_permanently FROM users WHERE id = %s", (user_id,))
+        else:
+            cursor.execute("SELECT trial_started_at, trial_used_permanently FROM users WHERE id = ?", (user_id,))
+        
+        result = cursor.fetchone()
+        if not result:
+            conn.close()
+            return jsonify({"success": False, "error": "User not found"}), 404
+            
+        trial_started_at_str, trial_used_permanently = result
+        
+        # Parse trial_started_at if it exists
+        trial_started_at = None
+        if trial_started_at_str:
+            if isinstance(trial_started_at_str, str):
+                trial_started_at = datetime.fromisoformat(trial_started_at_str.replace('Z', '+00:00'))
+            else:
+                trial_started_at = trial_started_at_str
         
         # Check if trial is already active
-        if session.get('trial_active', False):
+        if trial_started_at and is_trial_active(trial_started_at, trial_used_permanently):
+            conn.close()
             return jsonify({"success": False, "error": "Trial is already active"}), 400
+        
+        # Check if user already used their trial (and it's expired)
+        if trial_used_permanently:
+            conn.close()
+            return jsonify({"success": False, "error": "Trial already used"}), 400
+        
+        conn.close()
         
         # Start trial in database
         try:
