@@ -1082,10 +1082,10 @@ What specific area would you like help with? I know every feature of SoulBridge 
         // Load add-ons when page is ready
         document.addEventListener('DOMContentLoaded', loadUserAddons);
 
-        // ====== TRIAL TIMER SYSTEM ======
-        const ring = document.querySelector('.progress-ring-circle');
-        const ringText = document.getElementById('ring-text');
-        const ringWrapper = document.getElementById('trial-ring-container');
+        // ====== DISABLED OLD TRIAL TIMER SYSTEM - Using new system to prevent conflicts ======
+        // DISABLED: const ring = document.querySelector('.progress-ring-circle');
+        // DISABLED: const ringText = document.getElementById('ring-text');
+        // DISABLED: const ringWrapper = document.getElementById('trial-ring-container');
 
         let alertPlayed = false;
         const RADIUS = 26;
@@ -1114,27 +1114,9 @@ What specific area would you like help with? I know every feature of SoulBridge 
 
                 const { trial_active, trial_remaining, effective_plan, trial_used_permanently } = data;
 
-                // Show Ring if Trial Active
-                if (trial_active && trial_remaining > 0 && ringWrapper) {
-                    ringWrapper.classList.remove('hidden');
-
-                    const hours = Math.floor(trial_remaining / 3600);
-                    const mins = Math.floor((trial_remaining % 3600) / 60);
-                    const secs = Math.floor(trial_remaining % 60);
-                    if (ringText) {
-                        ringText.innerText = `${hours}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-                    }
-
-                    const percentLeft = trial_remaining / 18000;
-                    setRingProgress(percentLeft);
-
-                    // Turn ring red at final 10 min
-                    if (ring) {
-                        ring.style.stroke = trial_remaining < 600 ? 'red' : 'gold';
-                    }
-                } else if (ringWrapper) {
-                    ringWrapper.classList.add('hidden');
-                }
+                // DISABLED OLD RING TIMER - Preventing conflicts with new timer system
+                // Use new timer system instead (trial-timer-container)
+                console.log('🔄 OLD intro ring timer disabled, using new timer system instead');
 
 
             } catch (error) {

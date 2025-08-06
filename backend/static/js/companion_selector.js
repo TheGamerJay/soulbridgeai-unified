@@ -1853,7 +1853,7 @@ function initTrialTimer(expirationTimeISO) {
     }
 
     updateTimer();
-    const interval = setInterval(updateTimer, 1000);
+    const interval = setInterval(updateTimer, 5000); // Reduced from 1000ms to 5000ms to prevent flickering
     
     console.log('🕒 Trial timer started, expires at:', expiration);
 }

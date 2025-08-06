@@ -2098,10 +2098,10 @@ Where emotion meets expression.
             }
         }
 
-        // ====== TRIAL TIMER SYSTEM ======
-        const ring = document.querySelector('.progress-ring-circle');
-        const ringText = document.getElementById('ring-text');
-        const ringWrapper = document.getElementById('trial-ring-container');
+        // ====== DISABLED OLD TRIAL TIMER SYSTEM - Using new system to prevent conflicts ======
+        // DISABLED: const ring = document.querySelector('.progress-ring-circle');
+        // DISABLED: const ringText = document.getElementById('ring-text');
+        // DISABLED: const ringWrapper = document.getElementById('trial-ring-container');
         const alertSound = document.getElementById('trial-alert-sound');
         const confettiCanvas = document.getElementById('confetti-canvas');
 
@@ -2114,11 +2114,12 @@ Where emotion meets expression.
             ring.style.strokeDashoffset = `${CIRCUMFERENCE}`;
         }
 
-        function setRingProgress(percent) {
-            if (!ring) return;
-            const offset = CIRCUMFERENCE - (percent * CIRCUMFERENCE);
-            ring.style.strokeDashoffset = offset;
-        }
+        // DISABLED: setRingProgress function - old ring timer system disabled
+        // function setRingProgress(percent) {
+        //     if (!ring) return;
+        //     const offset = CIRCUMFERENCE - (percent * CIRCUMFERENCE);
+        //     ring.style.strokeDashoffset = offset;
+        // }
 
         function playConfetti() {
             if (!confettiCanvas || !window.confetti) return;
@@ -2143,33 +2144,9 @@ Where emotion meets expression.
 
                 const { trial_active, trial_remaining, effective_plan, user_plan, trial_used_permanently } = data;
 
-                // Show Ring if Trial Active
-                if (trial_active && trial_remaining > 0 && ringWrapper) {
-                    ringWrapper.classList.remove('hidden');
-
-                    const hours = Math.floor(trial_remaining / 3600);
-                    const mins = Math.floor((trial_remaining % 3600) / 60);
-                    const secs = Math.floor(trial_remaining % 60);
-                    if (ringText) {
-                        ringText.innerText = `${hours}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-                    }
-
-                    const percentLeft = trial_remaining / 18000;
-                    setRingProgress(percentLeft);
-
-                    // Turn ring red at final 10 min
-                    if (ring) {
-                        ring.style.stroke = trial_remaining < 600 ? 'red' : 'gold';
-                    }
-
-                    // Sound alert at 5 minutes left
-                    if (trial_remaining < 300 && !alertPlayed && alertSound) {
-                        alertSound.play().catch(e => console.log('Audio play failed:', e));
-                        alertPlayed = true;
-                    }
-                } else if (ringWrapper) {
-                    ringWrapper.classList.add('hidden');
-                }
+                // DISABLED OLD RING TIMER - Preventing conflicts with new timer system
+                // Use new timer system instead (trial-timer-container)
+                console.log('🔄 OLD ring timer disabled, using new timer system instead');
 
                 // Hide trial button if used or active
                 const trialBtn = document.getElementById("start-trial-btn");
