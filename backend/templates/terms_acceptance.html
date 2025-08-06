@@ -313,38 +313,6 @@
             gap: 10px;
         }
 
-        .language-buttons {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            justify-content: center;
-            margin-bottom: 15px;
-        }
-
-        .lang-btn {
-            background: rgba(0, 255, 255, 0.1);
-            border: 1px solid rgba(0, 255, 255, 0.3);
-            color: #00ffff;
-            padding: 8px 16px;
-            border-radius: 20px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 0.9rem;
-            font-weight: 500;
-        }
-
-        .lang-btn:hover {
-            background: rgba(0, 255, 255, 0.2);
-            border-color: #00ffff;
-            transform: translateY(-1px);
-        }
-
-        .lang-btn.active {
-            background: linear-gradient(135deg, #00ffff 0%, #0891b2 100%);
-            color: #000;
-            border-color: #00ffff;
-        }
-
         .translation-notice {
             background: rgba(255, 193, 7, 0.1);
             border: 1px solid rgba(255, 193, 7, 0.3);
@@ -363,21 +331,72 @@
         .goog-te-gadget {
             font-family: inherit !important;
             color: #e2e8f0 !important;
+            font-size: 1rem !important;
         }
 
         .goog-te-gadget .goog-te-combo {
-            background: rgba(0, 0, 0, 0.8) !important;
-            border: 1px solid rgba(0, 255, 255, 0.3) !important;
-            border-radius: 8px !important;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.9) 0%, rgba(15, 23, 42, 0.9) 100%) !important;
+            border: 2px solid rgba(0, 255, 255, 0.4) !important;
+            border-radius: 12px !important;
             color: #e2e8f0 !important;
-            padding: 8px !important;
-            font-size: 0.9rem !important;
+            padding: 12px 16px !important;
+            font-size: 1rem !important;
+            font-weight: 500 !important;
+            cursor: pointer !important;
+            transition: all 0.3s ease !important;
+            box-shadow: 0 4px 15px rgba(0, 255, 255, 0.2) !important;
+            outline: none !important;
+        }
+
+        .goog-te-gadget .goog-te-combo:hover {
+            border-color: #00ffff !important;
+            box-shadow: 0 6px 20px rgba(0, 255, 255, 0.4) !important;
+            transform: translateY(-1px) !important;
+        }
+
+        .goog-te-gadget .goog-te-combo:focus {
+            border-color: #22d3ee !important;
+            box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.3) !important;
+        }
+
+        /* Style the gadget text */
+        .goog-te-gadget-simple {
+            background: transparent !important;
+            border: none !important;
+            font-size: 1rem !important;
+            color: #e2e8f0 !important;
+        }
+
+        .goog-te-gadget-simple .goog-te-menu-value {
+            color: #e2e8f0 !important;
+            font-weight: 500 !important;
+        }
+
+        .goog-te-gadget-simple .goog-te-menu-value span {
+            color: #00ffff !important;
         }
 
         /* Hide Google Translate branding */
         .goog-te-banner-frame { display: none !important; }
         .goog-te-balloon-frame { display: none !important; }
         body { top: 0 !important; }
+        
+        /* Remove Google's powered by text */
+        .goog-te-gadget-simple .goog-te-menu-value:hover {
+            text-decoration: none !important;
+        }
+        
+        /* Style the dropdown arrow */
+        .goog-te-gadget-icon {
+            background-image: none !important;
+            margin-left: 10px !important;
+        }
+        
+        .goog-te-gadget-icon:after {
+            content: "▼" !important;
+            color: #00ffff !important;
+            font-size: 0.8rem !important;
+        }
 
         /* Responsive design */
         @media (max-width: 768px) {
@@ -400,14 +419,6 @@
                 max-width: 300px;
             }
 
-            .language-buttons {
-                gap: 8px;
-            }
-
-            .lang-btn {
-                padding: 6px 12px;
-                font-size: 0.8rem;
-            }
         }
     </style>
 </head>
@@ -418,52 +429,13 @@
             <p>Before we continue, you must read and agree to our terms and AI tool disclaimers</p>
         </div>
 
-        <!-- Language Selector -->
+        <!-- Language Translation -->
         <div class="language-selector">
             <h3><i class="fas fa-globe"></i> Choose Your Language / Selecciona tu idioma / Choisissez votre langue</h3>
             
-            <div class="language-buttons">
-                <button class="lang-btn active" onclick="translatePage('en')" data-lang="en">
-                    🇺🇸 English
-                </button>
-                <button class="lang-btn" onclick="translatePage('es')" data-lang="es">
-                    🇪🇸 Español
-                </button>
-                <button class="lang-btn" onclick="translatePage('fr')" data-lang="fr">
-                    🇫🇷 Français
-                </button>
-                <button class="lang-btn" onclick="translatePage('de')" data-lang="de">
-                    🇩🇪 Deutsch
-                </button>
-                <button class="lang-btn" onclick="translatePage('pt')" data-lang="pt">
-                    🇧🇷 Português
-                </button>
-                <button class="lang-btn" onclick="translatePage('zh')" data-lang="zh">
-                    🇨🇳 中文
-                </button>
-                <button class="lang-btn" onclick="translatePage('ja')" data-lang="ja">
-                    🇯🇵 日本語
-                </button>
-                <button class="lang-btn" onclick="translatePage('ko')" data-lang="ko">
-                    🇰🇷 한국어
-                </button>
-                <button class="lang-btn" onclick="translatePage('ar')" data-lang="ar">
-                    🇸🇦 العربية
-                </button>
-                <button class="lang-btn" onclick="translatePage('hi')" data-lang="hi">
-                    🇮🇳 हिन्दी
-                </button>
-                <button class="lang-btn" onclick="translatePage('ru')" data-lang="ru">
-                    🇷🇺 Русский
-                </button>
-                <button class="lang-btn" onclick="translatePage('it')" data-lang="it">
-                    🇮🇹 Italiano
-                </button>
-            </div>
-
-            <!-- Google Translate Widget (Visible for debugging) -->
-            <div id="google_translate_element" style="background: rgba(0,0,0,0.8); padding: 10px; border-radius: 8px; margin: 10px 0;"></div>
-            <p style="font-size: 0.8rem; color: #888;">⬆️ Native Google Translate widget (for debugging)</p>
+            <!-- Google Translate Widget -->
+            <div id="google_translate_element" style="background: linear-gradient(135deg, rgba(0, 255, 255, 0.1) 0%, rgba(15, 23, 42, 0.3) 100%); padding: 20px; border-radius: 12px; margin: 20px 0; text-align: center; border: 1px solid rgba(0, 255, 255, 0.2);"></div>
+            <p style="font-size: 0.9rem; color: #94a3b8; margin-top: 10px;">⬆️ Use the dropdown above to translate this page</p>
 
             <div class="translation-notice">
                 <strong>⚠️ Important:</strong> Translations are provided by Google Translate for accessibility. 
@@ -472,14 +444,6 @@
                 <strong>重要:</strong> 翻译由Google翻译提供。英文版本具有法律约束力。
                 <br>
                 <strong>Importante:</strong> Las traducciones son proporcionadas por Google Translate. La versión en inglés es legalmente vinculante.
-                <br><br>
-                <!-- Debug buttons (remove in production) -->
-                <button type="button" onclick="debugTranslation()" style="background: rgba(255,255,255,0.1); border: 1px solid #ccc; padding: 5px 10px; margin: 5px; border-radius: 4px; color: #ccc; font-size: 0.8rem;">
-                    🔍 Debug Translation
-                </button>
-                <button type="button" onclick="refreshTranslation()" style="background: rgba(255,255,255,0.1); border: 1px solid #ccc; padding: 5px 10px; margin: 5px; border-radius: 4px; color: #ccc; font-size: 0.8rem;">
-                    🔄 Refresh Translation
-                </button>
             </div>
         </div>
 
@@ -706,398 +670,5 @@
     </script>
     <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
-    <!-- Translation Functionality -->
-    <script>
-        let currentLanguage = 'en';
-        
-        // Language translations for key phrases that need to be clear
-        const translations = {
-            'en': {
-                'accept_button': 'Accept & Continue to SoulBridge AI',
-                'decline_button': 'Decline & Sign Out',
-                'processing': 'Processing your acceptance...',
-                'success': '✅ Terms accepted! Redirecting to SoulBridge AI...',
-                'checkbox_ai': 'I understand that SoulBridge AI is an AI tool and NOT professional therapy, medical, or legal advice. I will consult qualified professionals for serious concerns.',
-                'checkbox_terms': 'I have read and agree to the Terms of Service and Privacy Policy. I understand how my data will be used and protected.',
-                'checkbox_age': 'I confirm that I am at least 13 years old (or have parental consent if under 18) and legally able to agree to these terms.',
-                'checkbox_use': 'I agree to use SoulBridge AI responsibly for entertainment and self-reflection, not for critical decisions or emergency situations.'
-            },
-            'es': {
-                'accept_button': 'Aceptar y Continuar a SoulBridge AI',
-                'decline_button': 'Rechazar y Cerrar Sesión',
-                'processing': 'Procesando su aceptación...',
-                'success': '✅ ¡Términos aceptados! Redirigiendo a SoulBridge AI...',
-                'checkbox_ai': 'Entiendo que SoulBridge AI es una herramienta de IA y NO es terapia profesional, médica o legal. Consultaré a profesionales calificados para asuntos serios.',
-                'checkbox_terms': 'He leído y acepto los Términos de Servicio y la Política de Privacidad. Entiendo cómo se usarán y protegerán mis datos.',
-                'checkbox_age': 'Confirmo que tengo al menos 13 años (o consentimiento parental si soy menor de 18) y puedo legalmente aceptar estos términos.',
-                'checkbox_use': 'Acepto usar SoulBridge AI responsablemente para entretenimiento y autorreflexión, no para decisiones críticas o emergencias.'
-            },
-            'fr': {
-                'accept_button': 'Accepter et Continuer vers SoulBridge AI',
-                'decline_button': 'Refuser et Se Déconnecter',
-                'processing': 'Traitement de votre acceptation...',
-                'success': '✅ Conditions acceptées! Redirection vers SoulBridge AI...',
-                'checkbox_ai': 'Je comprends que SoulBridge AI est un outil IA et NON une thérapie professionnelle, médicale ou légale. Je consulterai des professionnels qualifiés pour les préoccupations sérieuses.',
-                'checkbox_terms': 'J\'ai lu et accepte les Conditions de Service et la Politique de Confidentialité. Je comprends comment mes données seront utilisées et protégées.',
-                'checkbox_age': 'Je confirme avoir au moins 13 ans (ou consentement parental si moins de 18 ans) et pouvoir légalement accepter ces conditions.',
-                'checkbox_use': 'J\'accepte d\'utiliser SoulBridge AI de manière responsable pour le divertissement et la réflexion personnelle, pas pour des décisions critiques ou des urgences.'
-            }
-            // Add more languages as needed
-        };
-
-        function translatePage(langCode) {
-            console.log(`🌐 Attempting to translate to: ${langCode}`);
-            
-            // Update active button
-            document.querySelectorAll('.lang-btn').forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.dataset.lang === langCode) {
-                    btn.classList.add('active');
-                }
-            });
-
-            currentLanguage = langCode;
-            
-            // Store language preference
-            localStorage.setItem('preferred-language', langCode);
-
-            if (langCode === 'en') {
-                // Reset to English - reload page to clear translations
-                console.log('🔄 Resetting to English');
-                window.location.reload();
-                return;
-            }
-
-            // Show translation status immediately
-            showTranslationStatus(langCode);
-
-            // Find Google Translate dropdown with multiple selectors
-            let selectElement = document.querySelector('.goog-te-combo') || 
-                               document.querySelector('select[class*="goog-te"]') ||
-                               document.querySelector('.goog-te-gadget select') ||
-                               document.querySelector('#google_translate_element select');
-            
-            console.log('🔍 Looking for Google Translate elements...');
-            console.log('Select element found:', !!selectElement);
-            
-            if (selectElement) {
-                console.log('✅ Found Google Translate dropdown, triggering translation');
-                
-                // Map language codes for Google Translate (more comprehensive mapping)
-                const langMapping = {
-                    'zh': 'zh-CN',
-                    'pt': 'pt', 
-                    'es': 'es',
-                    'fr': 'fr',
-                    'de': 'de',
-                    'ja': 'ja',
-                    'ko': 'ko',
-                    'ar': 'ar',
-                    'hi': 'hi',
-                    'ru': 'ru',
-                    'it': 'it'
-                };
-                
-                const googleLangCode = langMapping[langCode] || langCode;
-                console.log(`🎯 Setting Google Translate to: ${googleLangCode}`);
-                
-                // Set the value and trigger change
-                selectElement.value = googleLangCode;
-                
-                // Try multiple event triggers to ensure it works
-                selectElement.dispatchEvent(new Event('change', { bubbles: true }));
-                selectElement.dispatchEvent(new Event('input', { bubbles: true }));
-                
-                // Also try click event
-                setTimeout(() => {
-                    selectElement.dispatchEvent(new Event('click', { bubbles: true }));
-                }, 100);
-                
-                // Apply custom translations after a delay
-                setTimeout(() => {
-                    console.log('🎨 Applying custom translations');
-                    applyCustomTranslations(langCode);
-                }, 3000);
-                
-            } else {
-                console.log('❌ Google Translate dropdown not found, using manual translation');
-                setTimeout(() => {
-                    applyManualTranslation(langCode);
-                }, 500);
-            }
-        }
-
-        function applyCustomTranslations(langCode) {
-            // Apply our specific translations over Google Translate for critical elements
-            if (translations[langCode]) {
-                const trans = translations[langCode];
-                
-                // Update buttons
-                const acceptBtn = document.querySelector('.btn-accept');
-                const declineBtn = document.querySelector('.btn-decline');
-                
-                if (acceptBtn) {
-                    acceptBtn.innerHTML = `<i class="fas fa-check"></i> ${trans.accept_button}`;
-                }
-                if (declineBtn) {
-                    declineBtn.innerHTML = `<i class="fas fa-times"></i> ${trans.decline_button}`;
-                }
-            }
-        }
-
-        function applyManualTranslation(langCode) {
-            // Fallback: Apply manual translations when Google Translate fails
-            if (!translations[langCode]) {
-                console.warn(`No manual translation available for ${langCode}`);
-                return;
-            }
-
-            const trans = translations[langCode];
-
-            // Translate key elements manually
-            const elements = {
-                '.header h1': getManualTranslation(langCode, 'welcome_title', 'Welcome to SoulBridge AI'),
-                '.header p': getManualTranslation(langCode, 'welcome_subtitle', 'Before we continue, you must read and agree to our terms and AI tool disclaimers'),
-                '.btn-accept': `<i class="fas fa-check"></i> ${trans.accept_button}`,
-                '.btn-decline': `<i class="fas fa-times"></i> ${trans.decline_button}`,
-                '#ai-understanding + label': trans.checkbox_ai,
-                '#terms-privacy + label': trans.checkbox_terms,
-                '#age-confirmation + label': trans.checkbox_age,
-                '#responsible-use + label': trans.checkbox_use
-            };
-
-            Object.entries(elements).forEach(([selector, text]) => {
-                const element = document.querySelector(selector);
-                if (element && text) {
-                    if (selector.includes('btn-')) {
-                        element.innerHTML = text;
-                    } else {
-                        element.textContent = text;
-                    }
-                }
-            });
-
-            console.log(`Applied manual translation for ${langCode}`);
-        }
-
-        function getManualTranslation(langCode, key, fallback) {
-            const manualTranslations = {
-                'es': {
-                    'welcome_title': 'Bienvenido a SoulBridge AI',
-                    'welcome_subtitle': 'Antes de continuar, debe leer y aceptar nuestros términos y avisos de herramientas de IA'
-                },
-                'fr': {
-                    'welcome_title': 'Bienvenue sur SoulBridge AI',
-                    'welcome_subtitle': 'Avant de continuer, vous devez lire et accepter nos conditions et avis d\'outils IA'
-                },
-                'de': {
-                    'welcome_title': 'Willkommen bei SoulBridge AI',
-                    'welcome_subtitle': 'Bevor wir fortfahren, müssen Sie unsere Bedingungen und KI-Tool-Haftungsausschlüsse lesen und akzeptieren'
-                }
-            };
-            
-            return manualTranslations[langCode]?.[key] || fallback;
-        }
-
-        function showTranslationStatus(langCode) {
-            // Remove existing status
-            const existingStatus = document.querySelector('.translation-status');
-            if (existingStatus) {
-                existingStatus.remove();
-            }
-
-            // Add status indicator
-            const status = document.createElement('div');
-            status.className = 'translation-status';
-            status.style.cssText = `
-                position: fixed;
-                top: 10px;
-                left: 50%;
-                transform: translateX(-50%);
-                background: rgba(255, 193, 7, 0.9);
-                color: #000;
-                padding: 8px 16px;
-                border-radius: 20px;
-                font-size: 0.8rem;
-                font-weight: 600;
-                z-index: 9999;
-                animation: fadeInOut 4s ease-in-out;
-            `;
-            
-            const langNames = {
-                'es': 'Español', 'fr': 'Français', 'de': 'Deutsch', 'pt': 'Português',
-                'zh': '中文', 'ja': '日本語', 'ko': '한국어', 'ar': 'العربية',
-                'hi': 'हिन्दी', 'ru': 'Русский', 'it': 'Italiano'
-            };
-            
-            status.innerHTML = `🌐 Translating to ${langNames[langCode] || langCode.toUpperCase()}... English version is legally binding.`;
-            document.body.appendChild(status);
-
-            // Add animation style
-            if (!document.querySelector('#translation-animations')) {
-                const style = document.createElement('style');
-                style.id = 'translation-animations';
-                style.textContent = `
-                    @keyframes fadeInOut {
-                        0% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
-                        20%, 80% { opacity: 1; transform: translateX(-50%) translateY(0); }
-                        100% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
-                    }
-                `;
-                document.head.appendChild(style);
-            }
-
-            // Remove after animation
-            setTimeout(() => {
-                if (status.parentNode) {
-                    status.remove();
-                }
-            }, 4000);
-        }
-
-        // Load saved language preference
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM loaded, checking for saved language...');
-            
-            // Wait for Google Translate to load with better detection
-            let checkCount = 0;
-            const maxChecks = 30; // Max 15 seconds
-            
-            const checkGoogleTranslate = setInterval(() => {
-                checkCount++;
-                
-                // Check multiple selectors for Google Translate elements
-                const translateElement = document.querySelector('#google_translate_element');
-                const selectElement = document.querySelector('.goog-te-combo') || 
-                                    document.querySelector('select[class*="goog-te"]') ||
-                                    document.querySelector('.goog-te-gadget select');
-                const gadgetElement = document.querySelector('.goog-te-gadget');
-                
-                console.log(`🔄 Check ${checkCount}/${maxChecks}:`);
-                console.log('  - Container exists:', !!translateElement);
-                console.log('  - Select exists:', !!selectElement);
-                console.log('  - Gadget exists:', !!gadgetElement);
-                
-                if (selectElement || checkCount >= maxChecks) {
-                    clearInterval(checkGoogleTranslate);
-                    
-                    if (selectElement) {
-                        window.googleTranslateLoaded = true;
-                        console.log('✅ Google Translate fully loaded and ready');
-                        
-                        // Apply saved language
-                        const savedLang = localStorage.getItem('preferred-language');
-                        if (savedLang && savedLang !== 'en') {
-                            console.log(`🌐 Applying saved language: ${savedLang}`);
-                            setTimeout(() => {
-                                translatePage(savedLang);
-                            }, 500);
-                        }
-                    } else {
-                        window.googleTranslateLoaded = false;
-                        console.warn('❌ Google Translate failed to load after 15 seconds');
-                        console.log('💡 Manual translations will be used as fallback');
-                    }
-                }
-            }, 500);
-        });
-
-        // Add debugging function
-        function debugTranslation() {
-            console.log('=== Translation Debug ===');
-            console.log('Current language:', currentLanguage);
-            console.log('Google Translate loaded:', window.googleTranslateLoaded);
-            
-            // Check for various Google Translate elements
-            const elements = {
-                '.goog-te-combo': !!document.querySelector('.goog-te-combo'),
-                '.goog-te-gadget': !!document.querySelector('.goog-te-gadget'),
-                '#google_translate_element': !!document.querySelector('#google_translate_element'),
-                '.skiptranslate': !!document.querySelector('.skiptranslate'),
-                'select[class*="goog-te"]': !!document.querySelector('select[class*="goog-te"]'),
-                'iframe[id*="goog-te"]': !!document.querySelector('iframe[id*="goog-te"]')
-            };
-            
-            console.log('Google Translate elements found:', elements);
-            console.log('Available translations:', Object.keys(translations));
-            
-            // List all Google Translate related elements
-            const allElements = document.querySelectorAll('[class*="goog"], [id*="goog"]');
-            console.log('All Google-related elements:', Array.from(allElements).map(el => ({
-                tag: el.tagName,
-                id: el.id,
-                className: el.className,
-                textContent: el.textContent?.substring(0, 50)
-            })));
-        }
-
-        // Add manual refresh translation function
-        function refreshTranslation() {
-            if (currentLanguage !== 'en') {
-                console.log('Refreshing translation for:', currentLanguage);
-                translatePage(currentLanguage);
-            }
-        }
-
-        // Enhanced accept terms function with translation support
-        const originalAcceptTerms = window.acceptTerms;
-        window.acceptTerms = async function() {
-            const loading = document.getElementById('loading');
-            const acceptBtn = document.getElementById('acceptBtn');
-            const declineBtn = document.getElementById('declineBtn');
-            
-            // Show loading with translation
-            loading.style.display = 'block';
-            acceptBtn.disabled = true;
-            declineBtn.disabled = true;
-
-            const trans = translations[currentLanguage] || translations['en'];
-            loading.innerHTML = `<div class="spinner"></div><p>${trans.processing}</p>`;
-            
-            try {
-                const response = await fetch('/api/accept-terms', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        ai_understanding: document.getElementById('ai-understanding').checked,
-                        terms_privacy: document.getElementById('terms-privacy').checked,
-                        age_confirmation: document.getElementById('age-confirmation').checked,
-                        responsible_use: document.getElementById('responsible-use').checked,
-                        acceptance_date: new Date().toISOString(),
-                        language_used: currentLanguage // Track language used for acceptance
-                    })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    // Store acceptance in localStorage as well
-                    localStorage.setItem('terms-accepted', 'true');
-                    localStorage.setItem('terms-acceptance-date', new Date().toISOString());
-                    localStorage.setItem('terms-language', currentLanguage);
-                    
-                    // Show success message with translation
-                    loading.innerHTML = `<div class="spinner"></div><p style="color: #00ffff;">${trans.success}</p>`;
-                    
-                    setTimeout(() => {
-                        window.location.href = '/intro';
-                    }, 2000);
-                } else {
-                    alert('Failed to save terms acceptance. Please try again.');
-                    loading.style.display = 'none';
-                    acceptBtn.disabled = false;
-                    declineBtn.disabled = false;
-                }
-            } catch (error) {
-                console.error('Terms acceptance error:', error);
-                alert('Network error. Please check your connection and try again.');
-                loading.style.display = 'none';
-                acceptBtn.disabled = false;
-                declineBtn.disabled = false;
-            }
-        };
-    </script>
 </body>
 </html>
