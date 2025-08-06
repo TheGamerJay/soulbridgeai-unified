@@ -30,7 +30,7 @@
             animation: pulse-gold 2s infinite;
             box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
             position: fixed;
-            top: 60px;
+            top: 80px;
             left: 20px;
             z-index: 1000;
         }
@@ -39,6 +39,13 @@
             0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7); }
             70% { box-shadow: 0 0 0 10px rgba(255, 215, 0, 0); }
             100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); }
+        }
+        
+        /* Hide old timer elements to prevent conflicts */
+        #trialTimer, 
+        .trial-timer-old,
+        [id*="trial-timer"]:not(#trial-timer-container):not(#trial-timer-circle):not(#trial-time-text) {
+            display: none !important;
         }
     </style>
 </head>
@@ -56,7 +63,7 @@
     {% endif %}
 
     <!-- Advanced Trial Timer Widget -->
-    <div id="trial-timer-container" style="display:none; position: fixed; top: 80px; right: 20px; z-index: 1000; background: rgba(0,0,0,0.9); padding: 15px; border-radius: 15px; border: 2px solid #00cc66;">
+    <div id="trial-timer-container" style="display:none; position: fixed; top: 20px; right: 20px; z-index: 1500; background: rgba(0,0,0,0.9); padding: 15px; border-radius: 15px; border: 2px solid #00cc66;">
         <svg id="trial-timer-circle" width="120" height="120">
             <circle cx="60" cy="60" r="54" stroke="#333" stroke-width="8" fill="none"/>
             <circle id="timer-progress" cx="60" cy="60" r="54" stroke="#00cc66" stroke-width="8" fill="none" stroke-dasharray="339.29" stroke-dashoffset="0" transform="rotate(-90 60 60)"/>

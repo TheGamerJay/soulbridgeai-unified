@@ -1073,34 +1073,35 @@ async function checkTrialStatus() {
     }
 }
 
-function showTrialTimer(companionName, minutesRemaining) {
-    // Remove existing trial timer
-    const existingTimer = document.getElementById('trialTimer');
-    if (existingTimer && existingTimer.style.display === 'block') {
-        // Timer already visible, just update the time
-        updateTrialTimerDisplay(minutesRemaining);
-        return;
-    }
-    
-    // Use the existing timer element from the HTML template
-    const timerElement = document.getElementById('trialTimer');
-    if (timerElement) {
-        timerElement.style.display = 'block';
-        updateTrialTimerDisplay(minutesRemaining);
-        
-        console.log(`⏰ Trial timer displayed: ${minutesRemaining} minutes remaining`);
-    } else {
-        console.warn('⚠️ Trial timer element not found in HTML');
-    }
-}
+// OLD TIMER FUNCTIONS - DISABLED TO PREVENT CONFLICTS
+// function showTrialTimer(companionName, minutesRemaining) {
+//     // Remove existing trial timer
+//     const existingTimer = document.getElementById('trialTimer');
+//     if (existingTimer && existingTimer.style.display === 'block') {
+//         // Timer already visible, just update the time
+//         updateTrialTimerDisplay(minutesRemaining);
+//         return;
+//     }
+//     
+//     // Use the existing timer element from the HTML template
+//     const timerElement = document.getElementById('trialTimer');
+//     if (timerElement) {
+//         timerElement.style.display = 'block';
+//         updateTrialTimerDisplay(minutesRemaining);
+//         
+//         console.log(`⏰ Trial timer displayed: ${minutesRemaining} minutes remaining`);
+//     } else {
+//         console.warn('⚠️ Trial timer element not found in HTML');
+//     }
+// }
 
-function hideTrialTimer() {
-    const timerElement = document.getElementById('trialTimer');
-    if (timerElement) {
-        timerElement.style.display = 'none';
-        console.log('⏰ Trial timer hidden');
-    }
-}
+// function hideTrialTimer() {
+//     const timerElement = document.getElementById('trialTimer');
+//     if (timerElement) {
+//         timerElement.style.display = 'none';
+//         console.log('⏰ Trial timer hidden');
+//     }
+// }
 
 function updateTrialTimerDisplay(minutesRemaining) {
     const timeDisplay = document.getElementById('trialTimeDisplay');
