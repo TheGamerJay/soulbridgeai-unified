@@ -233,11 +233,9 @@ async function loadCompanions() {
             effective_plan: effectivePlan
         };
 
-        // Initialize trial timer if trial is active
-        if (trialActive && data.trial_expires_at) {
-            console.log('🕒 Initializing trial timer on page load');
-            initTrialTimer(data.trial_expires_at);
-        }
+        // DISABLED: Initialize trial timer - preventing conflicts with chat.js timer
+        // Let chat.js handle the timer on chat pages to prevent flickering
+        console.log('🚫 Timer initialization disabled to prevent conflicts with chat.js timer');
 
         // Hide trial button if active
         const trialBtn = document.getElementById('trial-button');
@@ -1051,8 +1049,8 @@ async function checkTrialStatus() {
                 const secondsRemaining = data.time_remaining * 60;
                 const now = new Date();
                 const expiresAt = new Date(now.getTime() + secondsRemaining * 1000);
-                console.log('🕒 Starting new trial timer system');
-                initTrialTimer(expiresAt.toISOString());
+                console.log('🚫 New trial timer system disabled to prevent conflicts with chat.js');
+                // DISABLED: initTrialTimer(expiresAt.toISOString());
             }
             
         } else {
@@ -1763,10 +1761,10 @@ window.startCentralTrial = async function() {
             // Show success message
             showNotification(data.message || '🎉 5-hour trial started! All premium companions unlocked!', 'success');
             
-            // Initialize trial timer if expires_at is provided
-            if (data.expires_at) {
-                initTrialTimer(data.expires_at);
-            }
+            // DISABLED: Initialize trial timer - preventing conflicts with chat.js timer
+            // if (data.expires_at) {
+            //     initTrialTimer(data.expires_at);
+            // }
             
             // Update trial status and refresh UI
             await checkTrialStatus();
