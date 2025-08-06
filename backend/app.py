@@ -493,12 +493,12 @@ def load_terms_acceptance_status(user_id):
         
         if db_instance.use_postgres:
             cursor.execute("""
-                SELECT terms_accepted, terms_accepted_at, terms_version 
+                SELECT terms_accepted, terms_accepted_at, terms_version, terms_language 
                 FROM users WHERE id = %s
             """, (user_id,))
         else:
             cursor.execute("""
-                SELECT terms_accepted, terms_accepted_at, terms_version 
+                SELECT terms_accepted, terms_accepted_at, terms_version, terms_language 
                 FROM users WHERE id = ?
             """, (user_id,))
         
@@ -506,17 +506,19 @@ def load_terms_acceptance_status(user_id):
         conn.close()
         
         if result:
-            terms_accepted, terms_accepted_at, terms_version = result
+            terms_accepted, terms_accepted_at, terms_version, terms_language = result
             session['terms_accepted'] = bool(terms_accepted) if terms_accepted is not None else False
             session['terms_accepted_at'] = terms_accepted_at.isoformat() if terms_accepted_at else None
             session['terms_version'] = terms_version or 'v1.0'
+            session['terms_language'] = terms_language or 'en'
             
-            logger.info(f"TERMS: Loaded terms status for user {user_id}: accepted={session['terms_accepted']}")
+            logger.info(f"TERMS: Loaded terms status for user {user_id}: accepted={session['terms_accepted']}, language={session['terms_language']}")
         else:
             # Default values for new users
             session['terms_accepted'] = False
             session['terms_accepted_at'] = None
             session['terms_version'] = 'v1.0'
+            session['terms_language'] = 'en'
             logger.info(f"TERMS: No terms status found for user {user_id}, using defaults")
             
     except Exception as e:
@@ -525,6 +527,7 @@ def load_terms_acceptance_status(user_id):
         session['terms_accepted'] = False
         session['terms_accepted_at'] = None
         session['terms_version'] = 'v1.0'
+        session['terms_language'] = 'en'
 
 def login_success_response(redirect_to="/"):
     """Return appropriate response for successful login (JSON for AJAX, redirect for forms)"""
@@ -1207,19 +1210,20 @@ def accept_terms():
         # Update user's terms acceptance
         from datetime import datetime
         acceptance_date = datetime.utcnow()
+        language_used = data.get('language_used', 'en')
         
         if db_instance.use_postgres:
             cursor.execute("""
                 UPDATE users 
-                SET terms_accepted = %s, terms_accepted_at = %s, terms_version = %s 
+                SET terms_accepted = %s, terms_accepted_at = %s, terms_version = %s, terms_language = %s 
                 WHERE id = %s
-            """, (True, acceptance_date, 'v1.0', user_id))
+            """, (True, acceptance_date, 'v1.0', language_used, user_id))
         else:
             cursor.execute("""
                 UPDATE users 
-                SET terms_accepted = ?, terms_accepted_at = ?, terms_version = ? 
+                SET terms_accepted = ?, terms_accepted_at = ?, terms_version = ?, terms_language = ? 
                 WHERE id = ?
-            """, (True, acceptance_date, 'v1.0', user_id))
+            """, (True, acceptance_date, 'v1.0', language_used, user_id))
         
         conn.commit()
         conn.close()
@@ -1227,8 +1231,9 @@ def accept_terms():
         # Update session to reflect terms acceptance
         session['terms_accepted'] = True
         session['terms_accepted_at'] = acceptance_date.isoformat()
+        session['terms_language'] = language_used
         
-        logger.info(f"✅ TERMS: User {session.get('user_email')} accepted terms at {acceptance_date}")
+        logger.info(f"✅ TERMS: User {session.get('user_email')} accepted terms at {acceptance_date} in language {language_used}")
         
         return jsonify({
             "success": True,
@@ -1650,6 +1655,7 @@ def admin_init_database():
             cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS terms_accepted BOOLEAN DEFAULT FALSE")
             cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS terms_accepted_at TIMESTAMP")
             cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS terms_version TEXT DEFAULT 'v1.0'")
+            cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS terms_language TEXT DEFAULT 'en'")
         except:
             pass  # Columns might already exist
         
