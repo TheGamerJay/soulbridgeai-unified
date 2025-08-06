@@ -14,12 +14,46 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}?v={{ range(1000000) | random }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/companion_selector.css') }}?v={{ range(1000000) | random }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        /* Trial Badge */
+        .trial-badge {
+            background: linear-gradient(135deg, #ffd700, #ffb347);
+            color: #000;
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            animation: pulse-gold 2s infinite;
+            box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
+            position: fixed;
+            top: 20px;
+            left: 150px;
+            z-index: 1000;
+        }
+        
+        @keyframes pulse-gold {
+            0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 215, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); }
+        }
+    </style>
 </head>
 <body>
     <!-- Back to Intro Button -->
     <a href="/intro" class="back-button" title="Back to Intro">
         ← Back to Intro
     </a>
+    
+    <!-- Trial Badge -->
+    {% if session.get('trial_active') %}
+    <span class="trial-badge">
+        🕐 Trial Active
+    </span>
+    {% endif %}
 
     <!-- Advanced Trial Timer Widget -->
     <div id="trial-timer-container" style="display:none; position: fixed; top: 80px; right: 20px; z-index: 1000; background: rgba(0,0,0,0.9); padding: 15px; border-radius: 15px; border: 2px solid #00cc66;">
