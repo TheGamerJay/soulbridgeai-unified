@@ -7023,6 +7023,74 @@ def debug_upgrade_to_growth():
     session['user_authenticated'] = True
     return jsonify({"success": True, "message": "Upgraded to Growth tier", "user_plan": "growth"})
 
+@app.route("/admin/fix-terms-schema")
+def admin_fix_terms_schema():
+    """🔧 ADMIN: Fix missing terms acceptance columns in production database"""
+    key = request.args.get("key")
+    if key != ADMIN_DASH_KEY:
+        return jsonify({"error": "Unauthorized"}), 403
+    
+    try:
+        database_url = os.environ.get('DATABASE_URL')
+        if not database_url:
+            return jsonify({"success": False, "error": "No DATABASE_URL - only works in production"}), 500
+        
+        import psycopg2
+        conn = psycopg2.connect(database_url)
+        cursor = conn.cursor()
+        
+        # Check current schema
+        cursor.execute("""
+            SELECT column_name 
+            FROM information_schema.columns 
+            WHERE table_name = 'users' AND column_name LIKE '%terms%'
+        """)
+        existing_terms_columns = [row[0] for row in cursor.fetchall()]
+        logger.info(f"📋 Existing terms columns: {existing_terms_columns}")
+        
+        # Add missing columns for terms acceptance
+        columns_to_add = [
+            ('terms_accepted', 'BOOLEAN DEFAULT FALSE'),
+            ('terms_accepted_at', 'TIMESTAMP'),
+            ('terms_version', 'VARCHAR(50) DEFAULT \'v1.0\''),
+            ('terms_language', 'VARCHAR(10) DEFAULT \'en\'')
+        ]
+        
+        added_columns = []
+        
+        for column_name, column_def in columns_to_add:
+            if column_name not in existing_terms_columns:
+                try:
+                    cursor.execute(f'ALTER TABLE users ADD COLUMN {column_name} {column_def}')
+                    added_columns.append(column_name)
+                    logger.info(f'✅ Added {column_name} column')
+                except Exception as e:
+                    logger.error(f'❌ Failed to add {column_name}: {e}')
+                    return jsonify({"success": False, "error": f"Failed to add {column_name}: {e}"}), 500
+        
+        conn.commit()
+        conn.close()
+        
+        if added_columns:
+            message = f"✅ Successfully added {len(added_columns)} columns: {', '.join(added_columns)}"
+            logger.info(message)
+        else:
+            message = "ℹ️ All terms acceptance columns already exist"
+            logger.info(message)
+        
+        return jsonify({
+            "success": True,
+            "message": message,
+            "added_columns": added_columns,
+            "existing_columns": existing_terms_columns,
+            "redirect": f"/admin/database?key={ADMIN_DASH_KEY}"
+        })
+        
+    except Exception as e:
+        error_msg = f"❌ Database schema fix failed: {str(e)}"
+        logger.error(error_msg)
+        return jsonify({"success": False, "error": error_msg}), 500
+
 @app.route("/admin/clean-old-plans", methods=["POST"])
 def admin_clean_old_plans():
     """ADMIN: Update database to use new plan names and remove old migration code"""
