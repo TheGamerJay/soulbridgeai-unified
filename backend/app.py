@@ -109,7 +109,7 @@ def load_user_context():
                         conn = db_instance.get_connection()
                         cursor = conn.cursor()
                         if db_instance.use_postgres:
-                            cursor.execute("UPDATE users SET trial_active = FALSE, trial_used_permanently = TRUE WHERE id = %s", (user_id,))
+                            cursor.execute("UPDATE users SET trial_active = 0, trial_used_permanently = 1 WHERE id = %s", (user_id,))
                         else:
                             cursor.execute("UPDATE users SET trial_active = 0, trial_used_permanently = 1 WHERE id = ?", (user_id,))
                         conn.commit()
@@ -1086,10 +1086,10 @@ def start_trial():
                 if db_instance.use_postgres:
                     cursor.execute("""
                         UPDATE users 
-                        SET trial_active = TRUE,
+                        SET trial_active = 1,
                             trial_started_at = %s,
                             trial_expires_at = %s,
-                            trial_used_permanently = TRUE
+                            trial_used_permanently = 1
                         WHERE id = %s
                     """, (trial_start_time, trial_expires_time, user_id))
                 else:
@@ -1198,10 +1198,10 @@ def reset_trial_state():
             if db_instance.use_postgres:
                 cursor.execute("""
                     UPDATE users 
-                    SET trial_active = FALSE, 
+                    SET trial_active = 0, 
                         trial_started_at = NULL,
-                        trial_used_permanently = FALSE,
-                        trial_warning_sent = FALSE
+                        trial_used_permanently = 0,
+                        trial_warning_sent = 0
                     WHERE id = %s
                 """, (user_id,))
             else:
@@ -3812,10 +3812,10 @@ def get_comprehensive_trial_stats():
         
         # Active trials
         if db_instance.use_postgres:
-            cursor.execute("SELECT COUNT(*) FROM users WHERE trial_active = TRUE")
+            cursor.execute("SELECT COUNT(*) FROM users WHERE trial_active = 1")
             stats['active_trials'] = cursor.fetchone()[0]
             
-            cursor.execute("SELECT COUNT(*) FROM users WHERE trial_used_permanently = TRUE")
+            cursor.execute("SELECT COUNT(*) FROM users WHERE trial_used_permanently = 1")
             stats['used_trials'] = cursor.fetchone()[0]
             
             cursor.execute("SELECT COUNT(*) FROM users WHERE user_plan = 'growth'")
@@ -3922,10 +3922,10 @@ def admin_reset_all_trials():
         if db_instance.use_postgres:
             cursor.execute("""
                 UPDATE users 
-                SET trial_active = FALSE, 
+                SET trial_active = 0, 
                     trial_started_at = NULL,
-                    trial_used_permanently = FALSE,
-                    trial_warning_sent = FALSE
+                    trial_used_permanently = 0,
+                    trial_warning_sent = 0
             """)
         else:
             cursor.execute("""
@@ -3970,9 +3970,9 @@ def admin_expire_all_trials():
         if db_instance.use_postgres:
             cursor.execute("""
                 UPDATE users 
-                SET trial_active = FALSE, 
-                    trial_used_permanently = TRUE
-                WHERE trial_active = TRUE
+                SET trial_active = 0, 
+                    trial_used_permanently = 1
+                WHERE trial_active = 1
             """)
         else:
             cursor.execute("""
@@ -4035,8 +4035,8 @@ def admin_send_trial_warnings():
                 if db_instance.use_postgres:
                     cursor.execute("""
                         UPDATE users 
-                        SET trial_warning_sent = TRUE 
-                        WHERE trial_active = TRUE AND (trial_warning_sent = FALSE OR trial_warning_sent IS NULL)
+                        SET trial_warning_sent = 1 
+                        WHERE trial_active = 1 AND (trial_warning_sent = 0 OR trial_warning_sent IS NULL)
                     """)
                 else:
                     cursor.execute("""
@@ -6204,7 +6204,7 @@ def mark_feature_preview_seen():
                 conn = db_instance.get_connection()
                 cursor = conn.cursor()
                 if db_instance.use_postgres:
-                    cursor.execute("UPDATE users SET feature_preview_seen = TRUE WHERE id = %s", (user_id,))
+                    cursor.execute("UPDATE users SET feature_preview_seen = 1 WHERE id = %s", (user_id,))
                 else:
                     cursor.execute("UPDATE users SET feature_preview_seen = 1 WHERE id = ?", (user_id,))
                 conn.commit()
