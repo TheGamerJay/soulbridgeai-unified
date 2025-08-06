@@ -936,7 +936,7 @@ async function startPremiumTrial(companionId) {
     console.log('🎯 Starting 5-hour trial for:', companionId);
     
     try {
-        const response = await fetch('/start-trial', {
+        const response = await fetch('/api/start-trial', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
