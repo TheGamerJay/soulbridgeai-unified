@@ -38,6 +38,7 @@
         </div>
 
         <!-- Single Centralized Trial Button -->
+        {% if not session.get('trial_used_permanently') and not session.get('trial_active') %}
         <div id="centralTrialOffer" class="central-trial-offer">
             <div class="trial-glow-effect"></div>
             <h3><i class="fas fa-star"></i> Unlock ALL Premium Companions</h3>
@@ -53,6 +54,7 @@
             </button>
             <div class="trial-subtitle">No credit card required • Instant access</div>
         </div>
+        {% endif %}
         
         <div class="companion-sections">
             <!-- Free Companions -->

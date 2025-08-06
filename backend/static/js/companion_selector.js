@@ -270,17 +270,13 @@ function renderCompanionsFromAPI(companionsData, trialActive) {
         }
     });
     
-    // Show/hide central trial button based on trial status
+    // Central trial button should already be handled server-side, 
+    // but add extra safety check for JavaScript-side hiding if needed
     const centralTrialOffer = document.getElementById('centralTrialOffer');
-    if (centralTrialOffer) {
-        // Hide trial button if trial is active OR if user has used their trial permanently
-        if (trialActive || trialUsedPermanently) {
-            centralTrialOffer.classList.add('hidden');
-            console.log('🎯 Central trial button hidden:', { trialActive, trialUsedPermanently });
-        } else {
-            centralTrialOffer.classList.remove('hidden');
-            console.log('🎯 Central trial button shown for eligible user');
-        }
+    if (centralTrialOffer && (trialActive || trialUsedPermanently)) {
+        centralTrialOffer.classList.add('hidden');
+        centralTrialOffer.style.display = 'none';
+        console.log('🎯 Central trial button hidden via JS fallback:', { trialActive, trialUsedPermanently });
     }
     
     // Render each tier
@@ -1724,11 +1720,12 @@ window.startCentralTrial = async function() {
         if (data.success) {
             console.log('✅ Central trial started successfully:', data);
             
-            // Hide the trial button immediately
+            // Hide the trial button immediately (if it exists)
             const centralTrialOffer = document.getElementById('centralTrialOffer');
             if (centralTrialOffer) {
                 centralTrialOffer.classList.add('hidden');
                 centralTrialOffer.style.display = 'none';
+                console.log('🎯 Trial button hidden after successful activation');
             }
             
             // Show success message
