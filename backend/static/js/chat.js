@@ -558,47 +558,96 @@ function checkTrialStatus() {
 }
 
 function showTrialBanner(timeRemaining) {
-    const header = document.querySelector('.chat-header');
-    if (!header || header.querySelector('.trial-banner')) return;
+    // Hide old banner if it exists
+    const existingBanner = document.querySelector('.trial-banner');
+    if (existingBanner) {
+        existingBanner.remove();
+    }
     
-    const banner = document.createElement('div');
-    banner.className = 'trial-banner';
+    // Don't show banner - use the new circular timer instead
+    console.log('🚫 OLD: Trial banner disabled - using new circular timer system');
     
-    const updateTimer = () => {
-        const remaining = parseInt(localStorage.getItem('trialExpiry')) - Date.now();
+    // Initialize new timer system
+    if (typeof initializeNewTrialTimer === 'function') {
+        console.log('✅ Initializing new circular timer system');
+        initializeNewTrialTimer();
+    } else {
+        console.log('⚠️ New timer system not available, loading it...');
+        // Add the new timer HTML if not present
+        if (!document.getElementById('trial-timer-container')) {
+            const timerHTML = `
+                <div id="trial-timer-container" style="display:none; position: fixed; top: 20px; right: 20px; z-index: 1500; background: rgba(0,0,0,0.9); padding: 15px; border-radius: 15px; border: 2px solid #00cc66;">
+                    <svg id="trial-timer-circle" width="120" height="120">
+                        <circle cx="60" cy="60" r="50" stroke="#333" stroke-width="4" fill="none"/>
+                        <circle id="progress-ring" cx="60" cy="60" r="50" stroke="#00cc66" stroke-width="4" fill="none" 
+                                stroke-dasharray="314.16" stroke-dashoffset="314.16" 
+                                style="transform: rotate(-90deg); transform-origin: 50% 50%; transition: stroke-dashoffset 1s linear;"/>
+                    </svg>
+                    <div id="trial-time-text" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: #00cc66; font-size: 14px; font-weight: bold;">
+                        <div id="time-remaining">00:00</div>
+                        <div style="font-size: 10px; color: #888;">TRIAL</div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', timerHTML);
+            
+            // Start new timer
+            startNewTrialTimer();
+        }
+    }
+}
+
+// New circular timer system for chat page
+function startNewTrialTimer() {
+    const container = document.getElementById('trial-timer-container');
+    const progressRing = document.getElementById('progress-ring');
+    const timeText = document.getElementById('time-remaining');
+    
+    if (!container || !progressRing || !timeText) {
+        console.log('❌ New timer elements not found');
+        return;
+    }
+    
+    const radius = 50;
+    const circumference = 2 * Math.PI * radius;
+    
+    function updateNewTimer() {
+        const trialExpiry = parseInt(localStorage.getItem('trialExpiry') || '0');
+        const now = Date.now();
+        const remaining = trialExpiry - now;
+        
         if (remaining <= 0) {
-            banner.remove();
+            container.style.display = 'none';
+            console.log('⏰ NEW: Trial expired - hiding timer');
             return;
         }
         
-        const hours = Math.floor(remaining / (1000 * 60 * 60));
-        const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
+        // Show timer
+        container.style.display = 'block';
         
-        banner.innerHTML = `
-            ⭐ Premium Trial Active - Time Remaining: 
-            <span class="trial-timer">${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}</span>
-        `;
-    };
+        // Calculate time
+        const totalMinutes = Math.floor(remaining / (1000 * 60));
+        const hours = Math.floor(totalMinutes / 60);
+        const minutes = totalMinutes % 60;
+        
+        // Update display
+        timeText.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+        
+        // Calculate progress (assume 24 hour trial for progress bar)
+        const totalTrialTime = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+        const elapsed = totalTrialTime - remaining;
+        const progress = Math.min(elapsed / totalTrialTime, 1);
+        
+        const offset = circumference - (progress * circumference);
+        progressRing.style.strokeDashoffset = offset;
+        
+        console.log('🔄 NEW: Timer updated -', `${hours}:${minutes.toString().padStart(2, '0')}`);
+    }
     
-    updateTimer();
-    const timerInterval = setInterval(updateTimer, 1000);
+    updateNewTimer();
+    const newTimerInterval = setInterval(updateNewTimer, 60000); // Update every minute
     
-    // Clean up timer when banner is removed
-    const observer = new MutationObserver((mutations) => {
-        mutations.forEach((mutation) => {
-            mutation.removedNodes.forEach((node) => {
-                if (node === banner) {
-                    clearInterval(timerInterval);
-                    observer.disconnect();
-                }
-            });
-        });
-    });
-    
-    observer.observe(document.body, { childList: true, subtree: true });
-    
-    header.parentNode.insertBefore(banner, header);
+    console.log('✅ NEW: Circular trial timer started');
 }
 
 // Initialize trial status check
