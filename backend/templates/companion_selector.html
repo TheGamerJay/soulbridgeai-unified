@@ -425,6 +425,34 @@
             return originalGetElementById.call(this, id);
         };
     </script>
+    
+    <!-- EXTERMINATE THE FLICKER - Permanent Timer Destroyer -->
+    <script>
+    setInterval(() => {
+        const oldTimer = document.getElementById('trialTimer');
+        if (oldTimer) {
+            console.warn("⚠️ Old timer detected! Removing...");
+            oldTimer.remove();
+        }
+
+        const oldStyle = document.querySelector('style#oldTimerStyles');
+        if (oldStyle) {
+            console.warn("⚠️ Old timer styles found! Removing...");
+            oldStyle.remove();
+        }
+
+        // Block any global old functions
+        window.startTrialCountdown = () => {};
+        window.showTrialTimer = () => {};
+        window.hideTrialTimer = () => {};
+        window.updateTrialDisplay = () => {};
+
+    }, 100); // run every 100ms
+    
+    // Debug checker
+    console.log("👀 Old timer present on load?", !!document.getElementById("trialTimer"));
+    </script>
+    
     <script src="{{ url_for('static', filename='js/companion_selector.js') }}?v={{ range(1000000) | random }}"></script>
 </body>
 </html>

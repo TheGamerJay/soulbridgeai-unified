@@ -75,7 +75,13 @@ body::before {
 
 /* OLD TRIAL TIMER STYLES - COMPLETELY REMOVED */
 
-/* Old timer source eliminated - cleanup rules no longer needed */
+/* EXTERMINATE THE FLICKER - Permanent CSS Override */
+#trialTimer, .trial-timer-old {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    animation: none !important;
+}
 
 /* PROTECT NEW TIMER - Prevent accidental hiding by other rules */
 #trial-timer-container {
