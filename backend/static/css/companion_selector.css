@@ -112,11 +112,23 @@ body::before {
 }
 */
 
-/* Force hide old timer elements */
-#trialTimer, #trialTimeDisplay {
+/* NUCLEAR OPTION: Force hide old timer elements */
+#trialTimer, 
+#trialTimeDisplay,
+*[id*="trial"][id*="Timer"],
+*[id*="trialTimer"],
+div[style*="gradient(45deg, #FF6B6B, #FF8E53)"] {
     display: none !important;
     visibility: hidden !important;
     opacity: 0 !important;
+    position: absolute !important;
+    left: -99999px !important;
+    top: -99999px !important;
+    width: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    pointer-events: none !important;
+    z-index: -9999 !important;
 }
 
 /* Header */

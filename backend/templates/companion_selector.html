@@ -64,12 +64,10 @@
         ← Back to Intro
     </a>
     
-    <!-- Trial Badge -->
-    {% if session.get('trial_active') %}
-    <span class="trial-badge">
+    <!-- Trial Badge - Show when trial is active -->
+    <span class="trial-badge" id="trial-badge" style="display: none;">
         🕐 Trial Active
     </span>
-    {% endif %}
 
     <!-- Advanced Trial Timer Widget -->
     <div id="trial-timer-container" style="display:none; position: fixed; top: 20px; right: 20px; z-index: 1500; background: rgba(0,0,0,0.9); padding: 15px; border-radius: 15px; border: 2px solid #00cc66;">

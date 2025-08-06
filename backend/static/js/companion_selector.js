@@ -1038,6 +1038,13 @@ async function checkTrialStatus() {
             // Disable trial buttons since trial is active
             disableTrialButtonsIfActive(true);
             
+            // Show trial active badge
+            const trialBadge = document.getElementById('trial-badge');
+            if (trialBadge) {
+                trialBadge.style.display = 'inline-flex';
+                console.log('✅ Trial badge shown');
+            }
+            
             // Show trial timer if we have time remaining (using new timer system)
             if (data.time_remaining > 0) {
                 // Convert minutes to seconds for the new timer system
@@ -1055,6 +1062,13 @@ async function checkTrialStatus() {
             };
             
             console.log('ℹ️ No active trial');
+            
+            // Hide trial active badge
+            const trialBadge = document.getElementById('trial-badge');
+            if (trialBadge) {
+                trialBadge.style.display = 'none';
+                console.log('❌ Trial badge hidden');
+            }
             
             // Hide trial timer if no active trial (using new timer system)
             const container = document.getElementById('trial-timer-container');
@@ -1737,6 +1751,13 @@ window.startCentralTrial = async function() {
                 centralTrialOffer.classList.add('hidden');
                 centralTrialOffer.style.display = 'none';
                 console.log('🎯 Trial button hidden after successful activation');
+            }
+            
+            // Show trial active badge
+            const trialBadge = document.getElementById('trial-badge');
+            if (trialBadge) {
+                trialBadge.style.display = 'inline-flex';
+                console.log('✅ Trial badge shown after starting trial');
             }
             
             // Show success message
