@@ -21,7 +21,7 @@
         ← Back to Intro
     </a>
 
-    <!-- Trial Timer -->
+    <!-- Enhanced Trial Timer -->
     <div id="trialTimer">
         <div class="timer-content">
             <i class="fas fa-clock"></i>
@@ -29,6 +29,15 @@
             <span id="trialTimeDisplay">--:--:--</span>
         </div>
         <div class="timer-subtitle">Premium Access Active</div>
+    </div>
+    
+    <!-- Advanced Trial Timer Widget -->
+    <div id="trial-timer-container" style="display:none; position: fixed; top: 80px; right: 20px; z-index: 1000; background: rgba(0,0,0,0.9); padding: 15px; border-radius: 15px; border: 2px solid #00cc66;">
+        <svg id="trial-timer-circle" width="120" height="120">
+            <circle cx="60" cy="60" r="54" stroke="#333" stroke-width="8" fill="none"/>
+            <circle id="timer-progress" cx="60" cy="60" r="54" stroke="#00cc66" stroke-width="8" fill="none" stroke-dasharray="339.29" stroke-dashoffset="0" transform="rotate(-90 60 60)"/>
+        </svg>
+        <div id="trial-time-text" style="font-size: 18px; margin-top: 10px; text-align: center; color: white; font-weight: bold;">5:00:00</div>
     </div>
 
     <!-- Main Content -->

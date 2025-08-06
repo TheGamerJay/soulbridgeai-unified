@@ -1059,130 +1059,76 @@ def user_info():
 @app.route('/api/start-trial', methods=['POST'])
 def start_trial():
     """Start 5-hour trial for user"""
-    try:
-        if not is_logged_in():
-            return jsonify({"success": False, "error": "Authentication required"}), 401
-        
-        user_id = session.get('user_id')
-        
-        # Check trial status from database (not session)
-        db_instance = get_database()
-        if not db_instance:
-            return jsonify({"success": False, "error": "Database connection failed"}), 500
-            
-        conn = db_instance.get_connection()
-        cursor = conn.cursor()
-        
-        # Get current trial status from database
-        if db_instance.use_postgres:
-            cursor.execute("SELECT trial_started_at, trial_used_permanently FROM users WHERE id = %s", (user_id,))
-        else:
-            cursor.execute("SELECT trial_started_at, trial_used_permanently FROM users WHERE id = ?", (user_id,))
-        
-        result = cursor.fetchone()
-        if not result:
-            conn.close()
-            return jsonify({"success": False, "error": "User not found"}), 404
-            
-        trial_started_at_str, trial_used_permanently = result
-        
-        # Parse trial_started_at if it exists
-        trial_started_at = None
-        if trial_started_at_str:
-            if isinstance(trial_started_at_str, str):
-                trial_started_at = datetime.fromisoformat(trial_started_at_str.replace('Z', '+00:00'))
-            else:
-                trial_started_at = trial_started_at_str
-        
-        # Check if trial is already active
-        if trial_started_at and calculate_trial_active(trial_started_at, trial_used_permanently):
-            conn.close()
-            return jsonify({"success": False, "error": "Trial is already active"}), 400
-        
-        # Check if user already used their trial (and it's expired)
-        if trial_used_permanently:
-            conn.close()
-            return jsonify({"success": False, "error": "Trial already used"}), 400
-        
+    if not session.get('user_id'):
+        return jsonify({"success": False, "error": "Login required"}), 401
+
+    db = get_database()
+    if not db:
+        return jsonify({"success": False, "error": "Database unavailable"}), 500
+
+    conn = db.get_connection()
+    cursor = conn.cursor()
+
+    user_id = session['user_id']
+    if db.use_postgres:
+        cursor.execute("SELECT trial_started_at, trial_used_permanently FROM users WHERE id = %s", (user_id,))
+    else:
+        cursor.execute("SELECT trial_started_at, trial_used_permanently FROM users WHERE id = ?", (user_id,))
+
+    row = cursor.fetchone()
+    if not row:
         conn.close()
+        return jsonify({"success": False, "error": "User not found"}), 404
+
+    trial_started_at, trial_used = row
+    
+    # Check if trial is still active
+    if trial_started_at:
+        trial_time = trial_started_at
+        if isinstance(trial_started_at, str):
+            trial_time = datetime.fromisoformat(trial_started_at.replace('Z', '+00:00'))
+        if datetime.utcnow() < trial_time + timedelta(hours=5):
+            conn.close()
+            return jsonify({"success": False, "error": "Trial already active"}), 400
+    
+    # Check if trial was already used
+    if trial_used:
+        conn.close()
+        return jsonify({"success": False, "error": "Trial already used"}), 400
+
+    now = datetime.utcnow()
+    expires = now + timedelta(hours=5)
+
+    # Update database
+    try:
+        if db.use_postgres:
+            cursor.execute("UPDATE users SET trial_started_at = %s, trial_expires_at = %s, trial_used_permanently = TRUE WHERE id = %s", (now, expires, user_id))
+        else:
+            cursor.execute("UPDATE users SET trial_started_at = ?, trial_expires_at = ?, trial_used_permanently = 1 WHERE id = ?", (now.isoformat(), expires.isoformat(), user_id))
         
-        # Start trial in database
-        try:
-            db_instance = get_database()
-            if db_instance:
-                conn = db_instance.get_connection()
-                cursor = conn.cursor()
-                
-                trial_start_time = datetime.utcnow()
-                trial_expires_time = trial_start_time + timedelta(hours=5)  # 5-hour trial
-                
-                # Update trial start time and mark as used (no trial_active column needed)
-                if db_instance.use_postgres:
-                    # Try with TRUE first (for boolean columns), fallback to 1 (for integer columns)
-                    try:
-                        cursor.execute("""
-                            UPDATE users 
-                            SET trial_started_at = %s,
-                                trial_expires_at = %s,
-                                trial_used_permanently = TRUE
-                            WHERE id = %s
-                        """, (trial_start_time, trial_expires_time, user_id))
-                    except Exception as bool_error:
-                        logger.warning(f"Boolean TRUE failed, trying integer 1: {bool_error}")
-                        cursor.execute("""
-                            UPDATE users 
-                            SET trial_started_at = %s,
-                                trial_expires_at = %s,
-                                trial_used_permanently = 1
-                            WHERE id = %s
-                        """, (trial_start_time, trial_expires_time, user_id))
-                else:
-                    cursor.execute("""
-                        UPDATE users 
-                        SET trial_started_at = ?,
-                            trial_expires_at = ?,
-                            trial_used_permanently = 1
-                        WHERE id = ?
-                    """, (trial_start_time.isoformat(), trial_expires_time.isoformat(), user_id))
-                
-                # Check if update affected any rows
-                if cursor.rowcount == 0:
-                    conn.close()
-                    return jsonify({"success": False, "error": "User not found in database"}), 404
-                
-                conn.commit()
-                conn.close()
-                logger.info(f"Trial started in database for user {user_id}")
-            else:
-                return jsonify({"success": False, "error": "Database connection failed"}), 500
-        except Exception as e:
-            import traceback
-            logger.error(f"🔥 ERROR: {str(e)}")
-            logger.error(f"📋 TRACEBACK: {traceback.format_exc()}")
-            return jsonify({"success": False, "error": f"Database error: {str(e)}"}), 500
-        
-        # Update session with calculated trial status
-        session['trial_active'] = calculate_trial_active(trial_start_time, True)
-        session['trial_started_at'] = trial_start_time.isoformat()
-        session['trial_expires_at'] = trial_expires_time.isoformat()
-        session['trial_used_permanently'] = True
-        session['effective_plan'] = get_effective_plan(session.get('user_plan', 'free'), session['trial_active'])
-        session['trial_warning_sent'] = False
-        
-        logger.info(f"Trial started for user {user_id}")
-        
-        return jsonify({
-            "success": True, 
-            "message": "5-hour trial started!",
-            "trial_remaining": get_trial_time_remaining(trial_start_time),
-            "effective_plan": session['effective_plan']
-        })
-        
+        conn.commit()
+        conn.close()
     except Exception as e:
-        import traceback
-        logger.error(f"🔥 ERROR: {str(e)}")
-        logger.error(f"📋 TRACEBACK: {traceback.format_exc()}")
-        return jsonify({"success": False, "error": f"Failed to start trial: {str(e)}"}), 500
+        conn.close()
+        logger.error(f"Database error starting trial: {e}")
+        return jsonify({"success": False, "error": "Database error"}), 500
+
+    # Update session - CRITICAL: Set trial_active to True and effective_plan to max
+    session['trial_active'] = True
+    session['trial_started_at'] = now.isoformat()
+    session['trial_expires_at'] = expires.isoformat()
+    session['trial_used_permanently'] = True
+    session['effective_plan'] = 'max'  # Give access to all tiers during trial
+    session['trial_warning_sent'] = False
+
+    logger.info(f"Trial started for user {user_id}")
+
+    return jsonify({
+        "success": True, 
+        "message": "🔥 5-Hour Trial Activated! Growth + Max companions unlocked!",
+        "expires_at": expires.isoformat(),
+        "effective_plan": 'max'
+    })
 
 # REMOVED: Duplicate debug_session_info function - using the more comprehensive one at /debug/session-info
 

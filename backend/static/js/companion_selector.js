@@ -1718,8 +1718,20 @@ window.startCentralTrial = async function() {
         if (data.success) {
             console.log('✅ Central trial started successfully:', data);
             
+            // Hide the trial button immediately
+            const centralTrialOffer = document.getElementById('centralTrialOffer');
+            if (centralTrialOffer) {
+                centralTrialOffer.classList.add('hidden');
+                centralTrialOffer.style.display = 'none';
+            }
+            
             // Show success message
             showNotification(data.message || '🎉 5-hour trial started! All premium companions unlocked!', 'success');
+            
+            // Initialize trial timer if expires_at is provided
+            if (data.expires_at) {
+                initTrialTimer(data.expires_at);
+            }
             
             // Update trial status and refresh UI
             await checkTrialStatus();
@@ -1743,6 +1755,55 @@ window.startPremiumTrial = startPremiumTrial;
 window.showUpgradeModal = showUpgradeModal;
 window.closeUpgradeModal = closeUpgradeModal;
 window.redirectToUpgrade = redirectToUpgrade;
+
+// Trial Timer Functions
+function initTrialTimer(expirationTimeISO) {
+    const container = document.getElementById('trial-timer-container');
+    const progressCircle = document.getElementById('timer-progress');
+    const textDisplay = document.getElementById('trial-time-text');
+    
+    if (!container || !progressCircle || !textDisplay) {
+        console.warn('Trial timer elements not found');
+        return;
+    }
+    
+    const totalSeconds = 5 * 60 * 60; // 5 hours
+    const expiration = new Date(expirationTimeISO);
+    container.style.display = 'block';
+
+    function updateTimer() {
+        const now = new Date();
+        let secondsLeft = Math.max(0, Math.floor((expiration - now) / 1000));
+        let percent = secondsLeft / totalSeconds;
+        let dashoffset = 339.29 * (1 - percent);
+
+        progressCircle.style.strokeDashoffset = dashoffset;
+
+        // Color warning levels
+        if (secondsLeft <= 600) progressCircle.setAttribute('stroke', '#cc3300'); // red (10 min)
+        else if (secondsLeft <= 1800) progressCircle.setAttribute('stroke', '#ffaa00'); // orange (30 min)
+        else progressCircle.setAttribute('stroke', '#00cc66'); // green
+
+        // Time text
+        let hrs = Math.floor(secondsLeft / 3600);
+        let mins = Math.floor((secondsLeft % 3600) / 60);
+        let secs = secondsLeft % 60;
+        textDisplay.textContent = `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+
+        if (secondsLeft <= 0) {
+            clearInterval(interval);
+            container.style.display = 'none';
+            showNotification('⏰ Trial expired! Please upgrade to keep using premium features.', 'warning');
+            // Reload page to show locked companions again
+            setTimeout(() => window.location.reload(), 2000);
+        }
+    }
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    
+    console.log('🕒 Trial timer started, expires at:', expiration);
+}
 
 function showNotification(message, type = 'info') {
     console.log(`📢 Notification (${type}): ${message}`);
