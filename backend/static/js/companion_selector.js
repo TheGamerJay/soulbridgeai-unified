@@ -1818,35 +1818,64 @@ function initTrialTimer(expirationTimeISO) {
     const totalSeconds = 5 * 60 * 60; // 5 hours
     const expiration = new Date(expirationTimeISO);
     
-    console.log('⏰ Making timer container visible');
+    console.log('✨ Making enhanced timer visible with entrance animation');
+    
+    // 🎬 Beautiful entrance animation
     container.style.display = 'block';
-    console.log('⏰ Container display style after setting:', container.style.display);
+    container.style.opacity = '0';
+    container.style.transform = 'scale(0.8) translateY(-20px)';
+    container.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+    
+    // Trigger entrance animation
+    setTimeout(() => {
+        container.style.opacity = '1';
+        container.style.transform = 'scale(1) translateY(0)';
+    }, 50);
+    
+    console.log('🚀 Enhanced timer container now visible with animation');
 
     function updateTimer() {
         const now = new Date();
         let secondsLeft = Math.max(0, Math.floor((expiration - now) / 1000));
         let percent = secondsLeft / totalSeconds;
-        let dashoffset = 339.29 * (1 - percent);
-
+        
+        // ✨ Enhanced progress calculation for new design (radius 60, circumference ~377)
+        let dashoffset = 377 * (1 - percent);
         progressCircle.style.strokeDashoffset = dashoffset;
 
-        // Color warning levels
-        if (secondsLeft <= 600) progressCircle.setAttribute('stroke', '#cc3300'); // red (10 min)
-        else if (secondsLeft <= 1800) progressCircle.setAttribute('stroke', '#ffaa00'); // orange (30 min)
-        else progressCircle.setAttribute('stroke', '#00cc66'); // green
+        // 🎨 Beautiful warning states with CSS classes
+        container.classList.remove('timer-warning', 'timer-critical');
+        if (secondsLeft <= 300) {
+            container.classList.add('timer-critical'); // Critical: last 5 minutes
+            document.querySelector('.timer-status').textContent = 'CRITICAL';
+        } else if (secondsLeft <= 1800) {
+            container.classList.add('timer-warning'); // Warning: last 30 minutes  
+            document.querySelector('.timer-status').textContent = 'Warning';
+        } else {
+            document.querySelector('.timer-status').textContent = 'Active';
+        }
 
-        // Time text
+        // ⏰ Beautiful time display with better formatting
         let hrs = Math.floor(secondsLeft / 3600);
         let mins = Math.floor((secondsLeft % 3600) / 60);
         let secs = secondsLeft % 60;
         textDisplay.textContent = `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 
+        // 🎯 Enhanced expiration with smooth animation
         if (secondsLeft <= 0) {
             clearInterval(interval);
-            container.style.display = 'none';
-            showNotification('⏰ Trial expired! Please upgrade to keep using premium features.', 'warning');
-            // Reload page to show locked companions again
-            setTimeout(() => window.location.reload(), 2000);
+            
+            // Smooth fade out animation
+            container.style.transition = 'opacity 1s ease, transform 1s ease';
+            container.style.opacity = '0';
+            container.style.transform = 'scale(0.8)';
+            
+            setTimeout(() => {
+                container.style.display = 'none';
+                showNotification('⏰ Trial expired! Please upgrade to keep using premium features.', 'warning');
+                // Reload page to show locked companions again  
+                setTimeout(() => window.location.reload(), 2000);
+            }, 1000);
         }
     }
 
