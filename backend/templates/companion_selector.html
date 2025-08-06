@@ -459,6 +459,31 @@
     }
     </script>
     
+    <!-- 🔥 THE FINAL FIX - ULTIMATE NUCLEAR TIMER DESTROYER -->
+    <script>
+    setInterval(() => {
+        // 🔥 Remove rogue #trialTimer div
+        const rogue = document.getElementById("trialTimer");
+        if (rogue) {
+            console.warn("🧨 Removing ghost timer...");
+            rogue.remove();
+        }
+
+        // 🔥 Remove any old attached styles
+        const rogueStyle = document.querySelector("style#oldTimerStyles");
+        if (rogueStyle) rogueStyle.remove();
+
+        // 🔥 Overwrite old timer functions if they exist
+        const oldFns = ["startTrialCountdown", "updateTrialDisplay", "showTrialTimer", "hideTrialTimer"];
+        oldFns.forEach(fn => {
+            if (typeof window[fn] === "function") {
+                console.warn(`🧨 Disabling old function: ${fn}`);
+                window[fn] = () => {};
+            }
+        });
+    }, 300);
+    </script>
+    
     <script src="{{ url_for('static', filename='js/companion_selector.js') }}?v={{ range(1000000) | random }}"></script>
 </body>
 </html>
