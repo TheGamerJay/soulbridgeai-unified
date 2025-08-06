@@ -345,7 +345,44 @@
                 oldDisplay.remove();
                 console.log('🗑️ Forcibly removed old timer display');
             }
-        }, 100); // Check every 100ms
+        }, 50); // Check every 50ms (faster)
+        
+        // ULTRA AGGRESSIVE: Nuke any element that LOOKS like old timer
+        setInterval(function() {
+            // Find elements by various criteria
+            const suspiciousElements = document.querySelectorAll('div, span');
+            
+            suspiciousElements.forEach(el => {
+                const style = el.style.cssText || '';
+                const computed = window.getComputedStyle(el);
+                
+                // Check if it looks like old timer
+                const looksLikeOldTimer = (
+                    style.includes('gradient') && style.includes('#FF6B6B') ||
+                    style.includes('position: fixed') && style.includes('top: 20px') ||
+                    computed.background.includes('rgb(255, 107, 107)') ||
+                    el.textContent.includes(':') && el.textContent.match(/\d+:\d+/) ||
+                    computed.position === 'fixed' && computed.top === '20px' && computed.left.includes('%')
+                );
+                
+                if (looksLikeOldTimer && el.id !== 'trial-timer-container' && !el.classList.contains('trial-badge')) {
+                    console.warn('🔥 DESTROYING suspicious element:', {
+                        element: el,
+                        id: el.id,
+                        className: el.className,
+                        style: style,
+                        textContent: el.textContent,
+                        computed: {
+                            position: computed.position,
+                            top: computed.top,
+                            left: computed.left,
+                            background: computed.background
+                        }
+                    });
+                    el.remove();
+                }
+            });
+        }, 50); // Ultra fast checking
         
         // ULTIMATE NUCLEAR OPTION: Override getElementById to block old timer access
         const originalGetElementById = document.getElementById;

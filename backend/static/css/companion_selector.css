@@ -112,12 +112,20 @@ body::before {
 }
 */
 
-/* NUCLEAR OPTION: Force hide old timer elements */
+/* MAXIMUM NUCLEAR OPTION: Destroy any old timer elements */
 #trialTimer, 
 #trialTimeDisplay,
 *[id*="trial"][id*="Timer"],
 *[id*="trialTimer"],
-div[style*="gradient(45deg, #FF6B6B, #FF8E53)"] {
+div[style*="gradient(45deg, #FF6B6B, #FF8E53)"],
+div[style*="linear-gradient(45deg, #FF6B6B, #FF8E53)"],
+div[style*="#FF6B6B"],
+div[style*="rgb(255, 107, 107)"],
+div[style*="position: fixed"][style*="top: 20px"][style*="left: 50%"],
+div[id="trialTimer"], 
+span[id="trialTimeDisplay"],
+*[class*="trial-timer"]:not(.trial-badge),
+*[style*="pulse"] {
     display: none !important;
     visibility: hidden !important;
     opacity: 0 !important;
@@ -129,6 +137,11 @@ div[style*="gradient(45deg, #FF6B6B, #FF8E53)"] {
     overflow: hidden !important;
     pointer-events: none !important;
     z-index: -9999 !important;
+    font-size: 0 !important;
+    color: transparent !important;
+    background: transparent !important;
+    border: none !important;
+    animation: none !important;
 }
 
 /* Header */
