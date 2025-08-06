@@ -1118,13 +1118,24 @@ def start_trial():
                 
                 # Update trial start time and mark as used (no trial_active column needed)
                 if db_instance.use_postgres:
-                    cursor.execute("""
-                        UPDATE users 
-                        SET trial_started_at = %s,
-                            trial_expires_at = %s,
-                            trial_used_permanently = 1
-                        WHERE id = %s
-                    """, (trial_start_time, trial_expires_time, user_id))
+                    # Try with TRUE first (for boolean columns), fallback to 1 (for integer columns)
+                    try:
+                        cursor.execute("""
+                            UPDATE users 
+                            SET trial_started_at = %s,
+                                trial_expires_at = %s,
+                                trial_used_permanently = TRUE
+                            WHERE id = %s
+                        """, (trial_start_time, trial_expires_time, user_id))
+                    except Exception as bool_error:
+                        logger.warning(f"Boolean TRUE failed, trying integer 1: {bool_error}")
+                        cursor.execute("""
+                            UPDATE users 
+                            SET trial_started_at = %s,
+                                trial_expires_at = %s,
+                                trial_used_permanently = 1
+                            WHERE id = %s
+                        """, (trial_start_time, trial_expires_time, user_id))
                 else:
                     cursor.execute("""
                         UPDATE users 
