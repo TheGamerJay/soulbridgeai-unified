@@ -233,6 +233,12 @@ async function loadCompanions() {
             effective_plan: effectivePlan
         };
 
+        // Initialize trial timer if trial is active
+        if (trialActive && data.trial_expires_at) {
+            console.log('🕒 Initializing trial timer on page load');
+            initTrialTimer(data.trial_expires_at);
+        }
+
         // Hide trial button if active
         const trialBtn = document.getElementById('trial-button');
         if (trialActive && trialBtn) {
@@ -468,9 +474,9 @@ function loadFallbackCompanions() {
                 is_recommended: true
             },
             {
-                companion_id: 'blayzo_growth',
+                companion_id: 'blayzo_premium',
                 display_name: 'Blayzo Pro',
-                avatar_image: '/static/logos/Blayzo.png',
+                avatar_image: '/static/logos/Blayzo premium companion.png',
                 short_bio: 'Advanced Blayzo with enhanced creativity and memory',
                 personality_tags: ['Creative', 'Advanced'],
                 special_features: ['Enhanced creativity', 'Memory retention', 'Advanced problem solving', 'Deep conversations'],
@@ -490,9 +496,9 @@ function loadFallbackCompanions() {
                 is_recommended: true
             },
             {
-                companion_id: 'companion_gamerjay_premium',
+                companion_id: 'gamerjay_premium',
                 display_name: 'GamerJay Premium',
-                avatar_image: '/static/logos/GamerJay Free companion.png',
+                avatar_image: '/static/logos/GamerJay premium companion.png',
                 short_bio: 'Enhanced GamerJay with premium features',
                 personality_tags: ['Gaming', 'Premium'],
                 special_features: ['Pro gaming strategies', 'Performance analysis', 'Competitive coaching', 'Advanced metrics'],

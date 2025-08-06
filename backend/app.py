@@ -109,6 +109,7 @@ def load_user_context():
                     
                     if trial_active:
                         session['trial_started_at'] = trial_time.isoformat()
+                        session['trial_expires_at'] = (trial_time + timedelta(hours=5)).isoformat()
                         session['effective_plan'] = 'max'
                     else:
                         session['trial_active'] = False
@@ -1976,6 +1977,7 @@ def api_companions():
             "user_plan": user_plan,
             "trial_active": trial_active,
             "trial_used_permanently": session.get('trial_used_permanently', False),
+            "trial_expires_at": session.get('trial_expires_at'),
             "effective_plan": effective_plan  # Use actual effective_plan
         })
         
