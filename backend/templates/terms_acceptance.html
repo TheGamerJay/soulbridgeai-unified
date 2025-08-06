@@ -746,7 +746,7 @@
         };
 
         function translatePage(langCode) {
-            console.log(`Attempting to translate to: ${langCode}`);
+            console.log(`🌐 Attempting to translate to: ${langCode}`);
             
             // Update active button
             document.querySelectorAll('.lang-btn').forEach(btn => {
@@ -763,6 +763,7 @@
 
             if (langCode === 'en') {
                 // Reset to English - reload page to clear translations
+                console.log('🔄 Resetting to English');
                 window.location.reload();
                 return;
             }
@@ -770,40 +771,60 @@
             // Show translation status immediately
             showTranslationStatus(langCode);
 
-            // Try Google Translate first
-            setTimeout(() => {
-                const selectElement = document.querySelector('.goog-te-combo');
-                if (selectElement && window.googleTranslateLoaded) {
-                    console.log('Using Google Translate');
-                    
-                    // Map language codes for Google Translate
-                    const langMapping = {
-                        'zh': 'zh-cn',
-                        'pt': 'pt',
-                        'es': 'es',
-                        'fr': 'fr',
-                        'de': 'de',
-                        'ja': 'ja',
-                        'ko': 'ko',
-                        'ar': 'ar',
-                        'hi': 'hi',
-                        'ru': 'ru',
-                        'it': 'it'
-                    };
-                    
-                    const googleLangCode = langMapping[langCode] || langCode;
-                    selectElement.value = googleLangCode;
-                    selectElement.dispatchEvent(new Event('change'));
-                    
-                    // Wait for translation to complete, then apply custom translations
-                    setTimeout(() => {
-                        applyCustomTranslations(langCode);
-                    }, 2000);
-                } else {
-                    console.log('Google Translate not available, using manual translation');
+            // Find Google Translate dropdown with multiple selectors
+            let selectElement = document.querySelector('.goog-te-combo') || 
+                               document.querySelector('select[class*="goog-te"]') ||
+                               document.querySelector('.goog-te-gadget select') ||
+                               document.querySelector('#google_translate_element select');
+            
+            console.log('🔍 Looking for Google Translate elements...');
+            console.log('Select element found:', !!selectElement);
+            
+            if (selectElement) {
+                console.log('✅ Found Google Translate dropdown, triggering translation');
+                
+                // Map language codes for Google Translate (more comprehensive mapping)
+                const langMapping = {
+                    'zh': 'zh-CN',
+                    'pt': 'pt', 
+                    'es': 'es',
+                    'fr': 'fr',
+                    'de': 'de',
+                    'ja': 'ja',
+                    'ko': 'ko',
+                    'ar': 'ar',
+                    'hi': 'hi',
+                    'ru': 'ru',
+                    'it': 'it'
+                };
+                
+                const googleLangCode = langMapping[langCode] || langCode;
+                console.log(`🎯 Setting Google Translate to: ${googleLangCode}`);
+                
+                // Set the value and trigger change
+                selectElement.value = googleLangCode;
+                
+                // Try multiple event triggers to ensure it works
+                selectElement.dispatchEvent(new Event('change', { bubbles: true }));
+                selectElement.dispatchEvent(new Event('input', { bubbles: true }));
+                
+                // Also try click event
+                setTimeout(() => {
+                    selectElement.dispatchEvent(new Event('click', { bubbles: true }));
+                }, 100);
+                
+                // Apply custom translations after a delay
+                setTimeout(() => {
+                    console.log('🎨 Applying custom translations');
+                    applyCustomTranslations(langCode);
+                }, 3000);
+                
+            } else {
+                console.log('❌ Google Translate dropdown not found, using manual translation');
+                setTimeout(() => {
                     applyManualTranslation(langCode);
-                }
-            }, 500);
+                }, 500);
+            }
         }
 
         function applyCustomTranslations(langCode) {
@@ -938,34 +959,44 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log('DOM loaded, checking for saved language...');
             
-            // Wait for Google Translate to load
+            // Wait for Google Translate to load with better detection
             let checkCount = 0;
+            const maxChecks = 30; // Max 15 seconds
+            
             const checkGoogleTranslate = setInterval(() => {
                 checkCount++;
+                
+                // Check multiple selectors for Google Translate elements
                 const translateElement = document.querySelector('#google_translate_element');
-                const selectElement = document.querySelector('.goog-te-combo');
+                const selectElement = document.querySelector('.goog-te-combo') || 
+                                    document.querySelector('select[class*="goog-te"]') ||
+                                    document.querySelector('.goog-te-gadget select');
+                const gadgetElement = document.querySelector('.goog-te-gadget');
                 
-                console.log(`Check ${checkCount}: Google Translate element exists:`, !!translateElement);
-                console.log(`Check ${checkCount}: Select element exists:`, !!selectElement);
+                console.log(`🔄 Check ${checkCount}/${maxChecks}:`);
+                console.log('  - Container exists:', !!translateElement);
+                console.log('  - Select exists:', !!selectElement);
+                console.log('  - Gadget exists:', !!gadgetElement);
                 
-                if (selectElement || checkCount > 20) { // Max 10 seconds
+                if (selectElement || checkCount >= maxChecks) {
                     clearInterval(checkGoogleTranslate);
                     
                     if (selectElement) {
                         window.googleTranslateLoaded = true;
-                        console.log('Google Translate fully loaded');
+                        console.log('✅ Google Translate fully loaded and ready');
                         
                         // Apply saved language
                         const savedLang = localStorage.getItem('preferred-language');
                         if (savedLang && savedLang !== 'en') {
-                            console.log('Applying saved language:', savedLang);
+                            console.log(`🌐 Applying saved language: ${savedLang}`);
                             setTimeout(() => {
                                 translatePage(savedLang);
                             }, 500);
                         }
                     } else {
                         window.googleTranslateLoaded = false;
-                        console.warn('Google Translate failed to load after 10 seconds');
+                        console.warn('❌ Google Translate failed to load after 15 seconds');
+                        console.log('💡 Manual translations will be used as fallback');
                     }
                 }
             }, 500);
@@ -976,8 +1007,28 @@
             console.log('=== Translation Debug ===');
             console.log('Current language:', currentLanguage);
             console.log('Google Translate loaded:', window.googleTranslateLoaded);
-            console.log('Google Translate element exists:', !!document.querySelector('.goog-te-combo'));
+            
+            // Check for various Google Translate elements
+            const elements = {
+                '.goog-te-combo': !!document.querySelector('.goog-te-combo'),
+                '.goog-te-gadget': !!document.querySelector('.goog-te-gadget'),
+                '#google_translate_element': !!document.querySelector('#google_translate_element'),
+                '.skiptranslate': !!document.querySelector('.skiptranslate'),
+                'select[class*="goog-te"]': !!document.querySelector('select[class*="goog-te"]'),
+                'iframe[id*="goog-te"]': !!document.querySelector('iframe[id*="goog-te"]')
+            };
+            
+            console.log('Google Translate elements found:', elements);
             console.log('Available translations:', Object.keys(translations));
+            
+            // List all Google Translate related elements
+            const allElements = document.querySelectorAll('[class*="goog"], [id*="goog"]');
+            console.log('All Google-related elements:', Array.from(allElements).map(el => ({
+                tag: el.tagName,
+                id: el.id,
+                className: el.className,
+                textContent: el.textContent?.substring(0, 50)
+            })));
         }
 
         // Add manual refresh translation function
