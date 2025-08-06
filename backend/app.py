@@ -79,10 +79,54 @@ def load_user_context():
         session["user_plan"] = new_plan
         current_plan = new_plan
     
+    # Sync trial status from database to session
+    try:
+        db_instance = get_database()
+        if db_instance:
+            conn = db_instance.get_connection()
+            cursor = conn.cursor()
+            if db_instance.use_postgres:
+                cursor.execute("SELECT trial_started_at, trial_used_permanently FROM users WHERE id = %s", (user_id,))
+            else:
+                cursor.execute("SELECT trial_started_at, trial_used_permanently FROM users WHERE id = ?", (user_id,))
+            
+            result = cursor.fetchone()
+            if result:
+                trial_started_at_db, trial_used_permanently_db = result
+                
+                # Update session with database values
+                session['trial_used_permanently'] = bool(trial_used_permanently_db)
+                
+                # Check if trial is currently active
+                if trial_started_at_db:
+                    if isinstance(trial_started_at_db, str):
+                        trial_time = datetime.fromisoformat(trial_started_at_db.replace('Z', '+00:00'))
+                    else:
+                        trial_time = trial_started_at_db
+                    
+                    trial_active = datetime.utcnow() < trial_time + timedelta(hours=5)
+                    session['trial_active'] = trial_active
+                    
+                    if trial_active:
+                        session['trial_started_at'] = trial_time.isoformat()
+                        session['effective_plan'] = 'max'
+                    else:
+                        session['trial_active'] = False
+                        session['effective_plan'] = current_plan
+                else:
+                    session['trial_active'] = False
+                    session['effective_plan'] = current_plan
+            
+            conn.close()
+    except Exception as e:
+        logger.error(f"Error syncing trial status: {e}")
+        # Fallback to session values
+        pass
+
     g.user_plan = current_plan
     g.trial_active = session.get("trial_active", False)
     g.trial_started_at = session.get("trial_started_at")
-    g.effective_plan = get_effective_plan(g.user_plan, g.trial_active)
+    g.effective_plan = session.get("effective_plan", current_plan)
     g.is_admin = is_admin()
     session['last_seen'] = datetime.utcnow().isoformat()
 
@@ -1827,8 +1871,8 @@ def chat():
             'blayzo_free': 'free', 'blayzica_free': 'free', 'companion_gamerjay': 'free',
             'blayzia_free': 'free', 'blayzion_free': 'free', 'claude_free': 'free',
             # Growth companions  
-            'companion_sky': 'growth', 'blayzo_growth': 'growth', 'blayzica_growth': 'growth',
-            'companion_gamerjay_premium': 'growth', 'watchdog_growth': 'growth',
+            'companion_sky': 'growth', 'blayzo_premium': 'growth', 'blayzica_growth': 'growth',
+            'gamerjay_premium': 'growth', 'watchdog_growth': 'growth',
             'crimson_growth': 'growth', 'violet_growth': 'growth', 'claude_growth': 'growth',
             # Max companions
             'companion_crimson': 'max', 'companion_violet': 'max', 'royal_max': 'max',
@@ -1901,9 +1945,9 @@ def api_companions():
             ],
             "growth": [
                 {"companion_id": "companion_sky", "display_name": "Sky", "description": "Premium companion with advanced features", "avatar_image": "/static/logos/Sky a primum companion.png", "tier": "growth", "is_recommended": True, "popularity_score": 90, "lock_reason": get_lock_reason("growth")},
-                {"companion_id": "blayzo_growth", "display_name": "Blayzo Pro", "description": "Advanced Blayzo with enhanced creativity", "avatar_image": "/static/logos/Blayzo premium companion.png", "tier": "growth", "is_recommended": True, "popularity_score": 92, "lock_reason": get_lock_reason("growth")},
+                {"companion_id": "blayzo_premium", "display_name": "Blayzo Pro", "description": "Advanced Blayzo with enhanced creativity", "avatar_image": "/static/logos/Blayzo premium companion.png", "tier": "growth", "is_recommended": True, "popularity_score": 92, "lock_reason": get_lock_reason("growth")},
                 {"companion_id": "blayzica_growth", "display_name": "Blayzica Pro", "description": "Enhanced emotional intelligence companion", "avatar_image": "/static/logos/Blayzica Pro.png", "tier": "growth", "is_recommended": True, "popularity_score": 91, "lock_reason": get_lock_reason("growth")},
-                {"companion_id": "companion_gamerjay_premium", "display_name": "GamerJay Premium", "description": "Enhanced GamerJay with premium features", "avatar_image": "/static/logos/GamerJay premium companion.png", "tier": "growth", "is_recommended": False, "popularity_score": 88, "lock_reason": get_lock_reason("growth")},
+                {"companion_id": "gamerjay_premium", "display_name": "GamerJay Premium", "description": "Enhanced GamerJay with premium features", "avatar_image": "/static/logos/GamerJay premium companion.png", "tier": "growth", "is_recommended": False, "popularity_score": 88, "lock_reason": get_lock_reason("growth")},
                 {"companion_id": "watchdog_growth", "display_name": "WatchDog", "description": "Your protective guardian companion", "avatar_image": "/static/logos/WatchDog a Primum companion.png", "tier": "growth", "is_recommended": False, "popularity_score": 78, "lock_reason": get_lock_reason("growth")},
                 {"companion_id": "crimson_growth", "display_name": "Crimson", "description": "Motivational drive to overcome challenges", "avatar_image": "/static/logos/Crimson.png", "tier": "growth", "is_recommended": True, "popularity_score": 87, "lock_reason": get_lock_reason("growth")},
                 {"companion_id": "violet_growth", "display_name": "Violet", "description": "Creative inspiration and artistic guidance", "avatar_image": "/static/logos/Violet.png", "tier": "growth", "is_recommended": False, "popularity_score": 84, "lock_reason": get_lock_reason("growth")},
@@ -2012,9 +2056,9 @@ def api_companions_select():
             ],
             "growth": [
                 {"companion_id": "companion_sky", "tier": "growth"},
-                {"companion_id": "blayzo_growth", "tier": "growth"},
+                {"companion_id": "blayzo_premium", "tier": "growth"},
                 {"companion_id": "blayzica_growth", "tier": "growth"},
-                {"companion_id": "companion_gamerjay_premium", "tier": "growth"},
+                {"companion_id": "gamerjay_premium", "tier": "growth"},
                 {"companion_id": "watchdog_growth", "tier": "growth"},
                 {"companion_id": "crimson_growth", "tier": "growth"},
                 {"companion_id": "violet_growth", "tier": "growth"},
@@ -10987,9 +11031,9 @@ def get_companions():
                     "is_recommended": True
                 },
                 {
-                    "companion_id": "blayzo_growth",
+                    "companion_id": "blayzo_premium",
                     "display_name": "Blayzo Pro",
-                    "avatar_image": "/static/logos/Blayzo.png",
+                    "avatar_image": "/static/logos/Blayzo premium companion.png",
                     "short_bio": "Advanced Blayzo with enhanced creativity and memory",
                     "personality_tags": ["Creative", "Advanced"],
                     "special_features": ["Enhanced creativity", "Memory retention", "Advanced problem solving", "Deep conversations"],
@@ -11011,7 +11055,7 @@ def get_companions():
                     "is_recommended": True
                 },
                 {
-                    "companion_id": "companion_gamerjay_premium",
+                    "companion_id": "gamerjay_premium",
                     "display_name": "GamerJay Premium",
                     "avatar_image": "/static/logos/GamerJay premium companion.png",
                     "short_bio": "Enhanced GamerJay with premium features",
