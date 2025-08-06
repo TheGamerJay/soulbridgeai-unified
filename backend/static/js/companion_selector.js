@@ -316,11 +316,11 @@ function createCompanionCard(companion, isLocked) {
         buttonOnClick = `window.selectCompanion('${companion.companion_id}')`;
         buttonDisabled = '';
     } else if (isLocked && (companion.tier === 'growth' || companion.tier === 'max')) {
-        // Locked premium companion - show locked message (no individual trial buttons)
-        buttonClass = 'btn-select';
-        buttonText = companion.tier === 'growth' ? 'Growth Plan Required' : 'Max Plan Required';
-        buttonOnClick = '';
-        buttonDisabled = 'disabled';
+        // Locked premium companion - show upgrade option
+        buttonClass = 'btn-select btn-upgrade';
+        buttonText = companion.tier === 'growth' ? 'Upgrade to Growth' : 'Upgrade to Max';
+        buttonOnClick = `showUpgradeModal('${companion.companion_id}', '${companion.tier}', '${companion.display_name}')`;
+        buttonDisabled = '';
     } else if (isLocked) {
         // Other locked companions (referral, etc.)
         buttonClass = 'btn-select';
@@ -793,13 +793,14 @@ function renderSection(sectionId, companionList) {
                                     </button>
                                 `;
                             } else if (companion.tier === 'growth' || companion.tier === 'max') {
-                                console.log(`🔘 Rendering LOCKED button for ${companion.display_name} (${companion.tier} tier)`);
-                                // No individual trial buttons - just show locked state
+                                console.log(`🔘 Rendering UPGRADE button for ${companion.display_name} (${companion.tier} tier)`);
+                                // Show upgrade button for premium companions
                                 return `
-                                    <button class="btn-select" disabled 
+                                    <button class="btn-select btn-upgrade" 
                                             data-companion-id="${companion.companion_id}"
-                                            style="background: #666; color: #ccc; cursor: not-allowed;">
-                                        🔒 ${companion.tier === 'growth' ? 'Growth Plan Required' : 'Max Plan Required'}
+                                            onclick="showUpgradeModal('${companion.companion_id}', '${companion.tier}', '${companion.display_name}')"
+                                            style="background: linear-gradient(45deg, #4CAF50, #45a049); color: white; border: none; font-weight: bold;">
+                                        💎 ${companion.tier === 'growth' ? 'Upgrade to Growth' : 'Upgrade to Max'}
                                     </button>
                                 `;
                             } else {
