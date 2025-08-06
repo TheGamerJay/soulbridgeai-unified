@@ -130,13 +130,6 @@
                     <div id="ring-text" class="ring-text">5:00</div>
                 </div>
 
-                <!-- Trial Button -->
-                {% if not session.get('trial_used_permanently') and not session.get('trial_active') %}
-                <button id="start-trial-btn" onclick="startTrial()" class="action-btn trial-btn" style="background: linear-gradient(135deg, #ffd700, #ffb347); color: #000; font-weight: bold;">
-                    <i class="fas fa-star"></i>
-                    Start 5h Trial
-                </button>
-                {% endif %}
                 
                 <!-- Trial Badge (shows when trial is active) -->
                 {% if session.get('trial_active') %}
