@@ -301,12 +301,6 @@
         
         <!-- Right side buttons -->
         <div style="display: flex; gap: 15px; align-items: center;">
-            <!-- Trial Button -->
-            {% if not session.get('trial_used_permanently') and not session.get('trial_active') %}
-            <button id="start-trial-btn" onclick="startTrial()" style="background: linear-gradient(135deg, #ffd700, #ffb347); color: #000; border: none; padding: 8px 16px; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 12px; animation: pulse-gold 2s infinite;">
-                ⭐ Start 5h Trial
-            </button>
-            {% endif %}
             
             <!-- Trial Badge -->
             {% if session.get('trial_active') %}
@@ -1141,39 +1135,12 @@ What specific area would you like help with? I know every feature of SoulBridge 
                     ringWrapper.classList.add('hidden');
                 }
 
-                // Hide trial button if used or active
-                const trialBtn = document.getElementById("start-trial-btn");
-                if (trialBtn && (trial_active || trial_used_permanently)) {
-                    trialBtn.classList.add("hidden");
-                }
 
             } catch (error) {
                 console.error('Error refreshing user status:', error);
             }
         }
 
-        async function startTrial() {
-            try {
-                const res = await fetch('/api/start-trial', { method: 'POST' });
-                const data = await res.json();
-                
-                if (data.success) {
-                    alert("🌟 5-Hour Trial started! Enjoy all premium features!");
-                    refreshUserStatus();
-                    
-                    // Hide the trial button immediately
-                    const trialBtn = document.getElementById("start-trial-btn");
-                    if (trialBtn) {
-                        trialBtn.classList.add("hidden");
-                    }
-                } else {
-                    alert("Trial could not be started: " + (data.error || "Unknown error"));
-                }
-            } catch (error) {
-                console.error('Error starting trial:', error);
-                alert("Error starting trial. Please try again.");
-            }
-        }
 
         // Start refreshing user status
         setInterval(refreshUserStatus, 5000);  // auto refresh every 5 sec
