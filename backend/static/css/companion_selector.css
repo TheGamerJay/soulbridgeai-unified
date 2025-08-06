@@ -125,7 +125,9 @@ div[style*="position: fixed"][style*="top: 20px"][style*="left: 50%"]:not(#trial
 div[id="trialTimer"], 
 span[id="trialTimeDisplay"],
 *[class*="trial-timer"]:not(.trial-badge),
-*[style*="pulse"] {
+*[style*="pulse"],
+*[style*="animation: pulse"],
+*[style*="background: linear-gradient(45deg"] {
     display: none !important;
     visibility: hidden !important;
     opacity: 0 !important;

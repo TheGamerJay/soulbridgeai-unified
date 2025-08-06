@@ -345,10 +345,10 @@
                 oldDisplay.remove();
                 console.log('🗑️ Forcibly removed old timer display');
             }
-        }, 50); // Check every 50ms (faster)
+        }, 10); // Check every 10ms (ULTRA FAST)
         
         // ULTRA AGGRESSIVE: Nuke any element that LOOKS like old timer
-        setInterval(function() {
+        function destroySuspiciousElements() {
             // Find elements by various criteria
             const suspiciousElements = document.querySelectorAll('div, span');
             
@@ -391,7 +391,11 @@
                     el.remove();
                 }
             });
-        }, 50); // Ultra fast checking
+        }
+        
+        // Run immediately and then every 10ms
+        destroySuspiciousElements();
+        setInterval(destroySuspiciousElements, 10); // ULTRA ULTRA fast checking (100x per second!)
         
         // DEBUG: Check new timer visibility every 2 seconds
         setInterval(function() {
