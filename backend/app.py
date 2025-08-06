@@ -1145,9 +1145,9 @@ def start_trial():
             else:
                 return jsonify({"success": False, "error": "Database connection failed"}), 500
         except Exception as e:
-            logger.error(f"Database error starting trial: {e}")
             import traceback
-            logger.error(f"Trial start traceback: {traceback.format_exc()}")
+            logger.error(f"🔥 ERROR: {str(e)}")
+            logger.error(f"📋 TRACEBACK: {traceback.format_exc()}")
             return jsonify({"success": False, "error": f"Database error: {str(e)}"}), 500
         
         # Update session with calculated trial status
@@ -1168,8 +1168,10 @@ def start_trial():
         })
         
     except Exception as e:
-        logger.error(f"Error starting trial: {e}")
-        return jsonify({"success": False, "error": "Failed to start trial"}), 500
+        import traceback
+        logger.error(f"🔥 ERROR: {str(e)}")
+        logger.error(f"📋 TRACEBACK: {traceback.format_exc()}")
+        return jsonify({"success": False, "error": f"Failed to start trial: {str(e)}"}), 500
 
 # REMOVED: Duplicate debug_session_info function - using the more comprehensive one at /debug/session-info
 
