@@ -17,7 +17,7 @@ import json
 from copy import deepcopy
 from datetime import datetime, timezone, timedelta
 from flask import Flask, jsonify, render_template, request, session, redirect, url_for, flash, make_response, g
-from trial_utils import is_trial_active, get_trial_time_remaining
+from trial_utils import is_trial_active as calculate_trial_active, get_trial_time_remaining
 
 # Configure logging first
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -1095,7 +1095,7 @@ def start_trial():
                 trial_started_at = trial_started_at_str
         
         # Check if trial is already active
-        if trial_started_at and is_trial_active(trial_started_at, trial_used_permanently):
+        if trial_started_at and calculate_trial_active(trial_started_at, trial_used_permanently):
             conn.close()
             return jsonify({"success": False, "error": "Trial is already active"}), 400
         
@@ -1162,7 +1162,7 @@ def start_trial():
             return jsonify({"success": False, "error": f"Database error: {str(e)}"}), 500
         
         # Update session with calculated trial status
-        session['trial_active'] = is_trial_active(trial_start_time, True)
+        session['trial_active'] = calculate_trial_active(trial_start_time, True)
         session['trial_started_at'] = trial_start_time.isoformat()
         session['trial_expires_at'] = trial_expires_time.isoformat()
         session['trial_used_permanently'] = True
