@@ -110,7 +110,7 @@ def load_user_context():
                         conn = db_instance.get_connection()
                         cursor = conn.cursor()
                         if db_instance.use_postgres:
-                            cursor.execute("UPDATE users SET trial_active = 0, trial_used_permanently = TRUE WHERE id = %s", (user_id,))
+                            cursor.execute("UPDATE users SET trial_active = 0, trial_used_permanently = 1 WHERE id = %s", (user_id,))
                         else:
                             cursor.execute("UPDATE users SET trial_active = 0, trial_used_permanently = 1 WHERE id = ?", (user_id,))
                         conn.commit()
@@ -1122,7 +1122,7 @@ def start_trial():
                         UPDATE users 
                         SET trial_started_at = %s,
                             trial_expires_at = %s,
-                            trial_used_permanently = TRUE
+                            trial_used_permanently = 1
                         WHERE id = %s
                     """, (trial_start_time, trial_expires_time, user_id))
                 else:
@@ -3847,7 +3847,7 @@ def get_comprehensive_trial_stats():
             cursor.execute("SELECT COUNT(*) FROM users WHERE trial_active = 1")
             stats['active_trials'] = cursor.fetchone()[0]
             
-            cursor.execute("SELECT COUNT(*) FROM users WHERE trial_used_permanently = TRUE")
+            cursor.execute("SELECT COUNT(*) FROM users WHERE trial_used_permanently = 1")
             stats['used_trials'] = cursor.fetchone()[0]
             
             cursor.execute("SELECT COUNT(*) FROM users WHERE user_plan = 'growth'")
@@ -4003,7 +4003,7 @@ def admin_expire_all_trials():
             cursor.execute("""
                 UPDATE users 
                 SET trial_active = 0, 
-                    trial_used_permanently = TRUE
+                    trial_used_permanently = 1
                 WHERE trial_active = 1
             """)
         else:
@@ -4850,7 +4850,7 @@ def start_trial_old():
                 UPDATE users 
                 SET trial_started_at = CURRENT_TIMESTAMP, 
                     trial_companion = %s, 
-                    trial_used_permanently = TRUE,
+                    trial_used_permanently = 1,
                     trial_expires_at = CURRENT_TIMESTAMP + INTERVAL '5 hours'
                 WHERE email = %s
             """, (companion_id, user_email))
@@ -7278,7 +7278,7 @@ def debug_force_free_user():
                 SET plan = 'free', 
                     trial_expires_at = NULL,
                     trial_started_at = NULL,
-                    trial_used_permanently = TRUE
+                    trial_used_permanently = 1
                 WHERE id = %s
             """, (user_id,))
             conn.commit()
