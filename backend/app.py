@@ -1080,22 +1080,27 @@ def start_trial():
                 cursor = conn.cursor()
                 
                 trial_start_time = datetime.utcnow()
+                trial_expires_time = trial_start_time + timedelta(hours=5)  # 5-hour trial
                 
-                # Simplified update without trial_warning_sent in case column doesn't exist
+                # Update both trial systems for compatibility
                 if db_instance.use_postgres:
                     cursor.execute("""
                         UPDATE users 
-                        SET trial_active = 1, 
-                            trial_started_at = %s
+                        SET trial_active = TRUE,
+                            trial_started_at = %s,
+                            trial_expires_at = %s,
+                            trial_used_permanently = TRUE
                         WHERE id = %s
-                    """, (trial_start_time, user_id))
+                    """, (trial_start_time, trial_expires_time, user_id))
                 else:
                     cursor.execute("""
                         UPDATE users 
-                        SET trial_active = 1, 
-                            trial_started_at = ?
+                        SET trial_active = 1,
+                            trial_started_at = ?,
+                            trial_expires_at = ?,
+                            trial_used_permanently = 1
                         WHERE id = ?
-                    """, (trial_start_time.isoformat(), user_id))
+                    """, (trial_start_time.isoformat(), trial_expires_time.isoformat(), user_id))
                 
                 # Check if update affected any rows
                 if cursor.rowcount == 0:
@@ -1116,6 +1121,8 @@ def start_trial():
         # Update session
         session['trial_active'] = True
         session['trial_started_at'] = trial_start_time.isoformat()
+        session['trial_expires_at'] = trial_expires_time.isoformat()
+        session['trial_used_permanently'] = True
         session['effective_plan'] = get_effective_plan(session.get('user_plan', 'free'), True)
         session['trial_warning_sent'] = False
         
