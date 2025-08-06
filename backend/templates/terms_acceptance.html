@@ -461,8 +461,9 @@
                 </button>
             </div>
 
-            <!-- Google Translate Widget (Hidden) -->
-            <div id="google_translate_element" style="display: none;"></div>
+            <!-- Google Translate Widget (Visible for debugging) -->
+            <div id="google_translate_element" style="background: rgba(0,0,0,0.8); padding: 10px; border-radius: 8px; margin: 10px 0;"></div>
+            <p style="font-size: 0.8rem; color: #888;">⬆️ Native Google Translate widget (for debugging)</p>
 
             <div class="translation-notice">
                 <strong>⚠️ Important:</strong> Translations are provided by Google Translate for accessibility. 
@@ -471,6 +472,14 @@
                 <strong>重要:</strong> 翻译由Google翻译提供。英文版本具有法律约束力。
                 <br>
                 <strong>Importante:</strong> Las traducciones son proporcionadas por Google Translate. La versión en inglés es legalmente vinculante.
+                <br><br>
+                <!-- Debug buttons (remove in production) -->
+                <button type="button" onclick="debugTranslation()" style="background: rgba(255,255,255,0.1); border: 1px solid #ccc; padding: 5px 10px; margin: 5px; border-radius: 4px; color: #ccc; font-size: 0.8rem;">
+                    🔍 Debug Translation
+                </button>
+                <button type="button" onclick="refreshTranslation()" style="background: rgba(255,255,255,0.1); border: 1px solid #ccc; padding: 5px 10px; margin: 5px; border-radius: 4px; color: #ccc; font-size: 0.8rem;">
+                    🔄 Refresh Translation
+                </button>
             </div>
         </div>
 
@@ -677,13 +686,25 @@
         function googleTranslateElementInit() {
             new google.translate.TranslateElement({
                 pageLanguage: 'en',
-                includedLanguages: 'en,es,fr,de,pt,zh,ja,ko,ar,hi,ru,it,nl,sv,da,no,fi,pl,tr,th,vi,id,ms,tl',
+                includedLanguages: 'en,es,fr,de,pt,zh-cn,ja,ko,ar,hi,ru,it,nl,sv,da,no,fi,pl,tr,th,vi,id,ms,tl',
                 layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
-                autoDisplay: false
+                autoDisplay: false,
+                multilanguagePage: true
             }, 'google_translate_element');
         }
+
+        // Ensure Google Translate loads
+        window.addEventListener('load', function() {
+            if (typeof google === 'undefined' || typeof google.translate === 'undefined') {
+                console.warn('Google Translate failed to load, falling back to manual translations');
+                window.googleTranslateLoaded = false;
+            } else {
+                window.googleTranslateLoaded = true;
+                console.log('Google Translate loaded successfully');
+            }
+        });
     </script>
-    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
     <!-- Translation Functionality -->
     <script>
@@ -725,6 +746,8 @@
         };
 
         function translatePage(langCode) {
+            console.log(`Attempting to translate to: ${langCode}`);
+            
             // Update active button
             document.querySelectorAll('.lang-btn').forEach(btn => {
                 btn.classList.remove('active');
@@ -744,14 +767,47 @@
                 return;
             }
 
-            // Use Google Translate
-            const selectElement = document.querySelector('.goog-te-combo');
-            if (selectElement) {
-                selectElement.value = langCode;
-                selectElement.dispatchEvent(new Event('change'));
-            }
+            // Show translation status immediately
+            showTranslationStatus(langCode);
 
-            // Update specific elements with our translations if available
+            // Try Google Translate first
+            setTimeout(() => {
+                const selectElement = document.querySelector('.goog-te-combo');
+                if (selectElement && window.googleTranslateLoaded) {
+                    console.log('Using Google Translate');
+                    
+                    // Map language codes for Google Translate
+                    const langMapping = {
+                        'zh': 'zh-cn',
+                        'pt': 'pt',
+                        'es': 'es',
+                        'fr': 'fr',
+                        'de': 'de',
+                        'ja': 'ja',
+                        'ko': 'ko',
+                        'ar': 'ar',
+                        'hi': 'hi',
+                        'ru': 'ru',
+                        'it': 'it'
+                    };
+                    
+                    const googleLangCode = langMapping[langCode] || langCode;
+                    selectElement.value = googleLangCode;
+                    selectElement.dispatchEvent(new Event('change'));
+                    
+                    // Wait for translation to complete, then apply custom translations
+                    setTimeout(() => {
+                        applyCustomTranslations(langCode);
+                    }, 2000);
+                } else {
+                    console.log('Google Translate not available, using manual translation');
+                    applyManualTranslation(langCode);
+                }
+            }, 500);
+        }
+
+        function applyCustomTranslations(langCode) {
+            // Apply our specific translations over Google Translate for critical elements
             if (translations[langCode]) {
                 const trans = translations[langCode];
                 
@@ -759,16 +815,67 @@
                 const acceptBtn = document.querySelector('.btn-accept');
                 const declineBtn = document.querySelector('.btn-decline');
                 
-                if (acceptBtn && acceptBtn.innerHTML.includes('Accept & Continue')) {
+                if (acceptBtn) {
                     acceptBtn.innerHTML = `<i class="fas fa-check"></i> ${trans.accept_button}`;
                 }
-                if (declineBtn && declineBtn.innerHTML.includes('Decline & Sign Out')) {
+                if (declineBtn) {
                     declineBtn.innerHTML = `<i class="fas fa-times"></i> ${trans.decline_button}`;
                 }
             }
+        }
 
-            // Add translation indicator
-            showTranslationStatus(langCode);
+        function applyManualTranslation(langCode) {
+            // Fallback: Apply manual translations when Google Translate fails
+            if (!translations[langCode]) {
+                console.warn(`No manual translation available for ${langCode}`);
+                return;
+            }
+
+            const trans = translations[langCode];
+
+            // Translate key elements manually
+            const elements = {
+                '.header h1': getManualTranslation(langCode, 'welcome_title', 'Welcome to SoulBridge AI'),
+                '.header p': getManualTranslation(langCode, 'welcome_subtitle', 'Before we continue, you must read and agree to our terms and AI tool disclaimers'),
+                '.btn-accept': `<i class="fas fa-check"></i> ${trans.accept_button}`,
+                '.btn-decline': `<i class="fas fa-times"></i> ${trans.decline_button}`,
+                '#ai-understanding + label': trans.checkbox_ai,
+                '#terms-privacy + label': trans.checkbox_terms,
+                '#age-confirmation + label': trans.checkbox_age,
+                '#responsible-use + label': trans.checkbox_use
+            };
+
+            Object.entries(elements).forEach(([selector, text]) => {
+                const element = document.querySelector(selector);
+                if (element && text) {
+                    if (selector.includes('btn-')) {
+                        element.innerHTML = text;
+                    } else {
+                        element.textContent = text;
+                    }
+                }
+            });
+
+            console.log(`Applied manual translation for ${langCode}`);
+        }
+
+        function getManualTranslation(langCode, key, fallback) {
+            const manualTranslations = {
+                'es': {
+                    'welcome_title': 'Bienvenido a SoulBridge AI',
+                    'welcome_subtitle': 'Antes de continuar, debe leer y aceptar nuestros términos y avisos de herramientas de IA'
+                },
+                'fr': {
+                    'welcome_title': 'Bienvenue sur SoulBridge AI',
+                    'welcome_subtitle': 'Avant de continuer, vous devez lire et accepter nos conditions et avis d\'outils IA'
+                },
+                'de': {
+                    'welcome_title': 'Willkommen bei SoulBridge AI',
+                    'welcome_subtitle': 'Bevor wir fortfahren, müssen Sie unsere Bedingungen und KI-Tool-Haftungsausschlüsse lesen und akzeptieren'
+                }
+            };
+            
+            return manualTranslations[langCode]?.[key] || fallback;
         }
 
         function showTranslationStatus(langCode) {
@@ -829,14 +936,57 @@
 
         // Load saved language preference
         document.addEventListener('DOMContentLoaded', function() {
-            const savedLang = localStorage.getItem('preferred-language');
-            if (savedLang && savedLang !== 'en') {
-                // Wait for Google Translate to load, then apply saved language
-                setTimeout(() => {
-                    translatePage(savedLang);
-                }, 2000);
-            }
+            console.log('DOM loaded, checking for saved language...');
+            
+            // Wait for Google Translate to load
+            let checkCount = 0;
+            const checkGoogleTranslate = setInterval(() => {
+                checkCount++;
+                const translateElement = document.querySelector('#google_translate_element');
+                const selectElement = document.querySelector('.goog-te-combo');
+                
+                console.log(`Check ${checkCount}: Google Translate element exists:`, !!translateElement);
+                console.log(`Check ${checkCount}: Select element exists:`, !!selectElement);
+                
+                if (selectElement || checkCount > 20) { // Max 10 seconds
+                    clearInterval(checkGoogleTranslate);
+                    
+                    if (selectElement) {
+                        window.googleTranslateLoaded = true;
+                        console.log('Google Translate fully loaded');
+                        
+                        // Apply saved language
+                        const savedLang = localStorage.getItem('preferred-language');
+                        if (savedLang && savedLang !== 'en') {
+                            console.log('Applying saved language:', savedLang);
+                            setTimeout(() => {
+                                translatePage(savedLang);
+                            }, 500);
+                        }
+                    } else {
+                        window.googleTranslateLoaded = false;
+                        console.warn('Google Translate failed to load after 10 seconds');
+                    }
+                }
+            }, 500);
         });
+
+        // Add debugging function
+        function debugTranslation() {
+            console.log('=== Translation Debug ===');
+            console.log('Current language:', currentLanguage);
+            console.log('Google Translate loaded:', window.googleTranslateLoaded);
+            console.log('Google Translate element exists:', !!document.querySelector('.goog-te-combo'));
+            console.log('Available translations:', Object.keys(translations));
+        }
+
+        // Add manual refresh translation function
+        function refreshTranslation() {
+            if (currentLanguage !== 'en') {
+                console.log('Refreshing translation for:', currentLanguage);
+                translatePage(currentLanguage);
+            }
+        }
 
         // Enhanced accept terms function with translation support
         const originalAcceptTerms = window.acceptTerms;
