@@ -121,7 +121,7 @@ div[style*="gradient(45deg, #FF6B6B, #FF8E53)"],
 div[style*="linear-gradient(45deg, #FF6B6B, #FF8E53)"],
 div[style*="#FF6B6B"],
 div[style*="rgb(255, 107, 107)"],
-div[style*="position: fixed"][style*="top: 20px"][style*="left: 50%"],
+div[style*="position: fixed"][style*="top: 20px"][style*="left: 50%"]:not(#trial-timer-container),
 div[id="trialTimer"], 
 span[id="trialTimeDisplay"],
 *[class*="trial-timer"]:not(.trial-badge),
@@ -142,6 +142,18 @@ span[id="trialTimeDisplay"],
     background: transparent !important;
     border: none !important;
     animation: none !important;
+}
+
+/* PROTECT NEW TIMER - Prevent accidental hiding by other rules */
+#trial-timer-container {
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: fixed !important;
+    z-index: 1500 !important;
+}
+
+#trial-timer-container:not([style*="display: none"]) {
+    /* Only force display when not explicitly hidden */
 }
 
 /* Header */
