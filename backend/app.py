@@ -1894,6 +1894,20 @@ def chat():
     
     companion_name = session.get('selected_companion', 'blayzo_free')
     
+    # Handle legacy companion ID compatibility (map old IDs to new ones)
+    companion_id_mapping = {
+        'blayzo_growth': 'blayzo_premium',
+        'companion_gamerjay_premium': 'gamerjay_premium',
+        # Add any other legacy mappings if needed
+        'blayzo_pro': 'blayzo_premium',
+        'gamerjay_pro': 'gamerjay_premium'
+    }
+    original_companion_name = companion_name
+    if companion_name in companion_id_mapping:
+        companion_name = companion_id_mapping[companion_name]
+        session['selected_companion'] = companion_name  # Update session with new ID
+        logger.info(f"🔄 Migrated companion ID: {original_companion_name} → {companion_name}")
+    
     # Get companion avatar and display name
     def get_companion_info(companion_id):
         """Get companion display name and avatar image"""
@@ -1936,6 +1950,9 @@ def chat():
         })
     
     companion_info = get_companion_info(companion_name)
+    
+    # Debug logging
+    logger.info(f"🎭 CHAT COMPANION DEBUG: companion_name={companion_name}, display_name={companion_info['name']}, avatar={companion_info['avatar']}")
     
     return render_template("chat.html",
         companion=companion_name,
