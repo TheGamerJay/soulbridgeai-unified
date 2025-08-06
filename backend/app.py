@@ -11118,9 +11118,22 @@ def get_companions():
             ]
         }
 
+        # Get user trial status if logged in
+        if is_logged_in():
+            user_plan = session.get('user_plan', 'free')
+            trial_active = session.get('trial_active', False)
+            effective_plan = session.get('effective_plan', 'free')
+        else:
+            user_plan = 'free'
+            trial_active = False
+            effective_plan = 'free'
+
         return jsonify({
             "success": True,
-            "companions": companions_data
+            "companions": companions_data,
+            "user_plan": user_plan,
+            "trial_active": trial_active,
+            "effective_plan": effective_plan
         })
 
     except Exception as e:
