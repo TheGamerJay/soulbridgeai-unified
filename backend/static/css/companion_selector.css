@@ -257,7 +257,7 @@ body::before {
 .companion-avatar img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
     transition: transform 0.3s ease;
 }
 
@@ -590,7 +590,7 @@ body::before {
     height: 80px;
     border-radius: 50%;
     border: 2px solid #00ffff;
-    object-fit: cover;
+    object-fit: contain;
 }
 
 .companion-details p {
