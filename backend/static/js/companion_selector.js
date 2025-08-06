@@ -222,12 +222,14 @@ async function loadCompanions() {
 
         const companions = data.companions || [];
         const trialActive = data.trial_active === true;
+        const trialUsedPermanently = data.trial_used_permanently === true;
         const effectivePlan = data.effective_plan || 'free';
 
         // Store global state
         window.companionsData = companions;
         window.trialStatus = { 
             trial_active: trialActive,
+            trial_used_permanently: trialUsedPermanently,
             effective_plan: effectivePlan
         };
 
@@ -262,6 +264,19 @@ function renderCompanionsFromAPI(companionsData, trialActive) {
         }
     });
     
+    // Show/hide central trial button based on trial status
+    const centralTrialOffer = document.getElementById('centralTrialOffer');
+    if (centralTrialOffer) {
+        // Hide trial button if trial is active OR if user has used their trial permanently
+        if (trialActive || trialUsedPermanently) {
+            centralTrialOffer.classList.add('hidden');
+            console.log('🎯 Central trial button hidden:', { trialActive, trialUsedPermanently });
+        } else {
+            centralTrialOffer.classList.remove('hidden');
+            console.log('🎯 Central trial button shown for eligible user');
+        }
+    }
+    
     // Render each tier
     Object.keys(companionsData).forEach(tier => {
         const companions = companionsData[tier] || [];
@@ -295,16 +310,23 @@ function createCompanionCard(companion, isLocked) {
     let buttonClass, buttonText, buttonOnClick, buttonDisabled = '';
     
     if (trialActive && isLocked) {
-        // Trial is active - show premium access active
-        buttonClass = 'btn-select btn-active';
-        buttonText = 'Premium Access Active';
+        // Trial is active - show select for premium companions
+        buttonClass = 'btn-select';
+        buttonText = 'Select';
+        buttonOnClick = `window.selectCompanion('${companion.companion_id}')`;
+        buttonDisabled = '';
+    } else if (isLocked && (companion.tier === 'growth' || companion.tier === 'max')) {
+        // Locked premium companion - show locked message (no individual trial buttons)
+        buttonClass = 'btn-select';
+        buttonText = companion.tier === 'growth' ? 'Growth Plan Required' : 'Max Plan Required';
         buttonOnClick = '';
         buttonDisabled = 'disabled';
     } else if (isLocked) {
-        // No trial - show upgrade/trial button
-        buttonClass = 'btn-select btn-upgrade';
-        buttonText = companion.lock_reason;
-        buttonOnClick = `showTrialModalByID('${companion.companion_id}')`;
+        // Other locked companions (referral, etc.)
+        buttonClass = 'btn-select';
+        buttonText = companion.lock_reason || 'Locked';
+        buttonOnClick = '';
+        buttonDisabled = 'disabled';
     } else {
         // Free companion - show select
         buttonClass = 'btn-select';
@@ -315,6 +337,11 @@ function createCompanionCard(companion, isLocked) {
     card.innerHTML = `
         <div class="companion-avatar">
             <img src="${companion.avatar_image}" alt="${companion.display_name}" loading="lazy">
+            ${isLocked && !trialActive ? `
+                <div class="lock-overlay">
+                    <i class="fas fa-lock lock-icon"></i>
+                </div>
+            ` : ''}
         </div>
         <div class="companion-info">
             <h3>${companion.display_name}</h3>
@@ -766,51 +793,15 @@ function renderSection(sectionId, companionList) {
                                     </button>
                                 `;
                             } else if (companion.tier === 'growth' || companion.tier === 'max') {
-                                console.log(`🔘 Rendering TRIAL/UPGRADE buttons for ${companion.display_name} (${companion.tier} tier)`);
-                                const canTrial = !window.trialStatus || (!window.trialStatus.trial_used_permanently && !window.trialStatus.trial_active);
-                                
-                                // Check if this specific companion has an active trial
-                                const hasActiveTrial = window.trialStatus?.trial_active === true;
-                                
-                                if (!isLocked) {
-                                    // Companion is unlocked (via plan or trial) - show select button
-                                    return `
-                                        <button class="btn-select" 
-                                                data-companion-id="${companion.companion_id}"
-                                                onclick="window.selectCompanion('${companion.companion_id}')"
-                                                style="background: linear-gradient(45deg, #22d3ee, #0891b2); color: white; border: none; font-weight: bold;">
-                                            ${hasActiveTrial ? '🎯 Active Trial - Select' : 'Select'}
-                                        </button>
-                                    `;
-                                } else if (canTrial) {
-                                    // Show trial option first
-                                    return `
-                                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                                            <button class="btn-select btn-upgrade" 
-                                                    data-companion-id="${companion.companion_id}"
-                                                    onclick="showTrialModal('${companion.companion_id}', '${companion.tier}', '${companion.display_name}')"
-                                                    style="background: linear-gradient(45deg, #22d3ee, #0891b2); color: white; border: none; font-weight: bold; flex: 1; min-width: 120px;">
-                                                🎯 Try 5hr Free
-                                            </button>
-                                            <button class="btn-select btn-upgrade" 
-                                                    data-companion-id="${companion.companion_id}"
-                                                    onclick="showUpgradeModal('${companion.companion_id}', '${companion.tier}', '${companion.display_name}')"
-                                                    style="background: linear-gradient(45deg, #4CAF50, #45a049); color: white; border: none; font-weight: bold; flex: 1; min-width: 120px;">
-                                                💎 Upgrade Plan
-                                            </button>
-                                        </div>
-                                    `;
-                                } else {
-                                    // Trial already used, show only upgrade
-                                    return `
-                                        <button class="btn-select btn-upgrade" 
-                                                data-companion-id="${companion.companion_id}"
-                                                onclick="showUpgradeModal('${companion.companion_id}', '${companion.tier}', '${companion.display_name}')"
-                                                style="background: linear-gradient(45deg, #4CAF50, #45a049); color: white; border: none; font-weight: bold;">
-                                            💎 Upgrade to ${companion.tier === 'growth' ? 'Growth' : 'Max'} Plan
-                                        </button>
-                                    `;
-                                }
+                                console.log(`🔘 Rendering LOCKED button for ${companion.display_name} (${companion.tier} tier)`);
+                                // No individual trial buttons - just show locked state
+                                return `
+                                    <button class="btn-select" disabled 
+                                            data-companion-id="${companion.companion_id}"
+                                            style="background: #666; color: #ccc; cursor: not-allowed;">
+                                        🔒 ${companion.tier === 'growth' ? 'Growth Plan Required' : 'Max Plan Required'}
+                                    </button>
+                                `;
                             } else {
                                 console.log(`🔘 Rendering LOCKED button for ${companion.display_name} (${companion.tier} tier)`);
                                 return `
@@ -1686,6 +1677,63 @@ function redirectToUpgrade(tier) {
     }, 1000);
 }
 
+
+// Central trial button function
+window.startCentralTrial = async function() {
+    console.log('🎯 Starting central trial...');
+    
+    // Check if trial is already active or has been used permanently
+    const trialActive = window.trialStatus && window.trialStatus.trial_active;
+    const trialUsedPermanently = window.trialStatus && window.trialStatus.trial_used_permanently;
+    
+    if (trialActive) {
+        console.log("Trial already active — skipping.");
+        showNotification("Trial is already active!", "info");
+        return;
+    }
+    
+    if (trialUsedPermanently) {
+        console.log("Trial already used permanently — hiding button and blocking.");
+        showNotification("Trial already used. Upgrade to access premium companions!", "error");
+        // Hide the button immediately
+        const centralTrialOffer = document.getElementById('centralTrialOffer');
+        if (centralTrialOffer) {
+            centralTrialOffer.classList.add('hidden');
+        }
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/start-trial', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({})
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            console.log('✅ Central trial started successfully:', data);
+            
+            // Show success message
+            showNotification(data.message || '🎉 5-hour trial started! All premium companions unlocked!', 'success');
+            
+            // Update trial status and refresh UI
+            await checkTrialStatus();
+            loadCompanions(); // Reload to get updated data
+            
+        } else {
+            console.error('❌ Central trial start failed:', data.error);
+            showNotification(data.error || 'Failed to start trial', 'error');
+        }
+        
+    } catch (error) {
+        console.error('❌ Central trial start error:', error);
+        showNotification('Failed to start trial. Please try again.', 'error');
+    }
+};
 
 // Make functions globally accessible
 window.showTrialModal = showTrialModal;

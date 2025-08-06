@@ -1985,6 +1985,7 @@ def api_companions():
             "companions": companions,
             "user_plan": user_plan,
             "trial_active": trial_active,
+            "trial_used_permanently": session.get('trial_used_permanently', False),
             "effective_plan": effective_plan  # Use actual effective_plan
         })
         
