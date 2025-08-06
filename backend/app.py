@@ -6004,8 +6004,12 @@ def get_effective_plan(user_plan: str, trial_active: bool) -> str:
         logger.warning(f"⚠️ Unknown plan '{user_plan}' defaulting to 'free'")
         user_plan = 'free'
     
-    if trial_active and user_plan == "free":
-        return "growth"
+    if trial_active:
+        if user_plan == "free":
+            return "growth"  # Free users get Growth features during trial
+        elif user_plan == "growth":
+            return "max"     # Growth users get Max features during trial
+        # Max users already have everything, stay max
     return user_plan
 
 def get_feature_limit_v2(effective_plan: str, feature: str) -> int:
