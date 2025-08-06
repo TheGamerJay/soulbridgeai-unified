@@ -282,7 +282,215 @@
 <body class="intro-page" style="background: #000000 !important; background-attachment: fixed !important; background-size: 100% 100% !important; min-height: 100vh !important; margin: 0 !important; font-family: system-ui, -apple-system, sans-serif !important; color: #00ffff !important;">
     <!-- Navigation -->
     <div class="top-nav" style="position: fixed; top: 0; left: 0; right: 0; z-index: 1000; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;">
-        <!-- OLD trial-ring-container removed - using new trial-timer-container system -->
+        <!-- 🚀 NEW Enhanced Trial Timer - Beautiful Modern Design -->
+        <div id="trial-timer-container" style="display:none; position: fixed; top: 20px; right: 20px; z-index: 1500;">
+            <div class="timer-glass-card">
+                <div class="timer-glow-ring">
+                    <svg width="140" height="140" class="timer-svg">
+                        <!-- Background ring -->
+                        <circle cx="70" cy="70" r="60" stroke="rgba(0, 255, 255, 0.1)" stroke-width="4" fill="none"/>
+                        <!-- Progress ring -->
+                        <circle id="timer-progress" cx="70" cy="70" r="60" stroke="url(#timerGradient)" stroke-width="6" fill="none" 
+                                stroke-dasharray="377" stroke-dashoffset="0" stroke-linecap="round"
+                                style="transform: rotate(-90deg); transform-origin: 50% 50%; transition: stroke-dashoffset 0.5s ease, stroke 0.3s ease;"/>
+                        <!-- Gradient Definition -->
+                        <defs>
+                            <linearGradient id="timerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#00ffff"/>
+                                <stop offset="50%" style="stop-color:#00cc88"/>
+                                <stop offset="100%" style="stop-color:#0099ff"/>
+                            </linearGradient>
+                            <linearGradient id="warningGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#ffaa00"/>
+                                <stop offset="100%" style="stop-color:#ff8800"/>
+                            </linearGradient>
+                            <linearGradient id="criticalGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#ff4444"/>
+                                <stop offset="100%" style="stop-color:#cc0000"/>
+                            </linearGradient>
+                            <filter id="glow">
+                                <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                                <feMerge> 
+                                    <feMergeNode in="coloredBlur"/>
+                                    <feMergeNode in="SourceGraphic"/> 
+                                </feMerge>
+                            </filter>
+                        </defs>
+                    </svg>
+                    
+                    <!-- Timer Text Content -->
+                    <div class="timer-content">
+                        <div id="trial-time-text" class="timer-display">5:00:00</div>
+                        <div class="timer-label">TRIAL</div>
+                        <div class="timer-status">Active</div>
+                    </div>
+                    
+                    <!-- Pulse Animation Ring -->
+                    <div class="pulse-ring"></div>
+                </div>
+            </div>
+        </div>
+
+        <style>
+        /* 🎨 Beautiful Modern Timer Styles - Intro Page */
+        .timer-glass-card {
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.9) 0%, rgba(15, 23, 42, 0.9) 100%);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            border-radius: 20px;
+            padding: 15px;
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.4),
+                0 0 30px rgba(0, 255, 255, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .timer-glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.5), transparent);
+        }
+
+        .timer-glow-ring {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .timer-svg {
+            filter: drop-shadow(0 0 10px rgba(0, 255, 255, 0.3));
+            animation: timerRotate 20s linear infinite;
+        }
+
+        .timer-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 10;
+        }
+
+        .timer-display {
+            font-size: 18px;
+            font-weight: 700;
+            color: #00ffff;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+            margin-bottom: 2px;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 1px;
+        }
+
+        .timer-label {
+            font-size: 10px;
+            font-weight: 600;
+            color: rgba(0, 255, 255, 0.7);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 1px;
+        }
+
+        .timer-status {
+            font-size: 8px;
+            color: #00cc88;
+            font-weight: 500;
+            opacity: 0.8;
+            animation: statusPulse 2s ease-in-out infinite;
+        }
+
+        .pulse-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 120px;
+            height: 120px;
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            animation: pulseRing 3s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        /* 🎬 Smooth Animations */
+        @keyframes timerRotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes pulseRing {
+            0%, 100% { 
+                opacity: 0.3; 
+                transform: translate(-50%, -50%) scale(1); 
+            }
+            50% { 
+                opacity: 0.1; 
+                transform: translate(-50%, -50%) scale(1.1); 
+            }
+        }
+
+        @keyframes statusPulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        /* 🎯 Responsive Design */
+        @media (max-width: 768px) {
+            #trial-timer-container {
+                top: 15px;
+                right: 15px;
+                transform: scale(0.8);
+                transform-origin: top right;
+            }
+            
+            .timer-display {
+                font-size: 14px;
+            }
+            
+            .timer-svg {
+                width: 120px;
+                height: 120px;
+            }
+        }
+
+        /* 🌟 Hover Effects */
+        .timer-glass-card:hover {
+            border-color: rgba(0, 255, 255, 0.6);
+            box-shadow: 
+                0 25px 50px rgba(0, 0, 0, 0.5),
+                0 0 50px rgba(0, 255, 255, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+            transition: all 0.3s ease;
+        }
+
+        /* 🚨 Warning States */
+        .timer-warning #timer-progress {
+            stroke: url(#warningGradient) !important;
+            animation: warningPulse 1s ease-in-out infinite;
+        }
+
+        .timer-critical #timer-progress {
+            stroke: url(#criticalGradient) !important;
+            animation: criticalPulse 0.5s ease-in-out infinite;
+        }
+
+        @keyframes warningPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        @keyframes criticalPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        </style>
         
         <!-- Right side buttons -->
         <div style="display: flex; gap: 15px; align-items: center;">
@@ -1072,8 +1280,69 @@ What specific area would you like help with? I know every feature of SoulBridge 
         // DISABLED: const ringText = document.getElementById('ring-text');
         // DISABLED: const ringWrapper = document.getElementById('trial-ring-container');
 
-        // OLD ring timer variables removed - using new trial-timer-container system
-        // OLD ring timer initialization and functions removed
+        // ✨ NEW ENHANCED TIMER SYSTEM - Simple and conflict-free
+        let timerUpdateInterval;
+
+        function initializeEnhancedTimer() {
+            const container = document.getElementById('trial-timer-container');
+            if (!container) return;
+
+            console.log('🚀 Initializing enhanced timer on intro page');
+            
+            // Beautiful entrance animation
+            container.style.display = 'block';
+            container.style.opacity = '0';
+            container.style.transform = 'scale(0.8) translateY(-20px)';
+            container.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            
+            setTimeout(() => {
+                container.style.opacity = '1';
+                container.style.transform = 'scale(1) translateY(0)';
+            }, 100);
+        }
+
+        function updateEnhancedTimer(trialRemaining) {
+            const container = document.getElementById('trial-timer-container');
+            const progressRing = document.getElementById('timer-progress');
+            const timeText = document.getElementById('trial-time-text');
+            const statusText = document.querySelector('.timer-status');
+
+            if (!container || !progressRing || !timeText) return;
+
+            if (trialRemaining <= 0) {
+                container.style.display = 'none';
+                return;
+            }
+
+            // Show timer if not visible
+            if (container.style.display === 'none') {
+                initializeEnhancedTimer();
+            }
+
+            // Calculate progress (5 hours total = 18000 seconds)
+            const totalSeconds = 5 * 60 * 60;
+            const percent = Math.max(0, trialRemaining / totalSeconds);
+            const dashoffset = 377 * (1 - percent);
+            progressRing.style.strokeDashoffset = dashoffset;
+
+            // Update warning states
+            container.classList.remove('timer-warning', 'timer-critical');
+            if (trialRemaining <= 300) {
+                container.classList.add('timer-critical');
+                if (statusText) statusText.textContent = 'CRITICAL';
+            } else if (trialRemaining <= 1800) {
+                container.classList.add('timer-warning');
+                if (statusText) statusText.textContent = 'Warning';
+            } else {
+                if (statusText) statusText.textContent = 'Active';
+            }
+
+            // Format time display
+            const hours = Math.floor(trialRemaining / 3600);
+            const minutes = Math.floor((trialRemaining % 3600) / 60);
+            const seconds = Math.floor(trialRemaining % 60);
+            timeText.textContent = `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
 
         async function refreshUserStatus() {
             try {
@@ -1087,9 +1356,14 @@ What specific area would you like help with? I know every feature of SoulBridge 
 
                 const { trial_active, trial_remaining, effective_plan, trial_used_permanently } = data;
 
-                // DISABLED OLD RING TIMER - Preventing conflicts with new timer system
-                // Use new timer system instead (trial-timer-container)
-                console.log('🔄 OLD intro ring timer disabled, using new timer system instead');
+                // ✨ NEW ENHANCED TIMER SYSTEM - Update beautiful timer
+                if (trial_active && trial_remaining > 0) {
+                    updateEnhancedTimer(trial_remaining);
+                } else {
+                    // Hide timer if trial not active
+                    const container = document.getElementById('trial-timer-container');
+                    if (container) container.style.display = 'none';
+                }
 
 
             } catch (error) {
