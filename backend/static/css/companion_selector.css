@@ -73,7 +73,8 @@ body::before {
     background: linear-gradient(135deg, #22d3ee 0%, #0891b2 100%);
 }
 
-/* Trial timer */
+/* OLD TRIAL TIMER STYLES - REMOVED TO PREVENT CONFLICTS */
+/*
 #trialTimer {
     position: fixed;
     top: 20px;
@@ -108,6 +109,14 @@ body::before {
     font-size: 0.8rem;
     opacity: 0.9;
     margin-top: 2px;
+}
+*/
+
+/* Force hide old timer elements */
+#trialTimer, #trialTimeDisplay {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
 }
 
 /* Header */

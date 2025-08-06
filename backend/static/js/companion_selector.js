@@ -1772,18 +1772,36 @@ window.redirectToUpgrade = redirectToUpgrade;
 
 // Trial Timer Functions
 function initTrialTimer(expirationTimeISO) {
+    console.log('🕒 initTrialTimer called with:', expirationTimeISO);
+    
     const container = document.getElementById('trial-timer-container');
     const progressCircle = document.getElementById('timer-progress');
     const textDisplay = document.getElementById('trial-time-text');
     
+    console.log('🔍 Timer elements found:', {
+        container: !!container,
+        progressCircle: !!progressCircle,
+        textDisplay: !!textDisplay
+    });
+    
     if (!container || !progressCircle || !textDisplay) {
-        console.warn('Trial timer elements not found');
+        console.warn('❌ Trial timer elements not found - cannot initialize');
+        console.log('Missing elements:', {
+            'trial-timer-container': !container,
+            'timer-progress': !progressCircle, 
+            'trial-time-text': !textDisplay
+        });
         return;
     }
     
+    console.log('✅ All timer elements found - initializing timer');
+    
     const totalSeconds = 5 * 60 * 60; // 5 hours
     const expiration = new Date(expirationTimeISO);
+    
+    console.log('⏰ Making timer container visible');
     container.style.display = 'block';
+    console.log('⏰ Container display style after setting:', container.style.display);
 
     function updateTimer() {
         const now = new Date();

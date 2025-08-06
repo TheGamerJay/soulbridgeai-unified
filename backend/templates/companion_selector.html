@@ -246,7 +246,37 @@
         
         // Run removal on page load and periodically to catch dynamic elements
         document.addEventListener('DOMContentLoaded', removeOldTimerElements);
-        setInterval(removeOldTimerElements, 1000); // Check every second
+        setInterval(removeOldTimerElements, 500); // Check every 500ms
+        
+        // Use MutationObserver to catch dynamically created old timer elements
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                mutation.addedNodes.forEach(function(node) {
+                    if (node.nodeType === 1) { // Element node
+                        // Check if the added node is an old timer
+                        if (node.id === 'trialTimer' || node.id === 'trialTimeDisplay' || 
+                            node.className?.includes('trial-timer-old') ||
+                            node.className?.includes('old-timer')) {
+                            console.log('🚫 MutationObserver: Removing dynamically created old timer:', node.id || node.className);
+                            node.remove();
+                        }
+                        
+                        // Check child nodes for old timers
+                        const oldTimerChildren = node.querySelectorAll('#trialTimer, #trialTimeDisplay, .trial-timer-old, .old-timer');
+                        oldTimerChildren.forEach(el => {
+                            console.log('🚫 MutationObserver: Removing old timer child element');
+                            el.remove();
+                        });
+                    }
+                });
+            });
+        });
+        
+        // Start observing
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
     </script>
     <script src="{{ url_for('static', filename='js/companion_selector.js') }}?v={{ range(1000000) | random }}"></script>
 </body>
