@@ -365,7 +365,16 @@
                     computed.position === 'fixed' && computed.top === '20px' && computed.left.includes('%')
                 );
                 
-                if (looksLikeOldTimer && el.id !== 'trial-timer-container' && !el.classList.contains('trial-badge')) {
+                // Be more careful not to destroy the NEW timer
+                const isNewTimer = (
+                    el.id === 'trial-timer-container' ||
+                    el.id === 'timer-progress' ||
+                    el.id === 'trial-time-text' ||
+                    el.classList.contains('trial-badge') ||
+                    el.parentElement?.id === 'trial-timer-container'
+                );
+                
+                if (looksLikeOldTimer && !isNewTimer) {
                     console.warn('🔥 DESTROYING suspicious element:', {
                         element: el,
                         id: el.id,
@@ -383,6 +392,24 @@
                 }
             });
         }, 50); // Ultra fast checking
+        
+        // DEBUG: Check new timer visibility every 2 seconds
+        setInterval(function() {
+            const newTimer = document.getElementById('trial-timer-container');
+            if (newTimer) {
+                console.log('🔍 NEW TIMER STATUS:', {
+                    id: newTimer.id,
+                    display: newTimer.style.display,
+                    visibility: newTimer.style.visibility,
+                    opacity: newTimer.style.opacity,
+                    computedDisplay: window.getComputedStyle(newTimer).display,
+                    computedVisibility: window.getComputedStyle(newTimer).visibility,
+                    isVisible: newTimer.offsetWidth > 0 && newTimer.offsetHeight > 0
+                });
+            } else {
+                console.warn('❌ NEW TIMER NOT FOUND IN DOM!');
+            }
+        }, 2000); // Check every 2 seconds
         
         // ULTIMATE NUCLEAR OPTION: Override getElementById to block old timer access
         const originalGetElementById = document.getElementById;
