@@ -426,31 +426,37 @@
         };
     </script>
     
-    <!-- EXTERMINATE THE FLICKER - Permanent Timer Destroyer -->
+    <!-- NUCLEAR DESTROYER - ChatGPT Enhanced Version -->
     <script>
     setInterval(() => {
-        const oldTimer = document.getElementById('trialTimer');
-        if (oldTimer) {
-            console.warn("⚠️ Old timer detected! Removing...");
-            oldTimer.remove();
+        const rogue = document.getElementById('trialTimer');
+        if (rogue) {
+            console.warn('🧨 Old trialTimer element still found. Removing...');
+            rogue.remove();
         }
 
-        const oldStyle = document.querySelector('style#oldTimerStyles');
-        if (oldStyle) {
-            console.warn("⚠️ Old timer styles found! Removing...");
-            oldStyle.remove();
-        }
+        const rogueStyle = document.querySelector('style#oldTimerStyles');
+        if (rogueStyle) rogueStyle.remove();
 
-        // Block any global old functions
-        window.startTrialCountdown = () => {};
-        window.showTrialTimer = () => {};
-        window.hideTrialTimer = () => {};
-        window.updateTrialDisplay = () => {};
-
-    }, 100); // run every 100ms
+        // Kill old functions if they exist
+        ['startTrialCountdown', 'showTrialTimer', 'hideTrialTimer', 'updateTrialDisplay'].forEach(fn => {
+            if (typeof window[fn] === 'function') {
+                console.warn(`🧨 Killing old function: ${fn}`);
+                window[fn] = () => {};
+            }
+        });
+    }, 200);
     
-    // Debug checker
-    console.log("👀 Old timer present on load?", !!document.getElementById("trialTimer"));
+    // Initial debug check
+    console.log("Searching for old timer...");
+    const oldTimer = document.getElementById("trialTimer");
+    if (oldTimer) {
+        console.warn("❌ OLD TIMER FOUND:", oldTimer);
+        console.log("Created by:", oldTimer.outerHTML);
+        oldTimer.remove();
+    } else {
+        console.log("✅ No old timer found in DOM.");
+    }
     </script>
     
     <script src="{{ url_for('static', filename='js/companion_selector.js') }}?v={{ range(1000000) | random }}"></script>
