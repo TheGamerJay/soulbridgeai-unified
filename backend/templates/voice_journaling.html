@@ -235,6 +235,24 @@
       <p>Record your thoughts and emotions for AI-powered emotional analysis</p>
     </div>
 
+    <!-- AI Tool Disclaimer -->
+    <div style="background: linear-gradient(135deg, rgba(255, 107, 107, 0.15) 0%, rgba(255, 142, 83, 0.15) 100%); border: 2px solid rgba(255, 107, 107, 0.3); border-radius: 12px; padding: 20px; margin: 20px 0; backdrop-filter: blur(10px);">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+            <span style="font-size: 1.5em;">🤖</span>
+            <strong style="color: #FF6B6B;">AI-Powered Voice Analysis Tool</strong>
+        </div>
+        <p style="margin: 10px 0; font-size: 0.9rem; color: #cbd5e1;">
+            Voice Journaling uses AI to analyze your recorded thoughts and emotions. Transcription and analysis may contain errors. 
+            <strong>This is not professional therapy or medical advice.</strong> Your voice data is processed securely.
+        </p>
+        <div style="display: flex; align-items: center; gap: 10px; margin-top: 15px;">
+            <input type="checkbox" id="voice-disclaimer" style="accent-color: #00ffff;">
+            <label for="voice-disclaimer" style="font-size: 0.9rem; color: #e2e8f0;">
+                I understand this is an AI tool for self-reflection and not professional guidance
+            </label>
+        </div>
+    </div>
+
     <div class="voice-recorder">
       <button id="recordButton" class="record-button">🎤</button>
       <div class="recording-status" id="status">Click to start recording</div>

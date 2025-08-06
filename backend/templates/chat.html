@@ -142,6 +142,24 @@
         
         <!-- Messages Area -->
         <div class="chat-messages" id="chatMessages">
+            <!-- AI Tool Disclaimer -->
+            <div id="ai-disclaimer-message" style="background: linear-gradient(135deg, rgba(255, 107, 107, 0.15) 0%, rgba(255, 142, 83, 0.15) 100%); border: 2px solid rgba(255, 107, 107, 0.3); border-radius: 12px; padding: 20px; margin: 20px; backdrop-filter: blur(10px); font-size: 0.9rem;">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                    <span style="font-size: 1.5em;">🤖</span>
+                    <strong style="color: #FF6B6B;">Important: AI Companion Chat</strong>
+                </div>
+                <p style="margin: 10px 0; color: #cbd5e1; line-height: 1.4;">
+                    You're chatting with an AI companion designed for entertainment and emotional support. 
+                    Responses are AI-generated and may contain errors. <strong>This is not professional therapy, medical, or legal advice.</strong> 
+                    For serious concerns, please consult qualified professionals.
+                </p>
+                <div style="display: flex; align-items: center; gap: 10px; margin-top: 15px;">
+                    <input type="checkbox" id="chat-disclaimer" style="accent-color: #00ffff;" onchange="toggleDisclaimerVisibility()">
+                    <label for="chat-disclaimer" style="color: #e2e8f0; cursor: pointer;">
+                        I understand - hide this notice
+                    </label>
+                </div>
+            </div>
             <!-- Messages will be added here by JavaScript -->
         </div>
         
@@ -183,6 +201,30 @@
         if (!sessionStorage.getItem('loggedIn')) {
             fetch('/auth/logout').then(() => window.location = '/login');
         }
+
+        // Disclaimer visibility toggle
+        function toggleDisclaimerVisibility() {
+            const disclaimer = document.getElementById('ai-disclaimer-message');
+            const checkbox = document.getElementById('chat-disclaimer');
+            
+            if (checkbox.checked) {
+                disclaimer.style.display = 'none';
+                localStorage.setItem('chat-disclaimer-hidden', 'true');
+                localStorage.setItem('chat-disclaimer-date', new Date().toISOString());
+            }
+        }
+
+        // Check if disclaimer should be hidden on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            if (localStorage.getItem('chat-disclaimer-hidden') === 'true') {
+                const disclaimer = document.getElementById('ai-disclaimer-message');
+                const checkbox = document.getElementById('chat-disclaimer');
+                if (disclaimer && checkbox) {
+                    disclaimer.style.display = 'none';
+                    checkbox.checked = true;
+                }
+            }
+        });
     </script>
     
     <!-- Creative Writing Modal -->
