@@ -730,17 +730,17 @@ button.trial-active {
 /* Central Trial Offer Styling */
 .central-trial-offer {
     background: linear-gradient(135deg, rgba(255, 107, 107, 0.15) 0%, rgba(255, 142, 83, 0.15) 50%, rgba(255, 193, 7, 0.15) 100%);
-    border: 3px solid transparent;
+    border: 2px solid transparent;
     background-clip: padding-box;
-    border-radius: 25px;
-    padding: 40px 30px;
+    border-radius: 16px;
+    padding: 20px 25px;
     text-align: center;
-    margin: 40px auto 60px auto;
-    max-width: 700px;
+    margin: 25px auto 35px auto;
+    max-width: 500px;
     position: relative;
     overflow: hidden;
-    backdrop-filter: blur(15px);
-    box-shadow: 0 20px 60px rgba(255, 107, 107, 0.3);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 30px rgba(255, 107, 107, 0.2);
     animation: centralGlow 3s ease-in-out infinite alternate;
 }
 
@@ -794,10 +794,10 @@ button.trial-active {
 
 .central-trial-offer h3 {
     color: #FFD700;
-    font-size: 2.2rem;
-    font-weight: 800;
-    margin-bottom: 15px;
-    text-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    text-shadow: 0 2px 8px rgba(255, 215, 0, 0.4);
     position: relative;
     z-index: 1;
 }
@@ -814,11 +814,11 @@ button.trial-active {
 }
 
 .central-trial-offer p {
-    color: rgba(255, 255, 255, 0.95);
-    font-size: 1.3rem;
-    margin-bottom: 25px;
-    font-weight: 500;
-    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1.0rem;
+    margin-bottom: 15px;
+    font-weight: 400;
+    line-height: 1.4;
     position: relative;
     z-index: 1;
 }
@@ -826,25 +826,25 @@ button.trial-active {
 .trial-features {
     display: flex;
     justify-content: center;
-    gap: 25px;
-    margin-bottom: 30px;
+    gap: 15px;
+    margin-bottom: 20px;
     flex-wrap: wrap;
     position: relative;
     z-index: 1;
 }
 
 .trial-features span {
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 0.95rem;
-    font-weight: 500;
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 0.8rem;
+    font-weight: 400;
     display: flex;
     align-items: center;
-    gap: 8px;
-    background: rgba(255, 255, 255, 0.1);
-    padding: 8px 15px;
-    border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(10px);
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    padding: 6px 10px;
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(5px);
 }
 
 .trial-features span i {
@@ -856,24 +856,24 @@ button.trial-active {
     background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 50%, #FFD700 100%);
     color: #000;
     border: none;
-    padding: 18px 40px;
-    border-radius: 35px;
-    font-size: 1.3rem;
-    font-weight: 700;
+    padding: 12px 24px;
+    border-radius: 25px;
+    font-size: 1.0rem;
+    font-weight: 600;
     cursor: pointer;
-    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    transition: all 0.3s ease;
     text-transform: uppercase;
-    letter-spacing: 1px;
-    box-shadow: 0 8px 30px rgba(255, 107, 107, 0.4);
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
     position: relative;
     z-index: 1;
     overflow: hidden;
-    min-width: 280px;
+    min-width: 200px;
 }
 
 .btn-central-trial:hover {
-    transform: translateY(-5px) scale(1.05);
-    box-shadow: 0 15px 50px rgba(255, 107, 107, 0.6);
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 8px 25px rgba(255, 107, 107, 0.5);
     background: linear-gradient(135deg, #FF8E53 0%, #FFD700 50%, #FF6B6B 100%);
 }
 
@@ -892,9 +892,9 @@ button.trial-active {
 }
 
 .trial-subtitle {
-    color: rgba(255, 255, 255, 0.8);
-    font-size: 0.9rem;
-    margin-top: 15px;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.75rem;
+    margin-top: 10px;
     font-style: italic;
     position: relative;
     z-index: 1;
@@ -908,26 +908,26 @@ button.trial-active {
 /* Responsive design for central trial */
 @media (max-width: 768px) {
     .central-trial-offer {
-        margin: 30px 20px 50px 20px;
-        padding: 30px 20px;
+        margin: 20px 15px 30px 15px;
+        padding: 15px 20px;
     }
     
     .central-trial-offer h3 {
-        font-size: 1.8rem;
+        font-size: 1.2rem;
     }
     
     .central-trial-offer p {
-        font-size: 1.1rem;
+        font-size: 0.9rem;
     }
     
     .trial-features {
         flex-direction: column;
-        gap: 15px;
+        gap: 8px;
     }
     
     .btn-central-trial {
-        padding: 15px 30px;
-        font-size: 1.1rem;
-        min-width: 240px;
+        padding: 10px 20px;
+        font-size: 0.9rem;
+        min-width: 180px;
     }
 }
