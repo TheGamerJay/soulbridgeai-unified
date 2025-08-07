@@ -600,32 +600,42 @@ class BasicSurveillanceSystem:
         """Log maintenance action safely"""
         try:
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            entry = f"[{timestamp}] 🔧 {action}: {details}"
+            # Safely convert details to string to prevent formatting errors
+            details_str = str(details) if details is not None else "None"
+            entry = f"[{timestamp}] 🔧 {action}: {details_str}"
             self.maintenance_log.append(entry)
             # Keep only last 1000 entries in memory
             if len(self.maintenance_log) > 1000:
                 self.maintenance_log = self.maintenance_log[-1000:]
             self.write_to_log_file(MAINTENANCE_LOG_FILE, entry)
         except Exception as e:
-            print(f"Error logging maintenance: {e}")
+            # Use safer error logging to prevent recursive formatting errors
+            error_msg = str(e)
+            print(f"Error logging maintenance: {error_msg}")
     
     def log_threat(self, ip_address, threat_details, severity="medium"):
         """Log security threat safely"""
         try:
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            entry = f"[{timestamp}] 🚨 THREAT ({severity.upper()}): {ip_address} - {threat_details}"
+            # Safely convert all inputs to strings to prevent formatting errors
+            ip_str = str(ip_address) if ip_address is not None else "Unknown"
+            details_str = str(threat_details) if threat_details is not None else "None"
+            severity_str = str(severity).upper() if severity is not None else "UNKNOWN"
+            entry = f"[{timestamp}] 🚨 THREAT ({severity_str}): {ip_str} - {details_str}"
             self.security_threats.append({
                 'timestamp': datetime.now(),
-                'ip': ip_address,
-                'details': threat_details,
-                'severity': severity
+                'ip': ip_str,
+                'details': details_str,
+                'severity': str(severity) if severity is not None else "unknown"
             })
             # Keep only last 500 threats in memory
             if len(self.security_threats) > 500:
                 self.security_threats = self.security_threats[-500:]
             self.write_to_log_file(THREAT_LOG_FILE, entry)
         except Exception as e:
-            print(f"Error logging threat: {e}")
+            # Use safer error logging to prevent recursive formatting errors
+            error_msg = str(e)
+            print(f"Error logging threat: {error_msg}")
     
     def safe_health_check(self):
         """Perform health check without Flask request context"""
@@ -4171,8 +4181,10 @@ def admin_surveillance():
                              ADMIN_DASH_KEY=ADMIN_DASH_KEY)
         
     except Exception as e:
-        logger.error(f"Surveillance dashboard error: {e}")
-        return jsonify({"error": "Surveillance system error", "details": str(e)}), 500
+        # Use safer string formatting to prevent formatting errors
+        error_msg = str(e)
+        logger.error(f"Surveillance dashboard error: {error_msg}")
+        return jsonify({"error": "Surveillance system error", "details": error_msg}), 500
 
 def get_comprehensive_trial_stats():
     """Get comprehensive trial system statistics for admin dashboard"""
