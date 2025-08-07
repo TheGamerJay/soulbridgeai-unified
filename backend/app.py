@@ -11448,6 +11448,254 @@ def get_companions_old():
         }), 500
 
 
+# MINI ASSISTANT - ADMIN HELPER
+# ========================================
+
+@app.route("/mini-assistant")
+def mini_assistant():
+    """Mini Assistant page for admin panel"""
+    try:
+        if not is_logged_in():
+            return redirect("/login")
+        
+        # Only allow admin access (you can adjust this check as needed)
+        user_email = session.get('user_email', '')
+        if not user_email or 'jaaye' not in user_email.lower():  # Adjust admin check
+            return redirect("/intro")
+        
+        return render_template("mini_assistant.html")
+        
+    except Exception as e:
+        logger.error(f"Mini Assistant error: {e}")
+        return redirect("/admin")
+
+@app.route("/api/mini-assistant", methods=["POST"])
+def api_mini_assistant():
+    """API endpoint for Mini Assistant chat"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+            
+        data = request.get_json() or {}
+        user_message = data.get('message', '').strip()
+        context = data.get('context', '')
+        
+        if not user_message:
+            return jsonify({"success": False, "error": "Message required"}), 400
+        
+        # Build context-aware response based on SoulBridge AI project
+        project_context = """
+        You are Mini Assistant, a helpful AI assistant specifically designed to help with SoulBridge AI development.
+        
+        Current Project Context:
+        - Project: SoulBridge AI - A mental wellness platform with AI companions
+        - Recent Focus: Tier isolation fixes to prevent free users from accessing premium features
+        - Tech Stack: Flask backend, Jinja2 templates, SQLite/PostgreSQL, HTML/CSS/JS frontend
+        - Recent Issues: Free users seeing premium features (decoder, fortune, horoscope) when they should only see basic features
+        - Recent Fixes: Duplicate API endpoints causing tier access issues, template conditional logic
+        - File Structure: backend/app.py (main Flask app), backend/templates/ (HTML templates), backend/static/ (CSS/JS)
+        
+        Your role:
+        - Help debug code issues
+        - Suggest fixes and improvements  
+        - Generate commit messages
+        - Explain complex problems
+        - Provide development guidance
+        - Keep responses concise but helpful
+        - Focus on SoulBridge AI specific context
+        
+        Recent work summary:
+        - Fixed duplicate /api/companions endpoint causing tier isolation issues
+        - Added tier checks to chat.html template to hide premium features from free users
+        - Working on ensuring free users only see: Switch, Voice Chat, Library, Save, Clear buttons
+        - Premium features (Decoder, Fortune, Horoscope, etc.) should be hidden from free users
+        """
+        
+        # Simple rule-based responses for common queries
+        response = generate_mini_assistant_response(user_message, project_context)
+        
+        return jsonify({
+            "success": True,
+            "response": response
+        })
+        
+    except Exception as e:
+        logger.error(f"Mini Assistant API error: {e}")
+        return jsonify({
+            "success": False,
+            "error": "Assistant temporarily unavailable"
+        }), 500
+
+def generate_mini_assistant_response(message, context):
+    """Generate contextual responses for Mini Assistant"""
+    message_lower = message.lower()
+    
+    # Try to use AI API if available, fallback to rule-based responses
+    try:
+        # Check for OpenAI API key in environment
+        import openai
+        import os
+        
+        api_key = os.getenv('OPENAI_API_KEY') or os.getenv('MINI_ASSISTANT_API_KEY')
+        if api_key:
+            return generate_ai_response(message, context, api_key)
+    except (ImportError, Exception) as e:
+        logger.info(f"AI API not available, using rule-based responses: {e}")
+    
+    # Fallback to rule-based responses
+    return generate_rule_based_response(message_lower, message)
+
+def generate_ai_response(message, context, api_key):
+    """Generate AI-powered response using OpenAI API"""
+    try:
+        import openai
+        client = openai.OpenAI(api_key=api_key)
+        
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",  # Cost-effective model
+            messages=[
+                {"role": "system", "content": context},
+                {"role": "user", "content": message}
+            ],
+            max_tokens=500,
+            temperature=0.7
+        )
+        
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        logger.error(f"AI response generation failed: {e}")
+        return generate_rule_based_response(message.lower(), message)
+
+def generate_rule_based_response(message_lower, original_message):
+    
+    # Pattern matching for common development queries
+    if any(word in message_lower for word in ['tier', 'isolation', 'free user', 'premium']):
+        return """Based on our recent work on tier isolation:
+
+**Current Issue**: Free users are still seeing premium features they shouldn't have access to.
+
+**What we've fixed**:
+- ✅ Duplicate API endpoint causing all companions to appear unlocked  
+- ✅ Backend feature limits using effective_plan instead of user_plan
+- ✅ Added tier checks in chat.html template
+
+**What to check next**:
+1. View page source on chat page as free user - look for debug comment
+2. Verify template variables: user_plan=free, trial_active=False
+3. Check if browser caching is preventing template updates
+
+**Expected behavior**:
+- Free users should only see: Switch, Voice Chat, Library, Save, Clear
+- Premium features should be completely hidden (not just limited)"""
+
+    elif any(word in message_lower for word in ['commit', 'git', 'push']):
+        return """Here's a commit message template based on our current work:
+
+```
+Fix free user feature visibility - complete tier isolation
+
+- Hide premium features from free users in chat template
+- Add debug info to verify template variable values  
+- Ensure only basic features visible: Switch, Voice Chat, Library, Save, Clear
+- Premium features (Decoder, Fortune, Horoscope) now properly hidden
+
+🤖 Generated with Mini Assistant
+
+Co-Authored-By: Mini Assistant <admin@soulbridgeai.com>
+```
+
+Would you like me to help with any specific changes that need committing?"""
+
+    elif any(word in message_lower for word in ['debug', 'bug', 'error', 'issue']):
+        return """🔍 **Debugging Checklist for SoulBridge AI**:
+
+**Current Priority**: Free user tier isolation
+1. Check chat page HTML source for debug comment
+2. Verify Jinja2 template conditionals are working
+3. Clear browser cache (Ctrl+F5)
+4. Test with different user accounts
+
+**Common Issues**:
+- Template caching preventing updates
+- Session variables not being set correctly
+- Browser cache showing old version
+- Jinja2 syntax errors in conditionals
+
+**Quick Tests**:
+- Login as free user → visit /chat → view source
+- Look for: `<!-- DEBUG: user_plan=free, trial_active=False -->`
+- Premium features should not appear in HTML at all
+
+Need help with a specific function or error?"""
+
+    elif any(word in message_lower for word in ['next', 'todo', 'priority', 'work on']):
+        return """📋 **Next Priority Tasks**:
+
+**Immediate (Tier Isolation)**:
+1. Verify free user template fix is working
+2. Test companion selector tier restrictions  
+3. Remove debug comments when confirmed working
+
+**Upcoming Features**:
+- Voice chat improvements
+- Enhanced trial system
+- Mobile responsiveness  
+- Performance optimization
+
+**Code Quality**:
+- Remove duplicate/unused code
+- Add error handling
+- Optimize database queries
+- Update documentation
+
+**Testing**:
+- Cross-browser compatibility
+- Different user scenarios
+- Edge cases and error conditions
+
+Which area would you like to focus on first?"""
+
+    elif any(word in message_lower for word in ['recent', 'commits', 'history', 'work']):
+        return """📝 **Recent Work Summary**:
+
+**Today's Progress**:
+- Fixed companion selector tier isolation (disabled duplicate API endpoint)
+- Added tier checks to hide premium features from free users
+- Enhanced timer positioning and sizing consistency
+- Added debug info to troubleshoot template issues
+
+**Key Files Modified**:
+- `backend/app.py` - Fixed feature access control, disabled duplicate endpoint
+- `backend/templates/chat.html` - Added tier-based feature visibility  
+- `backend/templates/companion_selector.html` - Timer positioning fixes
+
+**Current Status**:
+- ✅ Backend tier logic fixed
+- ✅ Template conditionals added  
+- ⏳ Testing free user experience
+- ⏳ Verifying complete isolation
+
+**Commits Made**:
+- "Fix tier isolation in feature access control"
+- "Complete tier isolation - hide premium features from free users"  
+- "Fix companion selector tier isolation"
+
+Ready to continue with testing and refinements!"""
+
+    else:
+        return f"""I'm Mini Assistant, here to help with SoulBridge AI development! 
+
+I noticed you asked: "{message}"
+
+I can help with:
+- 🐛 Debugging code issues
+- 🔧 Tier isolation problems  
+- 💾 Git commit messages
+- 📋 Next task priorities
+- 🔍 Code review and analysis
+
+Could you be more specific about what you'd like help with? I have full context about your recent work on tier isolation and companion selector fixes."""
+
 # APPLICATION STARTUP
 # ========================================
 
