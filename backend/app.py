@@ -2477,11 +2477,11 @@ def tiers_page():
     
     max_companions = [
         {'slug': 'companion_crimson', 'name': 'Companion Crimson', 'image_url': '/static/logos/Crimson a Max companion.png'},
-        {'slug': 'companion_violet', 'name': 'Companion Violet', 'image_url': '/static/logos/Violet a Max companion.png'},
-        {'slug': 'royal_max', 'name': 'Royal Max', 'image_url': '/static/logos/Royal a Max companion.png'},
+        {'slug': 'companion_violet', 'name': 'Companion Violet', 'image_url': '/static/logos/Violet_Max.png'},
+        {'slug': 'royal_max', 'name': 'Royal Max', 'image_url': '/static/logos/Royal_Max.png'},
         {'slug': 'watchdog_max', 'name': 'WatchDog Max', 'image_url': '/static/logos/WatchDog a Max Companion.png'},
-        {'slug': 'ven_blayzica', 'name': 'Ven Blayzica', 'image_url': '/static/logos/Ven Blayzica a Max companion.png'},
-        {'slug': 'ven_sky', 'name': 'Ven Sky', 'image_url': '/static/logos/Ven Sky a Max companion.png'},
+        {'slug': 'ven_blayzica', 'name': 'Ven Blayzica', 'image_url': '/static/logos/Ven_Blayzica_Max.png'},
+        {'slug': 'ven_sky', 'name': 'Ven Sky', 'image_url': '/static/logos/Ven_Sky_Max.png'},
         {'slug': 'claude_max', 'name': 'Claude Max', 'image_url': '/static/logos/Claude Max.png'},
     ]
     
@@ -12981,7 +12981,12 @@ TIERS_TEMPLATE = r"""
 <body>
 <div class="wrap">
   <a href="/intro" class="back-btn">← Back to Intro</a>
-  <h1>🤖 Plans & Companions</h1>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+    <h1 style="margin:0;">Choose the companion you most resonate with</h1>
+    {% if not trial_active and user_plan == 'free' %}
+      <button onclick="startTrial()" class="btn" style="background:linear-gradient(90deg,#00ff7f,#00c6ff);font-size:14px;padding:8px 16px;">🚀 Start 5-Hour Trial</button>
+    {% endif %}
+  </div>
 
   {% if trial_active %}
     <div class="trial-banner">
@@ -13050,7 +13055,7 @@ TIERS_TEMPLATE = r"""
       <div class="ref-grid">
         {% for r in referral_milestones %}
           {% set got = referral_count >= r.need %}
-          <div class="milestone {{ '' if got else 'dim' }}">
+          <div class="milestone {{ '' if got else 'dim' }}" onclick="goToReferral()" style="cursor:pointer;">
             <div class="badge {{ 'ok' if got else '' }}">{{ '✅ Unlocked' if got else '🔒 Locked' }}</div>
             <div class="need">Needs {{ r.need }} referrals</div>
             <img src="/static/referral/{{ r.slug }}.png" alt="{{ r.name }}" style="width:100%;height:120px;object-fit:cover;border-radius:8px;background:#0b0f18;" onerror="this.src='/static/logos/IntroLogo.png'">
@@ -13067,6 +13072,26 @@ TIERS_TEMPLATE = r"""
 
 <script>
   function openChat(slug){ window.location.href = '/chat?companion=' + encodeURIComponent(slug); }
+  
+  function startTrial() {
+    if (confirm('Start your 5-hour trial now? You\'ll get temporary access to preview Growth and Max companions.')) {
+      fetch('/api/start-trial', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({})
+      }).then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            alert('✅ Trial started! Refreshing page to unlock companions...');
+            window.location.reload();
+          } else {
+            alert('❌ Trial failed: ' + (data.error || 'Unknown error'));
+          }
+        }).catch(err => {
+          alert('❌ Network error starting trial');
+        });
+    }
+  }
   function notifyUpgrade(tier){
     const tierInfo = {
       'Growth': {
@@ -13117,6 +13142,10 @@ TIERS_TEMPLATE = r"""
         window.location.href = '/subscription?plan=' + tier.toLowerCase();
       }
     }
+  }
+  
+  function goToReferral() {
+    window.location.href = '/referral';
   }
 </script>
 </body>
