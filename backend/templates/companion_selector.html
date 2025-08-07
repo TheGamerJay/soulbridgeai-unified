@@ -93,12 +93,17 @@
         <div class="timer-glass-card">
             <div class="timer-glow-ring">
                 <svg width="140" height="140" class="timer-svg">
-                    <!-- Background ring -->
-                    <circle cx="70" cy="70" r="60" stroke="rgba(0, 255, 255, 0.1)" stroke-width="4" fill="none"/>
-                    <!-- Progress ring -->
-                    <circle id="timer-progress" cx="70" cy="70" r="60" stroke="url(#timerGradient)" stroke-width="6" fill="none" 
-                            stroke-dasharray="377" stroke-dashoffset="0" stroke-linecap="round"
-                            style="transform: rotate(-90deg); transform-origin: 50% 50%; transition: stroke-dashoffset 0.5s ease, stroke 0.3s ease;"/>
+                    <!-- Single progress ring with background stroke -->
+                    <circle id="timer-progress" cx="70" cy="70" r="60" 
+                            stroke="url(#timerGradient)" 
+                            stroke-width="6" 
+                            fill="none" 
+                            stroke-dasharray="377" 
+                            stroke-dashoffset="0" 
+                            stroke-linecap="round"
+                            style="transform: rotate(-90deg); transform-origin: 50% 50%; transition: stroke-dashoffset 0.5s ease, stroke 0.3s ease;
+                                   /* Background ring effect */
+                                   filter: drop-shadow(0 0 2px rgba(0, 255, 255, 0.1));"/>
                     <!-- Gradient Definition -->
                     <defs>
                         <linearGradient id="timerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -173,6 +178,22 @@
     .timer-svg {
         filter: drop-shadow(0 0 10px rgba(0, 255, 255, 0.3));
         animation: timerRotate 20s linear infinite;
+        position: relative;
+    }
+
+    /* Add background ring using CSS */
+    .timer-glow-ring::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 120px;
+        height: 120px;
+        border: 3px solid rgba(0, 255, 255, 0.1);
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+        z-index: 1;
     }
 
     .timer-content {
@@ -466,76 +487,11 @@
         document.addEventListener('DOMContentLoaded', removeOldTimerElements);
         // DISABLED: setInterval(removeOldTimerElements, 500); // Causing flickering
         
-        // Use MutationObserver to catch dynamically created old timer elements
-        const observer = new MutationObserver(function(mutations) {
-            mutations.forEach(function(mutation) {
-                mutation.addedNodes.forEach(function(node) {
-                    if (node.nodeType === 1) { // Element node
-                        // Check if the added node is an old timer
-                        if (node.id === 'trialTimer' || node.id === 'trialTimeDisplay' || 
-                            node.className?.includes('trial-timer-old') ||
-                            node.className?.includes('old-timer')) {
-                            console.log('🚫 MutationObserver: Removing dynamically created old timer:', node.id || node.className);
-                            node.remove();
-                        }
-                        
-                        // Check child nodes for old timers
-                        const oldTimerChildren = node.querySelectorAll('#trialTimer, #trialTimeDisplay, .trial-timer-old, .old-timer');
-                        oldTimerChildren.forEach(el => {
-                            console.log('🚫 MutationObserver: Removing old timer child element');
-                            el.remove();
-                        });
-                    }
-                });
-            });
-        });
+        // DISABLED MutationObserver - was interfering with timer updates
+        // MutationObserver disabled to prevent timer interference
         
-        // Start observing
-        observer.observe(document.body, {
-            childList: true,
-            subtree: true
-        });
-        
-        // AGGRESSIVE DEBUGGING: Override createElement to catch old timer creation
-        const originalCreateElement = document.createElement;
-        document.createElement = function(tagName) {
-            const element = originalCreateElement.call(this, tagName);
-            
-            // Set up a watcher for when ID gets set
-            const originalSetAttribute = element.setAttribute;
-            element.setAttribute = function(name, value) {
-                if (name === 'id' && (value === 'trialTimer' || value === 'trialTimeDisplay')) {
-                    console.error('🚨 CAUGHT OLD TIMER CREATION!', {
-                        id: value,
-                        tagName: tagName,
-                        stack: new Error().stack
-                    });
-                    // Don't actually set the ID - block it!
-                    return;
-                }
-                return originalSetAttribute.call(this, name, value);
-            };
-            
-            // Also watch for direct id property assignment
-            let originalId = element.id;
-            Object.defineProperty(element, 'id', {
-                get() { return originalId; },
-                set(value) {
-                    if (value === 'trialTimer' || value === 'trialTimeDisplay') {
-                        console.error('🚨 CAUGHT OLD TIMER ID ASSIGNMENT!', {
-                            id: value,
-                            tagName: tagName,
-                            stack: new Error().stack
-                        });
-                        // Don't actually set the ID - block it!
-                        return;
-                    }
-                    originalId = value;
-                }
-            });
-            
-            return element;
-        };
+        // DISABLED createElement override - was interfering with timer system
+        // createElement override disabled to prevent timer interference
         
         // DISABLED AGGRESSIVE MONITORING - was causing console spam
         // Old timer monitoring disabled to prevent performance issues
@@ -626,25 +582,11 @@
     
     <!-- Enhanced Timer System Functions -->
     <script>
-        // Enhanced Timer Update Function
+        // Enhanced Timer Update Function - CLEANED VERSION
         function updateEnhancedTimer(remainingMs) {
             console.log('🎯 Updating timer with remaining ms:', remainingMs);
             
-            // FIRST: Remove any duplicate or conflicting timer elements
-            const allTimerContainers = document.querySelectorAll('[id*="timer"], [class*="timer"]');
-            console.log('🔍 All timer-related elements found:', allTimerContainers.length);
-            
-            allTimerContainers.forEach((el, index) => {
-                if (el.id !== 'trial-timer-container' && 
-                    el.id !== 'timer-progress' && 
-                    el.id !== 'trial-time-text' &&
-                    !el.classList.contains('timer-glass-card') &&
-                    !el.closest('#trial-timer-container')) {
-                    console.log(`🗑️ Removing conflicting timer element ${index}:`, el.id || el.className);
-                    el.remove();
-                }
-            });
-            
+            // Get timer elements directly without cleanup interference
             const timerContainer = document.getElementById('trial-timer-container');
             const timeText = document.getElementById('trial-time-text');
             const progressCircle = document.getElementById('timer-progress');
@@ -660,17 +602,6 @@
             if (!timerContainer || !timeText || !progressCircle) {
                 console.log('❌ Timer elements not found - cannot update timer');
                 return;
-            }
-            
-            // ENSURE only one progress circle exists
-            const allProgressCircles = document.querySelectorAll('#timer-progress, circle[id*="progress"], circle[class*="progress"]');
-            if (allProgressCircles.length > 1) {
-                console.log(`🚨 Multiple progress circles found (${allProgressCircles.length}), removing extras`);
-                allProgressCircles.forEach((circle, index) => {
-                    if (index > 0) { // Keep only the first one
-                        circle.remove();
-                    }
-                });
             }
             
             if (remainingMs <= 0) {
@@ -693,7 +624,9 @@
             const totalTrialMs = 5 * 60 * 60 * 1000; // 5 hours in milliseconds
             const progressPercent = (remainingMs / totalTrialMs) * 100;
             const circumference = 2 * Math.PI * 60; // radius = 60
-            const strokeDashoffset = circumference * (1 - progressPercent / 100);
+            
+            // Fixed progress calculation - as time decreases, more circle should be empty
+            const strokeDashoffset = circumference - (circumference * progressPercent / 100);
             
             progressCircle.style.strokeDashoffset = strokeDashoffset;
             
@@ -875,25 +808,10 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🚀 Page loaded - initializing timer...');
             
-            // Debug timer elements first
-            setTimeout(() => {
-                debugTimer();
-            }, 2000);
-            
             refreshTrialStatus();
             
             // Refresh every 2 minutes (since we now have real-time updates)
             setInterval(refreshTrialStatus, 120000);
-            
-            // Debug: Log timer container status
-            setTimeout(() => {
-                const container = document.getElementById('trial-timer-container');
-                console.log('🔍 Timer container check:', {
-                    exists: !!container,
-                    display: container?.style.display,
-                    visible: container?.offsetWidth > 0
-                });
-            }, 1000);
         });
     </script>
     
