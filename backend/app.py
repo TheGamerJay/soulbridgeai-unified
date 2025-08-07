@@ -4058,13 +4058,15 @@ def admin_users():
 
 @app.route("/admin/surveillance")
 def admin_surveillance():
-    """🚨 SURVEILLANCE COMMAND CENTER - Complete Security Dashboard"""
+    """🚨 SURVEILLANCE COMMAND CENTER - Standalone Security Dashboard"""
     key = request.args.get("key")
     if key != ADMIN_DASH_KEY:
-        return jsonify({"error": "Unauthorized"}), 403
+        return jsonify({"error": "Unauthorized - Access Denied"}), 403
 
-    # Set admin session so Mini Assistant and admin APIs work
+    # Clear any existing user session and set pure admin session
+    session.clear()
     session["admin_logged_in"] = True
+    session["surveillance_access"] = True
 
     try:
         # Read all log files for template
@@ -11506,10 +11508,13 @@ def mini_assistant():
         # Allow access if:
         # 1. User email contains 'jaaye' (main admin)
         # 2. Admin session is active (from surveillance dashboard)
-        # 3. Admin key is provided
+        # 3. Surveillance access is active (standalone mode)
+        # 4. Admin key is provided
+        surveillance_access = session.get('surveillance_access', False)
         is_admin_access = (
             (user_email and 'jaaye' in user_email.lower()) or
             admin_logged_in or 
+            surveillance_access or
             admin_key == ADMIN_DASH_KEY
         )
         
