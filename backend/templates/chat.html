@@ -25,10 +25,15 @@
     <meta name="twitter:description" content="Your AI companion for emotional wellness and spiritual growth">
     <meta name="twitter:image" content="{{ url_for('static', filename='logos/IntroLogo.png', _external=True) }}">
     
-    <!-- CSS -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}?v={{ range(1000000) | random }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/chat.css') }}?v=tier-fix-{{ range(1000000) | random }}">
+    <!-- CSS with aggressive cache busting -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}?v={{ range(1000000) | random }}&t={{ moment().timestamp() }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/chat.css') }}?v=tier-fix-{{ range(1000000) | random }}&t={{ moment().timestamp() }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Force no cache for this page -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
 </head>
 <body>
     <div class="chat-container">
@@ -65,21 +70,21 @@
                 <a href="/decoder" class="action-btn tier-btn" data-feature="decoder">
                     <i class="fas fa-brain"></i>
                     <div class="btn-content">
-                        <span class="btn-title">Decoder</span>
+                        <span class="btn-title">🧠 Decoder</span>
                         <span class="btn-limit" id="decoderLimit">Loading...</span>
                     </div>
                 </a>
                 <a href="/fortune" class="action-btn tier-btn" data-feature="fortune">
                     <i class="fas fa-crystal-ball"></i>
                     <div class="btn-content">
-                        <span class="btn-title">Fortune</span>
+                        <span class="btn-title">🔮 Fortune</span>
                         <span class="btn-limit" id="fortuneLimit">Loading...</span>
                     </div>
                 </a>
                 <a href="/horoscope" class="action-btn tier-btn" data-feature="horoscope">
                     <i class="fas fa-star"></i>
                     <div class="btn-content">
-                        <span class="btn-title">Horoscope</span>
+                        <span class="btn-title">⭐ Horoscope</span>
                         <span class="btn-limit" id="horoscopeLimit">Loading...</span>
                     </div>
                 </a>
@@ -1085,6 +1090,20 @@
             white-space: nowrap;
             z-index: 1000;
         }
+        
+        /* FORCE HIDE ALL TIMERS - HIGHEST PRIORITY */
+        .trial-badge, .simple-timer, #trial-timer-container, 
+        [id*="timer"], [class*="timer"], [id*="trial"], [class*="trial"],
+        .timer-display, .timer-content, .timer-glass-card {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            position: absolute !important;
+            left: -9999px !important;
+            top: -9999px !important;
+            width: 0 !important;
+            height: 0 !important;
+        }
     </style>
 
     <script>
@@ -1113,46 +1132,7 @@
             resetCreativeWriting();
         }
         
-        // Update tier usage display
-        async function updateTierUsage() {
-            try {
-                // Fetch usage data from all three endpoints
-                const [decoderRes, fortuneRes, horoscopeRes] = await Promise.all([
-                    fetch('/api/decoder/check-limit'),
-                    fetch('/api/fortune/check-limit'), 
-                    fetch('/api/horoscope/check-limit')
-                ]);
-                
-                const decoderData = await decoderRes.json();
-                const fortuneData = await fortuneRes.json();
-                const horoscopeData = await horoscopeRes.json();
-                
-                // Update display with current limits
-                const decoderLimit = decoderData.daily_limit === null || decoderData.daily_limit === -1 ? '∞' : decoderData.daily_limit;
-                const fortuneLimit = fortuneData.daily_limit === null || fortuneData.daily_limit === -1 ? '∞' : fortuneData.daily_limit;
-                const horoscopeLimit = horoscopeData.daily_limit === null || horoscopeData.daily_limit === -1 ? '∞' : horoscopeData.daily_limit;
-                
-                document.getElementById('decoderUsage').textContent = decoderLimit;
-                document.getElementById('fortuneUsage').textContent = fortuneLimit;
-                document.getElementById('horoscopeUsage').textContent = horoscopeLimit;
-                
-                console.log(`🔒 Tier usage updated: ${decoderLimit} ${fortuneLimit} ${horoscopeLimit}`);
-                
-            } catch (error) {
-                console.error('Error updating tier usage:', error);
-                // Fallback to default free tier limits
-                document.getElementById('decoderUsage').textContent = '3';
-                document.getElementById('fortuneUsage').textContent = '2';
-                document.getElementById('horoscopeUsage').textContent = '3';
-            }
-        }
-        
-        // Update tier usage on page load and periodically
-        document.addEventListener('DOMContentLoaded', function() {
-            updateTierUsage();
-            // Update every 30 seconds
-            setInterval(updateTierUsage, 30000);
-        });
+        // OLD tier usage update function REMOVED - now handled by new tier isolation system
         
         function selectWritingMode(mode) {
             // Remove active class from all buttons
