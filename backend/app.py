@@ -12994,7 +12994,7 @@ TIERS_TEMPLATE = r"""
   <div class="rows">
     <!-- Free Row -->
     <div>
-      <div class="row-title">🆓 Free Companions <span class="small">(3 Decoders / 2 Fortunes / 3 Horoscopes per day)</span></div>
+      <div class="row-title">🆓 Free Companions</div>
       <div class="row">
         {% for c in free_list %}
           <div class="card" onclick="openChat('{{ c.slug }}')" title="{{ c.name }}">
@@ -13008,7 +13008,7 @@ TIERS_TEMPLATE = r"""
 
     <!-- Growth Row -->
     <div>
-      <div class="row-title">🌱 Growth Companions <span class="small">(15 / 8 / 10)</span></div>
+      <div class="row-title">🌱 Growth Companions</div>
       <div class="row">
         {% for c in growth_list %}
           {% set locked = (not trial_active) and (user_plan == 'free') %}
@@ -13024,7 +13024,7 @@ TIERS_TEMPLATE = r"""
     <!-- Max Row -->
     <div>
       <div class="row-title">
-        🎯 Max Companions <span class="small">(Unlimited)</span>
+        🎯 Max Companions
         {% if user_plan=='max' %}
           <a href="/mini-studio" class="btn" style="margin-left:10px;">🎶 GamerJay Mini Studio</a>
         {% endif %}
