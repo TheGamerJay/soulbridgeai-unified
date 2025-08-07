@@ -618,10 +618,16 @@
     <script>
         // Simple timer update function (unobtrusive)
         function updateSimpleTimer(trialRemaining) {
+            console.log('🔍 updateSimpleTimer called with:', trialRemaining);
             const timerElement = document.getElementById('active-remaining');
             const displayElement = document.getElementById('remaining-display');
             
-            if (!timerElement || !displayElement) return;
+            console.log('🔍 Elements found:', {timerElement: !!timerElement, displayElement: !!displayElement});
+            
+            if (!timerElement || !displayElement) {
+                console.log('❌ Timer elements missing!');
+                return;
+            }
             
             if (trialRemaining <= 0) {
                 timerElement.style.display = 'none';
