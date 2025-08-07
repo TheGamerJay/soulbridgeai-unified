@@ -296,7 +296,7 @@
                     <button class="pro-btn">🔄 REFRESH</button>
                     <button class="pro-btn">💓 HEALTH CHECK</button>
                     <button class="pro-btn">📊 DASHBOARD</button>
-                    <button class="pro-btn">🤖 MINI ASSISTANT</button>
+                    <button class="pro-btn" id="miniAssistantBtn2" type="button"><i class="fas fa-robot"></i> MINI ASSISTANT</button>
                     <button class="pro-btn">👥 MANAGE USERS [v2]</button>
                     <button class="pro-btn">🗄️ DATABASE</button>
                     <button class="pro-btn">🧼 MIGRATE PLANS</button>
@@ -491,19 +491,22 @@
 <script>
 // Mini Assistant Widget Logic
 const miniBtn = document.getElementById('miniAssistantBtn');
+const miniBtn2 = document.getElementById('miniAssistantBtn2');
 const miniModal = document.getElementById('miniAssistantModal');
 const miniChat = document.getElementById('miniAssistantChat');
 const miniInput = document.getElementById('miniAssistantInput');
 const miniSendBtn = document.getElementById('miniAssistantSendBtn');
 const miniLoading = document.getElementById('miniAssistantLoading');
 
-miniBtn.onclick = function() {
+function openMiniAssistant() {
   miniModal.style.display = 'block';
   miniInput.focus();
   if (miniChat.innerHTML.trim() === '') {
     addMiniMessage('assistant', "<b>🤖 Mini Assistant</b><br>Hello! I'm your Mini Assistant. How can I help with SoulBridge AI?");
   }
-};
+}
+miniBtn.onclick = openMiniAssistant;
+if (miniBtn2) miniBtn2.onclick = openMiniAssistant;
 
 function closeMiniAssistant() {
   miniModal.style.display = 'none';
