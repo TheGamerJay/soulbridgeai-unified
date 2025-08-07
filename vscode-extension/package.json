@@ -1,0 +1,139 @@
+{
+  "name": "mini-assistant",
+  "displayName": "Mini Assistant - Claude Dev Helper",
+  "description": "Claude-powered development assistant with SoulBridge AI integration",
+  "version": "1.0.0",
+  "publisher": "gamerjay",
+  "author": "GamerJay",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.50.0"
+  },
+  "categories": [
+    "Other",
+    "Machine Learning",
+    "Snippets"
+  ],
+  "keywords": [
+    "ai",
+    "assistant",
+    "claude",
+    "development",
+    "helper",
+    "soulbridge"
+  ],
+  "activationEvents": [
+    "onCommand:mini-assistant.start",
+    "onCommand:mini-assistant.quickAction",
+    "onStartupFinished"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "mini-assistant.start",
+        "title": "🤖 Open Mini Assistant",
+        "category": "Mini Assistant"
+      },
+      {
+        "command": "mini-assistant.quickAction",
+        "title": "⚡ Quick AI Action",
+        "category": "Mini Assistant"
+      },
+      {
+        "command": "mini-assistant.analyzeFile",
+        "title": "🔍 Analyze Current File",
+        "category": "Mini Assistant"
+      },
+      {
+        "command": "mini-assistant.debugCode",
+        "title": "🐛 Debug Selection",
+        "category": "Mini Assistant"
+      },
+      {
+        "command": "mini-assistant.generateCommit",
+        "title": "💾 Generate Git Commit",
+        "category": "Mini Assistant"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "mini-assistant.start",
+        "key": "ctrl+shift+m",
+        "mac": "cmd+shift+m"
+      },
+      {
+        "command": "mini-assistant.quickAction",
+        "key": "ctrl+shift+a",
+        "mac": "cmd+shift+a"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "mini-assistant.analyzeFile",
+          "group": "mini-assistant",
+          "when": "editorHasSelection"
+        },
+        {
+          "command": "mini-assistant.debugCode",
+          "group": "mini-assistant",
+          "when": "editorHasSelection"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "mini-assistant.analyzeFile",
+          "group": "mini-assistant",
+          "when": "resourceExtname =~ /\\.(js|ts|py|html|css|json)$/"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Mini Assistant",
+      "properties": {
+        "miniAssistant.apiUrl": {
+          "type": "string",
+          "default": "http://localhost:8080",
+          "description": "SoulBridge AI backend URL"
+        },
+        "miniAssistant.claudeApiKey": {
+          "type": "string",
+          "default": "",
+          "description": "Claude API key for direct integration"
+        },
+        "miniAssistant.autoSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Auto-save files after AI modifications"
+        },
+        "miniAssistant.showNotifications": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show notification messages"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.50.0",
+    "@types/node": "^14.0.0",
+    "typescript": "^4.0.0"
+  },
+  "dependencies": {
+    "axios": "^1.6.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gamerjay/mini-assistant-vscode"
+  },
+  "bugs": {
+    "url": "https://github.com/gamerjay/mini-assistant-vscode/issues"
+  },
+  "homepage": "https://soulbridgeai.com"
+}
