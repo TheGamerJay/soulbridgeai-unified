@@ -6,6 +6,7 @@ export default function CharacterSelect({ onSelect }) {
   const [loading, setLoading] = useState(true);
   const [userPlan, setUserPlan] = useState('free');
   const [trialActive, setTrialActive] = useState(false);
+  const [effectivePlan, setEffectivePlan] = useState('free');
 
   useEffect(() => {
     // Fetch available companions from the API
@@ -18,6 +19,7 @@ export default function CharacterSelect({ onSelect }) {
           setCompanions(data.companions);
           setUserPlan(data.user_plan || 'free');
           setTrialActive(data.trial_active || false);
+          setEffectivePlan(data.effective_plan || data.user_plan || 'free');
         }
       } catch (error) {
         console.error('Error fetching companions:', error);
@@ -79,35 +81,84 @@ export default function CharacterSelect({ onSelect }) {
     return companion.lock_reason !== null && companion.lock_reason !== undefined;
   };
 
+  // Determine which tiers the user can access based on subscription and trial
+  const getAccessibleTiers = () => {
+    if (trialActive) {
+      // During trial: unlock everything regardless of subscription tier
+      return ['free', 'growth', 'max', 'referral'];
+    } else {
+      // Normal access based on subscription tier
+      switch (userPlan) {
+        case 'free':
+          return ['free'];
+        case 'growth':
+          return ['free', 'growth'];
+        case 'max':
+          return ['free', 'growth', 'max', 'referral'];
+        default:
+          return ['free'];
+      }
+    }
+  };
+
+  const accessibleTiers = getAccessibleTiers();
+
+  // Filter companions to only show accessible ones in the tier tabs
+  const getVisibleTiers = () => {
+    const visibleTiers = {};
+    Object.keys(companions).forEach(tier => {
+      if (companions[tier].length > 0) {
+        visibleTiers[tier] = companions[tier];
+      }
+    });
+    return visibleTiers;
+  };
+
+  const visibleTiers = getVisibleTiers();
+
   const renderCompanion = (companion) => {
     const locked = isCompanionLocked(companion);
     const tierColors = getTierColor(companion.tier);
+    const isAccessible = accessibleTiers.includes(companion.tier);
+    
+    // Override lock status based on user access
+    const actuallyLocked = locked || !isAccessible;
     
     return (
       <button
         key={companion.companion_id}
-        onClick={() => !locked && handleCharacterSelect(companion.companion_id)}
-        onKeyDown={(e) => !locked && handleKeyPress(e, companion.companion_id)}
-        disabled={locked}
+        onClick={() => !actuallyLocked && handleCharacterSelect(companion.companion_id)}
+        onKeyDown={(e) => !actuallyLocked && handleKeyPress(e, companion.companion_id)}
+        disabled={actuallyLocked}
         className={`relative px-6 py-4 rounded-xl text-white font-bold shadow-2xl transform transition-all duration-300 focus:outline-none focus:ring-4 active:scale-95 min-w-[200px] ${
-          locked 
+          actuallyLocked 
             ? 'bg-gradient-to-r from-gray-500 to-gray-700 cursor-not-allowed opacity-60' 
             : `bg-gradient-to-r ${tierColors} hover:scale-105 cursor-pointer`
         }`}
-        tabIndex={locked ? -1 : 0}
+        tabIndex={actuallyLocked ? -1 : 0}
         role="button"
         aria-label={`Select ${companion.display_name} as your AI companion`}
       >
-        {locked && (
+        {actuallyLocked && (
           <div className="absolute top-2 right-2">
             🔒
           </div>
         )}
+        {!actuallyLocked && trialActive && companion.tier !== 'free' && (
+          <div className="absolute top-2 right-2">
+            🕒
+          </div>
+        )}
         <div className="text-lg font-bold">{companion.display_name}</div>
         <div className="text-sm opacity-90 mt-1">{companion.description}</div>
-        {locked && (
+        {actuallyLocked && (
           <div className="text-xs mt-2 text-yellow-300">
-            {companion.lock_reason}
+            {!isAccessible ? `Requires ${companion.tier.charAt(0).toUpperCase() + companion.tier.slice(1)} Plan` : companion.lock_reason}
+          </div>
+        )}
+        {!actuallyLocked && trialActive && companion.tier !== 'free' && (
+          <div className="text-xs mt-2 text-green-300">
+            ⏰ Trial Access
           </div>
         )}
       </button>
@@ -133,29 +184,48 @@ export default function CharacterSelect({ onSelect }) {
 
       {/* Tier Navigation */}
       <div className="flex flex-wrap gap-4 mb-8 justify-center">
-        {Object.keys(companions).map((tier) => (
-          companions[tier].length > 0 && (
+        {Object.keys(visibleTiers).map((tier) => {
+          const isAccessible = accessibleTiers.includes(tier);
+          return (
             <button
               key={tier}
               onClick={() => setSelectedTier(tier)}
-              className={`px-4 py-2 rounded-lg font-semibold transition-all duration-300 ${
+              className={`px-4 py-2 rounded-lg font-semibold transition-all duration-300 relative ${
                 selectedTier === tier
                   ? 'bg-cyan-600 text-white'
-                  : 'bg-gray-700 text-cyan-300 hover:bg-gray-600'
+                  : isAccessible 
+                    ? 'bg-gray-700 text-cyan-300 hover:bg-gray-600'
+                    : 'bg-gray-800 text-gray-500 cursor-not-allowed opacity-60'
               }`}
+              disabled={!isAccessible}
             >
+              {!isAccessible && (
+                <span className="absolute -top-1 -right-1">🔒</span>
+              )}
+              {isAccessible && trialActive && tier !== 'free' && (
+                <span className="absolute -top-1 -right-1">🕒</span>
+              )}
               {getTierTitle(tier)} ({companions[tier].length})
             </button>
-          )
-        ))}
+          );
+        })}
       </div>
 
       {/* Current User Plan Info */}
       <div className="mb-6 text-center">
         <p className="text-cyan-300 text-sm">
-          Current Plan: <span className="font-bold text-cyan-400">{userPlan}</span>
-          {trialActive && <span className="text-green-400 ml-2">• Trial Active</span>}
+          Subscription: <span className="font-bold text-cyan-400">{userPlan.charAt(0).toUpperCase() + userPlan.slice(1)}</span>
+          {trialActive ? (
+            <span className="text-green-400 ml-2">• 🕒 5-Hour Trial Active</span>
+          ) : (
+            <span className="text-gray-400 ml-2">• 🔓 Normal Access</span>
+          )}
         </p>
+        {trialActive && (
+          <p className="text-green-300 text-xs mt-1">
+            ⏰ Trial unlocks all companions but keeps your {userPlan} usage limits
+          </p>
+        )}
       </div>
 
       {/* Companions Grid */}
@@ -166,18 +236,48 @@ export default function CharacterSelect({ onSelect }) {
       {/* Tier Info */}
       <div className="mt-8 text-cyan-300 text-center text-sm opacity-75 max-w-lg">
         {selectedTier === 'free' && (
-          <p>🆓 These companions are available to all users</p>
+          <p>🆓 Available to all users at any time</p>
         )}
-        {selectedTier === 'growth' && (
-          <p>🌱 Growth tier companions offer enhanced features and capabilities</p>
+        {selectedTier === 'growth' && !accessibleTiers.includes('growth') && (
+          <p>🌱 Growth tier companions require Growth subscription or trial</p>
         )}
-        {selectedTier === 'max' && (
-          <p>⚡ Max tier companions provide elite features and advanced AI models</p>
+        {selectedTier === 'growth' && accessibleTiers.includes('growth') && (
+          <p>🌱 Enhanced companions with advanced features</p>
         )}
-        {selectedTier === 'referral' && (
+        {selectedTier === 'max' && !accessibleTiers.includes('max') && (
+          <p>⚡ Max tier companions require Max subscription or trial</p>
+        )}
+        {selectedTier === 'max' && accessibleTiers.includes('max') && (
+          <p>⚡ Elite companions with premium AI models and unlimited features</p>
+        )}
+        {selectedTier === 'referral' && !accessibleTiers.includes('referral') && (
+          <p>🏆 Exclusive companions require Max subscription or trial</p>
+        )}
+        {selectedTier === 'referral' && accessibleTiers.includes('referral') && (
           <p>🏆 Exclusive companions unlocked through community referrals</p>
         )}
       </div>
+
+      {/* Access Summary */}
+      {!trialActive && (
+        <div className="mt-4 text-center text-xs opacity-60 max-w-2xl">
+          <p className="text-gray-400">
+            {userPlan === 'free' && '🔒 Upgrade to Growth for enhanced companions • Upgrade to Max for elite companions'}
+            {userPlan === 'growth' && '✅ You have access to Free + Growth companions • Upgrade to Max for elite companions'}
+            {userPlan === 'max' && '✅ You have access to all companion tiers'}
+          </p>
+        </div>
+      )}
+      {trialActive && (
+        <div className="mt-4 text-center text-xs max-w-2xl">
+          <p className="text-green-400">
+            🕒 Trial Mode: All companions unlocked for 5 hours! Usage limits remain at your {userPlan} tier level.
+          </p>
+          <p className="text-yellow-400 mt-1">
+            After trial ends, access returns to your {userPlan} subscription level.
+          </p>
+        </div>
+      )}
     </div>
   );
 }
