@@ -11476,13 +11476,23 @@ def mini_assistant():
         if not is_logged_in():
             return redirect("/login")
         
-        # Enhanced admin access control - same as surveillance page
+        # Enhanced admin access control - check if user is admin or has session from surveillance
         user_email = session.get('user_email', '')
-        if not user_email or 'jaaye' not in user_email.lower():  # Adjust admin check
-            # Check if they have the admin key as backup
-            admin_key = request.args.get("key")
-            if admin_key != ADMIN_DASH_KEY:
-                return redirect("/intro")
+        admin_logged_in = session.get('admin_logged_in', False)
+        admin_key = request.args.get("key")
+        
+        # Allow access if:
+        # 1. User email contains 'jaaye' (main admin)
+        # 2. Admin session is active (from surveillance dashboard)
+        # 3. Admin key is provided
+        is_admin_access = (
+            (user_email and 'jaaye' in user_email.lower()) or
+            admin_logged_in or 
+            admin_key == ADMIN_DASH_KEY
+        )
+        
+        if not is_admin_access:
+            return redirect("/intro")
         
         return render_template("mini_assistant.html")
         
