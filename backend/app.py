@@ -11651,6 +11651,28 @@ def api_mini_assistant_status():
             "error": str(e)
         }), 500
 
+@app.route("/api/mini-assistant/push", methods=["POST"])
+def api_mini_assistant_push():
+    """🚀 Mini Assistant Git Push Endpoint"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        result = execute_git_push_ultimate()
+        log_single_action(result, "Git Push Request", "")
+        
+        return jsonify({
+            "success": True,
+            "output": result
+        })
+        
+    except Exception as e:
+        logger.error(f"Mini Assistant push error: {e}")
+        return jsonify({
+            "success": False,
+            "error": "Push operation failed"
+        }), 500
+
 def generate_mini_assistant_response(message, context):
     """Generate contextual responses for Mini Assistant"""
     message_lower = message.lower()
