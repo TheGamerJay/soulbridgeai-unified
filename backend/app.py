@@ -13142,7 +13142,7 @@ TIERS_TEMPLATE = r"""
       },
       'Max': {
         features: 'Unlimited access to all features + Priority Support',
-        price: '$12.99/month', 
+        price: '$19.99/month', 
         companions: '7 exclusive Max companions + all Growth & Free companions'
       }
     };
