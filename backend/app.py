@@ -4096,8 +4096,20 @@ def admin_surveillance():
         uptime = int((datetime.now() - surveillance_system.system_start_time).total_seconds())
         uptime_str = f"{uptime//3600}h {(uptime%3600)//60}m {uptime%60}s"
         
-        # Get comprehensive trial system stats
-        trial_stats = get_comprehensive_trial_stats()
+        # Get comprehensive trial system stats with error handling
+        try:
+            trial_stats = get_comprehensive_trial_stats()
+        except Exception as e:
+            logger.error(f"Failed to get trial stats: {e}")
+            trial_stats = {
+                'total_users': 0,
+                'active_trials': 0,
+                'expired_trials': 0, 
+                'converted_users': 0,
+                'conversion_rate': 0.0,
+                'avg_trial_days': 0.0,
+                'revenue_potential': 0.0
+            }
         
         # Get surveillance metrics
         surveillance_metrics = {
