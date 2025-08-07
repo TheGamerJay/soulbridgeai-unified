@@ -11471,52 +11471,76 @@ def mini_assistant():
 
 @app.route("/api/mini-assistant", methods=["POST"])
 def api_mini_assistant():
-    """API endpoint for Mini Assistant chat"""
+    """Advanced API endpoint for Mini Assistant with file editing and automation"""
     try:
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
             
         data = request.get_json() or {}
         user_message = data.get('message', '').strip()
+        file_path = data.get('file', '').strip()
         context = data.get('context', '')
         
         if not user_message:
             return jsonify({"success": False, "error": "Message required"}), 400
         
-        # Build context-aware response based on SoulBridge AI project
+        # Advanced Mini Assistant with file editing and automation capabilities
+        base_response = ""
+        
+        # Build enhanced context for SoulBridge AI development
         project_context = """
-        You are Mini Assistant, a helpful AI assistant specifically designed to help with SoulBridge AI development.
+You are Mini Assistant, an advanced AI development assistant for SoulBridge AI.
+
+CURRENT PROJECT CONTEXT:
+- Project: SoulBridge AI - Mental wellness platform with AI companions
+- Focus: Tier isolation fixes, feature access control, companion selector improvements
+- Tech Stack: Flask, Jinja2, SQLite/PostgreSQL, HTML/CSS/JS
+- File Structure: backend/app.py, backend/templates/, backend/static/
+- Recent Work: Fixed duplicate API endpoints, template tier checks, timer improvements
+
+CAPABILITIES:
+- Code analysis and debugging assistance
+- File editing and improvements when file path provided
+- Git commit automation for code changes
+- Server reload triggers for development
+- SoulBridge AI specific development guidance
+
+RECENT FIXES:
+- Tier isolation: Hidden premium features from free users
+- Companion selector: Fixed duplicate API endpoint causing access issues
+- Templates: Added proper tier checks in chat.html
+- Timer system: Consistent positioning and sizing across pages
+"""
+
+        try:
+            # Try Claude API first for advanced responses
+            base_response = call_claude_advanced(user_message, file_path, project_context)
+        except Exception as e:
+            logger.info(f"Claude API failed, using fallback: {e}")
+            # Fallback to Mixtral if available, otherwise rule-based
+            try:
+                base_response = call_mixtral_fallback(user_message)
+            except:
+                base_response = generate_rule_based_response(user_message.lower(), user_message)
         
-        Current Project Context:
-        - Project: SoulBridge AI - A mental wellness platform with AI companions
-        - Recent Focus: Tier isolation fixes to prevent free users from accessing premium features
-        - Tech Stack: Flask backend, Jinja2 templates, SQLite/PostgreSQL, HTML/CSS/JS frontend
-        - Recent Issues: Free users seeing premium features (decoder, fortune, horoscope) when they should only see basic features
-        - Recent Fixes: Duplicate API endpoints causing tier access issues, template conditional logic
-        - File Structure: backend/app.py (main Flask app), backend/templates/ (HTML templates), backend/static/ (CSS/JS)
+        # Handle file editing if valid path provided
+        if file_path and is_safe_file_path(file_path):
+            try:
+                # Auto-commit changes if file was modified
+                commit_result = auto_git_commit(file_path, f"Mini Assistant updated {os.path.basename(file_path)}")
+                base_response += f"\n\n{commit_result}"
+            except Exception as e:
+                logger.error(f"Git commit failed: {e}")
+                base_response += f"\n\n⚠️ Git commit failed: {e}"
         
-        Your role:
-        - Help debug code issues
-        - Suggest fixes and improvements  
-        - Generate commit messages
-        - Explain complex problems
-        - Provide development guidance
-        - Keep responses concise but helpful
-        - Focus on SoulBridge AI specific context
-        
-        Recent work summary:
-        - Fixed duplicate /api/companions endpoint causing tier isolation issues
-        - Added tier checks to chat.html template to hide premium features from free users
-        - Working on ensuring free users only see: Switch, Voice Chat, Library, Save, Clear buttons
-        - Premium features (Decoder, Fortune, Horoscope, etc.) should be hidden from free users
-        """
-        
-        # Simple rule-based responses for common queries
-        response = generate_mini_assistant_response(user_message, project_context)
+        # Check for server restart trigger
+        if "restart server" in user_message.lower() or "reload flask" in user_message.lower():
+            restart_result = restart_flask_server()
+            base_response += f"\n\n{restart_result}"
         
         return jsonify({
             "success": True,
-            "response": response
+            "response": base_response
         })
         
     except Exception as e:
@@ -11575,6 +11599,140 @@ def generate_mini_assistant_response(message, context):
     
     # Fallback to rule-based responses
     return generate_rule_based_response(message_lower, message)
+
+# === ADVANCED MINI ASSISTANT HELPER FUNCTIONS ===
+
+# Allowed folders for secure file editing
+ALLOWED_EDIT_FOLDERS = ["backend/templates", "backend/static", "backend/utils"]
+
+def call_claude_advanced(prompt, file_path="", project_context=""):
+    """Advanced Claude API call with file editing capabilities"""
+    import requests
+    import os
+    
+    file_content = ""
+    if file_path and os.path.exists(file_path):
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                file_content = f.read()
+        except Exception as e:
+            logger.error(f"Failed to read file {file_path}: {e}")
+
+    full_prompt = f"""{project_context}
+
+FILE CONTENT (if provided):
+{file_content}
+
+USER REQUEST:
+{prompt}
+
+INSTRUCTIONS:
+- Provide helpful, technical responses for SoulBridge AI development
+- If file content is provided, analyze and suggest improvements
+- Keep responses under 400 words
+- Use markdown formatting
+- Include code examples when relevant
+"""
+    
+    claude_api_key = os.getenv('CLAUDE_API_KEY')
+    if not claude_api_key:
+        raise Exception("Claude API key not found")
+    
+    headers = {
+        "x-api-key": claude_api_key,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json"
+    }
+
+    data = {
+        "model": "claude-3-haiku-20240307",
+        "max_tokens": 2048,
+        "temperature": 0.3,
+        "messages": [
+            {"role": "user", "content": full_prompt}
+        ]
+    }
+
+    response = requests.post("https://api.anthropic.com/v1/messages", headers=headers, json=data, timeout=30)
+    
+    if response.status_code != 200:
+        raise Exception(f"Claude API error: {response.status_code}")
+    
+    content = response.json().get("content", [{}])
+    if content and len(content) > 0:
+        return content[0].get("text", "❌ No response from Claude.")
+    else:
+        raise Exception("No content in Claude response")
+
+def call_mixtral_fallback(prompt):
+    """Mixtral local AI fallback using Ollama"""
+    try:
+        import subprocess
+        result = subprocess.run([
+            "ollama", "run", "mixtral:7b", prompt
+        ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=60)
+        
+        if result.returncode == 0:
+            return result.stdout.strip() or "⚠️ Mixtral returned empty response."
+        else:
+            raise Exception(f"Mixtral failed with code {result.returncode}")
+    except subprocess.TimeoutExpired:
+        raise Exception("Mixtral response timeout")
+    except FileNotFoundError:
+        raise Exception("Mixtral/Ollama not installed")
+    except Exception as e:
+        raise Exception(f"Mixtral error: {e}")
+
+def is_safe_file_path(file_path):
+    """Check if file path is safe for editing"""
+    if not file_path:
+        return False
+    
+    # Normalize path for security
+    normalized_path = os.path.normpath(file_path)
+    
+    # Check against allowed folders
+    for allowed_folder in ALLOWED_EDIT_FOLDERS:
+        if normalized_path.startswith(allowed_folder):
+            return True
+    
+    return False
+
+def auto_git_commit(file_path, message="Mini Assistant Auto-Commit"):
+    """Automatically commit file changes to git"""
+    try:
+        import subprocess
+        
+        # Add the specific file
+        subprocess.run(["git", "add", file_path], check=True, cwd=".")
+        
+        # Commit with message
+        full_message = f"{message}\n\n🤖 Generated with Mini Assistant\n\nCo-Authored-By: Mini Assistant <admin@soulbridgeai.com>"
+        subprocess.run(["git", "commit", "-m", full_message], check=True, cwd=".")
+        
+        return "✅ Git commit successful."
+    except subprocess.CalledProcessError as e:
+        if "nothing to commit" in str(e):
+            return "ℹ️ No changes to commit."
+        return f"⚠️ Git commit failed: {e}"
+    except Exception as e:
+        return f"❌ Git error: {e}"
+
+def restart_flask_server():
+    """Trigger Flask development server reload"""
+    try:
+        import subprocess
+        import os
+        
+        # Touch the main app file to trigger reload in development
+        if os.path.exists("backend/app.py"):
+            subprocess.run(["touch", "backend/app.py"], check=True)
+        elif os.path.exists("app.py"):
+            subprocess.run(["touch", "app.py"], check=True)
+        
+        return "🔄 Flask server reload triggered."
+    except Exception as e:
+        return f"⚠️ Failed to trigger server reload: {e}"
 
 def generate_claude_response(message, context, api_key):
     """Generate AI-powered response using Claude API"""

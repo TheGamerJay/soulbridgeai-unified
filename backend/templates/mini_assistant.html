@@ -96,13 +96,23 @@
         }
 
         .input-section {
+            margin-bottom: 20px;
+        }
+        
+        .input-row {
             display: flex;
             gap: 10px;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
+        }
+        
+        .button-row {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
         }
 
         .chat-input {
-            flex: 1;
+            flex: 2;
             padding: 12px;
             background: rgba(0, 0, 0, 0.7);
             border: 2px solid rgba(0, 255, 255, 0.3);
@@ -112,8 +122,19 @@
             resize: vertical;
             min-height: 50px;
         }
+        
+        .file-input {
+            flex: 1;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid rgba(0, 255, 255, 0.2);
+            border-radius: 8px;
+            color: #00cccc;
+            font-size: 14px;
+            font-family: 'Courier New', monospace;
+        }
 
-        .chat-input:focus {
+        .chat-input:focus, .file-input:focus {
             outline: none;
             border-color: #00ffff;
             box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
@@ -140,6 +161,15 @@
         .send-btn:disabled {
             opacity: 0.6;
             cursor: not-allowed;
+        }
+        
+        .send-btn.secondary {
+            background: linear-gradient(135deg, #666, #888);
+            color: #fff;
+        }
+        
+        .send-btn.secondary:hover {
+            background: linear-gradient(135deg, #777, #999);
         }
 
         .quick-actions {
@@ -264,6 +294,12 @@
             <button class="quick-btn" onclick="quickCommand('Check for any obvious bugs in my recent code changes')">
                 <i class="fas fa-search"></i> Code Review
             </button>
+            <button class="quick-btn" onclick="quickFileCommand('Analyze this file for potential improvements', 'backend/templates/chat.html')">
+                <i class="fas fa-file-code"></i> Analyze Chat Template
+            </button>
+            <button class="quick-btn" onclick="quickCommand('restart server')">
+                <i class="fas fa-redo"></i> Restart Server
+            </button>
         </div>
 
         <div class="chat-section">
@@ -276,10 +312,18 @@
         </div>
 
         <div class="input-section">
-            <textarea id="userInput" class="chat-input" placeholder="Ask me anything about your SoulBridge AI project..." rows="2"></textarea>
-            <button id="sendBtn" class="send-btn" onclick="sendMessage()">
-                <i class="fas fa-paper-plane"></i> Send
-            </button>
+            <div class="input-row">
+                <textarea id="userInput" class="chat-input" placeholder="Ask me anything about your SoulBridge AI project..." rows="2"></textarea>
+                <input id="fileInput" class="file-input" type="text" placeholder="Optional: File path (e.g., backend/templates/chat.html)" />
+            </div>
+            <div class="button-row">
+                <button id="sendBtn" class="send-btn" onclick="sendMessage()">
+                    <i class="fas fa-paper-plane"></i> Send
+                </button>
+                <button class="send-btn secondary" onclick="clearInputs()">
+                    <i class="fas fa-eraser"></i> Clear
+                </button>
+            </div>
         </div>
 
         <div class="loading" id="loading">
@@ -316,14 +360,23 @@
             sendMessage();
         }
 
+        function quickFileCommand(command, filePath) {
+            document.getElementById('userInput').value = command;
+            document.getElementById('fileInput').value = filePath;
+            sendMessage();
+        }
+
         async function sendMessage() {
             const input = document.getElementById('userInput');
+            const fileInput = document.getElementById('fileInput');
             const message = input.value.trim();
+            const filePath = fileInput.value.trim();
             
             if (!message) return;
 
-            // Add user message to chat
-            addMessage('user', message);
+            // Add user message to chat with file info if provided
+            const displayMessage = filePath ? `${message}\n\n📁 File: ${filePath}` : message;
+            addMessage('user', displayMessage);
             input.value = '';
 
             // Show loading
@@ -333,7 +386,7 @@
             sendBtn.disabled = true;
 
             try {
-                // Send to backend
+                // Send to backend with file path
                 const response = await fetch('/api/mini-assistant', {
                     method: 'POST',
                     headers: {
@@ -341,6 +394,7 @@
                     },
                     body: JSON.stringify({
                         message: message,
+                        file: filePath,
                         context: 'soulbridge-ai-development'
                     })
                 });
@@ -360,6 +414,12 @@
             // Hide loading
             loading.classList.remove('show');
             sendBtn.disabled = false;
+        }
+
+        function clearInputs() {
+            document.getElementById('userInput').value = '';
+            document.getElementById('fileInput').value = '';
+            document.getElementById('userInput').focus();
         }
 
         function addMessage(type, content) {
