@@ -787,9 +787,49 @@
             refreshTrialStatus();
         };
 
+        // Debug function to inspect timer elements
+        window.debugTimer = function() {
+            console.log('🔍 TIMER DEBUG - All timer-related elements:');
+            
+            // Find all elements with timer-related IDs or classes
+            const allTimerElements = document.querySelectorAll('[id*="timer"], [class*="timer"], svg, circle');
+            
+            allTimerElements.forEach((el, index) => {
+                console.log(`Element ${index}:`, {
+                    tagName: el.tagName,
+                    id: el.id,
+                    className: el.className,
+                    visible: el.offsetWidth > 0 && el.offsetHeight > 0,
+                    parent: el.parentElement?.id || el.parentElement?.className,
+                    innerHTML: el.innerHTML?.substring(0, 100) + '...'
+                });
+            });
+            
+            // Specifically check for multiple progress circles
+            const progressCircles = document.querySelectorAll('#timer-progress, circle');
+            console.log(`🎯 Found ${progressCircles.length} circles/progress elements`);
+            
+            progressCircles.forEach((circle, index) => {
+                console.log(`Circle ${index}:`, {
+                    id: circle.id,
+                    cx: circle.getAttribute('cx'),
+                    cy: circle.getAttribute('cy'),
+                    r: circle.getAttribute('r'),
+                    stroke: circle.getAttribute('stroke'),
+                    visible: circle.offsetWidth > 0
+                });
+            });
+        };
+
         // Initialize timer on page load
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🚀 Page loaded - initializing timer...');
+            
+            // Debug timer elements first
+            setTimeout(() => {
+                debugTimer();
+            }, 2000);
+            
             refreshTrialStatus();
             
             // Refresh every 30 seconds (not too frequent to avoid performance issues)
