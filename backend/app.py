@@ -4144,7 +4144,9 @@ def admin_surveillance():
                 'max_users': 0,
                 'free_users': 0,
                 'trials_started_today': 0,
-                'recent_trials': []
+                'recent_trials': [],
+                'used_trials': 0,
+                'error': 'Database connection unavailable'
             }
         
         # Get surveillance metrics
