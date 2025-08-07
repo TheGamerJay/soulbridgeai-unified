@@ -4127,6 +4127,9 @@ def admin_surveillance():
                 <div class="header">
                     <h1>🚨 SURVEILLANCE COMMAND CENTER</h1>
                     <p>SoulBridge AI Security Operations Center</p>
+                    <div style="text-align:right; margin-top:-40px;">
+                        <a href="/auth/logout" class="control-btn" style="background:#ef4444; color:#fff; font-weight:bold; float:right;">Logout</a>
+                    </div>
                 </div>
                 
                 <div class="status-bar">
