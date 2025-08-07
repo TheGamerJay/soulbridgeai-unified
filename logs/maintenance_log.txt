@@ -2815,3 +2815,6 @@
 [2025-08-07 16:28:33] 🔧 SYSTEM_START: Basic surveillance system initialized
 [2025-08-07 16:28:33] 🔧 HEALTH_CHECK: System running for 0.0 hours
 [2025-08-07 16:28:33] 🔧 MONITOR_START: Background monitoring thread started
+[2025-08-07 16:31:12] 🔧 SYSTEM_START: Basic surveillance system initialized
+[2025-08-07 16:31:12] 🔧 HEALTH_CHECK: System running for 0.0 hours
+[2025-08-07 16:31:12] 🔧 MONITOR_START: Background monitoring thread started

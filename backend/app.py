@@ -13068,7 +13068,55 @@ TIERS_TEMPLATE = r"""
 <script>
   function openChat(slug){ window.location.href = '/chat?companion=' + encodeURIComponent(slug); }
   function notifyUpgrade(tier){
-    alert('🔒 This companion requires the ' + tier + ' plan. Start a 5-hour trial to preview (limits unchanged), or subscribe to unlock permanently.');
+    const tierInfo = {
+      'Growth': {
+        features: '15 Decoders/day, 8 Fortunes/day, 10 Horoscopes/day + Voice Journal & AI Images',
+        price: '$9.99/month',
+        companions: '8 Growth companions + all Free companions'
+      },
+      'Max': {
+        features: 'Unlimited access to all features + Priority Support',
+        price: '$19.99/month', 
+        companions: '7 exclusive Max companions + all Growth & Free companions'
+      }
+    };
+    
+    const info = tierInfo[tier];
+    const message = `🔒 This companion requires the ${tier} plan.\n\n` +
+                   `${tier} Plan includes:\n` +
+                   `✨ ${info.features}\n` +
+                   `👥 ${info.companions}\n` +
+                   `💰 ${info.price}\n\n` +
+                   `Choose an option:`;
+    
+    // Custom dialog with choices
+    const choice = confirm(message + '\n\nClick OK to start 5-hour trial, or Cancel to upgrade now.');
+    
+    if (choice) {
+      // Start trial
+      if (confirm('Start your 5-hour trial now? You\'ll get temporary access to preview features.')) {
+        fetch('/api/start-trial', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({})
+        }).then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              alert('✅ Trial started! Refreshing page to unlock companions...');
+              window.location.reload();
+            } else {
+              alert('❌ Trial failed: ' + (data.error || 'Unknown error'));
+            }
+          }).catch(err => {
+            alert('❌ Network error starting trial');
+          });
+      }
+    } else {
+      // Upgrade now
+      if (confirm('Redirect to upgrade page to subscribe to ' + tier + ' plan?')) {
+        window.location.href = '/subscription?plan=' + tier.toLowerCase();
+      }
+    }
   }
 </script>
 </body>
