@@ -11526,44 +11526,87 @@ def api_mini_assistant():
             "error": "Assistant temporarily unavailable"
         }), 500
 
+@app.route("/api/mini-assistant-status", methods=["GET"])
+def api_mini_assistant_status():
+    """Check Mini Assistant capabilities"""
+    try:
+        import os
+        claude_api_key = os.getenv('CLAUDE_API_KEY')
+        claude_available = bool(claude_api_key)
+        
+        # Test if anthropic module is available
+        try:
+            import anthropic
+            anthropic_available = True
+        except ImportError:
+            anthropic_available = False
+            claude_available = False
+        
+        return jsonify({
+            "success": True,
+            "claude_available": claude_available and anthropic_available,
+            "anthropic_module": anthropic_available,
+            "api_key_configured": bool(claude_api_key)
+        })
+        
+    except Exception as e:
+        logger.error(f"Mini Assistant status check error: {e}")
+        return jsonify({
+            "success": False,
+            "claude_available": False,
+            "error": str(e)
+        }), 500
+
 def generate_mini_assistant_response(message, context):
     """Generate contextual responses for Mini Assistant"""
     message_lower = message.lower()
     
-    # Try to use AI API if available, fallback to rule-based responses
+    # Try to use Claude API if available, fallback to rule-based responses
     try:
-        # Check for OpenAI API key in environment
-        import openai
         import os
+        claude_api_key = os.getenv('CLAUDE_API_KEY')
         
-        api_key = os.getenv('OPENAI_API_KEY') or os.getenv('MINI_ASSISTANT_API_KEY')
-        if api_key:
-            return generate_ai_response(message, context, api_key)
-    except (ImportError, Exception) as e:
-        logger.info(f"AI API not available, using rule-based responses: {e}")
+        if claude_api_key:
+            return generate_claude_response(message, context, claude_api_key)
+        else:
+            logger.info("Claude API key not found, using rule-based responses")
+    except Exception as e:
+        logger.info(f"Claude API not available, using rule-based responses: {e}")
     
     # Fallback to rule-based responses
     return generate_rule_based_response(message_lower, message)
 
-def generate_ai_response(message, context, api_key):
-    """Generate AI-powered response using OpenAI API"""
+def generate_claude_response(message, context, api_key):
+    """Generate AI-powered response using Claude API"""
     try:
-        import openai
-        client = openai.OpenAI(api_key=api_key)
+        import anthropic
         
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",  # Cost-effective model
-            messages=[
-                {"role": "system", "content": context},
-                {"role": "user", "content": message}
-            ],
+        client = anthropic.Anthropic(api_key=api_key)
+        
+        # Enhanced context for Mini Assistant
+        full_context = f"""{context}
+
+You are Mini Assistant - a helpful development assistant for SoulBridge AI. Keep responses:
+- Concise but informative (under 400 words)
+- Technical and actionable
+- Specific to SoulBridge AI development context
+- Helpful for debugging, planning, and coding tasks
+- Use markdown formatting for better readability
+- Include code examples when relevant"""
+
+        response = client.messages.create(
+            model="claude-3-haiku-20240307",  # Fast and cost-effective
             max_tokens=500,
-            temperature=0.7
+            temperature=0.7,
+            messages=[
+                {"role": "user", "content": f"{full_context}\n\nUser question: {message}"}
+            ]
         )
         
-        return response.choices[0].message.content.strip()
+        return response.content[0].text.strip()
+        
     except Exception as e:
-        logger.error(f"AI response generation failed: {e}")
+        logger.error(f"Claude API response generation failed: {e}")
         return generate_rule_based_response(message.lower(), message)
 
 def generate_rule_based_response(message_lower, original_message):

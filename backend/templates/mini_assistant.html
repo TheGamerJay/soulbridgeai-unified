@@ -242,7 +242,7 @@
     <div class="mini-assistant-container">
         <div class="header">
             <h1><i class="fas fa-robot"></i> Mini Assistant</h1>
-            <span class="status-badge">🤖 Ready to Help</span>
+            <span class="status-badge" id="statusBadge">🤖 Loading...</span>
         </div>
 
         <div class="quick-actions">
@@ -382,9 +382,30 @@
             chatHistory.scrollTop = chatHistory.scrollHeight;
         }
 
-        // Auto-focus input on load
+        // Check assistant capabilities and update status badge
+        async function checkAssistantStatus() {
+            try {
+                const response = await fetch('/api/mini-assistant-status');
+                const data = await response.json();
+                
+                const badge = document.getElementById('statusBadge');
+                if (data.claude_available) {
+                    badge.textContent = '🧠 Claude AI Ready';
+                    badge.style.background = 'linear-gradient(135deg, #00ffff, #00ff88)';
+                } else {
+                    badge.textContent = '🤖 Rule-Based Ready';
+                    badge.style.background = 'linear-gradient(135deg, #ffaa00, #ff8800)';
+                }
+            } catch (error) {
+                console.error('Error checking status:', error);
+                document.getElementById('statusBadge').textContent = '🤖 Ready to Help';
+            }
+        }
+
+        // Auto-focus input and check status on load
         window.onload = function() {
             document.getElementById('userInput').focus();
+            checkAssistantStatus();
         };
     </script>
 </body>
