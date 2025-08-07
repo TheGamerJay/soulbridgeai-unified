@@ -206,6 +206,27 @@
         </nav>
     </div>
     
+    <!-- Floating Mini Assistant Button -->
+    <button id="miniAssistantBtn" style="position: fixed; bottom: 30px; right: 30px; z-index: 9999; background: linear-gradient(135deg, #0ff, #09f 80%); color: #111; border: none; border-radius: 40px; padding: 18px 32px; font-size: 1.18rem; font-weight: 700; letter-spacing: 1px; box-shadow: 0 6px 32px 0 rgba(0,255,255,0.25), 0 0 0 2px #00ffff44; cursor: pointer; transition: box-shadow 0.2s, transform 0.2s; text-shadow: 0 0 8px #fff8, 0 0 2px #0ff8; backdrop-filter: blur(2px);">
+      <i class="fas fa-robot" style="margin-right:10px; color:#00ffff; text-shadow:0 0 8px #00ffffcc;"></i> MINI ASSISTANT
+    </button>
+
+    <!-- Mini Assistant Modal (High-Tech Glassmorphism) -->
+    <div id="miniAssistantModal" style="display:none; position: fixed; bottom: 90px; right: 30px; width: 410px; max-width: 98vw; background: rgba(10,20,40,0.82); border: 2.5px solid #00ffffcc; border-radius: 22px; box-shadow: 0 12px 48px 0 #00ffff33, 0 0 0 2.5px #00ffff55; z-index: 10000; backdrop-filter: blur(18px) saturate(1.2);">
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px 26px 12px 26px; border-bottom: 1.5px solid #00ffff77; background: linear-gradient(90deg, #0ff2 0%, #2228 100%); border-top-left-radius: 20px; border-top-right-radius: 20px;">
+        <span style="color: #00ffff; font-size: 1.35rem; font-weight: 700; letter-spacing: 1px; text-shadow: 0 0 8px #00ffffcc;"><i class="fas fa-robot" style="margin-right:10px;"></i>Mini Assistant</span>
+        <button onclick="closeMiniAssistant()" style="background: none; border: none; color: #00ffff; font-size: 1.7rem; cursor: pointer; font-weight: bold; text-shadow: 0 0 8px #00ffffcc;">&times;</button>
+      </div>
+      <div style="padding: 20px 26px 18px 26px;">
+        <div id="miniAssistantChat" style="height: 220px; overflow-y: auto; background: rgba(0,0,0,0.38); border-radius: 10px; padding: 12px; margin-bottom: 14px; font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 1.01rem; color: #00ffff; box-shadow: 0 0 16px #00ffff22 inset;"></div>
+        <textarea id="miniAssistantInput" style="width: 100%; min-height: 52px; border-radius: 10px; border: 1.7px solid #00ffffcc; background: rgba(0,0,0,0.68); color: #00ffff; padding: 12px; margin-bottom: 10px; font-size: 1.04rem; resize: vertical; font-family: 'JetBrains Mono', 'Fira Code', monospace; box-shadow: 0 0 8px #00ffff33 inset; outline: none; transition: border 0.2s;" placeholder="Ask me anything about SoulBridge AI..." onfocus="this.style.borderColor='#0ff';" onblur="this.style.borderColor='#00ffffcc';"></textarea>
+        <div style="display: flex; gap: 12px; justify-content: flex-end;">
+          <button onclick="sendMiniAssistant()" id="miniAssistantSendBtn" style="background: linear-gradient(135deg, #00ffff 60%, #00bfff 100%); color: #111; border: none; border-radius: 8px; padding: 10px 22px; font-weight: bold; font-size: 1.01rem; letter-spacing: 0.5px; box-shadow: 0 2px 12px #00ffff44; cursor: pointer; transition: background 0.2s, box-shadow 0.2s; text-shadow: 0 0 6px #fff8;">Send</button>
+          <button onclick="clearMiniAssistant()" style="background: linear-gradient(135deg, #222 60%, #333 100%); color: #00ffff; border: 1.5px solid #00ffffcc; border-radius: 8px; padding: 10px 22px; font-weight: bold; font-size: 1.01rem; letter-spacing: 0.5px; box-shadow: 0 2px 12px #00ffff22; cursor: pointer; transition: background 0.2s, box-shadow 0.2s;">Clear</button>
+        </div>
+        <div id="miniAssistantLoading" style="display:none; text-align:center; color:#00ffff; margin-top:12px; font-size:1.08rem; letter-spacing:0.5px; text-shadow:0 0 8px #00ffffcc;">Thinking...</div>
+      </div>
+    </div>
     <div class="container">
         <!-- Comprehensive Stats Grid -->
         <div class="stats-grid">
@@ -312,5 +333,78 @@
             location.reload();
         }, 30000);
     </script>
+</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+<script>
+// Mini Assistant Widget Logic
+const miniBtn = document.getElementById('miniAssistantBtn');
+const miniModal = document.getElementById('miniAssistantModal');
+const miniChat = document.getElementById('miniAssistantChat');
+const miniInput = document.getElementById('miniAssistantInput');
+const miniSendBtn = document.getElementById('miniAssistantSendBtn');
+const miniLoading = document.getElementById('miniAssistantLoading');
+
+miniBtn.onclick = function() {
+  miniModal.style.display = 'block';
+  miniInput.focus();
+  if (miniChat.innerHTML.trim() === '') {
+    addMiniMessage('assistant', "<b>🤖 Mini Assistant</b><br>Hello! I'm your Mini Assistant. How can I help with SoulBridge AI?");
+  }
+};
+
+function closeMiniAssistant() {
+  miniModal.style.display = 'none';
+}
+
+function clearMiniAssistant() {
+  miniInput.value = '';
+  miniChat.innerHTML = '';
+  miniInput.focus();
+}
+
+miniInput.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMiniAssistant();
+  }
+});
+
+function addMiniMessage(type, content) {
+  const msgDiv = document.createElement('div');
+  msgDiv.style.marginBottom = '10px';
+  msgDiv.style.padding = '8px';
+  msgDiv.style.borderRadius = '6px';
+  msgDiv.style.background = type === 'user' ? 'rgba(0,100,255,0.12)' : 'rgba(0,255,255,0.10)';
+  msgDiv.innerHTML = `<b>${type === 'user' ? '👤 You' : '🤖 Mini Assistant'}</b><br>${content}`;
+  miniChat.appendChild(msgDiv);
+  miniChat.scrollTop = miniChat.scrollHeight;
+}
+
+async function sendMiniAssistant() {
+  const message = miniInput.value.trim();
+  if (!message) return;
+  addMiniMessage('user', message);
+  miniInput.value = '';
+  miniSendBtn.disabled = true;
+  miniLoading.style.display = 'block';
+  try {
+    const response = await fetch('/api/mini-assistant', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message, context: 'soulbridge-ai-dashboard' })
+    });
+    const data = await response.json();
+    if (data.success) {
+      addMiniMessage('assistant', data.response);
+    } else {
+      addMiniMessage('assistant', 'Sorry, I encountered an error: ' + (data.error || 'Unknown error'));
+    }
+  } catch (error) {
+    addMiniMessage('assistant', 'Sorry, I could not connect to the assistant service. Please try again.');
+  }
+  miniSendBtn.disabled = false;
+  miniLoading.style.display = 'none';
+}
+</script>
 </body>
 </html>
