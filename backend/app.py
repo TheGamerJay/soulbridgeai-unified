@@ -13137,12 +13137,12 @@ TIERS_TEMPLATE = r"""
     const tierInfo = {
       'Growth': {
         features: '15 Decoders/day, 8 Fortunes/day, 10 Horoscopes/day + Voice Journal & AI Images',
-        price: '$12.99/month',
+        price: '$12.99/month or $117/year',
         companions: '8 Growth companions + all Free companions'
       },
       'Max': {
         features: 'Unlimited access to all features + Priority Support',
-        price: '$19.99/month', 
+        price: '$19.99/month or $180/year', 
         companions: '7 exclusive Max companions + all Growth & Free companions'
       }
     };
