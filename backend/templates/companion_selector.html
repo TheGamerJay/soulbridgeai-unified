@@ -11,8 +11,8 @@
     <meta name="theme-color" content="#00ffff">
     
     <!-- CSS with cache busting -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}?v={{ range(1000000) | random }}&t={{ moment().timestamp() }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/companion_selector.css') }}?v={{ range(1000000) | random }}&t={{ moment().timestamp() }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}?v={{ range(1000000) | random }}&t={{ range(1000000) | random }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/companion_selector.css') }}?v={{ range(1000000) | random }}&t={{ range(1000000) | random }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <!-- Force no cache -->

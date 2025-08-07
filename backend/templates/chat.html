@@ -26,8 +26,8 @@
     <meta name="twitter:image" content="{{ url_for('static', filename='logos/IntroLogo.png', _external=True) }}">
     
     <!-- CSS with aggressive cache busting -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}?v={{ range(1000000) | random }}&t={{ moment().timestamp() }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/chat.css') }}?v=tier-fix-{{ range(1000000) | random }}&t={{ moment().timestamp() }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}?v={{ range(1000000) | random }}&t={{ range(1000000) | random }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/chat.css') }}?v=tier-fix-{{ range(1000000) | random }}&t={{ range(1000000) | random }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <!-- Force no cache for this page -->
