@@ -1,3 +1,25 @@
+# --- Surveillance Page Route ---
+@app.route("/admin/surveillance")
+def admin_surveillance():
+    # Dummy log data for demonstration; replace with real log retrieval
+    maintenance_log = [
+        '[2025-08-07 08:34:35] 🔧 HEALTH_CHECK: System running for 0.1 hours',
+        '[2025-08-07 08:29:35] 🔧 SYSTEM_START: Basic surveillance system initialized',
+        '[2025-08-07 08:29:35] 🔧 MONITOR_START: Background monitoring thread started',
+    ]
+    threat_log = [
+        '[2025-07-24T17:36:54.158150] ⚠️ THREAT - IP: 127.0.0.1 - Reason: Critical file integrity violation: app_fixed.py - Severity: high',
+        '[2025-07-25T00:16:56.351922] ⚠️ THREAT - IP: 127.0.0.1 - Reason: Critical file integrity violation: app_fixed.py - Severity: high',
+    ]
+    blocked_ips = [
+        '✅ No blocked IPs - System secure'
+    ]
+    return render_template(
+        "admin/surveillance.html",
+        maintenance_log=maintenance_log,
+        threat_log=threat_log,
+        blocked_ips=blocked_ips
+    )
 #!/usr/bin/env python3
 """
 SoulBridge AI - Production Ready App  
