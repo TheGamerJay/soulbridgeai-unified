@@ -700,6 +700,21 @@
         function updateEnhancedTimer(remainingMs) {
             console.log('🎯 Updating timer with remaining ms:', remainingMs);
             
+            // FIRST: Remove any duplicate or conflicting timer elements
+            const allTimerContainers = document.querySelectorAll('[id*="timer"], [class*="timer"]');
+            console.log('🔍 All timer-related elements found:', allTimerContainers.length);
+            
+            allTimerContainers.forEach((el, index) => {
+                if (el.id !== 'trial-timer-container' && 
+                    el.id !== 'timer-progress' && 
+                    el.id !== 'trial-time-text' &&
+                    !el.classList.contains('timer-glass-card') &&
+                    !el.closest('#trial-timer-container')) {
+                    console.log(`🗑️ Removing conflicting timer element ${index}:`, el.id || el.className);
+                    el.remove();
+                }
+            });
+            
             const timerContainer = document.getElementById('trial-timer-container');
             const timeText = document.getElementById('trial-time-text');
             const progressCircle = document.getElementById('timer-progress');
@@ -715,6 +730,17 @@
             if (!timerContainer || !timeText || !progressCircle) {
                 console.log('❌ Timer elements not found - cannot update timer');
                 return;
+            }
+            
+            // ENSURE only one progress circle exists
+            const allProgressCircles = document.querySelectorAll('#timer-progress, circle[id*="progress"], circle[class*="progress"]');
+            if (allProgressCircles.length > 1) {
+                console.log(`🚨 Multiple progress circles found (${allProgressCircles.length}), removing extras`);
+                allProgressCircles.forEach((circle, index) => {
+                    if (index > 0) { // Keep only the first one
+                        circle.remove();
+                    }
+                });
             }
             
             if (remainingMs <= 0) {
@@ -793,6 +819,42 @@
             } else {
                 console.log('❌ Timer container not found!');
             }
+        };
+
+        // Clean up all timer conflicts (call this in console if needed)
+        window.cleanTimers = function() {
+            console.log('🧹 Starting timer cleanup...');
+            
+            // Remove ALL timer elements except our specific ones
+            const allElements = document.querySelectorAll('*');
+            let removed = 0;
+            
+            allElements.forEach(el => {
+                const isOldTimer = (
+                    el.id && (el.id.includes('trial') || el.id.includes('timer')) && 
+                    el.id !== 'trial-timer-container' && 
+                    el.id !== 'timer-progress' && 
+                    el.id !== 'trial-time-text'
+                ) || (
+                    el.className && (el.className.includes('trial') || el.className.includes('timer')) &&
+                    !el.classList.contains('timer-glass-card') &&
+                    !el.classList.contains('timer-glow-ring') &&
+                    !el.classList.contains('timer-content') &&
+                    !el.classList.contains('timer-display') &&
+                    !el.classList.contains('trial-badge')
+                );
+                
+                if (isOldTimer && !el.closest('#trial-timer-container')) {
+                    console.log('🗑️ Removing:', el.id || el.className);
+                    el.remove();
+                    removed++;
+                }
+            });
+            
+            console.log(`🧹 Cleanup complete. Removed ${removed} elements.`);
+            
+            // Force refresh the timer
+            refreshTrialStatus();
         };
 
         // Initialize timer on page load
