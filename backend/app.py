@@ -2486,17 +2486,6 @@ def tiers_page():
         {'slug': 'claude_max', 'name': 'Claude Max', 'image_url': '/static/logos/Claude Max.png'},
     ]
     
-    # Feature comparison data
-    feature_grid = [
-        {'name': '🧠 Decoder', 'free': '3/day', 'growth': '15/day', 'max': '∞'},
-        {'name': '🔮 Fortune', 'free': '2/day', 'growth': '8/day', 'max': '∞'},
-        {'name': '⭐ Horoscope', 'free': '3/day', 'growth': '10/day', 'max': '∞'},
-        {'name': '🎙️ Voice Journal', 'free': '❌', 'growth': '50/month', 'max': '∞'},
-        {'name': '🤖 AI Images', 'free': '❌', 'growth': '25/month', 'max': '∞'},
-        {'name': '✍️ Creative Writing', 'free': '❌', 'growth': '✅', 'max': '✅'},
-        {'name': '🧠 Memory', 'free': 'Basic', 'growth': '15 msgs', 'max': 'Enhanced'},
-        {'name': '👥 Companions', 'free': '6', 'growth': '15', 'max': '22'},
-    ]
     
     # Referral milestones
     referral_milestones = [
@@ -2512,7 +2501,6 @@ def tiers_page():
                                 free_list=free_companions,
                                 growth_list=growth_companions,
                                 max_list=max_companions,
-                                feature_grid=feature_grid,
                                 referral_milestones=referral_milestones,
                                 referral_count=referral_count)
 
@@ -13074,20 +13062,6 @@ TIERS_TEMPLATE = r"""
       <div class="small muted" style="margin-top:8px;">Referral rewards are collectible/cosmetic; features & limits still follow your paid tier.</div>
     </div>
 
-    <!-- Feature comparison -->
-    <div>
-      <div class="section-title">📊 Feature Access Comparison</div>
-      <div class="table">
-        <table>
-          <thead><tr><th>Feature</th><th>Free</th><th>Growth</th><th>Max</th></tr></thead>
-          <tbody>
-            {% for f in feature_grid %}
-              <tr><td>{{ f.name }}</td><td>{{ f.free }}</td><td>{{ f.growth }}</td><td>{{ f.max }}</td></tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
 
   </div>
 </div>
