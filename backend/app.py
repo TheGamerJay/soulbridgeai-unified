@@ -3806,11 +3806,10 @@ def get_admin_css():
 
 @app.route("/admin/dashboard")
 def admin_dashboard():
-    """🎯 ADMIN DASHBOARD - System Overview"""
-    key = request.args.get("key")
-    if key != ADMIN_DASH_KEY:
+    """af ADMIN DASHBOARD - System Overview"""
+    # Only allow access if admin is logged in via session
+    if not session.get('is_admin'):
         return jsonify({"error": "Unauthorized"}), 403
-    
     try:
         # Get system statistics
         stats = {
@@ -3821,7 +3820,6 @@ def admin_dashboard():
             'companion_selections_today': get_companion_selections_today(),
             'premium_conversions': get_premium_conversions()
         }
-        
         return f"""
         <!DOCTYPE html>
         <html lang="en">
