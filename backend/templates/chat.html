@@ -60,25 +60,23 @@
                     Library
                 </a>
                 
-                <!-- PREMIUM FEATURES - Show to Growth/Max subscribers OR during trial -->
-                <!-- DEBUG: user_plan='{{ user_plan }}', trial_active={{ trial_active }}, effective_plan='{{ effective_plan }}' -->
-                {% set show_premium = effective_plan and effective_plan in ['growth', 'max'] %}
-                {% if show_premium %}
-                <a href="/decoder" class="action-btn premium-feature tier-btn" data-tier="growth" data-feature="decoder">
+                <!-- TIER ISOLATED FEATURES - Show to ALL users with their tier limits -->
+                <!-- Free: 3/2/3, Growth: 15/8/10, Max: ∞ -->
+                <a href="/decoder" class="action-btn tier-btn" data-feature="decoder">
                     <i class="fas fa-brain"></i>
                     <div class="btn-content">
                         <span class="btn-title">Decoder</span>
                         <span class="btn-limit" id="decoderLimit">Loading...</span>
                     </div>
                 </a>
-                <a href="/fortune" class="action-btn premium-feature tier-btn" data-tier="growth" data-feature="fortune">
+                <a href="/fortune" class="action-btn tier-btn" data-feature="fortune">
                     <i class="fas fa-crystal-ball"></i>
                     <div class="btn-content">
                         <span class="btn-title">Fortune</span>
                         <span class="btn-limit" id="fortuneLimit">Loading...</span>
                     </div>
                 </a>
-                <a href="/horoscope" class="action-btn premium-feature tier-btn" data-tier="growth" data-feature="horoscope">
+                <a href="/horoscope" class="action-btn tier-btn" data-feature="horoscope">
                     <i class="fas fa-star"></i>
                     <div class="btn-content">
                         <span class="btn-title">Horoscope</span>
@@ -105,7 +103,6 @@
                     <i class="fas fa-feather-alt"></i>
                     Write
                 </button>
-                {% endif %}
                 
                 <!-- DUPLICATE SECTION REMOVED - Using isolated tier blocks above -->
                 

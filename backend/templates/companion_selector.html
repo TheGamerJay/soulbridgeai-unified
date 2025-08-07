@@ -582,18 +582,34 @@
                     if (trialBadge) trialBadge.style.display = 'inline-flex';
                     updateSimpleTimer(trial_remaining);
                 } else {
-                    // Hide both trial badge and timers when trial expires
-                    if (trialBadge) trialBadge.style.display = 'none';
-                    if (timerElement) timerElement.style.display = 'none';
+                    // AGGRESSIVE TIMER CLEANUP - Hide all timer elements when trial expires
+                    if (trialBadge) {
+                        trialBadge.style.display = 'none';
+                        trialBadge.style.visibility = 'hidden';
+                    }
+                    if (timerElement) {
+                        timerElement.style.display = 'none';
+                        timerElement.style.visibility = 'hidden';
+                    }
                     
-                    // Also hide the enhanced timer container and remove active class
+                    // Hide enhanced timer container
                     const enhancedTimer = document.getElementById('trial-timer-container');
                     if (enhancedTimer) {
                         enhancedTimer.style.display = 'none';
+                        enhancedTimer.style.visibility = 'hidden';
                         enhancedTimer.classList.remove('timer-active');
                     }
                     
-                    console.log('🔒 COMPANION SELECTOR: All timers hidden - trial expired');
+                    // Find and hide ALL timer-related elements
+                    const allTimerElements = document.querySelectorAll('[id*="timer"], [class*="timer"], [id*="trial"], [class*="trial"]');
+                    allTimerElements.forEach(el => {
+                        if (!el.closest('.action-btn')) { // Don't hide action buttons
+                            el.style.display = 'none';
+                            el.style.visibility = 'hidden';
+                        }
+                    });
+                    
+                    console.log('🔒 COMPANION SELECTOR: ALL timers aggressively hidden - trial expired');
                 }
 
             } catch (error) {

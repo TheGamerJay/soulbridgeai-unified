@@ -379,32 +379,17 @@
             showLoading(true);
 
             try {
-                // Try production first, then fallback to local development
-                let response;
-                try {
-                    response = await fetch('/api/mini-assistant', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            message: message,
-                            context: 'soulbridge-development'
-                        })
-                    });
-                } catch (prodError) {
-                    console.log('Production API unavailable, trying local development server...');
-                    response = await fetch('http://localhost:8080/api/mini-assistant', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            message: message,
-                            context: 'soulbridge-development'
-                        })
-                    });
-                }
+                // Use main Flask server only
+                const response = await fetch('/api/mini-assistant', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        context: 'soulbridge-development'
+                    })
+                });
 
                 const data = await response.json();
                 
@@ -415,7 +400,7 @@
                 }
             } catch (error) {
                 console.error('Error:', error);
-                addMessage('assistant', 'Sorry, I could not connect. Please make sure the backend server is running on localhost:8080.');
+                addMessage('assistant', 'Sorry, I could not connect to the Mini Assistant service. Please check your connection and try again.');
             }
 
             showLoading(false);
@@ -449,13 +434,10 @@
         // Check backend status on load
         async function checkStatus() {
             try {
-                // Try production first, then fallback to local development
-                let response;
-                try {
-                    response = await fetch('/api/mini-assistant-status');
-                } catch (prodError) {
-                    console.log('Production API unavailable, trying local development server...');
-                    response = await fetch('http://localhost:8080/api/mini-assistant-status');
+                // Only try the main Flask server (no localhost:8080 fallback)
+                const response = await fetch('/api/mini-assistant-status');
+                if (!response.ok) {
+                    throw new Error(`Status check failed: ${response.status}`);
                 }
                 const data = await response.json();
                 

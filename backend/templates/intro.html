@@ -1405,13 +1405,30 @@ What specific area would you like help with? I know every feature of SoulBridge 
                     if (trialBadge) trialBadge.style.display = 'inline-flex';
                     updateSimpleTimer(trial_remaining);
                 } else {
-                    // Hide both trial badge and timers when trial expires
-                    if (trialBadge) trialBadge.style.display = 'none';
-                    if (timerElement) timerElement.style.display = 'none';
+                    // AGGRESSIVE TIMER CLEANUP - Remove all timer elements permanently
+                    if (trialBadge) {
+                        trialBadge.remove(); // Completely remove from DOM
+                    }
+                    if (timerElement) {
+                        timerElement.remove(); // Completely remove from DOM
+                    }
                     
-                    // Also hide the enhanced timer container
+                    // Remove enhanced timer container completely
                     const enhancedTimer = document.getElementById('trial-timer-container');
-                    if (enhancedTimer) enhancedTimer.style.display = 'none';
+                    if (enhancedTimer) {
+                        enhancedTimer.remove(); // Completely remove from DOM
+                    }
+                    
+                    // Find and remove ALL timer-related elements
+                    const allTimerElements = document.querySelectorAll('[id*="timer"], [class*="timer"], [id*="trial"], [class*="trial"]');
+                    allTimerElements.forEach(el => {
+                        if (!el.closest('.action-btn') && !el.closest('.card')) { // Don't remove action buttons or cards
+                            console.log('🗑️ INTRO: Removing timer element:', el.id || el.className);
+                            el.remove();
+                        }
+                    });
+                    
+                    console.log('🔒 INTRO: ALL timer elements permanently removed - trial expired');
                 }
 
 
