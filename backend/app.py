@@ -11750,29 +11750,37 @@ def get_companions_old():
 def mini_assistant():
     """Mini Assistant page for admin panel"""
     try:
-        if not is_logged_in():
-            return redirect("/login")
-        
-        # Enhanced admin access control - check if user is admin or has session from surveillance
+        # Check admin access first (before login requirement)
+        admin_key = request.args.get("key")
         user_email = session.get('user_email', '')
         admin_logged_in = session.get('admin_logged_in', False)
-        admin_key = request.args.get("key")
+        surveillance_access = session.get('surveillance_access', False)
         
         # Allow access if:
-        # 1. User email contains 'jaaye' (main admin)
-        # 2. Admin session is active (from surveillance dashboard)
-        # 3. Surveillance access is active (standalone mode)
-        # 4. Admin key is provided
-        surveillance_access = session.get('surveillance_access', False)
+        # 1. Admin key is provided (bypasses login requirement)
+        # 2. User email contains 'jaaye' (main admin)
+        # 3. Admin session is active (from surveillance dashboard)
+        # 4. Surveillance access is active (standalone mode)
         is_admin_access = (
+            admin_key == ADMIN_DASH_KEY or
             (user_email and 'jaaye' in user_email.lower()) or
             admin_logged_in or 
-            surveillance_access or
-            admin_key == ADMIN_DASH_KEY
+            surveillance_access
         )
         
         if not is_admin_access:
-            return redirect("/intro")
+            # Only redirect to login if no admin key provided
+            if not admin_key:
+                if not is_logged_in():
+                    return redirect("/login")
+                return redirect("/intro")
+            else:
+                return redirect("/admin/login")
+        
+        # Set temporary admin session for Mini Assistant access
+        if admin_key == ADMIN_DASH_KEY:
+            session['mini_assistant_access'] = True
+            session['admin_key_verified'] = True
         
         return render_template("mini_assistant_simple.html")
         
@@ -11784,7 +11792,11 @@ def mini_assistant():
 def api_mini_assistant():
     """🚀 ULTIMATE Mini Assistant API with comprehensive logging and automation"""
     try:
-        if not is_logged_in():
+        # Check if user has Mini Assistant access (either logged in or admin key verified)
+        mini_assistant_access = session.get('mini_assistant_access', False)
+        admin_key_verified = session.get('admin_key_verified', False)
+        
+        if not (is_logged_in() or mini_assistant_access or admin_key_verified):
             return jsonify({"success": False, "error": "Authentication required"}), 401
             
         data = request.get_json() or {}
@@ -11926,7 +11938,11 @@ def api_mini_assistant_get():
 def api_mini_assistant_history():
     """Get conversation history for Mini Assistant UI"""
     try:
-        if not is_logged_in():
+        # Check if user has Mini Assistant access (either logged in or admin key verified)
+        mini_assistant_access = session.get('mini_assistant_access', False)
+        admin_key_verified = session.get('admin_key_verified', False)
+        
+        if not (is_logged_in() or mini_assistant_access or admin_key_verified):
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
         memory = load_conversation_memory()
@@ -12000,7 +12016,11 @@ def api_mini_assistant_status():
 def api_mini_assistant_push():
     """🚀 Mini Assistant Git Push Endpoint"""
     try:
-        if not is_logged_in():
+        # Check if user has Mini Assistant access (either logged in or admin key verified)
+        mini_assistant_access = session.get('mini_assistant_access', False)
+        admin_key_verified = session.get('admin_key_verified', False)
+        
+        if not (is_logged_in() or mini_assistant_access or admin_key_verified):
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
         result = execute_git_push_ultimate()
