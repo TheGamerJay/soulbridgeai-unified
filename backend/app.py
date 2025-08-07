@@ -6317,9 +6317,12 @@ def get_effective_plan(user_plan: str, trial_active: bool) -> str:
         logger.warning(f"⚠️ Unknown plan '{user_plan}' defaulting to 'free'")
         user_plan = 'free'
     
-    # PATCHED: During trial, users only get features for their real tier
-    # If you want trial to unlock all features, set to "max". To isolate, use real plan.
-    return user_plan  # Always use real plan, even during trial
+    # FIXED: During trial, unlock all features (max access) but keep subscription limits
+    # Trial gives 'max' feature access while usage limits stay tied to actual subscription
+    if trial_active:
+        return 'max'  # Unlock all features during trial
+    else:
+        return user_plan  # Use real plan when no trial
 
 def get_feature_limit_v2(effective_plan: str, feature: str) -> int:
     """

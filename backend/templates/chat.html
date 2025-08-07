@@ -60,9 +60,9 @@
                     Library
                 </a>
                 
-                <!-- PREMIUM FEATURES - Only shown to Growth/Max subscribers (not trial users) -->
+                <!-- PREMIUM FEATURES - Show to Growth/Max subscribers OR during trial -->
                 <!-- DEBUG: user_plan='{{ user_plan }}', trial_active={{ trial_active }}, effective_plan='{{ effective_plan }}' -->
-                {% set show_premium = user_plan and user_plan in ['growth', 'max'] %}
+                {% set show_premium = effective_plan and effective_plan in ['growth', 'max'] %}
                 {% if show_premium %}
                 <a href="/decoder" class="action-btn premium-feature" data-tier="growth">
                     <i class="fas fa-brain"></i>
