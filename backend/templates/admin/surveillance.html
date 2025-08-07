@@ -252,9 +252,9 @@
             
             <div style="margin-top: 20px; padding: 18px; background: rgba(0, 230, 255, 0.1); border-radius: 10px; border: 1px solid rgba(0, 230, 255, 0.3);">
                 <strong>📈 TRIAL INSIGHTS:</strong><br>
-                Conversion Rate: {{ "%.1f"|format(trial_stats.conversion_rate or 0) }}% | 
-                Avg Trial Duration: {{ "%.1f"|format(trial_stats.avg_trial_days or 0) }} days | 
-                Revenue Impact: ${{ "{:,.2f}"|format(trial_stats.revenue_potential or 0) }}
+                Conversion Rate: {{ (trial_stats.conversion_rate or 0)|round(1) }}% | 
+                Avg Trial Duration: {{ (trial_stats.avg_trial_days or 0)|round(1) }} days | 
+                Revenue Impact: ${{ (trial_stats.revenue_potential or 0)|round(2) }}
             </div>
         </div>
 
