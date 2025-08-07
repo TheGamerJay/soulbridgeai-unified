@@ -101,17 +101,12 @@
         <div class="timer-glass-card">
             <div class="timer-glow-ring">
                 <svg width="140" height="140" class="timer-svg">
-                    <!-- Single progress ring with background stroke -->
-                    <circle id="timer-progress" cx="70" cy="70" r="60" 
-                            stroke="url(#timerGradient)" 
-                            stroke-width="6" 
-                            fill="none" 
-                            stroke-dasharray="377" 
-                            stroke-dashoffset="0" 
-                            stroke-linecap="round"
-                            style="transform: rotate(-90deg); transform-origin: 50% 50%; transition: stroke-dashoffset 0.5s ease, stroke 0.3s ease;
-                                   /* Background ring effect */
-                                   filter: drop-shadow(0 0 2px rgba(0, 255, 255, 0.1));"/>
+                    <!-- Background ring -->
+                    <circle cx="70" cy="70" r="60" stroke="rgba(0, 255, 255, 0.1)" stroke-width="4" fill="none"/>
+                    <!-- Progress ring -->
+                    <circle id="timer-progress" cx="70" cy="70" r="60" stroke="url(#timerGradient)" stroke-width="6" fill="none" 
+                            stroke-dasharray="377" stroke-dashoffset="0" stroke-linecap="round"
+                            style="transform: rotate(-90deg); transform-origin: 50% 50%; transition: stroke-dashoffset 0.5s ease, stroke 0.3s ease;"/>
                     <!-- Gradient Definition -->
                     <defs>
                         <linearGradient id="timerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -189,20 +184,6 @@
         position: relative;
     }
 
-    /* Add background ring using CSS */
-    .timer-glow-ring::before {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 120px;
-        height: 120px;
-        border: 3px solid rgba(0, 255, 255, 0.1);
-        border-radius: 50%;
-        transform: translate(-50%, -50%);
-        pointer-events: none;
-        z-index: 1;
-    }
 
     .timer-content {
         position: absolute;
@@ -588,166 +569,76 @@
     // All old timer removal scripts have been disabled
     </script>
     
-    <!-- Enhanced Timer System Functions -->
+    <!-- SIMPLE Timer System - Copy from working intro page -->
     <script>
-        // Enhanced Timer Update Function - CLEANED VERSION
-        function updateEnhancedTimer(remainingMs) {
-            console.log('🎯 Updating timer with remaining ms:', remainingMs);
-            
-            // Get timer elements directly without cleanup interference
-            const timerContainer = document.getElementById('trial-timer-container');
+        // Simple timer update function - EXACTLY like intro page
+        function updateEnhancedTimer(trialRemaining) {
+            const container = document.getElementById('trial-timer-container');
+            const progressRing = document.getElementById('timer-progress');
             const timeText = document.getElementById('trial-time-text');
-            const progressCircle = document.getElementById('timer-progress');
-            const timerCard = document.querySelector('.timer-glass-card');
-            
-            console.log('🔍 Timer elements found:', {
-                timerContainer: !!timerContainer,
-                timeText: !!timeText,
-                progressCircle: !!progressCircle,
-                timerCard: !!timerCard
-            });
-            
-            if (!timerContainer || !timeText || !progressCircle) {
-                console.log('❌ Timer elements not found - cannot update timer');
+
+            if (!container || !progressRing || !timeText) return;
+
+            if (trialRemaining <= 0) {
+                container.style.display = 'none';
                 return;
             }
-            
-            if (remainingMs <= 0) {
-                timerContainer.remove();
-                console.log('🗑️ Timer DELETED - trial expired');
-                return;
-            }
-            
-            // Show timer with CSS class
-            timerContainer.classList.add('timer-active');
-            timerContainer.style.display = 'block';
-            
-            // Calculate time components
-            const hours = Math.floor(remainingMs / (1000 * 60 * 60));
-            const minutes = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((remainingMs % (1000 * 60)) / 1000);
-            
-            // Update display
+
+            // Show timer
+            container.style.display = 'block';
+
+            // Calculate hours, minutes, seconds from milliseconds
+            const hours = Math.floor(trialRemaining / (1000 * 60 * 60));
+            const minutes = Math.floor((trialRemaining % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((trialRemaining % (1000 * 60)) / 1000);
+
+            // Update time display
             timeText.textContent = `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            
-            // Calculate progress (5 hours = 18000000ms)
-            const totalTrialMs = 5 * 60 * 60 * 1000; // 5 hours in milliseconds
-            const progressPercent = (remainingMs / totalTrialMs) * 100;
-            const circumference = 2 * Math.PI * 60; // radius = 60
-            
-            // Fixed progress calculation - as time decreases, more circle should be empty
-            const strokeDashoffset = circumference - (circumference * progressPercent / 100);
-            
-            progressCircle.style.strokeDashoffset = strokeDashoffset;
-            
-            // Add warning states
-            timerCard.classList.remove('timer-warning', 'timer-critical');
-            
-            if (remainingMs < 600000) { // Less than 10 minutes
-                timerCard.classList.add('timer-critical');
-            } else if (remainingMs < 1800000) { // Less than 30 minutes
-                timerCard.classList.add('timer-warning');
-            }
-        }
 
-        // Real-time timer variables
-        let trialEndTime = null;
-        let timerInterval = null;
+            // Update progress ring (5 hour trial = 18000000ms total)
+            const totalTrialMs = 5 * 60 * 60 * 1000;
+            const progressPercent = (trialRemaining / totalTrialMs) * 100;
+            const circumference = 377; // 2 * π * 60
+            const offset = circumference - (circumference * progressPercent / 100);
+            
+            progressRing.style.strokeDashoffset = offset;
 
-        // Real-time timer update (runs every second)
-        function updateTimerDisplay() {
-            if (!trialEndTime) return;
-            
-            const now = Date.now();
-            const remainingMs = trialEndTime - now;
-            
-            if (remainingMs <= 0) {
-                // Timer expired - DELETE it
-                const timerContainer = document.getElementById('trial-timer-container');
-                if (timerContainer) {
-                    timerContainer.remove();
-                    console.log('🗑️ Timer DELETED - countdown reached zero');
+            // Warning states
+            const timerCard = container.querySelector('.timer-glass-card');
+            if (timerCard) {
+                timerCard.classList.remove('timer-warning', 'timer-critical');
+                if (trialRemaining < 600000) { // < 10 minutes
+                    timerCard.classList.add('timer-critical');
+                } else if (trialRemaining < 1800000) { // < 30 minutes
+                    timerCard.classList.add('timer-warning');
                 }
-                if (timerInterval) {
-                    clearInterval(timerInterval);
-                    timerInterval = null;
-                }
-                return;
             }
-            
-            // Update timer display
-            updateEnhancedTimer(remainingMs);
         }
 
-        // Start real-time timer
-        function startRealTimeTimer(remainingMs) {
-            // Set end time
-            trialEndTime = Date.now() + remainingMs;
-            
-            // Clear any existing interval
-            if (timerInterval) {
-                clearInterval(timerInterval);
-            }
-            
-            // Start updating every second
-            timerInterval = setInterval(updateTimerDisplay, 1000);
-            
-            // Update immediately
-            updateTimerDisplay();
-        }
-
-        // Check trial status and update timer
-        async function refreshTrialStatus() {
+        // Simple refresh function - EXACTLY like intro page  
+        async function refreshUserStatus() {
             try {
-                console.log('🔍 Checking trial status...');
-                const response = await fetch('/api/user-info');
-                const data = await response.json();
-                
-                console.log('🔍 Trial status data:', {
-                    success: data.success,
-                    trial_active: data.trial_active,
-                    trial_remaining: data.trial_remaining,
-                    user_plan: data.user_plan
-                });
-                
-                if (data.success && data.trial_active && data.trial_remaining > 0) {
-                    console.log('✅ Trial active - starting real-time timer');
-                    startRealTimeTimer(data.trial_remaining);
-                } else {
-                    console.log('❌ No trial active - FORCE HIDING timer');
-                    console.log('🔍 Trial status details:', {
-                        success: data.success,
-                        trial_active: data.trial_active,
-                        trial_remaining: data.trial_remaining,
-                        user_plan: data.user_plan
-                    });
-                    
-                    // Clear timer interval
-                    if (timerInterval) {
-                        clearInterval(timerInterval);
-                        timerInterval = null;
-                        console.log('⏰ Timer interval cleared');
-                    }
-                    trialEndTime = null;
-                    
-                    // DELETE timer container completely when trial ends
-                    const timerContainer = document.getElementById('trial-timer-container');
-                    if (timerContainer) {
-                        timerContainer.remove();
-                        console.log('🗑️ Timer container DELETED completely');
-                    } else {
-                        console.log('⚠️ Timer container not found!');
-                    }
-                    
-                    // DELETE trial badge completely
-                    const trialBadge = document.getElementById('trial-badge');
-                    if (trialBadge) {
-                        trialBadge.remove();
-                        console.log('🗑️ Trial badge DELETED completely');
-                    }
+                const res = await fetch('/api/user-info');
+                const data = await res.json();
+
+                if (!data.success) {
+                    console.error('Failed to get user info:', data.error);
+                    return;
                 }
+
+                const { trial_active, trial_remaining, effective_plan, trial_used_permanently } = data;
+
+                // Simple timer logic - EXACTLY like intro page
+                if (trial_active && trial_remaining > 0) {
+                    updateEnhancedTimer(trial_remaining);
+                } else {
+                    // Hide timer if trial not active
+                    const container = document.getElementById('trial-timer-container');
+                    if (container) container.style.display = 'none';
+                }
+
             } catch (error) {
-                console.error('Error checking trial status:', error);
+                console.error('Error refreshing user status:', error);
             }
         }
 
@@ -857,15 +748,8 @@
             });
         };
 
-        // Initialize timer on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 Page loaded - initializing timer...');
-            
-            refreshTrialStatus();
-            
-            // Refresh every 2 minutes (since we now have real-time updates)
-            setInterval(refreshTrialStatus, 120000);
-        });
+        // Initialize timer - EXACTLY like intro page (simple!)
+        refreshUserStatus(); // Run once on load only
     </script>
     
     <script src="{{ url_for('static', filename='js/companion_selector.js') }}?v={{ range(1000000) | random }}"></script>
