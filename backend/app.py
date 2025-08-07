@@ -1,3 +1,15 @@
+# Admin dashboard logout route for correct redirect
+@app.route("/admin/logout", methods=["GET", "POST"])
+def admin_logout():
+    """Admin dashboard logout: clears session and redirects to /admin/login"""
+    try:
+        user_email = session.get('user_email', 'unknown')
+        logger.info(f"ADMIN LOGOUT: User {user_email} logged out from admin dashboard")
+        session.clear()
+        return redirect("/admin/login")
+    except Exception as e:
+        logger.error(f"Admin logout error: {e}")
+        return redirect("/admin/login")
 #!/usr/bin/env python3
 """
 SoulBridge AI - Production Ready App  
