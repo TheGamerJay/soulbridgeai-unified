@@ -571,19 +571,32 @@
     
     <!-- SIMPLE Timer System - Copy from working intro page -->
     <script>
-        // Simple timer update function - EXACTLY like intro page
+        // Simple timer update function with DEBUG - EXACTLY like intro page
         function updateEnhancedTimer(trialRemaining) {
+            console.log('🎯 COMPANION SELECTOR: updateEnhancedTimer called with:', trialRemaining);
+            
             const container = document.getElementById('trial-timer-container');
             const progressRing = document.getElementById('timer-progress');
             const timeText = document.getElementById('trial-time-text');
 
-            if (!container || !progressRing || !timeText) return;
+            console.log('🔍 COMPANION SELECTOR: Timer elements:', {
+                container: !!container,
+                progressRing: !!progressRing,
+                timeText: !!timeText
+            });
+
+            if (!container || !progressRing || !timeText) {
+                console.log('❌ COMPANION SELECTOR: Missing timer elements, cannot update');
+                return;
+            }
 
             if (trialRemaining <= 0) {
+                console.log('❌ COMPANION SELECTOR: Trial remaining <= 0, hiding timer');
                 container.style.display = 'none';
                 return;
             }
 
+            console.log('✅ COMPANION SELECTOR: Showing timer with remaining time:', trialRemaining);
             // Show timer
             container.style.display = 'block';
 
@@ -615,30 +628,48 @@
             }
         }
 
-        // Simple refresh function - EXACTLY like intro page  
+        // Simple refresh function with DEBUG - EXACTLY like intro page  
         async function refreshUserStatus() {
             try {
+                console.log('🔍 COMPANION SELECTOR: Fetching user status...');
                 const res = await fetch('/api/user-info');
                 const data = await res.json();
 
+                console.log('🔍 COMPANION SELECTOR: API Response:', data);
+
                 if (!data.success) {
-                    console.error('Failed to get user info:', data.error);
+                    console.error('❌ Failed to get user info:', data.error);
                     return;
                 }
 
                 const { trial_active, trial_remaining, effective_plan, trial_used_permanently } = data;
+                
+                console.log('🔍 COMPANION SELECTOR: Trial status:', {
+                    trial_active,
+                    trial_remaining,
+                    effective_plan,
+                    trial_used_permanently
+                });
+
+                // Check if timer container exists
+                const container = document.getElementById('trial-timer-container');
+                console.log('🔍 COMPANION SELECTOR: Timer container exists:', !!container);
 
                 // Simple timer logic - EXACTLY like intro page
                 if (trial_active && trial_remaining > 0) {
+                    console.log('✅ COMPANION SELECTOR: Trial active, showing timer');
                     updateEnhancedTimer(trial_remaining);
                 } else {
+                    console.log('❌ COMPANION SELECTOR: No active trial, hiding timer');
                     // Hide timer if trial not active
-                    const container = document.getElementById('trial-timer-container');
-                    if (container) container.style.display = 'none';
+                    if (container) {
+                        container.style.display = 'none';
+                        console.log('🔧 COMPANION SELECTOR: Timer hidden');
+                    }
                 }
 
             } catch (error) {
-                console.error('Error refreshing user status:', error);
+                console.error('❌ COMPANION SELECTOR: Error refreshing user status:', error);
             }
         }
 
@@ -663,6 +694,13 @@
                 window.timerInterval = null;
                 console.log('⏰ Timer interval cleared');
             }
+        };
+
+        // Test timer with fake data (you can call this in console)
+        window.testTimer = function(minutes = 60) {
+            console.log('🧪 TESTING TIMER with', minutes, 'minutes');
+            const fakeMs = minutes * 60 * 1000; // Convert minutes to milliseconds
+            updateEnhancedTimer(fakeMs);
         };
 
         // Force show timer for testing (you can call this in console)
