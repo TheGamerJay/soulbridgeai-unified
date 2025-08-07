@@ -517,8 +517,11 @@
                 return;
             }
             
-            // Show timer
+            // Show timer with force
             timerElement.style.display = 'block';
+            timerElement.style.visibility = 'visible';
+            timerElement.style.opacity = '1';
+            console.log('✅ Timer display set to block, visibility:', timerElement.style.visibility);
             
             // Calculate time components (auto-detect seconds vs milliseconds)
             const totalSeconds = Math.floor(trialRemaining > 1000000 ? trialRemaining / 1000 : trialRemaining);
