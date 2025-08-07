@@ -889,9 +889,20 @@ def initialize_services():
     
     return results
 
+
 # ========================================
 # CORE ROUTES
 # ========================================
+
+# ADMIN LOGIN PAGE ROUTE
+@app.route("/admin/login", methods=["GET"])
+def admin_login_page():
+    """Admin login page - always show admin login form"""
+    try:
+        return render_template("admin/login.html")
+    except Exception as e:
+        logger.error(f"Admin login template error: {e}")
+        return "Admin login page temporarily unavailable", 500
 
 @app.route("/health")
 def health():
