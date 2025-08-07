@@ -517,8 +517,8 @@
             });
         }
         
-        // Run removal on page load only - DISABLED interval to prevent flickering
-        document.addEventListener('DOMContentLoaded', removeOldTimerElements);
+        // DISABLED: Run removal on page load - was blocking new timer
+        // document.addEventListener('DOMContentLoaded', removeOldTimerElements);
         // DISABLED: setInterval(removeOldTimerElements, 500); // Causing flickering
         
         // DISABLED MutationObserver - was interfering with timer updates
