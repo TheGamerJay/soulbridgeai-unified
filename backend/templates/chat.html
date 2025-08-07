@@ -114,54 +114,7 @@
                     Home
                 </a>
                 
-                <!-- 🚀 NEW Enhanced Trial Timer - Beautiful Modern Design -->
-                <div id="trial-timer-container" style="display:none; position: fixed; top: 20px; right: 20px; z-index: 1500;">
-                    <div class="timer-glass-card">
-                        <div class="timer-glow-ring">
-                            <svg width="140" height="140" class="timer-svg">
-                                <!-- Background ring -->
-                                <circle cx="70" cy="70" r="60" stroke="rgba(0, 255, 255, 0.1)" stroke-width="4" fill="none"/>
-                                <!-- Progress ring -->
-                                <circle id="timer-progress" cx="70" cy="70" r="60" stroke="url(#timerGradient)" stroke-width="6" fill="none" 
-                                        stroke-dasharray="377" stroke-dashoffset="0" stroke-linecap="round"
-                                        style="transform: rotate(-90deg); transform-origin: 50% 50%; transition: stroke-dashoffset 0.5s ease, stroke 0.3s ease;"/>
-                                <!-- Gradient Definition -->
-                                <defs>
-                                    <linearGradient id="timerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" style="stop-color:#00ffff"/>
-                                        <stop offset="50%" style="stop-color:#00cc88"/>
-                                        <stop offset="100%" style="stop-color:#0099ff"/>
-                                    </linearGradient>
-                                    <linearGradient id="warningGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" style="stop-color:#ffaa00"/>
-                                        <stop offset="100%" style="stop-color:#ff8800"/>
-                                    </linearGradient>
-                                    <linearGradient id="criticalGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" style="stop-color:#ff4444"/>
-                                        <stop offset="100%" style="stop-color:#cc0000"/>
-                                    </linearGradient>
-                                    <filter id="glow">
-                                        <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
-                                        <feMerge> 
-                                            <feMergeNode in="coloredBlur"/>
-                                            <feMergeNode in="SourceGraphic"/> 
-                                        </feMerge>
-                                    </filter>
-                                </defs>
-                            </svg>
-                            
-                            <!-- Timer Text Content -->
-                            <div class="timer-content">
-                                <div id="trial-time-text" class="timer-display">5:00:00</div>
-                                <div class="timer-label">TRIAL</div>
-                                <div class="timer-status">Active</div>
-                            </div>
-                            
-                            <!-- Pulse Animation Ring -->
-                            <div class="pulse-ring"></div>
-                        </div>
-                    </div>
-                </div>
+                <!-- Timer removed from chat page - too distracting during conversations -->
 
                 
                 <!-- Trial Badge (shows when trial is active) -->
@@ -175,24 +128,6 @@
         
         <!-- Messages Area -->
         <div class="chat-messages" id="chatMessages">
-            <!-- AI Tool Disclaimer -->
-            <div id="ai-disclaimer-message" style="background: linear-gradient(135deg, rgba(255, 107, 107, 0.15) 0%, rgba(255, 142, 83, 0.15) 100%); border: 2px solid rgba(255, 107, 107, 0.3); border-radius: 12px; padding: 20px; margin: 20px; backdrop-filter: blur(10px); font-size: 0.9rem;">
-                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                    <span style="font-size: 1.5em;">🤖</span>
-                    <strong style="color: #FF6B6B;">Important: AI Companion Chat</strong>
-                </div>
-                <p style="margin: 10px 0; color: #cbd5e1; line-height: 1.4;">
-                    You're chatting with an AI companion designed for entertainment and emotional support. 
-                    Responses are AI-generated and may contain errors. <strong>This is not professional therapy, medical, or legal advice.</strong> 
-                    For serious concerns, please consult qualified professionals.
-                </p>
-                <div style="display: flex; align-items: center; gap: 10px; margin-top: 15px;">
-                    <input type="checkbox" id="chat-disclaimer" style="accent-color: #00ffff;" onchange="toggleDisclaimerVisibility()">
-                    <label for="chat-disclaimer" style="color: #e2e8f0; cursor: pointer;">
-                        I understand - hide this notice
-                    </label>
-                </div>
-            </div>
             <!-- Messages will be added here by JavaScript -->
         </div>
         
@@ -235,29 +170,7 @@
             fetch('/auth/logout').then(() => window.location = '/login');
         }
 
-        // Disclaimer visibility toggle
-        function toggleDisclaimerVisibility() {
-            const disclaimer = document.getElementById('ai-disclaimer-message');
-            const checkbox = document.getElementById('chat-disclaimer');
-            
-            if (checkbox.checked) {
-                disclaimer.style.display = 'none';
-                localStorage.setItem('chat-disclaimer-hidden', 'true');
-                localStorage.setItem('chat-disclaimer-date', new Date().toISOString());
-            }
-        }
-
-        // Check if disclaimer should be hidden on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            if (localStorage.getItem('chat-disclaimer-hidden') === 'true') {
-                const disclaimer = document.getElementById('ai-disclaimer-message');
-                const checkbox = document.getElementById('chat-disclaimer');
-                if (disclaimer && checkbox) {
-                    disclaimer.style.display = 'none';
-                    checkbox.checked = true;
-                }
-            }
-        });
+        // Disclaimer removed - keeping chat interface clean and distraction-free
     </script>
     
     <!-- Creative Writing Modal -->
@@ -1035,145 +948,7 @@
             border-radius: 50%;
         }
         
-        /* 🎨 Beautiful Modern Timer Styles - Chat Page */
-        .timer-glass-card {
-            background: linear-gradient(135deg, rgba(0, 0, 0, 0.9) 0%, rgba(15, 23, 42, 0.9) 100%);
-            backdrop-filter: blur(20px);
-            border: 2px solid rgba(0, 255, 255, 0.3);
-            border-radius: 20px;
-            padding: 15px;
-            box-shadow: 
-                0 20px 40px rgba(0, 0, 0, 0.4),
-                0 0 30px rgba(0, 255, 255, 0.2),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .timer-glass-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.5), transparent);
-        }
-
-        .timer-glow-ring {
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .timer-svg {
-            filter: drop-shadow(0 0 10px rgba(0, 255, 255, 0.3));
-            animation: timerRotate 20s linear infinite;
-        }
-
-        .timer-content {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            z-index: 10;
-        }
-
-        .timer-display {
-            font-size: 18px;
-            font-weight: 700;
-            color: #00ffff;
-            text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
-            margin-bottom: 2px;
-            font-family: 'Courier New', monospace;
-            letter-spacing: 1px;
-        }
-
-        .timer-label {
-            font-size: 10px;
-            font-weight: 600;
-            color: rgba(0, 255, 255, 0.7);
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-bottom: 1px;
-        }
-
-        .timer-status {
-            font-size: 8px;
-            color: #00cc88;
-            font-weight: 500;
-            opacity: 0.8;
-            animation: statusPulse 2s ease-in-out infinite;
-        }
-
-        .pulse-ring {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 120px;
-            height: 120px;
-            border: 2px solid rgba(0, 255, 255, 0.3);
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            animation: pulseRing 3s ease-in-out infinite;
-            pointer-events: none;
-        }
-
-        /* 🎬 Timer Animations */
-        @keyframes timerRotate {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        @keyframes pulseRing {
-            0%, 100% { 
-                opacity: 0.3; 
-                transform: translate(-50%, -50%) scale(1); 
-            }
-            50% { 
-                opacity: 0.1; 
-                transform: translate(-50%, -50%) scale(1.1); 
-            }
-        }
-
-        @keyframes statusPulse {
-            0%, 100% { opacity: 0.6; }
-            50% { opacity: 1; }
-        }
-
-        /* 🌟 Hover Effects */
-        .timer-glass-card:hover {
-            border-color: rgba(0, 255, 255, 0.6);
-            box-shadow: 
-                0 25px 50px rgba(0, 0, 0, 0.5),
-                0 0 50px rgba(0, 255, 255, 0.4),
-                inset 0 1px 0 rgba(255, 255, 255, 0.2);
-            transform: translateY(-2px);
-            transition: all 0.3s ease;
-        }
-
-        /* 🚨 Warning States */
-        .timer-warning #timer-progress {
-            stroke: url(#warningGradient) !important;
-            animation: warningPulse 1s ease-in-out infinite;
-        }
-
-        .timer-critical #timer-progress {
-            stroke: url(#criticalGradient) !important;
-            animation: criticalPulse 0.5s ease-in-out infinite;
-        }
-
-        @keyframes warningPulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-
-        @keyframes criticalPulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
+        /* Timer styles removed from chat page - too distracting during conversations */
 
         .hidden {
             display: none !important;
@@ -2254,51 +2029,7 @@ Where emotion meets expression.
             setTimeout(() => confettiCanvas.classList.add("hidden"), 3000);
         }
 
-        // Enhanced Timer Update Function
-        function updateEnhancedTimer(remainingMs) {
-            const timerContainer = document.getElementById('trial-timer-container');
-            const timeText = document.getElementById('trial-time-text');
-            const progressCircle = document.getElementById('timer-progress');
-            const timerCard = document.querySelector('.timer-glass-card');
-            
-            if (!timerContainer || !timeText || !progressCircle) {
-                console.log('Timer elements not found');
-                return;
-            }
-            
-            if (remainingMs <= 0) {
-                timerContainer.style.display = 'none';
-                return;
-            }
-            
-            // Show timer
-            timerContainer.style.display = 'block';
-            
-            // Calculate time components
-            const hours = Math.floor(remainingMs / (1000 * 60 * 60));
-            const minutes = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((remainingMs % (1000 * 60)) / 1000);
-            
-            // Update display
-            timeText.textContent = `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            
-            // Calculate progress (5 hours = 18000000ms)
-            const totalTrialMs = 5 * 60 * 60 * 1000; // 5 hours in milliseconds
-            const progressPercent = (remainingMs / totalTrialMs) * 100;
-            const circumference = 2 * Math.PI * 60; // radius = 60
-            const strokeDashoffset = circumference * (1 - progressPercent / 100);
-            
-            progressCircle.style.strokeDashoffset = strokeDashoffset;
-            
-            // Add warning states
-            timerCard.classList.remove('timer-warning', 'timer-critical');
-            
-            if (remainingMs < 600000) { // Less than 10 minutes
-                timerCard.classList.add('timer-critical');
-            } else if (remainingMs < 1800000) { // Less than 30 minutes
-                timerCard.classList.add('timer-warning');
-            }
-        }
+        // Timer functionality removed from chat page to reduce distractions during conversations
 
         async function refreshUserStatus() {
             try {
@@ -2312,14 +2043,7 @@ Where emotion meets expression.
 
                 const { trial_active, trial_remaining, effective_plan, user_plan, trial_used_permanently } = data;
 
-                // Update enhanced timer system
-                if (trial_active && trial_remaining > 0) {
-                    updateEnhancedTimer(trial_remaining);
-                } else {
-                    // Hide timer if no trial active
-                    const timerContainer = document.getElementById('trial-timer-container');
-                    if (timerContainer) timerContainer.style.display = 'none';
-                }
+                // Timer updates removed from chat page - keeping conversations distraction-free
 
                 // DISABLED OLD RING TIMER - Preventing conflicts with new timer system
                 // Use new timer system instead (trial-timer-container)
