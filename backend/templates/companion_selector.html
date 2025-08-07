@@ -88,69 +88,24 @@
         ← Back to Intro
     </a>
     
-    <!-- Trial Badge - Show when trial is active -->
+    <!-- Trial Badge - Hidden by default, shown by JavaScript when active -->
     <div class="trial-status-container" style="position: fixed; top: 80px; left: 20px; z-index: 1000;">
         <span class="trial-badge" id="trial-badge" style="display: none;">
             🕐 Trial Active
         </span>
     </div>
     
-    <!-- Simple Timer - Positioned below trial badge -->
+    <!-- Simple Timer - Hidden by default, shown by JavaScript when active -->
     <div id="active-remaining" class="simple-timer" style="display: none; position: fixed; top: 115px; left: 20px; z-index: 1000;">
         <span id="remaining-display">5:00:00</span>
     </div>
 
-    <!-- Advanced Trial Timer Widget -->
-    <!-- 🚀 NEW Enhanced Trial Timer - Beautiful Modern Design -->
-    <div id="trial-timer-container" style="display:none; position: fixed; top: 20px; right: 20px; z-index: 1500;">
-        <div class="timer-glass-card">
-            <div class="timer-glow-ring">
-                <svg width="140" height="140" class="timer-svg">
-                    <!-- Background ring -->
-                    <circle cx="70" cy="70" r="60" stroke="rgba(0, 255, 255, 0.1)" stroke-width="4" fill="none"/>
-                    <!-- Progress ring -->
-                    <circle id="timer-progress" cx="70" cy="70" r="60" stroke="url(#timerGradient)" stroke-width="6" fill="none" 
-                            stroke-dasharray="377" stroke-dashoffset="0" stroke-linecap="round"
-                            style="transform: rotate(-90deg); transform-origin: 50% 50%; transition: stroke-dashoffset 0.5s ease, stroke 0.3s ease;"/>
-                    <!-- Gradient Definition -->
-                    <defs>
-                        <linearGradient id="timerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#00ffff"/>
-                            <stop offset="50%" style="stop-color:#00cc88"/>
-                            <stop offset="100%" style="stop-color:#0099ff"/>
-                        </linearGradient>
-                        <linearGradient id="warningGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#ffaa00"/>
-                            <stop offset="100%" style="stop-color:#ff8800"/>
-                        </linearGradient>
-                        <linearGradient id="criticalGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#ff4444"/>
-                            <stop offset="100%" style="stop-color:#cc0000"/>
-                        </linearGradient>
-                        <filter id="glow">
-                            <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
-                            <feMerge> 
-                                <feMergeNode in="coloredBlur"/>
-                                <feMergeNode in="SourceGraphic"/> 
-                            </feMerge>
-                        </filter>
-                    </defs>
-                </svg>
-                
-                <!-- Timer Text Content -->
-                <div class="timer-content">
-                    <div id="trial-time-text" class="timer-display">5:00:00</div>
-                    <div class="timer-label">TRIAL</div>
-                    <div class="timer-status">Active</div>
-                </div>
-                
-                <!-- Pulse Animation Ring -->
-                <div class="pulse-ring"></div>
-            </div>
-        </div>
-    </div>
-
     <style>
+    /* 🔒 Force Hide Timers by Default */
+    .trial-badge, .simple-timer, #trial-timer-container {
+        display: none !important;
+    }
+    
     /* 🎨 Beautiful Modern Timer Styles */
     .timer-glass-card {
         background: linear-gradient(135deg, rgba(0, 0, 0, 0.9) 0%, rgba(15, 23, 42, 0.9) 100%);

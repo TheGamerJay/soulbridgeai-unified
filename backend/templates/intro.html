@@ -542,9 +542,9 @@
         <!-- Right side buttons -->
         <div style="display: flex; gap: 15px; align-items: center;">
             
-            <!-- Trial Badge with Simple Timer -->
+            <!-- Trial Badge with Simple Timer - Hidden by default, shown by JavaScript when active -->
             <div class="trial-status-container">
-                <span class="trial-badge" id="trial-badge" style="display: {% if session.get('trial_active') %}inline-flex{% else %}none{% endif %};">
+                <span class="trial-badge" id="trial-badge" style="display: none;">
                     🕐 Trial Active
                 </span>
                 <div id="simple-timer" class="simple-timer" style="display: none;">
