@@ -909,10 +909,16 @@ def admin_login_page():
         # POST: process admin login form
         email = request.form.get("email", "").strip().lower()
         password = request.form.get("password", "").strip()
-        # TODO: Add your admin authentication logic here
-        # For now, just redirect back to login with a flash message
-        flash("Admin login processing not yet implemented.", "warning")
-        return redirect("/admin/login")
+        # Hardcoded admin credentials
+        ADMIN_EMAIL = "theenvy13@gmail.com"
+        ADMIN_PASSWORD = "Yariel13"
+        if email == ADMIN_EMAIL and password == ADMIN_PASSWORD:
+            setup_user_session(email, is_admin=True)
+            flash("Admin login successful!", "success")
+            return redirect("/admin/dashboard")
+        else:
+            flash("Invalid admin credentials.", "danger")
+            return redirect("/admin/login")
 
 @app.route("/health")
 def health():
