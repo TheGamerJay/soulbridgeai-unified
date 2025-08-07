@@ -2390,7 +2390,34 @@ def companion_selection():
         logger.info(f"✅ COMPANION: Plan {user_plan} already using new naming - no migration needed")
     
     logger.info(f"✅ COMPANION SELECTION: User authenticated, showing companion selector")
-    return render_template("companion_selector.html")
+    
+    # Get user data for template
+    user_id = session.get('user_id')
+    user_plan = session.get('user_plan', 'free')
+    trial_active = session.get('trial_active', False)
+    
+    # Get referral count (default to 0 if not available)
+    referral_count = 0
+    try:
+        db_instance = get_database()
+        if db_instance:
+            conn = db_instance.get_connection()
+            cursor = conn.cursor()
+            if db_instance.use_postgres:
+                cursor.execute("SELECT referral_count FROM users WHERE id = %s", (user_id,))
+            else:
+                cursor.execute("SELECT referral_count FROM users WHERE id = ?", (user_id,))
+            result = cursor.fetchone()
+            if result and result[0]:
+                referral_count = result[0]
+            conn.close()
+    except Exception as e:
+        logger.error(f"Error getting referral count: {e}")
+    
+    return render_template("companion_selector.html", 
+                         referral_count=referral_count,
+                         trial_active=trial_active,
+                         user_plan=user_plan)
 
 @app.route("/chat")
 def chat():

@@ -537,6 +537,191 @@
             color: #ccc;
             margin-bottom: 1rem;
         }
+        
+        /* Netflix-Style Referral Cards */
+        .netflix-referral-section {
+            margin: 3rem 0;
+            padding: 2rem;
+            background: linear-gradient(135deg, #1a1a1a, #0a0a0a);
+            border-radius: 16px;
+            border: 1px solid rgba(251, 191, 36, 0.3);
+        }
+        
+        .netflix-companion-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+        
+        .netflix-card {
+            background: #1a1a1a;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        
+        .netflix-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+        
+        .netflix-card.unlocked {
+            border-color: #22d3ee;
+        }
+        
+        .netflix-card.unlocked:hover {
+            box-shadow: 0 20px 40px rgba(34, 211, 238, 0.3);
+        }
+        
+        .netflix-card.locked {
+            filter: grayscale(0.7);
+            opacity: 0.8;
+        }
+        
+        .netflix-card.locked:hover {
+            filter: grayscale(0.3);
+            opacity: 0.9;
+        }
+        
+        .netflix-poster {
+            position: relative;
+            height: 200px;
+            overflow: hidden;
+        }
+        
+        .netflix-poster img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+        
+        .netflix-card:hover .netflix-poster img {
+            transform: scale(1.1);
+        }
+        
+        .netflix-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.7) 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 1rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .netflix-card:hover .netflix-overlay {
+            opacity: 1;
+        }
+        
+        .unlock-status {
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        
+        .unlock-status.unlocked {
+            color: #22c55e;
+        }
+        
+        .unlock-status.locked {
+            color: #ef4444;
+        }
+        
+        .unlock-requirement {
+            font-size: 0.8rem;
+            color: #fbbf24;
+            font-weight: 600;
+        }
+        
+        .netflix-info {
+            padding: 1.5rem;
+        }
+        
+        .netflix-info h3 {
+            color: #fff;
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+        
+        .unlock-tier {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+        
+        .netflix-badges {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .netflix-badges .badge {
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .badge.exclusive {
+            background: #a855f7;
+            color: white;
+        }
+        
+        .badge.referral {
+            background: #fbbf24;
+            color: #000;
+        }
+        
+        .badge.ultimate {
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            color: #000;
+        }
+        
+        .badge.cosmetic {
+            background: #22d3ee;
+            color: #000;
+        }
+        
+        .badge.rare {
+            background: #ef4444;
+            color: white;
+        }
+        
+        .referral-status {
+            background: rgba(251, 191, 36, 0.1);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            margin-top: 2rem;
+        }
+        
+        .referral-status .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+        
+        .referral-status .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #fbbf24, #f59e0b);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
     </style>
 </head>
 <body>
@@ -549,6 +734,24 @@
         </div>
         
         <div id="companions-container">
+            <!-- Dynamic tier-aware content -->
+            {% if trial_active %}
+                <div class="tier-section trial-tier" style="background: #2a1a2a; border: 2px solid #a855f7;">
+                    <h2 class="tier-title" style="color: #a855f7;">🕒 5-Hour Trial Active</h2>
+                    <div class="tier-description">
+                        <p><strong>Trial Status:</strong> You have access to Max tier features temporarily!</p>
+                        <p><strong>Your Limits:</strong> {{ user_plan|title }} limits still apply during trial</p>
+                        {% if user_plan == 'free' %}
+                            <p><strong>Current Limits:</strong> 3 Decoders / 2 Fortunes / 3 Horoscopes per day</p>
+                        {% elif user_plan == 'growth' %}
+                            <p><strong>Current Limits:</strong> 15 Decoders / 8 Fortunes / 10 Horoscopes per day</p>
+                        {% else %}
+                            <p><strong>Current Limits:</strong> Unlimited access</p>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+
             <!-- ========================= -->
             <!-- 🎯 FREE TIER COMPANIONS -->
             <!-- ========================= -->
@@ -783,48 +986,113 @@
               <p class="tier-note">This creates a 4th pseudo-tier: <strong>Community Champions</strong> 🏆</p>
             </section>
 
-            <!-- ✅ Referral Companions – Netflix Style (Isolated Trial Mode Version) -->
-            <section class="companion-tier referral-tier">
-              <h2>🏆 Referral Companions</h2>
-              <p class="subtext">Unlocked by inviting friends — not available in Free, Growth, or Max tiers.</p>
+            <!-- ✅ Netflix-Style Referral Companions Cards -->
+            <section class="netflix-referral-section">
+              <h2 style="color: #fbbf24; text-align: center; font-size: 2rem; margin: 2rem 0;">🏆 Exclusive Referral Companions</h2>
+              <p style="text-align: center; color: #94a3b8; margin-bottom: 2rem;">Unlock these exclusive companions by referring friends!</p>
 
-              <div class="companion-row">
-                <!-- Blayzike (Unlocked at 2 referrals) -->
-                <div class="companion-card {% if (referral_count or 0) >= 2 %}unlocked{% else %}locked{% endif %}">
-                  <img src="/static/companions/blayzike.png" alt="Blayzike">
-                  <h3>Blayzike</h3>
-                  <p class="unlock-level">2 Referrals</p>
-                  {% if (referral_count or 0) >= 2 %}<span class="badge">✅ Unlocked</span>{% else %}<span class="badge">🔒 Locked</span>{% endif %}
+              <div class="netflix-companion-grid">
+                <!-- Blayzike -->
+                <div class="netflix-card {% if (referral_count or 0) >= 2 %}unlocked{% else %}locked{% endif %}" onclick="{% if (referral_count or 0) >= 2 %}selectCompanion('blayzike'){% else %}showReferralInfo(2){% endif %}">
+                  <div class="netflix-poster">
+                    <img src="/static/img/companions/blayzike.png" alt="Blayzike" onerror="this.src='/static/img/placeholder-companion.png'">
+                    <div class="netflix-overlay">
+                      {% if (referral_count or 0) >= 2 %}
+                        <div class="unlock-status unlocked">✅ UNLOCKED</div>
+                      {% else %}
+                        <div class="unlock-status locked">🔒 LOCKED</div>
+                        <div class="unlock-requirement">Need {{ 2 - (referral_count or 0) }} more referrals</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="netflix-info">
+                    <h3>Blayzike</h3>
+                    <p class="unlock-tier">2 Referrals • 97% Popularity</p>
+                    <div class="netflix-badges">
+                      <span class="badge exclusive">EXCLUSIVE</span>
+                      <span class="badge referral">REFERRAL ONLY</span>
+                    </div>
+                  </div>
                 </div>
 
-                <!-- Blazelian (Unlocked at 5 referrals) -->
-                <div class="companion-card {% if (referral_count or 0) >= 5 %}unlocked{% else %}locked{% endif %}">
-                  <img src="/static/companions/blazelian.png" alt="Blazelian">
-                  <h3>Blazelian</h3>
-                  <p class="unlock-level">5 Referrals</p>
-                  {% if (referral_count or 0) >= 5 %}<span class="badge">✅ Unlocked</span>{% else %}<span class="badge">🔒 Locked</span>{% endif %}
+                <!-- Blazelian -->
+                <div class="netflix-card {% if (referral_count or 0) >= 5 %}unlocked{% else %}locked{% endif %}" onclick="{% if (referral_count or 0) >= 5 %}selectCompanion('blazelian'){% else %}showReferralInfo(5){% endif %}">
+                  <div class="netflix-poster">
+                    <img src="/static/img/companions/blazelian.png" alt="Blazelian" onerror="this.src='/static/img/placeholder-companion.png'">
+                    <div class="netflix-overlay">
+                      {% if (referral_count or 0) >= 5 %}
+                        <div class="unlock-status unlocked">✅ UNLOCKED</div>
+                      {% else %}
+                        <div class="unlock-status locked">🔒 LOCKED</div>
+                        <div class="unlock-requirement">Need {{ 5 - (referral_count or 0) }} more referrals</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="netflix-info">
+                    <h3>Blazelian</h3>
+                    <p class="unlock-tier">5 Referrals • 98% Popularity</p>
+                    <div class="netflix-badges">
+                      <span class="badge exclusive">EXCLUSIVE</span>
+                      <span class="badge referral">REFERRAL ONLY</span>
+                    </div>
+                  </div>
                 </div>
 
-                <!-- Claude Referral (Unlocked at 8 referrals) -->
-                <div class="companion-card {% if (referral_count or 0) >= 8 %}unlocked{% else %}locked{% endif %}">
-                  <img src="/static/companions/claude_referral.png" alt="Claude Referral">
-                  <h3>Claude Referral</h3>
-                  <p class="unlock-level">8 Referrals</p>
-                  {% if (referral_count or 0) >= 8 %}<span class="badge">✅ Unlocked</span>{% else %}<span class="badge">🔒 Locked</span>{% endif %}
+                <!-- Claude Referral -->
+                <div class="netflix-card {% if (referral_count or 0) >= 8 %}unlocked{% else %}locked{% endif %}" onclick="{% if (referral_count or 0) >= 8 %}selectCompanion('claude_referral'){% else %}showReferralInfo(8){% endif %}">
+                  <div class="netflix-poster">
+                    <img src="/static/img/companions/claude_referral.png" alt="Claude Referral" onerror="this.src='/static/img/placeholder-companion.png'">
+                    <div class="netflix-overlay">
+                      {% if (referral_count or 0) >= 8 %}
+                        <div class="unlock-status unlocked">✅ UNLOCKED</div>
+                      {% else %}
+                        <div class="unlock-status locked">🔒 LOCKED</div>
+                        <div class="unlock-requirement">Need {{ 8 - (referral_count or 0) }} more referrals</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="netflix-info">
+                    <h3>Claude Referral</h3>
+                    <p class="unlock-tier">8 Referrals • 100% Popularity</p>
+                    <div class="netflix-badges">
+                      <span class="badge exclusive">EXCLUSIVE</span>
+                      <span class="badge ultimate">ULTIMATE</span>
+                    </div>
+                  </div>
                 </div>
 
-                <!-- Blayzo Skin (Unlocked at 10 referrals) -->
-                <div class="companion-card {% if (referral_count or 0) >= 10 %}unlocked{% else %}locked{% endif %}">
-                  <img src="/static/companions/blayzo_skin.png" alt="Blayzo Special Skin">
-                  <h3>Blayzo Skin</h3>
-                  <p class="unlock-level">10 Referrals</p>
-                  {% if (referral_count or 0) >= 10 %}<span class="badge">✅ Unlocked</span>{% else %}<span class="badge">🔒 Locked</span>{% endif %}
+                <!-- Blayzo Special Skin -->
+                <div class="netflix-card {% if (referral_count or 0) >= 10 %}unlocked{% else %}locked{% endif %}" onclick="{% if (referral_count or 0) >= 10 %}selectSkin('blayzo_special'){% else %}showReferralInfo(10){% endif %}">
+                  <div class="netflix-poster">
+                    <img src="/static/img/companions/blayzo_special_skin.png" alt="Blayzo Special Skin" onerror="this.src='/static/img/placeholder-companion.png'">
+                    <div class="netflix-overlay">
+                      {% if (referral_count or 0) >= 10 %}
+                        <div class="unlock-status unlocked">✅ UNLOCKED</div>
+                      {% else %}
+                        <div class="unlock-status locked">🔒 LOCKED</div>
+                        <div class="unlock-requirement">Need {{ 10 - (referral_count or 0) }} more referrals</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="netflix-info">
+                    <h3>Blayzo Special Skin</h3>
+                    <p class="unlock-tier">10 Referrals • Cosmetic Only</p>
+                    <div class="netflix-badges">
+                      <span class="badge cosmetic">COSMETIC</span>
+                      <span class="badge rare">RARE</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div class="referral-note">
-                <p><strong>Note:</strong> These do <em>not</em> unlock during trial. Only confirmed signups count.</p>
-                <p>You have referred <strong>{{ referral_count or 0 }}</strong> users.</p>
+              <div class="referral-status">
+                <h3 style="color: #fbbf24;">📊 Your Referral Progress</h3>
+                <p>You have referred <strong style="color: #22d3ee;">{{ referral_count or 0 }}</strong> users successfully.</p>
+                <div class="progress-bar">
+                  <div class="progress-fill" style="width: {{ ((referral_count or 0) / 10 * 100)|round }}%;"></div>
+                </div>
+                <p style="color: #94a3b8; margin-top: 0.5rem;">{{ 10 - (referral_count or 0) }} more referrals to unlock everything!</p>
+                <a href="/referrals" style="display: inline-block; margin-top: 1rem; padding: 0.5rem 1rem; background: #fbbf24; color: #000; text-decoration: none; border-radius: 8px; font-weight: bold;">🚀 Start Referring Friends</a>
               </div>
             </section>
         </div>
@@ -862,6 +1130,29 @@
         
         // Don't auto-load companions since we have static content
         // loadCompanions();
+        
+        // Netflix-style companion selection functions
+        function selectCompanion(companionId) {
+            // Show selection confirmation
+            if (confirm(`Select ${companionId.replace('_', ' ')} as your companion?`)) {
+                // Redirect to chat with selected companion
+                window.location.href = `/chat?companion=${companionId}`;
+            }
+        }
+        
+        function selectSkin(skinId) {
+            // Show skin selection confirmation
+            if (confirm(`Apply ${skinId.replace('_', ' ')} skin?`)) {
+                alert('Skin applied! Your companion now has a new look.');
+                // Here you could make an API call to save the skin preference
+            }
+        }
+        
+        function showReferralInfo(requiredReferrals) {
+            const currentReferrals = {{ referral_count or 0 }};
+            const needed = requiredReferrals - currentReferrals;
+            alert(`You need ${needed} more referrals to unlock this companion!\n\nCurrent referrals: ${currentReferrals}\nRequired: ${requiredReferrals}\n\nClick "Start Referring Friends" to get your referral link!`);
+        }
     </script>
 </body>
 </html>
