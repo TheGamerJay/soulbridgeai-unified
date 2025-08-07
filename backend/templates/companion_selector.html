@@ -4,696 +4,103 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Choose Your Companion - SoulBridge AI</title>
-    
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <meta name="theme-color" content="#00ffff">
-    
-    <!-- CSS with cache busting -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}?v={{ range(1000000) | random }}&t={{ range(1000000) | random }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/companion_selector.css') }}?v={{ range(1000000) | random }}&t={{ range(1000000) | random }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
-    <!-- Force no cache -->
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    
     <style>
-        /* Trial Badge */
-        .trial-badge {
-            background: linear-gradient(135deg, #ffd700, #ffb347);
-            color: #000;
-            font-size: 12px;
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-weight: bold;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            animation: pulse-gold 2s infinite;
-            box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 30%, #16213e 60%, #0f3460 100%);
+            color: #00ffff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+        
+        .back-button {
             position: fixed;
-            top: 80px;
+            top: 20px;
             left: 20px;
-            z-index: 1000;
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            color: #00ffff;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.3s ease;
         }
         
-        @keyframes pulse-gold {
-            0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(255, 215, 0, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); }
-        }
-        
-        /* Hide specific old timer elements only */
-        #trialTimer, 
-        #trialTimeDisplay,
-        .trial-timer-old,
-        .old-timer {
-            display: none !important;
-            visibility: hidden !important;
-            opacity: 0 !important;
-            position: absolute !important;
-            left: -9999px !important;
-        }
-        
-        /* TIMER VISIBILITY CONTROL - Hide by default, only show when trial active */
-        #trial-timer-container {
-            display: none !important; /* Hidden by default */
-            position: fixed !important;
-            top: 20px !important;
-            right: 20px !important;
-            z-index: 1500 !important;
-        }
-        
-        /* When timer should be visible (controlled by JavaScript) */
-        #trial-timer-container.timer-active {
-            display: block !important;
-            visibility: visible !important;
-            opacity: 1 !important;
-        }
-        
-        /* Protect timer internal elements when active */
-        #trial-timer-container.timer-active *,
-        #trial-timer-container.timer-active #timer-progress,
-        #trial-timer-container.timer-active #trial-time-text,
-        #trial-timer-container.timer-active .timer-glass-card {
-            display: block !important;
-            visibility: visible !important;
-            opacity: 1 !important;
-            position: relative !important;
-            left: auto !important;
+        .back-button:hover {
+            background: rgba(0, 255, 255, 0.2);
+            border-color: #00ffff;
         }
     </style>
 </head>
 <body>
-    <!-- Back to Intro Button -->
-    <a href="/intro" class="back-button" title="Back to Intro">
-        ← Back to Intro
-    </a>
+    <a href="/intro" class="back-button">← Back to Intro</a>
     
-    <!-- Trial Badge - Hidden by default, shown by JavaScript when active -->
-    <div class="trial-status-container" style="position: fixed; top: 80px; left: 20px; z-index: 1000;">
-        <span class="trial-badge" id="trial-badge" style="display: none;">
-            🕐 Trial Active
-        </span>
-    </div>
-    
-    <!-- Simple Timer - Hidden by default, shown by JavaScript when active -->
-    <div id="active-remaining" class="simple-timer" style="display: none; position: fixed; top: 115px; left: 20px; z-index: 1000;">
-        <span id="remaining-display">5:00:00</span>
-    </div>
-
-    <style>
-    /* 🔒 Force Hide Timers by Default */
-    .trial-badge, .simple-timer, #trial-timer-container {
-        display: none !important;
-    }
-    
-    /* 🎨 Beautiful Modern Timer Styles */
-    .timer-glass-card {
-        background: linear-gradient(135deg, rgba(0, 0, 0, 0.9) 0%, rgba(15, 23, 42, 0.9) 100%);
-        backdrop-filter: blur(20px);
-        border: 2px solid rgba(0, 255, 255, 0.3);
-        border-radius: 20px;
-        padding: 15px;
-        box-shadow: 
-            0 20px 40px rgba(0, 0, 0, 0.4),
-            0 0 30px rgba(0, 255, 255, 0.2),
-            inset 0 1px 0 rgba(255, 255, 255, 0.1);
-        position: relative;
-        overflow: hidden;
-    }
-
-    .timer-glass-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 1px;
-        background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.5), transparent);
-    }
-
-    .timer-glow-ring {
-        position: relative;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .timer-svg {
-        filter: drop-shadow(0 0 10px rgba(0, 255, 255, 0.3));
-        animation: timerRotate 20s linear infinite;
-        position: relative;
-    }
-
-
-    .timer-content {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        text-align: center;
-        z-index: 10;
-    }
-
-    .timer-display {
-        font-size: 18px;
-        font-weight: 700;
-        color: #00ffff;
-        text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
-        margin-bottom: 2px;
-        font-family: 'Courier New', monospace;
-        letter-spacing: 1px;
-    }
-
-    .timer-label {
-        font-size: 10px;
-        font-weight: 600;
-        color: rgba(0, 255, 255, 0.7);
-        text-transform: uppercase;
-        letter-spacing: 2px;
-        margin-bottom: 1px;
-    }
-
-    .timer-status {
-        font-size: 8px;
-        color: #00cc88;
-        font-weight: 500;
-        opacity: 0.8;
-        animation: statusPulse 2s ease-in-out infinite;
-    }
-
-    .pulse-ring {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 120px;
-        height: 120px;
-        border: 2px solid rgba(0, 255, 255, 0.3);
-        border-radius: 50%;
-        transform: translate(-50%, -50%);
-        animation: pulseRing 3s ease-in-out infinite;
-        pointer-events: none;
-    }
-
-    /* 🎬 Smooth Animations */
-    @keyframes timerRotate {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-
-    @keyframes pulseRing {
-        0%, 100% { 
-            opacity: 0.3; 
-            transform: translate(-50%, -50%) scale(1); 
-        }
-        50% { 
-            opacity: 0.1; 
-            transform: translate(-50%, -50%) scale(1.1); 
-        }
-    }
-
-    @keyframes statusPulse {
-        0%, 100% { opacity: 0.6; }
-        50% { opacity: 1; }
-    }
-
-    /* 🎯 Responsive Design */
-    @media (max-width: 768px) {
-        #trial-timer-container {
-            top: 15px;
-            right: 15px;
-            transform: scale(0.8);
-            transform-origin: top right;
-        }
-        
-        .timer-display {
-            font-size: 14px;
-        }
-        
-        .timer-svg {
-            width: 120px;
-            height: 120px;
-        }
-    }
-
-    /* 🌟 Hover Effects */
-    .timer-glass-card:hover {
-        border-color: rgba(0, 255, 255, 0.6);
-        box-shadow: 
-            0 25px 50px rgba(0, 0, 0, 0.5),
-            0 0 50px rgba(0, 255, 255, 0.4),
-            inset 0 1px 0 rgba(255, 255, 255, 0.2);
-        transform: translateY(-2px);
-        transition: all 0.3s ease;
-    }
-
-    /* 🚨 Warning States */
-    .timer-warning #timer-progress {
-        stroke: url(#warningGradient) !important;
-        animation: warningPulse 1s ease-in-out infinite;
-    }
-
-    .timer-critical #timer-progress {
-        stroke: url(#criticalGradient) !important;
-        animation: criticalPulse 0.5s ease-in-out infinite;
-    }
-
-    @keyframes warningPulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.7; }
-    }
-
-    @keyframes criticalPulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.5; }
-    }
-    
-    /* Simple Timer Styles */
-    .trial-status-container {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 4px;
-    }
-    
-    .simple-timer {
-        background: rgba(0, 255, 255, 0.1) !important;
-        border: 1px solid rgba(0, 255, 255, 0.3) !important;
-        border-radius: 12px !important;
-        padding: 4px 8px !important;
-        font-size: 12px !important;
-        font-family: 'Courier New', monospace !important;
-        color: #00ffff !important;
-        font-weight: bold !important;
-        letter-spacing: 0.5px !important;
-        text-shadow: 0 0 5px rgba(0, 255, 255, 0.5) !important;
-        opacity: 0.9 !important;
-        display: block !important;
-        visibility: visible !important;
-    }
-    
-    .simple-timer.warning {
-        background: rgba(255, 165, 0, 0.1);
-        border-color: rgba(255, 165, 0, 0.3);
-        color: #ffa500;
-        text-shadow: 0 0 5px rgba(255, 165, 0, 0.5);
-    }
-    
-    .simple-timer.critical {
-        background: rgba(255, 69, 69, 0.1);
-        border-color: rgba(255, 69, 69, 0.3);
-        color: #ff4545;
-        text-shadow: 0 0 5px rgba(255, 69, 69, 0.5);
-        animation: criticalBlink 1s ease-in-out infinite alternate;
-    }
-    
-    @keyframes criticalBlink {
-        0% { opacity: 0.9; }
-        100% { opacity: 0.6; }
-    }
-    </style>
-
-    <!-- Main Content -->
-    <div class="companion-selector">
-        <div class="companion-header">
-            <h1><i class="fas fa-robot"></i> Choose Your AI Companion</h1>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 Choose Your AI Companion</h1>
             <p>Select the perfect companion to guide you on your wellness journey</p>
         </div>
-
-        <!-- Single Centralized Trial Button -->
-        {% if not session.get('trial_used_permanently') and not session.get('trial_active') %}
-        <div id="centralTrialOffer" class="central-trial-offer">
-            <div class="trial-glow-effect"></div>
-            <h3><i class="fas fa-star"></i> Unlock ALL Premium Companions</h3>
-            <p>Get 5 hours of FREE access to Growth & Max tier companions</p>
-            <div class="trial-features">
-                <span><i class="fas fa-check"></i> Advanced AI personalities</span>
-                <span><i class="fas fa-check"></i> Specialized therapy tools</span>
-                <span><i class="fas fa-check"></i> Enhanced conversations</span>
-            </div>
-            <button id="startCentralTrial" class="btn-central-trial" onclick="startCentralTrial()">
-                <i class="fas fa-rocket"></i>
-                Start FREE 5-Hour Trial
-            </button>
-            <div class="trial-subtitle">No credit card required • Instant access</div>
-        </div>
-        {% endif %}
         
-        <div class="companion-sections">
-            <!-- Free Companions -->
-            <div class="companion-section" id="free-section">
-                <div class="section-header">
-                    <div class="section-title">
-                        <i class="fas fa-heart"></i>
-                        <span>Free Companions</span>
-                        <span class="tier-badge tier-free">Free</span>
-                    </div>
-                </div>
-                <div class="companions-scroll" id="free-companions">
-                    <p style="color: rgba(255,255,255,0.7); text-align: center; padding: 40px;">Loading companions...</p>
-                </div>
-            </div>
-            
-            
-            <!-- Growth Companions -->
-            <div class="companion-section" id="growth-section">
-                <div class="section-header">
-                    <div class="section-title">
-                        <i class="fas fa-seedling"></i>
-                        <span>Growth Companions</span>
-                        <span class="tier-badge tier-growth">Growth</span>
-                    </div>
-                </div>
-                <div class="companions-scroll" id="growth-companions">
-                    <p style="color: rgba(255,255,255,0.7); text-align: center; padding: 40px;">Loading companions...</p>
-                </div>
-            </div>
-            
-            <!-- Max Companions -->
-            <div class="companion-section" id="max-section">
-                <div class="section-header">
-                    <div class="section-title">
-                        <i class="fas fa-crown"></i>
-                        <span>Max Companions</span>
-                        <span class="tier-badge tier-max">Max</span>
-                    </div>
-                </div>
-                <div class="companions-scroll" id="max-companions">
-                    <p style="color: rgba(255,255,255,0.7); text-align: center; padding: 40px;">Loading companions...</p>
-                </div>
-            </div>
-            
-            <!-- Referral Companions -->
-            <div class="companion-section" id="referral-section">
-                <div class="section-header">
-                    <div class="section-title">
-                        <i class="fas fa-users"></i>
-                        <span>Referral Companions</span>
-                        <span class="tier-badge tier-referral">Referral</span>
-                    </div>
-                </div>
-                <div class="companions-scroll" id="referral-companions">
-                    <p style="color: rgba(255,255,255,0.7); text-align: center; padding: 40px;">Loading companions...</p>
-                </div>
-            </div>
+        <div id="companions-container">
+            <p style="text-align: center; color: #94a3b8;">Loading companions...</p>
         </div>
     </div>
 
-    <!-- Companion Details Modal -->
-    <div class="companion-modal" id="companionModal" style="display: none;">
-        <div class="modal-overlay" onclick="closeCompanionModal()"></div>
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="modalCompanionName">Companion Details</h2>
-                <button class="close-btn" onclick="closeCompanionModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="companion-preview">
-                    <img id="modalCompanionAvatar" src="" alt="Companion Avatar" class="modal-avatar">
-                    <div class="companion-details">
-                        <p id="modalCompanionBio"></p>
-                        <div class="companion-tier" id="modalCompanionTier"></div>
-                    </div>
-                </div>
-                
-                <div class="upgrade-section" id="upgradeSection">
-                    <h3>Unlock This Companion</h3>
-                    <div class="plan-options">
-                        <div class="plan-card growth-plan" onclick="selectUpgradePlan('growth')">
-                            <div class="plan-header">
-                                <span class="plan-name">Growth Plan</span>
-                                <span class="plan-price">$12.99/month</span>
-                            </div>
-                            <p>Access to Growth companions and premium features</p>
-                        </div>
-                        
-                        <div class="plan-card max-plan" onclick="selectUpgradePlan('max')">
-                            <div class="plan-header">
-                                <span class="plan-name">Max Plan</span>
-                                <span class="plan-price">$19.99/month</span>
-                            </div>
-                            <p>All companions, advanced AI, and premium features</p>
-                            <div class="recommended-badge">Most Popular</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- JavaScript -->
     <script>
-        // If not flagged in sessionStorage, log out immediately
-        console.log('🔍 Checking sessionStorage loggedIn flag:', sessionStorage.getItem('loggedIn'));
+        // Session check
         if (!sessionStorage.getItem('loggedIn')) {
-            console.log('❌ No sessionStorage flag - redirecting to login');
             fetch('/auth/logout').then(() => window.location = '/login');
-        } else {
-            console.log('✅ sessionStorage flag found - allowing page to load');
         }
         
-        // Old timer cleanup code removed - was causing interference
-    </script>
-    
-    <!-- Cleaned up - removed all disabled timer removal code -->
-    
-    <!-- SIMPLE Timer System - Copy from working intro page -->
-    <script>
-        // Simple timer update function (unobtrusive)
-        function updateSimpleTimer(trialRemaining) {
-            console.log('🔍 updateSimpleTimer called with:', trialRemaining);
-            const timerElement = document.getElementById('active-remaining');
-            const displayElement = document.getElementById('remaining-display');
-            
-            console.log('🔍 Elements found:', {timerElement: !!timerElement, displayElement: !!displayElement});
-            
-            if (!timerElement || !displayElement) {
-                console.log('❌ Timer elements missing!');
-                return;
-            }
-            
-            if (trialRemaining <= 0) {
-                timerElement.style.display = 'none';
-                return;
-            }
-            
-            // Show timer with force
-            timerElement.style.display = 'block';
-            timerElement.style.visibility = 'visible';
-            timerElement.style.opacity = '1';
-            console.log('✅ Timer display set to block, visibility:', timerElement.style.visibility);
-            
-            // Calculate time components (auto-detect seconds vs milliseconds)
-            const totalSeconds = Math.floor(trialRemaining > 1000000 ? trialRemaining / 1000 : trialRemaining);
-            const hours = Math.floor(totalSeconds / 3600);
-            const minutes = Math.floor((totalSeconds % 3600) / 60);
-            const seconds = totalSeconds % 60;
-            
-            // Update display
-            displayElement.textContent = `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            
-            // Update warning states
-            timerElement.classList.remove('warning', 'critical');
-            const timeInSeconds = trialRemaining > 1000000 ? trialRemaining / 1000 : trialRemaining;
-            if (timeInSeconds < 600) { // < 10 minutes
-                timerElement.classList.add('critical');
-            } else if (timeInSeconds < 1800) { // < 30 minutes
-                timerElement.classList.add('warning');
-            }
-        }
-
-        // Simple refresh function with DEBUG - EXACTLY like intro page  
-        async function refreshUserStatus() {
+        // Load companions
+        async function loadCompanions() {
             try {
-                console.log('🔍 COMPANION SELECTOR: Fetching user status...');
-                const res = await fetch('/api/user-info');
-                const data = await res.json();
-
-                console.log('🔍 COMPANION SELECTOR: API Response:', data);
-
-                if (!data.success) {
-                    console.error('❌ Failed to get user info:', data.error);
-                    return;
-                }
-
-                const { trial_active, trial_remaining, effective_plan, trial_used_permanently } = data;
+                const response = await fetch('/api/companions');
+                const data = await response.json();
                 
-                console.log('🔍 COMPANION SELECTOR: Trial status:', {
-                    trial_active,
-                    trial_remaining,
-                    effective_plan,
-                    trial_used_permanently
-                });
-
-                // Check if timer container exists
-                const container = document.getElementById('trial-timer-container');
-                console.log('🔍 COMPANION SELECTOR: Timer container exists:', !!container);
-
-                // Update trial badge and simple timer
-                const trialBadge = document.getElementById('trial-badge');
-                const timerElement = document.getElementById('active-remaining');
-                
-                if (trial_active && trial_remaining > 0) {
-                    // Show trial badge and update timer
-                    if (trialBadge) trialBadge.style.display = 'inline-flex';
-                    updateSimpleTimer(trial_remaining);
+                if (data.success) {
+                    displayCompanions(data.companions);
                 } else {
-                    // AGGRESSIVE TIMER CLEANUP - Hide all timer elements when trial expires
-                    if (trialBadge) {
-                        trialBadge.style.display = 'none';
-                        trialBadge.style.visibility = 'hidden';
-                    }
-                    if (timerElement) {
-                        timerElement.style.display = 'none';
-                        timerElement.style.visibility = 'hidden';
-                    }
-                    
-                    // Hide enhanced timer container
-                    const enhancedTimer = document.getElementById('trial-timer-container');
-                    if (enhancedTimer) {
-                        enhancedTimer.style.display = 'none';
-                        enhancedTimer.style.visibility = 'hidden';
-                        enhancedTimer.classList.remove('timer-active');
-                    }
-                    
-                    // Find and hide ALL timer-related elements
-                    const allTimerElements = document.querySelectorAll('[id*="timer"], [class*="timer"], [id*="trial"], [class*="trial"]');
-                    allTimerElements.forEach(el => {
-                        if (!el.closest('.action-btn')) { // Don't hide action buttons
-                            el.style.display = 'none';
-                            el.style.visibility = 'hidden';
-                        }
-                    });
-                    
-                    console.log('🔒 COMPANION SELECTOR: ALL timers aggressively hidden - trial expired');
+                    document.getElementById('companions-container').innerHTML = 
+                        '<p style="color: #ef4444; text-align: center;">Failed to load companions</p>';
                 }
-
             } catch (error) {
-                console.error('❌ COMPANION SELECTOR: Error refreshing user status:', error);
+                console.error('Error loading companions:', error);
+                document.getElementById('companions-container').innerHTML = 
+                    '<p style="color: #ef4444; text-align: center;">Error loading companions</p>';
             }
         }
-
-        // Force DELETE timer completely (you can call this in console)  
-        window.deleteTimer = function() {
-            const timerContainer = document.getElementById('trial-timer-container');
-            const trialBadge = document.getElementById('trial-badge');
-            
-            if (timerContainer) {
-                timerContainer.remove();
-                console.log('🗑️ Timer DELETED completely');
-            }
-            
-            if (trialBadge) {
-                trialBadge.remove();
-                console.log('🗑️ Trial badge DELETED completely');
-            }
-            
-            // Clear any intervals
-            if (window.timerInterval) {
-                clearInterval(window.timerInterval);
-                window.timerInterval = null;
-                console.log('⏰ Timer interval cleared');
-            }
-        };
-
-        // Test timer with fake data (you can call this in console)
-        window.testTimer = function(minutes = 60) {
-            console.log('🧪 TESTING SIMPLE TIMER with', minutes, 'minutes');
-            const fakeSeconds = minutes * 60; // Convert minutes to seconds
-            updateSimpleTimer(fakeSeconds);
-        };
-
-        // Force show timer for testing (you can call this in console)
-        window.forceShowTimer = function() {
-            const timerContainer = document.getElementById('trial-timer-container');
-            if (timerContainer) {
-                timerContainer.style.display = 'block';
-                timerContainer.style.visibility = 'visible';
-                timerContainer.style.opacity = '1';
-                console.log('🔧 Timer force shown');
-            } else {
-                console.log('❌ Timer container not found!');
-            }
-        };
-
-        // Clean up all timer conflicts (call this in console if needed)
-        window.cleanTimers = function() {
-            console.log('🧹 Starting timer cleanup...');
-            
-            // Remove ALL timer elements except our specific ones
-            const allElements = document.querySelectorAll('*');
-            let removed = 0;
-            
-            allElements.forEach(el => {
-                const isOldTimer = (
-                    el.id && (el.id.includes('trial') || el.id.includes('timer')) && 
-                    el.id !== 'trial-timer-container' && 
-                    el.id !== 'timer-progress' && 
-                    el.id !== 'trial-time-text'
-                ) || (
-                    el.className && (el.className.includes('trial') || el.className.includes('timer')) &&
-                    !el.classList.contains('timer-glass-card') &&
-                    !el.classList.contains('timer-glow-ring') &&
-                    !el.classList.contains('timer-content') &&
-                    !el.classList.contains('timer-display') &&
-                    !el.classList.contains('trial-badge')
-                );
-                
-                if (isOldTimer && !el.closest('#trial-timer-container')) {
-                    console.log('🗑️ Removing:', el.id || el.className);
-                    el.remove();
-                    removed++;
-                }
-            });
-            
-            console.log(`🧹 Cleanup complete. Removed ${removed} elements.`);
-            
-            // Force refresh the timer
-            refreshTrialStatus();
-        };
-
-        // Debug function to inspect timer elements
-        window.debugTimer = function() {
-            console.log('🔍 TIMER DEBUG - All timer-related elements:');
-            
-            // Find all elements with timer-related IDs or classes
-            const allTimerElements = document.querySelectorAll('[id*="timer"], [class*="timer"], svg, circle');
-            
-            allTimerElements.forEach((el, index) => {
-                console.log(`Element ${index}:`, {
-                    tagName: el.tagName,
-                    id: el.id,
-                    className: el.className,
-                    visible: el.offsetWidth > 0 && el.offsetHeight > 0,
-                    parent: el.parentElement?.id || el.parentElement?.className,
-                    innerHTML: el.innerHTML?.substring(0, 100) + '...'
-                });
-            });
-            
-            // Specifically check for multiple progress circles
-            const progressCircles = document.querySelectorAll('#timer-progress, circle');
-            console.log(`🎯 Found ${progressCircles.length} circles/progress elements`);
-            
-            progressCircles.forEach((circle, index) => {
-                console.log(`Circle ${index}:`, {
-                    id: circle.id,
-                    cx: circle.getAttribute('cx'),
-                    cy: circle.getAttribute('cy'),
-                    r: circle.getAttribute('r'),
-                    stroke: circle.getAttribute('stroke'),
-                    visible: circle.offsetWidth > 0
-                });
-            });
-        };
-
-        // Initialize timer - EXACTLY like intro page (simple!)
-        refreshUserStatus(); // Run once on load only
+        
+        function displayCompanions(companions) {
+            const container = document.getElementById('companions-container');
+            container.innerHTML = '<p style="text-align: center;">Companions will be displayed here</p>';
+        }
+        
+        // Load companions on page load
+        loadCompanions();
     </script>
-    
-    <script src="{{ url_for('static', filename='js/companion_selector.js') }}?v={{ range(1000000) | random }}"></script>
 </body>
 </html>
