@@ -707,6 +707,49 @@
             }
         }
 
+        // Real-time timer variables
+        let trialEndTime = null;
+        let timerInterval = null;
+
+        // Real-time timer update (runs every second)
+        function updateTimerDisplay() {
+            if (!trialEndTime) return;
+            
+            const now = Date.now();
+            const remainingMs = trialEndTime - now;
+            
+            if (remainingMs <= 0) {
+                // Timer expired
+                const timerContainer = document.getElementById('trial-timer-container');
+                if (timerContainer) timerContainer.style.display = 'none';
+                if (timerInterval) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                }
+                return;
+            }
+            
+            // Update timer display
+            updateEnhancedTimer(remainingMs);
+        }
+
+        // Start real-time timer
+        function startRealTimeTimer(remainingMs) {
+            // Set end time
+            trialEndTime = Date.now() + remainingMs;
+            
+            // Clear any existing interval
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
+            
+            // Start updating every second
+            timerInterval = setInterval(updateTimerDisplay, 1000);
+            
+            // Update immediately
+            updateTimerDisplay();
+        }
+
         // Check trial status and update timer
         async function refreshTrialStatus() {
             try {
@@ -722,11 +765,18 @@
                 });
                 
                 if (data.success && data.trial_active && data.trial_remaining > 0) {
-                    console.log('✅ Trial active - showing timer');
-                    updateEnhancedTimer(data.trial_remaining);
+                    console.log('✅ Trial active - starting real-time timer');
+                    startRealTimeTimer(data.trial_remaining);
                 } else {
                     console.log('❌ No trial active - hiding timer');
-                    // Hide timer if no trial active
+                    // Clear timer interval
+                    if (timerInterval) {
+                        clearInterval(timerInterval);
+                        timerInterval = null;
+                    }
+                    trialEndTime = null;
+                    
+                    // Hide timer container
                     const timerContainer = document.getElementById('trial-timer-container');
                     if (timerContainer) {
                         timerContainer.style.display = 'none';
@@ -832,8 +882,8 @@
             
             refreshTrialStatus();
             
-            // Refresh every 30 seconds (not too frequent to avoid performance issues)
-            setInterval(refreshTrialStatus, 30000);
+            // Refresh every 2 minutes (since we now have real-time updates)
+            setInterval(refreshTrialStatus, 120000);
             
             // Debug: Log timer container status
             setTimeout(() => {
