@@ -119,9 +119,14 @@
                 
                 <!-- Trial Badge (shows when trial is active) -->
                 {% if session.get('trial_active') %}
-                <span class="trial-badge">
-                    <i class="fas fa-clock"></i> Trial Active
-                </span>
+                <div class="trial-status-container">
+                    <span class="trial-badge">
+                        <i class="fas fa-clock"></i> Trial Active
+                    </span>
+                    <div id="simple-timer" class="simple-timer" style="display: none;">
+                        <span id="timer-display">5:00:00</span>
+                    </div>
+                </div>
                 {% endif %}
             </div>
         </div>
@@ -594,14 +599,21 @@
             background: rgba(168, 85, 247, 0.3) !important;
         }
         
-        /* Trial Badge Styles */
+        /* Trial Badge & Simple Timer Styles */
+        .trial-status-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+            margin-left: 8px;
+        }
+        
         .trial-badge {
             background: linear-gradient(135deg, #ffd700, #ffb347);
             color: #000;
             font-size: 12px;
             padding: 4px 8px;
             border-radius: 12px;
-            margin-left: 8px;
             font-weight: bold;
             display: inline-flex;
             align-items: center;
@@ -610,9 +622,43 @@
             box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
         }
         
+        .simple-timer {
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 8px;
+            padding: 3px 8px;
+            font-size: 11px;
+            font-family: 'Courier New', monospace;
+            color: #00ffff;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
+            opacity: 0.9;
+        }
+        
+        .simple-timer.warning {
+            background: rgba(255, 165, 0, 0.1);
+            border-color: rgba(255, 165, 0, 0.3);
+            color: #ffa500;
+            text-shadow: 0 0 5px rgba(255, 165, 0, 0.5);
+        }
+        
+        .simple-timer.critical {
+            background: rgba(255, 69, 69, 0.1);
+            border-color: rgba(255, 69, 69, 0.3);
+            color: #ff4545;
+            text-shadow: 0 0 5px rgba(255, 69, 69, 0.5);
+            animation: criticalBlink 1s ease-in-out infinite alternate;
+        }
+        
         @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.7; }
+        }
+        
+        @keyframes criticalBlink {
+            0% { opacity: 0.9; }
+            100% { opacity: 0.6; }
         }
         
         /* Translation Panel Styles */
@@ -2029,7 +2075,37 @@ Where emotion meets expression.
             setTimeout(() => confettiCanvas.classList.add("hidden"), 3000);
         }
 
-        // Timer functionality removed from chat page to reduce distractions during conversations
+        // Simple timer update function (unobtrusive)
+        function updateSimpleTimer(trialRemaining) {
+            const timerElement = document.getElementById('simple-timer');
+            const displayElement = document.getElementById('timer-display');
+            
+            if (!timerElement || !displayElement) return;
+            
+            if (trialRemaining <= 0) {
+                timerElement.style.display = 'none';
+                return;
+            }
+            
+            // Show timer
+            timerElement.style.display = 'block';
+            
+            // Calculate time components
+            const hours = Math.floor(trialRemaining / (1000 * 60 * 60));
+            const minutes = Math.floor((trialRemaining % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((trialRemaining % (1000 * 60)) / 1000);
+            
+            // Update display
+            displayElement.textContent = `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            // Update warning states
+            timerElement.classList.remove('warning', 'critical');
+            if (trialRemaining < 600000) { // < 10 minutes
+                timerElement.classList.add('critical');
+            } else if (trialRemaining < 1800000) { // < 30 minutes
+                timerElement.classList.add('warning');
+            }
+        }
 
         async function refreshUserStatus() {
             try {
@@ -2043,7 +2119,14 @@ Where emotion meets expression.
 
                 const { trial_active, trial_remaining, effective_plan, user_plan, trial_used_permanently } = data;
 
-                // Timer updates removed from chat page - keeping conversations distraction-free
+                // Update simple, unobtrusive timer
+                if (trial_active && trial_remaining > 0) {
+                    updateSimpleTimer(trial_remaining);
+                } else {
+                    // Hide timer if no trial active
+                    const timerElement = document.getElementById('simple-timer');
+                    if (timerElement) timerElement.style.display = 'none';
+                }
 
                 // DISABLED OLD RING TIMER - Preventing conflicts with new timer system
                 // Use new timer system instead (trial-timer-container)
@@ -2095,9 +2178,9 @@ Where emotion meets expression.
             }
         }
 
-        // DISABLED: Start refreshing user status - causing timer flickering
-        // setInterval(refreshUserStatus, 5000);  // auto refresh every 5 sec - DISABLED
-        refreshUserStatus(); // Run once on load only
+        // Refresh user status less frequently for simple timer
+        setInterval(refreshUserStatus, 15000); // Refresh every 15 seconds (less aggressive)
+        refreshUserStatus(); // Run once on load
     </script>
     
     <script src="{{ url_for('static', filename='js/chat.js') }}?v={{ range(1000000) | random }}"></script>
