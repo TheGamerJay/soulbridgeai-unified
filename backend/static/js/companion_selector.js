@@ -335,7 +335,9 @@ function createCompanionCard(companion, isLocked) {
     
     card.innerHTML = `
         <div class="companion-avatar">
-            <img src="${companion.avatar_image}" alt="${companion.display_name}" loading="lazy">
+            <img src="${companion.avatar_image}" alt="${companion.display_name}" loading="lazy" 
+                 onload="console.log('✅ Image loaded:', this.src)" 
+                 onerror="console.error('❌ Image failed:', this.src); this.src='/static/logos/IntroLogo.png'">
             ${isLocked && !trialActive ? `
                 <div class="lock-overlay">
                     <i class="fas fa-lock lock-icon"></i>
@@ -748,7 +750,9 @@ function renderSection(sectionId, companionList) {
                  data-companion-id="${companion.companion_id}">
                 
                 <div class="companion-avatar">
-                    <img src="${companion.avatar_image}" alt="${companion.display_name}" onerror="this.src='/static/logos/IntroLogo.png'">
+                    <img src="${companion.avatar_image}" alt="${companion.display_name}" 
+                         onload="console.log('✅ Fallback image loaded:', this.src)" 
+                         onerror="console.error('❌ Fallback image failed:', this.src); this.src='/static/logos/IntroLogo.png'">
                     
                     <div class="companion-badges">
                         ${companion.popularity_score >= 95 ? '<span class="badge badge-popular">Most Popular</span>' : ''}

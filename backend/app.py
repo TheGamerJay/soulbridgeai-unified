@@ -2445,8 +2445,12 @@ def chat():
             # Growth companions  
             'companion_sky': {'name': 'Sky', 'avatar': '/static/logos/Sky a primum companion.png'},
             'blayzo_premium': {'name': 'Blayzo Pro', 'avatar': '/static/logos/Blayzo premium companion.png'},
+            'blayzo_growth': {'name': 'Blayzo Pro', 'avatar': '/static/logos/Blayzo premium companion.png'},  # Legacy compatibility
+            'blayzo_pro': {'name': 'Blayzo Pro', 'avatar': '/static/logos/Blayzo premium companion.png'},  # Legacy compatibility
             'blayzica_growth': {'name': 'Blayzica Pro', 'avatar': '/static/logos/Blayzica Pro.png'},
             'gamerjay_premium': {'name': 'GamerJay Premium', 'avatar': '/static/logos/GamerJay premium companion.png'},
+            'companion_gamerjay_premium': {'name': 'GamerJay Premium', 'avatar': '/static/logos/GamerJay premium companion.png'},  # Legacy compatibility
+            'gamerjay_pro': {'name': 'GamerJay Premium', 'avatar': '/static/logos/GamerJay premium companion.png'},  # Legacy compatibility
             'watchdog_growth': {'name': 'WatchDog', 'avatar': '/static/logos/WatchDog a Primum companion.png'},
             'crimson_growth': {'name': 'Crimson', 'avatar': '/static/logos/Crimson.png'},
             'violet_growth': {'name': 'Violet', 'avatar': '/static/logos/Violet.png'},
@@ -2466,10 +2470,16 @@ def chat():
             'claude_referral': {'name': 'Claude Referral', 'avatar': '/static/logos/Claude Referral.png'},
         }
         
-        return companion_data.get(companion_id, {
-            'name': companion_id.replace('_', ' ').title(),
-            'avatar': '/static/logos/IntroLogo.png'  # fallback
-        })
+        # Add debug logging before returning
+        if companion_id in companion_data:
+            logger.info(f"✅ COMPANION FOUND: {companion_id} -> {companion_data[companion_id]}")
+            return companion_data[companion_id]
+        else:
+            logger.warning(f"❌ COMPANION NOT FOUND: {companion_id}, using fallback. Available keys: {list(companion_data.keys())}")
+            return {
+                'name': companion_id.replace('_', ' ').title(),
+                'avatar': '/static/logos/IntroLogo.png'  # fallback
+            }
     
     companion_info = get_companion_info(companion_name)
     
