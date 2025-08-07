@@ -26,7 +26,7 @@ eventlet.monkey_patch()
 import os
 import sys
 import logging
-from flask import Flask, jsonify, render_template, request, session, redirect, url_for, flash, make_response, g
+from flask import Flask, jsonify, render_template, render_template_string, request, session, redirect, url_for, flash, make_response, g
 
 # ...existing code...
 
@@ -52,7 +52,7 @@ import json
 import psycopg2  # Add missing psycopg2 import
 from copy import deepcopy
 from datetime import datetime, timezone, timedelta
-from flask import Flask, jsonify, render_template, request, session, redirect, url_for, flash, make_response, g
+from flask import Flask, jsonify, render_template, render_template_string, request, session, redirect, url_for, flash, make_response, g
 from trial_utils import is_trial_active as calculate_trial_active, get_trial_time_remaining
 from tier_isolation import tier_manager, get_current_user_tier, get_current_tier_system
 
@@ -2418,6 +2418,99 @@ def companion_selection():
                          referral_count=referral_count,
                          trial_active=trial_active,
                          user_plan=user_plan)
+
+# ---- CLEAN NETFLIX-STYLE TIERS PAGE ----
+@app.route("/tiers")
+def tiers_page():
+    """Netflix-style tiers page with real companion data"""
+    if not is_logged_in():
+        return redirect("/login")
+    
+    # Check terms acceptance
+    terms_check = requires_terms_acceptance()
+    if terms_check:
+        return terms_check
+    
+    # Get user data
+    user_id = session.get('user_id')
+    user_plan = session.get('user_plan', 'free')
+    trial_active = session.get('trial_active', False)
+    
+    # Get referral count from database
+    referral_count = 0
+    try:
+        db_instance = get_database()
+        if db_instance:
+            conn = db_instance.get_connection()
+            cursor = conn.cursor()
+            if db_instance.use_postgres:
+                cursor.execute("SELECT referral_count FROM users WHERE id = %s", (user_id,))
+            else:
+                cursor.execute("SELECT referral_count FROM users WHERE id = ?", (user_id,))
+            result = cursor.fetchone()
+            if result:
+                referral_count = result[0] or 0
+    except Exception as e:
+        logger.error(f"Error getting referral count: {e}")
+        referral_count = 0
+    
+    # Companion data organized by tier
+    free_companions = [
+        {'slug': 'blayzo_free', 'name': 'Blayzo Free', 'image_url': '/static/logos/Blayzo.png'},
+        {'slug': 'blayzica_free', 'name': 'Blayzica Free', 'image_url': '/static/logos/Blayzica.png'},
+        {'slug': 'companion_gamerjay', 'name': 'GamerJay', 'image_url': '/static/logos/GamerJay Free companion.png'},
+    ]
+    
+    growth_companions = [
+        {'slug': 'companion_sky', 'name': 'Sky', 'image_url': '/static/logos/Sky_premium.png'},
+        {'slug': 'blayzo_premium', 'name': 'Blayzo Premium', 'image_url': '/static/logos/Blayzo_premium.png'},
+        {'slug': 'blayzica_growth', 'name': 'Blayzica Growth', 'image_url': '/static/logos/Blayzica Growth.png'},
+        {'slug': 'gamerjay_premium', 'name': 'GamerJay Premium', 'image_url': '/static/logos/GamerJay_premium.png'},
+        {'slug': 'watchdog_growth', 'name': 'WatchDog Growth', 'image_url': '/static/logos/Watchdog.png'},
+        {'slug': 'crimson_growth', 'name': 'Crimson Growth', 'image_url': '/static/logos/Crimson.png'},
+        {'slug': 'violet_growth', 'name': 'Violet Growth', 'image_url': '/static/logos/Violet.png'},
+        {'slug': 'claude_growth', 'name': 'Claude Growth', 'image_url': '/static/logos/Claude Growth.png'},
+    ]
+    
+    max_companions = [
+        {'slug': 'companion_crimson', 'name': 'Companion Crimson', 'image_url': '/static/logos/Crimson Max.png'},
+        {'slug': 'companion_violet', 'name': 'Companion Violet', 'image_url': '/static/logos/Violet Max.png'},
+        {'slug': 'royal_max', 'name': 'Royal Max', 'image_url': '/static/logos/Royal Max.png'},
+        {'slug': 'watchdog_max', 'name': 'WatchDog Max', 'image_url': '/static/logos/Watchdog Max.png'},
+        {'slug': 'ven_blayzica', 'name': 'Ven Blayzica', 'image_url': '/static/logos/Ven Blayzica.png'},
+        {'slug': 'ven_sky', 'name': 'Ven Sky', 'image_url': '/static/logos/Ven Sky.png'},
+        {'slug': 'claude_max', 'name': 'Claude Max', 'image_url': '/static/logos/Claude Max.png'},
+    ]
+    
+    # Feature comparison data
+    feature_grid = [
+        {'name': '🧠 Decoder', 'free': '3/day', 'growth': '15/day', 'max': '∞'},
+        {'name': '🔮 Fortune', 'free': '2/day', 'growth': '8/day', 'max': '∞'},
+        {'name': '⭐ Horoscope', 'free': '3/day', 'growth': '10/day', 'max': '∞'},
+        {'name': '🎙️ Voice Journal', 'free': '❌', 'growth': '50/month', 'max': '∞'},
+        {'name': '🤖 AI Images', 'free': '❌', 'growth': '25/month', 'max': '∞'},
+        {'name': '✍️ Creative Writing', 'free': '❌', 'growth': '✅', 'max': '✅'},
+        {'name': '🧠 Memory', 'free': 'Basic', 'growth': '15 msgs', 'max': 'Enhanced'},
+        {'name': '👥 Companions', 'free': '3', 'growth': '11', 'max': '19'},
+    ]
+    
+    # Referral milestones
+    referral_milestones = [
+        {'need': 2, 'slug': 'blayzike', 'name': 'Blayzike'},
+        {'need': 5, 'slug': 'blazelian', 'name': 'Blazelian'},
+        {'need': 8, 'slug': 'claude_referral', 'name': 'Claude Referral'},
+        {'need': 10, 'slug': 'blayzo_skin', 'name': 'Blayzo Special Skin'},
+    ]
+    
+    return render_template_string(TIERS_TEMPLATE, 
+                                user_plan=user_plan,
+                                trial_active=trial_active,
+                                free_list=free_companions,
+                                growth_list=growth_companions,
+                                max_list=max_companions,
+                                feature_grid=feature_grid,
+                                referral_milestones=referral_milestones,
+                                referral_count=referral_count)
 
 @app.route("/chat")
 def chat():
@@ -12820,6 +12913,170 @@ I have memory of our recent interactions and can continue from where we left off
         base_response += f"\n\n---\n**Context Note**: I remember our recent work together and can reference previous conversations for continuity."
     
     return base_response
+
+# ---- NETFLIX-STYLE TIERS TEMPLATE ----
+TIERS_TEMPLATE = r"""
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Plans & Companions — SoulBridge AI</title>
+  <style>
+    body { margin:0; font-family: system-ui, Arial, sans-serif; background:#0b0f18; color:#e8f7ff; }
+    .wrap { padding:24px; max-width:1200px; margin:0 auto; }
+    h1 { margin:0 0 16px; }
+    .trial-banner { background:#102030; border:1px solid #1c3754; padding:10px 14px; border-radius:10px; margin-bottom:18px; color:#8bd3ff; }
+    .rows { display:flex; flex-direction:column; gap:28px; }
+
+    .row { overflow-x:auto; display:flex; gap:12px; padding:6px 2px 12px; scroll-snap-type:x proximity; }
+    .row-title { margin:8px 0 8px; font-size:18px; color:#8bd3ff; display:flex; align-items:center; gap:8px; }
+    .card { min-width:170px; background:#121a2b; border:1px solid #1d2b45; border-radius:12px; padding:10px; scroll-snap-align:start;
+            box-shadow:0 10px 30px rgba(0,0,0,.25); transition:transform .15s ease; cursor:pointer; position:relative; }
+    .card:hover { transform: translateY(-2px) scale(1.02); }
+    .card img { width:100%; height:120px; object-fit:cover; border-radius:8px; background:#0b0f18; }
+    .card .name { margin-top:8px; font-weight:600; }
+    .lock { position:absolute; top:8px; right:8px; background:rgba(0,0,0,.55); border:1px solid #2b3d60; backdrop-filter: blur(6px);
+            padding:3px 7px; border-radius:8px; font-size:12px; }
+    .locked { filter: grayscale(1) brightness(.8); }
+    .locked .name { opacity:.7; }
+
+    .grid, .table { background:#101624; border:1px solid #1c2a45; border-radius:12px; padding:14px; }
+    .table table { width:100%; border-collapse:collapse; }
+    .table th, .table td { padding:10px; border-bottom:1px solid #1c2a45; text-align:left; white-space:nowrap; }
+    .table th { color:#8bd3ff; font-weight:600; }
+    .table tr:last-child td { border-bottom:none; }
+
+    .btn { display:inline-block; padding:10px 16px; border-radius:10px; background:linear-gradient(90deg,#00c6ff,#0072ff); color:#fff;
+           text-decoration:none; font-weight:700; border:0; }
+    .btn:hover { transform:translateY(-1px); }
+
+    .section-title { margin:18px 0 10px; font-size:20px; color:#cfe8ff; }
+    .small { color:#89a7c2; font-size:14px; }
+    .muted { color:#6f88a6; }
+
+    .ref-note { color:#ff9da8; font-size:14px; }
+    .ref-grid { display:flex; gap:12px; overflow-x:auto; margin-top:8px; }
+    .milestone { min-width:190px; background:#121a2b; border:1px solid #1d2b45; border-radius:12px; padding:12px; position:relative; }
+    .milestone .need { color:#8bd3ff; font-size:12px; margin-bottom:6px; }
+    .badge { position:absolute; top:8px; right:8px; padding:3px 7px; border-radius:8px; font-size:12px; background:#263552; border:1px solid #364d77; }
+    .badge.ok { background:#134e33; border-color:#1c7a4d; color:#b0ffd4; }
+    .dim { opacity:.6; filter:grayscale(.6); }
+    
+    .back-btn { position:fixed; top:20px; left:20px; background:rgba(0,255,255,0.1); border:1px solid rgba(0,255,255,0.3); 
+                color:#00ffff; padding:8px 16px; border-radius:8px; text-decoration:none; font-size:14px; z-index:100; }
+    .back-btn:hover { background:rgba(0,255,255,0.2); }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <a href="/intro" class="back-btn">← Back to Intro</a>
+  <h1>🤖 Plans & Companions</h1>
+
+  {% if trial_active %}
+    <div class="trial-banner">
+      🕒 Trial Active: You can access Free, Growth, and Max companions for 5 hours.
+      <span class="small">Limits stay based on your plan (Free = 3/2/3, Growth = 15/8/10, Max = ∞). Referral companions never unlock during trial.</span>
+    </div>
+  {% endif %}
+
+  <div class="rows">
+    <!-- Free Row -->
+    <div>
+      <div class="row-title">🆓 Free Companions <span class="small">(3 Decoders / 2 Fortunes / 3 Horoscopes per day)</span></div>
+      <div class="row">
+        {% for c in free_list %}
+          <div class="card" onclick="openChat('{{ c.slug }}')" title="{{ c.name }}">
+            <span class="lock">✅ Unlocked</span>
+            <img src="{{ c.image_url or '/static/fallback.png' }}" alt="{{ c.name }}" onerror="this.src='/static/fallback.png'">
+            <div class="name">{{ c.name }}</div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Growth Row -->
+    <div>
+      <div class="row-title">🌱 Growth Companions <span class="small">(15 / 8 / 10)</span></div>
+      <div class="row">
+        {% for c in growth_list %}
+          {% set locked = (not trial_active) and (user_plan == 'free') %}
+          <div class="card {{ 'locked' if locked }}" onclick="{{ 'openChat(\"' ~ c.slug ~ '\")' if not locked else 'notifyUpgrade(\"Growth\")' }}" title="{{ c.name }}">
+            <span class="lock">{{ '✅ Unlocked' if not locked else '🔒 Growth' }}</span>
+            <img src="{{ c.image_url or '/static/fallback.png' }}" alt="{{ c.name }}" onerror="this.src='/static/fallback.png'">
+            <div class="name">{{ c.name }}</div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Max Row -->
+    <div>
+      <div class="row-title">
+        🎯 Max Companions <span class="small">(Unlimited)</span>
+        {% if user_plan=='max' %}
+          <a href="/mini-studio" class="btn" style="margin-left:10px;">🎶 GamerJay Mini Studio</a>
+        {% endif %}
+      </div>
+      <div class="row">
+        {% for c in max_list %}
+          {% set locked = (not trial_active) and (user_plan != 'max') %}
+          <div class="card {{ 'locked' if locked }}" onclick="{{ 'openChat(\"' ~ c.slug ~ '\")' if not locked else 'notifyUpgrade(\"Max\")' }}" title="{{ c.name }}">
+            <span class="lock">{{ '✅ Unlocked' if not locked else '🔒 Max' }}</span>
+            <img src="{{ c.image_url or '/static/fallback.png' }}" alt="{{ c.name }}" onerror="this.src='/static/fallback.png'">
+            <div class="name">{{ c.name }}</div>
+          </div>
+        {% endfor %}
+      </div>
+      {% if user_plan=='max' or trial_active %}
+        <div class="small" style="margin-top:6px;">Tip: Mini Studio is Max-only. Trial users can preview Max companions; usage limits still follow your plan.</div>
+      {% endif %}
+    </div>
+
+    <!-- Referral Row -->
+    <div>
+      <div class="row-title">🏆 Referral Exclusives <span class="small">(Never unlocked by trial)</span></div>
+      <div class="ref-note small">Referrals: <strong>{{ referral_count }}</strong>. Unlocks at 2, 5, 8, 10 (cosmetic skin).</div>
+      <div class="ref-grid">
+        {% for r in referral_milestones %}
+          {% set got = referral_count >= r.need %}
+          <div class="milestone {{ '' if got else 'dim' }}">
+            <div class="badge {{ 'ok' if got else '' }}">{{ '✅ Unlocked' if got else '🔒 Locked' }}</div>
+            <div class="need">Needs {{ r.need }} referrals</div>
+            <img src="/static/referral/{{ r.slug }}.png" alt="{{ r.name }}" style="width:100%;height:120px;object-fit:cover;border-radius:8px;background:#0b0f18;" onerror="this.src='/static/fallback.png'">
+            <div class="name" style="margin-top:6px;font-weight:600;">{{ r.name }}</div>
+          </div>
+        {% endfor %}
+      </div>
+      <div class="small muted" style="margin-top:8px;">Referral rewards are collectible/cosmetic; features & limits still follow your paid tier.</div>
+    </div>
+
+    <!-- Feature comparison -->
+    <div>
+      <div class="section-title">📊 Feature Access Comparison</div>
+      <div class="table">
+        <table>
+          <thead><tr><th>Feature</th><th>Free</th><th>Growth</th><th>Max</th></tr></thead>
+          <tbody>
+            {% for f in feature_grid %}
+              <tr><td>{{ f.name }}</td><td>{{ f.free }}</td><td>{{ f.growth }}</td><td>{{ f.max }}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  function openChat(slug){ window.location.href = '/chat?companion=' + encodeURIComponent(slug); }
+  function notifyUpgrade(tier){
+    alert('🔒 This companion requires the ' + tier + ' plan. Start a 5-hour trial to preview (limits unchanged), or subscribe to unlock permanently.');
+  }
+</script>
+</body>
+</html>
+"""
 
 # APPLICATION STARTUP
 # ========================================
