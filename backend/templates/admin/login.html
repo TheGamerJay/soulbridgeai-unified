@@ -112,32 +112,32 @@
     </style>
 </head>
 <body>
-    <div class="login-container">
-        <div class="logo">
-            <img src="/static/logos/IntroLogo.png" alt="SoulBridge AI Logo" style="width:70px; margin-bottom:10px;">
-            <h1 style="margin: 10px 0 0 0; font-size: 1.6rem; color: #00ffff; letter-spacing: 1px;">SURVEILLANCE COMMAND CENTER</h1>
-            <p style="color: #aaa; font-size: 1rem; margin-top: 4px;">SoulBridge AI Admin System</p>
+    <div class="login-container" style="box-shadow: 0 20px 60px #00ffff33, 0 0 0 2.5px #00ffff55; border: 2.5px solid #00ffffcc; background: linear-gradient(135deg, #10131a 60%, #1a2330 100%);">
+        <div class="logo" style="margin-bottom: 18px;">
+            <img src="/static/logos/IntroLogo.png" alt="SoulBridge AI Logo" style="width:80px; margin-bottom:12px; filter: drop-shadow(0 0 12px #00ffff88);">
+            <h1 style="margin: 0 0 6px 0; font-size: 2rem; color: #00ffff; letter-spacing: 2px; font-weight: 800; text-shadow: 0 0 16px #00ffff55;">🚨 SURVEILLANCE COMMAND CENTER</h1>
+            <p style="color: #b6eaff; font-size: 1.08rem; margin-top: 0; font-weight: 600; letter-spacing: 1px;">SoulBridge AI Security Operations Center</p>
         </div>
 
-        <div style="height: 1px; background: linear-gradient(90deg, transparent, #00ffff 50%, transparent); margin: 18px 0 24px 0;"></div>
+        <div style="height: 2px; background: linear-gradient(90deg, transparent, #00ffff 50%, transparent); margin: 18px 0 28px 0; border-radius: 2px;"></div>
 
         {% if error %}
-        <div class="error">{{ error }}</div>
+        <div class="error" style="font-size:1.08rem;">{{ error }}</div>
         {% endif %}
 
-        <form method="POST" autocomplete="on" style="display: flex; flex-direction: column; gap: 18px;">
-            <div class="form-group">
-                <label for="email">Username</label>
-                <input type="text" id="email" name="email" required autocomplete="username" placeholder="Enter admin email">
+        <form method="POST" autocomplete="on" style="display: flex; flex-direction: column; gap: 22px; margin-bottom: 10px;">
+            <div class="form-group" style="margin-bottom:0;">
+                <label for="email" style="font-size:1.08rem;">Username</label>
+                <input type="text" id="email" name="email" required autocomplete="username" placeholder="Enter admin email" style="font-size:1.08rem;">
             </div>
-            <div class="form-group" style="position:relative;">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" required style="padding-right:40px;" autocomplete="current-password" placeholder="Enter password">
-                <button type="button" id="togglePassword" style="position:absolute; right:10px; top:38px; background:none; border:none; color:#00ffff; cursor:pointer; font-size:1.1em;" tabindex="-1">
+            <div class="form-group" style="position:relative; margin-bottom:0;">
+                <label for="password" style="font-size:1.08rem;">Password</label>
+                <input type="password" id="password" name="password" required style="padding-right:44px; font-size:1.08rem;" autocomplete="current-password" placeholder="Enter password">
+                <button type="button" id="togglePassword" style="position:absolute; right:10px; top:38px; background:none; border:none; color:#00ffff; cursor:pointer; font-size:1.2em;" tabindex="-1">
                     <span id="eyeIcon">👁️</span>
                 </button>
             </div>
-            <button type="submit" class="btn-login" style="margin-top: 8px;">Access Admin</button>
+            <button type="submit" class="btn-login" style="margin-top: 8px; font-size:1.13rem; font-weight:700; letter-spacing:1px; box-shadow:0 4px 18px #00ffff33;">Access Admin</button>
         </form>
 
         <script>
@@ -158,8 +158,8 @@
         }
         </script>
 
-        <div class="footer" style="margin-top: 30px;">
-            <p style="color:#00ffff; font-weight:600; letter-spacing:1px;">Secure Admin Access Only</p>
+        <div class="footer" style="margin-top: 32px;">
+            <p style="color:#00ffff; font-weight:700; letter-spacing:1.2px; font-size:1.01rem;">Secure Admin Access Only</p>
         </div>
     </div>
 </body>

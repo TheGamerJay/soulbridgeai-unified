@@ -218,21 +218,147 @@ def load_project_state():
         logger.error(f"Failed to load project state: {e}")
         return {'completed_tasks': [], 'modified_files': [], 'current_focus': 'General development'}
 
+def perform_basic_file_search(search_term):
+    """Perform basic file search similar to grep/find tools"""
+    try:
+        backend_dir = os.path.dirname(__file__)
+        results = []
+        
+        # Search in common directories
+        search_dirs = [
+            os.path.join(backend_dir, 'templates'),
+            os.path.join(backend_dir, 'static'),
+            backend_dir
+        ]
+        
+        for search_dir in search_dirs:
+            if os.path.exists(search_dir):
+                for root, dirs, files in os.walk(search_dir):
+                    # Skip hidden and cache directories
+                    dirs[:] = [d for d in dirs if not d.startswith('.') and d != '__pycache__']
+                    
+                    for file in files:
+                        if file.endswith(('.py', '.html', '.js', '.css', '.json', '.md')):
+                            file_path = os.path.join(root, file)
+                            rel_path = os.path.relpath(file_path, backend_dir)
+                            
+                            # Search in filename
+                            if search_term.lower() in file.lower():
+                                results.append(f"📁 {rel_path} (filename match)")
+                            
+                            # Search in file content
+                            try:
+                                with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+                                    content = f.read()
+                                    if search_term.lower() in content.lower():
+                                        # Count occurrences
+                                        count = content.lower().count(search_term.lower())
+                                        results.append(f"📄 {rel_path} ({count} occurrences)")
+                            except:
+                                continue
+        
+        if results:
+            return "\n".join(results[:10])  # Limit to top 10 results
+        else:
+            return f"No files found containing '{search_term}'"
+            
+    except Exception as e:
+        return f"Search error: {e}"
+
+def perform_basic_file_analysis(file_path):
+    """Perform basic file analysis similar to reading and analyzing files"""
+    try:
+        if not os.path.exists(file_path):
+            return f"File not found: {file_path}"
+        
+        # Get file stats
+        file_size = os.path.getsize(file_path)
+        file_ext = os.path.splitext(file_path)[1]
+        
+        analysis = f"**File Info:**\n"
+        analysis += f"- Size: {file_size:,} bytes\n"
+        analysis += f"- Type: {file_ext}\n"
+        
+        # Read and analyze content
+        with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+            content = f.read()
+            
+        lines = content.split('\n')
+        analysis += f"- Lines: {len(lines)}\n"
+        
+        # Language-specific analysis
+        if file_ext == '.py':
+            analysis += f"\n**Python Analysis:**\n"
+            analysis += f"- Functions: {content.count('def ')}\n"
+            analysis += f"- Classes: {content.count('class ')}\n"
+            analysis += f"- Imports: {content.count('import ')}\n"
+            analysis += f"- Routes: {content.count('@app.route')}\n"
+            
+        elif file_ext == '.html':
+            analysis += f"\n**HTML Analysis:**\n"
+            analysis += f"- HTML tags: ~{content.count('<')}\n"
+            analysis += f"- Scripts: {content.count('<script')}\n"
+            analysis += f"- Forms: {content.count('<form')}\n"
+            analysis += f"- Jinja templates: {content.count('{{')}\n"
+            
+        elif file_ext == '.js':
+            analysis += f"\n**JavaScript Analysis:**\n"
+            analysis += f"- Functions: {content.count('function')}\n"
+            analysis += f"- Event listeners: {content.count('addEventListener')}\n"
+            analysis += f"- Async functions: {content.count('async')}\n"
+        
+        # Show first few lines as preview
+        preview_lines = lines[:5]
+        analysis += f"\n**Preview (first 5 lines):**\n"
+        for i, line in enumerate(preview_lines, 1):
+            analysis += f"{i}: {line[:60]}{'...' if len(line) > 60 else ''}\n"
+            
+        return analysis
+        
+    except Exception as e:
+        return f"Analysis error: {e}"
+
 def get_conversation_summary():
-    """Get recent conversation summary for Mini Helper context"""
+    """Get enhanced conversation summary with intelligent context for Mini Helper"""
     memory = load_conversation_memory()
     recent_conversations = memory['conversations'][-10:]  # Last 10 conversations
     
     if not recent_conversations:
         return "No recent conversation history."
     
-    summary = "**Recent Conversation History:**\n"
-    for conv in recent_conversations:
-        summary += f"- {conv['timestamp'][:16]}: {conv['user_message'][:60]}...\n"
-        if conv.get('file_path'):
-            summary += f"  📁 File: {conv['file_path']}\n"
-        if conv.get('action_type') != 'chat':
-            summary += f"  🔧 Action: {conv['action_type']}\n"
+    # Categorize conversations by type
+    file_edits = [c for c in recent_conversations if c.get('file_path')]
+    bug_fixes = [c for c in recent_conversations if 'fix' in c.get('user_message', '').lower() or 'bug' in c.get('user_message', '').lower()]
+    features = [c for c in recent_conversations if 'add' in c.get('user_message', '').lower() or 'feature' in c.get('user_message', '').lower()]
+    
+    summary = "**📚 Memory Recall - Recent Work Context:**\n"
+    
+    # Show most recent interaction
+    if recent_conversations:
+        last = recent_conversations[-1]
+        summary += f"**🕒 Last Interaction ({last['timestamp'][:16]}):** {last['user_message'][:80]}...\n"
+        if last.get('file_path'):
+            summary += f"   📁 Worked on: {last['file_path']}\n"
+    
+    # Show file editing history
+    if file_edits:
+        summary += f"\n**📝 Recent File Edits ({len(file_edits)}):**\n"
+        for edit in file_edits[-5:]:  # Last 5 file edits
+            summary += f"- {edit['file_path']} ({edit['timestamp'][:10]})\n"
+    
+    # Show problem-solving context
+    if bug_fixes:
+        summary += f"\n**🐛 Recent Bug Fixes ({len(bug_fixes)}):**\n"
+        for fix in bug_fixes[-3:]:
+            summary += f"- {fix['user_message'][:50]}... ({fix['timestamp'][:10]})\n"
+    
+    # Show feature development context
+    if features:
+        summary += f"\n**✨ Recent Features ({len(features)}):**\n"
+        for feat in features[-3:]:
+            summary += f"- {feat['user_message'][:50]}... ({feat['timestamp'][:10]})\n"
+    
+    summary += f"\n**📊 Total Interactions:** {memory.get('total_interactions', 0)}\n"
     
     return summary
 
@@ -11748,12 +11874,6 @@ def mini_assistant():
 
 @app.route("/api/mini-assistant", methods=["POST"])
 def api_mini_assistant():
-    """POST handler for Mini Assistant (placeholder to fix IndentationError)"""
-    return jsonify({"success": False, "error": "Mini Assistant POST logic not implemented yet."}), 501
-@app.route("/api/mini-assistant", methods=["GET"])
-def api_mini_assistant_get():
-    """GET handler for Mini Assistant for debugging (returns method not allowed)"""
-    return jsonify({"success": False, "error": "Use POST method for this endpoint."}), 405
     """🚀 ULTIMATE Mini Assistant API with comprehensive logging and automation"""
     try:
         if not is_logged_in():
@@ -11884,6 +12004,46 @@ RECENT ACHIEVEMENTS:
         return jsonify({
             "success": False,
             "error": "Assistant temporarily unavailable"
+        }), 500
+
+@app.route("/api/mini-assistant", methods=["GET"])
+def api_mini_assistant_get():
+    """GET handler for Mini Assistant for debugging (returns method not allowed)"""
+    return jsonify({"success": False, "error": "Use POST method for this endpoint."}), 405
+
+@app.route("/api/mini-assistant/history", methods=["GET"])
+def api_mini_assistant_history():
+    """Get conversation history for Mini Assistant UI"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        memory = load_conversation_memory()
+        recent_conversations = memory['conversations'][-20:]  # Last 20 conversations
+        
+        # Format conversations for UI display
+        formatted_conversations = []
+        for conv in recent_conversations:
+            formatted_conversations.append({
+                'timestamp': conv['timestamp'],
+                'user_message': conv['user_message'],
+                'response': conv['response'][:200] + ('...' if len(conv['response']) > 200 else ''),  # Truncate for UI
+                'file_path': conv.get('file_path', ''),
+                'action_type': conv.get('action_type', 'chat')
+            })
+        
+        return jsonify({
+            "success": True,
+            "conversations": formatted_conversations,
+            "total_interactions": memory.get('total_interactions', 0),
+            "last_active": memory.get('last_active')
+        })
+        
+    except Exception as e:
+        logger.error(f"Mini Assistant history error: {e}")
+        return jsonify({
+            "success": False, 
+            "error": "Failed to load conversation history"
         }), 500
 
 @app.route("/api/mini-assistant-status", methods=["GET"])
@@ -12639,11 +12799,111 @@ def generate_smart_file_response(file_content, user_message, file_path):
     return file_content + f"\n# Mini Helper: Modified {os.path.basename(file_path)} per request: {user_message}"
 
 def generate_contextual_response(user_message, project_context):
-    """Generate contextual response based on project knowledge and conversation history"""
+    """Generate enhanced contextual response with tool-like capabilities"""
     
     message_lower = user_message.lower()
     conversation_summary = get_conversation_summary()
     project_state = load_project_state()
+    memory = load_conversation_memory()
+    
+    # Enhanced context-aware analysis of user intent
+    is_asking_about_previous_work = any(word in message_lower for word in ['remember', 'recall', 'previous', 'before', 'earlier', 'last time', 'we were working on', 'continue'])
+    is_asking_for_file_analysis = any(word in message_lower for word in ['analyze', 'check', 'look at', 'examine', 'review'])
+    is_asking_for_search = any(word in message_lower for word in ['find', 'search', 'locate', 'where is'])
+    is_asking_for_fix = any(word in message_lower for word in ['fix', 'bug', 'error', 'problem', 'issue', 'broken'])
+    
+    # Context-aware memory recall
+    if is_asking_about_previous_work and memory.get('conversations'):
+        recent_work = memory['conversations'][-5:]  # Last 5 conversations
+        work_context = ""
+        
+        for conv in recent_work:
+            if conv.get('file_path'):
+                work_context += f"\n🔧 Worked on: {conv['file_path']} - {conv['user_message'][:50]}..."
+            if 'fix' in conv['user_message'].lower() or 'bug' in conv['user_message'].lower():
+                work_context += f"\n🐛 Bug fix: {conv['user_message'][:60]}..."
+                
+        if work_context:
+            return f"""🧠 **Memory Recall - Previous Work Context**
+
+{conversation_summary}
+
+**Recent File Work:**{work_context}
+
+**Current Status:**
+- Total sessions with me: {memory.get('total_interactions', 0)}
+- Project focus: {project_state.get('current_focus', 'SoulBridge AI development')}
+- Recent files modified: {len(project_state.get('modified_files', []))} files
+
+I can continue from where we left off. What would you like to work on next?"""
+    
+    # Enhanced file search capabilities
+    if is_asking_for_search:
+        search_terms = [word for word in user_message.split() if len(word) > 2 and word not in ['find', 'search', 'locate', 'where', 'is', 'the', 'can', 'you']]
+        if search_terms:
+            search_results = perform_basic_file_search(search_terms[0])
+            return f"""🔍 **File Search Results for "{search_terms[0]}"**
+
+{search_results}
+
+💡 **Tip**: I can help you examine any of these files in detail. Just ask me to "analyze [filename]" or provide a specific file path."""
+    
+    # Enhanced file analysis capabilities  
+    if is_asking_for_file_analysis:
+        # Extract potential file paths from message
+        words = user_message.split()
+        potential_files = [word for word in words if ('.' in word and ('/' in word or '\\' in word)) or word.endswith(('.py', '.html', '.js', '.css', '.json'))]
+        
+        if potential_files:
+            file_path = potential_files[0]
+            if file_path.startswith('backend/') or file_path.startswith('./'):
+                file_path = os.path.join(os.path.dirname(__file__), file_path.replace('backend/', '').replace('./', ''))
+            
+            analysis_result = perform_basic_file_analysis(file_path)
+            return f"""📊 **File Analysis: {os.path.basename(file_path)}**
+
+{analysis_result}
+
+🔧 **I can help with**: Bug fixes, code improvements, adding features, or explaining specific parts."""
+        else:
+            return """📊 **File Analysis Available**
+
+I can analyze any file in the SoulBridge AI project. Please specify:
+- `backend/app.py` - Main Flask application
+- `backend/templates/` - HTML templates  
+- `backend/static/` - CSS/JS assets
+- Or any specific file path
+
+Example: "analyze backend/templates/chat.html" """
+    
+    # Enhanced bug fixing capabilities
+    if is_asking_for_fix:
+        recent_errors = [conv for conv in memory.get('conversations', []) if any(err_word in conv['user_message'].lower() for err_word in ['error', 'bug', 'broken', 'fail'])]
+        
+        context = f"""🐛 **Bug Fix Assistant**
+
+{conversation_summary}
+
+**Recent Error Context:**"""
+        
+        if recent_errors:
+            for error in recent_errors[-3:]:
+                context += f"\n- {error['user_message'][:60]}... ({error['timestamp'][:10]})"
+        else:
+            context += "\nNo recent error reports in memory."
+            
+        context += f"""
+
+**I can help fix**:
+🔧 Python/Flask backend errors
+🔧 HTML template issues  
+🔧 JavaScript frontend bugs
+🔧 Database connection problems
+🔧 Route/endpoint issues
+
+Please describe the specific error or provide the file path that needs fixing."""
+        
+        return context
     
     if "rate limit" in message_lower:
         return """🚨 **Claude Rate Limit Detected - Mini Helper Active**

@@ -22,12 +22,16 @@ export default function Intro({ onNext }) {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen px-4 py-8 bg-gradient-to-b from-gray-900 to-black">
       <div className="w-full max-w-lg flex flex-col items-center">
-        <img
-          src={logo}
-          alt="SoulBridgeAI Logo"
-          style={{ width: '350px', height: '350px' }}
-          className="mb-6 rounded-full shadow-2xl border-4 border-cyan-400 object-cover object-center hover:border-cyan-300 transition-all duration-300 transform hover:scale-105"
-        />
+        <div className="flex flex-col items-center mb-6">
+          <img
+            src="/logos/Blayzo_premium.png"
+            alt="Blayzo Premium AI Chat"
+            style={{ width: '180px', height: '180px', borderRadius: '50%', boxShadow: '0 2px 32px #00e6ff44', border: '4px solid #00e6ff' }}
+            className="object-cover object-center mb-3"
+          />
+          <span className="text-cyan-300 font-bold text-lg">Blayzo_premium</span>
+          <span className="text-green-400 font-semibold text-sm mt-1">Online and ready to chat</span>
+        </div>
         <h1 className="text-4xl font-extrabold mb-8 text-cyan-400 drop-shadow-lg text-center animate-pulse">
           Welcome to SoulBridgeAI
         </h1>
