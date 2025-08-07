@@ -2473,7 +2473,6 @@ def tiers_page():
         {'slug': 'crimson_growth', 'name': 'Crimson Growth', 'image_url': '/static/logos/Crimson.png'},
         {'slug': 'violet_growth', 'name': 'Violet Growth', 'image_url': '/static/logos/Violet.png'},
         {'slug': 'claude_growth', 'name': 'Claude Growth', 'image_url': '/static/logos/Claude Growth.png'},
-        {'slug': 'sapphire_growth', 'name': 'Sapphire', 'image_url': '/static/logos/Sapphire.png'},
     ]
     
     max_companions = [
