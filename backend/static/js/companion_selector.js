@@ -233,9 +233,8 @@ async function loadCompanions() {
             effective_plan: effectivePlan
         };
 
-        // DISABLED: Initialize trial timer - preventing conflicts with chat.js timer
-        // Let chat.js handle the timer on chat pages to prevent flickering
-        console.log('🚫 Timer initialization disabled to prevent conflicts with chat.js timer');
+        // Timer initialization - now handled by companion_selector.html inline script
+        console.log('✅ Timer initialization handled by page-specific timer system');
 
         // Hide trial button if active
         const trialBtn = document.getElementById('trial-button');
@@ -1049,8 +1048,7 @@ async function checkTrialStatus() {
                 const secondsRemaining = data.time_remaining * 60;
                 const now = new Date();
                 const expiresAt = new Date(now.getTime() + secondsRemaining * 1000);
-                console.log('🚫 New trial timer system disabled to prevent conflicts with chat.js');
-                // DISABLED: initTrialTimer(expiresAt.toISOString());
+                console.log('✅ Trial timer system handled by page-specific implementation');
             }
             
         } else {
