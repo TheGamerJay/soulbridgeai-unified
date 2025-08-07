@@ -11744,6 +11744,8 @@ def mini_assistant():
 
 @app.route("/api/mini-assistant", methods=["POST"])
 def api_mini_assistant():
+    """POST handler for Mini Assistant (placeholder to fix IndentationError)"""
+    return jsonify({"success": False, "error": "Mini Assistant POST logic not implemented yet."}), 501
 @app.route("/api/mini-assistant", methods=["GET"])
 def api_mini_assistant_get():
     """GET handler for Mini Assistant for debugging (returns method not allowed)"""
