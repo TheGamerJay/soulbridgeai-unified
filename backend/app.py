@@ -3901,6 +3901,44 @@ def admin_surveillance():
                     color: #0f172a;
                 }}
                 
+                /* 🤖 Enhanced Mini Assistant Button Styling */
+                .mini-assistant-btn {{
+                    background: linear-gradient(135deg, #00ffff 0%, #00cccc 50%, #0099aa 100%) !important;
+                    color: #000 !important;
+                    border: 2px solid #00ffff !important;
+                    font-weight: bold !important;
+                    box-shadow: 0 0 15px rgba(0, 255, 255, 0.4) !important;
+                    position: relative !important;
+                    overflow: hidden !important;
+                }}
+                
+                .mini-assistant-btn::before {{
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: -100%;
+                    width: 100%;
+                    height: 100%;
+                    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+                    transition: left 0.5s;
+                }}
+                
+                .mini-assistant-btn:hover::before {{
+                    left: 100%;
+                }}
+                
+                .mini-assistant-btn:hover {{
+                    background: linear-gradient(135deg, #00eeee 0%, #00bbbb 50%, #008899 100%) !important;
+                    color: #000 !important;
+                    box-shadow: 0 0 25px rgba(0, 255, 255, 0.8) !important;
+                    transform: translateY(-3px) scale(1.05) !important;
+                }}
+                
+                .mini-assistant-btn:active {{
+                    transform: translateY(-1px) scale(1.02) !important;
+                    box-shadow: 0 0 15px rgba(0, 255, 255, 0.6) !important;
+                }}
+                
                 @media (max-width: 768px) {{
                     .grid-container {{ grid-template-columns: 1fr; }}
                     .metrics-grid {{ grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }}
@@ -4023,6 +4061,7 @@ def admin_surveillance():
                     <a href="/admin/surveillance?key={ADMIN_DASH_KEY}" class="control-btn">🔄 REFRESH</a>
                     <a href="/health" class="control-btn">💓 HEALTH CHECK</a>
                     <a href="/admin/dashboard?key={ADMIN_DASH_KEY}" class="control-btn">📊 DASHBOARD</a>
+                    <a href="/mini-assistant" class="control-btn mini-assistant-btn">🤖 MINI ASSISTANT</a>
                     <a href="/admin/users/manage?key={ADMIN_DASH_KEY}" class="control-btn">👥 MANAGE USERS [v2]</a>
                     <a href="/admin/database?key={ADMIN_DASH_KEY}" class="control-btn">🗄️ DATABASE</a>
                     <a href="/admin/migrate-plans?key={ADMIN_DASH_KEY}" class="control-btn">🧼 MIGRATE PLANS</a>
@@ -11458,10 +11497,13 @@ def mini_assistant():
         if not is_logged_in():
             return redirect("/login")
         
-        # Only allow admin access (you can adjust this check as needed)
+        # Enhanced admin access control - same as surveillance page
         user_email = session.get('user_email', '')
         if not user_email or 'jaaye' not in user_email.lower():  # Adjust admin check
-            return redirect("/intro")
+            # Check if they have the admin key as backup
+            admin_key = request.args.get("key")
+            if admin_key != ADMIN_DASH_KEY:
+                return redirect("/intro")
         
         return render_template("mini_assistant.html")
         
