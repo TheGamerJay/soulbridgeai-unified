@@ -2531,7 +2531,7 @@ def decoder():
         # Use session values set by @app.before_request (more efficient)
         effective_plan = session.get('effective_plan', 'free')
         trial_active = session.get('trial_active', False)
-        daily_limit = get_feature_limit(user_plan, 'decoder')
+        daily_limit = get_feature_limit(effective_plan, 'decoder')
         
         # DEBUG: Log decoder access info
         logger.info(f"🔍 DECODER DEBUG: user_plan = {user_plan}")
@@ -2562,7 +2562,7 @@ def fortune():
         # Use session values set by @app.before_request (more efficient)
         effective_plan = session.get('effective_plan', 'free')
         trial_active = session.get('trial_active', False)
-        daily_limit = get_feature_limit(user_plan, 'fortune')
+        daily_limit = get_feature_limit(effective_plan, 'fortune')
         
         # DEBUG: Log fortune access info
         logger.info(f"🔮 FORTUNE DEBUG: user_plan = {user_plan}")
@@ -2593,7 +2593,7 @@ def horoscope():
         # Use session values set by @app.before_request (more efficient)
         effective_plan = session.get('effective_plan', 'free')
         trial_active = session.get('trial_active', False)
-        daily_limit = get_feature_limit(user_plan, 'horoscope')
+        daily_limit = get_feature_limit(effective_plan, 'horoscope')
         
         # DEBUG: Log horoscope access info
         logger.info(f"⭐ HOROSCOPE DEBUG: user_plan = {user_plan}")
