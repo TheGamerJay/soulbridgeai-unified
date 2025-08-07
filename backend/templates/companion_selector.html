@@ -46,7 +46,7 @@
         #trialTimeDisplay,
         .trial-timer-old,
         .old-timer,
-        [id*="trialTimer"],
+        [id*="trialTimer"]:not(#simple-timer):not(#timer-display),
         [id*="trialTimeDisplay"] {
             display: none !important;
             visibility: hidden !important;
