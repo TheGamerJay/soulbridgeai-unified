@@ -46,7 +46,7 @@ class FreeTier(TierSystem):
         self.limits = {
             'decoder': 3,
             'fortune': 2,
-            'horoscope': 2,
+            'horoscope': 3,
             'companions': ['blayzo_free', 'blayzica_free', 'companion_gamerjay']
         }
     
@@ -94,7 +94,7 @@ class GrowthTier(TierSystem):
             'premium_companions'
         ]
         self.limits = {
-            'decoder': 15,
+            'decoder': 10,
             'fortune': 8,
             'horoscope': 10,
             'companions': [
