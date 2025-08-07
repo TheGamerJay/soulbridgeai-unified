@@ -6911,12 +6911,17 @@ def check_decoder_limit():
             user_plan = "free"
             trial_active = False
     
+    # TIER ISOLATION: Use tier-specific limits instead of old approach
+    current_tier = get_current_user_tier()
+    tier_system = get_current_tier_system()
+    
     # Calculate effective_plan fresh each time
     effective_plan = get_effective_plan(user_plan, trial_active)
     
-    logger.info(f"🔄 SESSION VALUES: user_plan={user_plan}, effective_plan={effective_plan}, trial_active={trial_active}")
+    # Get tier-specific limit
+    daily_limit = tier_system.get_feature_limit("decoder")
     
-    daily_limit = get_feature_limit(user_plan, "decoder")
+    logger.info(f"🔒 TIER ISOLATION: user_plan={user_plan}, tier={current_tier}, effective_plan={effective_plan}, trial_active={trial_active}, limit={daily_limit}")
     usage_today = get_decoder_usage()
     
     # Check if trial should be active by calling is_trial_active directly
@@ -6941,11 +6946,17 @@ def check_fortune_limit():
     if not user_id:
         return jsonify({"success": False, "error": "Not logged in"})
     
-    # Use effective_plan from session (set by @app.before_request)
-    effective_plan = session.get("effective_plan", "free")
+    # TIER ISOLATION: Use tier-specific limits instead of cached session values
+    current_tier = get_current_user_tier()
+    tier_system = get_current_tier_system()
+    tier_data = tier_system.get_session_data()
+    
     user_plan = session.get("user_plan", "free")  # Original plan for display
     trial_active = session.get("trial_active", False)
-    daily_limit = get_feature_limit(user_plan, "fortune")
+    effective_plan = get_effective_plan(user_plan, trial_active)
+    
+    # Get tier-specific limit
+    daily_limit = tier_system.get_feature_limit("fortune")
     usage_today = get_fortune_usage()
 
     return jsonify({
@@ -6963,11 +6974,17 @@ def check_horoscope_limit():
     if not user_id:
         return jsonify({"success": False, "error": "Not logged in"})
 
-    # Use effective_plan from session (set by @app.before_request)
-    effective_plan = session.get("effective_plan", "free")
+    # TIER ISOLATION: Use tier-specific limits instead of cached session values
+    current_tier = get_current_user_tier()
+    tier_system = get_current_tier_system()
+    tier_data = tier_system.get_session_data()
+    
     user_plan = session.get("user_plan", "free")  # Original plan for display
     trial_active = session.get("trial_active", False)
-    daily_limit = get_feature_limit(user_plan, "horoscope")
+    effective_plan = get_effective_plan(user_plan, trial_active)
+    
+    # Get tier-specific limit
+    daily_limit = tier_system.get_feature_limit("horoscope")
     usage_today = get_horoscope_usage()
 
     return jsonify({

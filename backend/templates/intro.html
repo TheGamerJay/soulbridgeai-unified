@@ -1405,9 +1405,13 @@ What specific area would you like help with? I know every feature of SoulBridge 
                     if (trialBadge) trialBadge.style.display = 'inline-flex';
                     updateSimpleTimer(trial_remaining);
                 } else {
-                    // Hide both trial badge and timer if no trial active
+                    // Hide both trial badge and timers when trial expires
                     if (trialBadge) trialBadge.style.display = 'none';
                     if (timerElement) timerElement.style.display = 'none';
+                    
+                    // Also hide the enhanced timer container
+                    const enhancedTimer = document.getElementById('trial-timer-container');
+                    if (enhancedTimer) enhancedTimer.style.display = 'none';
                 }
 
 
