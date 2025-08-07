@@ -505,13 +505,13 @@ async function refreshDecoderLimits() {
             msg.style.display = "none";
         } else if (user_plan === "growth") {
             maxMsg.style.display = "none";
-            msg.textContent = `Growth users get ${displayLimit} decodes per day. Upgrade to Max for unlimited.`;
+            msg.textContent = `🧠 Daily Decodes: ${usage} / ${displayLimit} used`;
         } else if (trial_active) {
             maxMsg.style.display = "none";
             msg.textContent = `You're on a 5-hour trial — enjoy premium companions & features with your ${displayLimit} decodes.`;
         } else {
             maxMsg.style.display = "none";
-            msg.textContent = `Free users get ${displayLimit} decodes per day. Upgrade to Growth for more.`;
+            msg.textContent = `🧠 Daily Decodes: ${usage} / ${displayLimit} used`;
         }
 
         // Update global variables
