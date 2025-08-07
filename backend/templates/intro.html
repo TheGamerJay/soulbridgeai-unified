@@ -495,17 +495,62 @@
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
         }
+        
+        /* Simple Timer Styles */
+        .trial-status-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .simple-timer {
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 8px;
+            padding: 3px 8px;
+            font-size: 11px;
+            font-family: 'Courier New', monospace;
+            color: #00ffff;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
+            opacity: 0.9;
+        }
+        
+        .simple-timer.warning {
+            background: rgba(255, 165, 0, 0.1);
+            border-color: rgba(255, 165, 0, 0.3);
+            color: #ffa500;
+            text-shadow: 0 0 5px rgba(255, 165, 0, 0.5);
+        }
+        
+        .simple-timer.critical {
+            background: rgba(255, 69, 69, 0.1);
+            border-color: rgba(255, 69, 69, 0.3);
+            color: #ff4545;
+            text-shadow: 0 0 5px rgba(255, 69, 69, 0.5);
+            animation: criticalBlink 1s ease-in-out infinite alternate;
+        }
+        
+        @keyframes criticalBlink {
+            0% { opacity: 0.9; }
+            100% { opacity: 0.6; }
+        }
         </style>
         
         <!-- Right side buttons -->
         <div style="display: flex; gap: 15px; align-items: center;">
             
-            <!-- Trial Badge -->
-            {% if session.get('trial_active') %}
-            <span class="trial-badge">
-                🕐 Trial Active
-            </span>
-            {% endif %}
+            <!-- Trial Badge with Simple Timer -->
+            <div class="trial-status-container">
+                <span class="trial-badge" id="trial-badge" style="display: {% if session.get('trial_active') %}inline-flex{% else %}none{% endif %};">
+                    🕐 Trial Active
+                </span>
+                <div id="simple-timer" class="simple-timer" style="display: none;">
+                    <span id="timer-display">5:00:00</span>
+                </div>
+            </div>
             <a href="/auth/logout" class="btn-danger">Logout</a>
         </div>
     </div>
@@ -1306,47 +1351,37 @@ What specific area would you like help with? I know every feature of SoulBridge 
             }, 100);
         }
 
-        function updateEnhancedTimer(trialRemaining) {
-            const container = document.getElementById('trial-timer-container');
-            const progressRing = document.getElementById('timer-progress');
-            const timeText = document.getElementById('trial-time-text');
-            const statusText = document.querySelector('.timer-status');
-
-            if (!container || !progressRing || !timeText) return;
-
+        function updateSimpleTimer(trialRemaining) {
+            const timerElement = document.getElementById('simple-timer');
+            const displayElement = document.getElementById('timer-display');
+            
+            if (!timerElement || !displayElement) return;
+            
             if (trialRemaining <= 0) {
-                container.style.display = 'none';
+                timerElement.style.display = 'none';
                 return;
             }
-
-            // Show timer if not visible
-            if (container.style.display === 'none') {
-                initializeEnhancedTimer();
-            }
-
-            // Calculate progress (5 hours total = 18000 seconds)
-            const totalSeconds = 5 * 60 * 60;
-            const percent = Math.max(0, trialRemaining / totalSeconds);
-            const dashoffset = 377 * (1 - percent);
-            progressRing.style.strokeDashoffset = dashoffset;
-
+            
+            // Show timer
+            timerElement.style.display = 'block';
+            
+            // Calculate time components (auto-detect seconds vs milliseconds)
+            const totalSeconds = Math.floor(trialRemaining > 1000000 ? trialRemaining / 1000 : trialRemaining);
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+            
+            // Update display
+            displayElement.textContent = `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
             // Update warning states
-            container.classList.remove('timer-warning', 'timer-critical');
-            if (trialRemaining <= 300) {
-                container.classList.add('timer-critical');
-                if (statusText) statusText.textContent = 'CRITICAL';
-            } else if (trialRemaining <= 1800) {
-                container.classList.add('timer-warning');
-                if (statusText) statusText.textContent = 'Warning';
-            } else {
-                if (statusText) statusText.textContent = 'Active';
+            timerElement.classList.remove('warning', 'critical');
+            const timeInSeconds = trialRemaining > 1000000 ? trialRemaining / 1000 : trialRemaining;
+            if (timeInSeconds < 600) { // < 10 minutes
+                timerElement.classList.add('critical');
+            } else if (timeInSeconds < 1800) { // < 30 minutes
+                timerElement.classList.add('warning');
             }
-
-            // Format time display
-            const hours = Math.floor(trialRemaining / 3600);
-            const minutes = Math.floor((trialRemaining % 3600) / 60);
-            const seconds = Math.floor(trialRemaining % 60);
-            timeText.textContent = `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         }
 
         async function refreshUserStatus() {
@@ -1361,13 +1396,18 @@ What specific area would you like help with? I know every feature of SoulBridge 
 
                 const { trial_active, trial_remaining, effective_plan, trial_used_permanently } = data;
 
-                // ✨ NEW ENHANCED TIMER SYSTEM - Update beautiful timer
+                // Update trial badge and simple timer
+                const trialBadge = document.getElementById('trial-badge');
+                const timerElement = document.getElementById('simple-timer');
+                
                 if (trial_active && trial_remaining > 0) {
-                    updateEnhancedTimer(trial_remaining);
+                    // Show trial badge and update timer
+                    if (trialBadge) trialBadge.style.display = 'inline-flex';
+                    updateSimpleTimer(trial_remaining);
                 } else {
-                    // Hide timer if trial not active
-                    const container = document.getElementById('trial-timer-container');
-                    if (container) container.style.display = 'none';
+                    // Hide both trial badge and timer if no trial active
+                    if (trialBadge) trialBadge.style.display = 'none';
+                    if (timerElement) timerElement.style.display = 'none';
                 }
 
 
