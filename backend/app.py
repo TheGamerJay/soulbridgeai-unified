@@ -2459,6 +2459,9 @@ def tiers_page():
         {'slug': 'blayzo_free', 'name': 'Blayzo Free', 'image_url': '/static/logos/Blayzo.png'},
         {'slug': 'blayzica_free', 'name': 'Blayzica Free', 'image_url': '/static/logos/Blayzica.png'},
         {'slug': 'companion_gamerjay', 'name': 'GamerJay', 'image_url': '/static/logos/GamerJay Free companion.png'},
+        {'slug': 'claude_free', 'name': 'Claude Free', 'image_url': '/static/logos/Claude Free.png'},
+        {'slug': 'blayzia_free', 'name': 'Blayzia', 'image_url': '/static/logos/Blayzia.png'},
+        {'slug': 'blayzion_free', 'name': 'Blayzion', 'image_url': '/static/logos/Blayzion.png'},
     ]
     
     growth_companions = [
@@ -2470,6 +2473,7 @@ def tiers_page():
         {'slug': 'crimson_growth', 'name': 'Crimson Growth', 'image_url': '/static/logos/Crimson.png'},
         {'slug': 'violet_growth', 'name': 'Violet Growth', 'image_url': '/static/logos/Violet.png'},
         {'slug': 'claude_growth', 'name': 'Claude Growth', 'image_url': '/static/logos/Claude Growth.png'},
+        {'slug': 'sapphire_growth', 'name': 'Sapphire', 'image_url': '/static/logos/Sapphire.png'},
     ]
     
     max_companions = [
@@ -2491,7 +2495,7 @@ def tiers_page():
         {'name': '🤖 AI Images', 'free': '❌', 'growth': '25/month', 'max': '∞'},
         {'name': '✍️ Creative Writing', 'free': '❌', 'growth': '✅', 'max': '✅'},
         {'name': '🧠 Memory', 'free': 'Basic', 'growth': '15 msgs', 'max': 'Enhanced'},
-        {'name': '👥 Companions', 'free': '3', 'growth': '11', 'max': '19'},
+        {'name': '👥 Companions', 'free': '6', 'growth': '15', 'max': '22'},
     ]
     
     # Referral milestones
