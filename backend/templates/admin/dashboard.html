@@ -225,6 +225,7 @@
     </style>
 </head>
 <body>
+
     <div class="header">
         <h1 style="font-size:2.2rem;display:flex;align-items:center;gap:12px;letter-spacing:1.5px;">
             <span style="font-size:2.2rem;">🚨</span> SURVEILLANCE COMMAND CENTER
@@ -237,71 +238,95 @@
     </div>
 
     <div class="container" style="margin-top:32px;">
-        <div class="stats-grid" style="margin-bottom:40px;">
-            <!-- System Status Card -->
-            <div class="stat-card" style="grid-column:span 2;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:120px;">
-                <div style="display:flex;align-items:center;gap:18px;">
-                    <span style="font-size:2.1rem;">🟢</span>
-                    <span style="font-size:1.25rem;font-weight:700;letter-spacing:1px;">WATCHDOG: ACTIVE</span>
-                    <span style="font-size:1.1rem;color:#4ade80;font-weight:600;">SYSTEM: NORMAL</span>
-                    <span style="font-size:1.1rem;color:#00e6ff;font-weight:600;">THREATS: CLEAR</span>
-                </div>
-                <div style="margin-top:10px;font-size:1.05rem;color:#b6eaff;">UPTIME: {{ stats.uptime or '0h 0m 0s' }}</div>
+        <!-- Comprehensive Stats Grid (keep this one) -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Total Users</h3>
+                <div class="value">{{ stats.total_users or 0 }}</div>
+                <div class="label">Registered</div>
             </div>
-            <!-- Main Stat Cards (auto grid) -->
-            <div class="stat-card"><h3>Blocked IPs</h3><div class="value">{{ stats.blocked_ips or 0 }}</div><div class="label">🚫 BLOCKED IPs</div></div>
-            <div class="stat-card"><h3>Total Threats</h3><div class="value">{{ stats.total_threats or 0 }}</div><div class="label">⚠️ TOTAL THREATS</div></div>
-            <div class="stat-card"><h3>Maintenance Logs</h3><div class="value">{{ stats.maintenance_logs or 0 }}</div><div class="label">🔧 MAINTENANCE LOGS</div></div>
-            <div class="stat-card"><h3>Critical Errors</h3><div class="value">{{ stats.critical_errors or 0 }}</div><div class="label">🔥 CRITICAL ERRORS</div></div>
-            <div class="stat-card"><h3>Trial System</h3><div class="value">🎯</div><div class="label">TRIAL SYSTEM DASHBOARD</div></div>
-            <div class="stat-card"><h3>Total Users</h3><div class="value">{{ stats.total_users or 0 }}</div><div class="label">👥 TOTAL USERS</div></div>
-            <div class="stat-card"><h3>Active Trials</h3><div class="value">{{ stats.active_trials or 0 }}</div><div class="label">🔥 ACTIVE TRIALS</div></div>
-            <div class="stat-card"><h3>Trials Today</h3><div class="value">{{ stats.trials_today or 0 }}</div><div class="label">📈 TRIALS TODAY</div></div>
-            <div class="stat-card"><h3>Conversion Rate</h3><div class="value">{{ stats.conversion_rate or 0 }}%</div><div class="label">💰 CONVERSION RATE</div></div>
-            <div class="stat-card"><h3>Free Users</h3><div class="value">{{ stats.free_users or 0 }}</div><div class="label">🆓 FREE USERS</div></div>
-            <div class="stat-card"><h3>Growth Users</h3><div class="value">{{ stats.growth_users or 0 }}</div><div class="label">📊 GROWTH USERS</div></div>
-            <div class="stat-card"><h3>Max Users</h3><div class="value">{{ stats.max_users or 0 }}</div><div class="label">⭐ MAX USERS</div></div>
-            <div class="stat-card"><h3>Used Trials</h3><div class="value">{{ stats.used_trials or 0 }}</div><div class="label">✅ USED TRIALS</div></div>
+            <div class="stat-card">
+                <h3>Active Trials</h3>
+                <div class="value">{{ stats.active_trials or 0 }}</div>
+                <div class="label">Currently Active</div>
+            </div>
+            <div class="stat-card">
+                <h3>Growth Users</h3>
+                <div class="value">{{ stats.growth_users or 0 }}</div>
+                <div class="label">Paid Plan</div>
+            </div>
+            <div class="stat-card">
+                <h3>Max Users</h3>
+                <div class="value">{{ stats.max_users or 0 }}</div>
+                <div class="label">Premium Plan</div>
+            </div>
+            <div class="stat-card">
+                <h3>Admin Users</h3>
+                <div class="value">{{ stats.admin_users or 0 }}</div>
+                <div class="label">Administrators</div>
+            </div>
+            <div class="stat-card">
+                <h3>Trial Conversion</h3>
+                <div class="value">{{ stats.trial_conversions or 0 }}%</div>
+                <div class="label">Success Rate</div>
+            </div>
+            <div class="stat-card">
+                <h3>Daily Actions</h3>
+                <div class="value">{{ stats.total_actions_today or 0 }}</div>
+                <div class="label">Today</div>
+            </div>
+            <div class="stat-card">
+                <h3>Database Status</h3>
+                <div class="value">
+                    <span class="status-indicator {% if stats.database_status == 'Healthy' %}status-healthy{% else %}status-error{% endif %}"></span>
+                    {{ stats.database_status or 'Unknown' }}
+                </div>
+                <div class="label">System Health</div>
+            </div>
         </div>
 
-        <!-- Controls Section -->
-        <div class="section" style="margin-bottom:32px;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;align-items:center;">
-            <button class="pro-btn">🔄 RESET ALL TRIALS</button>
-            <button class="pro-btn">⏰ EXPIRE ALL TRIALS</button>
-            <button class="pro-btn">📧 SEND WARNINGS</button>
-            <button class="pro-btn">🧹 CLEANUP USERS</button>
-            <button class="pro-btn">🔧 FIX USER PLANS</button>
-            <button class="pro-btn">👥 MANAGE USERS</button>
+        <!-- Feature Usage Stats -->
+        <div class="section">
+            <h2>📊 Feature Usage Today</h2>
+            <div class="feature-stats">
+                <div class="feature-item">
+                    <span class="feature-name">Decoder:</span>
+                    <span class="feature-count">{{ stats.daily_decoder_usage or 0 }}</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-name">Fortune:</span>
+                    <span class="feature-count">{{ stats.daily_fortune_usage or 0 }}</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-name">Horoscope:</span>
+                    <span class="feature-count">{{ stats.daily_horoscope_usage or 0 }}</span>
+                </div>
+            </div>
         </div>
 
-        <!-- Activity & Management Section -->
-        <div class="section" style="margin-bottom:32px;display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:24px;">
-            <div>
-                <h2 style="color:#00e6ff;font-size:1.18rem;margin-bottom:12px;">📊 Recent Trial Activity</h2>
-                <div style="background:rgba(0,0,0,0.18);border-radius:10px;padding:18px;min-height:80px;">
-                    {% if stats.recent_trial_activity %}
-                        <ul style="list-style:none;padding:0;margin:0;">
-                        {% for activity in stats.recent_trial_activity %}
-                            <li style="margin-bottom:8px;color:#b6eaff;font-size:1.01rem;">{{ activity }}</li>
-                        {% endfor %}
-                        </ul>
-                    {% else %}
-                        <span style="color:#888;">No recent trial activity</span>
-                    {% endif %}
+        <!-- Recent Actions -->
+        <div class="section">
+            <h2>⚡ Recent User Actions</h2>
+            {% if stats.recent_actions %}
+                <div class="action-list">
+                    {% for action in stats.recent_actions %}
+                    <div class="action-item">
+                        <span class="action-user">User {{ action.user_id }}</span>
+                        <span class="action-name">{{ action.action }}</span>
+                        <span class="action-time">{{ action.timestamp }}</span>
+                    </div>
+                    {% endfor %}
                 </div>
-            </div>
-            <div>
-                <h2 style="color:#00e6ff;font-size:1.18rem;margin-bottom:12px;">🎮 Trial Management Controls</h2>
-                <div style="display:flex;flex-wrap:wrap;gap:10px;">
-                    <button class="pro-btn">🔄 REFRESH</button>
-                    <button class="pro-btn">💓 HEALTH CHECK</button>
-                    <button class="pro-btn">📊 DASHBOARD</button>
-                    <button class="pro-btn" id="miniAssistantBtn2" type="button"><i class="fas fa-robot"></i> MINI ASSISTANT</button>
-                    <button class="pro-btn">👥 MANAGE USERS [v2]</button>
-                    <button class="pro-btn">🗄️ DATABASE</button>
-                    <button class="pro-btn">🧼 MIGRATE PLANS</button>
-                </div>
-            </div>
+            {% else %}
+                <p>No recent actions recorded.</p>
+            {% endif %}
+        </div>
+
+        <!-- Quick Links -->
+        <div class="section">
+            <h2>📊 Recent Activity</h2>
+            <p>System monitoring and activity logs appear here.</p>
+            <p><em>Real-time monitoring dashboard coming soon...</em></p>
         </div>
     </div>
 
