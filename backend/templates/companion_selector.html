@@ -41,20 +41,38 @@
             100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); }
         }
         
-        /* Hide old timer elements to prevent conflicts */
+        /* Hide old timer elements to prevent conflicts - EXCLUDE NEW TIMER */
         #trialTimer, 
         #trialTimeDisplay,
         .trial-timer-old,
         .old-timer,
         [id*="trialTimer"],
-        [id*="trialTimeDisplay"],
-        [class*="trial-timer"]:not(.trial-badge),
-        [id*="trial-timer"]:not(#trial-timer-container):not(#trial-timer-circle):not(#trial-time-text) {
+        [id*="trialTimeDisplay"] {
             display: none !important;
             visibility: hidden !important;
             opacity: 0 !important;
             position: absolute !important;
             left: -9999px !important;
+        }
+        
+        /* PROTECT NEW TIMER - Override any hiding */
+        #trial-timer-container,
+        #trial-timer-container *,
+        #timer-progress,
+        #trial-time-text,
+        .timer-glass-card {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            position: relative !important;
+            left: auto !important;
+        }
+        
+        /* Except the container itself should be fixed positioned */
+        #trial-timer-container {
+            position: fixed !important;
+            top: 20px !important;
+            right: 20px !important;
         }
     </style>
 </head>
@@ -573,7 +591,12 @@
                     el.id === 'timer-progress' ||
                     el.id === 'trial-time-text' ||
                     el.classList.contains('trial-badge') ||
-                    el.parentElement?.id === 'trial-timer-container'
+                    el.classList.contains('timer-glass-card') ||
+                    el.classList.contains('timer-glow-ring') ||
+                    el.classList.contains('timer-content') ||
+                    el.classList.contains('timer-display') ||
+                    el.parentElement?.id === 'trial-timer-container' ||
+                    el.closest('#trial-timer-container')
                 );
                 
                 if (looksLikeOldTimer && !isNewTimer) {
@@ -761,12 +784,34 @@
             }
         }
 
+        // Force show timer for testing (you can call this in console)
+        window.forceShowTimer = function() {
+            const timerContainer = document.getElementById('trial-timer-container');
+            if (timerContainer) {
+                timerContainer.style.display = 'block';
+                console.log('🔧 Timer force shown');
+            } else {
+                console.log('❌ Timer container not found!');
+            }
+        };
+
         // Initialize timer on page load
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Page loaded - initializing timer...');
             refreshTrialStatus();
             
             // Refresh every 30 seconds (not too frequent to avoid performance issues)
             setInterval(refreshTrialStatus, 30000);
+            
+            // Debug: Log timer container status
+            setTimeout(() => {
+                const container = document.getElementById('trial-timer-container');
+                console.log('🔍 Timer container check:', {
+                    exists: !!container,
+                    display: container?.style.display,
+                    visible: container?.offsetWidth > 0
+                });
+            }, 1000);
         });
     </script>
     
