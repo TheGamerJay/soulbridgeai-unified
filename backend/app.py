@@ -2443,7 +2443,7 @@ def chat():
             'claude_free': {'name': 'Claude', 'avatar': '/static/logos/Claude Free.png'},
             
             # Growth companions  
-            'companion_sky': {'name': 'Sky', 'avatar': '/static/logos/Sky a primum companion.png'},
+            'companion_sky': {'name': 'Sky', 'avatar': '/static/logos/Sky a premium companion.png'},
             'blayzo_premium': {'name': 'Blayzo Pro', 'avatar': '/static/logos/Blayzo premium companion.png'},
             'blayzo_growth': {'name': 'Blayzo Pro', 'avatar': '/static/logos/Blayzo premium companion.png'},  # Legacy compatibility
             'blayzo_pro': {'name': 'Blayzo Pro', 'avatar': '/static/logos/Blayzo premium companion.png'},  # Legacy compatibility
@@ -2451,18 +2451,18 @@ def chat():
             'gamerjay_premium': {'name': 'GamerJay Premium', 'avatar': '/static/logos/GamerJay premium companion.png'},
             'companion_gamerjay_premium': {'name': 'GamerJay Premium', 'avatar': '/static/logos/GamerJay premium companion.png'},  # Legacy compatibility
             'gamerjay_pro': {'name': 'GamerJay Premium', 'avatar': '/static/logos/GamerJay premium companion.png'},  # Legacy compatibility
-            'watchdog_growth': {'name': 'WatchDog', 'avatar': '/static/logos/WatchDog a Primum companion.png'},
+            'watchdog_growth': {'name': 'WatchDog', 'avatar': '/static/logos/WatchDog a Premium companion.png'},
             'crimson_growth': {'name': 'Crimson', 'avatar': '/static/logos/Crimson.png'},
             'violet_growth': {'name': 'Violet', 'avatar': '/static/logos/Violet.png'},
             'claude_growth': {'name': 'Claude Growth', 'avatar': '/static/logos/Claude Growth.png'},
             
             # Max companions
             'companion_crimson': {'name': 'Crimson', 'avatar': '/static/logos/Crimson a Max companion.png'},
-            'companion_violet': {'name': 'Violet', 'avatar': '/static/logos/Violet a max companion.png'},
-            'royal_max': {'name': 'Royal', 'avatar': '/static/logos/Royal a max companion.png'},
+            'companion_violet': {'name': 'Violet', 'avatar': '/static/logos/Violet a Max companion.png'},
+            'royal_max': {'name': 'Royal', 'avatar': '/static/logos/Royal a Max companion.png'},
             'watchdog_max': {'name': 'WatchDog Max', 'avatar': '/static/logos/WatchDog a Max Companion.png'},
-            'ven_blayzica': {'name': 'Ven Blayzica', 'avatar': '/static/logos/Ven Blayzica a max companion.png'},
-            'ven_sky': {'name': 'Ven Sky', 'avatar': '/static/logos/Ven Sky a max companion.png'},
+            'ven_blayzica': {'name': 'Ven Blayzica', 'avatar': '/static/logos/Ven Blayzica a Max companion.png'},
+            'ven_sky': {'name': 'Ven Sky', 'avatar': '/static/logos/Ven Sky a Max companion.png'},
             'claude_max': {'name': 'Claude Max', 'avatar': '/static/logos/Claude Max.png'},
             
             # Referral companions
@@ -2539,22 +2539,22 @@ def api_companions():
                 {"companion_id": "claude_free", "display_name": "Claude", "description": "Your friendly coding assistant", "avatar_image": "/static/logos/Claude Free.png", "tier": "free", "is_recommended": False, "popularity_score": 85, "lock_reason": None}
             ],
             "growth": [
-                {"companion_id": "companion_sky", "display_name": "Sky", "description": "Premium companion with advanced features", "avatar_image": "/static/logos/Sky a primum companion.png", "tier": "growth", "is_recommended": True, "popularity_score": 90, "lock_reason": get_lock_reason("growth")},
+                {"companion_id": "companion_sky", "display_name": "Sky", "description": "Premium companion with advanced features", "avatar_image": "/static/logos/Sky a premium companion.png", "tier": "growth", "is_recommended": True, "popularity_score": 90, "lock_reason": get_lock_reason("growth")},
                 {"companion_id": "blayzo_premium", "display_name": "Blayzo Pro", "description": "Advanced Blayzo with enhanced creativity", "avatar_image": "/static/logos/Blayzo premium companion.png", "tier": "growth", "is_recommended": True, "popularity_score": 92, "lock_reason": get_lock_reason("growth")},
                 {"companion_id": "blayzica_growth", "display_name": "Blayzica Pro", "description": "Enhanced emotional intelligence companion", "avatar_image": "/static/logos/Blayzica Pro.png", "tier": "growth", "is_recommended": True, "popularity_score": 91, "lock_reason": get_lock_reason("growth")},
                 {"companion_id": "gamerjay_premium", "display_name": "GamerJay Premium", "description": "Enhanced GamerJay with premium features", "avatar_image": "/static/logos/GamerJay premium companion.png", "tier": "growth", "is_recommended": False, "popularity_score": 88, "lock_reason": get_lock_reason("growth")},
-                {"companion_id": "watchdog_growth", "display_name": "WatchDog", "description": "Your protective guardian companion", "avatar_image": "/static/logos/WatchDog a Primum companion.png", "tier": "growth", "is_recommended": False, "popularity_score": 78, "lock_reason": get_lock_reason("growth")},
+                {"companion_id": "watchdog_growth", "display_name": "WatchDog", "description": "Your protective guardian companion", "avatar_image": "/static/logos/WatchDog a Premium companion.png", "tier": "growth", "is_recommended": False, "popularity_score": 78, "lock_reason": get_lock_reason("growth")},
                 {"companion_id": "crimson_growth", "display_name": "Crimson", "description": "Motivational drive to overcome challenges", "avatar_image": "/static/logos/Crimson.png", "tier": "growth", "is_recommended": True, "popularity_score": 87, "lock_reason": get_lock_reason("growth")},
                 {"companion_id": "violet_growth", "display_name": "Violet", "description": "Creative inspiration and artistic guidance", "avatar_image": "/static/logos/Violet.png", "tier": "growth", "is_recommended": False, "popularity_score": 84, "lock_reason": get_lock_reason("growth")},
                 {"companion_id": "claude_growth", "display_name": "Claude Growth", "description": "Advanced coding guidance and architecture", "avatar_image": "/static/logos/Claude Growth.png", "tier": "growth", "is_recommended": True, "popularity_score": 93, "lock_reason": get_lock_reason("growth")}
             ],
             "max": [
                 {"companion_id": "companion_crimson", "display_name": "Crimson Max", "description": "Elite transformation companion", "avatar_image": "/static/logos/Crimson a Max companion.png", "tier": "max", "is_recommended": True, "popularity_score": 98, "lock_reason": get_lock_reason("max")},
-                {"companion_id": "companion_violet", "display_name": "Violet Max", "description": "Premium creative companion", "avatar_image": "/static/logos/Violet a max companion.png", "tier": "max", "is_recommended": False, "popularity_score": 91, "lock_reason": get_lock_reason("max")},
-                {"companion_id": "royal_max", "display_name": "Royal", "description": "Majestic guide with sophisticated wisdom", "avatar_image": "/static/logos/Royal a max companion.png", "tier": "max", "is_recommended": False, "popularity_score": 95, "lock_reason": get_lock_reason("max")},
+                {"companion_id": "companion_violet", "display_name": "Violet Max", "description": "Premium creative companion", "avatar_image": "/static/logos/Violet a Max companion.png", "tier": "max", "is_recommended": False, "popularity_score": 91, "lock_reason": get_lock_reason("max")},
+                {"companion_id": "royal_max", "display_name": "Royal", "description": "Majestic guide with sophisticated wisdom", "avatar_image": "/static/logos/Royal a Max companion.png", "tier": "max", "is_recommended": False, "popularity_score": 95, "lock_reason": get_lock_reason("max")},
                 {"companion_id": "watchdog_max", "display_name": "WatchDog Max", "description": "Ultimate guardian companion", "avatar_image": "/static/logos/WatchDog a Max Companion.png", "tier": "max", "is_recommended": False, "popularity_score": 93, "lock_reason": get_lock_reason("max")},
-                {"companion_id": "ven_blayzica", "display_name": "Ven Blayzica", "description": "Enhanced healer with emotional mastery", "avatar_image": "/static/logos/Ven Blayzica a max companion.png", "tier": "max", "is_recommended": True, "popularity_score": 94, "lock_reason": get_lock_reason("max")},
-                {"companion_id": "ven_sky", "display_name": "Ven Sky", "description": "Ascended spiritual guide", "avatar_image": "/static/logos/Ven Sky a max companion.png", "tier": "max", "is_recommended": True, "popularity_score": 96, "lock_reason": get_lock_reason("max")},
+                {"companion_id": "ven_blayzica", "display_name": "Ven Blayzica", "description": "Enhanced healer with emotional mastery", "avatar_image": "/static/logos/Ven Blayzica a Max companion.png", "tier": "max", "is_recommended": True, "popularity_score": 94, "lock_reason": get_lock_reason("max")},
+                {"companion_id": "ven_sky", "display_name": "Ven Sky", "description": "Ascended spiritual guide", "avatar_image": "/static/logos/Ven Sky a Max companion.png", "tier": "max", "is_recommended": True, "popularity_score": 96, "lock_reason": get_lock_reason("max")},
                 {"companion_id": "claude_max", "display_name": "Claude Max", "description": "Elite coding mastery and system design", "avatar_image": "/static/logos/Claude Max.png", "tier": "max", "is_recommended": True, "popularity_score": 97, "lock_reason": get_lock_reason("max")}
             ],
             "referral": [
@@ -11398,7 +11398,7 @@ def get_companions_old():
                 {
                     "companion_id": "companion_sky",
                     "display_name": "Sky",
-                    "avatar_image": "/static/logos/Sky a primum companion.png",
+                    "avatar_image": "/static/logos/Sky a premium companion.png",
                     "short_bio": "Premium companion with advanced features",
                     "personality_tags": ["Spiritual", "Healing"],
                     "special_features": ["Spiritual guidance", "Meditation sessions", "Energy healing", "Voice interactions"],
@@ -11460,8 +11460,8 @@ def get_companions_old():
                 {
                     "companion_id": "companion_violet",
                     "display_name": "Violet",
-                    "avatar_image": "/static/logos/Violet a max companion.png",
-                    "short_bio": "Premium max companion with exclusive features",
+                    "avatar_image": "/static/logos/Violet a Max companion.png",
+                    "short_bio": "Premium Max companion with exclusive features",
                     "personality_tags": ["Elite", "Exclusive", "Advanced"],
                     "special_features": ["Premium features", "Exclusive access", "Priority support", "Advanced AI"],
                     "tier": "max",

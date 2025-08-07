@@ -460,7 +460,7 @@ function loadFallbackCompanions() {
             {
                 companion_id: 'companion_sky',
                 display_name: 'Sky',
-                avatar_image: '/static/logos/Sky a primum companion.png',
+                avatar_image: '/static/logos/Sky a premium companion.png',
                 short_bio: 'Premium companion with advanced features',
                 personality_tags: ['Spiritual', 'Healing'],
                 special_features: ['Spiritual guidance', 'Meditation sessions', 'Energy healing', 'Voice interactions'],
@@ -504,7 +504,7 @@ function loadFallbackCompanions() {
             {
                 companion_id: 'watchdog_growth',
                 display_name: 'WatchDog',
-                avatar_image: '/static/logos/WatchDog a Primum companion.png',
+                avatar_image: '/static/logos/WatchDog a Premium companion.png',
                 short_bio: 'Your protective guardian companion',
                 personality_tags: ['Protective', 'Guardian'],
                 special_features: ['Protection guidance', 'Security advice', 'Safety coaching', 'Risk assessment'],
@@ -561,8 +561,8 @@ function loadFallbackCompanions() {
             {
                 companion_id: 'companion_violet',
                 display_name: 'Violet',
-                avatar_image: '/static/logos/Violet a max companion.png',
-                short_bio: 'Premium max companion with exclusive features',
+                avatar_image: '/static/logos/Violet a Max companion.png',
+                short_bio: 'Premium Max companion with exclusive features',
                 personality_tags: ['Elite', 'Exclusive', 'Advanced'],
                 special_features: ['Premium features', 'Exclusive access', 'Priority support', 'Advanced AI'],
                 tier: 'max',
@@ -572,7 +572,7 @@ function loadFallbackCompanions() {
             {
                 companion_id: 'royal_max',
                 display_name: 'Royal',
-                avatar_image: '/static/logos/Royal a max companion.png',
+                avatar_image: '/static/logos/Royal a Max companion.png',
                 short_bio: 'Majestic guide with sophisticated wisdom',
                 personality_tags: ['Majestic', 'Wise', 'Sophisticated'],
                 special_features: ['Royal guidance', 'Sophisticated advice', 'Leadership coaching', 'Elite wisdom'],
@@ -594,7 +594,7 @@ function loadFallbackCompanions() {
             {
                 companion_id: 'ven_blayzica',
                 display_name: 'Ven Blayzica',
-                avatar_image: '/static/logos/Ven Blayzica a max companion.png',
+                avatar_image: '/static/logos/Ven Blayzica a Max companion.png',
                 short_bio: 'Enhanced healer with emotional mastery',
                 personality_tags: ['Healer', 'Emotional', 'Master'],
                 special_features: ['Emotional mastery', 'Healing guidance', 'Advanced empathy', 'Therapeutic support'],
@@ -605,7 +605,7 @@ function loadFallbackCompanions() {
             {
                 companion_id: 'ven_sky',
                 display_name: 'Ven Sky',
-                avatar_image: '/static/logos/Ven Sky a max companion.png',
+                avatar_image: '/static/logos/Ven Sky a Max companion.png',
                 short_bio: 'Ascended spiritual guide',
                 personality_tags: ['Ascended', 'Spiritual', 'Guide'],
                 special_features: ['Ascended wisdom', 'Spiritual mastery', 'Transcendent guidance', 'Higher consciousness'],

@@ -162,7 +162,7 @@ function updateCharacterDisplay() {
             'Claude': '/static/logos/Claude Free.png',
             
             // GROWTH TIER
-            'Sky': '/static/logos/Sky a primum companion.png',
+            'Sky': '/static/logos/Sky a premium companion.png',
             'Blayzo': '/static/logos/Blayzo.png',
             'Blayzo Pro': '/static/logos/Blayzo premium companion.png',
             'Blayzo Champion': '/static/logos/Blayzo Referral.png',
@@ -170,17 +170,17 @@ function updateCharacterDisplay() {
             'Blayzica Pro': '/static/logos/Blayzica Pro.png', // Using correct Pro image
             'GamerJay Premium': '/static/logos/GamerJay premium companion.png', // Fixed typo: GamgerJay -> GamerJay
             'Claude Growth': '/static/logos/Claude Growth.png',
-            'WatchDog': '/static/logos/WatchDog a Primum companion.png',
+            'WatchDog': '/static/logos/WatchDog a Premium companion.png',
             
             // MAX TIER
             'Crimson': '/static/logos/Crimson.png',
             'Crimson Max': '/static/logos/Crimson a Max companion.png',
             'Violet': '/static/logos/Violet.png',
-            'Violet Max': '/static/logos/Violet a max companion.png',
+            'Violet Max': '/static/logos/Violet a Max companion.png',
             'WatchDog Max': '/static/logos/WatchDog a Max Companion.png',
-            'Royal': '/static/logos/Royal a max companion.png',
-            'Ven Blayzica': '/static/logos/Ven Blayzica a max companion.png',
-            'Ven Sky': '/static/logos/Ven Sky a max companion.png',
+            'Royal': '/static/logos/Royal a Max companion.png',
+            'Ven Blayzica': '/static/logos/Ven Blayzica a Max companion.png',
+            'Ven Sky': '/static/logos/Ven Sky a Max companion.png',
             'Claude Max': '/static/logos/Claude Max.png',
             
             // REFERRAL TIER
