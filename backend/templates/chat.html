@@ -27,7 +27,7 @@
     
     <!-- CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}?v={{ range(1000000) | random }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/chat.css') }}?v={{ range(1000000) | random }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/chat.css') }}?v=tier-fix-{{ range(1000000) | random }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
@@ -61,6 +61,7 @@
                 </a>
                 
                 <!-- PREMIUM FEATURES - Growth/Max users or Trial active -->
+                <!-- DEBUG: user_plan={{ user_plan }}, trial_active={{ trial_active }} -->
                 {% if user_plan in ['growth', 'max'] or trial_active %}
                 <a href="/decoder" class="action-btn premium-feature" data-tier="growth">
                     <i class="fas fa-brain"></i>
