@@ -95,8 +95,8 @@
         <span class="trial-badge" id="trial-badge" style="display: none;">
             🕐 Trial Active
         </span>
-        <div id="trial-clock" class="simple-timer" style="display: none;">
-            <span id="clock-display">5:00:00</span>
+        <div id="active-remaining" class="simple-timer" style="display: none;">
+            <span id="remaining-display">5:00:00</span>
         </div>
     </div>
 
@@ -620,8 +620,8 @@
     <script>
         // Simple timer update function (unobtrusive)
         function updateSimpleTimer(trialRemaining) {
-            const timerElement = document.getElementById('trial-clock');
-            const displayElement = document.getElementById('clock-display');
+            const timerElement = document.getElementById('active-remaining');
+            const displayElement = document.getElementById('remaining-display');
             
             if (!timerElement || !displayElement) return;
             
@@ -681,7 +681,7 @@
 
                 // Update trial badge and simple timer
                 const trialBadge = document.getElementById('trial-badge');
-                const timerElement = document.getElementById('trial-clock');
+                const timerElement = document.getElementById('active-remaining');
                 
                 if (trial_active && trial_remaining > 0) {
                     // Show trial badge and update timer
