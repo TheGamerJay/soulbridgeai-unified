@@ -537,35 +537,8 @@
             return element;
         };
         
-        // AGGRESSIVE MONITORING: Check every 100ms for old timer elements
-        setInterval(function() {
-            const oldTimer = document.getElementById('trialTimer');
-            const oldDisplay = document.getElementById('trialTimeDisplay');
-            
-            if (oldTimer) {
-                console.error('🚨 OLD TIMER FOUND!', {
-                    element: oldTimer,
-                    style: oldTimer.style.cssText,
-                    parent: oldTimer.parentElement,
-                    innerHTML: oldTimer.innerHTML,
-                    stack: new Error().stack
-                });
-                // Force remove it
-                oldTimer.remove();
-                console.log('🗑️ Forcibly removed old timer');
-            }
-            
-            if (oldDisplay) {
-                console.error('🚨 OLD TIMER DISPLAY FOUND!', {
-                    element: oldDisplay,
-                    textContent: oldDisplay.textContent,
-                    parent: oldDisplay.parentElement
-                });
-                // Force remove it
-                oldDisplay.remove();
-                console.log('🗑️ Forcibly removed old timer display');
-            }
-        }, 10); // Check every 10ms (ULTRA FAST)
+        // DISABLED AGGRESSIVE MONITORING - was causing console spam
+        // Old timer monitoring disabled to prevent performance issues
         
         // ULTRA AGGRESSIVE: Nuke any element that LOOKS like old timer
         function destroySuspiciousElements() {
@@ -618,44 +591,20 @@
             });
         }
         
-        // Run once only - DISABLED aggressive interval to prevent flickering
-        destroySuspiciousElements();
-        // DISABLED: setInterval(destroySuspiciousElements, 10); // Was causing major flickering (100x per second!)
+        // DISABLED ALL AGGRESSIVE ELEMENT REMOVAL - was causing console spam and performance issues
+        // destroySuspiciousElements(); // Disabled to prevent interference with new timer
         
         // DISABLED DEBUG: Timer visibility check - was causing flickering
         // Timer debug check disabled to prevent interference
         
-        // ULTIMATE NUCLEAR OPTION: Override getElementById to block old timer access
-        const originalGetElementById = document.getElementById;
-        document.getElementById = function(id) {
-            if (id === 'trialTimer' || id === 'trialTimeDisplay') {
-                console.warn('🚫 BLOCKED access to old timer element:', id);
-                return null; // Return null instead of the element
-            }
-            return originalGetElementById.call(this, id);
-        };
+        // DISABLED getElementById override - was causing console spam
+        // getElementById override disabled to prevent interference
     </script>
     
-    <!-- NUCLEAR DESTROYER - ChatGPT Enhanced Version -->
+    <!-- DISABLED NUCLEAR DESTROYER - was causing console spam -->
     <script>
-    setInterval(() => {
-        const rogue = document.getElementById('trialTimer');
-        if (rogue) {
-            console.warn('🧨 Old trialTimer element still found. Removing...');
-            rogue.remove();
-        }
-
-        const rogueStyle = document.querySelector('style#oldTimerStyles');
-        if (rogueStyle) rogueStyle.remove();
-
-        // Kill old functions if they exist
-        ['startTrialCountdown', 'showTrialTimer', 'hideTrialTimer', 'updateTrialDisplay'].forEach(fn => {
-            if (typeof window[fn] === 'function') {
-                console.warn(`🧨 Killing old function: ${fn}`);
-                window[fn] = () => {};
-            }
-        });
-    }, 200);
+    // Disabled aggressive timer removal to prevent console spam
+    // setInterval(() => { ... }, 200); // DISABLED
     
     // Initial debug check
     console.log("Searching for old timer...");
@@ -669,29 +618,10 @@
     }
     </script>
     
-    <!-- 🔥 THE FINAL FIX - ULTIMATE NUCLEAR TIMER DESTROYER -->
+    <!-- DISABLED FINAL FIX - was causing console spam -->
     <script>
-    setInterval(() => {
-        // 🔥 Remove rogue #trialTimer div
-        const rogue = document.getElementById("trialTimer");
-        if (rogue) {
-            console.warn("🧨 Removing ghost timer...");
-            rogue.remove();
-        }
-
-        // 🔥 Remove any old attached styles
-        const rogueStyle = document.querySelector("style#oldTimerStyles");
-        if (rogueStyle) rogueStyle.remove();
-
-        // 🔥 Overwrite old timer functions if they exist
-        const oldFns = ["startTrialCountdown", "updateTrialDisplay", "showTrialTimer", "hideTrialTimer"];
-        oldFns.forEach(fn => {
-            if (typeof window[fn] === "function") {
-                console.warn(`🧨 Disabling old function: ${fn}`);
-                window[fn] = () => {};
-            }
-        });
-    }, 300);
+    // Disabled all aggressive interval timers to prevent console spam and performance issues
+    // All old timer removal scripts have been disabled
     </script>
     
     <!-- Enhanced Timer System Functions -->
