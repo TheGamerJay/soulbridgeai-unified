@@ -2078,35 +2078,24 @@ Where emotion meets expression.
             const timerElement = document.getElementById('simple-timer');
             const displayElement = document.getElementById('timer-display');
             
-            console.log('🕐 Simple Timer Update:', {
-                timerElement: !!timerElement,
-                displayElement: !!displayElement, 
-                trialRemaining: trialRemaining
-            });
-            
-            if (!timerElement || !displayElement) {
-                console.log('❌ Timer elements not found!');
-                return;
-            }
+            if (!timerElement || !displayElement) return;
             
             if (trialRemaining <= 0) {
-                console.log('❌ Trial remaining <= 0, hiding timer');
                 timerElement.style.display = 'none';
                 return;
             }
             
             // Show timer
-            console.log('✅ Showing simple timer');
             timerElement.style.display = 'block';
             
-            // Calculate time components
-            const hours = Math.floor(trialRemaining / (1000 * 60 * 60));
-            const minutes = Math.floor((trialRemaining % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((trialRemaining % (1000 * 60)) / 1000);
+            // Calculate time components (trialRemaining is in milliseconds)
+            const totalSeconds = Math.floor(trialRemaining / 1000);
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
             
             // Update display
             displayElement.textContent = `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            console.log('⏰ Timer display updated:', displayElement.textContent);
             
             // Update warning states
             timerElement.classList.remove('warning', 'critical');
@@ -2129,25 +2118,15 @@ Where emotion meets expression.
 
                 const { trial_active, trial_remaining, effective_plan, user_plan, trial_used_permanently } = data;
 
-                console.log('🔍 Chat Page User Status:', {
-                    trial_active,
-                    trial_remaining,
-                    effective_plan,
-                    user_plan,
-                    trial_used_permanently
-                });
-
                 // Update trial badge and simple timer
                 const trialBadge = document.getElementById('trial-badge');
                 const timerElement = document.getElementById('simple-timer');
                 
                 if (trial_active && trial_remaining > 0) {
-                    console.log('✅ Calling updateSimpleTimer with:', trial_remaining);
                     // Show trial badge and update timer
                     if (trialBadge) trialBadge.style.display = 'inline-flex';
                     updateSimpleTimer(trial_remaining);
                 } else {
-                    console.log('❌ No active trial, hiding badge and timer');
                     // Hide both trial badge and timer if no trial active
                     if (trialBadge) trialBadge.style.display = 'none';
                     if (timerElement) timerElement.style.display = 'none';
