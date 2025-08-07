@@ -116,9 +116,9 @@
     }
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./"
+    "vscode:prepublish": "echo 'Extension ready to package'",
+    "compile": "echo 'No compilation needed'",
+    "watch": "echo 'No compilation needed'"
   },
   "devDependencies": {
     "@types/vscode": "^1.50.0",

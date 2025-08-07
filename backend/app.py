@@ -4127,8 +4127,11 @@ def admin_surveillance():
         # Get comprehensive trial system stats with error handling
         try:
             trial_stats = get_comprehensive_trial_stats()
+            # If the function returns an error dict, use fallback
+            if 'error' in trial_stats:
+                raise Exception(trial_stats['error'])
         except Exception as e:
-            logger.error(f"Failed to get trial stats: {e}")
+            logger.error(f"Failed to get trial stats: {str(e)}")
             trial_stats = {
                 'total_users': 0,
                 'active_trials': 0,
@@ -4136,7 +4139,12 @@ def admin_surveillance():
                 'converted_users': 0,
                 'conversion_rate': 0.0,
                 'avg_trial_days': 0.0,
-                'revenue_potential': 0.0
+                'revenue_potential': 0.0,
+                'growth_users': 0,
+                'max_users': 0,
+                'free_users': 0,
+                'trials_started_today': 0,
+                'recent_trials': []
             }
         
         # Get surveillance metrics
@@ -11565,7 +11573,7 @@ def mini_assistant():
         if not is_admin_access:
             return redirect("/intro")
         
-        return render_template("mini_assistant.html")
+        return render_template("mini_assistant_simple.html")
         
     except Exception as e:
         logger.error(f"Mini Assistant error: {e}")
@@ -11692,6 +11700,9 @@ RECENT ACHIEVEMENTS:
         full_response = base_response
         if logs:
             full_response += "\n\n" + "\n".join(logs)
+        
+        # Save conversation to memory for continuity
+        save_conversation_context(user_message, full_response, file_path, "chat")
         
         return jsonify({
             "success": True,

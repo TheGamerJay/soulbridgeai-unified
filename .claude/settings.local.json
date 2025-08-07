@@ -73,7 +73,10 @@
       "Bash(DATABASE_URL=\"postgresql://postgres:sDCOyvWZKSxyJvnJBZNSJemzZKbbSjIT@postgres-wj-8.railway.internal:5432/railway\" python fix_schema.py)",
       "Bash(DATABASE_URL=\"postgresql://postgres:sDCOyvWZKSxyJvnJBZNSJemzZKbbSjIT@postgres-wj-8.railway.internal:5432/railway\" python fix_production_terms.py)",
       "Bash(chcp:*)",
-      "WebFetch(domain:localhost)"
+      "WebFetch(domain:localhost)",
+      "Bash(npm:*)",
+      "Bash(vsce package:*)",
+      "Bash(code:*)"
     ],
     "deny": []
   }
