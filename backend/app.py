@@ -2462,23 +2462,23 @@ def tiers_page():
     ]
     
     growth_companions = [
-        {'slug': 'companion_sky', 'name': 'Sky', 'image_url': '/static/logos/Sky_premium.png'},
-        {'slug': 'blayzo_premium', 'name': 'Blayzo Premium', 'image_url': '/static/logos/Blayzo_premium.png'},
-        {'slug': 'blayzica_growth', 'name': 'Blayzica Growth', 'image_url': '/static/logos/Blayzica Growth.png'},
-        {'slug': 'gamerjay_premium', 'name': 'GamerJay Premium', 'image_url': '/static/logos/GamerJay_premium.png'},
-        {'slug': 'watchdog_growth', 'name': 'WatchDog Growth', 'image_url': '/static/logos/Watchdog.png'},
+        {'slug': 'companion_sky', 'name': 'Sky', 'image_url': '/static/logos/Sky a premium companion.png'},
+        {'slug': 'blayzo_premium', 'name': 'Blayzo Premium', 'image_url': '/static/logos/Blayzo premium companion.png'},
+        {'slug': 'blayzica_growth', 'name': 'Blayzica Growth', 'image_url': '/static/logos/Blayzica Pro.png'},
+        {'slug': 'gamerjay_premium', 'name': 'GamerJay Premium', 'image_url': '/static/logos/GamerJay premium companion.png'},
+        {'slug': 'watchdog_growth', 'name': 'WatchDog Growth', 'image_url': '/static/logos/WatchDog a Premium companion.png'},
         {'slug': 'crimson_growth', 'name': 'Crimson Growth', 'image_url': '/static/logos/Crimson.png'},
         {'slug': 'violet_growth', 'name': 'Violet Growth', 'image_url': '/static/logos/Violet.png'},
         {'slug': 'claude_growth', 'name': 'Claude Growth', 'image_url': '/static/logos/Claude Growth.png'},
     ]
     
     max_companions = [
-        {'slug': 'companion_crimson', 'name': 'Companion Crimson', 'image_url': '/static/logos/Crimson Max.png'},
-        {'slug': 'companion_violet', 'name': 'Companion Violet', 'image_url': '/static/logos/Violet Max.png'},
-        {'slug': 'royal_max', 'name': 'Royal Max', 'image_url': '/static/logos/Royal Max.png'},
-        {'slug': 'watchdog_max', 'name': 'WatchDog Max', 'image_url': '/static/logos/Watchdog Max.png'},
-        {'slug': 'ven_blayzica', 'name': 'Ven Blayzica', 'image_url': '/static/logos/Ven Blayzica.png'},
-        {'slug': 'ven_sky', 'name': 'Ven Sky', 'image_url': '/static/logos/Ven Sky.png'},
+        {'slug': 'companion_crimson', 'name': 'Companion Crimson', 'image_url': '/static/logos/Crimson a Max companion.png'},
+        {'slug': 'companion_violet', 'name': 'Companion Violet', 'image_url': '/static/logos/Violet a Max companion.png'},
+        {'slug': 'royal_max', 'name': 'Royal Max', 'image_url': '/static/logos/Royal a Max companion.png'},
+        {'slug': 'watchdog_max', 'name': 'WatchDog Max', 'image_url': '/static/logos/WatchDog a Max Companion.png'},
+        {'slug': 'ven_blayzica', 'name': 'Ven Blayzica', 'image_url': '/static/logos/Ven Blayzica a Max companion.png'},
+        {'slug': 'ven_sky', 'name': 'Ven Sky', 'image_url': '/static/logos/Ven Sky a Max companion.png'},
         {'slug': 'claude_max', 'name': 'Claude Max', 'image_url': '/static/logos/Claude Max.png'},
     ]
     
@@ -12987,7 +12987,7 @@ TIERS_TEMPLATE = r"""
         {% for c in free_list %}
           <div class="card" onclick="openChat('{{ c.slug }}')" title="{{ c.name }}">
             <span class="lock">✅ Unlocked</span>
-            <img src="{{ c.image_url or '/static/fallback.png' }}" alt="{{ c.name }}" onerror="this.src='/static/fallback.png'">
+            <img src="{{ c.image_url or '/static/logos/IntroLogo.png' }}" alt="{{ c.name }}" onerror="this.src='/static/logos/IntroLogo.png'">
             <div class="name">{{ c.name }}</div>
           </div>
         {% endfor %}
@@ -13002,7 +13002,7 @@ TIERS_TEMPLATE = r"""
           {% set locked = (not trial_active) and (user_plan == 'free') %}
           <div class="card {{ 'locked' if locked }}" onclick="{{ 'openChat(\"' ~ c.slug ~ '\")' if not locked else 'notifyUpgrade(\"Growth\")' }}" title="{{ c.name }}">
             <span class="lock">{{ '✅ Unlocked' if not locked else '🔒 Growth' }}</span>
-            <img src="{{ c.image_url or '/static/fallback.png' }}" alt="{{ c.name }}" onerror="this.src='/static/fallback.png'">
+            <img src="{{ c.image_url or '/static/logos/IntroLogo.png' }}" alt="{{ c.name }}" onerror="this.src='/static/logos/IntroLogo.png'">
             <div class="name">{{ c.name }}</div>
           </div>
         {% endfor %}
@@ -13022,7 +13022,7 @@ TIERS_TEMPLATE = r"""
           {% set locked = (not trial_active) and (user_plan != 'max') %}
           <div class="card {{ 'locked' if locked }}" onclick="{{ 'openChat(\"' ~ c.slug ~ '\")' if not locked else 'notifyUpgrade(\"Max\")' }}" title="{{ c.name }}">
             <span class="lock">{{ '✅ Unlocked' if not locked else '🔒 Max' }}</span>
-            <img src="{{ c.image_url or '/static/fallback.png' }}" alt="{{ c.name }}" onerror="this.src='/static/fallback.png'">
+            <img src="{{ c.image_url or '/static/logos/IntroLogo.png' }}" alt="{{ c.name }}" onerror="this.src='/static/logos/IntroLogo.png'">
             <div class="name">{{ c.name }}</div>
           </div>
         {% endfor %}
@@ -13042,7 +13042,7 @@ TIERS_TEMPLATE = r"""
           <div class="milestone {{ '' if got else 'dim' }}">
             <div class="badge {{ 'ok' if got else '' }}">{{ '✅ Unlocked' if got else '🔒 Locked' }}</div>
             <div class="need">Needs {{ r.need }} referrals</div>
-            <img src="/static/referral/{{ r.slug }}.png" alt="{{ r.name }}" style="width:100%;height:120px;object-fit:cover;border-radius:8px;background:#0b0f18;" onerror="this.src='/static/fallback.png'">
+            <img src="/static/referral/{{ r.slug }}.png" alt="{{ r.name }}" style="width:100%;height:120px;object-fit:cover;border-radius:8px;background:#0b0f18;" onerror="this.src='/static/logos/IntroLogo.png'">
             <div class="name" style="margin-top:6px;font-weight:600;">{{ r.name }}</div>
           </div>
         {% endfor %}
