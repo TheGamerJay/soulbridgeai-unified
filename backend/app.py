@@ -11513,7 +11513,7 @@ def mini_assistant():
 
 @app.route("/api/mini-assistant", methods=["POST"])
 def api_mini_assistant():
-    """Advanced API endpoint for Mini Assistant with file editing and automation"""
+    """🚀 ULTIMATE Mini Assistant API with comprehensive logging and automation"""
     try:
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
@@ -11526,63 +11526,91 @@ def api_mini_assistant():
         if not user_message:
             return jsonify({"success": False, "error": "Message required"}), 400
         
-        # Advanced Mini Assistant with file editing and automation capabilities
+        # Initialize logging and response tracking
+        logs = []
         base_response = ""
         
-        # Build enhanced context for SoulBridge AI development
+        # Enhanced SoulBridge AI development context
         project_context = """
-You are Mini Assistant, an advanced AI development assistant for SoulBridge AI.
+You are Mini Assistant, an ultimate AI development agent for SoulBridge AI.
 
-CURRENT PROJECT CONTEXT:
+CURRENT PROJECT STATUS:
 - Project: SoulBridge AI - Mental wellness platform with AI companions
-- Focus: Tier isolation fixes, feature access control, companion selector improvements
-- Tech Stack: Flask, Jinja2, SQLite/PostgreSQL, HTML/CSS/JS
-- File Structure: backend/app.py, backend/templates/, backend/static/
-- Recent Work: Fixed duplicate API endpoints, template tier checks, timer improvements
+- Active Focus: Tier isolation system, feature access control debugging
+- Tech Stack: Flask backend, Jinja2 templates, SQLite/PostgreSQL database
+- Current Issues: Free users seeing premium features, companion selector access
+- Recent Progress: Fixed duplicate API endpoints, enhanced template conditionals
 
-CAPABILITIES:
-- Code analysis and debugging assistance
-- File editing and improvements when file path provided
-- Git commit automation for code changes
-- Server reload triggers for development
-- SoulBridge AI specific development guidance
+DEVELOPMENT CAPABILITIES:
+- Advanced code analysis and debugging
+- Direct file editing with full code replacement
+- Automated git commits and push prompts
+- Flask server reload triggers
+- Comprehensive logging and action tracking
+- SoulBridge AI domain expertise
 
-RECENT FIXES:
-- Tier isolation: Hidden premium features from free users
-- Companion selector: Fixed duplicate API endpoint causing access issues
-- Templates: Added proper tier checks in chat.html
-- Timer system: Consistent positioning and sizing across pages
+RECENT ACHIEVEMENTS:
+✅ Tier isolation backend fixes (effective_plan usage)
+✅ Template conditional logic for feature hiding
+✅ Companion selector duplicate endpoint resolution
+✅ Timer system consistency across all pages
+⏳ Testing free user experience isolation
 """
 
         try:
-            # Try Claude API first for advanced responses
-            base_response = call_claude_advanced(user_message, file_path, project_context)
+            # Try Claude API with enhanced file handling
+            base_response = call_claude_ultimate(user_message, file_path, project_context)
+            logs.append("🧠 Claude 3 Haiku used successfully.")
         except Exception as e:
-            logger.info(f"Claude API failed, using fallback: {e}")
-            # Fallback to Mixtral if available, otherwise rule-based
+            logs.append(f"⚠️ Claude failed: {e}. Trying Mixtral fallback...")
             try:
-                base_response = call_mixtral_fallback(user_message)
-            except:
+                base_response = call_mixtral_ultimate(user_message, project_context)
+                logs.append("⚡ Mixtral fallback used successfully.")
+            except Exception as e2:
+                logs.append(f"⚠️ Mixtral failed: {e2}. Using rule-based fallback...")
                 base_response = generate_rule_based_response(user_message.lower(), user_message)
+                logs.append("🤖 Rule-based fallback used.")
         
-        # Handle file editing if valid path provided
-        if file_path and is_safe_file_path(file_path):
+        # Handle file editing with comprehensive logging
+        if file_path and is_safe_file_path_ultimate(file_path):
             try:
-                # Auto-commit changes if file was modified
-                commit_result = auto_git_commit(file_path, f"Mini Assistant updated {os.path.basename(file_path)}")
-                base_response += f"\n\n{commit_result}"
+                # Write the response as new file content (Claude returns full code)
+                with open(file_path, "w", encoding="utf-8") as f:
+                    f.write(base_response)
+                logs.append(f"💾 File '{file_path}' updated successfully.")
+                
+                # Auto-commit with enhanced messaging
+                commit_result = auto_git_commit_ultimate(file_path, f"Mini Assistant updated {os.path.basename(file_path)}")
+                logs.append(commit_result)
+                
+                # Add push prompt
+                push_prompt = ask_git_push_ultimate()
+                logs.append(push_prompt)
+                
             except Exception as e:
-                logger.error(f"Git commit failed: {e}")
-                base_response += f"\n\n⚠️ Git commit failed: {e}"
+                logs.append(f"❌ Failed to write to file '{file_path}': {e}")
         
-        # Check for server restart trigger
+        # Handle special commands
         if "restart server" in user_message.lower() or "reload flask" in user_message.lower():
-            restart_result = restart_flask_server()
-            base_response += f"\n\n{restart_result}"
+            restart_result = restart_flask_server_ultimate()
+            logs.append(restart_result)
+        
+        # Handle git push confirmation
+        if "push now" in user_message.lower():
+            push_result = execute_git_push_ultimate()
+            logs.append(push_result)
+        
+        # Log all actions with timestamps
+        log_all_actions(logs, user_message, file_path)
+        
+        # Combine response with logs
+        full_response = base_response
+        if logs:
+            full_response += "\n\n" + "\n".join(logs)
         
         return jsonify({
             "success": True,
-            "response": base_response
+            "response": full_response
         })
         
     except Exception as e:
@@ -11642,10 +11670,15 @@ def generate_mini_assistant_response(message, context):
     # Fallback to rule-based responses
     return generate_rule_based_response(message_lower, message)
 
-# === ADVANCED MINI ASSISTANT HELPER FUNCTIONS ===
+# === ULTIMATE MINI ASSISTANT SYSTEM ===
 
-# Allowed folders for secure file editing
-ALLOWED_EDIT_FOLDERS = ["backend/templates", "backend/static", "backend/utils"]
+# Enhanced configuration
+ALLOWED_EDIT_FOLDERS = ["backend/templates", "backend/static", "backend/utils", "templates", "static", "utils"]
+MINI_ASSISTANT_LOG = "backend/logs/mini_assistant.log"
+
+# Create logs directory if it doesn't exist
+import os
+os.makedirs("backend/logs", exist_ok=True)
 
 def call_claude_advanced(prompt, file_path="", project_context=""):
     """Advanced Claude API call with file editing capabilities"""
@@ -11775,6 +11808,208 @@ def restart_flask_server():
         return "🔄 Flask server reload triggered."
     except Exception as e:
         return f"⚠️ Failed to trigger server reload: {e}"
+
+# === ULTIMATE MINI ASSISTANT FUNCTIONS ===
+
+def call_claude_ultimate(prompt, file_path="", project_context=""):
+    """Ultimate Claude API call optimized for file editing"""
+    import requests
+    
+    file_content = ""
+    if file_path and os.path.exists(file_path):
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                file_content = f.read()
+        except Exception as e:
+            logger.error(f"Failed to read file {file_path}: {e}")
+
+    # Enhanced prompt for file editing
+    if file_content:
+        full_prompt = f"""{project_context}
+
+CURRENT FILE CONTENT:
+{file_content}
+
+USER REQUEST:
+{prompt}
+
+INSTRUCTIONS:
+- If editing a file, respond ONLY with the complete, updated file content
+- For analysis requests, provide detailed technical feedback
+- Keep responses focused and actionable
+- Use proper code formatting and syntax"""
+    else:
+        full_prompt = f"""{project_context}
+
+USER REQUEST:
+{prompt}
+
+INSTRUCTIONS:
+- Provide helpful, technical responses for SoulBridge AI development
+- Include specific code examples when relevant
+- Focus on actionable solutions
+- Use markdown formatting for clarity"""
+    
+    claude_api_key = os.getenv('CLAUDE_API_KEY')
+    if not claude_api_key:
+        raise Exception("Claude API key not found")
+    
+    headers = {
+        "x-api-key": claude_api_key,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json"
+    }
+
+    data = {
+        "model": "claude-3-haiku-20240307",
+        "max_tokens": 4096,  # Increased for full file content
+        "temperature": 0.3,
+        "messages": [
+            {"role": "user", "content": full_prompt}
+        ]
+    }
+
+    response = requests.post("https://api.anthropic.com/v1/messages", headers=headers, json=data, timeout=60)
+    
+    if response.status_code != 200:
+        raise Exception(f"Claude API error: {response.status_code}")
+    
+    content = response.json().get("content", [{}])
+    if content and len(content) > 0:
+        return content[0].get("text", "❌ No response from Claude.")
+    else:
+        raise Exception("No content in Claude response")
+
+def call_mixtral_ultimate(prompt, project_context=""):
+    """Ultimate Mixtral local AI fallback"""
+    try:
+        import subprocess
+        full_prompt = f"{project_context}\n\nUser Request: {prompt}"
+        
+        result = subprocess.run([
+            "ollama", "run", "mixtral:7b", full_prompt
+        ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=120)
+        
+        if result.returncode == 0:
+            return result.stdout.strip() or "⚠️ Mixtral returned empty response."
+        else:
+            raise Exception(f"Mixtral failed with code {result.returncode}")
+    except subprocess.TimeoutExpired:
+        raise Exception("Mixtral response timeout (120s)")
+    except FileNotFoundError:
+        raise Exception("Mixtral/Ollama not installed")
+    except Exception as e:
+        raise Exception(f"Mixtral error: {e}")
+
+def is_safe_file_path_ultimate(file_path):
+    """Enhanced security check for file paths"""
+    if not file_path:
+        return False
+    
+    # Normalize path for security
+    normalized_path = os.path.normpath(file_path)
+    
+    # Prevent directory traversal
+    if ".." in normalized_path or file_path.startswith("/"):
+        return False
+    
+    # Check against allowed folders
+    for allowed_folder in ALLOWED_EDIT_FOLDERS:
+        if normalized_path.startswith(allowed_folder):
+            return True
+    
+    return False
+
+def auto_git_commit_ultimate(file_path, message="Mini Assistant Auto-Commit"):
+    """Enhanced git commit with better error handling"""
+    try:
+        import subprocess
+        
+        # Add the specific file
+        result = subprocess.run(["git", "add", file_path], capture_output=True, text=True, cwd=".")
+        if result.returncode != 0:
+            return f"⚠️ Git add failed: {result.stderr}"
+        
+        # Commit with enhanced message
+        full_message = f"""{message}
+
+🤖 Generated with Mini Assistant (Ultimate)
+File: {file_path}
+Timestamp: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+
+Co-Authored-By: Mini Assistant <admin@soulbridgeai.com>"""
+        
+        result = subprocess.run(["git", "commit", "-m", full_message], capture_output=True, text=True, cwd=".")
+        if result.returncode != 0:
+            if "nothing to commit" in result.stdout or "nothing to commit" in result.stderr:
+                return "ℹ️ No changes to commit (file unchanged)."
+            return f"⚠️ Git commit failed: {result.stderr}"
+        
+        return "✅ Git commit successful."
+    except Exception as e:
+        return f"❌ Git error: {e}"
+
+def ask_git_push_ultimate():
+    """Enhanced git push prompt"""
+    return "🟡 **Commit complete!** Ready to push to remote repository?\n💡 Type **'push now'** in your next message to push changes to GitHub."
+
+def execute_git_push_ultimate():
+    """Execute git push to remote repository"""
+    try:
+        import subprocess
+        
+        result = subprocess.run(["git", "push"], capture_output=True, text=True, cwd=".", timeout=60)
+        if result.returncode == 0:
+            return "🚀 **Git push successful!** Changes pushed to remote repository."
+        else:
+            return f"⚠️ Git push failed: {result.stderr}"
+    except subprocess.TimeoutExpired:
+        return "⚠️ Git push timeout (60s) - check network connection."
+    except Exception as e:
+        return f"❌ Git push error: {e}"
+
+def restart_flask_server_ultimate():
+    """Enhanced Flask server reload"""
+    try:
+        import subprocess
+        
+        # Try multiple methods to trigger reload
+        reload_files = ["backend/app.py", "app.py", "main.py"]
+        for file in reload_files:
+            if os.path.exists(file):
+                subprocess.run(["touch", file], check=True)
+                return f"🔄 Flask server reload triggered via {file}."
+        
+        return "⚠️ No app file found to trigger reload."
+    except Exception as e:
+        return f"⚠️ Failed to trigger server reload: {e}"
+
+def log_all_actions(logs, user_message, file_path=""):
+    """Comprehensive logging system"""
+    try:
+        import datetime
+        
+        timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        
+        # Create log entry
+        log_entry = f"""
+[{timestamp}] MINI ASSISTANT ACTION
+User Message: {user_message[:100]}{'...' if len(user_message) > 100 else ''}
+File Path: {file_path or 'None'}
+Actions Performed:
+"""
+        
+        for log in logs:
+            log_entry += f"  - {log}\n"
+        
+        log_entry += "-" * 50 + "\n"
+        
+        # Write to log file
+        with open(MINI_ASSISTANT_LOG, "a", encoding="utf-8") as f:
+            f.write(log_entry)
+            
+    except Exception as e:
+        logger.error(f"Failed to write Mini Assistant log: {e}")
 
 def generate_claude_response(message, context, api_key):
     """Generate AI-powered response using Claude API"""

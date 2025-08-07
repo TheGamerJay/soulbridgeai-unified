@@ -197,6 +197,22 @@
             border-color: #00ffff;
             transform: translateY(-2px);
         }
+        
+        .push-btn {
+            background: linear-gradient(135deg, #ff6b6b, #ff8e53) !important;
+            border-color: #ff6b6b !important;
+            animation: pushPulse 2s infinite !important;
+        }
+        
+        .push-btn:hover {
+            background: linear-gradient(135deg, #ff5252, #ff7043) !important;
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4) !important;
+        }
+        
+        @keyframes pushPulse {
+            0%, 100% { box-shadow: 0 0 5px rgba(255, 107, 107, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(255, 107, 107, 0.8); }
+        }
 
         .context-panel {
             background: rgba(0, 0, 0, 0.6);
@@ -299,6 +315,9 @@
             </button>
             <button class="quick-btn" onclick="quickCommand('restart server')">
                 <i class="fas fa-redo"></i> Restart Server
+            </button>
+            <button class="quick-btn push-btn" onclick="quickCommand('push now')" style="display: none;">
+                <i class="fas fa-upload"></i> Push Now
             </button>
         </div>
 
@@ -403,6 +422,22 @@
                 
                 if (data.success) {
                     addMessage('assistant', data.response);
+                    
+                    // Show push button if commit was successful
+                    if (data.response.includes('✅ Git commit successful') || data.response.includes('push now')) {
+                        const pushBtn = document.querySelector('.push-btn');
+                        if (pushBtn) {
+                            pushBtn.style.display = 'block';
+                        }
+                    }
+                    
+                    // Hide push button if push was executed
+                    if (data.response.includes('🚀 **Git push successful!**')) {
+                        const pushBtn = document.querySelector('.push-btn');
+                        if (pushBtn) {
+                            pushBtn.style.display = 'none';
+                        }
+                    }
                 } else {
                     addMessage('assistant', 'Sorry, I encountered an error: ' + (data.error || 'Unknown error'));
                 }
