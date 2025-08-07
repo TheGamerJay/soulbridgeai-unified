@@ -4090,11 +4090,30 @@ def admin_surveillance():
         else:
             blocked_ips = []
         
-        # Use proper template rendering instead of raw HTML string
+        # Calculate system metrics for enhanced surveillance
+        uptime = int((datetime.now() - surveillance_system.system_start_time).total_seconds())
+        uptime_str = f"{uptime//3600}h {(uptime%3600)//60}m {uptime%60}s"
+        
+        # Get comprehensive trial system stats
+        trial_stats = get_comprehensive_trial_stats()
+        
+        # Get surveillance metrics
+        surveillance_metrics = {
+            'blocked_ips_count': len(surveillance_system.blocked_ips) if hasattr(surveillance_system, 'blocked_ips') else 0,
+            'threats_count': len(surveillance_system.security_threats) if hasattr(surveillance_system, 'security_threats') else 0,
+            'maintenance_logs_count': len(maintenance_log),
+            'critical_errors_count': surveillance_system.critical_errors_count if hasattr(surveillance_system, 'critical_errors_count') else 0,
+            'uptime': uptime_str
+        }
+        
+        # Use proper template rendering with all data
         return render_template('admin/surveillance.html', 
                              maintenance_log=maintenance_log,
                              threat_log=threat_log, 
-                             blocked_ips=blocked_ips)
+                             blocked_ips=blocked_ips,
+                             trial_stats=trial_stats,
+                             surveillance_metrics=surveillance_metrics,
+                             ADMIN_DASH_KEY=ADMIN_DASH_KEY)
         
     except Exception as e:
         logger.error(f"Surveillance dashboard error: {e}")
