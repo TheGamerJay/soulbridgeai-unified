@@ -64,17 +64,26 @@
                 <!-- DEBUG: user_plan='{{ user_plan }}', trial_active={{ trial_active }}, effective_plan='{{ effective_plan }}' -->
                 {% set show_premium = effective_plan and effective_plan in ['growth', 'max'] %}
                 {% if show_premium %}
-                <a href="/decoder" class="action-btn premium-feature" data-tier="growth">
+                <a href="/decoder" class="action-btn premium-feature tier-btn" data-tier="growth" data-feature="decoder">
                     <i class="fas fa-brain"></i>
-                    Decoder
+                    <div class="btn-content">
+                        <span class="btn-title">Decoder</span>
+                        <span class="btn-limit" id="decoderLimit">Loading...</span>
+                    </div>
                 </a>
-                <a href="/fortune" class="action-btn premium-feature" data-tier="growth">
+                <a href="/fortune" class="action-btn premium-feature tier-btn" data-tier="growth" data-feature="fortune">
                     <i class="fas fa-crystal-ball"></i>
-                    Fortune Teller
+                    <div class="btn-content">
+                        <span class="btn-title">Fortune</span>
+                        <span class="btn-limit" id="fortuneLimit">Loading...</span>
+                    </div>
                 </a>
-                <a href="/horoscope" class="action-btn premium-feature" data-tier="growth">
+                <a href="/horoscope" class="action-btn premium-feature tier-btn" data-tier="growth" data-feature="horoscope">
                     <i class="fas fa-star"></i>
-                    Horoscope
+                    <div class="btn-content">
+                        <span class="btn-title">Horoscope</span>
+                        <span class="btn-limit" id="horoscopeLimit">Loading...</span>
+                    </div>
                 </a>
                 <a href="/voice-journaling" class="action-btn premium-feature" data-tier="growth">
                     <i class="fas fa-microphone"></i>
@@ -112,25 +121,6 @@
                     <i class="fas fa-home"></i>
                     Home
                 </a>
-                
-                <!-- Tier Usage Display -->
-                <div class="tier-usage-display" id="tierUsageDisplay" style="
-                    display: inline-flex; 
-                    align-items: center; 
-                    gap: 8px; 
-                    background: rgba(0,255,255,0.1); 
-                    border: 1px solid rgba(0,255,255,0.3); 
-                    border-radius: 6px; 
-                    padding: 4px 8px; 
-                    font-size: 12px; 
-                    color: #00ffff;
-                    margin-left: 8px;
-                ">
-                    <i class="fas fa-chart-bar" style="font-size: 10px;"></i>
-                    <span id="decoderUsage">3</span> 
-                    <span id="fortuneUsage">2</span> 
-                    <span id="horoscopeUsage">3</span>
-                </div>
                 
                 <!-- Timer removed from chat page - too distracting during conversations -->
 
@@ -1029,6 +1019,74 @@
         /* Mobile responsive */
         @media screen and (max-width: 768px) {
             /* OLD ring timer mobile styles removed */
+        }
+        
+        /* Tier Button Styling with Limits Display */
+        .tier-btn {
+            display: flex !important;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            min-width: 80px;
+            position: relative;
+        }
+        
+        .tier-btn .btn-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+        
+        .tier-btn .btn-title {
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .tier-btn .btn-limit {
+            font-size: 10px;
+            font-family: 'Courier New', monospace;
+            background: rgba(0, 255, 255, 0.2);
+            padding: 1px 4px;
+            border-radius: 4px;
+            border: 1px solid rgba(0, 255, 255, 0.4);
+            color: #00ffff;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        
+        .tier-btn.limit-exceeded .btn-limit {
+            background: rgba(255, 69, 69, 0.2);
+            border-color: rgba(255, 69, 69, 0.4);
+            color: #ff4545;
+        }
+        
+        .tier-btn.limit-warning .btn-limit {
+            background: rgba(255, 165, 0, 0.2);
+            border-color: rgba(255, 165, 0, 0.4);
+            color: #ffa500;
+        }
+        
+        .tier-btn.unlimited .btn-limit {
+            background: rgba(255, 215, 0, 0.2);
+            border-color: rgba(255, 215, 0, 0.4);
+            color: #ffd700;
+        }
+        
+        /* Tooltip for tier buttons */
+        .tier-btn:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            white-space: nowrap;
+            z-index: 1000;
         }
     </style>
 
@@ -2051,9 +2109,128 @@ Where emotion meets expression.
         document.addEventListener('DOMContentLoaded', () => {
             initializeSpeechRecognition();
             
+            // Initialize tier limits display
+            updateTierLimits();
+            
+            // Update tier limits every 30 seconds
+            setInterval(updateTierLimits, 30000);
+            
             // EMERGENCY DEBUG: Check why premium features are missing
             emergencyDebugPremiumFeatures();
         });
+        
+        // Update tier limits display in real-time
+        async function updateTierLimits() {
+            try {
+                const response = await fetch('/api/tier-limits');
+                const data = await response.json();
+                
+                if (!data.success) {
+                    console.error('Failed to get tier limits:', data.error);
+                    return;
+                }
+                
+                console.log('🎯 Tier limits data:', data);
+                
+                const { limits, usage, tier, unlimited_features } = data;
+                
+                // Update decoder button
+                const decoderBtn = document.querySelector('[data-feature="decoder"]');
+                const decoderLimit = document.getElementById('decoderLimit');
+                if (decoderBtn && decoderLimit) {
+                    const decoderUsed = usage.decoder || 0;
+                    const decoderMax = limits.decoder;
+                    
+                    if (unlimited_features.includes('decoder') || decoderMax === 'unlimited' || decoderMax === Infinity) {
+                        decoderLimit.textContent = '∞';
+                        decoderBtn.classList.add('unlimited');
+                        decoderBtn.setAttribute('data-tooltip', `Unlimited decoder uses available`);
+                    } else {
+                        decoderLimit.textContent = `${decoderUsed}/${decoderMax}`;
+                        decoderBtn.classList.remove('unlimited', 'limit-exceeded', 'limit-warning');
+                        
+                        if (decoderUsed >= decoderMax) {
+                            decoderBtn.classList.add('limit-exceeded');
+                            decoderBtn.setAttribute('data-tooltip', `Daily limit reached (${decoderUsed}/${decoderMax})`);
+                        } else if (decoderUsed >= decoderMax * 0.8) {
+                            decoderBtn.classList.add('limit-warning');
+                            decoderBtn.setAttribute('data-tooltip', `${decoderMax - decoderUsed} uses remaining today`);
+                        } else {
+                            decoderBtn.setAttribute('data-tooltip', `${decoderMax - decoderUsed} uses remaining today`);
+                        }
+                    }
+                }
+                
+                // Update fortune button
+                const fortuneBtn = document.querySelector('[data-feature="fortune"]');
+                const fortuneLimit = document.getElementById('fortuneLimit');
+                if (fortuneBtn && fortuneLimit) {
+                    const fortuneUsed = usage.fortune || 0;
+                    const fortuneMax = limits.fortune;
+                    
+                    if (unlimited_features.includes('fortune') || fortuneMax === 'unlimited' || fortuneMax === Infinity) {
+                        fortuneLimit.textContent = '∞';
+                        fortuneBtn.classList.add('unlimited');
+                        fortuneBtn.setAttribute('data-tooltip', `Unlimited fortune uses available`);
+                    } else {
+                        fortuneLimit.textContent = `${fortuneUsed}/${fortuneMax}`;
+                        fortuneBtn.classList.remove('unlimited', 'limit-exceeded', 'limit-warning');
+                        
+                        if (fortuneUsed >= fortuneMax) {
+                            fortuneBtn.classList.add('limit-exceeded');
+                            fortuneBtn.setAttribute('data-tooltip', `Daily limit reached (${fortuneUsed}/${fortuneMax})`);
+                        } else if (fortuneUsed >= fortuneMax * 0.8) {
+                            fortuneBtn.classList.add('limit-warning');
+                            fortuneBtn.setAttribute('data-tooltip', `${fortuneMax - fortuneUsed} uses remaining today`);
+                        } else {
+                            fortuneBtn.setAttribute('data-tooltip', `${fortuneMax - fortuneUsed} uses remaining today`);
+                        }
+                    }
+                }
+                
+                // Update horoscope button
+                const horoscopeBtn = document.querySelector('[data-feature="horoscope"]');
+                const horoscopeLimit = document.getElementById('horoscopeLimit');
+                if (horoscopeBtn && horoscopeLimit) {
+                    const horoscopeUsed = usage.horoscope || 0;
+                    const horoscopeMax = limits.horoscope;
+                    
+                    if (unlimited_features.includes('horoscope') || horoscopeMax === 'unlimited' || horoscopeMax === Infinity) {
+                        horoscopeLimit.textContent = '∞';
+                        horoscopeBtn.classList.add('unlimited');
+                        horoscopeBtn.setAttribute('data-tooltip', `Unlimited horoscope uses available`);
+                    } else {
+                        horoscopeLimit.textContent = `${horoscopeUsed}/${horoscopeMax}`;
+                        horoscopeBtn.classList.remove('unlimited', 'limit-exceeded', 'limit-warning');
+                        
+                        if (horoscopeUsed >= horoscopeMax) {
+                            horoscopeBtn.classList.add('limit-exceeded');
+                            horoscopeBtn.setAttribute('data-tooltip', `Daily limit reached (${horoscopeUsed}/${horoscopeMax})`);
+                        } else if (horoscopeUsed >= horoscopeMax * 0.8) {
+                            horoscopeBtn.classList.add('limit-warning');
+                            horoscopeBtn.setAttribute('data-tooltip', `${horoscopeMax - horoscopeUsed} uses remaining today`);
+                        } else {
+                            horoscopeBtn.setAttribute('data-tooltip', `${horoscopeMax - horoscopeUsed} uses remaining today`);
+                        }
+                    }
+                }
+                
+                console.log('✅ Tier limits updated successfully');
+                
+            } catch (error) {
+                console.error('❌ Error updating tier limits:', error);
+                
+                // Show error state on buttons
+                const features = ['decoder', 'fortune', 'horoscope'];
+                features.forEach(feature => {
+                    const limitElement = document.getElementById(`${feature}Limit`);
+                    if (limitElement) {
+                        limitElement.textContent = 'Error';
+                        limitElement.style.color = '#ff4545';
+                    }
+                });
+            }
+        }
         
         async function emergencyDebugPremiumFeatures() {
             console.log('🚨 EMERGENCY DEBUG: Checking premium features...');

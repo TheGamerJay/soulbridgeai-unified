@@ -10893,6 +10893,53 @@ def get_user_tier_status():
         logger.error(f"Get tier status error: {e}")
         return jsonify({"success": False, "error": "Internal server error"}), 500
 
+@app.route("/api/tier-limits", methods=["GET"])
+def get_tier_limits():
+    """Get current user's tier limits and usage for feature buttons"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        # TIER ISOLATION: Use tier system instead of cached session values
+        current_tier = get_current_user_tier()
+        tier_system = get_current_tier_system()
+        
+        # Get current usage from session
+        tier_session = tier_system.get_session_data()
+        usage = tier_session.get('usage', {
+            'decoder': 0,
+            'fortune': 0,
+            'horoscope': 0
+        })
+        
+        # Get tier limits
+        limits = {
+            'decoder': tier_system.get_feature_limit('decoder'),
+            'fortune': tier_system.get_feature_limit('fortune'),
+            'horoscope': tier_system.get_feature_limit('horoscope')
+        }
+        
+        # Check for unlimited features (float('inf') means unlimited)
+        unlimited_features = []
+        for feature, limit in limits.items():
+            if limit == float('inf') or limit == 'unlimited':
+                unlimited_features.append(feature)
+                limits[feature] = 'unlimited'  # Convert to string for JSON
+        
+        logger.info(f"🎯 TIER LIMITS API: {current_tier} tier - limits: {limits}, usage: {usage}")
+        
+        return jsonify({
+            "success": True,
+            "tier": current_tier,
+            "limits": limits,
+            "usage": usage,
+            "unlimited_features": unlimited_features
+        })
+        
+    except Exception as e:
+        logger.error(f"❌ Get tier limits error: {e}")
+        return jsonify({"success": False, "error": "Internal server error"}), 500
+
 @app.route("/api/user/status", methods=["GET"])
 def get_user_status():
     """Get user's current status"""

@@ -94,7 +94,7 @@ class GrowthTier(TierSystem):
             'premium_companions'
         ]
         self.limits = {
-            'decoder': 10,
+            'decoder': 15,
             'fortune': 8,
             'horoscope': 10,
             'companions': [
