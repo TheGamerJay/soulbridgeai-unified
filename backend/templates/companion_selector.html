@@ -55,24 +55,32 @@
             left: -9999px !important;
         }
         
-        /* PROTECT NEW TIMER - Override any hiding */
-        #trial-timer-container,
-        #trial-timer-container *,
-        #timer-progress,
-        #trial-time-text,
-        .timer-glass-card {
+        /* TIMER VISIBILITY CONTROL - Hide by default, only show when trial active */
+        #trial-timer-container {
+            display: none !important; /* Hidden by default */
+            position: fixed !important;
+            top: 20px !important;
+            right: 20px !important;
+            z-index: 1500 !important;
+        }
+        
+        /* When timer should be visible (controlled by JavaScript) */
+        #trial-timer-container.timer-active {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+        
+        /* Protect timer internal elements when active */
+        #trial-timer-container.timer-active *,
+        #trial-timer-container.timer-active #timer-progress,
+        #trial-timer-container.timer-active #trial-time-text,
+        #trial-timer-container.timer-active .timer-glass-card {
             display: block !important;
             visibility: visible !important;
             opacity: 1 !important;
             position: relative !important;
             left: auto !important;
-        }
-        
-        /* Except the container itself should be fixed positioned */
-        #trial-timer-container {
-            position: fixed !important;
-            top: 20px !important;
-            right: 20px !important;
         }
     </style>
 </head>
@@ -605,11 +613,13 @@
             }
             
             if (remainingMs <= 0) {
-                timerContainer.style.display = 'none';
+                timerContainer.remove();
+                console.log('🗑️ Timer DELETED - trial expired');
                 return;
             }
             
-            // Show timer
+            // Show timer with CSS class
+            timerContainer.classList.add('timer-active');
             timerContainer.style.display = 'block';
             
             // Calculate time components
@@ -652,9 +662,12 @@
             const remainingMs = trialEndTime - now;
             
             if (remainingMs <= 0) {
-                // Timer expired
+                // Timer expired - DELETE it
                 const timerContainer = document.getElementById('trial-timer-container');
-                if (timerContainer) timerContainer.style.display = 'none';
+                if (timerContainer) {
+                    timerContainer.remove();
+                    console.log('🗑️ Timer DELETED - countdown reached zero');
+                }
                 if (timerInterval) {
                     clearInterval(timerInterval);
                     timerInterval = null;
@@ -701,21 +714,36 @@
                     console.log('✅ Trial active - starting real-time timer');
                     startRealTimeTimer(data.trial_remaining);
                 } else {
-                    console.log('❌ No trial active - hiding timer');
+                    console.log('❌ No trial active - FORCE HIDING timer');
+                    console.log('🔍 Trial status details:', {
+                        success: data.success,
+                        trial_active: data.trial_active,
+                        trial_remaining: data.trial_remaining,
+                        user_plan: data.user_plan
+                    });
+                    
                     // Clear timer interval
                     if (timerInterval) {
                         clearInterval(timerInterval);
                         timerInterval = null;
+                        console.log('⏰ Timer interval cleared');
                     }
                     trialEndTime = null;
                     
-                    // Hide timer container
+                    // DELETE timer container completely when trial ends
                     const timerContainer = document.getElementById('trial-timer-container');
                     if (timerContainer) {
-                        timerContainer.style.display = 'none';
-                        console.log('🔧 Timer container hidden');
+                        timerContainer.remove();
+                        console.log('🗑️ Timer container DELETED completely');
                     } else {
                         console.log('⚠️ Timer container not found!');
+                    }
+                    
+                    // DELETE trial badge completely
+                    const trialBadge = document.getElementById('trial-badge');
+                    if (trialBadge) {
+                        trialBadge.remove();
+                        console.log('🗑️ Trial badge DELETED completely');
                     }
                 }
             } catch (error) {
@@ -723,11 +751,36 @@
             }
         }
 
+        // Force DELETE timer completely (you can call this in console)  
+        window.deleteTimer = function() {
+            const timerContainer = document.getElementById('trial-timer-container');
+            const trialBadge = document.getElementById('trial-badge');
+            
+            if (timerContainer) {
+                timerContainer.remove();
+                console.log('🗑️ Timer DELETED completely');
+            }
+            
+            if (trialBadge) {
+                trialBadge.remove();
+                console.log('🗑️ Trial badge DELETED completely');
+            }
+            
+            // Clear any intervals
+            if (window.timerInterval) {
+                clearInterval(window.timerInterval);
+                window.timerInterval = null;
+                console.log('⏰ Timer interval cleared');
+            }
+        };
+
         // Force show timer for testing (you can call this in console)
         window.forceShowTimer = function() {
             const timerContainer = document.getElementById('trial-timer-container');
             if (timerContainer) {
                 timerContainer.style.display = 'block';
+                timerContainer.style.visibility = 'visible';
+                timerContainer.style.opacity = '1';
                 console.log('🔧 Timer force shown');
             } else {
                 console.log('❌ Timer container not found!');
