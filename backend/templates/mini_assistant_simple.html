@@ -379,16 +379,32 @@
             showLoading(true);
 
             try {
-                const response = await fetch('/api/mini-assistant', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        message: message,
-                        context: 'soulbridge-development'
-                    })
-                });
+                // Try production first, then fallback to local development
+                let response;
+                try {
+                    response = await fetch('/api/mini-assistant', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            message: message,
+                            context: 'soulbridge-development'
+                        })
+                    });
+                } catch (prodError) {
+                    console.log('Production API unavailable, trying local development server...');
+                    response = await fetch('http://localhost:8080/api/mini-assistant', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            message: message,
+                            context: 'soulbridge-development'
+                        })
+                    });
+                }
 
                 const data = await response.json();
                 
@@ -433,7 +449,14 @@
         // Check backend status on load
         async function checkStatus() {
             try {
-                const response = await fetch('/api/mini-assistant-status');
+                // Try production first, then fallback to local development
+                let response;
+                try {
+                    response = await fetch('/api/mini-assistant-status');
+                } catch (prodError) {
+                    console.log('Production API unavailable, trying local development server...');
+                    response = await fetch('http://localhost:8080/api/mini-assistant-status');
+                }
                 const data = await response.json();
                 
                 if (data.success) {
