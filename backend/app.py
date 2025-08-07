@@ -2478,11 +2478,11 @@ def tiers_page():
     
     max_companions = [
         {'slug': 'companion_crimson', 'name': 'Companion Crimson', 'image_url': '/static/logos/Crimson a Max companion.png'},
-        {'slug': 'companion_violet', 'name': 'Companion Violet', 'image_url': '/static/logos/Violet_Max.png'},
-        {'slug': 'royal_max', 'name': 'Royal Max', 'image_url': '/static/logos/Royal_Max.png'},
+        {'slug': 'companion_violet', 'name': 'Companion Violet', 'image_url': '/static/logos/Violet a Max companion.png'},
+        {'slug': 'royal_max', 'name': 'Royal Max', 'image_url': '/static/logos/Royal a Max companion.png'},
         {'slug': 'watchdog_max', 'name': 'WatchDog Max', 'image_url': '/static/logos/WatchDog a Max Companion.png'},
-        {'slug': 'ven_blayzica', 'name': 'Ven Blayzica', 'image_url': '/static/logos/Ven_Blayzica_Max.png'},
-        {'slug': 'ven_sky', 'name': 'Ven Sky', 'image_url': '/static/logos/Ven_Sky_Max.png'},
+        {'slug': 'ven_blayzica', 'name': 'Ven Blayzica', 'image_url': '/static/logos/Ven Blayzica a Max companion.png'},
+        {'slug': 'ven_sky', 'name': 'Ven Sky', 'image_url': '/static/logos/Ven Sky a Max companion.png'},
         {'slug': 'claude_max', 'name': 'Claude Max', 'image_url': '/static/logos/Claude Max.png'},
     ]
     
