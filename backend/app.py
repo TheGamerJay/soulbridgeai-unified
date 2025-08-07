@@ -54,6 +54,7 @@ from copy import deepcopy
 from datetime import datetime, timezone, timedelta
 from flask import Flask, jsonify, render_template, request, session, redirect, url_for, flash, make_response, g
 from trial_utils import is_trial_active as calculate_trial_active, get_trial_time_remaining
+from tier_isolation import tier_manager, get_current_user_tier, get_current_tier_system
 
 # Configure logging first
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -438,13 +439,13 @@ def load_user_context():
                     if trial_active:
                         session['trial_started_at'] = trial_time.isoformat()
                         session['trial_expires_at'] = (trial_time + timedelta(hours=5)).isoformat()
-                        session['effective_plan'] = 'max'
+                        # Don't cache effective_plan - calculate it fresh each time
                     else:
                         session['trial_active'] = False
-                        session['effective_plan'] = current_plan
+                        # Don't cache effective_plan - calculate it fresh each time
                 else:
                     session['trial_active'] = False
-                    session['effective_plan'] = current_plan
+                    # Don't cache effective_plan - calculate it fresh each time
             
             conn.close()
     except Exception as e:
@@ -455,9 +456,20 @@ def load_user_context():
     g.user_plan = current_plan
     g.trial_active = session.get("trial_active", False)
     g.trial_started_at = session.get("trial_started_at")
-    g.effective_plan = session.get("effective_plan", current_plan)
+    g.effective_plan = get_effective_plan(current_plan, g.trial_active)  # Always calculate fresh
     g.is_admin = is_admin()
     session['last_seen'] = datetime.utcnow().isoformat()
+    
+    # TIER ISOLATION: Initialize user into appropriate isolated tier system
+    tier_name = tier_manager.get_user_tier(current_plan, g.trial_active)
+    user_data = {
+        'user_id': user_id,
+        'user_email': session.get('user_email'),
+        'user_plan': current_plan,
+        'trial_active': g.trial_active
+    }
+    tier_manager.initialize_user_for_tier(user_data, tier_name)
+    logger.info(f"🔒 TIER ISOLATION: User {user_id} initialized in {tier_name.upper()} tier")
 
     if g.trial_active and g.trial_started_at:
         try:
@@ -1077,14 +1089,19 @@ def health():
                         session['trial_active'] = bool(trial_active) if trial_active is not None else False
                         session['trial_started_at'] = trial_started_at
                         session['trial_used_permanently'] = bool(trial_used_permanently) if trial_used_permanently is not None else False
-                        session['effective_plan'] = get_effective_plan(session.get('user_plan', 'free'), session['trial_active'])
+                        # Don't cache effective_plan - calculate it fresh each time with get_effective_plan()
+                        
+                        # Calculate effective_plan fresh instead of reading cached value  
+                        user_plan = session.get('user_plan', 'free')
+                        trial_active = session.get('trial_active', False)
+                        effective_plan = get_effective_plan(user_plan, trial_active)
                         
                         return jsonify({
                             "status": "healthy",
                             "service": "SoulBridge AI",
                             "trial_sync": "success",
                             "trial_active": session['trial_active'],
-                            "effective_plan": session['effective_plan']
+                            "effective_plan": effective_plan
                         })
             except Exception as e:
                 logger.error(f"Trial sync error: {e}")
@@ -1665,7 +1682,7 @@ def start_trial():
     session['trial_started_at'] = now.isoformat()
     session['trial_expires_at'] = expires.isoformat()
     session['trial_used_permanently'] = True
-    session['effective_plan'] = 'max'  # Give access to all tiers during trial
+    # Don't cache effective_plan - get_effective_plan() will return 'max' when trial_active=True
     session['trial_warning_sent'] = False
 
     logger.info(f"Trial started for user {user_id}")
@@ -1762,7 +1779,7 @@ def reset_trial_state():
         session['trial_used_permanently'] = False
         session['trial_warning_sent'] = False
         session['user_plan'] = 'free'
-        session['effective_plan'] = 'free'
+        # Don't cache effective_plan - calculate it fresh each time
         
         return jsonify({
             "success": True,
@@ -2201,7 +2218,7 @@ def auth_register():
         session['trial_started_at'] = None
         session['trial_used_permanently'] = False
         session['trial_warning_sent'] = False
-        session['effective_plan'] = 'free'
+        # Don't cache effective_plan - calculate it fresh each time
         
         # Initialize usage counters
         session['decoder_used'] = 0
@@ -2302,20 +2319,21 @@ def intro():
         if terms_check:
             return terms_check
         
-        # CRITICAL: Ensure session has correct plan names for templates (ONLY migrate old names)
-        user_plan = session.get('user_plan', 'free')
-        plan_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
-        # ONLY migrate if it's an OLD plan name that needs updating
-        if user_plan in plan_mapping and user_plan != plan_mapping[user_plan]:
-            session['user_plan'] = plan_mapping[user_plan]
-            logger.info(f"🔄 INTRO: Migrated OLD plan {user_plan} → {session['user_plan']}")
-        else:
-            logger.info(f"✅ INTRO: Plan {user_plan} already using new naming - no migration needed")
+        # TIER ISOLATION: Get tier-specific data instead of shared session data
+        current_tier = get_current_user_tier()
+        tier_system = get_current_tier_system()
+        tier_data = tier_system.get_session_data()
+        
+        user_plan = tier_data.get('tier', 'free')  # Use tier-specific plan
+        features = tier_data.get('features', [])
+        limits = tier_data.get('limits', {})
+        
+        logger.info(f"🔒 INTRO TIER ISOLATION: Using {current_tier.upper()} tier data - plan={user_plan}, features={len(features)}")
         
         # ISOLATED TIER ACCESS FLAGS - Prevents cross-contamination 
         user_plan = session.get('user_plan', 'free')
         trial_active = session.get('trial_active', False)
-        effective_plan = session.get('effective_plan', 'free')  # FIX: Get from session
+        effective_plan = get_effective_plan(user_plan, trial_active)  # FIXED: Calculate fresh
         
         # Define isolated access flags for each tier using effective_plan
         session['access_free'] = True  # Everyone gets free features
@@ -2382,8 +2400,8 @@ def chat():
     user_id = session.get('user_id')
     # Use session values set by @app.before_request (already calculated)
     user_plan = session.get('user_plan', 'free') or 'free'
-    effective_plan = session.get('effective_plan', 'free')
     trial_active = session.get('trial_active', False)
+    effective_plan = get_effective_plan(user_plan, trial_active)  # FIXED: Calculate fresh
     
     # Handle companion selection
     companion_id = request.args.get('companion')
@@ -2501,10 +2519,10 @@ def api_companions():
     try:
         # Allow access without authentication so users can see companions before login
         if is_logged_in():
-            # Use effective_plan from session (set by @app.before_request)
-            effective_plan = session.get('effective_plan', 'free')
+            # Calculate effective_plan fresh from current session data
             user_plan = session.get('user_plan', 'free')  # Original plan for display
             trial_active = session.get('trial_active', False)
+            effective_plan = get_effective_plan(user_plan, trial_active)  # FIXED: Calculate fresh
         else:
             effective_plan = 'free'
             user_plan = 'free'
@@ -2633,8 +2651,8 @@ def api_companions_select():
         
         # Check if user has access to this companion using bulletproof access control
         user_plan = session.get('user_plan', 'free')
-        effective_plan = session.get('effective_plan', 'free')
         trial_active = session.get('trial_active', False)
+        effective_plan = get_effective_plan(user_plan, trial_active)  # FIXED: Calculate fresh
         
         # Get companion details to check tier
         companion_found = False
@@ -4841,14 +4859,19 @@ def sync_trial_session():
                 session['trial_active'] = bool(trial_active) if trial_active is not None else False
                 session['trial_started_at'] = trial_started_at
                 session['trial_used_permanently'] = bool(trial_used_permanently) if trial_used_permanently is not None else False
-                session['effective_plan'] = get_effective_plan(session.get('user_plan', 'free'), session['trial_active'])
+                # Don't cache effective_plan - calculate it fresh each time with get_effective_plan()
+                
+                # Calculate effective_plan fresh instead of reading cached value
+                user_plan = session.get('user_plan', 'free')
+                trial_active = session.get('trial_active', False)
+                effective_plan = get_effective_plan(user_plan, trial_active)
                 
                 return jsonify({
                     "success": True,
                     "message": "Session synced with database",
                     "trial_active": session['trial_active'],
                     "trial_started_at": session['trial_started_at'],
-                    "effective_plan": session['effective_plan']
+                    "effective_plan": effective_plan
                 })
             else:
                 return jsonify({"error": "User not found"}), 404
@@ -6855,13 +6878,12 @@ def check_decoder_limit():
     logger.info(f"🔍 DECODER API SESSION DEBUG: user_id={user_id}")
     logger.info(f"🔍 Full session contents: {dict(session)}")
     
-    # Use bulletproof isolation values from session
-    effective_plan = session.get("effective_plan")
-    user_plan = session.get("user_plan")
-    trial_active = session.get("trial_active")
+    # Always calculate effective_plan fresh instead of reading cached values
+    user_plan = session.get("user_plan", "free") 
+    trial_active = session.get("trial_active", False)
     
     # Fallback: If session values are missing, force update them
-    if effective_plan is None or user_plan is None or trial_active is None:
+    if user_plan is None or trial_active is None:
         logger.warning(f"⚠️ MISSING SESSION VALUES - forcing update")
         try:
             trial_check = is_trial_active(user_id)
@@ -6872,19 +6894,19 @@ def check_decoder_limit():
             mapped_plan = plan_mapping.get(real_plan, real_plan or 'free')
             
             session['user_plan'] = mapped_plan
-            session['effective_plan'] = 'max' if trial_check else mapped_plan
             
             # Update local variables
-            effective_plan = session['effective_plan']
             user_plan = session['user_plan']
             trial_active = session['trial_active']
-            
-            logger.info(f"🔄 FORCED SESSION UPDATE: user_plan={user_plan}, effective_plan={effective_plan}, trial_active={trial_active}")
         except Exception as e:
             logger.error(f"❌ Failed to update session: {e}")
-            effective_plan = "free"
             user_plan = "free"
             trial_active = False
+    
+    # Calculate effective_plan fresh each time
+    effective_plan = get_effective_plan(user_plan, trial_active)
+    
+    logger.info(f"🔄 SESSION VALUES: user_plan={user_plan}, effective_plan={effective_plan}, trial_active={trial_active}")
     
     daily_limit = get_feature_limit(user_plan, "decoder")
     usage_today = get_decoder_usage()
@@ -7480,7 +7502,7 @@ def debug_force_free_plan():
         
         # Force session to free plan
         session['user_plan'] = 'free'
-        session['effective_plan'] = 'free'
+        # Don't cache effective_plan - calculate it fresh each time
         session['trial_active'] = False
         
         # Also update database if possible
@@ -7667,7 +7689,7 @@ def debug_force_free_user():
             
         # Reset session
         session['user_plan'] = 'free'
-        session['effective_plan'] = 'free' 
+        # Don't cache effective_plan - calculate it fresh each time 
         session['trial_active'] = False
         
         return jsonify({
