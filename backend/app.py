@@ -1215,6 +1215,9 @@ def logout():
         
         logger.info(f"SECURITY: User {user_email} logged out")
         session.clear()
+        # If the logout was triggered from /admin/logout, redirect to /admin/login
+        if request.path.startswith("/admin/logout") or request.referrer and "/admin" in request.referrer:
+            return redirect("/admin/login")
         return redirect("/login")
     except Exception as e:
         logger.error(f"Logout error: {e}")
