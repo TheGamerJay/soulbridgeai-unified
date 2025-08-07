@@ -70,7 +70,8 @@
       "Bash(sed:*)",
       "Bash(start \"\" \"C:\\Users\\jaaye\\OneDrive\\Desktop\\soulbridgeai-unified\\test_upgrade_modal.html\")",
       "Bash(git restore:*)",
-      "Bash(DATABASE_URL=\"postgresql://postgres:sDCOyvWZKSxyJvnJBZNSJemzZKbbSjIT@postgres-wj-8.railway.internal:5432/railway\" python fix_schema.py)"
+      "Bash(DATABASE_URL=\"postgresql://postgres:sDCOyvWZKSxyJvnJBZNSJemzZKbbSjIT@postgres-wj-8.railway.internal:5432/railway\" python fix_schema.py)",
+      "Bash(DATABASE_URL=\"postgresql://postgres:sDCOyvWZKSxyJvnJBZNSJemzZKbbSjIT@postgres-wj-8.railway.internal:5432/railway\" python fix_production_terms.py)"
     ],
     "deny": []
   }
