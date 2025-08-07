@@ -2435,6 +2435,7 @@ def tiers_page():
     user_id = session.get('user_id')
     user_plan = session.get('user_plan', 'free')
     trial_active = session.get('trial_active', False)
+    trial_expires_at = session.get('trial_expires_at')
     
     # Get referral count from database
     referral_count = 0
@@ -2497,6 +2498,7 @@ def tiers_page():
     return render_template_string(TIERS_TEMPLATE, 
                                 user_plan=user_plan,
                                 trial_active=trial_active,
+                                trial_expires_at=trial_expires_at,
                                 free_list=free_companions,
                                 growth_list=growth_companions,
                                 max_list=max_companions,
@@ -12983,7 +12985,11 @@ TIERS_TEMPLATE = r"""
   <a href="/intro" class="back-btn">← Back to Intro</a>
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
     <h1 style="margin:0;">Choose the companion you most resonate with</h1>
-    {% if not trial_active and user_plan == 'free' %}
+    {% if trial_active and trial_expires_at %}
+      <div id="trialTimer" class="btn" style="background:linear-gradient(90deg,#ff6b35,#ff9500);font-size:14px;padding:8px 16px;cursor:default;" data-expires="{{ trial_expires_at }}">
+        ⏱️ Trial: <span id="timeLeft">00:00:00</span>
+      </div>
+    {% elif not trial_active and user_plan == 'free' %}
       <button onclick="startTrial()" class="btn" style="background:linear-gradient(90deg,#00ff7f,#00c6ff);font-size:14px;padding:8px 16px;">🚀 Start 5-Hour Trial</button>
     {% endif %}
   </div>
@@ -13072,6 +13078,41 @@ TIERS_TEMPLATE = r"""
 
 <script>
   function openChat(slug){ window.location.href = '/chat?companion=' + encodeURIComponent(slug); }
+  
+  // Countdown timer for trial
+  function updateTrialTimer() {
+    const timerElement = document.getElementById('trialTimer');
+    if (!timerElement) return;
+    
+    const expiresAt = timerElement.dataset.expires;
+    if (!expiresAt) return;
+    
+    const now = new Date();
+    const expires = new Date(expiresAt);
+    const remaining = Math.max(0, expires - now);
+    
+    if (remaining <= 0) {
+      document.getElementById('timeLeft').textContent = 'EXPIRED';
+      timerElement.style.background = 'linear-gradient(90deg,#666,#444)';
+      setTimeout(() => window.location.reload(), 2000);
+      return;
+    }
+    
+    const hours = Math.floor(remaining / (1000 * 60 * 60));
+    const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
+    
+    document.getElementById('timeLeft').textContent = 
+      String(hours).padStart(2, '0') + ':' + 
+      String(minutes).padStart(2, '0') + ':' + 
+      String(seconds).padStart(2, '0');
+  }
+  
+  // Start timer if trial is active
+  if (document.getElementById('trialTimer')) {
+    updateTrialTimer();
+    setInterval(updateTrialTimer, 1000);
+  }
   
   function startTrial() {
     if (confirm('Start your 5-hour trial now? You\'ll get temporary access to preview Growth and Max companions.')) {
