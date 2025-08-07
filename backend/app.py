@@ -894,15 +894,25 @@ def initialize_services():
 # CORE ROUTES
 # ========================================
 
-# ADMIN LOGIN PAGE ROUTE
-@app.route("/admin/login", methods=["GET"])
+
+# ADMIN LOGIN PAGE ROUTE (GET: show form, POST: process login)
+@app.route("/admin/login", methods=["GET", "POST"])
 def admin_login_page():
-    """Admin login page - always show admin login form"""
-    try:
-        return render_template("admin/login.html")
-    except Exception as e:
-        logger.error(f"Admin login template error: {e}")
-        return "Admin login page temporarily unavailable", 500
+    """Admin login page - GET shows form, POST processes admin login"""
+    if request.method == "GET":
+        try:
+            return render_template("admin/login.html")
+        except Exception as e:
+            logger.error(f"Admin login template error: {e}")
+            return "Admin login page temporarily unavailable", 500
+    else:
+        # POST: process admin login form
+        email = request.form.get("email", "").strip().lower()
+        password = request.form.get("password", "").strip()
+        # TODO: Add your admin authentication logic here
+        # For now, just redirect back to login with a flash message
+        flash("Admin login processing not yet implemented.", "warning")
+        return redirect("/admin/login")
 
 @app.route("/health")
 def health():
@@ -11734,6 +11744,10 @@ def mini_assistant():
 
 @app.route("/api/mini-assistant", methods=["POST"])
 def api_mini_assistant():
+@app.route("/api/mini-assistant", methods=["GET"])
+def api_mini_assistant_get():
+    """GET handler for Mini Assistant for debugging (returns method not allowed)"""
+    return jsonify({"success": False, "error": "Use POST method for this endpoint."}), 405
     """🚀 ULTIMATE Mini Assistant API with comprehensive logging and automation"""
     try:
         if not is_logged_in():
