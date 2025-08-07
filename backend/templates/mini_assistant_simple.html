@@ -276,7 +276,10 @@
 </head>
 <body>
     <div class="header">
-        <h1>🤖 Mini Assistant</h1>
+        <h1>
+            <img src="{{ url_for('static', filename='logos/IntroLogo.png') }}" alt="SoulBridge AI" style="height: 24px; width: auto; margin-right: 8px; filter: brightness(1.2);">
+            Mini Assistant
+        </h1>
         <div style="display: flex; align-items: center; gap: 12px;">
             <span class="status-badge" id="statusBadge">Ready</span>
             <a href="/admin" class="back-link">← Back to Admin</a>
@@ -286,8 +289,9 @@
     <div class="chat-container">
         <div class="messages" id="messages">
             <div class="welcome-message">
-                <strong>Welcome to your Mini Assistant!</strong><br>
-                I understand your SoulBridge AI project and can help with:<br>
+                <img src="{{ url_for('static', filename='logos/IntroLogo.png') }}" alt="SoulBridge AI" style="height: 40px; width: auto; margin-bottom: 16px; filter: brightness(1.2);"><br>
+                <strong>Welcome to your SoulBridge AI Mini Assistant!</strong><br>
+                I understand your project and can help with:<br>
                 • Code debugging and analysis<br>
                 • Git commits and project management<br>
                 • Tier isolation system questions<br>
