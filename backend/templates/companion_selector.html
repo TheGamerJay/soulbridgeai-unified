@@ -675,13 +675,22 @@
     <script>
         // Enhanced Timer Update Function
         function updateEnhancedTimer(remainingMs) {
+            console.log('🎯 Updating timer with remaining ms:', remainingMs);
+            
             const timerContainer = document.getElementById('trial-timer-container');
             const timeText = document.getElementById('trial-time-text');
             const progressCircle = document.getElementById('timer-progress');
             const timerCard = document.querySelector('.timer-glass-card');
             
+            console.log('🔍 Timer elements found:', {
+                timerContainer: !!timerContainer,
+                timeText: !!timeText,
+                progressCircle: !!progressCircle,
+                timerCard: !!timerCard
+            });
+            
             if (!timerContainer || !timeText || !progressCircle) {
-                console.log('Timer elements not found');
+                console.log('❌ Timer elements not found - cannot update timer');
                 return;
             }
             
@@ -722,15 +731,30 @@
         // Check trial status and update timer
         async function refreshTrialStatus() {
             try {
+                console.log('🔍 Checking trial status...');
                 const response = await fetch('/api/user-info');
                 const data = await response.json();
                 
+                console.log('🔍 Trial status data:', {
+                    success: data.success,
+                    trial_active: data.trial_active,
+                    trial_remaining: data.trial_remaining,
+                    user_plan: data.user_plan
+                });
+                
                 if (data.success && data.trial_active && data.trial_remaining > 0) {
+                    console.log('✅ Trial active - showing timer');
                     updateEnhancedTimer(data.trial_remaining);
                 } else {
+                    console.log('❌ No trial active - hiding timer');
                     // Hide timer if no trial active
                     const timerContainer = document.getElementById('trial-timer-container');
-                    if (timerContainer) timerContainer.style.display = 'none';
+                    if (timerContainer) {
+                        timerContainer.style.display = 'none';
+                        console.log('🔧 Timer container hidden');
+                    } else {
+                        console.log('⚠️ Timer container not found!');
+                    }
                 }
             } catch (error) {
                 console.error('Error checking trial status:', error);
