@@ -1,15 +1,3 @@
-# Admin dashboard logout route for correct redirect
-@app.route("/admin/logout", methods=["GET", "POST"])
-def admin_logout():
-    """Admin dashboard logout: clears session and redirects to /admin/login"""
-    try:
-        user_email = session.get('user_email', 'unknown')
-        logger.info(f"ADMIN LOGOUT: User {user_email} logged out from admin dashboard")
-        session.clear()
-        return redirect("/admin/login")
-    except Exception as e:
-        logger.error(f"Admin logout error: {e}")
-        return redirect("/admin/login")
 #!/usr/bin/env python3
 """
 SoulBridge AI - Production Ready App  
@@ -24,6 +12,41 @@ eventlet.monkey_patch()
 import os
 import sys
 import logging
+#!/usr/bin/env python3
+"""
+SoulBridge AI - Production Ready App  
+Combines working initialization with all essential routes
+Voice chat processing enabled
+"""
+
+# CRITICAL: eventlet monkey patching MUST be first for Gunicorn compatibility
+import eventlet
+eventlet.monkey_patch()
+
+import os
+import sys
+import logging
+from flask import Flask, jsonify, render_template, request, session, redirect, url_for, flash, make_response, g
+
+# ...existing code...
+
+# Create Flask app with secure session configuration
+app = Flask(__name__)
+
+# ...existing code...
+
+# Admin dashboard logout route for correct redirect
+@app.route("/admin/logout", methods=["GET", "POST"])
+def admin_logout():
+    """Admin dashboard logout: clears session and redirects to /admin/login"""
+    try:
+        user_email = session.get('user_email', 'unknown')
+        logger.info(f"ADMIN LOGOUT: User {user_email} logged out from admin dashboard")
+        session.clear()
+        return redirect("/admin/login")
+    except Exception as e:
+        logger.error(f"Admin logout error: {e}")
+        return redirect("/admin/login")
 import time
 import json
 import psycopg2  # Add missing psycopg2 import
