@@ -2088,8 +2088,8 @@ Where emotion meets expression.
             // Show timer
             timerElement.style.display = 'block';
             
-            // Calculate time components (trialRemaining is in milliseconds)
-            const totalSeconds = Math.floor(trialRemaining / 1000);
+            // Calculate time components (trialRemaining might be in seconds, not milliseconds)
+            const totalSeconds = Math.floor(trialRemaining > 1000000 ? trialRemaining / 1000 : trialRemaining);
             const hours = Math.floor(totalSeconds / 3600);
             const minutes = Math.floor((totalSeconds % 3600) / 60);
             const seconds = totalSeconds % 60;
@@ -2099,9 +2099,10 @@ Where emotion meets expression.
             
             // Update warning states
             timerElement.classList.remove('warning', 'critical');
-            if (trialRemaining < 600000) { // < 10 minutes
+            const timeInSeconds = trialRemaining > 1000000 ? trialRemaining / 1000 : trialRemaining;
+            if (timeInSeconds < 600) { // < 10 minutes
                 timerElement.classList.add('critical');
-            } else if (trialRemaining < 1800000) { // < 30 minutes
+            } else if (timeInSeconds < 1800) { // < 30 minutes
                 timerElement.classList.add('warning');
             }
         }
