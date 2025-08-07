@@ -46,6 +46,7 @@
             </div>
             
             <div class="header-actions">
+                <!-- BASIC FEATURES - Available to all users -->
                 <a href="/companion-selection" class="action-btn">
                     <i class="fas fa-exchange-alt"></i>
                     Switch
@@ -54,22 +55,26 @@
                     <i class="fas fa-phone"></i>
                     Voice Chat
                 </button>
-                <a href="/decoder" class="action-btn">
-                    <i class="fas fa-brain"></i>
-                    Decoder
-                </a>
-                <a href="/fortune" class="action-btn">
-                    <i class="fas fa-crystal-ball"></i>
-                    Fortune Teller
-                </a>
-                <a href="/horoscope" class="action-btn">
-                    <i class="fas fa-star"></i>
-                    Horoscope
-                </a>
                 <a href="/library" class="action-btn">
                     <i class="fas fa-book"></i>
                     Library
                 </a>
+                
+                <!-- PREMIUM FEATURES - Growth/Max users or Trial active -->
+                {% if user_plan in ['growth', 'max'] or trial_active %}
+                <a href="/decoder" class="action-btn premium-feature" data-tier="growth">
+                    <i class="fas fa-brain"></i>
+                    Decoder
+                </a>
+                <a href="/fortune" class="action-btn premium-feature" data-tier="growth">
+                    <i class="fas fa-crystal-ball"></i>
+                    Fortune Teller
+                </a>
+                <a href="/horoscope" class="action-btn premium-feature" data-tier="growth">
+                    <i class="fas fa-star"></i>
+                    Horoscope
+                </a>
+                {% endif %}
                 
                 <!-- BULLETPROOF PREMIUM FEATURES -->
                 {% if user_plan in ['growth', 'max'] or trial_active %}
