@@ -4122,7 +4122,10 @@ def admin_surveillance():
         
         # Calculate system metrics for enhanced surveillance
         uptime = int((datetime.now() - surveillance_system.system_start_time).total_seconds())
-        uptime_str = f"{uptime//3600}h {(uptime%3600)//60}m {uptime%60}s"
+        hours = uptime // 3600
+        minutes = (uptime % 3600) // 60
+        seconds = uptime % 60
+        uptime_str = f"{hours}h {minutes}m {seconds}s"
         
         # Get comprehensive trial system stats with error handling
         try:

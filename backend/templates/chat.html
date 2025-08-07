@@ -113,6 +113,25 @@
                     Home
                 </a>
                 
+                <!-- Tier Usage Display -->
+                <div class="tier-usage-display" id="tierUsageDisplay" style="
+                    display: inline-flex; 
+                    align-items: center; 
+                    gap: 8px; 
+                    background: rgba(0,255,255,0.1); 
+                    border: 1px solid rgba(0,255,255,0.3); 
+                    border-radius: 6px; 
+                    padding: 4px 8px; 
+                    font-size: 12px; 
+                    color: #00ffff;
+                    margin-left: 8px;
+                ">
+                    <i class="fas fa-chart-bar" style="font-size: 10px;"></i>
+                    <span id="decoderUsage">3</span> 
+                    <span id="fortuneUsage">2</span> 
+                    <span id="horoscopeUsage">3</span>
+                </div>
+                
                 <!-- Timer removed from chat page - too distracting during conversations -->
 
                 
@@ -1038,6 +1057,47 @@
             document.body.style.overflow = 'auto';
             resetCreativeWriting();
         }
+        
+        // Update tier usage display
+        async function updateTierUsage() {
+            try {
+                // Fetch usage data from all three endpoints
+                const [decoderRes, fortuneRes, horoscopeRes] = await Promise.all([
+                    fetch('/api/decoder/check-limit'),
+                    fetch('/api/fortune/check-limit'), 
+                    fetch('/api/horoscope/check-limit')
+                ]);
+                
+                const decoderData = await decoderRes.json();
+                const fortuneData = await fortuneRes.json();
+                const horoscopeData = await horoscopeRes.json();
+                
+                // Update display with current limits
+                const decoderLimit = decoderData.daily_limit === null || decoderData.daily_limit === -1 ? '∞' : decoderData.daily_limit;
+                const fortuneLimit = fortuneData.daily_limit === null || fortuneData.daily_limit === -1 ? '∞' : fortuneData.daily_limit;
+                const horoscopeLimit = horoscopeData.daily_limit === null || horoscopeData.daily_limit === -1 ? '∞' : horoscopeData.daily_limit;
+                
+                document.getElementById('decoderUsage').textContent = decoderLimit;
+                document.getElementById('fortuneUsage').textContent = fortuneLimit;
+                document.getElementById('horoscopeUsage').textContent = horoscopeLimit;
+                
+                console.log(`🔒 Tier usage updated: ${decoderLimit} ${fortuneLimit} ${horoscopeLimit}`);
+                
+            } catch (error) {
+                console.error('Error updating tier usage:', error);
+                // Fallback to default free tier limits
+                document.getElementById('decoderUsage').textContent = '3';
+                document.getElementById('fortuneUsage').textContent = '2';
+                document.getElementById('horoscopeUsage').textContent = '3';
+            }
+        }
+        
+        // Update tier usage on page load and periodically
+        document.addEventListener('DOMContentLoaded', function() {
+            updateTierUsage();
+            // Update every 30 seconds
+            setInterval(updateTierUsage, 30000);
+        });
         
         function selectWritingMode(mode) {
             // Remove active class from all buttons
