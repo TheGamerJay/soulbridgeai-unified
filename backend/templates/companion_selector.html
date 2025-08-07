@@ -41,13 +41,11 @@
             100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); }
         }
         
-        /* Hide old timer elements to prevent conflicts - EXCLUDE NEW TIMER */
+        /* Hide specific old timer elements only */
         #trialTimer, 
         #trialTimeDisplay,
         .trial-timer-old,
-        .old-timer,
-        [id*="trialTimer"]:not(#simple-timer):not(#timer-display),
-        [id*="trialTimeDisplay"] {
+        .old-timer {
             display: none !important;
             visibility: hidden !important;
             opacity: 0 !important;
