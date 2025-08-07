@@ -3873,7 +3873,10 @@ def admin_surveillance():
     key = request.args.get("key")
     if key != ADMIN_DASH_KEY:
         return jsonify({"error": "Unauthorized"}), 403
-    
+
+    # Set admin session so Mini Assistant and admin APIs work
+    session["admin_logged_in"] = True
+
     try:
         # Read all log files
         maintenance_logs = []
