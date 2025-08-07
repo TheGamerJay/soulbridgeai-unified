@@ -11250,8 +11250,8 @@ def emergency_login_page():
 # COMPANION API ENDPOINTS
 # ========================================
 
-@app.route("/api/companions", methods=["GET"])
-def get_companions():
+@app.route("/api/companions-old", methods=["GET"])
+def get_companions_old():
     """Get all available companions (no auth required for viewing)"""
     try:
         # Companion data structure
