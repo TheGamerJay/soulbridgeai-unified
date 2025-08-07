@@ -1,25 +1,3 @@
-# --- Surveillance Page Route ---
-@app.route("/admin/surveillance")
-def admin_surveillance():
-    # Dummy log data for demonstration; replace with real log retrieval
-    maintenance_log = [
-        '[2025-08-07 08:34:35] 🔧 HEALTH_CHECK: System running for 0.1 hours',
-        '[2025-08-07 08:29:35] 🔧 SYSTEM_START: Basic surveillance system initialized',
-        '[2025-08-07 08:29:35] 🔧 MONITOR_START: Background monitoring thread started',
-    ]
-    threat_log = [
-        '[2025-07-24T17:36:54.158150] ⚠️ THREAT - IP: 127.0.0.1 - Reason: Critical file integrity violation: app_fixed.py - Severity: high',
-        '[2025-07-25T00:16:56.351922] ⚠️ THREAT - IP: 127.0.0.1 - Reason: Critical file integrity violation: app_fixed.py - Severity: high',
-    ]
-    blocked_ips = [
-        '✅ No blocked IPs - System secure'
-    ]
-    return render_template(
-        "admin/surveillance.html",
-        maintenance_log=maintenance_log,
-        threat_log=threat_log,
-        blocked_ips=blocked_ips
-    )
 #!/usr/bin/env python3
 """
 SoulBridge AI - Production Ready App  
@@ -100,6 +78,46 @@ if not secret_key:
     logger.warning("Generated temporary secret key - set SECRET_KEY environment variable for production")
 
 app.secret_key = secret_key
+
+# --- Surveillance Page Route ---
+@app.route("/admin/surveillance")
+def admin_surveillance():
+    # Read live log data from soulbridge.log
+    log_path = os.path.join(os.path.dirname(__file__), 'soulbridge.log')
+    maintenance_log = []
+    threat_log = []
+    blocked_ips = set()
+    try:
+        with open(log_path, 'r', encoding='utf-8') as f:
+            for line in f:
+                # Maintenance: system/monitor/health/info
+                if any(x in line for x in ['HEALTH_CHECK', 'SYSTEM_START', 'MONITOR_START', 'OpenAI client initialized', 'Production Ready App']):
+                    maintenance_log.append(line.strip())
+                # Threat: error, failed, threat, violation, block
+                if any(x in line.lower() for x in ['threat', 'violation', 'blocked', 'attack', 'critical', 'error', 'fail']):
+                    threat_log.append(line.strip())
+                # Blocked IPs: look for IPs in block/violation lines
+                if 'blocked' in line.lower() or 'ip:' in line.lower():
+                    import re
+                    ips = re.findall(r'(?:\d{1,3}\.){3}\d{1,3}', line)
+                    for ip in ips:
+                        blocked_ips.add(ip)
+    except Exception as e:
+        maintenance_log.append(f"[ERROR] Could not read log: {e}")
+    if not maintenance_log:
+        maintenance_log = ['No maintenance/system events found.']
+    if not threat_log:
+        threat_log = ['No threats or violations detected.']
+    if not blocked_ips:
+        blocked_ips = ['✅ No blocked IPs - System secure']
+    else:
+        blocked_ips = [f'🚫 Blocked IP: {ip}' for ip in blocked_ips]
+    return render_template(
+        "admin/surveillance.html",
+        maintenance_log=maintenance_log,
+        threat_log=threat_log,
+        blocked_ips=blocked_ips
+    )
 
 # Debug mode setting
 DEBUG_MODE = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true' or os.environ.get('DEBUG', 'False').lower() == 'true'
