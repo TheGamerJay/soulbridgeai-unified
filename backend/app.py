@@ -13342,10 +13342,10 @@ TIERS_TEMPLATE = r"""
 
     .row { overflow-x:auto; display:flex; gap:12px; padding:6px 2px 12px; scroll-snap-type:x proximity; }
     .row-title { margin:8px 0 8px; font-size:18px; color:#8bd3ff; display:flex; align-items:center; gap:8px; }
-    .card { min-width:170px; background:#121a2b; border:1px solid #1d2b45; border-radius:12px; padding:10px; scroll-snap-align:start;
+    .card { min-width:220px; background:#121a2b; border:1px solid #1d2b45; border-radius:12px; padding:16px; scroll-snap-align:start;
             box-shadow:0 10px 30px rgba(0,0,0,.25); transition:transform .15s ease; cursor:pointer; position:relative; }
     .card:hover { transform: translateY(-2px) scale(1.02); }
-    .card img { width:100%; height:120px; object-fit:contain; border-radius:8px; background:#0b0f18; }
+    .card img { width:100%; height:160px; object-fit:contain; border-radius:8px; background:#0b0f18; }
     .card .name { margin-top:8px; font-weight:600; }
     .lock { position:absolute; top:8px; right:8px; background:rgba(0,0,0,.55); border:1px solid #2b3d60; backdrop-filter: blur(6px);
             padding:3px 7px; border-radius:8px; font-size:12px; }
@@ -13368,7 +13368,7 @@ TIERS_TEMPLATE = r"""
 
     .ref-note { color:#ff9da8; font-size:14px; }
     .ref-grid { display:flex; gap:12px; overflow-x:auto; margin-top:8px; }
-    .milestone { min-width:190px; background:#121a2b; border:1px solid #1d2b45; border-radius:12px; padding:12px; position:relative; }
+    .milestone { min-width:220px; background:#121a2b; border:1px solid #1d2b45; border-radius:12px; padding:16px; position:relative; }
     .milestone .need { color:#8bd3ff; font-size:12px; margin-bottom:6px; }
     .badge { position:absolute; top:8px; right:8px; padding:3px 7px; border-radius:8px; font-size:12px; background:#263552; border:1px solid #364d77; }
     .badge.ok { background:#134e33; border-color:#1c7a4d; color:#b0ffd4; }
@@ -13463,7 +13463,7 @@ TIERS_TEMPLATE = r"""
           <div class="milestone {{ '' if got else 'dim' }}" onclick="goToReferral()" style="cursor:pointer;">
             <div class="badge {{ 'ok' if got else '' }}">{{ '✅ Unlocked' if got else '🔒 Locked' }}</div>
             <div class="need">Needs {{ r.need }} referrals</div>
-            <img src="/static/referral/{{ r.slug }}.png" alt="{{ r.name }}" style="width:100%;height:120px;object-fit:contain;border-radius:8px;background:#0b0f18;" onerror="this.src='/static/logos/IntroLogo.png'">
+            <img src="/static/referral/{{ r.slug }}.png" alt="{{ r.name }}" style="width:100%;height:160px;object-fit:contain;border-radius:8px;background:#0b0f18;" onerror="this.src='/static/logos/IntroLogo.png'">
             <div class="name" style="margin-top:6px;font-weight:600;">{{ r.name }}</div>
           </div>
         {% endfor %}
