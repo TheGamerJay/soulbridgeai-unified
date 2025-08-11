@@ -1099,37 +1099,11 @@
     </div>
 
     <script>
-        // Session check
-        if (!sessionStorage.getItem('loggedIn')) {
-            fetch('/auth/logout').then(() => window.location = '/login');
-        }
+        // REMOVED problematic session check that was causing flash/redirects
+        // Authentication is now handled server-side by the route
         
-        // Load companions
-        async function loadCompanions() {
-            try {
-                const response = await fetch('/api/companions');
-                const data = await response.json();
-                
-                if (data.success) {
-                    displayCompanions(data.companions);
-                } else {
-                    document.getElementById('companions-container').innerHTML = 
-                        '<p style="color: #ef4444; text-align: center;">Failed to load companions</p>';
-                }
-            } catch (error) {
-                console.error('Error loading companions:', error);
-                document.getElementById('companions-container').innerHTML = 
-                    '<p style="color: #ef4444; text-align: center;">Error loading companions</p>';
-            }
-        }
-        
-        function displayCompanions(companions) {
-            // Keep the existing companion content, don't override it
-            console.log('Companions loaded:', companions);
-        }
-        
-        // Don't auto-load companions since we have static content
-        // loadCompanions();
+        // REMOVED dynamic companion loading that could cause interface flash
+        // Template now uses static server-rendered content only
         
         // Netflix-style companion selection functions
         function selectCompanion(companionId) {

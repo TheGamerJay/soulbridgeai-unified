@@ -502,10 +502,8 @@ function switchCharacter() {
         localStorage.removeItem('companionSelectionTime');
         localStorage.setItem('switchingFromChat', 'true');
         
-        showNotification('Switching companions...', 'info');
-        setTimeout(() => {
-            window.location.href = '/companion-selection';
-        }, 600);
+        // Direct redirect without delay to prevent flash
+        window.location.href = '/companion-selection';
     }
 }
 
