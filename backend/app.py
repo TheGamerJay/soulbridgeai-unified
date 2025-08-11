@@ -80,6 +80,110 @@ if not secret_key:
 
 app.secret_key = secret_key
 
+# ============================================
+# BULLETPROOF TIER ISOLATION SYSTEM
+# ============================================
+
+# ---------- Canonical plan/feature config ----------
+PLAN_LIMITS = {
+    "free":   {"decoder": 3,  "fortune": 2, "horoscope": 3},
+    "growth": {"decoder": 15, "fortune": 8, "horoscope": 10},
+    "max":    {"decoder": float("inf"), "fortune": float("inf"), "horoscope": float("inf")}
+}
+
+FEATURE_ACCESS = {
+    # Which features appear for each real plan (no trial applied here)
+    "free":   {"voice_journal": False, "ai_image": False, "creative_writer": True, "library": True, "mini_studio": False},
+    "growth": {"voice_journal": True,  "ai_image": True,  "creative_writer": True, "library": True, "mini_studio": False},
+    "max":    {"voice_journal": True,  "ai_image": True,  "creative_writer": True, "library": True, "mini_studio": True},
+}
+
+# ---------- Companions (bulletproof data) ----------
+COMPANIONS_NEW = [
+    # Free row
+    {"id":"blayzo_free","name":"Blayzo Free","tier":"free","image_url":"/static/logos/Blayzo.png"},
+    {"id":"blayzica_free","name":"Blayzica Free","tier":"free","image_url":"/static/logos/Blayzica.png"},
+    {"id":"companion_gamerjay","name":"GamerJay Free","tier":"free","image_url":"/static/logos/GamerJay Free companion.png"},
+    {"id":"claude_free","name":"Claude Free","tier":"free","image_url":"/static/logos/Claude Free.png"},
+    {"id":"blayzia_free","name":"Blayzia","tier":"free","image_url":"/static/logos/Blayzia.png"},
+    {"id":"blayzion_free","name":"Blayzion","tier":"free","image_url":"/static/logos/Blayzion.png"},
+    # Growth row
+    {"id":"companion_sky","name":"Sky","tier":"growth","image_url":"/static/logos/Sky a premium companion.png"},
+    {"id":"blayzo_premium","name":"Blayzo Premium","tier":"growth","image_url":"/static/logos/Blayzo premium companion.png"},
+    {"id":"blayzica_growth","name":"Blayzica Growth","tier":"growth","image_url":"/static/logos/Blayzica Pro.png"},
+    {"id":"gamerjay_premium","name":"GamerJay Premium","tier":"growth","image_url":"/static/logos/GamerJay premium companion.png"},
+    {"id":"watchdog_growth","name":"WatchDog Growth","tier":"growth","image_url":"/static/logos/WatchDog a Premium companion.png"},
+    {"id":"crimson_growth","name":"Crimson Growth","tier":"growth","image_url":"/static/logos/Crimson.png"},
+    {"id":"violet_growth","name":"Violet Growth","tier":"growth","image_url":"/static/logos/Violet.png"},
+    {"id":"claude_growth","name":"Claude Growth","tier":"growth","image_url":"/static/logos/Claude Growth.png"},
+    # Max row
+    {"id":"companion_crimson","name":"Companion Crimson","tier":"max","image_url":"/static/logos/Crimson a Max companion.png"},
+    {"id":"companion_violet","name":"Companion Violet","tier":"max","image_url":"/static/logos/Violet_Max.png"},
+    {"id":"royal_max","name":"Royal Max","tier":"max","image_url":"/static/logos/Royal_Max.png"},
+    {"id":"watchdog_max","name":"WatchDog Max","tier":"max","image_url":"/static/logos/WatchDog a Max Companion.png"},
+    {"id":"ven_blayzica","name":"Ven Blayzica","tier":"max","image_url":"/static/logos/Ven_Blayzica_Max.png"},
+    {"id":"ven_sky","name":"Ven Sky","tier":"max","image_url":"/static/logos/Ven_Sky_Max.png"},
+    {"id":"claude_max","name":"Claude Max","tier":"max","image_url":"/static/logos/Claude Max.png"},
+    # Referral (never unlocked by trial)
+    {"id":"blayzike","name":"Blayzike","tier":"referral","image_url":"/static/referral/blayzike.png"},
+    {"id":"blazelian","name":"Blazelian","tier":"referral","image_url":"/static/referral/blazelian.png"},
+    {"id":"claude_referral","name":"Claude Referral","tier":"referral","image_url":"/static/referral/claude_referral.png"},
+    {"id":"blayzo_skin","name":"Blayzo Special Skin","tier":"referral","image_url":"/static/referral/blayzo_skin.png"},
+]
+
+# ---------- Bulletproof Helper Functions ----------
+def get_user_id_new():
+    """Get stable user ID from session"""
+    return session.get("user_id", "demo_user")
+
+def get_effective_plan_new(user_plan: str, trial_active: bool) -> str:
+    """Trial unlocks FEATURES/COMPANIONS for visibility, but limits remain on real plan"""
+    return user_plan  # limits are always the real plan
+
+def get_access_matrix_new(user_plan: str, trial_active: bool):
+    """Get feature access matrix with trial visibility"""
+    base = FEATURE_ACCESS.get(user_plan, FEATURE_ACCESS["free"]).copy()
+    if trial_active:
+        # During trial: unlock visibility of Growth + Max features
+        # BUT limits still follow real plan
+        base["voice_journal"] = True
+        base["ai_image"] = True
+        base["creative_writer"] = True
+        base["library"] = True
+        # Keep mini_studio locked unless user is Max (uncomment next line to show during trial)
+        # base["mini_studio"] = True
+    return base
+
+def companion_unlock_state_new(user_plan: str, trial_active: bool, referrals: int):
+    """Determine which companions are unlocked"""
+    unlocked_tiers = set(["free"])
+    if user_plan == "growth" or trial_active:
+        unlocked_tiers.add("growth")
+    if user_plan == "max" or trial_active:
+        unlocked_tiers.add("max")
+    # Referral progressive unlocks (never by trial)
+    referral_unlocks = []
+    if referrals >= 2: referral_unlocks.append("blayzike")
+    if referrals >= 5: referral_unlocks.append("blazelian")
+    if referrals >= 8: referral_unlocks.append("claude_referral")
+    if referrals >= 10: referral_unlocks.append("blayzo_skin")
+    return unlocked_tiers, set(referral_unlocks)
+
+def get_feature_limit_new(real_plan: str, feature: str):
+    """Get feature limits based on real plan (never trial)"""
+    return PLAN_LIMITS.get(real_plan, PLAN_LIMITS["free"]).get(feature, 0)
+
+def require_max_for_mini_studio_new():
+    """Hard gate Mini Studio; never trust client"""
+    if session.get("user_plan") != "max":
+        return False
+    # For now, allow if user_plan is max (add payment verification later)
+    return True
+
+# ============================================
+# END BULLETPROOF TIER ISOLATION SYSTEM
+# ============================================
+
 # Debug mode setting
 DEBUG_MODE = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true' or os.environ.get('DEBUG', 'False').lower() == 'true'
 
@@ -7180,6 +7284,233 @@ def get_user_plan():
     except Exception as e:
         logger.error(f"Get user plan error: {e}")
         return jsonify({"plan": "free", "trial_active": False})
+
+# ============================================
+# BULLETPROOF API ENDPOINTS
+# ============================================
+
+@app.route("/api/plan")
+def api_plan_new():
+    """Bulletproof plan info for frontend"""
+    try:
+        if not is_logged_in():
+            return jsonify({
+                "user_plan": "free",
+                "trial_active": False,
+                "effective_plan": "free",
+                "limits": {"decoder": 3, "fortune": 2, "horoscope": 3},
+                "features": FEATURE_ACCESS["free"]
+            })
+        
+        user_plan = session.get("user_plan", "free")
+        trial_active = bool(session.get("trial_active", False))
+        effective_plan = get_effective_plan_new(user_plan, trial_active)
+        access = get_access_matrix_new(user_plan, trial_active)
+        
+        limits = {
+            "decoder": get_feature_limit_new(effective_plan, "decoder"),
+            "fortune": get_feature_limit_new(effective_plan, "fortune"),
+            "horoscope": get_feature_limit_new(effective_plan, "horoscope"),
+        }
+        
+        return jsonify({
+            "user_plan": user_plan,
+            "trial_active": trial_active,
+            "effective_plan": effective_plan,
+            "limits": limits,
+            "features": access
+        })
+    except Exception as e:
+        logger.error(f"API plan error: {e}")
+        return jsonify({
+            "user_plan": "free",
+            "trial_active": False,
+            "effective_plan": "free",
+            "limits": {"decoder": 3, "fortune": 2, "horoscope": 3},
+            "features": FEATURE_ACCESS["free"]
+        }), 500
+
+@app.route("/api/companions")
+def api_companions_new():
+    """Bulletproof companions API with server-side lock state"""
+    try:
+        if not is_logged_in():
+            # Return all locked for unauthenticated users
+            companions = []
+            for c in COMPANIONS_NEW:
+                companions.append({
+                    "id": c["id"],
+                    "name": c["name"],
+                    "image_url": c["image_url"],
+                    "tier": c["tier"],
+                    "locked": True,
+                    "lock_reason": "Login required"
+                })
+            return jsonify({"companions": companions})
+        
+        user_plan = session.get("user_plan", "free")
+        trial_active = bool(session.get("trial_active", False))
+        referrals = int(session.get("referrals", 0))
+        
+        # Get referral count from database if available
+        try:
+            db_instance = get_database()
+            if db_instance:
+                user_id = session.get('user_id')
+                conn = db_instance.get_connection()
+                cursor = conn.cursor()
+                if db_instance.use_postgres:
+                    cursor.execute("SELECT referral_count FROM users WHERE id = %s", (user_id,))
+                else:
+                    cursor.execute("SELECT referral_count FROM users WHERE id = ?", (user_id,))
+                result = cursor.fetchone()
+                if result:
+                    referrals = result[0] or 0
+                conn.close()
+        except Exception as e:
+            logger.error(f"Error getting referral count: {e}")
+        
+        unlocked_tiers, referral_ids = companion_unlock_state_new(user_plan, trial_active, referrals)
+        
+        companions = []
+        for c in COMPANIONS_NEW:
+            locked = True
+            lock_reason = ""
+            
+            if c["tier"] in ("free", "growth", "max"):
+                if c["tier"] in unlocked_tiers:
+                    locked = False
+                else:
+                    lock_reason = f"{c['tier'].capitalize()} tier required"
+            elif c["tier"] == "referral":
+                # Only unlock via referral thresholds; trial NEVER unlocks these
+                if c["id"] in referral_ids:
+                    locked = False
+                else:
+                    lock_reason = "Referral required"
+            
+            companions.append({
+                "id": c["id"],
+                "name": c["name"],
+                "image_url": c["image_url"],
+                "tier": c["tier"],
+                "locked": locked,
+                "lock_reason": lock_reason
+            })
+        
+        return jsonify({"companions": companions})
+    
+    except Exception as e:
+        logger.error(f"API companions error: {e}")
+        return jsonify({"companions": []}), 500
+
+@app.route("/start-trial", methods=["POST"])
+def start_trial_bulletproof():
+    """Bulletproof trial start - only visibility changes"""
+    try:
+        if not is_logged_in():
+            return jsonify({"ok": False, "error": "Authentication required"}), 401
+        
+        if session.get("trial_used_permanently"):
+            return jsonify({"ok": False, "error": "Trial already used"}), 400
+        
+        # Start trial - only changes visibility, never changes limits
+        session["trial_active"] = True
+        session["trial_started_at"] = datetime.utcnow().isoformat()
+        session["trial_expires_at"] = (datetime.utcnow() + timedelta(hours=5)).isoformat()
+        
+        # Update database trial status
+        try:
+            user_id = session.get('user_id')
+            if user_id:
+                db_instance = get_database()
+                if db_instance:
+                    conn = db_instance.get_connection()
+                    cursor = conn.cursor()
+                    now = datetime.utcnow()
+                    expires = now + timedelta(hours=5)
+                    
+                    if db_instance.use_postgres:
+                        cursor.execute("UPDATE users SET trial_started_at = %s, trial_expires_at = %s, trial_active = TRUE WHERE id = %s", (now, expires, user_id))
+                    else:
+                        cursor.execute("UPDATE users SET trial_started_at = ?, trial_expires_at = ?, trial_active = 1 WHERE id = ?", (now.isoformat(), expires.isoformat(), user_id))
+                    
+                    conn.commit()
+                    conn.close()
+        except Exception as e:
+            logger.error(f"Database error during trial start: {e}")
+        
+        return jsonify({"ok": True, "message": "5-hour trial started"})
+    
+    except Exception as e:
+        logger.error(f"Trial start error: {e}")
+        return jsonify({"ok": False, "error": "Trial start failed"}), 500
+
+@app.route("/poll-trial")
+def poll_trial_bulletproof():
+    """Poll trial status and auto-expire"""
+    try:
+        active = bool(session.get("trial_active"))
+        started_at = session.get("trial_started_at")
+        
+        if active and started_at:
+            started = datetime.fromisoformat(started_at)
+            if datetime.utcnow() - started > timedelta(hours=5):
+                # Trial expired
+                session["trial_active"] = False
+                session["trial_used_permanently"] = True
+                
+                # Update database
+                try:
+                    user_id = session.get('user_id')
+                    if user_id:
+                        db_instance = get_database()
+                        if db_instance:
+                            conn = db_instance.get_connection()
+                            cursor = conn.cursor()
+                            if db_instance.use_postgres:
+                                cursor.execute("UPDATE users SET trial_active = FALSE, trial_used_permanently = TRUE WHERE id = %s", (user_id,))
+                            else:
+                                cursor.execute("UPDATE users SET trial_active = 0, trial_used_permanently = 1 WHERE id = ?", (user_id,))
+                            conn.commit()
+                            conn.close()
+                except Exception as e:
+                    logger.error(f"Database error during trial expiry: {e}")
+                
+                active = False
+        
+        return jsonify({"trial_active": active})
+    
+    except Exception as e:
+        logger.error(f"Poll trial error: {e}")
+        return jsonify({"trial_active": False})
+
+# ============================================
+# BULLETPROOF MINI STUDIO GATE
+# ============================================
+
+@app.route("/mini-studio")
+def mini_studio_bulletproof():
+    """Hard-gated Mini Studio - Max tier only"""
+    try:
+        if not is_logged_in():
+            return redirect("/login?return_to=mini-studio")
+        
+        # Hard gate: Only Max users can access
+        if not require_max_for_mini_studio_new():
+            flash("Mini Studio is exclusive to Max tier subscribers", "error")
+            return redirect("/tiers?upgrade=max")
+        
+        # Render Mini Studio page
+        return render_template("mini_studio.html")
+    
+    except Exception as e:
+        logger.error(f"Mini Studio access error: {e}")
+        return redirect("/tiers")
+
+# ============================================
+# END BULLETPROOF API ENDPOINTS  
+# ============================================
 
 # REMOVED: Another duplicate route - using the newer one at line 979
 # @app.route("/api/start-trial", methods=["POST"])
