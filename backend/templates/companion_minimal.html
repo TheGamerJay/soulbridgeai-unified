@@ -27,7 +27,34 @@
         </div>
     </div>
     <script>
+        let isSelecting = false;
+        let lastSelectedId = null;
+        
         function selectCompanion(id) {
+            // Prevent double-clicks and race conditions
+            if (isSelecting) {
+                console.log('Already selecting companion, ignoring click');
+                return;
+            }
+            
+            // Prevent selecting same companion multiple times rapidly
+            if (lastSelectedId === id) {
+                console.log('Same companion selected recently, ignoring duplicate');
+                return;
+            }
+            
+            isSelecting = true;
+            lastSelectedId = id;
+            console.log('Selecting companion:', id);
+            
+            // Visual feedback
+            const companionElement = event.target.closest('.companion');
+            if (companionElement) {
+                companionElement.style.opacity = '0.5';
+                companionElement.style.pointerEvents = 'none';
+            }
+            
+            // Redirect to chat immediately to prevent additional clicks
             window.location.href = '/chat?companion=' + id;
         }
     </script>
