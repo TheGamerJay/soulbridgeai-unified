@@ -2523,9 +2523,14 @@ def companion_selection():
     logger.info(f"🔍 COMPANION SELECTION: user_id = {session.get('user_id')}")
     logger.info(f"🔍 COMPANION SELECTION: session_version = {session.get('session_version')}")
     
-    if not is_logged_in():
-        logger.warning(f"🚫 COMPANION SELECTION: User not authenticated, redirecting to login")
-        return redirect("/login")
+    # TEMPORARY DEBUG: Check authentication with detailed logging
+    auth_result = is_logged_in()
+    logger.warning(f"🔍 COMPANION AUTH DEBUG: is_logged_in() returned {auth_result}")
+    if not auth_result:
+        logger.warning(f"🚫 COMPANION SELECTION: User not authenticated")
+        logger.warning(f"🔍 SESSION CONTENTS: {dict(session)}")
+        # TEMPORARY: Don't redirect to login, show error message instead
+        return f"<h1>Authentication Debug</h1><p>Session: {dict(session)}</p><p>Auth result: {auth_result}</p><a href='/login'>Go to Login</a>"
         
     # Check if user has accepted terms
     terms_check = requires_terms_acceptance()
