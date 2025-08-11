@@ -24,6 +24,16 @@
             margin: 0 auto;
         }
         
+        /* Prevent flash of unstyled content */
+        #companions-container {
+            opacity: 1;
+            transition: opacity 0.1s ease-in;
+        }
+        
+        .tier-section {
+            visibility: visible;
+        }
+        
         .header {
             text-align: center;
             margin-bottom: 40px;
@@ -733,8 +743,8 @@
             <p>Select the perfect companion to guide you on your wellness journey</p>
         </div>
         
-        <div id="companions-container">
-            <!-- Dynamic tier-aware content -->
+        <div id="companions-container" style="min-height: 200px;">
+            <!-- Dynamic tier-aware content with stable layout -->
             {% if trial_active %}
                 <div class="tier-section trial-tier" style="background: #2a1a2a; border: 2px solid #a855f7;">
                     <h2 class="tier-title" style="color: #a855f7;">🕒 5-Hour Trial Active</h2>

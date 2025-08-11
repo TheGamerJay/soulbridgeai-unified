@@ -2567,6 +2567,9 @@ def companion_selection():
     except Exception as e:
         logger.error(f"Error getting referral count: {e}")
     
+    # DEBUG: Log template variables to identify flash cause
+    logger.info(f"🎨 TEMPLATE DEBUG: referral_count={referral_count}, trial_active={trial_active}, user_plan={user_plan}")
+    
     return render_template("companion_selector.html", 
                          referral_count=referral_count,
                          trial_active=trial_active,
