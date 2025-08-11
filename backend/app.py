@@ -380,11 +380,12 @@ def increment_rate_limit_session():
 def make_session_non_permanent():
     session.permanent = False
 
-@app.before_request
-def reset_session_if_cookie_missing():
-    # If no session cookie, make sure user is not treated as logged in
-    if not request.cookies.get('session'):
-        session.clear()
+# DISABLED: This was causing session clearing after multiple companion clicks
+# @app.before_request
+# def reset_session_if_cookie_missing():
+#     # If no session cookie, make sure user is not treated as logged in
+#     if not request.cookies.get('session'):
+#         session.clear()
 
 @app.before_request
 def load_user_context():
