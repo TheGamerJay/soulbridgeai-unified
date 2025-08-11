@@ -847,34 +847,29 @@ def is_logged_in():
     """Check if user is logged in - PERMANENT FIX with simple, reliable logic"""
     try:
         # PERMANENT FIX: Simple authentication check
-        # User is logged in if they have authentication flag AND either user_id or email
         user_authenticated = session.get("user_authenticated", False)
         has_user_id = session.get('user_id') is not None
         has_email = session.get('user_email') or session.get('email')
         
-        # If user has authentication data, ensure session is properly set up
-        if (user_authenticated or has_email) and not user_authenticated:
-            # Restore authentication for sessions with email but missing auth flag
+        # Debug logging to track what's happening
+        logger.info(f"🔍 AUTH CHECK: user_authenticated={user_authenticated}, has_user_id={has_user_id}, has_email={bool(has_email)}")
+        
+        # If user has email but no auth flag, restore authentication
+        if has_email and not user_authenticated:
             session['user_authenticated'] = True
             session['session_version'] = "2025-07-28-banking-security" 
             session['last_activity'] = datetime.now().isoformat()
-            logger.info("PERMANENT FIX: Restored authentication for valid session")
+            logger.info("✅ PERMANENT FIX: Restored authentication for session with email")
+            user_authenticated = True
+        
+        # Update last activity for valid sessions
+        if user_authenticated and (has_user_id or has_email):
+            session['last_activity'] = datetime.now().isoformat()
         
         # Simple check: logged in if authenticated and has identifying info
-        is_authenticated = session.get("user_authenticated", False) and (has_user_id or has_email)
-        
-        return is_authenticated
-        
-        # Also check for user_id or user_email as backup validation
-        if not session.get('user_id') and not session.get('user_email') and not session.get('email'):
-            return False
-        
-        # No automatic timeout - session lasts until browser is closed
-        # Just update the last activity timestamp for logging purposes
-        
-        # Update last activity time
-        session['last_activity'] = datetime.now().isoformat()
-        return True
+        result = user_authenticated and (has_user_id or has_email)
+        logger.info(f"🔍 AUTH RESULT: {result}")
+        return result
         
     except Exception as e:
         # Any unexpected error should not clear session unless necessary
