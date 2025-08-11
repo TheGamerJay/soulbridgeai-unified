@@ -488,9 +488,9 @@ def increment_rate_limit_session():
     except Exception as e:
         logger.error(f"Failed to increment rate limit session: {e}")
 
-# Ensure sessions expire when browser closes
-@app.before_request
-def ensure_session_persistence():
+# TEMPORARILY DISABLED - Testing if this interferes with authentication
+# @app.before_request
+def ensure_session_persistence_disabled():
     # PERMANENT FIX: Make sessions persistent for all authenticated users
     # Sessions should only expire when browser closes or explicit logout
     if session.get('user_authenticated') or session.get('user_email') or session.get('email'):
@@ -508,8 +508,9 @@ def ensure_session_persistence():
 #     if not request.cookies.get('session'):
 #         session.clear()
 
-@app.before_request
-def load_user_context():
+# TEMPORARILY DISABLED - This might be interfering with authentication
+# @app.before_request  
+def load_user_context_disabled():
     """Load user context and handle trial expiration - comprehensive system"""
     # Skip for static files and API calls to avoid overhead
     if request.endpoint in ['static', 'favicon'] or request.path.startswith('/static/'):
@@ -2557,8 +2558,8 @@ def companion_selection():
     # DEBUG: Log template variables to identify flash cause
     logger.info(f"🎨 TEMPLATE DEBUG: referral_count={referral_count}, trial_active={trial_active}, user_plan={user_plan}")
     
-    # Use simple template without complex conditionals to prevent flash
-    return render_template("companion_selector_simple.html")
+    # Use ultra-minimal template to eliminate ALL potential flash sources
+    return render_template("companion_minimal.html")
 
 # ---- CLEAN NETFLIX-STYLE TIERS PAGE ----
 @app.route("/tiers")
