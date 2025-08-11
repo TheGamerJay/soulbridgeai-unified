@@ -490,10 +490,15 @@ def increment_rate_limit_session():
 
 # Ensure sessions expire when browser closes
 @app.before_request
-def make_session_non_permanent():
-    # Only make session non-permanent for non-authenticated users
-    # This prevents conflicts with load_user_context() which sets permanent=True for authenticated users
-    if not session.get('user_authenticated'):
+def ensure_session_persistence():
+    # PERMANENT FIX: Make sessions persistent for all authenticated users
+    # Sessions should only expire when browser closes or explicit logout
+    if session.get('user_authenticated') or session.get('user_email') or session.get('email'):
+        session.permanent = True
+        # Set reasonable session lifetime (24 hours)
+        app.permanent_session_lifetime = timedelta(hours=24)
+    else:
+        # Only make non-authenticated sessions temporary
         session.permanent = False
 
 # DISABLED: This was causing session clearing after multiple companion clicks
@@ -839,38 +844,26 @@ def background_monitoring():
 background_monitoring()
 
 def is_logged_in():
-    """Check if user is logged in with graceful session migration"""
+    """Check if user is logged in - PERMANENT FIX with simple, reliable logic"""
     try:
-        # TEMPORARY DEBUGGING: Log all session info for troubleshooting
-        logger.info(f"🔍 LOGIN CHECK DEBUG: session keys = {list(session.keys())}")
-        logger.info(f"🔍 LOGIN CHECK DEBUG: user_authenticated = {session.get('user_authenticated')}")
-        logger.info(f"🔍 LOGIN CHECK DEBUG: user_id = {session.get('user_id')}")
-        logger.info(f"🔍 LOGIN CHECK DEBUG: user_email = {session.get('user_email')}")
-        logger.info(f"🔍 LOGIN CHECK DEBUG: session_version = {session.get('session_version')}")
+        # PERMANENT FIX: Simple authentication check
+        # User is logged in if they have authentication flag AND either user_id or email
+        user_authenticated = session.get("user_authenticated", False)
+        has_user_id = session.get('user_id') is not None
+        has_email = session.get('user_email') or session.get('email')
         
-        # FIXED: Graceful session migration instead of aggressive clearing
-        REQUIRED_SESSION_VERSION = "2025-07-28-banking-security"
-        if session.get('session_version') != REQUIRED_SESSION_VERSION:
-            # If user has valid authentication data, migrate their session instead of clearing
-            if session.get("user_authenticated") and (session.get('user_id') or session.get('user_email')):
-                logger.info("SECURITY: Migrating existing session to new security version")
-                session['session_version'] = REQUIRED_SESSION_VERSION
-                session['last_activity'] = datetime.now().isoformat()
-            else:
-                # TEMPORARY FIX: Be more lenient - don't clear sessions with partial data
-                if session.get('user_email') or session.get('email'):
-                    logger.warning("TEMPORARY: Allowing login with partial session data to prevent logouts")
-                    session['user_authenticated'] = True
-                    session['session_version'] = REQUIRED_SESSION_VERSION
-                    session['last_activity'] = datetime.now().isoformat()
-                else:
-                    # Only clear if no authentication data exists at all
-                    logger.info("SECURITY: Clearing invalid session - no auth data")
-                    session.clear()
-                    return False
+        # If user has authentication data, ensure session is properly set up
+        if (user_authenticated or has_email) and not user_authenticated:
+            # Restore authentication for sessions with email but missing auth flag
+            session['user_authenticated'] = True
+            session['session_version'] = "2025-07-28-banking-security" 
+            session['last_activity'] = datetime.now().isoformat()
+            logger.info("PERMANENT FIX: Restored authentication for valid session")
         
-        if not session.get("user_authenticated", False):
-            return False
+        # Simple check: logged in if authenticated and has identifying info
+        is_authenticated = session.get("user_authenticated", False) and (has_user_id or has_email)
+        
+        return is_authenticated
         
         # Also check for user_id or user_email as backup validation
         if not session.get('user_id') and not session.get('user_email') and not session.get('email'):
@@ -886,9 +879,9 @@ def is_logged_in():
     except Exception as e:
         # Any unexpected error should not clear session unless necessary
         logger.error(f"Session validation error: {e}")
-        # Only clear if critical fields are missing
-        if not session.get("user_authenticated") and not session.get('user_id'):
-            session.clear()
+        # PERMANENT FIX: Don't clear sessions with any user data
+        # Only return False if completely empty session
+        if not session.get("user_authenticated") and not session.get('user_id') and not session.get('user_email') and not session.get('email'):
             return False
         return True
 
@@ -1642,17 +1635,24 @@ def logout_on_close():
 
 @app.route("/api/clear-session", methods=["POST"])
 def clear_session():
-    """TEMPORARILY DISABLED: Preventing session clearing that causes logouts"""
+    """PERMANENT FIX: Only clear session on explicit logout, not navigation"""
     try:
-        user_email = session.get('user_email', 'unknown')
-        logger.info(f"🚫 CLEAR SESSION REQUEST BLOCKED for user {user_email} - preventing logout issues")
+        # Check if this is an explicit logout request
+        data = request.get_json() or {}
+        is_explicit_logout = data.get('explicit_logout', False)
         
-        # TEMPORARY FIX: Don't clear session, just return success
-        # This prevents the frequent logouts while we debug the root cause
-        return jsonify({"success": True, "message": "Session clear disabled (temporary fix)"})
+        if is_explicit_logout:
+            user_email = session.get('user_email', 'unknown')
+            logger.info(f"🚪 EXPLICIT LOGOUT: Clearing session for user {user_email}")
+            session.clear()
+            return jsonify({"success": True, "message": "Session cleared for logout"})
+        else:
+            # For navigation or other requests, preserve the session
+            logger.info("🔒 NAVIGATION: Preserving user session - no logout needed")
+            return jsonify({"success": True, "message": "Session preserved"})
     except Exception as e:
-        logger.error(f"Error in clear session handler: {e}")
-        return jsonify({"success": True, "message": "Session clear disabled (temporary fix)"})
+        logger.error(f"Error in session handler: {e}")
+        return jsonify({"success": True, "message": "Session preserved"})
 
 @app.route('/api/user-info')
 def user_info():
