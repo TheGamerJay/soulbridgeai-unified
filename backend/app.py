@@ -11,7 +11,6 @@ eventlet.monkey_patch()
 
 # Standard library imports
 import os
-import sys
 import time
 import json
 import logging
@@ -20,11 +19,12 @@ from copy import deepcopy
 from datetime import datetime, timezone, timedelta
 
 # Flask imports
-from flask import Flask, jsonify, render_template, render_template_string, request, session, redirect, url_for, flash, make_response, g
+from flask import Flask, jsonify, render_template, render_template_string, request, session, redirect, url_for, flash, make_response
 
 # Local imports
 from trial_utils import is_trial_active as calculate_trial_active, get_trial_time_remaining
 from tier_isolation import tier_manager, get_current_user_tier, get_current_tier_system
+from constants import *
 
 # Configure logging first
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -54,19 +54,7 @@ app.secret_key = secret_key
 # BULLETPROOF TIER ISOLATION SYSTEM
 # ============================================
 
-# ---------- Canonical plan/feature config ----------
-PLAN_LIMITS = {
-    "free":   {"decoder": 3,  "fortune": 2, "horoscope": 3},
-    "growth": {"decoder": 15, "fortune": 8, "horoscope": 10},
-    "max":    {"decoder": float("inf"), "fortune": float("inf"), "horoscope": float("inf")}
-}
-
-FEATURE_ACCESS = {
-    # Which features appear for each real plan (no trial applied here)
-    "free":   {"voice_journal": False, "ai_image": False, "creative_writer": True, "library": True, "mini_studio": False},
-    "growth": {"voice_journal": True,  "ai_image": True,  "creative_writer": True, "library": True, "mini_studio": False},
-    "max":    {"voice_journal": True,  "ai_image": True,  "creative_writer": True, "library": True, "mini_studio": True},
-}
+# Configuration constants imported from constants.py
 
 # ---------- Companions (bulletproof data) ----------
 COMPANIONS_NEW = [
@@ -142,13 +130,13 @@ def companion_unlock_state_new(user_plan: str, trial_active: bool, referrals: in
     
     # Referral progressive unlocks (never by trial)
     referral_unlocks = []
-    if referrals >= 2: referral_unlocks.append("blayzike")
-    if referrals >= 5: referral_unlocks.append("blazelian")
-    if referrals >= 8: referral_unlocks.append("claude_referral")
-    if referrals >= 10: referral_unlocks.append("blayzo_skin")
+    if referrals >= REFERRAL_THRESHOLDS["blayzike"]: referral_unlocks.append("blayzike")
+    if referrals >= REFERRAL_THRESHOLDS["blazelian"]: referral_unlocks.append("blazelian")
+    if referrals >= REFERRAL_THRESHOLDS["claude_referral"]: referral_unlocks.append("claude_referral")
+    if referrals >= REFERRAL_THRESHOLDS["blayzo_skin"]: referral_unlocks.append("blayzo_skin")
     return unlocked_tiers, set(referral_unlocks)
 
-def get_feature_limit_new(real_plan: str, feature: str):
+def get_feature_limit(real_plan: str, feature: str):
     """Get feature limits based on real plan (never trial)"""
     return PLAN_LIMITS.get(real_plan, PLAN_LIMITS["free"]).get(feature, 0)
 
@@ -170,7 +158,7 @@ DEBUG_MODE = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true' or os.envi
 # app.config['SESSION_COOKIE_DOMAIN'] = '.soulbridgeai.com' if os.environ.get('RAILWAY_ENVIRONMENT') else None  # DISABLED: This was causing session sharing between users!
 
 # Rate limit tracking for mini helper activation
-RATE_LIMIT_FLAG_FILE = os.path.join(os.path.dirname(__file__), 'rate_limit_status.json')
+RATE_LIMIT_FLAG_FILE_PATH = os.path.join(os.path.dirname(__file__), RATE_LIMIT_FLAG_FILE)
 
 def set_rate_limit_flag(is_limited):
     """Set rate limit flag to control mini helper activation"""
@@ -180,7 +168,7 @@ def set_rate_limit_flag(is_limited):
             'timestamp': datetime.now().isoformat(),
             'auto_helper_active': is_limited
         }
-        with open(RATE_LIMIT_FLAG_FILE, 'w') as f:
+        with open(RATE_LIMIT_FLAG_FILE_PATH, 'w') as f:
             json.dump(status, f)
         logger.info(f"Rate limit flag set to: {is_limited}")
     except Exception as e:
@@ -189,8 +177,8 @@ def set_rate_limit_flag(is_limited):
 def get_rate_limit_status():
     """Get current rate limit status"""
     try:
-        if os.path.exists(RATE_LIMIT_FLAG_FILE):
-            with open(RATE_LIMIT_FLAG_FILE, 'r') as f:
+        if os.path.exists(RATE_LIMIT_FLAG_FILE_PATH):
+            with open(RATE_LIMIT_FLAG_FILE_PATH, 'r') as f:
                 status = json.load(f)
             return status
         return {'rate_limited': False, 'auto_helper_active': False}
@@ -204,8 +192,8 @@ def should_use_mini_helper():
     return status.get('rate_limited', False)
 
 # Conversation Memory System for Mini Helper
-CONVERSATION_MEMORY_FILE = os.path.join(os.path.dirname(__file__), 'conversation_memory.json')
-PROJECT_STATE_FILE = os.path.join(os.path.dirname(__file__), 'project_state.json')
+CONVERSATION_MEMORY_FILE_PATH = os.path.join(os.path.dirname(__file__), CONVERSATION_MEMORY_FILE)
+PROJECT_STATE_FILE_PATH = os.path.join(os.path.dirname(__file__), PROJECT_STATE_FILE)
 
 def save_conversation_context(user_message, response, file_path="", action_type="chat"):
     """Save conversation context for Mini Helper continuity"""
@@ -231,7 +219,7 @@ def save_conversation_context(user_message, response, file_path="", action_type=
         memory['last_active'] = datetime.now().isoformat()
         memory['total_interactions'] = len(memory['conversations'])
         
-        with open(CONVERSATION_MEMORY_FILE, 'w') as f:
+        with open(CONVERSATION_MEMORY_FILE_PATH, 'w') as f:
             json.dump(memory, f, indent=2)
         
     except Exception as e:
@@ -240,8 +228,8 @@ def save_conversation_context(user_message, response, file_path="", action_type=
 def load_conversation_memory():
     """Load conversation memory for Mini Helper"""
     try:
-        if os.path.exists(CONVERSATION_MEMORY_FILE):
-            with open(CONVERSATION_MEMORY_FILE, 'r') as f:
+        if os.path.exists(CONVERSATION_MEMORY_FILE_PATH):
+            with open(CONVERSATION_MEMORY_FILE_PATH, 'r') as f:
                 memory = json.load(f)
             return memory
         else:
@@ -465,8 +453,8 @@ def ensure_session_persistence():
     # Sessions should only expire when browser closes or explicit logout
     if session.get('user_authenticated') or session.get('user_email') or session.get('email'):
         session.permanent = True
-        # Set reasonable session lifetime (24 hours)
-        app.permanent_session_lifetime = timedelta(hours=24)
+        # Set reasonable session lifetime
+        app.permanent_session_lifetime = timedelta(hours=SESSION_LIFETIME_HOURS)
     else:
         # Only make non-authenticated sessions temporary
         session.permanent = False
@@ -6473,13 +6461,21 @@ def get_feature_limit(plan: str, feature: str) -> int:
         logger.warning(f"⚠️ Unknown plan '{plan}' in feature limits, defaulting to 'free'")
         plan = 'free'
     
-    tier_limits = {
-        "free": {"decoder": 3, "fortune": 2, "horoscope": 3, "ai_image_monthly": 5},
-        "growth": {"decoder": 15, "fortune": 8, "horoscope": 10, "ai_image_monthly": 50},
-        "max": {"decoder": float("inf"), "fortune": float("inf"), "horoscope": float("inf"), "ai_image_monthly": float("inf")},
+    # Use centralized constants instead of hardcoded values
+    limits = PLAN_LIMITS.get(plan, PLAN_LIMITS["free"])
+    
+    # Add AI image limits if not in constants yet
+    ai_image_limits = {
+        "free": 5,
+        "growth": 50, 
+        "max": float("inf")
     }
     
-    limit = tier_limits.get(plan, {}).get(feature, 0)
+    if feature == "ai_image_monthly":
+        return ai_image_limits.get(plan, 5)
+    
+    # Get limit from centralized constants
+    limit = limits.get(feature, 0)
     logger.info(f"🎯 USAGE LIMIT: plan='{plan}' feature='{feature}' → limit={limit}")
     return limit
 
@@ -7160,9 +7156,9 @@ def api_plan_new():
         access = get_access_matrix_new(user_plan, trial_active)
         
         limits = {
-            "decoder": get_feature_limit_new(effective_plan, "decoder"),
-            "fortune": get_feature_limit_new(effective_plan, "fortune"),
-            "horoscope": get_feature_limit_new(effective_plan, "horoscope"),
+            "decoder": get_feature_limit(effective_plan, "decoder"),
+            "fortune": get_feature_limit(effective_plan, "fortune"),
+            "horoscope": get_feature_limit(effective_plan, "horoscope"),
         }
         
         return jsonify({
