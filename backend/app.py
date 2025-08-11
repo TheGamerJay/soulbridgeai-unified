@@ -4476,10 +4476,10 @@ def get_comprehensive_trial_stats():
         
         # Active trials
         if db_instance.use_postgres:
-            cursor.execute("SELECT COUNT(*) FROM users WHERE trial_active = TRUE")
+            cursor.execute("SELECT COUNT(*) FROM users WHERE trial_active = 1")
             stats['active_trials'] = cursor.fetchone()[0]
             
-            cursor.execute("SELECT COUNT(*) FROM users WHERE trial_used_permanently = TRUE")
+            cursor.execute("SELECT COUNT(*) FROM users WHERE trial_used_permanently = 1")
             stats['used_trials'] = cursor.fetchone()[0]
             
             cursor.execute("SELECT COUNT(*) FROM users WHERE user_plan = 'growth'")
@@ -4636,7 +4636,7 @@ def admin_expire_all_trials():
                 UPDATE users 
                 SET trial_active = FALSE, 
                     trial_used_permanently = TRUE
-                WHERE trial_active = TRUE
+                WHERE trial_active = 1
             """)
         else:
             cursor.execute("""
@@ -4682,7 +4682,7 @@ def admin_send_trial_warnings():
                 cursor.execute("""
                     SELECT email, display_name, trial_started_at 
                     FROM users 
-                    WHERE trial_active = TRUE AND (trial_warning_sent = FALSE OR trial_warning_sent IS NULL)
+                    WHERE trial_active = 1 AND (trial_warning_sent = 0 OR trial_warning_sent IS NULL)
                 """)
             else:
                 cursor.execute("""
@@ -4700,7 +4700,7 @@ def admin_send_trial_warnings():
                     cursor.execute("""
                         UPDATE users 
                         SET trial_warning_sent = TRUE 
-                        WHERE trial_active = TRUE AND (trial_warning_sent = FALSE OR trial_warning_sent IS NULL)
+                        WHERE trial_active = 1 AND (trial_warning_sent = 0 OR trial_warning_sent IS NULL)
                     """)
                 else:
                     cursor.execute("""
@@ -7462,7 +7462,7 @@ def start_trial_bulletproof():
                     expires = now + timedelta(hours=5)
                     
                     if db_instance.use_postgres:
-                        cursor.execute("UPDATE users SET trial_started_at = %s, trial_expires_at = %s, trial_active = TRUE WHERE id = %s", (now, expires, user_id))
+                        cursor.execute("UPDATE users SET trial_started_at = %s, trial_expires_at = %s, trial_active = 1 WHERE id = %s", (now, expires, user_id))
                     else:
                         cursor.execute("UPDATE users SET trial_started_at = ?, trial_expires_at = ?, trial_active = 1 WHERE id = ?", (now.isoformat(), expires.isoformat(), user_id))
                     
