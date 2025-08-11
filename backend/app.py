@@ -851,16 +851,12 @@ def is_logged_in():
         has_email = bool(session.get('user_email') or session.get('email'))
         has_user_id = bool(session.get('user_id'))
         
-        # Debug session state
-        logger.info(f"🔍 LOGIN CHECK: has_email={has_email}, has_user_id={has_user_id}, user_id={session.get('user_id')}, email={session.get('user_email')}")
-        
         # If they have either email or user_id, they're logged in
         if has_email or has_user_id:
             # Ensure auth flag is set
             session['user_authenticated'] = True
             return True
         
-        logger.warning(f"❌ NO LOGIN DATA: session_keys={list(session.keys())}")
         return False
         
     except Exception as e:
@@ -2641,12 +2637,8 @@ def tiers_page():
 @app.route("/chat")
 def chat():
     """Chat page with bulletproof tier system"""
-    # Debug session state when accessing chat
-    companion = request.args.get('companion')
-    logger.info(f"🔍 CHAT ACCESS: companion={companion}, user_id={session.get('user_id')}, user_email={session.get('user_email')}, authenticated={session.get('user_authenticated')}")
-    
     if not is_logged_in():
-        logger.warning(f"❌ LOGIN CHECK FAILED: companion={companion}, session_keys={list(session.keys())}")
+        companion = request.args.get('companion')
         if companion:
             return redirect(f"/login?return_to=chat&companion={companion}")
         return redirect("/login?return_to=chat")
@@ -4484,10 +4476,10 @@ def get_comprehensive_trial_stats():
         
         # Active trials
         if db_instance.use_postgres:
-            cursor.execute("SELECT COUNT(*) FROM users WHERE trial_active = 1")
+            cursor.execute("SELECT COUNT(*) FROM users WHERE trial_active = TRUE")
             stats['active_trials'] = cursor.fetchone()[0]
             
-            cursor.execute("SELECT COUNT(*) FROM users WHERE trial_used_permanently = 1")
+            cursor.execute("SELECT COUNT(*) FROM users WHERE trial_used_permanently = TRUE")
             stats['used_trials'] = cursor.fetchone()[0]
             
             cursor.execute("SELECT COUNT(*) FROM users WHERE user_plan = 'growth'")
@@ -4642,9 +4634,9 @@ def admin_expire_all_trials():
         if db_instance.use_postgres:
             cursor.execute("""
                 UPDATE users 
-                SET trial_active = 0, 
-                    trial_used_permanently = 1
-                WHERE trial_active = 1
+                SET trial_active = FALSE, 
+                    trial_used_permanently = TRUE
+                WHERE trial_active = TRUE
             """)
         else:
             cursor.execute("""
@@ -4690,7 +4682,7 @@ def admin_send_trial_warnings():
                 cursor.execute("""
                     SELECT email, display_name, trial_started_at 
                     FROM users 
-                    WHERE trial_active = 1 AND (trial_warning_sent = 0 OR trial_warning_sent IS NULL)
+                    WHERE trial_active = TRUE AND (trial_warning_sent = FALSE OR trial_warning_sent IS NULL)
                 """)
             else:
                 cursor.execute("""
@@ -4707,8 +4699,8 @@ def admin_send_trial_warnings():
                 if db_instance.use_postgres:
                     cursor.execute("""
                         UPDATE users 
-                        SET trial_warning_sent = 1 
-                        WHERE trial_active = 1 AND (trial_warning_sent = 0 OR trial_warning_sent IS NULL)
+                        SET trial_warning_sent = TRUE 
+                        WHERE trial_active = TRUE AND (trial_warning_sent = FALSE OR trial_warning_sent IS NULL)
                     """)
                 else:
                     cursor.execute("""
