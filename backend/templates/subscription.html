@@ -677,10 +677,24 @@ function selectPlan(planType) {
   selectPlanViaAPI(planType, currentPricing);
 }
 
-// Plan selection API function
+// Plan selection API function - directly create Stripe checkout
 async function selectPlanViaAPI(planType, billing) {
   try {
-    const response = await fetch('/api/select-plan', {
+    // First check if user is logged in
+    const statusResponse = await fetch('/api/user-status', {
+      method: 'GET',
+      credentials: 'include'
+    });
+    const statusData = await statusResponse.json();
+    
+    if (!statusData.logged_in) {
+      alert('Please log in to subscribe to a plan');
+      window.location.href = '/login?return_to=subscription';
+      return;
+    }
+
+    // Create Stripe checkout session directly
+    const response = await fetch('/api/create-checkout-session', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -694,33 +708,16 @@ async function selectPlanViaAPI(planType, billing) {
     
     const result = await response.json();
     
-    if (result.success) {
-      // Store plan selection in localStorage for frontend use
-      const planData = {
-        plan: planType,
-        billing: billing,
-        price: pricing[billing][planType]?.price || 'Free'
-      };
-      localStorage.setItem('selectedPlan', JSON.stringify(planData));
-      // Set subscription status for premium companion access (all plans are paid now)
-      localStorage.setItem('soulbridge_subscription', planType);
-      
-      // Show success message
-      alert(result.message);
-      
-      // Paid plans - show confirmation modal or go to payment
-      if (result.redirect) {
-        window.location.href = result.redirect;
-      } else {
-        // Show upgrade confirmation modal
-        showUpgradeConfirmation(planType, billing);
-      }
+    if (result.success && result.checkout_url) {
+      // Redirect to Stripe checkout
+      window.location.href = result.checkout_url;
     } else {
-      alert('Error: ' + result.error);
+      alert('Error: ' + (result.error || 'Payment setup failed'));
+      console.error('Payment setup error:', result);
     }
   } catch (error) {
     console.error('Plan selection error:', error);
-    alert('Failed to select plan. Please try again.');
+    alert('Failed to start payment process. Please try again.');
   }
 }
 
