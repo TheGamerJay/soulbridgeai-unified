@@ -620,9 +620,9 @@ def load_user_context_disabled():
                         conn = db_instance.get_connection()
                         cursor = conn.cursor()
                         if db_instance.use_postgres:
-                            cursor.execute("UPDATE users SET trial_active = 0, trial_used_permanently = 1 WHERE id = %s", (user_id,))
+                            cursor.execute("UPDATE users SET trial_active = 0, trial_used_permanently = TRUE WHERE id = %s", (user_id,))
                         else:
-                            cursor.execute("UPDATE users SET trial_active = 0, trial_used_permanently = 1 WHERE id = ?", (user_id,))
+                            cursor.execute("UPDATE users SET trial_active = 0, trial_used_permanently = TRUE WHERE id = ?", (user_id,))
                         conn.commit()
                         conn.close()
                         logger.info(f"Trial expired for user {user_id} after {elapsed} seconds")
@@ -1819,7 +1819,7 @@ def start_trial():
         if db.use_postgres:
             cursor.execute("UPDATE users SET trial_started_at = %s, trial_expires_at = %s, trial_used_permanently = TRUE WHERE id = %s", (now, expires, user_id))
         else:
-            cursor.execute("UPDATE users SET trial_started_at = ?, trial_expires_at = ?, trial_used_permanently = 1 WHERE id = ?", (now.isoformat(), expires.isoformat(), user_id))
+            cursor.execute("UPDATE users SET trial_started_at = ?, trial_expires_at = ?, trial_used_permanently = TRUE WHERE id = ?", (now.isoformat(), expires.isoformat(), user_id))
         
         conn.commit()
         conn.close()
@@ -4479,7 +4479,7 @@ def get_comprehensive_trial_stats():
             cursor.execute("SELECT COUNT(*) FROM users WHERE trial_active = 1")
             stats['active_trials'] = cursor.fetchone()[0]
             
-            cursor.execute("SELECT COUNT(*) FROM users WHERE trial_used_permanently = 1")
+            cursor.execute("SELECT COUNT(*) FROM users WHERE trial_used_permanently = TRUE")
             stats['used_trials'] = cursor.fetchone()[0]
             
             cursor.execute("SELECT COUNT(*) FROM users WHERE user_plan = 'growth'")
@@ -4496,7 +4496,7 @@ def get_comprehensive_trial_stats():
             cursor.execute("SELECT COUNT(*) FROM users WHERE trial_active = 1")
             stats['active_trials'] = cursor.fetchone()[0]
             
-            cursor.execute("SELECT COUNT(*) FROM users WHERE trial_used_permanently = 1")
+            cursor.execute("SELECT COUNT(*) FROM users WHERE trial_used_permanently = TRUE")
             stats['used_trials'] = cursor.fetchone()[0]
             
             cursor.execute("SELECT COUNT(*) FROM users WHERE user_plan = 'growth'")
@@ -4642,7 +4642,7 @@ def admin_expire_all_trials():
             cursor.execute("""
                 UPDATE users 
                 SET trial_active = 0, 
-                    trial_used_permanently = 1
+                    trial_used_permanently = TRUE
                 WHERE trial_active = 1
             """)
         
@@ -5487,7 +5487,7 @@ def start_trial_old():
                 UPDATE users 
                 SET trial_started_at = CURRENT_TIMESTAMP, 
                     trial_companion = %s, 
-                    trial_used_permanently = 1,
+                    trial_used_permanently = TRUE,
                     trial_expires_at = CURRENT_TIMESTAMP + INTERVAL '5 hours'
                 WHERE email = %s
             """, (companion_id, user_email))
@@ -7502,7 +7502,7 @@ def poll_trial_bulletproof():
                             if db_instance.use_postgres:
                                 cursor.execute("UPDATE users SET trial_active = FALSE, trial_used_permanently = TRUE WHERE id = %s", (user_id,))
                             else:
-                                cursor.execute("UPDATE users SET trial_active = 0, trial_used_permanently = 1 WHERE id = ?", (user_id,))
+                                cursor.execute("UPDATE users SET trial_active = 0, trial_used_permanently = TRUE WHERE id = ?", (user_id,))
                             conn.commit()
                             conn.close()
                 except Exception as e:
@@ -8222,7 +8222,7 @@ def debug_force_free_user():
                 SET plan = 'free', 
                     trial_expires_at = NULL,
                     trial_started_at = NULL,
-                    trial_used_permanently = 1
+                    trial_used_permanently = TRUE
                 WHERE id = %s
             """, (user_id,))
             conn.commit()
