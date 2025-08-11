@@ -2654,32 +2654,55 @@ def chat():
     trial_active = session.get('trial_active', False)
     effective_plan = get_effective_plan(user_plan, trial_active)  # FIXED: Calculate fresh
     
-    # Handle companion selection
+    # Handle companion selection using bulletproof data
     companion_id = request.args.get('companion')
     if companion_id:
-        # Define companion tiers - handle different companion ID formats
-        companion_tiers = {
-            # Free companions
-            'blayzo_free': 'free', 'blayzica_free': 'free', 'companion_gamerjay': 'free',
-            'blayzia_free': 'free', 'blayzion_free': 'free', 'claude_free': 'free',
-            # Growth companions  
-            'companion_sky': 'growth', 'blayzo_premium': 'growth', 'blayzica_growth': 'growth',
-            'gamerjay_premium': 'growth', 'watchdog_growth': 'growth',
-            'crimson_growth': 'growth', 'violet_growth': 'growth', 'claude_growth': 'growth',
-            # Max companions
-            'companion_crimson': 'max', 'companion_violet': 'max', 'royal_max': 'max',
-            'watchdog_max': 'max', 'ven_blayzica': 'max', 'ven_sky': 'max', 'claude_max': 'max',
-            # Handle direct names (violet -> companion_violet)
-            'violet': 'max', 'crimson': 'max', 'sky': 'growth'
-        }
+        # Find companion tier from bulletproof companion data
+        companion_tier = 'free'  # default
+        companion_found = False
         
-        companion_tier = companion_tiers.get(companion_id, 'free')
+        for c in COMPANIONS_NEW:
+            if c['id'] == companion_id:
+                companion_tier = c['tier']
+                companion_found = True
+                break
         
-        # Check access using bulletproof logic
-        can_access = can_access_companion(user_plan, companion_tier, trial_active)
+        if not companion_found:
+            # Try legacy companion mapping for backwards compatibility
+            legacy_mapping = {
+                'blayzo': 'blayzo_free',
+                'blayzica': 'blayzica_free', 
+                'gamerjay': 'companion_gamerjay',
+                'sky': 'companion_sky',
+                'violet': 'companion_violet',
+                'crimson': 'companion_crimson'
+            }
+            if companion_id in legacy_mapping:
+                new_id = legacy_mapping[companion_id]
+                for c in COMPANIONS_NEW:
+                    if c['id'] == new_id:
+                        companion_tier = c['tier']
+                        companion_found = True
+                        companion_id = new_id  # update to new ID
+                        break
+        
+        if not companion_found:
+            # Default to free tier if not found
+            companion_tier = 'free'
+        
+        # Use bulletproof companion unlock logic
+        referrals = int(session.get('referrals', 0))
+        unlocked_tiers, referral_ids = companion_unlock_state_new(user_plan, trial_active, referrals)
+        
+        # Check access
+        can_access = False
+        if companion_tier in ('free', 'growth', 'max'):
+            can_access = companion_tier in unlocked_tiers
+        elif companion_tier == 'referral':
+            can_access = companion_id in referral_ids
         
         if not can_access:
-            return redirect("/companion-selection?error=upgrade_required")
+            return redirect("/tiers?upgrade_required=true")
             
         session['selected_companion'] = companion_id
     
