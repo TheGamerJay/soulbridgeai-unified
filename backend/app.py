@@ -155,16 +155,20 @@ def get_access_matrix_new(user_plan: str, trial_active: bool):
     return base
 
 def companion_unlock_state_new(user_plan: str, trial_active: bool, referrals: int):
-    """Determine which companions are unlocked"""
-    unlocked_tiers = set(["free"])
+    """Determine which companions are unlocked - CORRECTED LOGIC"""
+    unlocked_tiers = set(["free"])  # Everyone gets free
     
-    # Growth tier: unlocks growth companions
-    if user_plan in ["growth", "max"] or trial_active:
+    if trial_active:
+        # Trial unlocks ALL companions for 5 hours
         unlocked_tiers.add("growth")
-    
-    # Max tier: unlocks max companions  
-    if user_plan == "max" or trial_active:
         unlocked_tiers.add("max")
+    else:
+        # No trial - only get your specific tier
+        if user_plan == "growth":
+            unlocked_tiers.add("growth")
+        elif user_plan == "max":
+            unlocked_tiers.add("max")
+            # Max tier does NOT get growth companions - only free + max
     
     # Referral progressive unlocks (never by trial)
     referral_unlocks = []
