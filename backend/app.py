@@ -844,32 +844,19 @@ def background_monitoring():
 background_monitoring()
 
 def is_logged_in():
-    """Check if user is logged in - PERMANENT FIX with simple, reliable logic"""
+    """Ultra-simple authentication - just check for user identifier"""
     try:
-        # PERMANENT FIX: Simple authentication check
-        user_authenticated = session.get("user_authenticated", False)
-        has_user_id = session.get('user_id') is not None
-        has_email = session.get('user_email') or session.get('email')
+        # ULTRA-SIMPLE: Just check if user has any identifying information
+        has_email = bool(session.get('user_email') or session.get('email'))
+        has_user_id = bool(session.get('user_id'))
         
-        # Debug logging to track what's happening
-        logger.info(f"🔍 AUTH CHECK: user_authenticated={user_authenticated}, has_user_id={has_user_id}, has_email={bool(has_email)}")
-        
-        # If user has email but no auth flag, restore authentication
-        if has_email and not user_authenticated:
+        # If they have either email or user_id, they're logged in
+        if has_email or has_user_id:
+            # Ensure auth flag is set
             session['user_authenticated'] = True
-            session['session_version'] = "2025-07-28-banking-security" 
-            session['last_activity'] = datetime.now().isoformat()
-            logger.info("✅ PERMANENT FIX: Restored authentication for session with email")
-            user_authenticated = True
+            return True
         
-        # Update last activity for valid sessions
-        if user_authenticated and (has_user_id or has_email):
-            session['last_activity'] = datetime.now().isoformat()
-        
-        # Simple check: logged in if authenticated and has identifying info
-        result = user_authenticated and (has_user_id or has_email)
-        logger.info(f"🔍 AUTH RESULT: {result}")
-        return result
+        return False
         
     except Exception as e:
         # Any unexpected error should not clear session unless necessary
@@ -2523,14 +2510,9 @@ def companion_selection():
     logger.info(f"🔍 COMPANION SELECTION: user_id = {session.get('user_id')}")
     logger.info(f"🔍 COMPANION SELECTION: session_version = {session.get('session_version')}")
     
-    # TEMPORARY DEBUG: Check authentication with detailed logging
-    auth_result = is_logged_in()
-    logger.warning(f"🔍 COMPANION AUTH DEBUG: is_logged_in() returned {auth_result}")
-    if not auth_result:
-        logger.warning(f"🚫 COMPANION SELECTION: User not authenticated")
-        logger.warning(f"🔍 SESSION CONTENTS: {dict(session)}")
-        # TEMPORARY: Don't redirect to login, show error message instead
-        return f"<h1>Authentication Debug</h1><p>Session: {dict(session)}</p><p>Auth result: {auth_result}</p><a href='/login'>Go to Login</a>"
+    if not is_logged_in():
+        logger.warning(f"🚫 COMPANION SELECTION: User not authenticated, redirecting to login")
+        return redirect("/login")
         
     # Check if user has accepted terms
     terms_check = requires_terms_acceptance()
@@ -2575,10 +2557,8 @@ def companion_selection():
     # DEBUG: Log template variables to identify flash cause
     logger.info(f"🎨 TEMPLATE DEBUG: referral_count={referral_count}, trial_active={trial_active}, user_plan={user_plan}")
     
-    return render_template("companion_selector.html", 
-                         referral_count=referral_count,
-                         trial_active=trial_active,
-                         user_plan=user_plan)
+    # Use simple template without complex conditionals to prevent flash
+    return render_template("companion_selector_simple.html")
 
 # ---- CLEAN NETFLIX-STYLE TIERS PAGE ----
 @app.route("/tiers")
