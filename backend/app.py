@@ -157,10 +157,15 @@ def get_access_matrix_new(user_plan: str, trial_active: bool):
 def companion_unlock_state_new(user_plan: str, trial_active: bool, referrals: int):
     """Determine which companions are unlocked"""
     unlocked_tiers = set(["free"])
-    if user_plan == "growth" or trial_active:
+    
+    # Growth tier: unlocks growth companions
+    if user_plan in ["growth", "max"] or trial_active:
         unlocked_tiers.add("growth")
+    
+    # Max tier: unlocks max companions  
     if user_plan == "max" or trial_active:
         unlocked_tiers.add("max")
+    
     # Referral progressive unlocks (never by trial)
     referral_unlocks = []
     if referrals >= 2: referral_unlocks.append("blayzike")
