@@ -9,50 +9,20 @@ Voice chat processing enabled
 import eventlet
 eventlet.monkey_patch()
 
+# Standard library imports
 import os
 import sys
-import logging
-#!/usr/bin/env python3
-"""
-SoulBridge AI - Production Ready App  
-Combines working initialization with all essential routes
-Voice chat processing enabled
-"""
-
-# CRITICAL: eventlet monkey patching MUST be first for Gunicorn compatibility
-import eventlet
-eventlet.monkey_patch()
-
-import os
-import sys
-import logging
-from flask import Flask, jsonify, render_template, render_template_string, request, session, redirect, url_for, flash, make_response, g
-
-# ...existing code...
-
-# Create Flask app with secure session configuration
-app = Flask(__name__)
-
-# ...existing code...
-
-# Admin dashboard logout route for correct redirect
-@app.route("/admin/logout", methods=["GET", "POST"])
-def admin_logout():
-    """Admin dashboard logout: clears session and redirects to /admin/login"""
-    try:
-        user_email = session.get('user_email', 'unknown')
-        logger.info(f"ADMIN LOGOUT: User {user_email} logged out from admin dashboard")
-        session.clear()
-        return redirect("/admin/login")
-    except Exception as e:
-        logger.error(f"Admin logout error: {e}")
-        return redirect("/admin/login")
 import time
 import json
-import psycopg2  # Add missing psycopg2 import
+import logging
+import psycopg2
 from copy import deepcopy
 from datetime import datetime, timezone, timedelta
+
+# Flask imports
 from flask import Flask, jsonify, render_template, render_template_string, request, session, redirect, url_for, flash, make_response, g
+
+# Local imports
 from trial_utils import is_trial_active as calculate_trial_active, get_trial_time_remaining
 from tier_isolation import tier_manager, get_current_user_tier, get_current_tier_system
 
@@ -501,160 +471,11 @@ def ensure_session_persistence():
         # Only make non-authenticated sessions temporary
         session.permanent = False
 
-# DISABLED: This was causing session clearing after multiple companion clicks
-# @app.before_request
-# def reset_session_if_cookie_missing():
-#     # If no session cookie, make sure user is not treated as logged in
-#     if not request.cookies.get('session'):
-#         session.clear()
+# Removed disabled reset_session_if_cookie_missing() function - was causing session clearing
 
-# TEMPORARILY DISABLED - This might be interfering with authentication
-# @app.before_request  
-def load_user_context_disabled():
-    """Load user context and handle trial expiration - comprehensive system"""
-    # Skip for static files and API calls to avoid overhead
-    if request.endpoint in ['static', 'favicon'] or request.path.startswith('/static/'):
-        return
+# Removed disabled load_user_context_disabled() function - was not being used
 
-    user_id = session.get('user_id')
-    if not user_id:
-        return  # not logged in
-    
-    session.permanent = True
-    
-    # Auto-migrate legacy plan values in session
-    legacy_plan_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
-    current_plan = session.get("user_plan", "free")
-    if current_plan in legacy_plan_mapping:
-        new_plan = legacy_plan_mapping[current_plan]
-        logger.info(f"🧼 Fixing session user_plan from {current_plan} → {new_plan}")
-        session["user_plan"] = new_plan
-        current_plan = new_plan
-    
-    # Sync trial status from database to session (with graceful fallback)
-    try:
-        db_instance = get_database()
-        if db_instance:
-            conn = db_instance.get_connection()
-            cursor = conn.cursor()
-            if db_instance.use_postgres:
-                cursor.execute("SELECT trial_started_at, trial_used_permanently FROM users WHERE id = %s", (user_id,))
-            else:
-                cursor.execute("SELECT trial_started_at, trial_used_permanently FROM users WHERE id = ?", (user_id,))
-            
-            result = cursor.fetchone()
-            if result:
-                trial_started_at_db, trial_used_permanently_db = result
-                
-                # Update session with database values
-                session['trial_used_permanently'] = bool(trial_used_permanently_db)
-                
-                # Check if trial is currently active
-                if trial_started_at_db:
-                    if isinstance(trial_started_at_db, str):
-                        trial_time = datetime.fromisoformat(trial_started_at_db.replace('Z', '+00:00'))
-                    else:
-                        trial_time = trial_started_at_db
-                    
-                    trial_active = datetime.utcnow() < trial_time + timedelta(hours=5)
-                    session['trial_active'] = trial_active
-                    
-                    if trial_active:
-                        session['trial_started_at'] = trial_time.isoformat()
-                        session['trial_expires_at'] = (trial_time + timedelta(hours=5)).isoformat()
-                        # Don't cache effective_plan - calculate it fresh each time
-                    else:
-                        session['trial_active'] = False
-                        # Don't cache effective_plan - calculate it fresh each time
-                else:
-                    session['trial_active'] = False
-                    # Don't cache effective_plan - calculate it fresh each time
-            
-            conn.close()
-    except Exception as e:
-        logger.warning(f"Non-critical error syncing trial status (continuing with session data): {e}")
-        # Graceful fallback: use existing session values, don't clear session
-        if 'trial_active' not in session:
-            session['trial_active'] = False
-        pass
-
-    g.user_plan = current_plan
-    g.trial_active = session.get("trial_active", False)
-    g.trial_started_at = session.get("trial_started_at")
-    g.effective_plan = get_effective_plan(current_plan, g.trial_active)  # Always calculate fresh
-    g.is_admin = is_admin()
-    session['last_seen'] = datetime.utcnow().isoformat()
-    
-    # TIER ISOLATION: Initialize user into appropriate isolated tier system
-    tier_name = tier_manager.get_user_tier(current_plan, g.trial_active)
-    user_data = {
-        'user_id': user_id,
-        'user_email': session.get('user_email'),
-        'user_plan': current_plan,
-        'trial_active': g.trial_active
-    }
-    tier_manager.initialize_user_for_tier(user_data, tier_name)
-    logger.info(f"🔒 TIER ISOLATION: User {user_id} initialized in {tier_name.upper()} tier")
-
-    if g.trial_active and g.trial_started_at:
-        try:
-            elapsed = (datetime.utcnow() - datetime.fromisoformat(g.trial_started_at)).total_seconds()
-
-            # Send 10-minute warning email if not already sent
-            if elapsed > 17400 and not session.get("trial_warning_sent"):
-                send_trial_warning_email(session.get("user_email"), 10)
-                session['trial_warning_sent'] = True
-
-            # Expire trial after 5 hours (18000 seconds)
-            if elapsed > 18000:
-                session['trial_active'] = False
-                session['trial_used_permanently'] = True
-                session.pop('trial_started_at', None)
-                g.trial_active = False
-                g.effective_plan = g.user_plan
-                
-                # Update database
-                try:
-                    db_instance = get_database()
-                    if db_instance:
-                        conn = db_instance.get_connection()
-                        cursor = conn.cursor()
-                        if db_instance.use_postgres:
-                            cursor.execute("UPDATE users SET trial_active = FALSE, trial_used_permanently = TRUE WHERE id = %s", (user_id,))
-                        else:
-                            cursor.execute("UPDATE users SET trial_active = FALSE, trial_used_permanently = TRUE WHERE id = ?", (user_id,))
-                        conn.commit()
-                        conn.close()
-                        logger.info(f"Trial expired for user {user_id} after {elapsed} seconds")
-                except Exception as e:
-                    logger.error(f"Error expiring trial for user {user_id}: {e}")
-        except Exception as e:
-            logger.error(f"Error processing trial logic for user {user_id}: {e}")
-
-# DISABLED: This function was potentially causing session contamination
-# @app.before_request
-# def update_trial_status():
-#     """Update trial status in session on every request for trial users"""
-#     try:
-#         # Skip for static files and API calls to avoid overhead
-#         if request.endpoint in ['static', 'favicon'] or request.path.startswith('/static/'):
-#             return
-#             
-#         user_id = session.get('user_id')
-#         if user_id:
-#             # Check current trial status from database
-#             trial_active = is_trial_active(user_id)
-#             # Update session with current trial status
-#             session['trial_active'] = trial_active
-#             
-#             # If trial just expired, clear trial flag
-#             if not trial_active and session.get('trial_active'):
-#                 session['trial_active'] = False
-#                 
-#     except Exception as e:
-#         # Don't break the app if trial check fails
-#         logger.error(f"Trial status update error: {e}")
-#         pass
+# Removed disabled update_trial_status() function - was causing session contamination
 
 # Prevent caching to force fresh login checks
 @app.after_request
@@ -7290,8 +7111,8 @@ def check_horoscope_limit():
 # ========================================
 
 @app.route("/api/user-plan")
-def get_user_plan():
-    """Get user plan and trial status for frontend"""
+def get_user_plan_api():
+    """Get user plan and trial status for frontend API"""
     try:
         if not is_logged_in():
             return jsonify({"plan": "free", "trial_active": False})
@@ -11518,49 +11339,7 @@ def get_user_status():
         logger.error(f"Get user status error: {e}")
         return jsonify({"success": False, "error": "Internal server error"}), 500
 
-# DISABLED: This debug route was automatically giving all users enterprise tier access
-# @app.route("/debug/set-max-tier", methods=["POST"])
-# def set_max_tier():
-#     """DEBUG: Set current user to Max tier (enterprise plan) in both session AND database"""
-#     try:
-#         if not is_logged_in():
-#             return jsonify({"success": False, "error": "Authentication required"}), 401
-#             
-#         user_email = session.get('user_email', 'unknown')
-#         user_id = session.get('user_id')
-#         
-#         # Update session
-#         session['user_plan'] = 'enterprise'
-#         
-#         # Update database
-#         try:
-#             db_instance = get_database()
-#             if db_instance and (user_id or user_email):
-#                 conn = db_instance.get_connection()
-#                 cursor = conn.cursor()
-#                 placeholder = "%s" if hasattr(db_instance, 'postgres_url') and db_instance.postgres_url else "?"
-#                 
-#                 if user_id:
-#                     cursor.execute(f"UPDATE users SET plan_type = {placeholder} WHERE id = {placeholder}", ('max', user_id))
-#                 elif user_email:
-#                     cursor.execute(f"UPDATE users SET plan_type = {placeholder} WHERE email = {placeholder}", ('max', user_email))
-#                 
-#                 conn.commit()
-#                 conn.close()
-#                 logger.info(f"💾 DATABASE: Updated plan_type to enterprise for user {user_email}")
-#         except Exception as db_error:
-#             logger.error(f"Failed to update database plan: {db_error}")
-#         
-#         logger.info(f"🔧 DEBUG: Set user {user_email} to enterprise plan (Max tier)")
-#         
-#         return jsonify({
-#             "success": True, 
-#             "message": "User upgraded to Max tier (enterprise plan) in session and database",
-#             "new_plan": "enterprise"
-#         })
-#     except Exception as e:
-#         logger.error(f"Set max tier error: {e}")
-#         return jsonify({"success": False, "error": "Failed to set tier"}), 500
+# Removed disabled debug route: set_max_tier - security risk
 
 @app.route("/debug/session-status")
 def debug_session_status():
@@ -11579,83 +11358,9 @@ def debug_session_status():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# DISABLED: This debug route was automatically giving all users enterprise tier access
-# @app.route("/debug/force-max-tier-by-email/<email>", methods=["POST"])
-# def force_max_tier_by_email(email):
-#     """DEBUG: Force set specific email to Max tier in database (no auth required)"""
-#     try:
-#         # Update database directly
-#         db_instance = get_database()
-#         if db_instance:
-#             conn = db_instance.get_connection()
-#             cursor = conn.cursor()
-#             placeholder = "%s" if hasattr(db_instance, 'postgres_url') and db_instance.postgres_url else "?"
-#             
-#             # Update the user's plan in database
-#             cursor.execute(f"UPDATE users SET plan_type = {placeholder} WHERE email = {placeholder}", ('enterprise', email.lower()))
-#             affected_rows = cursor.rowcount
-#             conn.commit()
-#             conn.close()
-#             
-#             logger.info(f"💾 FORCE: Updated plan_type to enterprise for email {email} (affected {affected_rows} rows)")
-#             
-#             return jsonify({
-#                 "success": True,
-#                 "message": f"Forced {email} to Max tier (enterprise plan) in database",
-#                 "affected_rows": affected_rows
-#             })
-#         else:
-#             return jsonify({"success": False, "error": "Database not available"}), 500
-#             
-#     except Exception as e:
-#         logger.error(f"Force max tier error: {e}")
-#         return jsonify({"success": False, "error": str(e)}), 500
+# Removed disabled debug route: force_max_tier_by_email - security risk
 
-# DISABLED: This debug route was automatically giving all users enterprise tier access
-# @app.route("/debug/emergency-login/<email>", methods=["POST"])
-# def emergency_login(email):
-#     """DEBUG: Emergency login bypass (no password required)"""
-#     try:
-#         # Create session directly
-#         session['user_authenticated'] = True
-#         session['user_email'] = email.lower()
-#         session['email'] = email.lower()
-#         session['user_plan'] = 'enterprise'  # Set to Max tier
-#         session['display_name'] = 'GamerJay'
-#         session['session_version'] = "2025-07-28-banking-security"
-#         session['last_activity'] = datetime.now().isoformat()
-#         
-#         # Try to get user_id from database
-#         try:
-#             db_instance = get_database()
-#             if db_instance:
-#                 conn = db_instance.get_connection()
-#                 cursor = conn.cursor()
-#                 placeholder = "%s" if hasattr(db_instance, 'postgres_url') and db_instance.postgres_url else "?"
-#                 
-#                 cursor.execute(f"SELECT id FROM users WHERE email = {placeholder}", (email.lower(),))
-#                 user_data = cursor.fetchone()
-#                 if user_data:
-#                     session['user_id'] = user_data[0]
-#                     
-#                 # Also update their plan in database
-#                 cursor.execute(f"UPDATE users SET plan_type = {placeholder} WHERE email = {placeholder}", ('enterprise', email.lower()))
-#                 conn.commit()
-#                 conn.close()
-#         except Exception as db_error:
-#             logger.error(f"Emergency login DB error: {db_error}")
-#         
-#         logger.info(f"🚨 EMERGENCY LOGIN: {email} logged in with Max tier")
-#         
-#         return jsonify({
-#             "success": True,
-#             "message": f"Emergency login successful for {email}",
-#             "redirect": "/intro"
-#         })
-#         
-#     except Exception as e:
-#         logger.error(f"Emergency login error: {e}")
-#         return jsonify({"success": False, "error": str(e)}), 500
+# Removed disabled debug route: emergency_login - security risk
 
 @app.route("/debug/emergency-login-foundation/<email>", methods=["POST"])
 def emergency_login_foundation(email):
@@ -11892,34 +11597,7 @@ def emergency_login_page():
     </html>
     """
 
-# DISABLED: This debug route was automatically giving all users enterprise tier access
-# @app.route("/debug/refresh-max-tier", methods=["POST"])
-# def refresh_max_tier():
-#     """DEBUG: Refresh current session to Max tier"""
-#     try:
-#         if not session.get('user_authenticated'):
-#             return jsonify({"success": False, "error": "Not logged in"}), 401
-#             
-#         # Force update session
-#         session['user_plan'] = 'enterprise'
-#         session['last_activity'] = datetime.now().isoformat()
-#         
-#         # Get current values for debugging
-#         current_plan = session.get('user_plan')
-#         user_email = session.get('user_email', 'unknown')
-#         
-#         logger.info(f"🔄 REFRESH: Updated {user_email} session to user_plan = {current_plan}")
-#         
-#         return jsonify({
-#             "success": True,
-#             "message": "Session refreshed to Max tier",
-#             "user_plan": current_plan,
-#             "user_email": user_email
-#         })
-#         
-#     except Exception as e:
-#         logger.error(f"Refresh max tier error: {e}")
-#         return jsonify({"success": False, "error": str(e)}), 500
+# Removed disabled debug route: refresh_max_tier - security risk
 
 # COMPANION API ENDPOINTS
 # ========================================
@@ -12543,12 +12221,25 @@ def auto_git_commit(file_path, message="Mini Assistant Auto-Commit"):
     """Automatically commit file changes to git"""
     try:
         import subprocess
+        import os
+        
+        # SECURITY: Validate file_path to prevent injection
+        if not file_path or '..' in file_path or file_path.startswith('/'):
+            return "❌ Invalid file path"
+        
+        # SECURITY: Sanitize file path 
+        safe_file_path = os.path.normpath(file_path)
+        if not os.path.exists(safe_file_path):
+            return "❌ File does not exist"
+            
+        # SECURITY: Sanitize commit message to prevent injection
+        safe_message = str(message).replace('"', '').replace("'", "").replace("`", "")[:200]
         
         # Add the specific file
-        subprocess.run(["git", "add", file_path], check=True, cwd=".")
+        subprocess.run(["git", "add", safe_file_path], check=True, cwd=".")
         
         # Commit with message
-        full_message = f"{message}\n\n🤖 Generated with Mini Assistant\n\nCo-Authored-By: Mini Assistant <admin@soulbridgeai.com>"
+        full_message = f"{safe_message}\n\n🤖 Generated with Mini Assistant\n\nCo-Authored-By: Mini Assistant <admin@soulbridgeai.com>"
         subprocess.run(["git", "commit", "-m", full_message], check=True, cwd=".")
         
         return "✅ Git commit successful."
@@ -12708,17 +12399,27 @@ def auto_git_commit_ultimate(file_path, message="Mini Assistant Auto-Commit"):
     try:
         import subprocess
         
+        # SECURITY: Validate and sanitize inputs
+        if not file_path or '..' in file_path or file_path.startswith('/'):
+            return "❌ Invalid file path"
+        
+        safe_file_path = os.path.normpath(file_path)
+        if not os.path.exists(safe_file_path):
+            return "❌ File does not exist"
+            
+        safe_message = str(message).replace('"', '').replace("'", "").replace("`", "")[:200]
+        
         # Add the specific file
-        result = subprocess.run(["git", "add", file_path], capture_output=True, text=True, cwd=".")
+        result = subprocess.run(["git", "add", safe_file_path], capture_output=True, text=True, cwd=".")
         if result.returncode != 0:
             return f"⚠️ Git add failed: {result.stderr}"
         
         # Commit with enhanced message
-        full_message = f"""{message}
+        full_message = f"""{safe_message}
 
 🤖 Generated with Mini Assistant (Ultimate)
-File: {file_path}
-Timestamp: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+File: {safe_file_path}
+Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 
 Co-Authored-By: Mini Assistant <admin@soulbridgeai.com>"""
         
