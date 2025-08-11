@@ -522,7 +522,7 @@ def load_user_context():
         session["user_plan"] = new_plan
         current_plan = new_plan
     
-    # Sync trial status from database to session
+    # Sync trial status from database to session (with graceful fallback)
     try:
         db_instance = get_database()
         if db_instance:
@@ -563,8 +563,10 @@ def load_user_context():
             
             conn.close()
     except Exception as e:
-        logger.error(f"Error syncing trial status: {e}")
-        # Fallback to session values
+        logger.warning(f"Non-critical error syncing trial status (continuing with session data): {e}")
+        # Graceful fallback: use existing session values, don't clear session
+        if 'trial_active' not in session:
+            session['trial_active'] = False
         pass
 
     g.user_plan = current_plan
@@ -834,14 +836,21 @@ def background_monitoring():
 background_monitoring()
 
 def is_logged_in():
-    """Check if user is logged in with strict banking-style session timeout"""
+    """Check if user is logged in with graceful session migration"""
     try:
-        # BANKING SECURITY: Force clear all sessions created before security upgrade
+        # FIXED: Graceful session migration instead of aggressive clearing
         REQUIRED_SESSION_VERSION = "2025-07-28-banking-security"
         if session.get('session_version') != REQUIRED_SESSION_VERSION:
-            logger.info("SECURITY: Clearing old session - banking security upgrade")
-            session.clear()
-            return False
+            # If user has valid authentication data, migrate their session instead of clearing
+            if session.get("user_authenticated") and (session.get('user_id') or session.get('user_email')):
+                logger.info("SECURITY: Migrating existing session to new security version")
+                session['session_version'] = REQUIRED_SESSION_VERSION
+                session['last_activity'] = datetime.now().isoformat()
+            else:
+                # Only clear if no valid authentication data exists
+                logger.info("SECURITY: Clearing invalid session - no auth data")
+                session.clear()
+                return False
         
         if not session.get("user_authenticated", False):
             return False
