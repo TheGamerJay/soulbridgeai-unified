@@ -489,8 +489,8 @@ def increment_rate_limit_session():
         logger.error(f"Failed to increment rate limit session: {e}")
 
 # TEMPORARILY DISABLED - Testing if this interferes with authentication
-# @app.before_request
-def ensure_session_persistence_disabled():
+@app.before_request
+def ensure_session_persistence():
     # PERMANENT FIX: Make sessions persistent for all authenticated users
     # Sessions should only expire when browser closes or explicit logout
     if session.get('user_authenticated') or session.get('user_email') or session.get('email'):
