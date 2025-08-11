@@ -851,12 +851,16 @@ def is_logged_in():
         has_email = bool(session.get('user_email') or session.get('email'))
         has_user_id = bool(session.get('user_id'))
         
+        # Debug session state
+        logger.info(f"🔍 LOGIN CHECK: has_email={has_email}, has_user_id={has_user_id}, user_id={session.get('user_id')}, email={session.get('user_email')}")
+        
         # If they have either email or user_id, they're logged in
         if has_email or has_user_id:
             # Ensure auth flag is set
             session['user_authenticated'] = True
             return True
         
+        logger.warning(f"❌ NO LOGIN DATA: session_keys={list(session.keys())}")
         return False
         
     except Exception as e:
@@ -2637,8 +2641,12 @@ def tiers_page():
 @app.route("/chat")
 def chat():
     """Chat page with bulletproof tier system"""
+    # Debug session state when accessing chat
+    companion = request.args.get('companion')
+    logger.info(f"🔍 CHAT ACCESS: companion={companion}, user_id={session.get('user_id')}, user_email={session.get('user_email')}, authenticated={session.get('user_authenticated')}")
+    
     if not is_logged_in():
-        companion = request.args.get('companion')
+        logger.warning(f"❌ LOGIN CHECK FAILED: companion={companion}, session_keys={list(session.keys())}")
         if companion:
             return redirect(f"/login?return_to=chat&companion={companion}")
         return redirect("/login?return_to=chat")
