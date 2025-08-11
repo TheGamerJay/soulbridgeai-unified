@@ -627,7 +627,8 @@ body.theme-blayzion .message.assistant .message-content {
     height: 50px;
     border-radius: 50%;
     border: 2px solid #00ffff;
-    object-fit: cover;
+    object-fit: contain;
+    background: rgba(0, 0, 0, 0.3);
     transition: all 0.3s ease;
 }
 
