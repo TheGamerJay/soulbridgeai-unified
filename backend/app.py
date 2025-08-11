@@ -1455,6 +1455,29 @@ def session_refresh():
         logger.error(f"Error refreshing session: {e}")
         return jsonify({"success": False, "error": "Failed to refresh session"}), 500
 
+@app.route("/api/user-status", methods=["GET"])
+def user_status():
+    """Check if user is logged in for frontend authentication checks"""
+    try:
+        logged_in = is_logged_in()
+        user_plan = session.get('user_plan', 'free') if logged_in else 'free'
+        trial_active = session.get('trial_active', False) if logged_in else False
+        
+        return jsonify({
+            "success": True,
+            "logged_in": logged_in,
+            "user_plan": user_plan,
+            "trial_active": trial_active
+        })
+    except Exception as e:
+        logger.error(f"Error checking user status: {e}")
+        return jsonify({
+            "success": False,
+            "logged_in": False,
+            "user_plan": "free",
+            "trial_active": False
+        })
+
 @app.route("/api/logout-on-close", methods=["POST"])
 def logout_on_close():
     """Logout user when browser/tab is closed (not tab switch)"""
@@ -13180,7 +13203,21 @@ TIERS_TEMPLATE = r"""
     } else {
       // Upgrade now
       if (confirm('Redirect to upgrade page to subscribe to ' + tier + ' plan?')) {
-        window.location.href = '/subscription?plan=' + tier.toLowerCase();
+        // Check if user is logged in first
+        fetch('/api/user-status')
+          .then(response => response.json())
+          .then(data => {
+            if (data.logged_in) {
+              window.location.href = '/subscription?plan=' + tier.toLowerCase();
+            } else {
+              // Redirect to login with return path
+              window.location.href = '/login?return_to=subscription&plan=' + tier.toLowerCase();
+            }
+          })
+          .catch(() => {
+            // Fallback - try subscription page directly
+            window.location.href = '/subscription?plan=' + tier.toLowerCase();
+          });
       }
     }
   }
