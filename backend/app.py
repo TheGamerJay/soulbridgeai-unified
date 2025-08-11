@@ -2792,8 +2792,8 @@ def chat():
         effective_plan=effective_plan
     )
 
-@app.route("/api/companions", methods=["GET"])
-def api_companions():
+@app.route("/api/companions-old-disabled", methods=["GET"])
+def api_companions_old_disabled():
     """Get available companions organized by tiers"""
     try:
         # Allow access without authentication so users can see companions before login
@@ -7359,7 +7359,7 @@ def api_plan_new():
         }), 500
 
 @app.route("/api/companions")
-def api_companions_new():
+def api_companions():
     """Bulletproof companions API with server-side lock state"""
     try:
         if not is_logged_in():
