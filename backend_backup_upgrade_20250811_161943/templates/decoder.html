@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Decoder Mode - SoulBridge AI</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #000000 0%, #0f172a 50%, #1e293b 100%);
+            color: #e2e8f0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            color: #22d3ee;
+            margin-bottom: 16px;
+            text-shadow: 0 0 20px rgba(34, 211, 238, 0.5);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            color: #94a3b8;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .decoder-interface {
+            background: rgba(15, 23, 42, 0.6);
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 40px;
+        }
+
+        .mode-selector {
+            margin-bottom: 30px;
+        }
+
+        .mode-selector label {
+            display: block;
+            color: #22d3ee;
+            font-weight: 600;
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+        }
+
+        .mode-dropdown {
+            width: 100%;
+            padding: 16px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 12px;
+            color: #e2e8f0;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        .mode-dropdown:focus {
+            outline: none;
+            border-color: #22d3ee;
+            box-shadow: 0 0 15px rgba(34, 211, 238, 0.3);
+        }
+
+        .mode-dropdown option {
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 12px;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        .input-section label {
+            display: block;
+            color: #22d3ee;
+            font-weight: 600;
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+        }
+
+        .input-box {
+            width: 100%;
+            min-height: 150px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 12px;
+            color: #e2e8f0;
+            font-size: 1rem;
+            resize: vertical;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .input-box:focus {
+            outline: none;
+            border-color: #22d3ee;
+            box-shadow: 0 0 15px rgba(34, 211, 238, 0.3);
+        }
+
+        .input-box::placeholder {
+            color: #64748b;
+        }
+
+        .decode-button {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #22d3ee, #0891b2);
+            color: #000;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 30px;
+        }
+
+        .decode-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(34, 211, 238, 0.4);
+        }
+
+        .decode-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .output-section {
+            margin-top: 30px;
+        }
+
+        .output-section label {
+            display: block;
+            color: #22d3ee;
+            font-weight: 600;
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+        }
+
+        .output-box {
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(34, 211, 238, 0.2);
+            border-radius: 12px;
+            padding: 24px;
+            min-height: 200px;
+            color: #e2e8f0;
+            line-height: 1.6;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+
+        .output-box.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .output-box.loading {
+            opacity: 1;
+            transform: translateY(0);
+            text-align: center;
+            color: #22d3ee;
+        }
+
+        .save-button {
+            background: rgba(34, 211, 238, 0.2);
+            color: #22d3ee;
+            border: 2px solid #22d3ee;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .save-button:hover {
+            background: rgba(34, 211, 238, 0.3);
+        }
+
+        .usage-indicator {
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid rgba(34, 211, 238, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .usage-bar {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            height: 8px;
+            margin: 12px 0;
+            overflow: hidden;
+        }
+
+        .usage-fill {
+            background: linear-gradient(135deg, #22d3ee, #0891b2);
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .upgrade-prompt {
+            background: rgba(251, 191, 36, 0.1);
+            border: 2px solid rgba(251, 191, 36, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .upgrade-button {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: #000;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 12px;
+        }
+
+        .back-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(34, 211, 238, 0.8);
+            color: #000;
+            padding: 10px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            z-index: 100;
+        }
+
+        .back-btn:hover {
+            background: rgba(34, 211, 238, 1);
+            transform: translateY(-2px);
+        }
+
+        .mode-description {
+            background: rgba(34, 211, 238, 0.1);
+            border: 1px solid rgba(34, 211, 238, 0.3);
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 12px;
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .decoder-interface {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Back Button -->
+<a href="javascript:history.back()" class="back-btn">← Back to Chat</a>
+
+<div class="container">
+    <div class="header">
+        <h1>🧠 Decoder Mode</h1>
+        <p>Decode hidden meanings, emotions, and patterns in your life</p>
+    </div>
+
+
+    <!-- Usage Indicator (for free users) -->
+    <div class="usage-indicator" id="usage-indicator">
+        <div>
+            <strong>Daily Decodes:</strong> 
+            <span id="usage-count">...</span> / <span id="usage-limit">...</span> used
+        </div>
+        <div class="usage-bar">
+            <div class="usage-fill" id="usage-fill"></div>
+        </div>
+        <div style="font-size: 0.9rem; color: #94a3b8;" id="plan-description">
+            Loading decoder limits...
+        </div>
+        <p id="max-plan-message" style="display:none; color: #22d3ee; font-weight: 600;">
+            🎉 Max users have unlimited decoder access!
+        </p>
+    </div>
+
+    <div class="decoder-interface">
+        <!-- Mode Selector -->
+        <div class="mode-selector">
+            <label for="decoder-mode">Choose your decoder mode:</label>
+            <select id="decoder-mode" class="mode-dropdown">
+                <option value="tone">🔍 Decode Tone & Intent</option>
+                <option value="dream">😴 Decode a Dream</option>
+                <option value="behavior">🧠 Decode a Behavior Pattern</option>
+                <option value="text">💬 Decode a Text Message</option>
+                <option value="relationship">💑 Decode Relationship Energy</option>
+                <option value="symbolism">🎭 Decode Lyrics/Poetry/Symbolism</option>
+            </select>
+            <div class="mode-description" id="mode-description">
+                Analyze the tone, intent, and hidden meanings in any communication.
+            </div>
+        </div>
+
+        <!-- Input Section -->
+        <div class="input-section">
+            <label for="input-text">Enter your text to decode:</label>
+            <textarea 
+                id="input-text" 
+                class="input-box" 
+                placeholder="Type a message, dream, or situation to decode..."
+                maxlength="2000"
+            ></textarea>
+        </div>
+
+        <!-- Decode Button -->
+        <button id="decode-button" class="decode-button">
+            🔍 Decode This
+        </button>
+
+        <!-- Output Section -->
+        <div class="output-section">
+            <label for="output-text">Decoded Analysis:</label>
+            <div id="output-box" class="output-box">
+                Your decoded analysis will appear here...
+            </div>
+            <button id="save-button" class="save-button" style="display: none;">
+                💾 Save to Journal
+            </button>
+        </div>
+    </div>
+
+    <!-- Upgrade Prompt -->
+    <div class="upgrade-prompt" id="upgrade-prompt" style="display: none;">
+        <h3 style="color: #fbbf24; margin-bottom: 12px;">🔓 Unlock Unlimited Decoding</h3>
+        <p>You've reached your daily limit. Upgrade to get unlimited decodes plus premium features!</p>
+        <button class="upgrade-button" onclick="window.location.href='/subscription'">
+            Upgrade Now
+        </button>
+    </div>
+</div>
+
+<script>
+// Decoder mode configurations
+const decoderModes = {
+    tone: {
+        name: "Tone & Intent Decoder",
+        description: "Analyze the tone, intent, and hidden meanings in any communication.",
+        placeholder: "Paste a message, email, or conversation to analyze the tone and intent...",
+        prompt: `Analyze this text for tone, intent, and hidden meanings. Break down:
+1. **Emotional Tone**: What emotions are being expressed?
+2. **Hidden Intent**: What might they really be trying to say?
+3. **Communication Style**: How are they approaching this conversation?
+4. **Red Flags**: Any concerning patterns or manipulative language?
+5. **Suggested Response**: How should someone respond to this?
+
+Be specific and insightful. Text to analyze:`
+    },
+    dream: {
+        name: "Dream Decoder",
+        description: "Unlock the hidden meanings and psychological insights in your dreams.",
+        placeholder: "Describe your dream in detail - people, places, emotions, symbols...",
+        prompt: `Analyze this dream from psychological and symbolic perspectives. Provide:
+1. **Key Symbols**: What do the main elements represent?
+2. **Emotional Themes**: What emotions or anxieties might this reflect?
+3. **Psychological Insights**: What could your subconscious be processing?
+4. **Life Connections**: How might this relate to your waking life?
+5. **Actionable Insights**: What can you learn or do with this information?
+
+Be thoughtful and avoid generic interpretations. Dream to analyze:`
+    },
+    behavior: {
+        name: "Behavior Pattern Decoder",
+        description: "Understand recurring behaviors and their psychological roots.",
+        placeholder: "Describe a behavior pattern you or someone else keeps repeating...",
+        prompt: `Analyze this behavior pattern for psychological insights. Explore:
+1. **Pattern Recognition**: What is the core behavior being repeated?
+2. **Underlying Triggers**: What situations or emotions trigger this behavior?
+3. **Psychological Roots**: What deeper needs or fears might drive this?
+4. **Impact Assessment**: How does this behavior affect relationships/life?
+5. **Change Strategies**: Practical steps to modify or understand this pattern.
+
+Focus on psychology and practical insights. Behavior to analyze:`
+    },
+    text: {
+        name: "Text Message Decoder",
+        description: "Decode what they really mean in texts, especially confusing or mixed signals.",
+        placeholder: "Paste the text message(s) you want to understand better...",
+        prompt: `Decode this text message for hidden meanings and true intent. Analyze:
+1. **Surface vs. Deeper Meaning**: What they said vs. what they might mean
+2. **Emotional Subtext**: What emotions are underneath the words?
+3. **Relationship Dynamics**: What does this reveal about your connection?
+4. **Response Strategy**: How to respond appropriately
+5. **Red Flags**: Any concerning patterns or mixed signals?
+
+Be specific about communication patterns. Text message(s) to decode:`
+    },
+    relationship: {
+        name: "Relationship Energy Decoder",
+        description: "Analyze relationship dynamics, patterns, and emotional undercurrents.",
+        placeholder: "Describe a relationship situation, dynamic, or pattern you want to understand...",
+        prompt: `Analyze this relationship dynamic for deeper insights. Examine:
+1. **Power Dynamics**: Who has control and how is it expressed?
+2. **Communication Patterns**: How do you both communicate (or avoid communicating)?
+3. **Emotional Needs**: What underlying needs are being met or unmet?
+4. **Attachment Styles**: How do attachment patterns show up here?
+5. **Growth Opportunities**: What can both people learn or improve?
+
+Be balanced and insightful about both perspectives. Relationship situation:`
+    },
+    symbolism: {
+        name: "Symbolism & Art Decoder",
+        description: "Uncover hidden meanings in lyrics, poetry, art, or symbolic content.",
+        placeholder: "Paste lyrics, poetry, or describe symbolic content you want to decode...",
+        prompt: `Decode the symbolism and deeper meanings in this content. Analyze:
+1. **Symbolic Elements**: What symbols, metaphors, or imagery are used?
+2. **Emotional Themes**: What feelings or experiences are being expressed?
+3. **Cultural Context**: Any cultural, historical, or artistic references?
+4. **Personal Relevance**: How might this connect to universal human experiences?
+5. **Artistic Intent**: What message or feeling was the creator trying to convey?
+
+Focus on depth and meaningful interpretation. Content to decode:`
+    }
+};
+
+// User state from backend (initial values)
+let userUsage = {{ current_usage or 0 }};
+let userPlan = '{{ user_plan or "free" }}';
+let dailyLimit = {{ daily_limit if daily_limit else "null" }};
+
+// Function to refresh decoder limits from server
+async function refreshDecoderLimits() {
+    try {
+        console.log("🔄 Fetching decoder limits...");
+        const res = await fetch('/api/decoder/check-limit');
+        const data = await res.json();
+        console.log("📊 Decoder API response:", data);
+
+        const { effective_plan, trial_active, usage_today, daily_limit, user_plan } = data;
+
+        const hasUnlimited = user_plan === "max" && !trial_active;  // Only if REAL Max tier (not trial)
+        const displayLimit = hasUnlimited ? "∞" : daily_limit;
+
+        const usage = usage_today ?? 0;
+
+        // Update usage display
+        document.getElementById("usage-count").textContent = usage;
+        document.getElementById("usage-limit").textContent = displayLimit;
+
+        // Update usage bar
+        const usageFill = document.getElementById('usage-fill');
+        if (hasUnlimited) {
+            usageFill.style.width = '100%';
+            usageFill.style.background = 'linear-gradient(135deg, #22d3ee, #0891b2)';
+        } else {
+            const percentage = daily_limit > 0 ? (usage / daily_limit) * 100 : 0;
+            usageFill.style.width = Math.min(percentage, 100) + '%';
+        }
+
+        // UI logic based on user's actual tier
+        const msg = document.getElementById("plan-description");
+        const maxMsg = document.getElementById("max-plan-message");
+
+        if (user_plan === "max") {
+            maxMsg.style.display = "block";
+            msg.style.display = "none";
+        } else if (user_plan === "growth") {
+            maxMsg.style.display = "none";
+            msg.textContent = `🧠 Daily Decodes: ${usage} / ${displayLimit} used`;
+        } else if (trial_active) {
+            maxMsg.style.display = "none";
+            msg.textContent = `You're on a 5-hour trial — enjoy premium companions & features with your ${displayLimit} decodes.`;
+        } else {
+            maxMsg.style.display = "none";
+            msg.textContent = `🧠 Daily Decodes: ${usage} / ${displayLimit} used`;
+        }
+
+        // Update global variables
+        userUsage = usage;
+        userPlan = user_plan;  // Use normalized user plan
+        dailyLimit = daily_limit;
+
+        console.log(`🔄 Refreshed decoder limits: user_plan=${user_plan}, effective_plan=${effective_plan}, usage=${usage}, limit=${displayLimit}`);
+
+    } catch (err) {
+        console.error("❌ Failed to refresh decoder limits:", err);
+        document.getElementById("usage-count").textContent = "0";
+        document.getElementById("usage-limit").textContent = "?";
+        document.getElementById("plan-description").textContent = "Error loading limits.";
+    }
+}
+
+// Update UI elements
+function updateModeDescription() {
+    const mode = document.getElementById('decoder-mode').value;
+    const config = decoderModes[mode];
+    
+    document.getElementById('mode-description').textContent = config.description;
+    document.getElementById('input-text').placeholder = config.placeholder;
+}
+
+function checkUsageLimit() {
+    if (dailyLimit === null || dailyLimit === -1) {
+        // Unlimited for Max tier
+        return true;
+    }
+    
+    if (userUsage >= dailyLimit) {
+        document.getElementById('decode-button').disabled = true;
+        document.getElementById('decode-button').textContent = '🔒 Daily Limit Reached';
+        document.getElementById('upgrade-prompt').style.display = 'block';
+        return false;
+    }
+    return true;
+}
+
+async function decodeText() {
+    if (!checkUsageLimit()) return;
+    
+    const mode = document.getElementById('decoder-mode').value;
+    const inputText = document.getElementById('input-text').value.trim();
+    const outputBox = document.getElementById('output-box');
+    const decodeButton = document.getElementById('decode-button');
+    
+    if (!inputText) {
+        alert('Please enter some text to decode!');
+        return;
+    }
+    
+    // Show loading state
+    outputBox.className = 'output-box loading';
+    outputBox.innerHTML = '🔍 Decoding... This may take a moment.';
+    decodeButton.disabled = true;
+    decodeButton.textContent = 'Decoding...';
+    
+    try {
+        const config = decoderModes[mode];
+        const fullPrompt = config.prompt + '\n\n' + inputText;
+        
+        const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                message: fullPrompt,
+                companion: 'Decoder',
+                context: 'decoder_mode'
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Update usage count (backend handles the actual tracking)
+            userUsage++;
+            refreshDecoderLimits();
+            
+            // Show result with animation
+            outputBox.className = 'output-box show';
+            outputBox.innerHTML = result.response;
+            
+            // Show save button for premium users (Growth/Max tiers) OR trial users
+            if (userPlan === 'growth' || userPlan === 'max' || result.trial_active) {
+                document.getElementById('save-button').style.display = 'block';
+            }
+            
+        } else {
+            // Check if this is a usage limit error
+            if (result.limit_reached) {
+                document.getElementById('decode-button').disabled = true;
+                document.getElementById('decode-button').textContent = '🔒 Daily Limit Reached';
+                document.getElementById('upgrade-prompt').style.display = 'block';
+                throw new Error(result.response);
+            } else {
+                throw new Error(result.error || result.response || 'Decoding failed');
+            }
+        }
+        
+    } catch (error) {
+        outputBox.className = 'output-box show';
+        outputBox.innerHTML = `<div style="color: #ef4444;">
+            <strong>Decoding Error:</strong> ${error.message}
+            <br><br>
+            <em>Please try again with different text or check your connection.</em>
+        </div>`;
+    }
+    
+    // Reset button
+    decodeButton.disabled = false;
+    decodeButton.textContent = '🔍 Decode This';
+    
+    // Check usage limit after decoding
+    checkUsageLimit();
+}
+
+function saveToJournal() {
+    const mode = document.getElementById('decoder-mode').value;
+    const inputText = document.getElementById('input-text').value;
+    const outputText = document.getElementById('output-box').textContent;
+    
+    const journalEntry = {
+        date: new Date().toISOString(),
+        mode: decoderModes[mode].name,
+        input: inputText,
+        analysis: outputText
+    };
+    
+    // Save to localStorage for now (could be enhanced with backend storage)
+    const existingEntries = JSON.parse(localStorage.getItem('decoderJournal') || '[]');
+    existingEntries.unshift(journalEntry);
+    localStorage.setItem('decoderJournal', JSON.stringify(existingEntries.slice(0, 50))); // Keep last 50
+    
+    alert('💾 Saved to your decoder journal!');
+}
+
+// Event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    updateModeDescription();
+    
+    // Refresh decoder limits on page load to get current plan status
+    refreshDecoderLimits();
+    
+    document.getElementById('decoder-mode').addEventListener('change', updateModeDescription);
+    document.getElementById('decode-button').addEventListener('click', decodeText);
+    document.getElementById('save-button').addEventListener('click', saveToJournal);
+    
+    // Enter key in textarea
+    document.getElementById('input-text').addEventListener('keydown', function(e) {
+        if (e.ctrlKey && e.key === 'Enter') {
+            decodeText();
+        }
+    });
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wellness Gallery - SoulBridge AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #000000 0%, #0f172a 50%, #1e293b 100%);
+            color: #e2e8f0;
+            font-family: system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        .gallery-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .gallery-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 40px 0;
+        }
+
+        .gallery-title {
+            font-size: 3rem;
+            color: #22d3ee;
+            text-shadow: 0 0 30px rgba(34, 211, 238, 0.8);
+            margin-bottom: 0.5rem;
+            animation: titlePulse 3s ease-in-out infinite;
+            font-weight: 700;
+        }
+
+        .gallery-subtitle {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 2rem;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: linear-gradient(135deg, #22d3ee, #0891b2);
+            color: #000;
+            padding: 12px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .back-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(34, 211, 238, 0.5);
+        }
+
+        .filter-bar {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: rgba(34, 211, 238, 0.1);
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 25px;
+            padding: 10px 20px;
+            color: #22d3ee;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .filter-btn:hover, .filter-btn.active {
+            background: rgba(34, 211, 238, 0.2);
+            border-color: #22d3ee;
+            transform: translateY(-2px);
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .gallery-item {
+            background: linear-gradient(145deg, rgba(0,0,0,0.8), rgba(15,23,42,0.9));
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 16px;
+            padding: 25px;
+            backdrop-filter: blur(20px);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .gallery-item:hover {
+            transform: translateY(-8px);
+            border-color: rgba(34, 211, 238, 0.6);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 8px 16px rgba(34, 211, 238, 0.3);
+        }
+
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .item-theme {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .item-type {
+            color: #94a3b8;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .item-content {
+            color: #e2e8f0;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            font-size: 1rem;
+        }
+
+        .item-content.artwork {
+            text-align: center;
+        }
+
+        .item-content img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            border: 2px solid rgba(34, 211, 238, 0.3);
+        }
+
+        .item-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid rgba(34, 211, 238, 0.2);
+            padding-top: 15px;
+        }
+
+        .heart-btn {
+            background: rgba(255, 182, 193, 0.1);
+            border: 2px solid rgba(255, 182, 193, 0.3);
+            border-radius: 20px;
+            padding: 8px 15px;
+            color: #ffb6c1;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: 500;
+        }
+
+        .heart-btn:hover {
+            background: rgba(255, 182, 193, 0.2);
+            border-color: #ffb6c1;
+            transform: scale(1.05);
+        }
+
+        .heart-btn.hearted {
+            background: rgba(255, 182, 193, 0.3);
+            border-color: #ffb6c1;
+        }
+
+        .item-date {
+            color: #94a3b8;
+            font-size: 0.8rem;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: #22d3ee;
+        }
+
+        .loading-spinner {
+            font-size: 2rem;
+            animation: spin 2s linear infinite;
+            margin-bottom: 15px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: #94a3b8;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            color: #22d3ee;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        @keyframes titlePulse {
+            0%, 100% { text-shadow: 0 0 30px rgba(34, 211, 238, 0.8); }
+            50% { text-shadow: 0 0 45px rgba(34, 211, 238, 1); }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .gallery-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .gallery-title {
+                font-size: 2rem;
+            }
+            
+            .filter-bar {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+
+        .guidelines-banner {
+            background: rgba(34, 211, 238, 0.1);
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .guidelines-banner h3 {
+            color: #22d3ee;
+            margin-bottom: 10px;
+        }
+
+        .guidelines-banner p {
+            color: #e2e8f0;
+            margin: 0;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <a href="/intro" class="back-button">
+        <i class="fas fa-arrow-left"></i>
+        <span>Back to Home</span>
+    </a>
+
+    <div class="gallery-container">
+        <div class="gallery-header">
+            <h1 class="gallery-title">Wellness Gallery</h1>
+            <p class="gallery-subtitle">A safe space for anonymous creative expression and inspiration</p>
+        </div>
+
+        <div class="guidelines-banner">
+            <h3>🌟 Community Guidelines</h3>
+            <p>This is a wellness-focused space for sharing positive, healing, and inspiring creative content. All content is anonymous and moderated to ensure a safe, supportive environment for everyone.</p>
+        </div>
+
+        <div class="filter-bar">
+            <button class="filter-btn active" data-theme="all">All Content</button>
+            <button class="filter-btn" data-theme="gratitude">Gratitude</button>
+            <button class="filter-btn" data-theme="peace">Peace</button>
+            <button class="filter-btn" data-theme="growth">Growth</button>
+            <button class="filter-btn" data-theme="healing">Healing</button>
+            <button class="filter-btn" data-theme="dreams">Dreams</button>
+            <button class="filter-btn" data-theme="mood">Mood</button>
+            <button class="filter-btn" data-theme="stress">Stress Relief</button>
+        </div>
+
+        <div id="gallery-loading" class="loading">
+            <div class="loading-spinner">🌟</div>
+            <p>Loading inspiring content...</p>
+        </div>
+
+        <div id="gallery-content" class="gallery-grid" style="display: none;">
+            <!-- Gallery items will be loaded here -->
+        </div>
+
+        <div id="empty-state" class="empty-state" style="display: none;">
+            <i class="fas fa-heart"></i>
+            <h3>No content yet</h3>
+            <p>Be the first to share something beautiful! Use the Creative Writing Assistant to create and share your wellness content.</p>
+        </div>
+    </div>
+
+    <script>
+        let currentTheme = 'all';
+        let galleryItems = [];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadGalleryContent();
+            setupFilterButtons();
+        });
+
+        function setupFilterButtons() {
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // Update active state
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Filter content
+                    currentTheme = this.dataset.theme;
+                    filterGalleryContent();
+                });
+            });
+        }
+
+        async function loadGalleryContent() {
+            try {
+                const response = await fetch('/api/wellness-gallery?limit=50');
+                const data = await response.json();
+                
+                if (data.success) {
+                    galleryItems = data.items;
+                    displayGalleryContent(galleryItems);
+                } else {
+                    showEmptyState();
+                }
+            } catch (error) {
+                console.error('Error loading gallery:', error);
+                showEmptyState();
+            }
+        }
+
+        function displayGalleryContent(items) {
+            const loadingEl = document.getElementById('gallery-loading');
+            const contentEl = document.getElementById('gallery-content');
+            const emptyEl = document.getElementById('empty-state');
+            
+            loadingEl.style.display = 'none';
+            emptyEl.style.display = 'none';
+            
+            if (items.length === 0) {
+                showEmptyState();
+                return;
+            }
+            
+            contentEl.innerHTML = '';
+            contentEl.style.display = 'grid';
+            
+            items.forEach(item => {
+                const itemEl = createGalleryItem(item);
+                contentEl.appendChild(itemEl);
+            });
+        }
+
+        function createGalleryItem(item) {
+            const div = document.createElement('div');
+            div.className = 'gallery-item';
+            
+            const themeDisplayNames = {
+                gratitude: 'Gratitude & Joy',
+                peace: 'Peace & Calm',
+                growth: 'Personal Growth',
+                healing: 'Healing Journey',
+                dreams: 'Dreams & Aspirations',
+                mood: 'Mood Expression',
+                stress: 'Stress Relief',
+                freeform: 'Free Expression'
+            };
+            
+            const typeIcons = {
+                creative_writing: 'fas fa-feather-alt',
+                canvas_art: 'fas fa-palette'
+            };
+            
+            const typeNames = {
+                creative_writing: 'Creative Writing',
+                canvas_art: 'Digital Art'
+            };
+            
+            const formattedDate = new Date(item.created_at).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric'
+            });
+            
+            let contentHtml = '';
+            if (item.content_type === 'canvas_art') {
+                contentHtml = `<div class="item-content artwork"><img src="${item.content}" alt="Wellness artwork" /></div>`;
+            } else {
+                contentHtml = `<div class="item-content">${item.content}</div>`;
+            }
+            
+            div.innerHTML = `
+                <div class="item-header">
+                    <div class="item-theme">${themeDisplayNames[item.theme] || item.theme}</div>
+                    <div class="item-type">
+                        <i class="${typeIcons[item.content_type]}"></i>
+                        ${typeNames[item.content_type]}
+                    </div>
+                </div>
+                ${contentHtml}
+                <div class="item-footer">
+                    <button class="heart-btn" onclick="heartContent(${item.id}, this)">
+                        <i class="fas fa-heart"></i>
+                        <span>${item.hearts_count}</span>
+                    </button>
+                    <div class="item-date">${formattedDate}</div>
+                </div>
+            `;
+            
+            return div;
+        }
+
+        function filterGalleryContent() {
+            let filteredItems = galleryItems;
+            
+            if (currentTheme !== 'all') {
+                filteredItems = galleryItems.filter(item => item.theme === currentTheme);
+            }
+            
+            displayGalleryContent(filteredItems);
+        }
+
+        async function heartContent(contentId, buttonEl) {
+            try {
+                const response = await fetch('/api/wellness-gallery/heart', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ content_id: contentId })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    const countEl = buttonEl.querySelector('span');
+                    countEl.textContent = data.hearts_count;
+                    buttonEl.classList.add('hearted');
+                    
+                    // Add heart animation
+                    buttonEl.style.transform = 'scale(1.2)';
+                    setTimeout(() => {
+                        buttonEl.style.transform = '';
+                    }, 200);
+                }
+            } catch (error) {
+                console.error('Error hearting content:', error);
+            }
+        }
+
+        function showEmptyState() {
+            document.getElementById('gallery-loading').style.display = 'none';
+            document.getElementById('gallery-content').style.display = 'none';
+            document.getElementById('empty-state').style.display = 'block';
+        }
+    </script>
+</body>
+</html>

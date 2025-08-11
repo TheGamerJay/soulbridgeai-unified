@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horoscope - SoulBridge AI</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a3a 50%, #2d1b69 100%);
+            color: #e2e8f0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Cosmic background with constellation effect */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(2px 2px at 20px 30px, #ffffff, transparent),
+                radial-gradient(2px 2px at 40px 70px, #ffd700, transparent),
+                radial-gradient(1px 1px at 90px 40px, #ffffff, transparent),
+                radial-gradient(1px 1px at 130px 80px, #ffd700, transparent),
+                radial-gradient(2px 2px at 160px 30px, #ffffff, transparent);
+            background-repeat: repeat;
+            background-size: 200px 100px;
+            animation: twinkle 4s ease-in-out infinite alternate;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        @keyframes twinkle {
+            0% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            color: #ffd700;
+            margin-bottom: 16px;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+            background: linear-gradient(45deg, #ffd700, #ffed4e, #fff59d);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            color: #c7d2fe;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .horoscope-interface {
+            background: rgba(15, 15, 35, 0.8);
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 40px;
+            backdrop-filter: blur(10px);
+            position: relative;
+        }
+
+        .horoscope-interface::before {
+            content: '⭐';
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 2.5rem;
+            background: rgba(15, 15, 35, 0.9);
+            padding: 10px 20px;
+            border-radius: 50px;
+            border: 2px solid rgba(255, 215, 0, 0.5);
+        }
+
+        .usage-indicator {
+            background: rgba(15, 15, 35, 0.4);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .usage-bar {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            height: 8px;
+            margin: 12px 0;
+            overflow: hidden;
+        }
+
+        .usage-fill {
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .horoscope-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 30px;
+            justify-content: center;
+        }
+
+        .tab-button {
+            padding: 12px 20px;
+            background: rgba(255, 215, 0, 0.1);
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            border-radius: 12px;
+            color: #ffd700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .tab-button.active {
+            background: rgba(255, 215, 0, 0.2);
+            border-color: #ffd700;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+        }
+
+        .tab-button:hover {
+            background: rgba(255, 215, 0, 0.15);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .zodiac-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .zodiac-sign {
+            background: rgba(255, 215, 0, 0.1);
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .zodiac-sign:hover {
+            background: rgba(255, 215, 0, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .zodiac-sign.selected {
+            background: rgba(255, 215, 0, 0.25);
+            border-color: #ffd700;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+        }
+
+        .zodiac-sign .emoji {
+            font-size: 2rem;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .zodiac-sign .name {
+            font-weight: 600;
+            color: #ffd700;
+            font-size: 0.9rem;
+        }
+
+        .zodiac-sign .dates {
+            font-size: 0.7rem;
+            color: #c7d2fe;
+            margin-top: 4px;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        .input-section label {
+            display: block;
+            color: #ffd700;
+            font-weight: 600;
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .input-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .input-box, .date-input, .time-input, .location-input {
+            width: 100%;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            border-radius: 8px;
+            color: #e2e8f0;
+            font-size: 1rem;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .input-box {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .input-box:focus, .date-input:focus, .time-input:focus, .location-input:focus {
+            outline: none;
+            border-color: #ffd700;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        }
+
+        .input-box::placeholder {
+            color: #9ca3af;
+        }
+
+        .horoscope-button {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            color: #1a202c;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 30px;
+        }
+
+        .horoscope-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4);
+        }
+
+        .horoscope-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .output-section {
+            margin-top: 30px;
+        }
+
+        .output-section label {
+            display: block;
+            color: #ffd700;
+            font-weight: 600;
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+        }
+
+        .output-box {
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(255, 215, 0, 0.2);
+            border-radius: 12px;
+            padding: 24px;
+            min-height: 200px;
+            color: #e2e8f0;
+            line-height: 1.6;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+
+        .output-box.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .output-box.loading {
+            opacity: 1;
+            transform: translateY(0);
+            text-align: center;
+            color: #ffd700;
+        }
+
+        .save-button {
+            background: rgba(255, 215, 0, 0.2);
+            color: #ffd700;
+            border: 2px solid #ffd700;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .save-button:hover {
+            background: rgba(255, 215, 0, 0.3);
+        }
+
+        .upgrade-prompt {
+            background: rgba(168, 85, 247, 0.1);
+            border: 2px solid rgba(168, 85, 247, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .upgrade-button {
+            background: linear-gradient(135deg, #a855f7, #9333ea);
+            color: #fff;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 12px;
+        }
+
+        .back-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 215, 0, 0.8);
+            color: #1a202c;
+            padding: 10px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            z-index: 100;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 215, 0, 1);
+            transform: translateY(-2px);
+        }
+
+        .reading-description {
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+            color: #c7d2fe;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .horoscope-interface {
+                padding: 20px;
+            }
+
+            .horoscope-tabs {
+                flex-direction: column;
+            }
+
+            .zodiac-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 10px;
+            }
+
+            .input-row {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Back Button -->
+<a href="javascript:history.back()" class="back-btn">← Back to Chat</a>
+
+<div class="container">
+    <div class="header">
+        <h1>⭐ Horoscope Readings</h1>
+        <p>Discover your cosmic destiny through the ancient wisdom of the stars</p>
+    </div>
+
+    <!-- Usage Indicator -->
+    <div class="usage-indicator" id="usage-indicator">
+        <div>
+            <strong>Daily Horoscopes:</strong> 
+            <span id="usage-count">...</span> / <span id="usage-limit">...</span> used
+        </div>
+        <div class="usage-bar">
+            <div class="usage-fill" id="usage-fill"></div>
+        </div>
+        <div style="font-size: 0.9rem; color: #c7d2fe;" id="plan-description">
+            Loading horoscope limits...
+        </div>
+        <p id="max-plan-message" style="display:none; color: #ffd700; font-weight: 600;">
+            🌟 Max users have unlimited horoscope access!
+        </p>
+    </div>
+
+    <div class="horoscope-interface">
+        <!-- Horoscope Type Tabs -->
+        <div class="horoscope-tabs">
+            <button class="tab-button active" onclick="showTab('daily')">🌟 Daily</button>
+            <button class="tab-button" onclick="showTab('compatibility')">💕 Compatibility</button>
+            <button class="tab-button" onclick="showTab('birth-chart')">🎯 Birth Chart</button>
+            <button class="tab-button" onclick="showTab('monthly')">📅 Monthly</button>
+        </div>
+
+        <!-- Daily Horoscope Tab -->
+        <div id="daily" class="tab-content active">
+            <div class="reading-description">
+                Get your personalized daily horoscope based on your zodiac sign and current cosmic influences.
+            </div>
+            
+            <div class="zodiac-grid" id="zodiac-grid">
+                <!-- Zodiac signs will be populated by JavaScript -->
+            </div>
+
+            <div class="input-section">
+                <label for="daily-question">What area of your day would you like cosmic guidance on? (Optional)</label>
+                <textarea 
+                    id="daily-question" 
+                    class="input-box" 
+                    placeholder="Ask about love, work, health, or any specific concerns for today..."
+                    maxlength="500"
+                ></textarea>
+            </div>
+        </div>
+
+        <!-- Compatibility Tab -->
+        <div id="compatibility" class="tab-content">
+            <div class="reading-description">
+                Discover your cosmic compatibility with another person based on zodiac signs and celestial influences.
+            </div>
+
+            <div class="input-section">
+                <label>Your Zodiac Sign</label>
+                <div class="zodiac-grid" id="your-sign-grid">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <div class="input-section">
+                <label>Their Zodiac Sign</label>
+                <div class="zodiac-grid" id="their-sign-grid">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <div class="input-section">
+                <label for="compatibility-question">What type of compatibility reading? (Optional)</label>
+                <textarea 
+                    id="compatibility-question" 
+                    class="input-box" 
+                    placeholder="Romantic compatibility, friendship, business partnership, or general relationship dynamics..."
+                    maxlength="500"
+                ></textarea>
+            </div>
+        </div>
+
+        <!-- Birth Chart Tab -->
+        <div id="birth-chart" class="tab-content">
+            <div class="reading-description">
+                Get deep insights into your personality, life path, and cosmic blueprint based on your birth details.
+            </div>
+
+            <div class="input-section">
+                <label>Birth Information</label>
+                <div class="input-row">
+                    <div class="input-group">
+                        <input type="date" id="birth-date" class="date-input" placeholder="Birth Date">
+                    </div>
+                    <div class="input-group">
+                        <input type="time" id="birth-time" class="time-input" placeholder="Birth Time">
+                    </div>
+                </div>
+                <div class="input-row">
+                    <div class="input-group">
+                        <input type="text" id="birth-location" class="location-input" placeholder="Birth Location (City, Country)">
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-section">
+                <label for="birth-chart-focus">What aspect of your birth chart interests you most?</label>
+                <textarea 
+                    id="birth-chart-focus" 
+                    class="input-box" 
+                    placeholder="Personality traits, life purpose, career path, relationships, spiritual gifts, challenges to overcome..."
+                    maxlength="500"
+                ></textarea>
+            </div>
+        </div>
+
+        <!-- Monthly Forecast Tab -->
+        <div id="monthly" class="tab-content">
+            <div class="reading-description">
+                Receive comprehensive cosmic insights and guidance for the entire month ahead.
+            </div>
+
+            <div class="zodiac-grid" id="monthly-zodiac-grid">
+                <!-- Will be populated by JavaScript -->
+            </div>
+
+            <div class="input-section">
+                <label for="monthly-focus">What area of life would you like your monthly forecast to focus on?</label>
+                <textarea 
+                    id="monthly-focus" 
+                    class="input-box" 
+                    placeholder="Love & relationships, career & money, health & wellness, personal growth, or general life guidance..."
+                    maxlength="500"
+                ></textarea>
+            </div>
+        </div>
+
+        <!-- Generate Button -->
+        <button id="horoscope-button" class="horoscope-button">
+            ⭐ Generate Reading
+        </button>
+
+        <!-- Output Section -->
+        <div class="output-section">
+            <label for="output-text">Your Cosmic Reading:</label>
+            <div id="output-box" class="output-box">
+                Your personalized horoscope will appear here...
+            </div>
+            <button id="save-button" class="save-button" style="display: none;">
+                💾 Save to Journal
+            </button>
+        </div>
+    </div>
+
+    <!-- Upgrade Prompt -->
+    <div class="upgrade-prompt" id="upgrade-prompt" style="display: none;">
+        <h3 style="color: #a855f7; margin-bottom: 12px;">🔓 Unlock Unlimited Horoscopes</h3>
+        <p>You've reached your daily limit. Upgrade to get unlimited horoscope readings plus premium features!</p>
+        <button class="upgrade-button" onclick="window.location.href='/subscription'">
+            Upgrade Now
+        </button>
+    </div>
+</div>
+
+<script>
+// Zodiac signs data
+const zodiacSigns = [
+    { id: 'aries', emoji: '♈', name: 'Aries', dates: 'Mar 21 - Apr 19' },
+    { id: 'taurus', emoji: '♉', name: 'Taurus', dates: 'Apr 20 - May 20' },
+    { id: 'gemini', emoji: '♊', name: 'Gemini', dates: 'May 21 - Jun 20' },
+    { id: 'cancer', emoji: '♋', name: 'Cancer', dates: 'Jun 21 - Jul 22' },
+    { id: 'leo', emoji: '♌', name: 'Leo', dates: 'Jul 23 - Aug 22' },
+    { id: 'virgo', emoji: '♍', name: 'Virgo', dates: 'Aug 23 - Sep 22' },
+    { id: 'libra', emoji: '♎', name: 'Libra', dates: 'Sep 23 - Oct 22' },
+    { id: 'scorpio', emoji: '♏', name: 'Scorpio', dates: 'Oct 23 - Nov 21' },
+    { id: 'sagittarius', emoji: '♐', name: 'Sagittarius', dates: 'Nov 22 - Dec 21' },
+    { id: 'capricorn', emoji: '♑', name: 'Capricorn', dates: 'Dec 22 - Jan 19' },
+    { id: 'aquarius', emoji: '♒', name: 'Aquarius', dates: 'Jan 20 - Feb 18' },
+    { id: 'pisces', emoji: '♓', name: 'Pisces', dates: 'Feb 19 - Mar 20' }
+];
+
+// Reading configurations
+const readingTypes = {
+    daily: {
+        name: "Daily Horoscope",
+        prompt: `Provide a personalized daily horoscope reading. Include:
+1. **Today's Energy**: What cosmic forces are influencing this sign today?
+2. **Love & Relationships**: Romantic insights and social energy for today
+3. **Career & Money**: Professional opportunities and financial guidance
+4. **Health & Wellness**: Physical and mental wellbeing advice
+5. **Lucky Elements**: Colors, numbers, or activities that will bring good fortune
+6. **Daily Affirmation**: An empowering message to carry through the day
+
+Be specific, encouraging, and practical. Daily horoscope for:`
+    },
+    compatibility: {
+        name: "Compatibility Reading", 
+        prompt: `Provide a detailed zodiac compatibility reading. Analyze:
+1. **Overall Compatibility**: How well do these signs complement each other?
+2. **Emotional Connection**: How do they connect on a feeling level?
+3. **Communication Style**: How do they express and receive love/friendship?
+4. **Strengths Together**: What makes this pairing powerful?
+5. **Potential Challenges**: What differences might cause friction?
+6. **Relationship Advice**: How to nurture and strengthen this connection
+
+Be balanced, insightful, and helpful. Compatibility reading for:`
+    },
+    'birth-chart': {
+        name: "Birth Chart Reading",
+        prompt: `Provide a comprehensive birth chart interpretation. Explore:
+1. **Core Personality**: Sun, Moon, and Rising sign influences
+2. **Life Purpose**: What is their soul's mission in this lifetime?
+3. **Natural Talents**: Gifts and abilities written in the stars
+4. **Life Challenges**: Karmic lessons and growth opportunities
+5. **Relationship Patterns**: How they love and connect with others
+6. **Career Path**: Professional calling and success indicators
+7. **Spiritual Gifts**: Intuitive abilities and higher purpose
+
+Be deeply insightful and transformative. Birth chart reading for:`
+    },
+    monthly: {
+        name: "Monthly Forecast",
+        prompt: `Provide a comprehensive monthly horoscope forecast. Cover:
+1. **Month Overview**: Major cosmic themes and energy shifts
+2. **Weekly Breakdown**: Key dates and planetary influences
+3. **Love & Relationships**: Romantic opportunities and relationship guidance
+4. **Career & Finance**: Professional developments and money matters
+5. **Health & Wellness**: Physical and emotional wellbeing focus
+6. **Personal Growth**: Spiritual development and life lessons
+7. **Action Steps**: Practical advice for maximizing this month's potential
+
+Be detailed, organized, and forward-looking. Monthly forecast for:`
+    }
+};
+
+// State variables
+let userUsage = {{ current_usage or 0 }};
+let userPlan = '{{ user_plan or "foundation" }}';
+let dailyLimit = {{ daily_limit if daily_limit else "null" }};
+let currentTab = 'daily';
+let selectedSign = null;
+let yourSign = null;
+let theirSign = null;
+let monthlySign = null;
+
+// Initialize zodiac grids
+function initializeZodiacGrids() {
+    const grids = ['zodiac-grid', 'your-sign-grid', 'their-sign-grid', 'monthly-zodiac-grid'];
+    
+    grids.forEach(gridId => {
+        const grid = document.getElementById(gridId);
+        if (!grid) return;
+        
+        grid.innerHTML = '';
+        zodiacSigns.forEach(sign => {
+            const signElement = document.createElement('div');
+            signElement.className = 'zodiac-sign';
+            signElement.innerHTML = `
+                <span class="emoji">${sign.emoji}</span>
+                <div class="name">${sign.name}</div>
+                <div class="dates">${sign.dates}</div>
+            `;
+            
+            signElement.addEventListener('click', () => {
+                selectSign(gridId, sign, signElement);
+            });
+            
+            grid.appendChild(signElement);
+        });
+    });
+}
+
+function selectSign(gridId, sign, element) {
+    // Clear previous selections in this grid
+    const grid = document.getElementById(gridId);
+    grid.querySelectorAll('.zodiac-sign').forEach(el => el.classList.remove('selected'));
+    
+    // Select current sign
+    element.classList.add('selected');
+    
+    // Store selection based on grid type
+    if (gridId === 'zodiac-grid') {
+        selectedSign = sign;
+    } else if (gridId === 'your-sign-grid') {
+        yourSign = sign;
+    } else if (gridId === 'their-sign-grid') {
+        theirSign = sign;
+    } else if (gridId === 'monthly-zodiac-grid') {
+        monthlySign = sign;
+    }
+}
+
+function showTab(tabName) {
+    // Update active tab button
+    document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    // Show active tab content
+    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+    document.getElementById(tabName).classList.add('active');
+    
+    currentTab = tabName;
+}
+
+// Refresh horoscope limits
+async function refreshHoroscopeLimits() {
+    try {
+        const res = await fetch('/api/horoscope/check-limit');
+        const data = await res.json();
+
+        const trialActive = data.trial_active;
+        const plan = data.effective_plan;
+        const limit = data.daily_limit === null ? '∞' : (data.daily_limit ?? '?');
+
+        document.getElementById('usage-limit').textContent = limit;
+
+        // If trial is active but plan is foundation, show unlocked UI
+        if (trialActive && plan === 'foundation') {
+            document.querySelectorAll('.companion-card.locked').forEach(card => {
+                card.classList.remove('locked');
+                card.classList.add('trial-unlocked');
+                card.querySelector('.btn-upgrade').textContent = '✅ Trial Active';
+            });
+        }
+
+        const usage = data.usage_today ?? 0;
+        const hasUnlimited = data.user_plan === 'max' && !data.trial_active;  // Only if REAL Max tier (not trial)
+
+        const limitDisplay = hasUnlimited ? '∞' : (data.daily_limit ?? '?');
+
+        // Update usage display
+        document.getElementById("usage-count").textContent = usage;
+        document.getElementById("usage-limit").textContent = limitDisplay;
+
+        // Update usage bar
+        const usageFill = document.getElementById('usage-fill');
+        if (hasUnlimited) {
+            usageFill.style.width = '100%';
+            usageFill.style.background = 'linear-gradient(135deg, #ffd700, #ffed4e)';
+        } else {
+            const percentage = data.daily_limit > 0 ? (usage / data.daily_limit) * 100 : 0;
+            usageFill.style.width = Math.min(percentage, 100) + '%';
+        }
+
+        // Update tier-specific plan message based on ACTUAL user plan, not effective plan
+        const planNotice = document.getElementById("max-plan-message");
+        const planDesc = document.getElementById("plan-description");
+
+        if (data.user_plan === "max") {
+            // 🔴 Max tier - show unlimited message
+            if (planNotice) planNotice.style.display = "block";
+            if (planDesc) planDesc.style.display = "none";
+        } else if (data.user_plan === "growth") {
+            // 🔵 Growth tier - show growth limits (should be 10, not 3)
+            if (planNotice) planNotice.style.display = "none";
+            if (planDesc) {
+                planDesc.style.display = "block";
+                planDesc.textContent = `⭐ Daily Horoscopes: ${data.usage} / ${limitDisplay} used`;
+            }
+        } else {
+            // 🟢 Free tier - show free limits (should be 3)
+            if (planNotice) planNotice.style.display = "none";
+            if (planDesc) {
+                planDesc.style.display = "block";
+                if (data.trial_active) {
+                    planDesc.textContent = `You're on a 5-hour trial — enjoy premium companions & features with your ${limitDisplay} horoscopes.`;
+                } else {
+                    planDesc.textContent = `⭐ Daily Horoscopes: ${data.usage} / ${limitDisplay} used`;
+                }
+            }
+        }
+
+        // Update global variables
+        userUsage = usage;
+        userPlan = data.user_plan;  // Use actual user plan, not effective plan
+        dailyLimit = data.daily_limit;
+
+        console.log(`⭐ Refreshed horoscope limits: plan=${data.effective_plan}, usage=${usage}, limit=${limitDisplay}`);
+
+    } catch (err) {
+        console.error("❌ Failed to refresh horoscope limits:", err);
+        document.getElementById("usage-count").textContent = "0";
+        document.getElementById("usage-limit").textContent = "?";
+        document.getElementById("plan-description").textContent = `API Error: ${err.message}`;
+    }
+}
+
+function checkUsageLimit() {
+    if (dailyLimit === null || dailyLimit === -1) {
+        return true;
+    }
+    
+    if (userUsage >= dailyLimit) {
+        document.getElementById('horoscope-button').disabled = true;
+        document.getElementById('horoscope-button').textContent = '🔒 Daily Limit Reached';
+        document.getElementById('upgrade-prompt').style.display = 'block';
+        return false;
+    }
+    return true;
+}
+
+async function generateHoroscope() {
+    if (!checkUsageLimit()) return;
+    
+    let prompt = '';
+    let context = '';
+    
+    // Build prompt based on current tab
+    if (currentTab === 'daily') {
+        if (!selectedSign) {
+            alert('Please select your zodiac sign!');
+            return;
+        }
+        
+        const question = document.getElementById('daily-question').value.trim();
+        prompt = readingTypes.daily.prompt + `\n\nZodiac Sign: ${selectedSign.name}`;
+        if (question) prompt += `\nSpecific Focus: ${question}`;
+        context = 'daily_horoscope';
+        
+    } else if (currentTab === 'compatibility') {
+        if (!yourSign || !theirSign) {
+            alert('Please select both zodiac signs for compatibility reading!');
+            return;
+        }
+        
+        const question = document.getElementById('compatibility-question').value.trim();
+        prompt = readingTypes.compatibility.prompt + `\n\nYour Sign: ${yourSign.name}\nTheir Sign: ${theirSign.name}`;
+        if (question) prompt += `\nFocus Area: ${question}`;
+        context = 'compatibility_reading';
+        
+    } else if (currentTab === 'birth-chart') {
+        const birthDate = document.getElementById('birth-date').value;
+        const birthTime = document.getElementById('birth-time').value;
+        const birthLocation = document.getElementById('birth-location').value.trim();
+        const focus = document.getElementById('birth-chart-focus').value.trim();
+        
+        if (!birthDate) {
+            alert('Please enter your birth date!');
+            return;
+        }
+        
+        prompt = readingTypes['birth-chart'].prompt + `\n\nBirth Date: ${birthDate}`;
+        if (birthTime) prompt += `\nBirth Time: ${birthTime}`;
+        if (birthLocation) prompt += `\nBirth Location: ${birthLocation}`;
+        if (focus) prompt += `\nSpecific Focus: ${focus}`;
+        context = 'birth_chart_reading';
+        
+    } else if (currentTab === 'monthly') {
+        if (!monthlySign) {
+            alert('Please select your zodiac sign for monthly forecast!');
+            return;
+        }
+        
+        const focus = document.getElementById('monthly-focus').value.trim();
+        const currentMonth = new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
+        prompt = readingTypes.monthly.prompt + `\n\nZodiac Sign: ${monthlySign.name}\nMonth: ${currentMonth}`;
+        if (focus) prompt += `\nFocus Area: ${focus}`;
+        context = 'monthly_forecast';
+    }
+    
+    const outputBox = document.getElementById('output-box');
+    const horoscopeButton = document.getElementById('horoscope-button');
+    
+    // Show loading state
+    outputBox.className = 'output-box loading';
+    outputBox.innerHTML = '⭐ Consulting the cosmic realm... Your reading is being channeled from the stars.';
+    horoscopeButton.disabled = true;
+    horoscopeButton.textContent = 'Reading the Stars...';
+    
+    try {
+        const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                message: prompt,
+                companion: 'Astrologer',
+                context: context
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Update usage count
+            userUsage++;
+            refreshHoroscopeLimits();
+            
+            // Show result with animation
+            outputBox.className = 'output-box show';
+            outputBox.innerHTML = result.response;
+            
+            // Show save button for premium users (Growth/Max tiers) OR trial users
+            if (userPlan === 'growth' || userPlan === 'max' || result.trial_active) {
+                document.getElementById('save-button').style.display = 'block';
+            }
+            
+        } else {
+            if (result.limit_reached) {
+                document.getElementById('horoscope-button').disabled = true;
+                document.getElementById('horoscope-button').textContent = '🔒 Daily Limit Reached';
+                document.getElementById('upgrade-prompt').style.display = 'block';
+                throw new Error(result.response);
+            } else {
+                throw new Error(result.error || result.response || 'Horoscope reading failed');
+            }
+        }
+        
+    } catch (error) {
+        outputBox.className = 'output-box show';
+        outputBox.innerHTML = `<div style="color: #ef4444;">
+            <strong>Cosmic Reading Error:</strong> ${error.message}
+            <br><br>
+            <em>The celestial energies are clouded. Please try again or check your connection.</em>
+        </div>`;
+    }
+    
+    // Reset button
+    horoscopeButton.disabled = false;
+    horoscopeButton.textContent = '⭐ Generate Reading';
+    
+    // Check usage limit after reading
+    checkUsageLimit();
+}
+
+function saveToJournal() {
+    const readingType = readingTypes[currentTab].name;
+    let context = '';
+    
+    if (currentTab === 'daily' && selectedSign) {
+        context = `${selectedSign.name} - ${document.getElementById('daily-question').value}`;
+    } else if (currentTab === 'compatibility' && yourSign && theirSign) {
+        context = `${yourSign.name} & ${theirSign.name} - ${document.getElementById('compatibility-question').value}`;
+    } else if (currentTab === 'birth-chart') {
+        context = `Birth Chart - ${document.getElementById('birth-date').value}`;
+    } else if (currentTab === 'monthly' && monthlySign) {
+        context = `${monthlySign.name} Monthly`;
+    }
+    
+    const outputText = document.getElementById('output-box').textContent;
+    
+    const journalEntry = {
+        date: new Date().toISOString(),
+        type: readingType,
+        context: context,
+        reading: outputText
+    };
+    
+    // Save to localStorage
+    const existingEntries = JSON.parse(localStorage.getItem('horoscopeJournal') || '[]');
+    existingEntries.unshift(journalEntry);
+    localStorage.setItem('horoscopeJournal', JSON.stringify(existingEntries.slice(0, 50)));
+    
+    alert('🌟 Horoscope saved to your cosmic journal!');
+}
+
+// Event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    initializeZodiacGrids();
+    refreshHoroscopeLimits();
+    
+    document.getElementById('horoscope-button').addEventListener('click', generateHoroscope);
+    document.getElementById('save-button').addEventListener('click', saveToJournal);
+});
+</script>
+
+</body>
+</html>

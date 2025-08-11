@@ -80,119 +80,6 @@ if not secret_key:
 
 app.secret_key = secret_key
 
-# ============================================
-# BULLETPROOF TIER ISOLATION SYSTEM
-# ============================================
-
-# ---------- Canonical plan/feature config ----------
-PLAN_LIMITS = {
-    "free":   {"decoder": 3,  "fortune": 2, "horoscope": 3},
-    "growth": {"decoder": 15, "fortune": 8, "horoscope": 10},
-    "max":    {"decoder": float("inf"), "fortune": float("inf"), "horoscope": float("inf")}
-}
-
-FEATURE_ACCESS = {
-    # Which features appear for each real plan (no trial applied here)
-    "free":   {"voice_journal": False, "ai_image": False, "creative_writer": True, "library": True, "mini_studio": False},
-    "growth": {"voice_journal": True,  "ai_image": True,  "creative_writer": True, "library": True, "mini_studio": False},
-    "max":    {"voice_journal": True,  "ai_image": True,  "creative_writer": True, "library": True, "mini_studio": True},
-}
-
-# ---------- Companions (bulletproof data) ----------
-COMPANIONS_NEW = [
-    # Free row
-    {"id":"blayzo_free","name":"Blayzo Free","tier":"free","image_url":"/static/logos/Blayzo.png"},
-    {"id":"blayzica_free","name":"Blayzica Free","tier":"free","image_url":"/static/logos/Blayzica.png"},
-    {"id":"companion_gamerjay","name":"GamerJay Free","tier":"free","image_url":"/static/logos/GamerJay Free companion.png"},
-    {"id":"claude_free","name":"Claude Free","tier":"free","image_url":"/static/logos/Claude Free.png"},
-    {"id":"blayzia_free","name":"Blayzia","tier":"free","image_url":"/static/logos/Blayzia.png"},
-    {"id":"blayzion_free","name":"Blayzion","tier":"free","image_url":"/static/logos/Blayzion.png"},
-    # Growth row
-    {"id":"companion_sky","name":"Sky","tier":"growth","image_url":"/static/logos/Sky a premium companion.png"},
-    {"id":"blayzo_premium","name":"Blayzo Premium","tier":"growth","image_url":"/static/logos/Blayzo premium companion.png"},
-    {"id":"blayzica_growth","name":"Blayzica Growth","tier":"growth","image_url":"/static/logos/Blayzica Pro.png"},
-    {"id":"gamerjay_premium","name":"GamerJay Premium","tier":"growth","image_url":"/static/logos/GamerJay premium companion.png"},
-    {"id":"watchdog_growth","name":"WatchDog Growth","tier":"growth","image_url":"/static/logos/WatchDog a Premium companion.png"},
-    {"id":"crimson_growth","name":"Crimson Growth","tier":"growth","image_url":"/static/logos/Crimson.png"},
-    {"id":"violet_growth","name":"Violet Growth","tier":"growth","image_url":"/static/logos/Violet.png"},
-    {"id":"claude_growth","name":"Claude Growth","tier":"growth","image_url":"/static/logos/Claude Growth.png"},
-    # Max row
-    {"id":"companion_crimson","name":"Companion Crimson","tier":"max","image_url":"/static/logos/Crimson a Max companion.png"},
-    {"id":"companion_violet","name":"Companion Violet","tier":"max","image_url":"/static/logos/Violet_Max.png"},
-    {"id":"royal_max","name":"Royal Max","tier":"max","image_url":"/static/logos/Royal_Max.png"},
-    {"id":"watchdog_max","name":"WatchDog Max","tier":"max","image_url":"/static/logos/WatchDog a Max Companion.png"},
-    {"id":"ven_blayzica","name":"Ven Blayzica","tier":"max","image_url":"/static/logos/Ven_Blayzica_Max.png"},
-    {"id":"ven_sky","name":"Ven Sky","tier":"max","image_url":"/static/logos/Ven_Sky_Max.png"},
-    {"id":"claude_max","name":"Claude Max","tier":"max","image_url":"/static/logos/Claude Max.png"},
-    # Referral (never unlocked by trial)
-    {"id":"blayzike","name":"Blayzike","tier":"referral","image_url":"/static/referral/blayzike.png"},
-    {"id":"blazelian","name":"Blazelian","tier":"referral","image_url":"/static/referral/blazelian.png"},
-    {"id":"claude_referral","name":"Claude Referral","tier":"referral","image_url":"/static/referral/claude_referral.png"},
-    {"id":"blayzo_skin","name":"Blayzo Special Skin","tier":"referral","image_url":"/static/referral/blayzo_skin.png"},
-]
-
-# ---------- Bulletproof Helper Functions ----------
-def get_user_id_new():
-    """Get stable user ID from session"""
-    return session.get("user_id", "demo_user")
-
-def get_effective_plan_new(user_plan: str, trial_active: bool) -> str:
-    """Trial unlocks FEATURES/COMPANIONS for visibility, but limits remain on real plan"""
-    return user_plan  # limits are always the real plan
-
-def get_access_matrix_new(user_plan: str, trial_active: bool):
-    """Get feature access matrix with trial visibility"""
-    base = FEATURE_ACCESS.get(user_plan, FEATURE_ACCESS["free"]).copy()
-    if trial_active:
-        # During trial: unlock visibility of Growth + Max features
-        # BUT limits still follow real plan
-        base["voice_journal"] = True
-        base["ai_image"] = True
-        base["creative_writer"] = True
-        base["library"] = True
-        # Keep mini_studio locked unless user is Max (uncomment next line to show during trial)
-        # base["mini_studio"] = True
-    return base
-
-def companion_unlock_state_new(user_plan: str, trial_active: bool, referrals: int):
-    """Determine which companions are unlocked - CORRECTED LOGIC"""
-    unlocked_tiers = set(["free"])  # Everyone gets free
-    
-    if trial_active:
-        # Trial unlocks ALL companions for 5 hours
-        unlocked_tiers.add("growth")
-        unlocked_tiers.add("max")
-    else:
-        # No trial - only get your specific tier
-        if user_plan == "growth":
-            unlocked_tiers.add("growth")
-        elif user_plan == "max":
-            unlocked_tiers.add("max")
-            # Max tier does NOT get growth companions - only free + max
-    
-    # Referral progressive unlocks (never by trial)
-    referral_unlocks = []
-    if referrals >= 2: referral_unlocks.append("blayzike")
-    if referrals >= 5: referral_unlocks.append("blazelian")
-    if referrals >= 8: referral_unlocks.append("claude_referral")
-    if referrals >= 10: referral_unlocks.append("blayzo_skin")
-    return unlocked_tiers, set(referral_unlocks)
-
-def get_feature_limit_new(real_plan: str, feature: str):
-    """Get feature limits based on real plan (never trial)"""
-    return PLAN_LIMITS.get(real_plan, PLAN_LIMITS["free"]).get(feature, 0)
-
-def require_max_for_mini_studio_new():
-    """Hard gate Mini Studio; never trust client"""
-    if session.get("user_plan") != "max":
-        return False
-    # For now, allow if user_plan is max (add payment verification later)
-    return True
-
-# ============================================
-# END BULLETPROOF TIER ISOLATION SYSTEM
-# ============================================
-
 # Debug mode setting
 DEBUG_MODE = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true' or os.environ.get('DEBUG', 'False').lower() == 'true'
 
@@ -488,18 +375,10 @@ def increment_rate_limit_session():
     except Exception as e:
         logger.error(f"Failed to increment rate limit session: {e}")
 
-# TEMPORARILY DISABLED - Testing if this interferes with authentication
-# @app.before_request
-def ensure_session_persistence_disabled():
-    # PERMANENT FIX: Make sessions persistent for all authenticated users
-    # Sessions should only expire when browser closes or explicit logout
-    if session.get('user_authenticated') or session.get('user_email') or session.get('email'):
-        session.permanent = True
-        # Set reasonable session lifetime (24 hours)
-        app.permanent_session_lifetime = timedelta(hours=24)
-    else:
-        # Only make non-authenticated sessions temporary
-        session.permanent = False
+# Ensure sessions expire when browser closes
+@app.before_request
+def make_session_non_permanent():
+    session.permanent = False
 
 # DISABLED: This was causing session clearing after multiple companion clicks
 # @app.before_request
@@ -508,9 +387,8 @@ def ensure_session_persistence_disabled():
 #     if not request.cookies.get('session'):
 #         session.clear()
 
-# TEMPORARILY DISABLED - This might be interfering with authentication
-# @app.before_request  
-def load_user_context_disabled():
+@app.before_request
+def load_user_context():
     """Load user context and handle trial expiration - comprehensive system"""
     # Skip for static files and API calls to avoid overhead
     if request.endpoint in ['static', 'favicon'] or request.path.startswith('/static/'):
@@ -531,7 +409,7 @@ def load_user_context_disabled():
         session["user_plan"] = new_plan
         current_plan = new_plan
     
-    # Sync trial status from database to session (with graceful fallback)
+    # Sync trial status from database to session
     try:
         db_instance = get_database()
         if db_instance:
@@ -572,10 +450,8 @@ def load_user_context_disabled():
             
             conn.close()
     except Exception as e:
-        logger.warning(f"Non-critical error syncing trial status (continuing with session data): {e}")
-        # Graceful fallback: use existing session values, don't clear session
-        if 'trial_active' not in session:
-            session['trial_active'] = False
+        logger.error(f"Error syncing trial status: {e}")
+        # Fallback to session values
         pass
 
     g.user_plan = current_plan
@@ -845,26 +721,35 @@ def background_monitoring():
 background_monitoring()
 
 def is_logged_in():
-    """Ultra-simple authentication - just check for user identifier"""
+    """Check if user is logged in with strict banking-style session timeout"""
     try:
-        # ULTRA-SIMPLE: Just check if user has any identifying information
-        has_email = bool(session.get('user_email') or session.get('email'))
-        has_user_id = bool(session.get('user_id'))
+        # BANKING SECURITY: Force clear all sessions created before security upgrade
+        REQUIRED_SESSION_VERSION = "2025-07-28-banking-security"
+        if session.get('session_version') != REQUIRED_SESSION_VERSION:
+            logger.info("SECURITY: Clearing old session - banking security upgrade")
+            session.clear()
+            return False
         
-        # If they have either email or user_id, they're logged in
-        if has_email or has_user_id:
-            # Ensure auth flag is set
-            session['user_authenticated'] = True
-            return True
+        if not session.get("user_authenticated", False):
+            return False
         
-        return False
+        # Also check for user_id or user_email as backup validation
+        if not session.get('user_id') and not session.get('user_email') and not session.get('email'):
+            return False
+        
+        # No automatic timeout - session lasts until browser is closed
+        # Just update the last activity timestamp for logging purposes
+        
+        # Update last activity time
+        session['last_activity'] = datetime.now().isoformat()
+        return True
         
     except Exception as e:
         # Any unexpected error should not clear session unless necessary
         logger.error(f"Session validation error: {e}")
-        # PERMANENT FIX: Don't clear sessions with any user data
-        # Only return False if completely empty session
-        if not session.get("user_authenticated") and not session.get('user_id') and not session.get('user_email') and not session.get('email'):
+        # Only clear if critical fields are missing
+        if not session.get("user_authenticated") and not session.get('user_id'):
+            session.clear()
             return False
         return True
 
@@ -1579,11 +1464,6 @@ def user_status():
         user_plan = session.get('user_plan', 'free') if logged_in else 'free'
         trial_active = session.get('trial_active', False) if logged_in else False
         
-        # Debug logging for authentication issues
-        if not logged_in:
-            logger.warning(f"🔍 USER STATUS DEBUG: logged_in=False, session_keys={list(session.keys())}")
-            logger.warning(f"🔍 SESSION DATA: user_authenticated={session.get('user_authenticated')}, user_id={session.get('user_id')}, user_email={session.get('user_email')}, session_version={session.get('session_version')}")
-        
         return jsonify({
             "success": True,
             "logged_in": logged_in,
@@ -1618,24 +1498,27 @@ def logout_on_close():
 
 @app.route("/api/clear-session", methods=["POST"])
 def clear_session():
-    """PERMANENT FIX: Only clear session on explicit logout, not navigation"""
+    """BANKING SECURITY: Clear session when user navigates away"""
     try:
-        # Check if this is an explicit logout request
-        data = request.get_json() or {}
-        is_explicit_logout = data.get('explicit_logout', False)
+        user_email = session.get('user_email', 'unknown')
         
-        if is_explicit_logout:
-            user_email = session.get('user_email', 'unknown')
-            logger.info(f"🚪 EXPLICIT LOGOUT: Clearing session for user {user_email}")
-            session.clear()
-            return jsonify({"success": True, "message": "Session cleared for logout"})
-        else:
-            # For navigation or other requests, preserve the session
-            logger.info("🔒 NAVIGATION: Preserving user session - no logout needed")
-            return jsonify({"success": True, "message": "Session preserved"})
+        # Preserve only profile image for UX - NOT authentication data
+        profile_image = session.get('profile_image')
+        user_id = session.get('user_id')
+        
+        logger.info(f"SECURITY: Clearing session for user {user_email} (navigation away detected)")
+        session.clear()
+        
+        # Restore only profile image if it was a custom one (not default)
+        # This maintains UX without compromising security since it's just cosmetic data
+        if profile_image and profile_image not in ['/static/logos/Sapphire.png', '/static/logos/IntroLogo.png']:
+            session['profile_image'] = profile_image
+            logger.info(f"SECURITY: Profile image preserved after session clear: {profile_image}")
+        
+        return jsonify({"success": True, "message": "Session cleared"})
     except Exception as e:
-        logger.error(f"Error in session handler: {e}")
-        return jsonify({"success": True, "message": "Session preserved"})
+        logger.error(f"Error clearing session: {e}")
+        return jsonify({"success": False, "error": "Failed to clear session"}), 500
 
 @app.route('/api/user-info')
 def user_info():
@@ -2555,11 +2438,10 @@ def companion_selection():
     except Exception as e:
         logger.error(f"Error getting referral count: {e}")
     
-    # DEBUG: Log template variables to identify flash cause
-    logger.info(f"🎨 TEMPLATE DEBUG: referral_count={referral_count}, trial_active={trial_active}, user_plan={user_plan}")
-    
-    # Use ultra-minimal template to eliminate ALL potential flash sources
-    return render_template("companion_minimal.html")
+    return render_template("companion_selector.html", 
+                         referral_count=referral_count,
+                         trial_active=trial_active,
+                         user_plan=user_plan)
 
 # ---- CLEAN NETFLIX-STYLE TIERS PAGE ----
 @app.route("/tiers")
@@ -2668,62 +2550,34 @@ def chat():
     trial_active = session.get('trial_active', False)
     effective_plan = get_effective_plan(user_plan, trial_active)  # FIXED: Calculate fresh
     
-    # Handle companion selection using bulletproof data
+    # Handle companion selection
     companion_id = request.args.get('companion')
     if companion_id:
-        # Skip processing if this companion is already selected (prevent double-click issues)
-        current_companion = session.get('selected_companion')
-        if current_companion == companion_id:
-            logger.info(f"🔄 COMPANION: {companion_id} already selected, skipping duplicate selection")
-        else:
-            # Find companion tier from bulletproof companion data
-            companion_tier = 'free'  # default
-            companion_found = False
+        # Define companion tiers - handle different companion ID formats
+        companion_tiers = {
+            # Free companions
+            'blayzo_free': 'free', 'blayzica_free': 'free', 'companion_gamerjay': 'free',
+            'blayzia_free': 'free', 'blayzion_free': 'free', 'claude_free': 'free',
+            # Growth companions  
+            'companion_sky': 'growth', 'blayzo_premium': 'growth', 'blayzica_growth': 'growth',
+            'gamerjay_premium': 'growth', 'watchdog_growth': 'growth',
+            'crimson_growth': 'growth', 'violet_growth': 'growth', 'claude_growth': 'growth',
+            # Max companions
+            'companion_crimson': 'max', 'companion_violet': 'max', 'royal_max': 'max',
+            'watchdog_max': 'max', 'ven_blayzica': 'max', 'ven_sky': 'max', 'claude_max': 'max',
+            # Handle direct names (violet -> companion_violet)
+            'violet': 'max', 'crimson': 'max', 'sky': 'growth'
+        }
+        
+        companion_tier = companion_tiers.get(companion_id, 'free')
+        
+        # Check access using bulletproof logic
+        can_access = can_access_companion(user_plan, companion_tier, trial_active)
+        
+        if not can_access:
+            return redirect("/companion-selection?error=upgrade_required")
             
-            for c in COMPANIONS_NEW:
-                if c['id'] == companion_id:
-                    companion_tier = c['tier']
-                    companion_found = True
-                    break
-            
-            if not companion_found:
-                # Try legacy companion mapping for backwards compatibility
-                legacy_mapping = {
-                    'blayzo': 'blayzo_free',
-                    'blayzica': 'blayzica_free', 
-                    'gamerjay': 'companion_gamerjay',
-                    'sky': 'companion_sky',
-                    'violet': 'companion_violet',
-                    'crimson': 'companion_crimson'
-                }
-                if companion_id in legacy_mapping:
-                    new_id = legacy_mapping[companion_id]
-                    for c in COMPANIONS_NEW:
-                        if c['id'] == new_id:
-                            companion_tier = c['tier']
-                            companion_found = True
-                            companion_id = new_id  # update to new ID
-                            break
-            
-            if not companion_found:
-                # Default to free tier if not found
-                companion_tier = 'free'
-            
-            # Use bulletproof companion unlock logic
-            referrals = int(session.get('referrals', 0))
-            unlocked_tiers, referral_ids = companion_unlock_state_new(user_plan, trial_active, referrals)
-            
-            # Check access
-            can_access = False
-            if companion_tier in ('free', 'growth', 'max'):
-                can_access = companion_tier in unlocked_tiers
-            elif companion_tier == 'referral':
-                can_access = companion_id in referral_ids
-            
-            if not can_access:
-                return redirect("/tiers?upgrade_required=true")
-                
-            session['selected_companion'] = companion_id
+        session['selected_companion'] = companion_id
     
     companion_name = session.get('selected_companion', 'blayzo_free')
     
@@ -2806,8 +2660,8 @@ def chat():
         effective_plan=effective_plan
     )
 
-@app.route("/api/companions-old-disabled", methods=["GET"])
-def api_companions_old_disabled():
+@app.route("/api/companions", methods=["GET"])
+def api_companions():
     """Get available companions organized by tiers"""
     try:
         # Allow access without authentication so users can see companions before login
@@ -3157,8 +3011,6 @@ def profile():
 def subscription():
     """Subscription route"""
     try:
-        if not is_logged_in():
-            return redirect("/login?return_to=subscription")
         return render_template("subscription.html")
     except Exception as e:
         logger.error(f"Subscription template error: {e}")
@@ -7328,233 +7180,6 @@ def get_user_plan():
     except Exception as e:
         logger.error(f"Get user plan error: {e}")
         return jsonify({"plan": "free", "trial_active": False})
-
-# ============================================
-# BULLETPROOF API ENDPOINTS
-# ============================================
-
-@app.route("/api/plan")
-def api_plan_new():
-    """Bulletproof plan info for frontend"""
-    try:
-        if not is_logged_in():
-            return jsonify({
-                "user_plan": "free",
-                "trial_active": False,
-                "effective_plan": "free",
-                "limits": {"decoder": 3, "fortune": 2, "horoscope": 3},
-                "features": FEATURE_ACCESS["free"]
-            })
-        
-        user_plan = session.get("user_plan", "free")
-        trial_active = bool(session.get("trial_active", False))
-        effective_plan = get_effective_plan_new(user_plan, trial_active)
-        access = get_access_matrix_new(user_plan, trial_active)
-        
-        limits = {
-            "decoder": get_feature_limit_new(effective_plan, "decoder"),
-            "fortune": get_feature_limit_new(effective_plan, "fortune"),
-            "horoscope": get_feature_limit_new(effective_plan, "horoscope"),
-        }
-        
-        return jsonify({
-            "user_plan": user_plan,
-            "trial_active": trial_active,
-            "effective_plan": effective_plan,
-            "limits": limits,
-            "features": access
-        })
-    except Exception as e:
-        logger.error(f"API plan error: {e}")
-        return jsonify({
-            "user_plan": "free",
-            "trial_active": False,
-            "effective_plan": "free",
-            "limits": {"decoder": 3, "fortune": 2, "horoscope": 3},
-            "features": FEATURE_ACCESS["free"]
-        }), 500
-
-@app.route("/api/companions")
-def api_companions():
-    """Bulletproof companions API with server-side lock state"""
-    try:
-        if not is_logged_in():
-            # Return all locked for unauthenticated users
-            companions = []
-            for c in COMPANIONS_NEW:
-                companions.append({
-                    "id": c["id"],
-                    "name": c["name"],
-                    "image_url": c["image_url"],
-                    "tier": c["tier"],
-                    "locked": True,
-                    "lock_reason": "Login required"
-                })
-            return jsonify({"companions": companions})
-        
-        user_plan = session.get("user_plan", "free")
-        trial_active = bool(session.get("trial_active", False))
-        referrals = int(session.get("referrals", 0))
-        
-        # Get referral count from database if available
-        try:
-            db_instance = get_database()
-            if db_instance:
-                user_id = session.get('user_id')
-                conn = db_instance.get_connection()
-                cursor = conn.cursor()
-                if db_instance.use_postgres:
-                    cursor.execute("SELECT referral_count FROM users WHERE id = %s", (user_id,))
-                else:
-                    cursor.execute("SELECT referral_count FROM users WHERE id = ?", (user_id,))
-                result = cursor.fetchone()
-                if result:
-                    referrals = result[0] or 0
-                conn.close()
-        except Exception as e:
-            logger.error(f"Error getting referral count: {e}")
-        
-        unlocked_tiers, referral_ids = companion_unlock_state_new(user_plan, trial_active, referrals)
-        
-        companions = []
-        for c in COMPANIONS_NEW:
-            locked = True
-            lock_reason = ""
-            
-            if c["tier"] in ("free", "growth", "max"):
-                if c["tier"] in unlocked_tiers:
-                    locked = False
-                else:
-                    lock_reason = f"{c['tier'].capitalize()} tier required"
-            elif c["tier"] == "referral":
-                # Only unlock via referral thresholds; trial NEVER unlocks these
-                if c["id"] in referral_ids:
-                    locked = False
-                else:
-                    lock_reason = "Referral required"
-            
-            companions.append({
-                "id": c["id"],
-                "name": c["name"],
-                "image_url": c["image_url"],
-                "tier": c["tier"],
-                "locked": locked,
-                "lock_reason": lock_reason
-            })
-        
-        return jsonify({"companions": companions})
-    
-    except Exception as e:
-        logger.error(f"API companions error: {e}")
-        return jsonify({"companions": []}), 500
-
-@app.route("/start-trial", methods=["POST"])
-def start_trial_bulletproof():
-    """Bulletproof trial start - only visibility changes"""
-    try:
-        if not is_logged_in():
-            return jsonify({"ok": False, "error": "Authentication required"}), 401
-        
-        if session.get("trial_used_permanently"):
-            return jsonify({"ok": False, "error": "Trial already used"}), 400
-        
-        # Start trial - only changes visibility, never changes limits
-        session["trial_active"] = True
-        session["trial_started_at"] = datetime.utcnow().isoformat()
-        session["trial_expires_at"] = (datetime.utcnow() + timedelta(hours=5)).isoformat()
-        
-        # Update database trial status
-        try:
-            user_id = session.get('user_id')
-            if user_id:
-                db_instance = get_database()
-                if db_instance:
-                    conn = db_instance.get_connection()
-                    cursor = conn.cursor()
-                    now = datetime.utcnow()
-                    expires = now + timedelta(hours=5)
-                    
-                    if db_instance.use_postgres:
-                        cursor.execute("UPDATE users SET trial_started_at = %s, trial_expires_at = %s, trial_active = TRUE WHERE id = %s", (now, expires, user_id))
-                    else:
-                        cursor.execute("UPDATE users SET trial_started_at = ?, trial_expires_at = ?, trial_active = 1 WHERE id = ?", (now.isoformat(), expires.isoformat(), user_id))
-                    
-                    conn.commit()
-                    conn.close()
-        except Exception as e:
-            logger.error(f"Database error during trial start: {e}")
-        
-        return jsonify({"ok": True, "message": "5-hour trial started"})
-    
-    except Exception as e:
-        logger.error(f"Trial start error: {e}")
-        return jsonify({"ok": False, "error": "Trial start failed"}), 500
-
-@app.route("/poll-trial")
-def poll_trial_bulletproof():
-    """Poll trial status and auto-expire"""
-    try:
-        active = bool(session.get("trial_active"))
-        started_at = session.get("trial_started_at")
-        
-        if active and started_at:
-            started = datetime.fromisoformat(started_at)
-            if datetime.utcnow() - started > timedelta(hours=5):
-                # Trial expired
-                session["trial_active"] = False
-                session["trial_used_permanently"] = True
-                
-                # Update database
-                try:
-                    user_id = session.get('user_id')
-                    if user_id:
-                        db_instance = get_database()
-                        if db_instance:
-                            conn = db_instance.get_connection()
-                            cursor = conn.cursor()
-                            if db_instance.use_postgres:
-                                cursor.execute("UPDATE users SET trial_active = FALSE, trial_used_permanently = TRUE WHERE id = %s", (user_id,))
-                            else:
-                                cursor.execute("UPDATE users SET trial_active = 0, trial_used_permanently = 1 WHERE id = ?", (user_id,))
-                            conn.commit()
-                            conn.close()
-                except Exception as e:
-                    logger.error(f"Database error during trial expiry: {e}")
-                
-                active = False
-        
-        return jsonify({"trial_active": active})
-    
-    except Exception as e:
-        logger.error(f"Poll trial error: {e}")
-        return jsonify({"trial_active": False})
-
-# ============================================
-# BULLETPROOF MINI STUDIO GATE
-# ============================================
-
-@app.route("/mini-studio")
-def mini_studio_bulletproof():
-    """Hard-gated Mini Studio - Max tier only"""
-    try:
-        if not is_logged_in():
-            return redirect("/login?return_to=mini-studio")
-        
-        # Hard gate: Only Max users can access
-        if not require_max_for_mini_studio_new():
-            flash("Mini Studio is exclusive to Max tier subscribers", "error")
-            return redirect("/tiers?upgrade=max")
-        
-        # Render Mini Studio page
-        return render_template("mini_studio.html")
-    
-    except Exception as e:
-        logger.error(f"Mini Studio access error: {e}")
-        return redirect("/tiers")
-
-# ============================================
-# END BULLETPROOF API ENDPOINTS  
-# ============================================
 
 # REMOVED: Another duplicate route - using the newer one at line 979
 # @app.route("/api/start-trial", methods=["POST"])
@@ -13605,288 +13230,6 @@ TIERS_TEMPLATE = r"""
 </body>
 </html>
 """
-
-# ========================================
-# MUSIC STUDIO INTEGRATION
-# ========================================
-
-# Extend existing user model with music studio fields
-try:
-    # Add music studio columns to existing users table if not exists
-    database_url = os.environ.get('DATABASE_URL')
-    if database_url:
-        import psycopg2
-        conn = psycopg2.connect(database_url)
-        cursor = conn.cursor()
-        
-        # Add music studio fields to existing users table
-        music_columns = [
-            "ALTER TABLE users ADD COLUMN IF NOT EXISTS trainer_credits INTEGER DEFAULT 0",
-            "ALTER TABLE users ADD COLUMN IF NOT EXISTS disclaimer_accepted_at TIMESTAMP",
-            "ALTER TABLE users ADD COLUMN IF NOT EXISTS last_credit_reset DATE"
-        ]
-        
-        for sql in music_columns:
-            try:
-                cursor.execute(sql)
-            except Exception as e:
-                logger.debug(f"Column may already exist: {e}")
-        
-        conn.commit()
-        cursor.close()
-        conn.close()
-        logger.info("✅ Music studio database columns added")
-    
-    # Create additional tables for music studio
-    songs_table = """
-    CREATE TABLE IF NOT EXISTS songs (
-        id SERIAL PRIMARY KEY,
-        user_id INTEGER REFERENCES users(id),
-        title VARCHAR(200),
-        tags VARCHAR(200),
-        file_path VARCHAR(500),
-        likes INTEGER DEFAULT 0,
-        play_count INTEGER DEFAULT 0,
-        created_at TIMESTAMP DEFAULT NOW()
-    )
-    """
-    
-    trainer_purchases_table = """
-    CREATE TABLE IF NOT EXISTS trainer_purchases (
-        id SERIAL PRIMARY KEY,
-        user_id INTEGER REFERENCES users(id),
-        credits INTEGER NOT NULL,
-        stripe_session_id VARCHAR(255) UNIQUE,
-        paid BOOLEAN DEFAULT FALSE,
-        created_at TIMESTAMP DEFAULT NOW()
-    )
-    """
-    
-    max_trials_table = """
-    CREATE TABLE IF NOT EXISTS max_trials (
-        id SERIAL PRIMARY KEY,
-        user_id INTEGER REFERENCES users(id),
-        expires_at TIMESTAMP NOT NULL,
-        credits_granted INTEGER DEFAULT 60,
-        active BOOLEAN DEFAULT TRUE
-    )
-    """
-    
-    if database_url:
-        conn = psycopg2.connect(database_url)
-        cursor = conn.cursor()
-        cursor.execute(songs_table)
-        cursor.execute(trainer_purchases_table)
-        cursor.execute(max_trials_table)
-        conn.commit()
-        cursor.close()
-        conn.close()
-        logger.info("✅ Music studio tables created")
-    
-except Exception as e:
-    logger.error(f"Music Studio database setup error: {e}")
-
-# Music Studio Helper Functions
-def ensure_monthly_credits(user_id):
-    """Reset monthly credits for Max users"""
-    try:
-        database_url = os.environ.get('DATABASE_URL')
-        if not database_url:
-            return
-        
-        import psycopg2
-        from datetime import date
-        
-        conn = psycopg2.connect(database_url)
-        cursor = conn.cursor()
-        
-        # Check if user is Max and needs credit reset
-        cursor.execute("""
-            SELECT user_plan, last_credit_reset, trainer_credits
-            FROM users WHERE id = %s
-        """, (user_id,))
-        
-        result = cursor.fetchone()
-        if not result or result[0] != 'max':
-            cursor.close()
-            conn.close()
-            return
-            
-        user_plan, last_reset, current_credits = result
-        today = date.today()
-        
-        # Reset if new month
-        if (last_reset is None or 
-            last_reset.year != today.year or 
-            last_reset.month != today.month):
-            
-            cursor.execute("""
-                UPDATE users 
-                SET trainer_credits = %s, last_credit_reset = %s 
-                WHERE id = %s
-            """, (650, today, user_id))
-            conn.commit()
-            logger.info(f"Reset credits for Max user {user_id}")
-        
-        cursor.close()
-        conn.close()
-        
-    except Exception as e:
-        logger.error(f"Credit reset error: {e}")
-
-def is_max_allowed_music(user_id):
-    """Check if user has Max plan or active trial"""
-    try:
-        database_url = os.environ.get('DATABASE_URL')
-        if not database_url:
-            return False
-        
-        import psycopg2
-        from datetime import datetime
-        
-        conn = psycopg2.connect(database_url)
-        cursor = conn.cursor()
-        
-        # Check if user has Max plan
-        cursor.execute("SELECT user_plan FROM users WHERE id = %s", (user_id,))
-        result = cursor.fetchone()
-        if result and result[0] == 'max':
-            cursor.close()
-            conn.close()
-            return True
-        
-        # Check for active trial
-        cursor.execute("""
-            SELECT expires_at FROM max_trials 
-            WHERE user_id = %s AND active = TRUE 
-            ORDER BY id DESC LIMIT 1
-        """, (user_id,))
-        
-        result = cursor.fetchone()
-        if result:
-            expires_at = result[0]
-            if isinstance(expires_at, str):
-                expires_at = datetime.fromisoformat(expires_at.replace('Z', '+00:00'))
-            
-            if expires_at > datetime.utcnow():
-                cursor.close()
-                conn.close()
-                return True
-            else:
-                # Deactivate expired trial
-                cursor.execute("""
-                    UPDATE max_trials SET active = FALSE 
-                    WHERE user_id = %s AND expires_at <= NOW()
-                """, (user_id,))
-                conn.commit()
-        
-        cursor.close()
-        conn.close()
-        return False
-        
-    except Exception as e:
-        logger.error(f"Max access check error: {e}")
-        return False
-
-# Music Studio Routes
-@app.route("/music-studio")
-def music_studio_redirect():
-    """Redirect to music studio"""
-    if not is_logged_in():
-        return redirect("/login?return_to=music-studio")
-    return redirect("/music")
-
-@app.route("/music")
-def music_home():
-    """Music Studio home page"""
-    if not is_logged_in():
-        return redirect("/login?return_to=music")
-    
-    user_id = session.get('user_id')
-    ensure_monthly_credits(user_id)
-    
-    # Get user info
-    database_url = os.environ.get('DATABASE_URL')
-    user_info = {'email': session.get('user_email', 'unknown'), 'plan': 'free', 'credits': 0}
-    
-    if database_url:
-        try:
-            import psycopg2
-            conn = psycopg2.connect(database_url)
-            cursor = conn.cursor()
-            cursor.execute("""
-                SELECT user_plan, trainer_credits, disclaimer_accepted_at
-                FROM users WHERE id = %s
-            """, (user_id,))
-            result = cursor.fetchone()
-            if result:
-                user_info.update({
-                    'plan': result[0] or 'free',
-                    'credits': result[1] or 0,
-                    'disclaimer_accepted': result[2] is not None
-                })
-            cursor.close()
-            conn.close()
-        except Exception as e:
-            logger.error(f"User info fetch error: {e}")
-    
-    allowed = is_max_allowed_music(user_id)
-    
-    return render_template_string('''
-<!doctype html><meta charset="utf-8">
-<title>SoulBridge AI – Music Studio</title>
-<style>
-body{font-family:system-ui;background:#0b0f17;color:#e6f1ff;padding:24px}
-.card{background:#111827;border:1px solid #1f2937;border-radius:12px;padding:16px;display:inline-block;margin:8px;width:300px}
-a.btn,button{background:#06b6d4;color:#001018;border:none;padding:10px 14px;border-radius:8px;text-decoration:none;cursor:pointer}
-.muted{color:#9aa8bd}.row{display:flex;gap:12px;flex-wrap:wrap}
-.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-</style>
-<div class="top">
-  <div>
-    <div>Logged in as <b>{{email}}</b></div>
-    <div class="muted">Plan: <b>{{plan}}</b> • Credits: <b>{{credits}}</b></div>
-  </div>
-  <div>
-    {% if allowed %}<a class="btn" href="/music/mini-studio">🎶 Mini Studio</a>{% endif %}
-    <a class="btn" href="/music/library">🎵 Library</a>
-    <a class="btn" href="/">← Back to Main</a>
-  </div>
-</div>
-
-<h1>🎵 Music Studio</h1>
-<div class="row">
-  <div class="card">
-    <h3>Coming Soon</h3>
-    <p>Advanced music generation and editing tools will be available here.</p>
-    {% if not allowed %}
-      <p class="muted">Requires Max plan or trial</p>
-    {% endif %}
-  </div>
-</div>
-''', email=user_info['email'], plan=user_info['plan'], credits=user_info['credits'], allowed=allowed)
-
-@app.route("/music/library")
-def music_library():
-    """Music library page"""
-    if not is_logged_in():
-        return redirect("/login?return_to=music/library")
-    
-    return render_template_string('''
-<!doctype html><meta charset="utf-8">
-<title>Music Library</title>
-<style>
-body{font-family:system-ui;background:#0b0f17;color:#e6f1ff;padding:24px}
-.btn{background:#06b6d4;color:#001018;border:none;padding:8px 12px;border-radius:8px;text-decoration:none}
-</style>
-<h1>🎵 Music Library</h1>
-<div>
-  <a href="/music" class="btn">← Back to Studio</a>
-</div>
-<p>Your music library will appear here once you create songs.</p>
-''')
-
-logger.info("✅ Music Studio integration completed")
 
 # APPLICATION STARTUP
 # ========================================

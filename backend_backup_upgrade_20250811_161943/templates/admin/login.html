@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WatchDog Admin - SoulBridge AI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .login-container {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 40px;
+            border-radius: 15px;
+            border: 2px solid #00ffff;
+            box-shadow: 0 15px 35px rgba(0, 255, 255, 0.3);
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .logo h1 {
+            color: #00ffff;
+            font-size: 2rem;
+            margin-bottom: 5px;
+        }
+        
+        .logo p {
+            color: #ccc;
+            font-size: 0.9rem;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #00ffff;
+            font-weight: 500;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #00ffff;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+        }
+        
+        .btn-login {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #00ffff 0%, #0891b2 100%);
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 255, 255, 0.4);
+        }
+        
+        .error {
+            background: rgba(255, 0, 0, 0.2);
+            border: 1px solid #ff4444;
+            color: #ff4444;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #888;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container" style="box-shadow: 0 20px 60px #00ffff33, 0 0 0 2.5px #00ffff55; border: 2.5px solid #00ffffcc; background: linear-gradient(135deg, #10131a 60%, #1a2330 100%);">
+        <div class="logo" style="margin-bottom: 18px;">
+            <img src="/static/logos/IntroLogo.png" alt="SoulBridge AI Logo" style="width:80px; margin-bottom:12px; filter: drop-shadow(0 0 12px #00ffff88);">
+            <h1 style="margin: 0 0 6px 0; font-size: 2rem; color: #00ffff; letter-spacing: 2px; font-weight: 800; text-shadow: 0 0 16px #00ffff55;">🚨 SURVEILLANCE COMMAND CENTER</h1>
+            <p style="color: #b6eaff; font-size: 1.08rem; margin-top: 0; font-weight: 600; letter-spacing: 1px;">SoulBridge AI Security Operations Center</p>
+        </div>
+
+        <div style="height: 2px; background: linear-gradient(90deg, transparent, #00ffff 50%, transparent); margin: 18px 0 28px 0; border-radius: 2px;"></div>
+
+        {% if error %}
+        <div class="error" style="font-size:1.08rem;">{{ error }}</div>
+        {% endif %}
+
+        <form method="POST" autocomplete="on" style="display: flex; flex-direction: column; gap: 22px; margin-bottom: 10px;">
+            <div class="form-group" style="margin-bottom:0;">
+                <label for="email" style="font-size:1.08rem;">Username</label>
+                <input type="text" id="email" name="email" required autocomplete="username" placeholder="Enter admin email" style="font-size:1.08rem;">
+            </div>
+            <div class="form-group" style="position:relative; margin-bottom:0;">
+                <label for="password" style="font-size:1.08rem;">Password</label>
+                <input type="password" id="password" name="password" required style="padding-right:44px; font-size:1.08rem;" autocomplete="current-password" placeholder="Enter password">
+                <button type="button" id="togglePassword" style="position:absolute; right:10px; top:38px; background:none; border:none; color:#00ffff; cursor:pointer; font-size:1.2em;" tabindex="-1">
+                    <span id="eyeIcon">👁️</span>
+                </button>
+            </div>
+            <button type="submit" class="btn-login" style="margin-top: 8px; font-size:1.13rem; font-weight:700; letter-spacing:1px; box-shadow:0 4px 18px #00ffff33;">Access Admin</button>
+        </form>
+
+        <script>
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordInput = document.getElementById('password');
+        const eyeIcon = document.getElementById('eyeIcon');
+        if (togglePassword && passwordInput && eyeIcon) {
+            togglePassword.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    eyeIcon.textContent = '🙈';
+                } else {
+                    passwordInput.type = 'password';
+                    eyeIcon.textContent = '👁️';
+                }
+            });
+        }
+        </script>
+
+        <div class="footer" style="margin-top: 32px;">
+            <p style="color:#00ffff; font-weight:700; letter-spacing:1.2px; font-size:1.01rem;">Secure Admin Access Only</p>
+        </div>
+    </div>
+</body>
+</html>

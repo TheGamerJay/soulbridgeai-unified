@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Choose Your Companion - SoulBridge AI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 30%, #16213e 60%, #0f3460 100%);
+            color: #00ffff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+            padding: 20px;
+            /* Prevent flash by ensuring consistent styling from start */
+            opacity: 1;
+        }
+        
+        /* Prevent FOUC (Flash of Unstyled Content) */
+        .container {
+            opacity: 1;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        /* Prevent flash of unstyled content */
+        #companions-container {
+            opacity: 1;
+            transition: opacity 0.1s ease-in;
+        }
+        
+        .tier-section {
+            visibility: visible;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+        
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            color: #00ffff;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        .back-button:hover {
+            background: rgba(0, 255, 255, 0.2);
+            border-color: #00ffff;
+        }
+        
+        .tier-section {
+            margin: 2rem 0;
+            padding: 1rem;
+            background: #121212;
+            border-radius: 12px;
+            box-shadow: 0 0 12px rgba(0, 255, 255, 0.1);
+        }
+        
+        .tier-title {
+            font-size: 1.8rem;
+            color: #00ffff;
+            margin-bottom: 0.5rem;
+        }
+        
+        .tier-description {
+            color: #ccc;
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+        }
+        
+        .companion-row {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .companion-card {
+            background: #1f1f1f;
+            padding: 0.8rem;
+            border-radius: 8px;
+            width: 160px;
+            text-align: center;
+            box-shadow: 0 0 8px rgba(255, 255, 255, 0.05);
+        }
+        
+        .companion-card img {
+            width: 100%;
+            border-radius: 8px;
+        }
+        
+        .companion-name {
+            font-weight: bold;
+            margin-top: 0.5rem;
+            color: #fff;
+        }
+        
+        .companion-lock {
+            color: #00ff99;
+            font-size: 0.85rem;
+            margin-top: 0.3rem;
+        }
+        
+        .locked-tier-notice {
+            margin-top: 2rem;
+            text-align: center;
+            color: #ff9999;
+            font-size: 0.95rem;
+        }
+        
+        .locked-tier-row {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+        
+        .locked-box {
+            background: #2a2a2a;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            border: 1px solid #444;
+            font-size: 0.85rem;
+            color: #ff4d4d;
+        }
+        
+        .growth-tier {
+            background: #1a2e1a;
+            border: 2px solid #4ade80;
+        }
+        
+        .growth-tier h2 {
+            color: #4ade80;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .feature-box {
+            background: #2a2a2a;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #444;
+        }
+        
+        .feature-box h4 {
+            color: #4ade80;
+            margin-bottom: 0.5rem;
+        }
+        
+        .feature-box p {
+            color: #ccc;
+            font-size: 0.9rem;
+        }
+        
+        .growth-companions {
+            background: #1f2f1f;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border: 1px solid #4ade80;
+        }
+        
+        .growth-companions h3 {
+            color: #4ade80;
+            margin-bottom: 0.5rem;
+        }
+        
+        .growth-companions ul {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 0.3rem;
+        }
+        
+        .growth-companions li {
+            color: #ccc;
+            padding: 0.2rem 0;
+        }
+        
+        .trial-info {
+            background: #2a1a2a;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border: 1px solid #a855f7;
+        }
+        
+        .trial-info h4 {
+            color: #a855f7;
+            margin-bottom: 0.5rem;
+        }
+        
+        .trial-info ul {
+            color: #ccc;
+            margin-left: 1rem;
+        }
+        
+        .referral-note {
+            background: #2a2a1a;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border: 1px solid #fbbf24;
+        }
+        
+        .referral-note h4 {
+            color: #fbbf24;
+            margin-bottom: 0.5rem;
+        }
+        
+        .referral-note p, .referral-note ul {
+            color: #ccc;
+        }
+        
+        .referral-note ul {
+            margin-left: 1rem;
+        }
+        
+        .max-tier {
+            background: #2a1a2a;
+            border: 2px solid #a855f7;
+        }
+        
+        .max-tier h2 {
+            color: #a855f7;
+        }
+        
+        .max-tier h3 {
+            color: #a855f7;
+            margin: 1.5rem 0 0.5rem 0;
+        }
+        
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 1rem 0;
+        }
+        
+        .feature-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem;
+            margin: 0.3rem 0;
+            background: #3a2a3a;
+            border-radius: 6px;
+            color: #ccc;
+        }
+        
+        .badge {
+            background: #a855f7;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .badge.new {
+            background: #ff0;
+            color: #000;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+        
+        .action-btn {
+            padding: 4px 8px;
+            background: #58a;
+            color: #fff;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 0.8rem;
+            margin-left: 0.5rem;
+        }
+        
+        .action-btn:hover {
+            background: #347;
+        }
+        
+        .companion-tiers {
+            list-style: none;
+            padding: 0;
+            margin: 1rem 0;
+        }
+        
+        .companion-tiers li {
+            padding: 0.5rem;
+            margin: 0.3rem 0;
+            background: #3a2a3a;
+            border-radius: 6px;
+            color: #ccc;
+        }
+        
+        .locked-referrals {
+            background: #3a2a2a !important;
+            border: 1px solid #ff7676;
+        }
+        
+        .locked-referrals span.note {
+            color: #ff7676;
+            font-size: 0.9em;
+            font-style: italic;
+        }
+        
+        .feature-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            background: #2a2a2a;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .feature-table th {
+            background: #3a3a3a;
+            color: #a855f7;
+            padding: 0.8rem;
+            text-align: left;
+            font-weight: bold;
+        }
+        
+        .feature-table td {
+            padding: 0.6rem 0.8rem;
+            border-bottom: 1px solid #444;
+            color: #ccc;
+        }
+        
+        .feature-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .feature-table tr:nth-child(even) {
+            background: #2a2a2a;
+        }
+        
+        .feature-table tr:nth-child(odd) {
+            background: #333;
+        }
+        
+        .trial-note {
+            color: #ff7676;
+            font-size: 0.9em;
+            font-style: italic;
+            background: #2a1a1a;
+            padding: 1rem;
+            border-radius: 6px;
+            border-left: 4px solid #ff7676;
+            margin: 1rem 0;
+        }
+        
+        .referral-note {
+            color: #ff7676;
+            font-size: 0.9em;
+            font-style: italic;
+            margin-top: 0.5rem;
+        }
+        
+        .referral-tier {
+            background: linear-gradient(135deg, #2a1a1a, #1a2a1a);
+            border: 2px solid #fbbf24;
+            box-shadow: 0 0 20px rgba(251, 191, 36, 0.2);
+        }
+        
+        .referral-tier .tier-title {
+            color: #fbbf24;
+            text-shadow: 0 0 10px rgba(251, 191, 36, 0.3);
+        }
+        
+        .referral-tier .tier-description {
+            color: #e5e5e5;
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: rgba(251, 191, 36, 0.1);
+            border-radius: 8px;
+            border-left: 4px solid #fbbf24;
+        }
+        
+        .referral-unlocks {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        
+        .referral-card {
+            background: linear-gradient(135deg, #3a2a1a, #2a3a1a);
+            border: 1px solid #fbbf24;
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .referral-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(251, 191, 36, 0.3);
+        }
+        
+        .referral-card h3 {
+            color: #fbbf24;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+        
+        .referral-card p {
+            color: #e5e5e5;
+            font-weight: 500;
+        }
+        
+        .referral-rules {
+            list-style: none;
+            padding: 0;
+            margin: 2rem 0;
+            background: rgba(251, 191, 36, 0.05);
+            border-radius: 10px;
+            padding: 1.5rem;
+            border: 1px solid rgba(251, 191, 36, 0.3);
+        }
+        
+        .referral-rules li {
+            color: #e5e5e5;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(251, 191, 36, 0.1);
+        }
+        
+        .referral-rules li:last-child {
+            border-bottom: none;
+        }
+        
+        .referral-subtitle {
+            color: #fbbf24;
+            font-size: 1.3rem;
+            margin: 2rem 0 1rem 0;
+            text-align: center;
+        }
+        
+        .referral-special {
+            list-style: none;
+            padding: 0;
+            margin: 1rem 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 0.8rem;
+        }
+        
+        .referral-special li {
+            color: #e5e5e5;
+            padding: 0.8rem;
+            background: rgba(251, 191, 36, 0.08);
+            border-radius: 8px;
+            border-left: 3px solid #fbbf24;
+        }
+        
+        .tier-note {
+            text-align: center;
+            margin-top: 2rem;
+            padding: 1rem;
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(251, 191, 36, 0.05));
+            border-radius: 10px;
+            border: 1px solid #fbbf24;
+            color: #fbbf24;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        
+        .companion-tier.referral-tier {
+            background: #121212;
+            color: #fff;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 4rem;
+        }
+        
+        .companion-tier .companion-row {
+            display: flex;
+            gap: 1.5rem;
+            overflow-x: auto;
+            padding: 1rem 0;
+        }
+        
+        .companion-tier .companion-card {
+            background: #1e1e1e;
+            border-radius: 10px;
+            padding: 1rem;
+            min-width: 180px;
+            text-align: center;
+            box-shadow: 0 0 10px #000;
+            position: relative;
+        }
+        
+        .companion-tier .companion-card.locked {
+            filter: grayscale(1);
+            opacity: 0.5;
+        }
+        
+        .companion-tier .companion-card img {
+            width: 100%;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+        }
+        
+        .companion-tier .unlock-level {
+            font-size: 0.85rem;
+            color: #aaa;
+        }
+        
+        .companion-tier .badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            font-size: 0.75rem;
+            background: #333;
+            padding: 0.2rem 0.5rem;
+            border-radius: 6px;
+        }
+        
+        .companion-tier .referral-note {
+            font-size: 0.9rem;
+            margin-top: 1rem;
+            color: #ccc;
+        }
+        
+        .subtext {
+            font-size: 0.95rem;
+            color: #ccc;
+            margin-bottom: 1rem;
+        }
+        
+        /* Netflix-Style Referral Cards */
+        .netflix-referral-section {
+            margin: 3rem 0;
+            padding: 2rem;
+            background: linear-gradient(135deg, #1a1a1a, #0a0a0a);
+            border-radius: 16px;
+            border: 1px solid rgba(251, 191, 36, 0.3);
+        }
+        
+        .netflix-companion-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+        
+        .netflix-card {
+            background: #1a1a1a;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        
+        .netflix-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+        
+        .netflix-card.unlocked {
+            border-color: #22d3ee;
+        }
+        
+        .netflix-card.unlocked:hover {
+            box-shadow: 0 20px 40px rgba(34, 211, 238, 0.3);
+        }
+        
+        .netflix-card.locked {
+            filter: grayscale(0.7);
+            opacity: 0.8;
+        }
+        
+        .netflix-card.locked:hover {
+            filter: grayscale(0.3);
+            opacity: 0.9;
+        }
+        
+        .netflix-poster {
+            position: relative;
+            height: 200px;
+            overflow: hidden;
+        }
+        
+        .netflix-poster img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+        
+        .netflix-card:hover .netflix-poster img {
+            transform: scale(1.1);
+        }
+        
+        .netflix-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.7) 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 1rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .netflix-card:hover .netflix-overlay {
+            opacity: 1;
+        }
+        
+        .unlock-status {
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        
+        .unlock-status.unlocked {
+            color: #22c55e;
+        }
+        
+        .unlock-status.locked {
+            color: #ef4444;
+        }
+        
+        .unlock-requirement {
+            font-size: 0.8rem;
+            color: #fbbf24;
+            font-weight: 600;
+        }
+        
+        .netflix-info {
+            padding: 1.5rem;
+        }
+        
+        .netflix-info h3 {
+            color: #fff;
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+        
+        .unlock-tier {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+        
+        .netflix-badges {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .netflix-badges .badge {
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .badge.exclusive {
+            background: #a855f7;
+            color: white;
+        }
+        
+        .badge.referral {
+            background: #fbbf24;
+            color: #000;
+        }
+        
+        .badge.ultimate {
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            color: #000;
+        }
+        
+        .badge.cosmetic {
+            background: #22d3ee;
+            color: #000;
+        }
+        
+        .badge.rare {
+            background: #ef4444;
+            color: white;
+        }
+        
+        .referral-status {
+            background: rgba(251, 191, 36, 0.1);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            margin-top: 2rem;
+        }
+        
+        .referral-status .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+        
+        .referral-status .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #fbbf24, #f59e0b);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+    </style>
+</head>
+<body>
+    <a href="/intro" class="back-button">← Back to Intro</a>
+    
+    <div class="container">
+        <div class="header">
+            <h1>🤖 Choose Your AI Companion</h1>
+            <p>Select the perfect companion to guide you on your wellness journey</p>
+        </div>
+        
+        <div id="companions-container" style="min-height: 200px;">
+            <!-- Dynamic tier-aware content with stable layout -->
+            {% if trial_active %}
+                <div class="tier-section trial-tier" style="background: #2a1a2a; border: 2px solid #a855f7;">
+                    <h2 class="tier-title" style="color: #a855f7;">🕒 5-Hour Trial Active</h2>
+                    <div class="tier-description">
+                        <p><strong>Trial Status:</strong> You have access to Max tier features temporarily!</p>
+                        <p><strong>Your Limits:</strong> {{ user_plan|title }} limits still apply during trial</p>
+                        {% if user_plan == 'free' %}
+                            <p><strong>Current Limits:</strong> 3 Decoders / 2 Fortunes / 3 Horoscopes per day</p>
+                        {% elif user_plan == 'growth' %}
+                            <p><strong>Current Limits:</strong> 15 Decoders / 8 Fortunes / 10 Horoscopes per day</p>
+                        {% else %}
+                            <p><strong>Current Limits:</strong> Unlimited access</p>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- ========================= -->
+            <!-- 🎯 FREE TIER COMPANIONS -->
+            <!-- ========================= -->
+            <div class="tier-section">
+              <h2 class="tier-title">🆓 Free Tier Companions</h2>
+              <div class="tier-description">
+                <p><strong>Limits:</strong> 3 Decoders / 2 Fortunes / 3 Horoscopes per day</p>
+                <p><strong>Access:</strong> Only Free-tier companions</p>
+              </div>
+
+              <div class="companion-row">
+                <!-- Blayzo Free -->
+                <div class="companion-card">
+                  <img src="/static/img/companions/blayzo_free.png" alt="Blayzo Free">
+                  <div class="companion-name">Blayzo Free</div>
+                  <div class="companion-lock">✅ Unlocked</div>
+                </div>
+
+                <!-- Blayzica Free -->
+                <div class="companion-card">
+                  <img src="/static/img/companions/blayzica_free.png" alt="Blayzica Free">
+                  <div class="companion-name">Blayzica Free</div>
+                  <div class="companion-lock">✅ Unlocked</div>
+                </div>
+
+                <!-- GamerJay -->
+                <div class="companion-card">
+                  <img src="/static/img/companions/gamerjay.png" alt="GamerJay">
+                  <div class="companion-name">GamerJay</div>
+                  <div class="companion-lock">✅ Unlocked</div>
+                </div>
+              </div>
+
+              <!-- 🔒 LOCKED TIERS -->
+              <div class="locked-tier-notice">
+                <p>Upgrade to <strong>Growth</strong> or <strong>Max</strong> to unlock more companions and features.</p>
+                <div class="locked-tier-row">
+                  <div class="locked-box">🔒 Growth Tier Companions Locked</div>
+                  <div class="locked-box">🔒 Max Tier Companions Locked</div>
+                  <div class="locked-box">🔒 Referral Companions Locked</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 🌱 GROWTH TIER FEATURES (REAL CODE) -->
+            <div class="tier-section growth-tier">
+              <h2>🌱 Growth Tier Features</h2>
+
+              <p>Upgrade to Growth for enhanced features, higher limits, and access to more companions.</p>
+
+              <div class="feature-grid">
+                <div class="feature-box">
+                  <h4>🧠 Decoder</h4>
+                  <p>15 uses per day</p>
+                </div>
+                <div class="feature-box">
+                  <h4>🔮 Fortune Teller</h4>
+                  <p>8 uses per day</p>
+                </div>
+                <div class="feature-box">
+                  <h4>⭐ Horoscope</h4>
+                  <p>10 uses per day</p>
+                </div>
+                <div class="feature-box">
+                  <h4>🎙️ Voice Journaling</h4>
+                  <p>50 entries per month</p>
+                </div>
+                <div class="feature-box">
+                  <h4>🤖 AI Image Generation</h4>
+                  <p>25 images per month</p>
+                </div>
+                <div class="feature-box">
+                  <h4>✍️ Creative Writing Assistant</h4>
+                  <p>Fully unlocked</p>
+                </div>
+                <div class="feature-box">
+                  <h4>📚 Library</h4>
+                  <p>Save conversations</p>
+                </div>
+                <div class="feature-box">
+                  <h4>💬 Companions (11)</h4>
+                  <p>Access Free + Growth companions</p>
+                </div>
+                <div class="feature-box">
+                  <h4>🧠 Memory</h4>
+                  <p>15-message memory</p>
+                </div>
+              </div>
+
+              <div class="growth-companions">
+                <h3>👥 Included Companions (11 Total)</h3>
+                <ul>
+                  <li>Blayzo Free</li>
+                  <li>Blayzica Free</li>
+                  <li>GamerJay</li>
+                  <li>Sky</li>
+                  <li>Blayzo Premium</li>
+                  <li>Blayzica Growth</li>
+                  <li>GamerJay Premium</li>
+                  <li>WatchDog Growth</li>
+                  <li>Crimson Growth</li>
+                  <li>Violet Growth</li>
+                  <li>Claude Growth</li>
+                </ul>
+              </div>
+
+              <div class="trial-info">
+                <h4>🕒 During 5-Hour Trial</h4>
+                <ul>
+                  <li>Temporarily unlocks Max features + companions</li>
+                  <li>Growth limits still apply: <strong>15 / 8 / 10</strong></li>
+                  <li>Referral companions remain locked</li>
+                </ul>
+              </div>
+
+              <div class="referral-note">
+                <h4>🌟 Referral System</h4>
+                <p>Earn up to 3 ultra-rare companions by referring friends! Even Growth users can collect:</p>
+                <ul>
+                  <li>✅ Blayzike</li>
+                  <li>✅ Blazelian</li>
+                  <li>✅ Claude Referral</li>
+                  <li>🎨 Blayzo Special Skin</li>
+                </ul>
+                <p><em>Referral rewards are cosmetic only. Limits/features stay the same.</em></p>
+              </div>
+            </div>
+
+            <!-- 📦 MAX TIER UI WITH FULL FEATURE LIST, TRIAL & REFERRAL LOCKS -->
+            <div class="tier-section max-tier" id="max-tier">
+              <h2>🎯 Max Tier – Unlimited Access</h2>
+              <ul class="feature-list">
+                <li>🧠 <strong>Decoder Mode</strong> <span class="badge">Unlimited</span></li>
+                <li>🔮 <strong>Fortune Teller</strong> <span class="badge">Unlimited</span></li>
+                <li>⭐ <strong>Horoscope</strong> <span class="badge">Unlimited</span></li>
+                <li>🎙️ <strong>Voice Journaling</strong> <span class="badge">Unlimited</span></li>
+                <li>🤖 <strong>AI Image Generation</strong> <span class="badge">Unlimited</span></li>
+                <li>🧘 <strong>Emotional Meditations</strong> <span class="badge">Unlimited</span></li>
+                <li>💕 <strong>Relationship Profiles</strong> <span class="badge">Unlimited</span></li>
+                <li>✍️ <strong>Creative Writing Assistant</strong> <span class="badge">Included</span></li>
+                <li>🎤 <strong>Voice Chat</strong> <span class="badge">Full Access</span></li>
+                <li>📚 <strong>Library Access</strong> <span class="badge">Unlimited</span></li>
+                <li>🔄 <strong>Companion Switching</strong> <span class="badge">All 19 Companions</span></li>
+                <li>⚡ <strong>Priority Support</strong> <span class="badge">Included</span></li>
+                <li>🎶 <strong>GamerJay Mini Studio</strong> <span class="badge new">NEW</span> <a href="/mini-studio" class="action-btn">🎵 Launch</a></li>
+              </ul>
+
+              <h3>👥 Companion Access</h3>
+              <ul class="companion-tiers">
+                <li><strong>Free Companions:</strong> Blayzo Free, Blayzica Free, GamerJay</li>
+                <li><strong>Growth Companions:</strong> Sky, Blayzo Premium, Blayzica Growth, GamerJay Premium, WatchDog Growth, Crimson Growth, Violet Growth, Claude Growth</li>
+                <li><strong>Max Exclusive Companions:</strong> Companion Crimson, Companion Violet, Royal Max, WatchDog Max, Ven Blayzica, Ven Sky, Claude Max</li>
+                <li class="locked-referrals">🔒 <strong>Referral Companions</strong> (Blayzike, Blazelian, Claude Referral) <span class="note">Locked – Earned through 8 referrals only</span></li>
+              </ul>
+
+              <h3>📊 Feature Access Comparison</h3>
+              <table class="feature-table">
+                <thead>
+                  <tr><th>Feature</th><th>Free</th><th>Growth</th><th>Max</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>🧠 Decoder</td><td>3/day</td><td>15/day</td><td>∞</td></tr>
+                  <tr><td>🔮 Fortune</td><td>2/day</td><td>8/day</td><td>∞</td></tr>
+                  <tr><td>⭐ Horoscope</td><td>3/day</td><td>10/day</td><td>∞</td></tr>
+                  <tr><td>🎙️ Voice Journal</td><td>❌</td><td>50/month</td><td>∞</td></tr>
+                  <tr><td>🤖 AI Images</td><td>❌</td><td>25/month</td><td>∞</td></tr>
+                  <tr><td>✍️ Creative Writing</td><td>❌</td><td>✅</td><td>✅</td></tr>
+                  <tr><td>🧠 Memory</td><td>Basic</td><td>15 Messages</td><td>Enhanced</td></tr>
+                  <tr><td>👥 Companions</td><td>3</td><td>11</td><td>19</td></tr>
+                </tbody>
+              </table>
+
+              <h3>🕒 5-Hour Trial Info</h3>
+              <p class="trial-note">During trial, you temporarily unlock all Max features and companions — but limits stay based on your actual plan (Free = 3/2/3, Growth = 15/8/10, Max = ∞). Referral companions <strong>remain locked</strong> until earned by referral.</p>
+
+              <h3>🏆 Referral Rewards</h3>
+              <p>Earn 8 successful referrals to unlock:</p>
+              <ul>
+                <li>🔓 Blayzike (97% popularity)</li>
+                <li>🔓 Blazelian (98% popularity)</li>
+                <li>🔓 Claude Referral (100% popularity)</li>
+                <li>✨ Blayzo Special Skin</li>
+              </ul>
+              <p class="referral-note">Referral rewards are <strong>cosmetic only</strong> and do not change your feature access. Not part of Free/Growth/Max — purely collectible!</p>
+            </div>
+
+            <!-- ✅ Referral Tier Section – Netflix-Style Layout -->
+            <section class="tier-section referral-tier">
+              <h2 class="tier-title">🏆 Referral Companions</h2>
+              <p class="tier-description">
+                These companions and rewards are unlocked through successful referrals only – they are NOT available in Free, Growth, or Max tiers, and are NEVER unlocked during trials. Once unlocked, they are yours forever.
+              </p>
+
+              <div class="referral-unlocks">
+                <div class="referral-card">
+                  <h3>👥 2 Referrals</h3>
+                  <p>🔓 <strong>Blayzike</strong> (Referral Companion #1)</p>
+                </div>
+                <div class="referral-card">
+                  <h3>👥 5 Referrals</h3>
+                  <p>🔓 <strong>Blazelian</strong> (Referral Companion #2)</p>
+                </div>
+                <div class="referral-card">
+                  <h3>👥 8 Referrals</h3>
+                  <p>🔓 <strong>Claude Referral</strong> (Referral Companion #3)</p>
+                </div>
+                <div class="referral-card">
+                  <h3>👥 10 Referrals</h3>
+                  <p>🧥 <strong>Blayzo Special Skin</strong> (Cosmetic Only)</p>
+                </div>
+              </div>
+
+              <ul class="referral-rules">
+                <li>✅ Only <strong>confirmed signups</strong> count (not just link clicks)</li>
+                <li>🔒 <strong>Trial users cannot access</strong> referral companions</li>
+                <li>🚫 Not part of <strong>Free, Growth, or Max</strong> tiers</li>
+                <li>✅ Once unlocked, <strong>you keep them forever</strong> (even if you downgrade)</li>
+                <li>🎁 <strong>Purely cosmetic & social</strong> – no effect on usage/limits</li>
+              </ul>
+
+              <h4 class="referral-subtitle">🌟 Why These Are Special</h4>
+              <ul class="referral-special">
+                <li>🔥 Completely Exclusive – not purchasable or included in plans</li>
+                <li>🤝 Earned through <strong>community building</strong></li>
+                <li>🕊️ <strong>Permanent</strong> once unlocked</li>
+                <li>💬 Social/Collectible rewards only</li>
+                <li>💎 <strong>Highest rarity companions</strong> on the platform</li>
+                <li>🎯 <strong>Claude Referral</strong> has a 100% popularity score</li>
+                <li>🧥 <strong>Blayzo Skin</strong> is cosmetic only – enhances visual style</li>
+              </ul>
+
+              <p class="tier-note">This creates a 4th pseudo-tier: <strong>Community Champions</strong> 🏆</p>
+            </section>
+
+            <!-- ✅ Netflix-Style Referral Companions Cards -->
+            <section class="netflix-referral-section">
+              <h2 style="color: #fbbf24; text-align: center; font-size: 2rem; margin: 2rem 0;">🏆 Exclusive Referral Companions</h2>
+              <p style="text-align: center; color: #94a3b8; margin-bottom: 2rem;">Unlock these exclusive companions by referring friends!</p>
+
+              <div class="netflix-companion-grid">
+                <!-- Blayzike -->
+                <div class="netflix-card {% if (referral_count or 0) >= 2 %}unlocked{% else %}locked{% endif %}" onclick="{% if (referral_count or 0) >= 2 %}selectCompanion('blayzike'){% else %}showReferralInfo(2){% endif %}">
+                  <div class="netflix-poster">
+                    <img src="/static/img/companions/blayzike.png" alt="Blayzike" onerror="this.src='/static/img/placeholder-companion.png'">
+                    <div class="netflix-overlay">
+                      {% if (referral_count or 0) >= 2 %}
+                        <div class="unlock-status unlocked">✅ UNLOCKED</div>
+                      {% else %}
+                        <div class="unlock-status locked">🔒 LOCKED</div>
+                        <div class="unlock-requirement">Need {{ 2 - (referral_count or 0) }} more referrals</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="netflix-info">
+                    <h3>Blayzike</h3>
+                    <p class="unlock-tier">2 Referrals • 97% Popularity</p>
+                    <div class="netflix-badges">
+                      <span class="badge exclusive">EXCLUSIVE</span>
+                      <span class="badge referral">REFERRAL ONLY</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Blazelian -->
+                <div class="netflix-card {% if (referral_count or 0) >= 5 %}unlocked{% else %}locked{% endif %}" onclick="{% if (referral_count or 0) >= 5 %}selectCompanion('blazelian'){% else %}showReferralInfo(5){% endif %}">
+                  <div class="netflix-poster">
+                    <img src="/static/img/companions/blazelian.png" alt="Blazelian" onerror="this.src='/static/img/placeholder-companion.png'">
+                    <div class="netflix-overlay">
+                      {% if (referral_count or 0) >= 5 %}
+                        <div class="unlock-status unlocked">✅ UNLOCKED</div>
+                      {% else %}
+                        <div class="unlock-status locked">🔒 LOCKED</div>
+                        <div class="unlock-requirement">Need {{ 5 - (referral_count or 0) }} more referrals</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="netflix-info">
+                    <h3>Blazelian</h3>
+                    <p class="unlock-tier">5 Referrals • 98% Popularity</p>
+                    <div class="netflix-badges">
+                      <span class="badge exclusive">EXCLUSIVE</span>
+                      <span class="badge referral">REFERRAL ONLY</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Claude Referral -->
+                <div class="netflix-card {% if (referral_count or 0) >= 8 %}unlocked{% else %}locked{% endif %}" onclick="{% if (referral_count or 0) >= 8 %}selectCompanion('claude_referral'){% else %}showReferralInfo(8){% endif %}">
+                  <div class="netflix-poster">
+                    <img src="/static/img/companions/claude_referral.png" alt="Claude Referral" onerror="this.src='/static/img/placeholder-companion.png'">
+                    <div class="netflix-overlay">
+                      {% if (referral_count or 0) >= 8 %}
+                        <div class="unlock-status unlocked">✅ UNLOCKED</div>
+                      {% else %}
+                        <div class="unlock-status locked">🔒 LOCKED</div>
+                        <div class="unlock-requirement">Need {{ 8 - (referral_count or 0) }} more referrals</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="netflix-info">
+                    <h3>Claude Referral</h3>
+                    <p class="unlock-tier">8 Referrals • 100% Popularity</p>
+                    <div class="netflix-badges">
+                      <span class="badge exclusive">EXCLUSIVE</span>
+                      <span class="badge ultimate">ULTIMATE</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Blayzo Special Skin -->
+                <div class="netflix-card {% if (referral_count or 0) >= 10 %}unlocked{% else %}locked{% endif %}" onclick="{% if (referral_count or 0) >= 10 %}selectSkin('blayzo_special'){% else %}showReferralInfo(10){% endif %}">
+                  <div class="netflix-poster">
+                    <img src="/static/img/companions/blayzo_special_skin.png" alt="Blayzo Special Skin" onerror="this.src='/static/img/placeholder-companion.png'">
+                    <div class="netflix-overlay">
+                      {% if (referral_count or 0) >= 10 %}
+                        <div class="unlock-status unlocked">✅ UNLOCKED</div>
+                      {% else %}
+                        <div class="unlock-status locked">🔒 LOCKED</div>
+                        <div class="unlock-requirement">Need {{ 10 - (referral_count or 0) }} more referrals</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="netflix-info">
+                    <h3>Blayzo Special Skin</h3>
+                    <p class="unlock-tier">10 Referrals • Cosmetic Only</p>
+                    <div class="netflix-badges">
+                      <span class="badge cosmetic">COSMETIC</span>
+                      <span class="badge rare">RARE</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="referral-status">
+                <h3 style="color: #fbbf24;">📊 Your Referral Progress</h3>
+                <p>You have referred <strong style="color: #22d3ee;">{{ referral_count or 0 }}</strong> users successfully.</p>
+                <div class="progress-bar">
+                  <div class="progress-fill" style="width: {{ ((referral_count or 0) / 10 * 100)|round }}%;"></div>
+                </div>
+                <p style="color: #94a3b8; margin-top: 0.5rem;">{{ 10 - (referral_count or 0) }} more referrals to unlock everything!</p>
+                <a href="/referrals" style="display: inline-block; margin-top: 1rem; padding: 0.5rem 1rem; background: #fbbf24; color: #000; text-decoration: none; border-radius: 8px; font-weight: bold;">🚀 Start Referring Friends</a>
+              </div>
+            </section>
+        </div>
+    </div>
+
+    <script>
+        // REMOVED problematic session check that was causing flash/redirects
+        // Authentication is now handled server-side by the route
+        
+        // REMOVED dynamic companion loading that could cause interface flash
+        // Template now uses static server-rendered content only
+        
+        // Netflix-style companion selection functions
+        function selectCompanion(companionId) {
+            // Show selection confirmation
+            if (confirm(`Select ${companionId.replace('_', ' ')} as your companion?`)) {
+                // Redirect to chat with selected companion
+                window.location.href = `/chat?companion=${companionId}`;
+            }
+        }
+        
+        function selectSkin(skinId) {
+            // Show skin selection confirmation
+            if (confirm(`Apply ${skinId.replace('_', ' ')} skin?`)) {
+                alert('Skin applied! Your companion now has a new look.');
+                // Here you could make an API call to save the skin preference
+            }
+        }
+        
+        function showReferralInfo(requiredReferrals) {
+            const currentReferrals = {{ referral_count or 0 }};
+            const needed = requiredReferrals - currentReferrals;
+            alert(`You need ${needed} more referrals to unlock this companion!\n\nCurrent referrals: ${currentReferrals}\nRequired: ${requiredReferrals}\n\nClick "Start Referring Friends" to get your referral link!`);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+Collecting numpy
+  Downloading numpy-2.3.2-cp313-cp313-win_amd64.whl.metadata (60 kB)
+Collecting scikit-learn
+  Downloading scikit_learn-1.7.1-cp313-cp313-win_amd64.whl.metadata (11 kB)
+Collecting watchdog
+  Downloading watchdog-6.0.0-py3-none-win_amd64.whl.metadata (44 kB)
+Collecting scipy>=1.8.0 (from scikit-learn)
+  Downloading scipy-1.16.0-cp313-cp313-win_amd64.whl.metadata (60 kB)
+Collecting joblib>=1.2.0 (from scikit-learn)
+  Downloading joblib-1.5.1-py3-none-any.whl.metadata (5.6 kB)
+Collecting threadpoolctl>=3.1.0 (from scikit-learn)
+  Downloading threadpoolctl-3.6.0-py3-none-any.whl.metadata (13 kB)
+Downloading numpy-2.3.2-cp313-cp313-win_amd64.whl (12.8 MB)
+   ---------------------------------------- 12.8/12.8 MB 40.4 MB/s eta 0:00:00
+Downloading scikit_learn-1.7.1-cp313-cp313-win_amd64.whl (8.7 MB)
+   ---------------------------------------- 8.7/8.7 MB 44.1 MB/s eta 0:00:00
+Downloading watchdog-6.0.0-py3-none-win_amd64.whl (79 kB)
+Downloading joblib-1.5.1-py3-none-any.whl (307 kB)
+Downloading scipy-1.16.0-cp313-cp313-win_amd64.whl (38.4 MB)
+   ---------------------------------------- 38.4/38.4 MB 46.4 MB/s eta 0:00:00
+Downloading threadpoolctl-3.6.0-py3-none-any.whl (18 kB)
+Installing collected packages: watchdog, threadpoolctl, numpy, joblib, scipy, scikit-learn
+
+Successfully installed joblib-1.5.1 numpy-2.3.2 scikit-learn-1.7.1 scipy-1.16.0 threadpoolctl-3.6.0 watchdog-6.0.0

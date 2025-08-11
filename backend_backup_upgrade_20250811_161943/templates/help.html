@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Help & FAQ - SoulBridge AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/animations.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/themes.css') }}">
+    <style>
+        /* Help page specific styles */
+        .help-container {
+            min-height: 100vh;
+            padding: 2rem;
+            background: linear-gradient(135deg, #000000 0%, #0f172a 50%, #1e293b 100%);
+        }
+        
+        .help-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding-top: 4rem;
+        }
+        
+        .help-title {
+            font-size: 3.5rem;
+            color: #22d3ee;
+            text-shadow: 0 0 30px rgba(34, 211, 238, 0.8);
+            margin-bottom: 0.5rem;
+            animation: titlePulse 3s ease-in-out infinite;
+            font-weight: 700;
+        }
+        
+        .help-subtitle {
+            font-size: 1.4rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 2rem;
+            font-weight: 300;
+        }
+        
+        .faq-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 2rem;
+            padding: 0 1rem;
+        }
+        
+        .faq-card {
+            background: linear-gradient(145deg, rgba(0,0,0,0.8), rgba(15,23,42,0.9));
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(20px);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            animation: cardFadeIn 0.8s ease-out;
+        }
+        
+        .faq-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(34, 211, 238, 0.6);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 8px 16px rgba(34, 211, 238, 0.3);
+        }
+        
+        .faq-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(34, 211, 238, 0.1), transparent);
+            transition: left 0.6s ease;
+        }
+        
+        .faq-card:hover::before {
+            left: 100%;
+        }
+        
+        .faq-question {
+            color: #22d3ee;
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .faq-number {
+            background: linear-gradient(135deg, #22d3ee, #0891b2);
+            color: #000;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+        
+        .faq-answer {
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.7;
+            font-size: 1rem;
+        }
+        
+        .faq-answer strong {
+            color: #22d3ee;
+            font-weight: 600;
+        }
+        
+        .faq-answer a {
+            color: #22d3ee;
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .faq-answer a:hover {
+            border-bottom-color: #22d3ee;
+            text-shadow: 0 0 8px rgba(34, 211, 238, 0.5);
+        }
+        
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: linear-gradient(135deg, #22d3ee, #0891b2);
+            color: #000;
+            padding: 12px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(34, 211, 238, 0.3);
+        }
+        
+        .back-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(34, 211, 238, 0.5);
+            background: linear-gradient(135deg, #0891b2, #0e7490);
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 4rem;
+            padding: 2rem;
+            color: rgba(255, 255, 255, 0.5);
+            border-top: 1px solid rgba(34, 211, 238, 0.2);
+        }
+        
+        .contact-highlight {
+            background: linear-gradient(135deg, rgba(34, 211, 238, 0.1), rgba(34, 211, 238, 0.05));
+            border-left: 4px solid #22d3ee;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .faq-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+                padding: 0 0.5rem;
+            }
+            
+            .help-title {
+                font-size: 2.5rem;
+            }
+            
+            .help-subtitle {
+                font-size: 1.2rem;
+            }
+            
+            .faq-card {
+                padding: 1.5rem;
+            }
+        }
+        
+        /* Animation delays for staggered entrance */
+        .faq-card:nth-child(1) { animation-delay: 0.1s; }
+        .faq-card:nth-child(2) { animation-delay: 0.2s; }
+        .faq-card:nth-child(3) { animation-delay: 0.3s; }
+        .faq-card:nth-child(4) { animation-delay: 0.4s; }
+        .faq-card:nth-child(5) { animation-delay: 0.5s; }
+        .faq-card:nth-child(6) { animation-delay: 0.6s; }
+        .faq-card:nth-child(7) { animation-delay: 0.7s; }
+        .faq-card:nth-child(8) { animation-delay: 0.8s; }
+        .faq-card:nth-child(9) { animation-delay: 0.9s; }
+    </style>
+</head>
+<body>
+    <div class="help-container">
+        <!-- Back Button -->
+        <a href="javascript:void(0)" onclick="goBackSafely()" class="back-button">
+            <span>←</span>
+            <span>Back</span>
+        </a>
+
+        <!-- Header -->
+        <div class="help-header">
+            <h1 class="help-title">SoulBridge AI</h1>
+            <h2 class="help-subtitle">Help & Frequently Asked Questions</h2>
+        </div>
+
+        <!-- FAQ Grid -->
+        <div class="faq-grid">
+            <div class="faq-card">
+                <div class="faq-question">
+                    <span class="faq-number">1</span>
+                    How Do I Contact Support?
+                </div>
+                <div class="faq-answer">
+                    <div class="contact-highlight">
+                        You can contact us anytime by email: <strong>soulbridgeai.contact@gmail.com</strong>
+                    </div>
+                    We usually respond within 24–48 hours. Our support team is here to help with any questions or issues you might have.
+                </div>
+            </div>
+
+            <div class="faq-card">
+                <div class="faq-question">
+                    <span class="faq-number">2</span>
+                    How Do I Delete My Account?
+                </div>
+                <div class="faq-answer">
+                    If you'd like to delete your account and all associated data, please email us at <strong>soulbridgeai.contact@gmail.com</strong> using the same email linked to your account. Make sure to clearly request account deletion in your message. We take data privacy seriously and will process your request promptly.
+                </div>
+            </div>
+
+            <div class="faq-card">
+                <div class="faq-question">
+                    <span class="faq-number">3</span>
+                    How Do I Cancel My Subscription?
+                </div>
+                <div class="faq-answer">
+                    Subscriptions can be managed directly through the payment platform used for your purchase (Google Payments, Stripe, etc.). If you need assistance navigating the cancellation process, feel free to contact us and we'll guide you through it.
+                </div>
+            </div>
+
+            <div class="faq-card">
+                <div class="faq-question">
+                    <span class="faq-number">4</span>
+                    Refund Policy
+                </div>
+                <div class="faq-answer">
+                    All purchases are final. If you believe there was an error in your transaction, please reach out within <strong>7 days</strong> of purchase. We will review refund requests on a case-by-case basis and work to resolve any legitimate issues.
+                </div>
+            </div>
+
+            <div class="faq-card">
+                <div class="faq-question">
+                    <span class="faq-number">5</span>
+                    Free Trial Terms
+                </div>
+                <div class="faq-answer">
+                    Each user is allowed <strong>one 1-day free trial</strong> per account or device. Repeated trial abuse (creating multiple accounts) may result in restrictions or bans. This helps us maintain fair access for all users.
+                </div>
+            </div>
+
+            <div class="faq-card">
+                <div class="faq-question">
+                    <span class="faq-number">6</span>
+                    How to Switch Companions
+                </div>
+                <div class="faq-answer">
+                    Free users receive <strong>one free switch</strong> between Blayzo and Blayzica. Premium users can unlock additional companions (Blayzion, Blayzia, Crimson, Violet) with a one-time purchase, giving you access to unique personalities and conversation styles.
+                </div>
+            </div>
+
+            <div class="faq-card">
+                <div class="faq-question">
+                    <span class="faq-number">7</span>
+                    How to Customize Chat Colors
+                </div>
+                <div class="faq-answer">
+                    Color customization is available to <strong>Premium (SoulBridge AI Plus)</strong> subscribers. Each companion has their own unique color theme that automatically applies when you select them, creating a personalized experience.
+                </div>
+            </div>
+
+            <div class="faq-card">
+                <div class="faq-question">
+                    <span class="faq-number">8</span>
+                    Why Am I Seeing Ads?
+                </div>
+                <div class="faq-answer">
+                    Ads help keep SoulBridge AI free to use. Free users receive ads after every few messages to unlock more chat credits. Subscribing to SoulBridge AI Plus removes all ads permanently and provides unlimited chat access.
+                </div>
+            </div>
+
+            <div class="faq-card">
+                <div class="faq-question">
+                    <span class="faq-number">9</span>
+                    Creative Writing Assistant (Growth/Max Feature)
+                </div>
+                <div class="faq-answer">
+                    <strong>Growth and Max tier users</strong> have access to our Creative Writing Assistant! Look for the purple "Write" button in your chat interface. This powerful feature includes:
+                    <br><br>
+                    🫀 <strong>Poetry & Verses</strong> - Beautiful poems to express emotions<br>
+                    💡 <strong>Daily Inspiration</strong> - Uplifting quotes and affirmations<br>
+                    📖 <strong>Short Stories</strong> - Creative mini-stories and scenarios<br>
+                    🎵 <strong>Music & Lyrics</strong> - Songs, lyrics, and musical ideas<br>
+                    🧠 <strong>Thoughts & Notes</strong> - Journal entries and personal reflections<br>
+                    💌 <strong>Personal Letters</strong> - Letters to yourself or loved ones<br>
+                    🎨 <strong>Creative Canvas</strong> - Art therapy and emotional expression through drawing<br><br>
+                    All content can be saved to your library and exported! Text content exports as files, artwork exports as PNG images.
+                </div>
+            </div>
+
+            <div class="faq-card">
+                <div class="faq-question">
+                    <span class="faq-number">10</span>
+                    Privacy & Security
+                </div>
+                <div class="faq-answer">
+                    Your chat history is private and only saved if you choose to enable saving. We do not sell or share your data with third parties. Full details about our privacy practices are available in our <a href="/terms">Terms & Privacy Policy</a>.
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>&copy; 2025 SoulBridge AI. All rights reserved.</p>
+            <p>Where emotion meets expression.</p>
+        </div>
+    </div>
+
+    <script>
+        // Safe navigation back to intro
+        function goBackSafely() {
+            // Try to go to intro screen first
+            try {
+                window.location.href = '/?show_intro=true';
+            } catch (e) {
+                // Fallback to home
+                window.location.href = '/';
+            }
+        }
+    </script>
+</body>
+</html>

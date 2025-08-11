@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fortune Teller - SoulBridge AI</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a0033 0%, #2d1b69 50%, #4c1d95 100%);
+            color: #e2e8f0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Mystical background elements */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="1" fill="%23fbbf24" opacity="0.8"><animate attributeName="opacity" values="0.8;0.2;0.8" dur="3s" repeatCount="indefinite"/></circle><circle cx="80" cy="30" r="0.5" fill="%23f59e0b" opacity="0.6"><animate attributeName="opacity" values="0.6;0.1;0.6" dur="4s" repeatCount="indefinite"/></circle><circle cx="30" cy="70" r="0.8" fill="%23fbbf24" opacity="0.7"><animate attributeName="opacity" values="0.7;0.3;0.7" dur="2.5s" repeatCount="indefinite"/></circle><circle cx="70" cy="80" r="0.6" fill="%23f59e0b" opacity="0.5"><animate attributeName="opacity" values="0.5;0.1;0.5" dur="3.5s" repeatCount="indefinite"/></circle></svg>') repeat;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            color: #fbbf24;
+            margin-bottom: 16px;
+            text-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
+            background: linear-gradient(45deg, #fbbf24, #f59e0b, #d97706);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            color: #c7d2fe;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .fortune-interface {
+            background: rgba(30, 27, 75, 0.7);
+            border: 2px solid rgba(251, 191, 36, 0.3);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 40px;
+            backdrop-filter: blur(10px);
+            position: relative;
+        }
+
+        .fortune-interface::before {
+            content: '🔮';
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 2.5rem;
+            background: rgba(30, 27, 75, 0.9);
+            padding: 10px 20px;
+            border-radius: 50px;
+            border: 2px solid rgba(251, 191, 36, 0.5);
+        }
+
+        .usage-indicator {
+            background: rgba(30, 27, 75, 0.4);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .usage-bar {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            height: 8px;
+            margin: 12px 0;
+            overflow: hidden;
+        }
+
+        .usage-fill {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .fortune-selector {
+            margin-bottom: 30px;
+        }
+
+        .fortune-selector label {
+            display: block;
+            color: #fbbf24;
+            font-weight: 600;
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+        }
+
+        .fortune-dropdown {
+            width: 100%;
+            padding: 16px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(251, 191, 36, 0.3);
+            border-radius: 12px;
+            color: #e2e8f0;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        .fortune-dropdown:focus {
+            outline: none;
+            border-color: #fbbf24;
+            box-shadow: 0 0 15px rgba(251, 191, 36, 0.3);
+        }
+
+        .fortune-dropdown option {
+            background: #1e1b4b;
+            color: #e2e8f0;
+            padding: 12px;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        .input-section label {
+            display: block;
+            color: #fbbf24;
+            font-weight: 600;
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+        }
+
+        .input-box {
+            width: 100%;
+            min-height: 150px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(251, 191, 36, 0.3);
+            border-radius: 12px;
+            color: #e2e8f0;
+            font-size: 1rem;
+            resize: vertical;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .input-box:focus {
+            outline: none;
+            border-color: #fbbf24;
+            box-shadow: 0 0 15px rgba(251, 191, 36, 0.3);
+        }
+
+        .input-box::placeholder {
+            color: #9ca3af;
+        }
+
+        .fortune-button {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: #1a202c;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 30px;
+        }
+
+        .fortune-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(251, 191, 36, 0.4);
+        }
+
+        .fortune-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .output-section {
+            margin-top: 30px;
+        }
+
+        .output-section label {
+            display: block;
+            color: #fbbf24;
+            font-weight: 600;
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+        }
+
+        .output-box {
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(251, 191, 36, 0.2);
+            border-radius: 12px;
+            padding: 24px;
+            min-height: 200px;
+            color: #e2e8f0;
+            line-height: 1.6;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+
+        .output-box.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .output-box.loading {
+            opacity: 1;
+            transform: translateY(0);
+            text-align: center;
+            color: #fbbf24;
+        }
+
+        .save-button {
+            background: rgba(251, 191, 36, 0.2);
+            color: #fbbf24;
+            border: 2px solid #fbbf24;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .save-button:hover {
+            background: rgba(251, 191, 36, 0.3);
+        }
+
+        .upgrade-prompt {
+            background: rgba(168, 85, 247, 0.1);
+            border: 2px solid rgba(168, 85, 247, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .upgrade-button {
+            background: linear-gradient(135deg, #a855f7, #9333ea);
+            color: #fff;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 12px;
+        }
+
+        .back-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(251, 191, 36, 0.8);
+            color: #1a202c;
+            padding: 10px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            z-index: 100;
+        }
+
+        .back-btn:hover {
+            background: rgba(251, 191, 36, 1);
+            transform: translateY(-2px);
+        }
+
+        .fortune-description {
+            background: rgba(251, 191, 36, 0.1);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 12px;
+            color: #c7d2fe;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .fortune-interface {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Back Button -->
+<a href="javascript:history.back()" class="back-btn">← Back to Chat</a>
+
+<div class="container">
+    <div class="header">
+        <h1>🔮 Fortune Teller</h1>
+        <p>Unveil the mysteries of your future with ancient wisdom and celestial guidance</p>
+    </div>
+
+    <!-- Usage Indicator -->
+    <div class="usage-indicator" id="usage-indicator">
+        <div>
+            <strong>Daily Fortunes:</strong> 
+            <span id="usage-count">...</span> / <span id="usage-limit">...</span> used
+        </div>
+        <div class="usage-bar">
+            <div class="usage-fill" id="usage-fill"></div>
+        </div>
+        <div style="font-size: 0.9rem; color: #c7d2fe;" id="plan-description">
+            Loading fortune limits...
+        </div>
+        <p id="max-plan-message" style="display:none; color: #fbbf24; font-weight: 600;">
+            🌟 Max users have unlimited fortune access!
+        </p>
+    </div>
+
+    <div class="fortune-interface">
+        <!-- Fortune Type Selector -->
+        <div class="fortune-selector">
+            <label for="fortune-type">Choose your divination method:</label>
+            <select id="fortune-type" class="fortune-dropdown">
+                <option value="general">🌟 General Life Reading</option>
+                <option value="love">💕 Love & Relationships</option>
+                <option value="career">💼 Career & Success</option>
+                <option value="health">🌿 Health & Wellness</option>
+                <option value="finance">💰 Money & Prosperity</option>
+                <option value="spiritual">✨ Spiritual Guidance</option>
+            </select>
+            <div class="fortune-description" id="fortune-description">
+                Receive insights about your life path and future opportunities.
+            </div>
+        </div>
+
+        <!-- Input Section -->
+        <div class="input-section">
+            <label for="input-text">Share your question or concern:</label>
+            <textarea 
+                id="input-text" 
+                class="input-box" 
+                placeholder="What would you like guidance on? Share your thoughts, dreams, or specific questions..."
+                maxlength="1500"
+            ></textarea>
+        </div>
+
+        <!-- Fortune Button -->
+        <button id="fortune-button" class="fortune-button">
+            🔮 Reveal My Fortune
+        </button>
+
+        <!-- Output Section -->
+        <div class="output-section">
+            <label for="output-text">Your Fortune Reading:</label>
+            <div id="output-box" class="output-box">
+                Your mystical reading will appear here...
+            </div>
+            <button id="save-button" class="save-button" style="display: none;">
+                💾 Save to Journal
+            </button>
+        </div>
+    </div>
+
+    <!-- Upgrade Prompt -->
+    <div class="upgrade-prompt" id="upgrade-prompt" style="display: none;">
+        <h3 style="color: #a855f7; margin-bottom: 12px;">🔓 Unlock Unlimited Fortunes</h3>
+        <p>You've reached your daily limit. Upgrade to get unlimited fortune readings plus premium features!</p>
+        <button class="upgrade-button" onclick="window.location.href='/subscription'">
+            Upgrade Now
+        </button>
+    </div>
+</div>
+
+<script>
+// Fortune type configurations
+const fortuneTypes = {
+    general: {
+        name: "General Life Reading",
+        description: "Receive insights about your life path and future opportunities.",
+        placeholder: "What area of your life would you like guidance on? Share any concerns or hopes...",
+        prompt: `Provide a mystical and insightful general life reading. Address:
+1. **Current Life Phase**: What energy surrounds them right now?
+2. **Opportunities Ahead**: What doors are opening in their future?
+3. **Challenges to Navigate**: What obstacles should they prepare for?
+4. **Hidden Strengths**: What inner powers can they tap into?
+5. **Guidance for Success**: Practical steps aligned with cosmic energy.
+
+Be encouraging, mystical, and specific. Reading for:`
+    },
+    love: {
+        name: "Love & Relationships Reading",
+        description: "Discover romantic insights and relationship guidance from the cosmic realm.",
+        placeholder: "Ask about love, relationships, soulmates, or matters of the heart...",
+        prompt: `Provide a mystical love and relationship reading. Explore:
+1. **Current Heart Energy**: What romantic vibrations surround them?
+2. **Love Opportunities**: When and how might love manifest?
+3. **Relationship Patterns**: What cycles need healing or embracing?
+4. **Soul Connection Insights**: Messages about deep connections?
+5. **Heart Wisdom**: How to attract and nurture true love?
+
+Be romantic, hopeful, and spiritually insightful. Love reading for:`
+    },
+    career: {
+        name: "Career & Success Reading",
+        description: "Unveil your professional destiny and path to achievement.",
+        placeholder: "Ask about career moves, success opportunities, or professional challenges...",
+        prompt: `Provide a mystical career and success reading. Reveal:
+1. **Professional Energy**: What career forces are at work now?
+2. **Success Pathways**: Where do opportunities for advancement lie?
+3. **Talents to Develop**: What skills will serve their highest purpose?
+4. **Timing for Action**: When should they make important moves?
+5. **Abundance Manifestation**: How to attract prosperity and recognition?
+
+Be empowering, practical, and visionary. Career reading for:`
+    },
+    health: {
+        name: "Health & Wellness Reading",
+        description: "Receive cosmic guidance for your physical and mental wellbeing.",
+        placeholder: "Share health concerns, wellness goals, or ask about vitality and healing...",
+        prompt: `Provide a mystical health and wellness reading. Address:
+1. **Energetic Health Assessment**: What does their aura reveal about wellness?
+2. **Healing Opportunities**: What practices will restore balance?
+3. **Mind-Body Harmony**: How to align mental and physical health?
+4. **Preventive Wisdom**: What to be mindful of for long-term wellness?
+5. **Vitality Enhancement**: Natural ways to boost energy and strength?
+
+Focus on holistic wellness and positive guidance. Health reading for:`
+    },
+    finance: {
+        name: "Money & Prosperity Reading",
+        description: "Explore your financial future and pathways to abundance.",
+        placeholder: "Ask about money, investments, financial decisions, or prosperity manifestation...",
+        prompt: `Provide a mystical money and prosperity reading. Explore:
+1. **Financial Energy Flow**: How does money energy move in their life?
+2. **Wealth Opportunities**: Where will abundance come from?
+3. **Investment Insights**: What financial decisions align with their destiny?
+4. **Prosperity Blocks**: What might be limiting their financial growth?
+5. **Abundance Manifestation**: Spiritual practices to attract wealth?
+
+Be practical yet mystical about money matters. Financial reading for:`
+    },
+    spiritual: {
+        name: "Spiritual Guidance Reading",
+        description: "Connect with higher wisdom and your soul's true purpose.",
+        placeholder: "Ask about your spiritual path, purpose, intuition, or cosmic connections...",
+        prompt: `Provide a mystical spiritual guidance reading. Channel:
+1. **Soul Purpose**: What is their higher calling in this lifetime?
+2. **Spiritual Gifts**: What psychic or intuitive abilities are emerging?
+3. **Cosmic Messages**: What do the universe and guides want them to know?
+4. **Spiritual Growth**: What practices will accelerate their awakening?
+5. **Divine Timing**: How are celestial forces supporting their journey?
+
+Be deeply spiritual, mystical, and transformative. Spiritual reading for:`
+    }
+};
+
+// User state from backend (initial values)
+let userUsage = {{ current_usage or 0 }};
+let userPlan = '{{ user_plan or "free" }}';
+let dailyLimit = {{ daily_limit if daily_limit else "null" }};
+
+// Function to refresh fortune limits from server
+async function refreshFortuneLimits() {
+    try {
+        const res = await fetch('/api/fortune/check-limit');
+        const data = await res.json();
+
+        const trialActive = data.trial_active;
+        const plan = data.effective_plan;
+        const limit = data.daily_limit === null ? '∞' : (data.daily_limit ?? '?');
+
+        document.getElementById('usage-limit').textContent = limit;
+
+        // If trial is active but plan is free, show unlocked UI
+        if (trialActive && plan === 'free') {
+            document.querySelectorAll('.companion-card.locked').forEach(card => {
+                card.classList.remove('locked');
+                card.classList.add('trial-unlocked');
+                card.querySelector('.btn-upgrade').textContent = '✅ Trial Active';
+            });
+        }
+
+        const usage = data.usage_today ?? 0;
+        const hasUnlimited = data.user_plan === 'max' && !data.trial_active;  // Only if REAL Max tier (not trial)
+
+        const limitDisplay = hasUnlimited ? '∞' : (data.daily_limit ?? '?');
+
+        // Update usage display
+        document.getElementById("usage-count").textContent = usage;
+        document.getElementById("usage-limit").textContent = limitDisplay;
+
+        // Update usage bar
+        const usageFill = document.getElementById('usage-fill');
+        if (hasUnlimited) {
+            usageFill.style.width = '100%';
+            usageFill.style.background = 'linear-gradient(135deg, #fbbf24, #f59e0b)';
+        } else {
+            const percentage = data.daily_limit > 0 ? (usage / data.daily_limit) * 100 : 0;
+            usageFill.style.width = Math.min(percentage, 100) + '%';
+        }
+
+        // Update tier-specific plan message based on ACTUAL user plan, not effective plan
+        const planNotice = document.getElementById("max-plan-message");
+        const planDesc = document.getElementById("plan-description");
+
+        if (data.user_plan === "max") {
+            // 🔴 Max tier - show unlimited message
+            if (planNotice) planNotice.style.display = "block";
+            if (planDesc) planDesc.style.display = "none";
+        } else if (data.user_plan === "growth") {
+            // 🔵 Growth tier
+            if (planNotice) planNotice.style.display = "none";
+            if (planDesc) {
+                planDesc.style.display = "block";
+                planDesc.textContent = `🔮 Daily Fortunes: ${data.usage} / ${limitDisplay} used`;
+            }
+        } else {
+            // 🟢 Free tier - even during trial, show as free
+            if (planNotice) planNotice.style.display = "none";
+            if (planDesc) {
+                planDesc.style.display = "block";
+                if (data.trial_active) {
+                    planDesc.textContent = `You're on a 5-hour trial — enjoy premium companions & features with your ${limitDisplay} fortunes.`;
+                } else {
+                    planDesc.textContent = `🔮 Daily Fortunes: ${data.usage} / ${limitDisplay} used`;
+                }
+            }
+        }
+
+        // Update global variables
+        userUsage = usage;
+        userPlan = data.user_plan;  // Use actual user plan, not effective plan
+        dailyLimit = data.daily_limit;
+
+        console.log(`🔮 Refreshed fortune limits: plan=${data.effective_plan}, usage=${usage}, limit=${limitDisplay}`);
+
+    } catch (err) {
+        console.error("❌ Failed to refresh fortune limits:", err);
+        document.getElementById("usage-count").textContent = "0";
+        document.getElementById("usage-limit").textContent = "?";
+        document.getElementById("plan-description").textContent = `API Error: ${err.message}`;
+    }
+}
+
+// Update UI elements
+function updateFortuneDescription() {
+    const type = document.getElementById('fortune-type').value;
+    const config = fortuneTypes[type];
+    
+    document.getElementById('fortune-description').textContent = config.description;
+    document.getElementById('input-text').placeholder = config.placeholder;
+}
+
+function checkUsageLimit() {
+    if (dailyLimit === null || dailyLimit === -1) {
+        // Unlimited for Max tier
+        return true;
+    }
+    
+    if (userUsage >= dailyLimit) {
+        document.getElementById('fortune-button').disabled = true;
+        document.getElementById('fortune-button').textContent = '🔒 Daily Limit Reached';
+        document.getElementById('upgrade-prompt').style.display = 'block';
+        return false;
+    }
+    return true;
+}
+
+async function getFortune() {
+    if (!checkUsageLimit()) return;
+    
+    const type = document.getElementById('fortune-type').value;
+    const inputText = document.getElementById('input-text').value.trim();
+    const outputBox = document.getElementById('output-box');
+    const fortuneButton = document.getElementById('fortune-button');
+    
+    if (!inputText) {
+        alert('Please share your question or concern for the fortune reading!');
+        return;
+    }
+    
+    // Show loading state
+    outputBox.className = 'output-box loading';
+    outputBox.innerHTML = '🔮 Consulting the cosmic realm... Your fortune is being revealed.';
+    fortuneButton.disabled = true;
+    fortuneButton.textContent = 'Reading the Stars...';
+    
+    try {
+        const config = fortuneTypes[type];
+        const fullPrompt = config.prompt + '\n\n' + inputText;
+        
+        const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                message: fullPrompt,
+                companion: 'Fortune Teller',
+                context: 'fortune_reading'
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Update usage count (backend handles the actual tracking)
+            userUsage++;
+            refreshFortuneLimits();
+            
+            // Show result with animation
+            outputBox.className = 'output-box show';
+            outputBox.innerHTML = result.response;
+            
+            // Show save button for premium users (Growth/Max tiers) OR trial users
+            if (userPlan === 'growth' || userPlan === 'max' || result.trial_active) {
+                document.getElementById('save-button').style.display = 'block';
+            }
+            
+        } else {
+            // Check if this is a usage limit error
+            if (result.limit_reached) {
+                document.getElementById('fortune-button').disabled = true;
+                document.getElementById('fortune-button').textContent = '🔒 Daily Limit Reached';
+                document.getElementById('upgrade-prompt').style.display = 'block';
+                throw new Error(result.response);
+            } else {
+                throw new Error(result.error || result.response || 'Fortune reading failed');
+            }
+        }
+        
+    } catch (error) {
+        outputBox.className = 'output-box show';
+        outputBox.innerHTML = `<div style="color: #ef4444;">
+            <strong>Fortune Reading Error:</strong> ${error.message}
+            <br><br>
+            <em>The cosmic energies are clouded. Please try again or check your connection.</em>
+        </div>`;
+    }
+    
+    // Reset button
+    fortuneButton.disabled = false;
+    fortuneButton.textContent = '🔮 Reveal My Fortune';
+    
+    // Check usage limit after fortune reading
+    checkUsageLimit();
+}
+
+function saveToJournal() {
+    const type = document.getElementById('fortune-type').value;
+    const inputText = document.getElementById('input-text').value;
+    const outputText = document.getElementById('output-box').textContent;
+    
+    const journalEntry = {
+        date: new Date().toISOString(),
+        type: fortuneTypes[type].name,
+        question: inputText,
+        reading: outputText
+    };
+    
+    // Save to localStorage for now (could be enhanced with backend storage)
+    const existingEntries = JSON.parse(localStorage.getItem('fortuneJournal') || '[]');
+    existingEntries.unshift(journalEntry);
+    localStorage.setItem('fortuneJournal', JSON.stringify(existingEntries.slice(0, 50))); // Keep last 50
+    
+    alert('🌟 Fortune saved to your mystical journal!');
+}
+
+// Event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    updateFortuneDescription();
+    
+    // Refresh fortune limits on page load to get current plan status
+    refreshFortuneLimits();
+    
+    document.getElementById('fortune-type').addEventListener('change', updateFortuneDescription);
+    document.getElementById('fortune-button').addEventListener('click', getFortune);
+    document.getElementById('save-button').addEventListener('click', saveToJournal);
+    
+    // Enter key in textarea
+    document.getElementById('input-text').addEventListener('keydown', function(e) {
+        if (e.ctrlKey && e.key === 'Enter') {
+            getFortune();
+        }
+    });
+});
+</script>
+
+</body>
+</html>

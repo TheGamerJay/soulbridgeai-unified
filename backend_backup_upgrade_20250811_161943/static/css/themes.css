@@ -1,0 +1,3619 @@
+/* Theme Styles - Day and night mode theming */
+
+/* NIGHT MODE (default) */
+body {
+    background: linear-gradient(135deg, #000000 0%, #0f172a 50%, #1e293b 100%);
+    color: #22d3ee;
+    transition: all 0.5s ease;
+}
+
+/* DAY MODE */
+body.day-mode {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%) !important;
+    color: #1e293b !important;
+}
+
+/* DAY MODE - Text colors */
+body.day-mode h1,
+body.day-mode h2, 
+body.day-mode h3,
+body.day-mode p {
+    color: #1e293b !important;
+}
+
+/* DAY MODE - Links */
+body.day-mode a {
+    color: #0891b2 !important;
+}
+
+/* DAY MODE - Buttons */
+body.day-mode .btn-primary,
+body.day-mode button {
+    background: linear-gradient(135deg, #0891b2, #0e7490) !important;
+    color: #ffffff !important;
+    border-color: #0891b2 !important;
+}
+
+body.day-mode .btn-secondary {
+    background: rgba(148, 163, 184, 0.2) !important;
+    color: #1e293b !important;
+    border-color: #94a3b8 !important;
+}
+
+/* DAY MODE - Cards */
+body.day-mode .card {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border-color: #cbd5e1 !important;
+    color: #1e293b !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* DAY MODE - Navigation */
+body.day-mode .top-nav {
+    background: rgba(248, 250, 252, 0.95) !important;
+    border-bottom-color: #cbd5e1 !important;
+}
+
+/* DAY MODE - Session Timer */
+body.day-mode #sessionTimer {
+    color: #0891b2 !important;
+}
+
+/* DAY MODE - Intro Page Specific */
+body.day-mode .container h1 {
+    color: #1e293b !important;
+}
+
+body.day-mode .container p {
+    color: #475569 !important;
+}
+
+/* DAY MODE - Force override inline styles on intro page */
+body.day-mode [style*="color: #22d3ee"] {
+    color: #0891b2 !important;
+}
+
+/* DAY MODE - Profile Page Overrides */
+body.day-mode .profile-container {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%) !important;
+}
+
+body.day-mode .profile-title {
+    color: #1e293b !important;
+    text-shadow: 0 0 30px rgba(30, 41, 59, 0.3) !important;
+}
+
+body.day-mode .profile-subtitle {
+    color: #475569 !important;
+}
+
+body.day-mode .profile-panel {
+    background: linear-gradient(145deg, rgba(255,255,255,0.9), rgba(248,250,252,0.95)) !important;
+    border: 2px solid rgba(203, 213, 225, 0.5) !important;
+    color: #1e293b !important;
+}
+
+body.day-mode .panel-title {
+    color: #0891b2 !important;
+}
+
+body.day-mode .info-value {
+    color: #0891b2 !important;
+}
+
+body.day-mode .info-label {
+    color: #475569 !important;
+}
+
+body.day-mode .companion-details h3 {
+    color: #0891b2 !important;
+}
+
+body.day-mode .companion-details p {
+    color: #475569 !important;
+}
+
+body.day-mode .settings-title {
+    color: #0891b2 !important;
+}
+
+body.day-mode .setting-label {
+    color: #1e293b !important;
+}
+
+body.day-mode .stat-number {
+    color: #0891b2 !important;
+}
+
+body.day-mode .stat-label {
+    color: #475569 !important;
+}
+
+/* DAY MODE - Force override any hardcoded dark backgrounds */
+body.day-mode [style*="background: linear-gradient"][style*="#000000"],
+body.day-mode [style*="background: linear-gradient"][style*="#0f172a"] {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%) !important;
+}
+
+/* DAY MODE - Force override hardcoded cyan colors */
+body.day-mode [style*="color: #22d3ee"],
+body.day-mode .profile-title,
+body.day-mode .panel-title,
+body.day-mode .info-value {
+    color: #0891b2 !important;
+}
+
+/* RAINBOW BACKGROUND FOR BLAYZION AND BLAYZIA CHARACTERS */
+body.character-blayzion,
+body.character-blayzia {
+    background: linear-gradient(45deg, 
+        #ff006e, 
+        #8338ec, 
+        #3a86ff, 
+        #06ffa5, 
+        #ffbe0b, 
+        #ff006e
+    ) !important;
+    background-size: 300% 300% !important;
+    animation: rainbowBackground 8s ease infinite !important;
+}
+
+body.character-blayzion.day-mode,
+body.character-blayzia.day-mode {
+    background: #ffffff !important;
+    background-size: auto !important;
+    animation: none !important;
+}
+
+@keyframes rainbowBackground {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* DAY MODE CHARACTER CARDS - Force light backgrounds over inline styles */
+body.day-mode .character-card[style*="background: rgba(34, 211, 238, 0.1)"] {
+    background: rgba(255, 255, 255, 0.95) !important;
+    box-shadow: 0 4px 20px rgba(34, 211, 238, 0.3) !important;
+}
+
+body.day-mode .character-card[style*="background: rgba(255, 0, 0, 0.1)"] {
+    background: rgba(255, 255, 255, 0.95) !important;
+    box-shadow: 0 4px 20px rgba(255, 0, 0, 0.3) !important;
+}
+
+body.day-mode .character-card[style*="background: rgba(255, 69, 0, 0.1)"] {
+    background: rgba(255, 255, 255, 0.95) !important;
+    box-shadow: 0 4px 20px rgba(255, 69, 0, 0.3) !important;
+}
+
+body.day-mode .character-card[style*="background: rgba(139, 92, 246, 0.1)"] {
+    background: rgba(255, 255, 255, 0.95) !important;
+    box-shadow: 0 4px 20px rgba(139, 92, 246, 0.3) !important;
+}
+
+body.day-mode .character-card[style*="background: rgba(255, 0, 110, 0.1)"] {
+    background: rgba(255, 255, 255, 0.95) !important;
+    box-shadow: 0 4px 20px rgba(255, 0, 110, 0.3) !important;
+}
+
+/* DAY MODE - Override inner content boxes with light backgrounds */
+body.day-mode .character-card div[style*="background: rgba(34, 211, 238, 0.1)"] {
+    background: rgba(248, 250, 252, 0.95) !important;
+}
+
+body.day-mode .character-card div[style*="background: rgba(255, 0, 0, 0.1)"] {
+    background: rgba(248, 250, 252, 0.95) !important;
+}
+
+body.day-mode .character-card div[style*="background: rgba(255, 69, 0, 0.1)"] {
+    background: rgba(248, 250, 252, 0.95) !important;
+}
+
+body.day-mode .character-card div[style*="background: rgba(139, 92, 246, 0.1)"] {
+    background: rgba(248, 250, 252, 0.95) !important;
+}
+
+body.day-mode .character-card div[style*="background: rgba(255, 0, 110, 0.1)"] {
+    background: rgba(248, 250, 252, 0.95) !important;
+}
+
+/* DAY MODE TEXT COLORS - Dark text on light backgrounds */
+body.day-mode .character-card .character-name {
+    color: #1f2937 !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* DAY MODE - Rainbow gradient character inner backgrounds */
+body.day-mode .character-blayzia-inner {
+    background: rgba(248, 250, 252, 0.95) !important;
+}
+
+body.day-mode .character-card.character-blayzion > div {
+    background: rgba(248, 250, 252, 0.95) !important;
+}
+
+body.day-mode .character-card .character-description {
+    color: rgba(31, 41, 55, 0.8) !important;
+}
+
+/* DAY MODE - Companion specific text colors */
+body.day-mode .character-card.character-blayzo .character-name,
+body.day-mode .character-card.character-blayzo .character-description {
+    color: #0891b2 !important;
+}
+
+body.day-mode .character-card.character-blayzica .character-name,
+body.day-mode .character-card.character-blayzica .character-description {
+    color: #dc2626 !important;
+}
+
+body.day-mode .character-card.character-crimson .character-name,
+body.day-mode .character-card.character-crimson .character-description {
+    color: #ea580c !important;
+}
+
+body.day-mode .character-card.character-violet .character-name,
+body.day-mode .character-card.character-violet .character-description {
+    color: #7c3aed !important;
+}
+
+body.day-mode .character-card.character-blayzion .character-name,
+body.day-mode .character-card.character-blayzion .character-description {
+    color: #be185d !important;
+}
+
+body.day-mode .character-card.character-blayzia .character-name,
+body.day-mode .character-card.character-blayzia .character-description {
+    color: #be185d !important;
+}
+
+
+/* AI CHAT INTERFACE - SIMPLE 2-TONE STYLING */
+/* Rule: 1. Black backgrounds, 2. White text, 3. Theme color borders, 4. Yellow voice button */
+
+/* UNIVERSAL AI CHAT STYLING - ALL CHARACTERS */
+html body[class*="character-"] #chatInterface,
+html body[class*="character-"] #chatInterface *:not(.character-greeting-single):not(.character-description) {
+    background: #000 !important;
+    color: #fff !important;
+}
+
+/* FORCE WHITE TEXT FOR BLAYZION AND BLAYZIA AI CHAT - MAXIMUM SPECIFICITY */
+html body.character-blayzion #chatInterface *:not(img):not(#chatAvatarImg):not(#chatParticleContainer),
+html body.character-blayzia #chatInterface *:not(img):not(#chatAvatarImg):not(#chatParticleContainer) {
+    color: #fff !important;
+    background: #000 !important;
+    -webkit-text-fill-color: #fff !important;
+    background-clip: unset !important;
+    -webkit-background-clip: unset !important;
+}
+
+/* OVERRIDE GRADIENT TEXT IN AI CHAT FOR PREMIUM CHARACTERS - MAXIMUM FORCE */
+html body.character-blayzion #chatInterface .character-greeting-single,
+html body.character-blayzia #chatInterface .character-greeting-single,
+html body.character-blayzion #chatInterface .character-description,
+html body.character-blayzia #chatInterface .character-description,
+html body.character-blayzion #chatInterface span,
+html body.character-blayzia #chatInterface span,
+html body.character-blayzion #chatInterface div,
+html body.character-blayzia #chatInterface div,
+html body.character-blayzion #chatInterface p,
+html body.character-blayzia #chatInterface p {
+    background: none !important;
+    background-image: none !important;
+    -webkit-background-clip: unset !important;
+    background-clip: unset !important;
+    -webkit-text-fill-color: #fff !important;
+    color: #fff !important;
+    text-shadow: none !important;
+}
+
+/* EXCLUDE IMAGES FROM STYLING */
+html body[class*="character-"] #chatInterface img,
+html body[class*="character-"] #chatInterface #chatAvatarImg,
+html body[class*="character-"] #chatInterface #chatParticleContainer {
+    background: transparent !important;
+    color: initial !important;
+}
+
+/* CHARACTER-SPECIFIC BORDERS ONLY */
+html body.character-blayzo #chatInterface .btn,
+html body.character-blayzo #chatInterface .input-field,
+html body.character-blayzo #chatInterface div[style*="background"],
+html body.character-blayzo #chatInterface div[onclick],
+html body.character-blayzo #chatInterface .soulbridge-chat-label,
+html body.character-blayzo #chatInterface #selectedCharacter {
+    border: 2px solid #22d3ee !important;
+}
+
+html body.character-blayzica #chatInterface .btn,
+html body.character-blayzica #chatInterface .input-field,
+html body.character-blayzica #chatInterface div[style*="background"],
+html body.character-blayzica #chatInterface div[onclick],
+html body.character-blayzica #chatInterface .soulbridge-chat-label,
+html body.character-blayzica #chatInterface #selectedCharacter {
+    border: 2px solid #ff0000 !important;
+}
+
+html body.character-crimson #chatInterface .btn,
+html body.character-crimson #chatInterface .input-field,
+html body.character-crimson #chatInterface div[style*="background"],
+html body.character-crimson #chatInterface div[onclick],
+html body.character-crimson #chatInterface .soulbridge-chat-label,
+html body.character-crimson #chatInterface #selectedCharacter {
+    border: 2px solid #ff4500 !important;
+}
+
+html body.character-violet #chatInterface .btn,
+html body.character-violet #chatInterface .input-field,
+html body.character-violet #chatInterface div[style*="background"],
+html body.character-violet #chatInterface div[onclick],
+html body.character-violet #chatInterface .soulbridge-chat-label,
+html body.character-violet #chatInterface #selectedCharacter {
+    border: 2px solid #8b5cf6 !important;
+}
+
+html body.character-blayzion #chatInterface .btn,
+html body.character-blayzion #chatInterface .input-field,
+html body.character-blayzion #chatInterface div[style*="background"],
+html body.character-blayzion #chatInterface div[onclick],
+html body.character-blayzion #chatInterface .soulbridge-chat-label,
+html body.character-blayzion #chatInterface #selectedCharacter {
+    border: 2px solid #ff006e !important;
+}
+
+html body.character-blayzia #chatInterface .btn,
+html body.character-blayzia #chatInterface .input-field,
+html body.character-blayzia #chatInterface div[style*="background"],
+html body.character-blayzia #chatInterface div[onclick],
+html body.character-blayzia #chatInterface .soulbridge-chat-label,
+html body.character-blayzia #chatInterface #selectedCharacter {
+    border: 2px solid #ff006e !important;
+}
+
+/* VOICE BUTTON SPECIAL STYLING - YELLOW BACKGROUND WITH BLACK TEXT */
+html body.character-blayzo #chatInterface #voiceChatBtn {
+    background: #ffd700 !important;
+    color: #000 !important;
+    border: 2px solid #22d3ee !important;
+}
+
+html body.character-blayzica #chatInterface #voiceChatBtn {
+    background: #ffd700 !important;
+    color: #000 !important;
+    border: 2px solid #ff0000 !important;
+}
+
+html body.character-crimson #chatInterface #voiceChatBtn {
+    background: #ffd700 !important;
+    color: #000 !important;
+    border: 2px solid #ff4500 !important;
+}
+
+html body.character-violet #chatInterface #voiceChatBtn {
+    background: #ffd700 !important;
+    color: #000 !important;
+    border: 2px solid #8b5cf6 !important;
+}
+
+html body.character-blayzion #chatInterface #voiceChatBtn {
+    background: #ffd700 !important;
+    color: #000 !important;
+    border: 2px solid #ff006e !important;
+}
+
+html body.character-blayzia #chatInterface #voiceChatBtn {
+    background: #ffd700 !important;
+    color: #000 !important;
+    border: 2px solid #ff006e !important;
+}
+
+/* MICROPHONE AND BUTTON TEXT STYLING */
+html body[class*="character-"] #chatInterface #voiceChatBtn * {
+    color: #000 !important;
+}
+
+/* FORCE WHITE TEXT FOR CRIMSON AND VIOLET AI CHAT */
+html body.character-crimson #chatInterface *:not(img):not(#chatAvatarImg):not(#chatParticleContainer),
+html body.character-violet #chatInterface *:not(img):not(#chatAvatarImg):not(#chatParticleContainer) {
+    color: #fff !important;
+    background: #000 !important;
+    -webkit-text-fill-color: #fff !important;
+    background-clip: unset !important;
+    -webkit-background-clip: unset !important;
+}
+
+/* ENSURE ALL BUTTON TEXT AND ICONS ARE WHITE (EXCEPT VOICE BUTTON) */
+html body[class*="character-"] #chatInterface .btn:not(#voiceChatBtn) *,
+html body[class*="character-"] #chatInterface .btn:not(#voiceChatBtn) span,
+html body[class*="character-"] #chatInterface div[onclick]:not(#voiceChatBtn) *,
+html body[class*="character-"] #chatInterface div[onclick]:not(#voiceChatBtn) span {
+    color: #fff !important;
+    -webkit-text-fill-color: #fff !important;
+    background: none !important;
+    background-image: none !important;
+    -webkit-background-clip: unset !important;
+    background-clip: unset !important;
+}
+
+/* FORCE MICROPHONE EMOJI TO BE VISIBLE */
+html body[class*="character-"] #chatInterface span:contains("🎤"),
+html body[class*="character-"] #chatInterface *:contains("🎤") {
+    color: #fff !important;
+    -webkit-text-fill-color: #fff !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* CHARACTER CARD STYLING - Remove inline styles and use proper CSS */
+.character-card {
+    border: 3px solid;
+    border-radius: 20px;
+    padding: 1rem;
+    box-shadow: 0 0 30px;
+    transition: all 0.3s ease;
+}
+
+.character-card.character-blayzo {
+    border-color: #22d3ee;
+    background: rgba(34, 211, 238, 0.1);
+    box-shadow: 0 0 30px rgba(34, 211, 238, 0.7);
+}
+
+.character-card.character-blayzica {
+    border-color: #ff0000;
+    background: rgba(255, 0, 0, 0.1);
+    box-shadow: 0 0 30px rgba(255, 0, 0, 0.7);
+}
+
+.character-card.character-crimson {
+    border-color: #ff4500;
+    background: rgba(255, 69, 0, 0.1);
+    box-shadow: 0 0 30px rgba(255, 69, 0, 0.7);
+}
+
+.character-card.character-violet {
+    border-color: #8b5cf6;
+    background: rgba(139, 92, 246, 0.1);
+    box-shadow: 0 0 30px rgba(139, 92, 246, 0.7);
+}
+
+.character-card.character-blayzion {
+    background: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b);
+    border-radius: 21px;
+    padding: 1px;
+    box-shadow: 0 0 30px rgba(255, 0, 110, 0.7);
+}
+
+.character-card.character-blayzia {
+    background: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b);
+    border-radius: 21px;
+    padding: 1px;
+    box-shadow: 0 0 30px rgba(255, 0, 110, 0.7);
+}
+
+.character-inner {
+    background: rgba(255, 0, 110, 0.1);
+    border-radius: 20px;
+    padding: 1rem;
+    height: 100%;
+    width: 100%;
+}
+
+.character-info {
+    text-align: center;
+    border: 5px solid;
+    border-radius: 15px;
+    padding: 0.6rem;
+    margin: 0.1rem auto 0.5rem auto;
+    width: 90%;
+    display: block;
+    box-sizing: border-box;
+    position: relative;
+    top: -0.5rem;
+}
+
+.character-card.character-blayzo .character-info {
+    border-color: #22d3ee;
+    background: rgba(34, 211, 238, 0.1);
+    box-shadow: 0 0 20px rgba(34, 211, 238, 0.5);
+}
+
+.character-card.character-blayzica .character-info {
+    border-color: #ff0000;
+    background: rgba(255, 0, 0, 0.1);
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
+}
+
+.character-card.character-crimson .character-info {
+    border-color: #ff4500;
+    background: rgba(255, 69, 0, 0.1);
+    box-shadow: 0 0 20px rgba(255, 69, 0, 0.5);
+}
+
+.character-card.character-violet .character-info {
+    border-color: #8b5cf6;
+    background: rgba(139, 92, 246, 0.1);
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+}
+
+.character-card.character-blayzion .character-info {
+    border-color: #ff006e;
+    background: rgba(255, 0, 110, 0.1);
+    box-shadow: 0 0 25px rgba(255, 0, 110, 0.6);
+}
+
+.character-card.character-blayzia .character-info {
+    border-color: #ff006e;
+    background: rgba(255, 0, 110, 0.1);
+    box-shadow: 0 0 25px rgba(255, 0, 110, 0.6);
+}
+
+.character-greeting-single {
+    font-size: 0.85rem;
+    line-height: 1.4;
+    font-style: italic;
+    margin-top: 1rem;
+    opacity: 0.9;
+}
+
+.character-card.character-blayzo .character-greeting-single {
+    color: #22d3ee;
+}
+
+.character-card.character-blayzica .character-greeting-single {
+    color: #ff0000;
+}
+
+.character-card.character-crimson .character-greeting-single {
+    color: #dc2626;
+}
+
+.character-card.character-violet .character-greeting-single {
+    color: #8b5cf6;
+}
+
+.character-card.character-blayzion .character-greeting-single,
+.character-card.character-blayzia .character-greeting-single {
+    background: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b);
+    background-size: 400% 400%;
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: bold;
+}
+
+.character-card.character-blayzion .character-description,
+.character-card.character-blayzia .character-description {
+    background: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b);
+    background-size: 400% 400%;
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: bold;
+}
+
+/* DAY MODE - Same styling as night mode for AI chat interface */
+body.day-mode[class*="character-"] #chatInterface,
+body.day-mode[class*="character-"] #chatInterface *:not(.character-greeting-single):not(.character-description) {
+    background: #000 !important;
+    color: #fff !important;
+}
+
+/* DAY MODE FORCE WHITE TEXT FOR BLAYZION AND BLAYZIA - MAXIMUM SPECIFICITY */
+body.day-mode.character-blayzion #chatInterface *:not(img):not(#chatAvatarImg):not(#chatParticleContainer),
+body.day-mode.character-blayzia #chatInterface *:not(img):not(#chatAvatarImg):not(#chatParticleContainer) {
+    color: #fff !important;
+    background: #000 !important;
+    -webkit-text-fill-color: #fff !important;
+    background-clip: unset !important;
+    -webkit-background-clip: unset !important;
+}
+
+/* DAY MODE OVERRIDE GRADIENT TEXT IN AI CHAT FOR PREMIUM CHARACTERS - MAXIMUM FORCE */
+body.day-mode.character-blayzion #chatInterface .character-greeting-single,
+body.day-mode.character-blayzia #chatInterface .character-greeting-single,
+body.day-mode.character-blayzion #chatInterface .character-description,
+body.day-mode.character-blayzia #chatInterface .character-description,
+body.day-mode.character-blayzion #chatInterface span,
+body.day-mode.character-blayzia #chatInterface span,
+body.day-mode.character-blayzion #chatInterface div,
+body.day-mode.character-blayzia #chatInterface div,
+body.day-mode.character-blayzion #chatInterface p,
+body.day-mode.character-blayzia #chatInterface p {
+    background: none !important;
+    background-image: none !important;
+    -webkit-background-clip: unset !important;
+    background-clip: unset !important;
+    -webkit-text-fill-color: #fff !important;
+    color: #fff !important;
+    text-shadow: none !important;
+}
+
+/* EXCLUDE IMAGES FROM DAY MODE STYLING */
+body.day-mode[class*="character-"] #chatInterface img,
+body.day-mode[class*="character-"] #chatInterface #chatAvatarImg,
+body.day-mode[class*="character-"] #chatInterface #chatParticleContainer {
+    background: transparent !important;
+    color: initial !important;
+}
+
+/* DAY MODE CHARACTER-SPECIFIC BORDERS */
+body.day-mode.character-blayzo #chatInterface .btn,
+body.day-mode.character-blayzo #chatInterface .input-field,
+body.day-mode.character-blayzo #chatInterface div[style*="background"],
+body.day-mode.character-blayzo #chatInterface div[onclick],
+body.day-mode.character-blayzo #chatInterface .soulbridge-chat-label,
+body.day-mode.character-blayzo #chatInterface #selectedCharacter {
+    border: 2px solid #22d3ee !important;
+}
+
+body.day-mode.character-blayzica #chatInterface .btn,
+body.day-mode.character-blayzica #chatInterface .input-field,
+body.day-mode.character-blayzica #chatInterface div[style*="background"],
+body.day-mode.character-blayzica #chatInterface div[onclick],
+body.day-mode.character-blayzica #chatInterface .soulbridge-chat-label,
+body.day-mode.character-blayzica #chatInterface #selectedCharacter {
+    border: 2px solid #ff0000 !important;
+}
+
+body.day-mode.character-crimson #chatInterface .btn,
+body.day-mode.character-crimson #chatInterface .input-field,
+body.day-mode.character-crimson #chatInterface div[style*="background"],
+body.day-mode.character-crimson #chatInterface div[onclick],
+body.day-mode.character-crimson #chatInterface .soulbridge-chat-label,
+body.day-mode.character-crimson #chatInterface #selectedCharacter {
+    border: 2px solid #ff4500 !important;
+}
+
+body.day-mode.character-violet #chatInterface .btn,
+body.day-mode.character-violet #chatInterface .input-field,
+body.day-mode.character-violet #chatInterface div[style*="background"],
+body.day-mode.character-violet #chatInterface div[onclick],
+body.day-mode.character-violet #chatInterface .soulbridge-chat-label,
+body.day-mode.character-violet #chatInterface #selectedCharacter {
+    border: 2px solid #8b5cf6 !important;
+}
+
+body.day-mode.character-blayzion #chatInterface .btn,
+body.day-mode.character-blayzion #chatInterface .input-field,
+body.day-mode.character-blayzion #chatInterface div[style*="background"],
+body.day-mode.character-blayzion #chatInterface div[onclick],
+body.day-mode.character-blayzion #chatInterface .soulbridge-chat-label,
+body.day-mode.character-blayzion #chatInterface #selectedCharacter {
+    border: 2px solid #ff006e !important;
+}
+
+body.day-mode.character-blayzia #chatInterface .btn,
+body.day-mode.character-blayzia #chatInterface .input-field,
+body.day-mode.character-blayzia #chatInterface div[style*="background"],
+body.day-mode.character-blayzia #chatInterface div[onclick],
+body.day-mode.character-blayzia #chatInterface .soulbridge-chat-label,
+body.day-mode.character-blayzia #chatInterface #selectedCharacter {
+    border: 2px solid #ff006e !important;
+}
+
+/* DAY MODE VOICE BUTTON - Same yellow styling */
+body.day-mode.character-blayzo #chatInterface #voiceChatBtn {
+    background: #ffd700 !important;
+    color: #000 !important;
+    border: 2px solid #22d3ee !important;
+}
+
+body.day-mode.character-blayzica #chatInterface #voiceChatBtn {
+    background: #ffd700 !important;
+    color: #000 !important;
+    border: 2px solid #ff0000 !important;
+}
+
+body.day-mode.character-crimson #chatInterface #voiceChatBtn {
+    background: #ffd700 !important;
+    color: #000 !important;
+    border: 2px solid #ff4500 !important;
+}
+
+body.day-mode.character-violet #chatInterface #voiceChatBtn {
+    background: #ffd700 !important;
+    color: #000 !important;
+    border: 2px solid #8b5cf6 !important;
+}
+
+body.day-mode.character-blayzion #chatInterface #voiceChatBtn {
+    background: #ffd700 !important;
+    color: #000 !important;
+    border: 2px solid #ff006e !important;
+}
+
+body.day-mode.character-blayzia #chatInterface #voiceChatBtn {
+    background: #ffd700 !important;
+    color: #000 !important;
+    border: 2px solid #ff006e !important;
+}
+
+body.day-mode[class*="character-"] #chatInterface #voiceChatBtn * {
+    color: #000 !important;
+}
+
+/* DAY MODE FORCE WHITE TEXT FOR CRIMSON AND VIOLET AI CHAT */
+body.day-mode.character-crimson #chatInterface *:not(img):not(#chatAvatarImg):not(#chatParticleContainer),
+body.day-mode.character-violet #chatInterface *:not(img):not(#chatAvatarImg):not(#chatParticleContainer) {
+    color: #fff !important;
+    background: #000 !important;
+    -webkit-text-fill-color: #fff !important;
+    background-clip: unset !important;
+    -webkit-background-clip: unset !important;
+}
+
+/* DAY MODE ENSURE ALL BUTTON TEXT AND ICONS ARE WHITE (EXCEPT VOICE BUTTON) */
+body.day-mode[class*="character-"] #chatInterface .btn:not(#voiceChatBtn) *,
+body.day-mode[class*="character-"] #chatInterface .btn:not(#voiceChatBtn) span,
+body.day-mode[class*="character-"] #chatInterface div[onclick]:not(#voiceChatBtn) *,
+body.day-mode[class*="character-"] #chatInterface div[onclick]:not(#voiceChatBtn) span {
+    color: #fff !important;
+    -webkit-text-fill-color: #fff !important;
+    background: none !important;
+    background-image: none !important;
+    -webkit-background-clip: unset !important;
+    background-clip: unset !important;
+}
+
+/* DAY MODE FORCE MICROPHONE EMOJI TO BE VISIBLE */
+body.day-mode[class*="character-"] #chatInterface span:contains("🎤"),
+body.day-mode[class*="character-"] #chatInterface *:contains("🎤") {
+    color: #fff !important;
+    -webkit-text-fill-color: #fff !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* MY PROFILE BUTTON - BLACK TEXT FOR ALL CHARACTERS IN ALL MODES */
+html body[class*="character-"] #profileBtn,
+html body[class*="character-"] #profileBtn *,
+html body[class*="character-"] #profileBtn span,
+body.day-mode[class*="character-"] #profileBtn,
+body.day-mode[class*="character-"] #profileBtn *,
+body.day-mode[class*="character-"] #profileBtn span {
+    color: #000 !important;
+    -webkit-text-fill-color: #000 !important;
+    background-clip: unset !important;
+    -webkit-background-clip: unset !important;
+}
+
+/* CLEAN UP - Remove everything else, this is the complete styling */
+
+/* CHARACTER CARD HEIGHT ADJUSTMENT - Base heights */
+.character-card {
+    overflow: hidden !important;
+}
+
+/* Remove scaling - use proper CSS sizing instead */
+.character-card > * {
+    /* transform: scale(0.75) !important; */
+    /* transform-origin: center top !important; */
+}
+
+/* Desktop heights - compact but readable without scaling */
+.character-card.character-blayzo {
+    height: 720px !important;
+    max-height: 720px !important;
+    min-height: 720px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+}
+
+.character-card.character-blayzica {
+    height: 740px !important;
+    max-height: 740px !important;
+    min-height: 740px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+}
+
+.character-card.character-crimson {
+    height: 800px !important;
+    max-height: 800px !important;
+    min-height: 800px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+}
+
+.character-card.character-violet {
+    height: 800px !important;
+    max-height: 800px !important;
+    min-height: 800px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+}
+
+.character-card.character-blayzion {
+    height: 820px !important;
+    max-height: 820px !important;
+    min-height: 820px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+}
+
+.character-card.character-blayzia {
+    height: 780px !important;
+    max-height: 780px !important;
+    min-height: 780px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+}
+
+/* Mobile responsive heights - increased for longer greetings */
+@media (max-width: 768px) {
+    .character-card {
+        max-width: 100% !important;
+    }
+    
+    .character-card.character-blayzo {
+        height: 660px !important;
+        max-height: 660px !important;
+        min-height: 660px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+    }
+
+    .character-card.character-blayzica {
+        height: 680px !important;
+        max-height: 680px !important;
+        min-height: 680px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+    }
+
+    .character-card.character-crimson {
+        height: 730px !important;
+        max-height: 730px !important;
+        min-height: 730px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+    }
+
+    .character-card.character-violet {
+        height: 730px !important;
+        max-height: 730px !important;
+        min-height: 730px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+    }
+
+    .character-card.character-blayzion {
+        height: 750px !important;
+        max-height: 750px !important;
+        min-height: 750px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+    }
+
+    .character-card.character-blayzia {
+        height: 710px !important;
+        max-height: 710px !important;
+        min-height: 710px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+    }
+}
+
+/* FORCE REMOVE BACKGROUNDS AND BORDERS FROM NON-COMPANION ELEMENTS ONLY */
+div.character-card img,
+div.character-card *:not(.character-name):not(.character-description):not(.character-greeting) {
+    background: transparent !important;
+    background-color: transparent !important;
+    background-image: none !important;
+    border: none !important;
+    border-width: 0 !important;
+    border-style: none !important;
+    border-color: transparent !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    outline: none !important;
+    border-image: none !important;
+}
+
+/* ALL COMPANION STYLING - DUAL BORDER SETUP */
+
+/* BLAYZO - Black background with cyan borders */
+div.character-card.character-blayzo {
+    background: #000 !important;
+    border: 2px solid #22d3ee !important;
+    border-radius: 12px !important;
+    padding: 2rem !important;
+}
+
+/* BLAYZICA - Black background with red borders */
+html body div.character-card.character-blayzica {
+    background: #000 !important;
+    border: 2px solid #ff0000 !important;
+    border-radius: 12px !important;
+    padding: 2rem !important;
+}
+
+/* CRIMSON - Black background with orange borders */
+html body div.character-card.character-crimson {
+    background: #000 !important;
+    border: 2px solid #ff4500 !important;
+    border-radius: 12px !important;
+    padding: 2rem !important;
+}
+
+/* VIOLET - Black background with purple borders */
+html body div.character-card.character-violet {
+    background: #000 !important;
+    border: 2px solid #8b5cf6 !important;
+    border-radius: 12px !important;
+    padding: 2rem !important;
+}
+
+/* BLAYZION - Black background with rainbow borders */
+html body div.character-card.character-blayzion {
+    background: #000 !important;
+    border: 2px solid #ff006e !important;
+    border-radius: 12px !important;
+    padding: 2rem !important;
+}
+
+/* BLAYZIA - Black background with rainbow borders */
+html body div.character-card.character-blayzia {
+    background: #000 !important;
+    border: 2px solid #ff006e !important;
+    border-radius: 12px !important;
+    padding: 2rem !important;
+}
+
+/* Clean character card styling - consistent appearance */
+.character-card .character-name {
+    color: #ffffff !important;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6) !important;
+}
+
+.character-card .character-description {
+    color: rgba(255, 255, 255, 0.8) !important;
+}
+
+/* Blayzo specific cyan text */
+.character-card.character-blayzo .character-name,
+.character-card.character-blayzo .character-description {
+    color: #22d3ee !important;
+}
+
+/* BLAYZO - Special styling with background and border */
+.character-card.character-blayzo {
+    background: #000 !important;
+    border: 2px solid #22d3ee !important;
+    border-radius: 12px !important;
+    padding: 2rem !important;
+}
+
+.character-card.character-blayzo .character-name,
+.character-card.character-blayzo .character-description {
+    background: transparent !important;
+    color: #22d3ee !important;
+}
+
+.character-card.character-blayzica .character-name,
+.character-card.character-blayzica .character-description {
+    background: transparent !important;
+    color: #ff0000 !important;
+}
+
+.character-card.character-crimson .character-name,
+.character-card.character-crimson .character-description {
+    background: transparent !important;
+    color: #ff4500 !important;
+}
+
+.character-card.character-violet .character-name,
+.character-card.character-violet .character-description {
+    background: transparent !important;
+    color: #8b5cf6 !important;
+}
+
+/* ALLOW TEXT GRADIENTS FOR SPECIAL CHARACTERS */
+.character-card.character-blayzion .character-name,
+.character-card.character-blayzion .character-description,
+.character-card.character-blayzia .character-name,
+.character-card.character-blayzia .character-description {
+    background: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b) !important;
+    background-clip: text !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    color: transparent !important;
+}
+
+/* Blayzion specific galaxy text */
+.character-card.character-blayzion .character-name,
+.character-card.character-blayzion .character-description {
+    background: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b) !important;
+    background-clip: text !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    color: transparent !important;
+}
+
+/* Default styles for non-character specific elements */
+body {
+    background: linear-gradient(135deg, #000000 0%, #0f172a 50%, #1e293b 100%);
+    color: #22d3ee;
+    font-weight: bold;
+}
+
+/* ===== COMPANION-SPECIFIC THEMING FOR ALL PAGES ===== */
+
+/* Blayzo - Black background, cyan words, cyan border throughout ALL pages */
+.character-blayzo #chatInterface,
+.character-blayzo .screen:not(.character-card),
+.character-blayzo #selectScreen,
+.character-blayzo .ai-message,
+.character-blayzo .user-message,
+.character-blayzo .chat-container {
+    background: #000 !important;
+    color: #22d3ee !important;
+    border: 3px solid #22d3ee !important;
+}
+
+/* Remove borders from ALL character card children for Blayzo */
+.character-blayzo .character-card,
+.character-blayzo .character-card *,
+.character-blayzo .character-card .character-name,
+.character-blayzo .character-card .character-description,
+.character-blayzo .character-card .character-greeting,
+.character-blayzo .character-card img,
+.character-blayzo .character-card div {
+    border: none !important;
+    background: transparent !important;
+    color: #22d3ee !important;
+}
+
+/* Blayzion - Galaxy border, cyan background, galaxy words throughout ALL pages */
+.character-blayzion #chatInterface,
+.character-blayzion .screen:not(.character-card),
+.character-blayzion #selectScreen,
+.character-blayzion .ai-message,
+.character-blayzion .user-message,
+.character-blayzion .chat-container {
+    background: #22d3ee !important;
+    background: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b) !important;
+    background-clip: text !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    color: transparent !important;
+    border: 3px solid;
+    border-image: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b) 1 !important;
+}
+
+/* Remove borders from ALL character card children for Blayzion */
+.character-blayzion .character-card,
+.character-blayzion .character-card img,
+.character-blayzion .character-card div:not(.character-name):not(.character-description):not(.character-greeting) {
+    border: none !important;
+    background: transparent !important;
+}
+
+/* FORCE Blayzion text elements with gradient - MAXIMUM SPECIFICITY */
+html body div.character-grid div.character-card.character-blayzion .character-name,
+html body div.character-grid div.character-card.character-blayzion .character-description,
+html body div.character-grid div.character-card.character-blayzion .character-greeting,
+html body div.character-card.character-blayzion .character-name,
+html body div.character-card.character-blayzion .character-description,
+html body div.character-card.character-blayzion .character-greeting,
+div.character-card.character-blayzion .character-name,
+div.character-card.character-blayzion .character-description,
+div.character-card.character-blayzion .character-greeting,
+.character-card.character-blayzion .character-name,
+.character-card.character-blayzion .character-description,
+.character-card.character-blayzion .character-greeting {
+    border: none !important;
+    background: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b, #fb5607) !important;
+    background-size: 400% 400% !important;
+    background-clip: text !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    color: transparent !important;
+    animation: galaxyText 3s ease-in-out infinite !important;
+    font-weight: bold !important;
+}
+
+/* Crimson - Blood orange border, black background, blood orange words throughout ALL pages */
+.character-crimson #chatInterface,
+.character-crimson .screen:not(.character-card),
+.character-crimson #selectScreen,
+.character-crimson .ai-message,
+.character-crimson .user-message,
+.character-crimson .chat-container {
+    background: #000 !important;
+    color: #ff4500 !important;
+    border: 3px solid #ff4500 !important;
+}
+
+/* Remove borders from ALL character card children for Crimson */
+.character-crimson .character-card,
+.character-crimson .character-card *,
+.character-crimson .character-card .character-name,
+.character-crimson .character-card .character-description,
+.character-crimson .character-card .character-greeting,
+.character-crimson .character-card img,
+.character-crimson .character-card div {
+    border: none !important;
+    background: transparent !important;
+    color: #ff4500 !important;
+}
+
+/* Blayzica - Red border, black background, red words throughout ALL pages */
+.character-blayzica #chatInterface,
+.character-blayzica .screen:not(.character-card),
+.character-blayzica #selectScreen,
+.character-blayzica .ai-message,
+.character-blayzica .user-message,
+.character-blayzica .chat-container {
+    background: #000 !important;
+    color: #ff0000 !important;
+    border: 3px solid #ff0000 !important;
+}
+
+/* Remove borders from ALL character card children for Blayzica */
+.character-blayzica .character-card,
+.character-blayzica .character-card *,
+.character-blayzica .character-card .character-name,
+.character-blayzica .character-card .character-description,
+.character-blayzica .character-card .character-greeting,
+.character-blayzica .character-card img,
+.character-blayzica .character-card div {
+    border: none !important;
+    background: transparent !important;
+    color: #ff0000 !important;
+}
+
+/* Blayzia - Galaxy border, red background, galaxy words throughout ALL pages */
+.character-blayzia #chatInterface,
+.character-blayzia .screen:not(.character-card),
+.character-blayzia #selectScreen,
+.character-blayzia .ai-message,
+.character-blayzia .user-message,
+.character-blayzia .chat-container {
+    background: #ff0000 !important;
+    background: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b) !important;
+    background-clip: text !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    color: transparent !important;
+    border: 3px solid;
+    border-image: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b) 1 !important;
+}
+
+/* Remove borders from ALL character card children for Blayzia */
+.character-blayzia .character-card,
+.character-blayzia .character-card img,
+.character-blayzia .character-card div:not(.character-name):not(.character-description):not(.character-greeting) {
+    border: none !important;
+    background: transparent !important;
+}
+
+/* FORCE Blayzia text elements with gradient - MAXIMUM SPECIFICITY */
+html body div.character-grid div.character-card.character-blayzia .character-name,
+html body div.character-grid div.character-card.character-blayzia .character-description,
+html body div.character-grid div.character-card.character-blayzia .character-greeting,
+html body div.character-card.character-blayzia .character-name,
+html body div.character-card.character-blayzia .character-description,
+html body div.character-card.character-blayzia .character-greeting,
+div.character-card.character-blayzia .character-name,
+div.character-card.character-blayzia .character-description,
+div.character-card.character-blayzia .character-greeting,
+.character-card.character-blayzia .character-name,
+.character-card.character-blayzia .character-description,
+.character-card.character-blayzia .character-greeting {
+    border: none !important;
+    background: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b, #fb5607) !important;
+    background-size: 400% 400% !important;
+    background-clip: text !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    color: transparent !important;
+    animation: galaxyText 3s ease-in-out infinite !important;
+    font-weight: bold !important;
+}
+
+/* Violet - Violet border, black background, violet words throughout ALL pages */
+.character-violet #chatInterface,
+.character-violet .screen:not(.character-card),
+.character-violet #selectScreen,
+.character-violet .ai-message,
+.character-violet .user-message,
+.character-violet .chat-container {
+    background: #000 !important;
+    color: #8b5cf6 !important;
+    border: 3px solid #8b5cf6 !important;
+}
+
+/* Remove borders from ALL character card children for Violet */
+.character-violet .character-card,
+.character-violet .character-card *,
+.character-violet .character-card .character-name,
+.character-violet .character-card .character-description,
+.character-violet .character-card .character-greeting,
+.character-violet .character-card img,
+.character-violet .character-card div {
+    border: none !important;
+    background: transparent !important;
+    color: #8b5cf6 !important;
+}
+
+/* Fix intro screen to not be affected by character theming */
+#introScreen,
+#introScreen *,
+#introScreen h1,
+#introScreen p,
+#introScreen .btn {
+    background: inherit !important;
+    color: inherit !important;
+    border-color: inherit !important;
+}
+
+#introScreen h1 {
+    color: #22d3ee !important;
+}
+
+#introScreen p {
+    color: #fff !important;
+}
+
+
+/* Back button styles - Dark mode only */
+body:not(.day-mode) #backBtn,
+body:not(.day-mode) #backToIntroBtn {
+    background: #000 !important;
+    color: #fff !important;
+    border: none !important;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5) !important;
+    border-radius: 50px !important;
+    padding: 4px 12px !important;
+    font-weight: bold !important;
+    font-size: 18px !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    display: block !important;
+}
+
+body:not(.day-mode) #backBtn:hover,
+body:not(.day-mode) #backToIntroBtn:hover {
+    background: #333 !important;
+    transform: translateY(-2px) !important;
+}
+
+/* Back buttons in day mode - black text */
+body.day-mode #backBtn,
+body.day-mode #backToIntroBtn {
+    background: #fff !important;
+    color: #000 !important;
+    border: 2px solid #000 !important;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2) !important;
+    border-radius: 50px !important;
+    padding: 4px 12px !important;
+    font-weight: bold !important;
+    font-size: 18px !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    display: block !important;
+}
+
+body.day-mode #backBtn:hover,
+body.day-mode #backToIntroBtn:hover {
+    background: #f0f0f0 !important;
+    transform: translateY(-2px) !important;
+}
+
+/* Character-specific greeting colors in dark mode */
+.character-blayzica-text {
+    color: #000 !important;
+}
+
+.character-blayzo-text {
+    color: #000 !important;
+    background: rgba(34, 211, 238, 0.9) !important;
+}
+
+/* Character-specific colors in dark mode for character select */
+.character-blayzica .character-name {
+    color: #dc2626 !important;
+}
+
+.character-blayzica .character-description {
+    color: #dc2626 !important;
+}
+
+/* Day mode overrides */
+body.day-mode {
+    background: #f8f9fa !important;
+    color: #000 !important;
+    font-weight: bold !important;
+}
+
+/* Day mode logo switcher */
+body.day-mode .intro-logo {
+    content: url("../logos/BlackIntroLogo.png") !important;
+    border-radius: 30px !important;
+    width: 900px !important;
+    height: 675px !important;
+    max-width: 900px !important;
+    max-height: 675px !important;
+}
+
+/* Dark mode logo size adjustment */
+body:not(.day-mode) .intro-logo {
+    width: 900px !important;
+    height: 675px !important;
+    max-width: 900px !important;
+    max-height: 675px !important;
+    transform: translate(-50%, -50%) scale(1.0) !important;
+}
+
+/* Day mode text styling */
+body.day-mode h1, body.day-mode h2, body.day-mode h3, body.day-mode p, body.day-mode span, body.day-mode div {
+    color: #000 !important;
+    font-weight: bold !important;
+}
+
+/* Day mode intro screen content */
+body.day-mode #introScreen h1 {
+    color: #000 !important;
+    font-weight: bold !important;
+    text-shadow: 0 0 20px rgba(0, 0, 0, 0.3) !important;
+}
+
+body.day-mode #introScreen p {
+    color: #333 !important;
+    font-weight: bold !important;
+}
+
+/* Day mode character select content */
+body.day-mode #characterSelect {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #e2e8f0 100%) !important;
+}
+
+body.day-mode #characterSelect h2 {
+    color: #000 !important;
+    font-weight: bold !important;
+    text-shadow: 0 0 15px rgba(0, 0, 0, 0.3) !important;
+}
+
+body.day-mode #characterSelect p {
+    color: #333 !important;
+    font-weight: bold !important;
+}
+
+/* Character-specific colors in day mode for character select */
+body.day-mode .character-blayzo .character-name {
+    color: #22d3ee !important;
+    font-weight: bold !important;
+}
+
+body.day-mode .character-blayzo .character-description {
+    color: #22d3ee !important;
+    font-weight: bold !important;
+}
+
+body.day-mode .character-blayzica .character-name {
+    color: #dc2626 !important;
+    font-weight: bold !important;
+}
+
+body.day-mode .character-blayzica .character-description {
+    color: #dc2626 !important;
+    font-weight: bold !important;
+}
+
+
+/* Day mode back button */
+body.day-mode #backBtn,
+body.day-mode #backToIntroBtn,
+html body.day-mode #backBtn,
+html body.day-mode #backToIntroBtn {
+    background: rgba(34, 211, 238, 0.8) !important;
+    color: #000 !important;
+    border: none !important;
+    box-shadow: 0 4px 15px rgba(34, 211, 238, 0.3) !important;
+}
+
+body.day-mode #backBtn:hover,
+body.day-mode #backToIntroBtn:hover,
+html body.day-mode #backBtn:hover,
+html body.day-mode #backToIntroBtn:hover {
+    background: rgba(34, 211, 238, 1) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(34, 211, 238, 0.5) !important;
+}
+
+/* Day mode character cards */
+body.day-mode .character-card {
+    border: none !important;
+    background: transparent !important;
+}
+
+body.day-mode .character-card:hover {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+}
+
+body.day-mode .character-card.selected {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+body.day-mode .character-card:focus {
+    border: none !important;
+    box-shadow: none !important;
+}
+
+body.day-mode .character-card::before {
+    background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.05), transparent);
+}
+
+/* Day mode character grid - proper borders and backgrounds */
+body.day-mode .character-grid .character-card.character-blayzica,
+body.day-mode #characterSelect .character-card.character-blayzica {
+    border: 3px solid #ff0000 !important;
+    background: rgba(255, 0, 0, 0.1) !important;
+}
+
+body.day-mode .character-grid .character-card.character-crimson,
+body.day-mode #characterSelect .character-card.character-crimson {
+    border: 3px solid #ff4500 !important;
+    background: rgba(255, 69, 0, 0.1) !important;
+}
+
+body.day-mode .character-grid .character-card.character-violet,
+body.day-mode #characterSelect .character-card.character-violet {
+    border: 3px solid #8b5cf6 !important;
+    background: rgba(139, 92, 246, 0.1) !important;
+}
+
+body.day-mode .character-grid .character-card.character-blayzion,
+body.day-mode #characterSelect .character-card.character-blayzion {
+    border: 3px solid #ff006e !important;
+    background: rgba(255, 0, 110, 0.1) !important;
+}
+
+body.day-mode .character-grid .character-card.character-blayzia,
+body.day-mode #characterSelect .character-card.character-blayzia {
+    border: 3px solid #ff006e !important;
+    background: rgba(255, 0, 110, 0.1) !important;
+}
+
+body.day-mode .character-grid .character-card.character-blayzo,
+body.day-mode #characterSelect .character-card.character-blayzo {
+    border: 3px solid #22d3ee !important;
+    background: rgba(34, 211, 238, 0.1) !important;
+}
+
+/* Day mode chat components */
+body.day-mode .chat-container {
+    background: rgba(0, 0, 0, 0.9) !important;
+    border: 2px solid #000 !important;
+    color: #fff !important;
+}
+
+body.day-mode .ai-message {
+    background: linear-gradient(135deg, rgba(220, 38, 38, 0.9), rgba(220, 38, 38, 0.8)) !important;
+    color: #22d3ee !important;
+    border: 1px solid rgba(34, 211, 238, 0.5) !important;
+}
+
+/* Enhanced AI message styling for Blayzo */
+.character-blayzo .ai-message {
+    background: #000 !important;
+    color: #22d3ee !important;
+    border: 3px solid #22d3ee !important;
+    box-shadow: 0 0 15px rgba(34, 211, 238, 0.4), 0 4px 20px rgba(34, 211, 238, 0.2) !important;
+    border-radius: 12px !important;
+    padding: 1rem !important;
+    margin: 0.5rem 0 !important;
+    backdrop-filter: blur(5px) !important;
+}
+
+/* Enhanced AI message styling for Blayzica */
+.character-blayzica .ai-message {
+    background: #000 !important;
+    color: #ff0000 !important;
+    border: 3px solid #ff0000 !important;
+    box-shadow: 0 0 15px rgba(255, 0, 0, 0.4), 0 4px 20px rgba(255, 0, 0, 0.2) !important;
+    border-radius: 12px !important;
+    padding: 1rem !important;
+    margin: 0.5rem 0 !important;
+    backdrop-filter: blur(5px) !important;
+}
+
+/* Enhanced AI message styling for Crimson */
+.character-crimson .ai-message {
+    background: #000 !important;
+    color: #ff4500 !important;
+    border: 3px solid #ff4500 !important;
+    box-shadow: 0 0 15px rgba(255, 69, 0, 0.4), 0 4px 20px rgba(255, 69, 0, 0.2) !important;
+    border-radius: 12px !important;
+    padding: 1rem !important;
+    margin: 0.5rem 0 !important;
+    backdrop-filter: blur(5px) !important;
+}
+
+/* Enhanced AI message styling for Violet */
+.character-violet .ai-message {
+    background: #000 !important;
+    color: #8b5cf6 !important;
+    border: 3px solid #8b5cf6 !important;
+    box-shadow: 0 0 15px rgba(139, 92, 246, 0.4), 0 4px 20px rgba(139, 92, 246, 0.2) !important;
+    border-radius: 12px !important;
+    padding: 1rem !important;
+    margin: 0.5rem 0 !important;
+    backdrop-filter: blur(5px) !important;
+}
+
+/* Enhanced AI message styling for Blayzion (rainbow gradient) */
+.character-blayzion .ai-message {
+    background: #000 !important;
+    color: transparent !important;
+    border: 3px solid;
+    border-image: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b) 1 !important;
+    box-shadow: 0 0 15px rgba(255, 0, 110, 0.4), 0 4px 20px rgba(255, 0, 110, 0.2) !important;
+    border-radius: 12px !important;
+    padding: 1rem !important;
+    margin: 0.5rem 0 !important;
+    backdrop-filter: blur(5px) !important;
+    background-clip: text !important;
+    -webkit-background-clip: text !important;
+    background-image: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b) !important;
+}
+
+/* Enhanced AI message styling for Blayzia (rainbow gradient) */
+.character-blayzia .ai-message {
+    background: #000 !important;
+    color: transparent !important;
+    border: 3px solid;
+    border-image: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b) 1 !important;
+    box-shadow: 0 0 15px rgba(255, 0, 110, 0.4), 0 4px 20px rgba(255, 0, 110, 0.2) !important;
+    border-radius: 12px !important;
+    padding: 1rem !important;
+    margin: 0.5rem 0 !important;
+    backdrop-filter: blur(5px) !important;
+    background-clip: text !important;
+    -webkit-background-clip: text !important;
+    background-image: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b) !important;
+}
+
+/* Day mode enhanced AI message styling */
+body.day-mode .character-blayzo .ai-message {
+    background: rgba(255, 255, 255, 0.95) !important;
+    color: #0891b2 !important;
+    border: 3px solid #22d3ee !important;
+    box-shadow: 0 0 15px rgba(34, 211, 238, 0.3), 0 4px 20px rgba(34, 211, 238, 0.1) !important;
+}
+
+body.day-mode .character-blayzica .ai-message {
+    background: rgba(255, 255, 255, 0.95) !important;
+    color: #dc2626 !important;
+    border: 3px solid #ff0000 !important;
+    box-shadow: 0 0 15px rgba(255, 0, 0, 0.3), 0 4px 20px rgba(255, 0, 0, 0.1) !important;
+}
+
+body.day-mode .character-crimson .ai-message {
+    background: rgba(255, 255, 255, 0.95) !important;
+    color: #ea580c !important;
+    border: 3px solid #ff4500 !important;
+    box-shadow: 0 0 15px rgba(255, 69, 0, 0.3), 0 4px 20px rgba(255, 69, 0, 0.1) !important;
+}
+
+body.day-mode .character-violet .ai-message {
+    background: rgba(255, 255, 255, 0.95) !important;
+    color: #7c3aed !important;
+    border: 3px solid #8b5cf6 !important;
+    box-shadow: 0 0 15px rgba(139, 92, 246, 0.3), 0 4px 20px rgba(139, 92, 246, 0.1) !important;
+}
+
+body.day-mode .character-blayzion .ai-message {
+    background: rgba(255, 255, 255, 0.95) !important;
+    color: transparent !important;
+    border: 3px solid;
+    border-image: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b) 1 !important;
+    box-shadow: 0 0 15px rgba(255, 0, 110, 0.3), 0 4px 20px rgba(255, 0, 110, 0.1) !important;
+    background-clip: text !important;
+    -webkit-background-clip: text !important;
+    background-image: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b) !important;
+}
+
+body.day-mode .character-blayzia .ai-message {
+    background: rgba(255, 255, 255, 0.95) !important;
+    color: transparent !important;
+    border: 3px solid;
+    border-image: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b) 1 !important;
+    box-shadow: 0 0 15px rgba(255, 0, 110, 0.3), 0 4px 20px rgba(255, 0, 110, 0.1) !important;
+    background-clip: text !important;
+    -webkit-background-clip: text !important;
+    background-image: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b) !important;
+}
+
+/* ========================================
+   COMPANION-SPECIFIC COMPLETE PAGE STYLING
+======================================== */
+
+/* Blayzo - Black background, cyan words, cyan border throughout ALL pages EXCEPT character cards */
+.character-blayzo #chatInterface,
+.character-blayzo .screen:not(.character-card) {
+    background: #000 !important;
+    color: #22d3ee !important;
+    border: 3px solid #22d3ee !important;
+}
+
+/* Blayzo character card - NO outer border */
+.character-blayzo .character-card {
+    background: transparent !important;
+    color: #22d3ee !important;
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 2rem !important;
+}
+
+/* Add borders to Blayzo name and greeting separately FIRST */
+html body .character-blayzo .character-card .character-name {
+    border: 1px solid #22d3ee !important;
+    border-radius: 8px !important;
+    padding: 0.5rem !important;
+    margin-bottom: 1rem !important;
+    background: transparent !important;
+    color: #22d3ee !important;
+}
+
+html body .character-blayzo .character-card .character-greeting {
+    border: 1px solid #22d3ee !important;
+    border-radius: 8px !important;
+    padding: 0.5rem !important;
+    margin-top: 1rem !important;
+    background: transparent !important;
+    color: #22d3ee !important;
+}
+
+/* Remove borders from OTHER character card children */
+.character-blayzo .character-card *:not(.character-name):not(.character-greeting) {
+    border: none !important;
+    background: transparent !important;
+}
+
+/* Blayzion - Simple 2-color theme */
+.character-blayzion #chatInterface,
+.character-blayzion .ai-message,
+.character-blayzion .user-message,
+.character-blayzion .chat-container,
+.character-blayzion .message-input,
+.character-blayzion .send-button,
+.character-blayzion .back-button,
+.character-blayzion .chat-header,
+.character-blayzion .message-bubble,
+.character-blayzion .input-container {
+    background: rgba(255, 0, 110, 0.1) !important;
+    border-color: #ff006e !important;
+}
+
+.character-blayzion .ai-message,
+.character-blayzion .user-message,
+.character-blayzion .character-name,
+.character-blayzion #selectedCharacter span,
+.character-blayzion .message-text,
+.character-blayzion .send-button,
+.character-blayzion .back-button,
+.character-blayzion input,
+.character-blayzion textarea,
+.character-blayzion p,
+.character-blayzion span,
+.character-blayzion div,
+.character-blayzion button {
+    color: #ff006e !important;
+}
+
+/* Remove any conflicting styles for Blayzion - but preserve character card content */
+.character-blayzion .ai-message *,
+.character-blayzion .user-message *,
+.character-blayzion .chat-container *,
+.character-blayzion .message-input *,
+.character-blayzion .send-button *,
+.character-blayzion .back-button * {
+    background: rgba(255, 0, 110, 0.1) !important;
+    color: #ff006e !important;
+}
+
+/* Crimson - Simple 2-color theme */
+.character-crimson #chatInterface,
+.character-crimson .ai-message,
+.character-crimson .user-message,
+.character-crimson .chat-container,
+.character-crimson .message-input,
+.character-crimson .send-button,
+.character-crimson .back-button,
+.character-crimson .chat-header,
+.character-crimson .message-bubble,
+.character-crimson .input-container {
+    background: rgba(255, 69, 0, 0.1) !important;
+    border-color: #ff4500 !important;
+}
+
+.character-crimson .ai-message,
+.character-crimson .user-message,
+.character-crimson .character-name,
+.character-crimson #selectedCharacter span,
+.character-crimson .message-text,
+.character-crimson .send-button,
+.character-crimson .back-button,
+.character-crimson input,
+.character-crimson textarea,
+.character-crimson p,
+.character-crimson span,
+.character-crimson div,
+.character-crimson button {
+    color: #ff4500 !important;
+}
+
+/* Remove any conflicting styles for Crimson - but preserve character card content */
+.character-crimson .ai-message *,
+.character-crimson .user-message *,
+.character-crimson .chat-container *,
+.character-crimson .message-input *,
+.character-crimson .send-button *,
+.character-crimson .back-button * {
+    background: rgba(255, 69, 0, 0.1) !important;
+    color: #ff4500 !important;
+}
+
+/* Blayzica - Simple 2-color theme */
+.character-blayzica #chatInterface,
+.character-blayzica .ai-message,
+.character-blayzica .user-message,
+.character-blayzica .chat-container,
+.character-blayzica .message-input,
+.character-blayzica .send-button,
+.character-blayzica .back-button,
+.character-blayzica .chat-header,
+.character-blayzica .message-bubble,
+.character-blayzica .input-container {
+    background: rgba(255, 0, 0, 0.1) !important;
+    border-color: #ff0000 !important;
+}
+
+.character-blayzica .ai-message,
+.character-blayzica .user-message,
+.character-blayzica .character-name,
+.character-blayzica #selectedCharacter span,
+.character-blayzica .message-text,
+.character-blayzica .send-button,
+.character-blayzica .back-button,
+.character-blayzica input,
+.character-blayzica textarea,
+.character-blayzica p,
+.character-blayzica span,
+.character-blayzica div,
+.character-blayzica button {
+    color: #ff0000 !important;
+}
+
+/* Remove any conflicting styles for Blayzica - but preserve character card content */
+.character-blayzica .ai-message *,
+.character-blayzica .user-message *,
+.character-blayzica .chat-container *,
+.character-blayzica .message-input *,
+.character-blayzica .send-button *,
+.character-blayzica .back-button * {
+    background: rgba(255, 0, 0, 0.1) !important;
+    color: #ff0000 !important;
+}
+
+/* Blayzica character card - ONLY outer border */
+.character-blayzica .character-card {
+    background: #000 !important;
+    color: #ff0000 !important;
+    border: 2px solid #ff0000 !important;
+    border-radius: 12px !important;
+    padding: 2rem !important;
+}
+
+/* Remove borders from character card children */
+.character-blayzica .character-card * {
+    border: none !important;
+    background: transparent !important;
+}
+
+/* Blayzia - Simple 2-color theme */
+.character-blayzia #chatInterface,
+.character-blayzia .ai-message,
+.character-blayzia .user-message,
+.character-blayzia .chat-container,
+.character-blayzia .message-input,
+.character-blayzia .send-button,
+.character-blayzia .back-button,
+.character-blayzia .chat-header,
+.character-blayzia .message-bubble,
+.character-blayzia .input-container {
+    background: rgba(255, 0, 110, 0.1) !important;
+    border-color: #ff006e !important;
+}
+
+.character-blayzia .ai-message,
+.character-blayzia .user-message,
+.character-blayzia .character-name,
+.character-blayzia #selectedCharacter span,
+.character-blayzia .message-text,
+.character-blayzia .send-button,
+.character-blayzia .back-button,
+.character-blayzia input,
+.character-blayzia textarea,
+.character-blayzia p,
+.character-blayzia span,
+.character-blayzia div,
+.character-blayzia button {
+    color: #ff006e !important;
+}
+
+/* Remove any conflicting styles for Blayzia - but preserve character card content */
+.character-blayzia .ai-message *,
+.character-blayzia .user-message *,
+.character-blayzia .chat-container *,
+.character-blayzia .message-input *,
+.character-blayzia .send-button *,
+.character-blayzia .back-button * {
+    background: rgba(255, 0, 110, 0.1) !important;
+    color: #ff006e !important;
+}
+
+/* Violet - Simple 2-color theme */
+.character-violet #chatInterface,
+.character-violet .ai-message,
+.character-violet .user-message,
+.character-violet .chat-container,
+.character-violet .message-input,
+.character-violet .send-button,
+.character-violet .back-button,
+.character-violet .chat-header,
+.character-violet .message-bubble,
+.character-violet .input-container {
+    background: rgba(139, 92, 246, 0.1) !important;
+    border-color: #8b5cf6 !important;
+}
+
+.character-violet .ai-message,
+.character-violet .user-message,
+.character-violet .character-name,
+.character-violet #selectedCharacter span,
+.character-violet .message-text,
+.character-violet .send-button,
+.character-violet .back-button,
+.character-violet input,
+.character-violet textarea,
+.character-violet p,
+.character-violet span,
+.character-violet div,
+.character-violet button {
+    color: #8b5cf6 !important;
+}
+
+/* Remove any conflicting styles for Violet - but preserve character card content */
+.character-violet .ai-message *,
+.character-violet .user-message *,
+.character-violet .chat-container *,
+.character-violet .message-input *,
+.character-violet .send-button *,
+.character-violet .back-button * {
+    background: rgba(139, 92, 246, 0.1) !important;
+    color: #8b5cf6 !important;
+}
+
+/* Blayzo - Simple 2-color theme */
+.character-blayzo #chatInterface,
+.character-blayzo .ai-message,
+.character-blayzo .user-message,
+.character-blayzo .chat-container,
+.character-blayzo .message-input,
+.character-blayzo .send-button,
+.character-blayzo .back-button,
+.character-blayzo .chat-header,
+.character-blayzo .message-bubble,
+.character-blayzo .input-container {
+    background: rgba(34, 211, 238, 0.1) !important;
+    border-color: #22d3ee !important;
+}
+
+.character-blayzo .ai-message,
+.character-blayzo .user-message,
+.character-blayzo .character-name,
+.character-blayzo #selectedCharacter span,
+.character-blayzo .message-text,
+.character-blayzo .send-button,
+.character-blayzo .back-button,
+.character-blayzo input,
+.character-blayzo textarea,
+.character-blayzo p,
+.character-blayzo span,
+.character-blayzo div,
+.character-blayzo button {
+    color: #22d3ee !important;
+}
+
+/* FINAL OVERRIDE: Simple 2-tone styling for Blayzo - highest priority */
+html body.character-blayzo #chatInterface,
+html body.character-blayzo .ai-message,
+html body.character-blayzo .user-message,
+html body.character-blayzo .chat-container,
+html body.character-blayzo .message-input,
+html body.character-blayzo .send-button,
+html body.character-blayzo .back-button,
+html body.character-blayzo .message-text,
+html body.character-blayzo .message-content,
+html body.character-blayzo .chat-header,
+html body.character-blayzo .input-container {
+    background: rgba(34, 211, 238, 0.1) !important;
+    color: #22d3ee !important;
+    border-color: #22d3ee !important;
+}
+
+/* Remove any conflicting styles for Blayzo - but preserve character card content */
+.character-blayzo .ai-message *,
+.character-blayzo .user-message *,
+.character-blayzo .chat-container *,
+.character-blayzo .message-input *,
+.character-blayzo .send-button *,
+.character-blayzo .back-button * {
+    background: rgba(34, 211, 238, 0.1) !important;
+    color: #22d3ee !important;
+}
+
+/* FINAL OVERRIDE: Simple 2-tone styling for all characters - highest priority */
+html body.character-blayzica #chatInterface,
+html body.character-blayzica .ai-message,
+html body.character-blayzica .user-message,
+html body.character-blayzica .chat-container,
+html body.character-blayzica .message-input,
+html body.character-blayzica .send-button,
+html body.character-blayzica .back-button,
+html body.character-blayzica .message-text,
+html body.character-blayzica .message-content,
+html body.character-blayzica .chat-header,
+html body.character-blayzica .input-container {
+    background: rgba(255, 0, 0, 0.1) !important;
+    color: #ff0000 !important;
+    border-color: #ff0000 !important;
+}
+
+html body.character-crimson #chatInterface,
+html body.character-crimson .ai-message,
+html body.character-crimson .user-message,
+html body.character-crimson .chat-container,
+html body.character-crimson .message-input,
+html body.character-crimson .send-button,
+html body.character-crimson .back-button,
+html body.character-crimson .message-text,
+html body.character-crimson .message-content,
+html body.character-crimson .chat-header,
+html body.character-crimson .input-container {
+    background: rgba(255, 69, 0, 0.1) !important;
+    color: #ff4500 !important;
+    border-color: #ff4500 !important;
+}
+
+html body.character-violet #chatInterface,
+html body.character-violet .ai-message,
+html body.character-violet .user-message,
+html body.character-violet .chat-container,
+html body.character-violet .message-input,
+html body.character-violet .send-button,
+html body.character-violet .back-button,
+html body.character-violet .message-text,
+html body.character-violet .message-content,
+html body.character-violet .chat-header,
+html body.character-violet .input-container {
+    background: rgba(139, 92, 246, 0.1) !important;
+    color: #8b5cf6 !important;
+    border-color: #8b5cf6 !important;
+}
+
+html body.character-blayzion #chatInterface,
+html body.character-blayzion .ai-message,
+html body.character-blayzion .user-message,
+html body.character-blayzion .chat-container,
+html body.character-blayzion .message-input,
+html body.character-blayzion .send-button,
+html body.character-blayzion .back-button,
+html body.character-blayzion .message-text,
+html body.character-blayzion .message-content,
+html body.character-blayzion .chat-header,
+html body.character-blayzion .input-container {
+    background: rgba(255, 0, 110, 0.1) !important;
+    color: #ff006e !important;
+    border-color: #ff006e !important;
+}
+
+html body.character-blayzia #chatInterface,
+html body.character-blayzia .ai-message,
+html body.character-blayzia .user-message,
+html body.character-blayzia .chat-container,
+html body.character-blayzia .message-input,
+html body.character-blayzia .send-button,
+html body.character-blayzia .back-button,
+html body.character-blayzia .message-text,
+html body.character-blayzia .message-content,
+html body.character-blayzia .chat-header,
+html body.character-blayzia .input-container {
+    background: rgba(255, 0, 110, 0.1) !important;
+    color: #ff006e !important;
+    border-color: #ff006e !important;
+}
+
+/* DAY MODE - Simple 2-tone styling for all characters */
+body.day-mode .character-blayzo #chatInterface,
+body.day-mode .character-blayzo .ai-message,
+body.day-mode .character-blayzo .user-message,
+body.day-mode .character-blayzo .chat-container,
+body.day-mode .character-blayzo .message-input,
+body.day-mode .character-blayzo .send-button,
+body.day-mode .character-blayzo .back-button {
+    background: rgba(255, 255, 255, 0.95) !important;
+    border-color: #1f2937 !important;
+}
+
+body.day-mode .character-blayzo .ai-message,
+body.day-mode .character-blayzo .user-message,
+body.day-mode .character-blayzo .message-text,
+body.day-mode .character-blayzo .send-button,
+body.day-mode .character-blayzo .back-button,
+body.day-mode .character-blayzo input,
+body.day-mode .character-blayzo textarea {
+    color: #1f2937 !important;
+}
+
+body.day-mode .character-blayzica #chatInterface,
+body.day-mode .character-blayzica .ai-message,
+body.day-mode .character-blayzica .user-message,
+body.day-mode .character-blayzica .chat-container,
+body.day-mode .character-blayzica .message-input,
+body.day-mode .character-blayzica .send-button,
+body.day-mode .character-blayzica .back-button {
+    background: rgba(255, 255, 255, 0.95) !important;
+    border-color: #1f2937 !important;
+}
+
+body.day-mode .character-blayzica .ai-message,
+body.day-mode .character-blayzica .user-message,
+body.day-mode .character-blayzica .message-text,
+body.day-mode .character-blayzica .send-button,
+body.day-mode .character-blayzica .back-button,
+body.day-mode .character-blayzica input,
+body.day-mode .character-blayzica textarea {
+    color: #1f2937 !important;
+}
+
+body.day-mode .character-crimson #chatInterface,
+body.day-mode .character-crimson .ai-message,
+body.day-mode .character-crimson .user-message,
+body.day-mode .character-crimson .chat-container,
+body.day-mode .character-crimson .message-input,
+body.day-mode .character-crimson .send-button,
+body.day-mode .character-crimson .back-button {
+    background: rgba(255, 255, 255, 0.95) !important;
+    border-color: #1f2937 !important;
+}
+
+body.day-mode .character-crimson .ai-message,
+body.day-mode .character-crimson .user-message,
+body.day-mode .character-crimson .message-text,
+body.day-mode .character-crimson .send-button,
+body.day-mode .character-crimson .back-button,
+body.day-mode .character-crimson input,
+body.day-mode .character-crimson textarea {
+    color: #1f2937 !important;
+}
+
+body.day-mode .character-violet #chatInterface,
+body.day-mode .character-violet .ai-message,
+body.day-mode .character-violet .user-message,
+body.day-mode .character-violet .chat-container,
+body.day-mode .character-violet .message-input,
+body.day-mode .character-violet .send-button,
+body.day-mode .character-violet .back-button {
+    background: rgba(255, 255, 255, 0.95) !important;
+    border-color: #1f2937 !important;
+}
+
+body.day-mode .character-violet .ai-message,
+body.day-mode .character-violet .user-message,
+body.day-mode .character-violet .message-text,
+body.day-mode .character-violet .send-button,
+body.day-mode .character-violet .back-button,
+body.day-mode .character-violet input,
+body.day-mode .character-violet textarea {
+    color: #1f2937 !important;
+}
+
+body.day-mode .character-blayzion #chatInterface,
+body.day-mode .character-blayzion .ai-message,
+body.day-mode .character-blayzion .user-message,
+body.day-mode .character-blayzion .chat-container,
+body.day-mode .character-blayzion .message-input,
+body.day-mode .character-blayzion .send-button,
+body.day-mode .character-blayzion .back-button {
+    background: rgba(255, 255, 255, 0.95) !important;
+    border-color: #1f2937 !important;
+}
+
+body.day-mode .character-blayzion .ai-message,
+body.day-mode .character-blayzion .user-message,
+body.day-mode .character-blayzion .message-text,
+body.day-mode .character-blayzion .send-button,
+body.day-mode .character-blayzion .back-button,
+body.day-mode .character-blayzion input,
+body.day-mode .character-blayzion textarea {
+    color: #1f2937 !important;
+}
+
+body.day-mode .character-blayzia #chatInterface,
+body.day-mode .character-blayzia .ai-message,
+body.day-mode .character-blayzia .user-message,
+body.day-mode .character-blayzia .chat-container,
+body.day-mode .character-blayzia .message-input,
+body.day-mode .character-blayzia .send-button,
+body.day-mode .character-blayzia .back-button {
+    background: rgba(255, 255, 255, 0.95) !important;
+    border-color: #1f2937 !important;
+}
+
+body.day-mode .character-blayzia .ai-message,
+body.day-mode .character-blayzia .user-message,
+body.day-mode .character-blayzia .message-text,
+body.day-mode .character-blayzia .send-button,
+body.day-mode .character-blayzia .back-button,
+body.day-mode .character-blayzia input,
+body.day-mode .character-blayzia textarea {
+    color: #1f2937 !important;
+}
+
+/* ========================================
+   COMPANION CHAT ELEMENTS STYLING
+======================================== */
+
+/* Apply companion-specific styling to all chat elements */
+.character-blayzion .chat-container,
+.character-blayzion .ai-message,
+.character-blayzion .user-message,
+.character-blayzion .input-field,
+.character-blayzion .btn-primary,
+.character-blayzion .btn-secondary,
+.character-blayzion .timestamp,
+.character-blayzion .typing-indicator,
+.character-blayzion .error-message {
+    background: #22d3ee !important;
+    color: transparent !important;
+    background-clip: text !important;
+    -webkit-background-clip: text !important;
+    background-image: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b, #fb5607) !important;
+    border: 2px solid;
+    border-image: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b, #fb5607) 1 !important;
+    border-radius: 8px !important;
+}
+
+.character-crimson .chat-container,
+.character-crimson .ai-message,
+.character-crimson .user-message,
+.character-crimson .input-field,
+.character-crimson .btn-primary,
+.character-crimson .btn-secondary,
+.character-crimson .timestamp,
+.character-crimson .typing-indicator,
+.character-crimson .error-message {
+    background: #000 !important;
+    color: #dc2626 !important;
+    border: 2px solid #dc2626 !important;
+    border-radius: 8px !important;
+}
+
+.character-blayzica .chat-container,
+.character-blayzica .ai-message,
+.character-blayzica .user-message,
+.character-blayzica .input-field,
+.character-blayzica .btn-primary,
+.character-blayzica .btn-secondary,
+.character-blayzica .timestamp,
+.character-blayzica .typing-indicator,
+.character-blayzica .error-message {
+    background: #000 !important;
+    color: #ef4444 !important;
+    border: 2px solid #ef4444 !important;
+    border-radius: 8px !important;
+}
+
+.character-blayzia .chat-container,
+.character-blayzia .ai-message,
+.character-blayzia .user-message,
+.character-blayzia .input-field,
+.character-blayzia .btn-primary,
+.character-blayzia .btn-secondary,
+.character-blayzia .timestamp,
+.character-blayzia .typing-indicator,
+.character-blayzia .error-message {
+    background: #ef4444 !important;
+    color: transparent !important;
+    background-clip: text !important;
+    -webkit-background-clip: text !important;
+    background-image: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b, #fb5607) !important;
+    border: 2px solid;
+    border-image: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b, #fb5607) 1 !important;
+    border-radius: 8px !important;
+}
+
+.character-violet .chat-container,
+.character-violet .ai-message,
+.character-violet .user-message,
+.character-violet .input-field,
+.character-violet .btn-primary,
+.character-violet .btn-secondary,
+.character-violet .timestamp,
+.character-violet .typing-indicator,
+.character-violet .error-message {
+    background: #000 !important;
+    color: #7c3aed !important;
+    border: 2px solid #7c3aed !important;
+    border-radius: 8px !important;
+}
+
+.character-blayzo .chat-container {
+    background: rgba(0, 0, 0, 0.9) !important;
+    border: 2px solid #22d3ee !important;
+}
+
+.character-blayzo .user-message {
+    background: rgba(0, 0, 0, 0.9) !important;
+    color: #22d3ee !important;
+    border: 2px solid #22d3ee !important;
+    border-radius: 8px !important;
+}
+
+.character-blayzo .timestamp {
+    color: #22d3ee !important;
+    opacity: 0.8 !important;
+}
+
+.character-blayzo .typing-indicator {
+    background: rgba(0, 0, 0, 0.9) !important;
+    color: #22d3ee !important;
+    border: 2px solid #22d3ee !important;
+    border-radius: 8px !important;
+}
+
+.character-blayzo .typing-text {
+    color: #22d3ee !important;
+}
+
+.character-blayzo .typing-dot {
+    background: #22d3ee !important;
+}
+
+.character-blayzo .btn-primary {
+    background: rgba(0, 0, 0, 0.9) !important;
+    color: #22d3ee !important;
+    border: 2px solid #22d3ee !important;
+}
+
+.character-blayzo .btn-secondary {
+    background: rgba(0, 0, 0, 0.9) !important;
+    color: #22d3ee !important;
+    border: 2px solid #22d3ee !important;
+}
+
+.character-blayzo .error-message {
+    background: rgba(0, 0, 0, 0.9) !important;
+    color: #22d3ee !important;
+    border: 2px solid #22d3ee !important;
+    border-radius: 8px !important;
+}
+
+.character-blayzo .chat-container::-webkit-scrollbar-thumb {
+    background: #22d3ee !important;
+    border: 1px solid #000 !important;
+}
+
+.character-blayzo .input-field {
+    background: rgba(0, 0, 0, 0.9) !important;
+    border: 2px solid #22d3ee !important;
+    color: #22d3ee !important;
+    border-radius: 8px !important;
+}
+
+.character-blayzo .input-field::placeholder {
+    color: #22d3ee !important;
+    opacity: 0.7 !important;
+}
+
+/* Dark mode AI message styling for Blayzica */
+.character-blayzica .ai-message {
+    background: linear-gradient(135deg, rgba(220, 38, 38, 0.9), rgba(220, 38, 38, 0.8)) !important;
+    color: #000 !important;
+    border: 2px solid #22d3ee !important;
+}
+
+/* Character-specific AI messages in day mode */
+body.day-mode.character-blayzica .ai-message {
+    background: linear-gradient(135deg, rgba(220, 38, 38, 0.9), rgba(220, 38, 38, 0.8)) !important;
+    color: #000 !important;
+    border: 1px solid rgba(220, 38, 38, 0.5) !important;
+}
+
+body.day-mode.character-blayzo .ai-message {
+    background: #000 !important;
+    color: #22d3ee !important;
+    border: 2px solid #22d3ee !important;
+    box-shadow: 0 0 10px rgba(34, 211, 238, 0.3) !important;
+    border-radius: 8px !important;
+}
+
+/* Premium character AI messages - Dark mode */
+.character-blayzion .ai-message {
+    background: linear-gradient(135deg, rgba(34, 211, 238, 0.9), rgba(34, 211, 238, 0.8)) !important;
+    color: transparent !important;
+    background-clip: text !important;
+    -webkit-background-clip: text !important;
+    border: 1px solid rgba(34, 211, 238, 0.5) !important;
+}
+
+/* Removed gradient animations for simple 2-tone styling */
+
+.character-blayzia .ai-message {
+    background: linear-gradient(135deg, rgba(220, 38, 38, 0.9), rgba(220, 38, 38, 0.8)) !important;
+    color: transparent !important;
+    background-clip: text !important;
+    -webkit-background-clip: text !important;
+    border: 1px solid rgba(220, 38, 38, 0.5) !important;
+}
+
+/* Removed gradient animations for simple 2-tone styling */
+
+/* Premium character AI messages - Day mode */
+body.day-mode.character-blayzion .ai-message {
+    background: linear-gradient(135deg, rgba(34, 211, 238, 0.9), rgba(34, 211, 238, 0.8)) !important;
+    border: 1px solid rgba(34, 211, 238, 0.5) !important;
+}
+
+body.day-mode/* Removed gradient animations for simple 2-tone styling */
+
+body.day-mode.character-blayzia .ai-message {
+    background: linear-gradient(135deg, rgba(220, 38, 38, 0.9), rgba(220, 38, 38, 0.8)) !important;
+    border: 1px solid rgba(220, 38, 38, 0.5) !important;
+}
+
+body.day-mode/* Removed gradient animations for simple 2-tone styling */
+
+/* Premium character AI messages - Violet */
+.character-violet .ai-message {
+    background: linear-gradient(135deg, rgba(138, 43, 226, 0.9), rgba(75, 0, 130, 0.8)) !important;
+    color: transparent !important;
+    background-clip: text !important;
+    -webkit-background-clip: text !important;
+    border: 1px solid rgba(138, 43, 226, 0.5) !important;
+}
+
+.character-violet .ai-message * {
+    background: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b, #fb5607) !important;
+    background-size: 400% 400% !important;
+    animation: galaxyText 3s ease-in-out infinite !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    color: transparent !important;
+    font-weight: bold !important;
+}
+
+body.day-mode.character-violet .ai-message {
+    background: linear-gradient(135deg, rgba(138, 43, 226, 0.9), rgba(75, 0, 130, 0.8)) !important;
+    border: 1px solid rgba(138, 43, 226, 0.5) !important;
+}
+
+body.day-mode.character-violet .ai-message * {
+    background: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b, #fb5607) !important;
+    background-size: 400% 400% !important;
+    animation: galaxyText 3s ease-in-out infinite !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    color: transparent !important;
+    font-weight: bold !important;
+}
+
+/* Premium character AI messages - Crimson */
+.character-crimson .ai-message {
+    background: linear-gradient(135deg, rgba(220, 20, 60, 0.9), rgba(139, 0, 0, 0.8)) !important;
+    color: transparent !important;
+    background-clip: text !important;
+    -webkit-background-clip: text !important;
+    border: 1px solid rgba(220, 20, 60, 0.5) !important;
+}
+
+.character-crimson .ai-message * {
+    background: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b, #fb5607) !important;
+    background-size: 400% 400% !important;
+    animation: galaxyText 3s ease-in-out infinite !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    color: transparent !important;
+    font-weight: bold !important;
+}
+
+body.day-mode.character-crimson .ai-message {
+    background: linear-gradient(135deg, rgba(220, 20, 60, 0.9), rgba(139, 0, 0, 0.8)) !important;
+    border: 1px solid rgba(220, 20, 60, 0.5) !important;
+}
+
+body.day-mode.character-crimson .ai-message * {
+    background: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b, #fb5607) !important;
+    background-size: 400% 400% !important;
+    animation: galaxyText 3s ease-in-out infinite !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    color: transparent !important;
+    font-weight: bold !important;
+}
+
+/* Galaxy text animation */
+@keyframes galaxyText {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+/* Premium character select page styling */
+.character-blayzion .character-name,
+.character-blayzia .character-name,
+.character-violet .character-name,
+.character-crimson .character-name {
+    background: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b, #fb5607) !important;
+    background-size: 400% 400% !important;
+    animation: galaxyText 3s ease-in-out infinite !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    color: transparent !important;
+    font-weight: bold !important;
+}
+
+.character-blayzion .character-description,
+.character-blayzia .character-description,
+.character-violet .character-description,
+.character-crimson .character-description {
+    background: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b, #fb5607) !important;
+    background-size: 400% 400% !important;
+    animation: galaxyText 3s ease-in-out infinite !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    color: transparent !important;
+    font-weight: bold !important;
+}
+
+body.day-mode .user-message {
+    background: linear-gradient(135deg, rgba(34, 211, 238, 0.9), rgba(34, 211, 238, 0.7)) !important;
+    color: #000 !important;
+}
+
+/* Dark mode character ready boxes */
+.character-blayzo #selectedCharacter {
+    background: rgba(34, 211, 238, 0.9) !important;
+    border: 2px solid #22d3ee !important;
+    color: #000 !important;
+}
+
+.character-blayzica #selectedCharacter {
+    background: rgba(0, 0, 0, 0.9) !important;
+    border: 2px solid #dc2626 !important;
+    color: #dc2626 !important;
+}
+
+.character-blayzion #selectedCharacter {
+    background: rgba(255, 215, 0, 0.9) !important;
+    border: 2px solid #ffd700 !important;
+    color: #000 !important;
+}
+
+.character-blayzia #selectedCharacter {
+    background: rgba(255, 215, 0, 0.9) !important;
+    border: 2px solid #ffd700 !important;
+    color: #000 !important;
+}
+
+.character-violet #selectedCharacter {
+    background: rgba(138, 43, 226, 0.9) !important;
+    border: 2px solid #8a2be2 !important;
+    color: #fff !important;
+}
+
+.character-crimson #selectedCharacter {
+    background: rgba(220, 20, 60, 0.9) !important;
+    border: 2px solid #dc143c !important;
+    color: #fff !important;
+}
+
+/* Day mode character ready box - Blayzo */
+body.day-mode.character-blayzo #selectedCharacter {
+    background: rgba(220, 38, 38, 0.9) !important;
+    border: 2px solid #dc2626 !important;
+    color: #000 !important;
+}
+
+/* Day mode character ready box - Blayzica */
+body.day-mode.character-blayzica #selectedCharacter {
+    background: rgba(34, 211, 238, 0.9) !important;
+    border: 2px solid #22d3ee !important;
+    color: #000 !important;
+}
+
+/* Day mode character ready box - Blayzion */
+body.day-mode.character-blayzion #selectedCharacter {
+    background: rgba(220, 38, 38, 0.9) !important;
+    border: 2px solid #dc2626 !important;
+    color: #ffd700 !important;
+}
+
+/* Day mode character ready box - Blayzia */
+body.day-mode.character-blayzia #selectedCharacter {
+    background: rgba(220, 38, 38, 0.9) !important;
+    border: 2px solid #dc2626 !important;
+    color: #ffd700 !important;
+}
+
+/* Day mode character ready box - Violet */
+body.day-mode.character-violet #selectedCharacter {
+    background: rgba(138, 43, 226, 0.9) !important;
+    border: 2px solid #8a2be2 !important;
+    color: #ffd700 !important;
+}
+
+/* Day mode character ready box - Crimson */
+body.day-mode.character-crimson #selectedCharacter {
+    background: rgba(220, 20, 60, 0.9) !important;
+    border: 2px solid #dc143c !important;
+    color: #ffd700 !important;
+}
+
+/* Character-specific greeting colors in day mode */
+body.day-mode .character-blayzo-text {
+    color: #000 !important;
+    background: rgba(34, 211, 238, 0.9) !important;
+}
+
+body.day-mode .character-blayzica-text {
+    color: #000 !important;
+    background: rgba(34, 211, 238, 0.9) !important;
+}
+
+/* SoulBridge AI Chat label styling - dark mode */
+.character-blayzo .soulbridge-chat-label {
+    color: #22d3ee !important;
+    border: 2px solid #22d3ee !important;
+    text-align: center !important;
+    background: rgba(0, 0, 0, 0.9) !important;
+    padding: 0.5rem 1rem !important;
+    border-radius: 8px !important;
+}
+
+.character-blayzica .soulbridge-chat-label {
+    color: #dc2626 !important;
+    background: rgba(0, 0, 0, 0.9) !important;
+    padding: 0.5rem 1rem !important;
+    border-radius: 8px !important;
+    border: 2px solid #dc2626 !important;
+    text-align: center !important;
+}
+
+/* SoulBridge AI Chat label in day mode - Blayzo */
+body.day-mode.character-blayzo .soulbridge-chat-label {
+    background: rgba(0, 0, 0, 0.9) !important;
+    color: #22d3ee !important;
+    padding: 0.5rem 1rem !important;
+    border-radius: 8px !important;
+    border: 2px solid #22d3ee !important;
+    text-align: center !important;
+}
+
+/* SoulBridge AI Chat label in day mode - Blayzica */
+body.day-mode.character-blayzica .soulbridge-chat-label {
+    background: rgba(0, 0, 0, 0.9) !important;
+    color: #dc2626 !important;
+    padding: 0.5rem 1rem !important;
+    border-radius: 8px !important;
+}
+
+/* Message input styling for Blayzo in day mode */
+body.day-mode.character-blayzo .input-field {
+    background: rgba(0, 0, 0, 0.9) !important;
+    border-color: #22d3ee !important;
+    color: #22d3ee !important;
+    box-shadow: 0 4px 15px rgba(34, 211, 238, 0.1) !important;
+}
+
+body.day-mode.character-blayzo .input-field::placeholder {
+    color: #22d3ee !important;
+    opacity: 0.7;
+}
+
+/* ========================================
+   COMPANION-SPECIFIC PAGE STYLING - DAY MODE
+======================================== */
+
+/* Blayzo - Cyan border, black background, cyan text */
+body.day-mode.character-blayzo #chatInterface,
+body.day-mode.character-blayzo .character-card {
+    border: 3px solid #22d3ee !important;
+    background: #000 !important;
+    min-height: 100vh !important;
+    color: #22d3ee !important;
+}
+
+/* Blayzion - Galaxy border, cyan background, galaxy text */
+body.day-mode.character-blayzion #chatInterface,
+body.day-mode.character-blayzion .character-card {
+    border: 3px solid;
+    border-image: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b, #fb5607) 1 !important;
+    background: #22d3ee !important;
+    min-height: 100vh !important;
+    color: transparent !important;
+    background-clip: text !important;
+    -webkit-background-clip: text !important;
+    background-image: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b, #fb5607) !important;
+}
+
+/* Crimson - Crimson border, black background, crimson text */
+body.day-mode.character-crimson #chatInterface,
+body.day-mode.character-crimson .character-card {
+    border: 3px solid #dc2626 !important;
+    background: #000 !important;
+    min-height: 100vh !important;
+    color: #dc2626 !important;
+}
+
+/* Blayzica - Red border, black background, red text */
+body.day-mode.character-blayzica #chatInterface,
+body.day-mode.character-blayzica .character-card {
+    border: 3px solid #ef4444 !important;
+    background: #000 !important;
+    min-height: 100vh !important;
+    color: #ef4444 !important;
+}
+
+/* Blayzia - Galaxy border, red background, galaxy text */
+body.day-mode.character-blayzia #chatInterface,
+body.day-mode.character-blayzia .character-card {
+    border: 3px solid;
+    border-image: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b, #fb5607) 1 !important;
+    background: #ef4444 !important;
+    min-height: 100vh !important;
+    color: transparent !important;
+    background-clip: text !important;
+    -webkit-background-clip: text !important;
+    background-image: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b, #fb5607) !important;
+}
+
+/* Violet - Violet border, black background, violet text */
+body.day-mode.character-violet #chatInterface,
+body.day-mode.character-violet .character-card {
+    border: 3px solid #7c3aed !important;
+    background: #000 !important;
+    min-height: 100vh !important;
+    color: #7c3aed !important;
+}
+
+body.day-mode.character-blayzo .chat-container {
+    background: rgba(0, 0, 0, 0.9) !important;
+    border: 2px solid #22d3ee !important;
+}
+
+body.day-mode.character-blayzo .user-message {
+    background: rgba(0, 0, 0, 0.9) !important;
+    color: #22d3ee !important;
+    border: 2px solid #22d3ee !important;
+    border-radius: 8px !important;
+}
+
+body.day-mode.character-blayzo .timestamp {
+    color: #22d3ee !important;
+    opacity: 0.8 !important;
+}
+
+body.day-mode.character-blayzo .typing-indicator {
+    background: rgba(0, 0, 0, 0.9) !important;
+    color: #22d3ee !important;
+    border: 2px solid #22d3ee !important;
+    border-radius: 8px !important;
+}
+
+body.day-mode.character-blayzo .typing-text {
+    color: #22d3ee !important;
+}
+
+body.day-mode.character-blayzo .typing-dot {
+    background: #22d3ee !important;
+}
+
+body.day-mode.character-blayzo .btn-primary {
+    background: rgba(0, 0, 0, 0.9) !important;
+    color: #22d3ee !important;
+    border: 2px solid #22d3ee !important;
+}
+
+body.day-mode.character-blayzo .btn-secondary {
+    background: rgba(0, 0, 0, 0.9) !important;
+    color: #22d3ee !important;
+    border: 2px solid #22d3ee !important;
+}
+
+body.day-mode.character-blayzo .error-message {
+    background: rgba(0, 0, 0, 0.9) !important;
+    color: #22d3ee !important;
+    border: 2px solid #22d3ee !important;
+    border-radius: 8px !important;
+}
+
+body.day-mode.character-blayzo .chat-container::-webkit-scrollbar-thumb {
+    background: #22d3ee !important;
+    border: 1px solid #000 !important;
+}
+
+/* Message input styling for Blayzica in day mode */
+body.day-mode.character-blayzica .input-field {
+    background: rgba(0, 0, 0, 0.9) !important;
+    border-color: #dc2626 !important;
+    color: #fff !important;
+    box-shadow: 0 4px 15px rgba(220, 38, 38, 0.1) !important;
+}
+
+body.day-mode.character-blayzica .input-field::placeholder {
+    color: #fff !important;
+    opacity: 0.7;
+}
+
+body.day-mode #selectedCharacter span {
+    color: #fff !important;
+}
+
+/* Character-specific ready label colors in dark mode - Override the global black text */
+body:not(.day-mode) .character-blayzo-label,
+body:not(.day-mode) #selectedCharacter span.character-blayzo-label,
+body:not(.day-mode) #selectedCharacter .character-blayzo-label,
+body:not(.day-mode) span.character-blayzo-label {
+    color: #22d3ee !important;
+    font-weight: bold !important;
+    background: #000 !important;
+    border: 2px solid #22d3ee !important;
+    border-radius: 8px !important;
+    padding: 8px 12px !important;
+    display: inline-block !important;
+}
+
+body:not(.day-mode) .character-blayzica-label,
+body:not(.day-mode) #selectedCharacter span.character-blayzica-label,
+body:not(.day-mode) #selectedCharacter .character-blayzica-label,
+body:not(.day-mode) span.character-blayzica-label {
+    color: #ec4899 !important;
+    font-weight: bold !important;
+}
+
+body:not(.day-mode) .character-blayzion-label,
+body:not(.day-mode) #selectedCharacter span.character-blayzion-label,
+body:not(.day-mode) #selectedCharacter .character-blayzion-label,
+body:not(.day-mode) span.character-blayzion-label {
+    color: #ffd700 !important;
+    font-weight: bold !important;
+}
+
+body:not(.day-mode) .character-blayzia-label,
+body:not(.day-mode) #selectedCharacter span.character-blayzia-label,
+body:not(.day-mode) #selectedCharacter .character-blayzia-label,
+body:not(.day-mode) span.character-blayzia-label {
+    color: #ffd700 !important;
+    font-weight: bold !important;
+}
+
+body:not(.day-mode) .character-violet-label,
+body:not(.day-mode) #selectedCharacter span.character-violet-label,
+body:not(.day-mode) #selectedCharacter .character-violet-label,
+body:not(.day-mode) span.character-violet-label {
+    color: #7c3aed !important;
+    font-weight: bold !important;
+}
+
+body:not(.day-mode) .character-crimson-label,
+body:not(.day-mode) #selectedCharacter span.character-crimson-label,
+body:not(.day-mode) #selectedCharacter .character-crimson-label,
+body:not(.day-mode) span.character-crimson-label {
+    color: #dc2626 !important;
+    font-weight: bold !important;
+}
+
+/* Character-specific ready label colors in day mode */
+body.day-mode.character-blayzo .character-blayzo-label,
+body.day-mode.character-blayzo #selectedCharacter span {
+    color: #22d3ee !important;
+}
+
+body.day-mode.character-blayzica .character-blayzica-label,
+body.day-mode.character-blayzica #selectedCharacter span {
+    color: #000 !important;
+}
+
+body.day-mode.character-blayzion .character-blayzion-label,
+body.day-mode.character-blayzion #selectedCharacter span {
+    color: #ffd700 !important;
+}
+
+body.day-mode.character-blayzia .character-blayzia-label,
+body.day-mode.character-blayzia #selectedCharacter span {
+    color: #ffd700 !important;
+}
+
+body.day-mode.character-violet .character-violet-label,
+body.day-mode.character-violet #selectedCharacter span {
+    color: #ffd700 !important;
+}
+
+body.day-mode.character-crimson .character-crimson-label,
+body.day-mode.character-crimson #selectedCharacter span {
+    color: #ffd700 !important;
+}
+
+body.day-mode .timestamp {
+    opacity: 0.8 !important;
+}
+
+body.day-mode .typing-indicator {
+    background: linear-gradient(135deg, rgba(0,0,0,0.9), rgba(0,0,0,0.8)) !important;
+    color: #fff !important;
+    border: 1px solid rgba(255,255,255,0.2) !important;
+}
+
+body.day-mode .typing-text {
+    color: #22d3ee !important;
+}
+
+body.day-mode .typing-dot {
+    background-color: #22d3ee !important;
+}
+
+/* Day mode buttons */
+body.day-mode .btn-primary {
+    background: linear-gradient(135deg, #22d3ee, #0891b2);
+    color: #000;
+    box-shadow: 0 4px 15px rgba(34, 211, 238, 0.3);
+}
+
+body.day-mode .btn-primary:hover {
+    background: linear-gradient(135deg, #0891b2, #0e7490);
+    box-shadow: 0 8px 25px rgba(34, 211, 238, 0.5);
+}
+
+body.day-mode .btn-secondary {
+    background: linear-gradient(135deg, #374151, #1f2937);
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+body.day-mode .btn-secondary:hover {
+    background: linear-gradient(135deg, #1f2937, #111827);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+}
+
+/* Day mode inputs */
+body.day-mode .input-field {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: #000;
+    color: #000;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+body.day-mode .input-field:focus {
+    border-color: #374151;
+    box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.1), 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+body.day-mode .input-field:hover {
+    border-color: #374151;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Day mode library components */
+body.day-mode .conversation-card {
+    background: rgba(248, 249, 250, 0.9);
+    border-color: #000;
+    color: #000;
+}
+
+body.day-mode .conversation-card:hover {
+    background: rgba(248, 249, 250, 1);
+}
+
+body.day-mode .conversation-title {
+    color: #000;
+}
+
+body.day-mode .conversation-meta,
+body.day-mode .conversation-preview {
+    color: #000;
+}
+
+/* Day mode reminder settings */
+body.day-mode .reminder-setting {
+    background: rgba(248, 249, 250, 0.9);
+    border-color: #000;
+}
+
+body.day-mode .reminder-setting h3 {
+    color: #000;
+}
+
+body.day-mode .reminder-option label {
+    color: #000;
+}
+
+body.day-mode .time-input,
+body.day-mode .email-input {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: #000;
+    color: #000;
+}
+
+body.day-mode .frequency-btn {
+    border-color: #000;
+    background: rgba(255, 255, 255, 0.9);
+    color: #000;
+}
+
+/* Day mode error handling */
+body.day-mode .error-message {
+    background: linear-gradient(135deg, rgba(220, 38, 38, 0.9), rgba(185, 28, 28, 0.8)) !important;
+    border-color: rgba(220, 38, 38, 0.5) !important;
+}
+
+body.day-mode .retry-btn {
+    background: rgba(34, 211, 238, 0.9) !important;
+    color: #000 !important;
+}
+
+body.day-mode .dismiss-btn {
+    background: rgba(0, 0, 0, 0.2) !important;
+    color: #fff !important;
+}
+
+/* Intro screen background */
+#introScreen {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+#introScreen > * {
+    position: relative;
+    z-index: 3;
+}
+
+/* Intro logo styling */
+.intro-logo {
+    filter: drop-shadow(0 0 20px rgba(34, 211, 238, 0.5)) !important;
+}
+
+/* Day mode intro logo - add dark shadow for better contrast */
+body.day-mode .intro-logo {
+    filter: drop-shadow(0 0 20px rgba(0, 0, 0, 0.8)) !important;
+    background: rgba(0, 0, 0, 0.2) !important;
+    padding: 1rem !important;
+    border-radius: 20px !important;
+}
+
+/* Character header styling */
+#selectedCharacter {
+    font-size: 1.25rem !important;
+    padding: 0.75rem 1.5rem !important;
+    margin-bottom: 1.5rem !important;
+    max-width: 500px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
+/* FINAL OVERRIDE - NO BACKGROUNDS OR BORDERS EXCEPT BLAYZO */
+div.character-card.character-blayzion:not(.preserve-styling),
+div.character-card.character-crimson:not(.preserve-styling),
+div.character-card.character-blayzica:not(.preserve-styling),
+div.character-card.character-blayzia:not(.preserve-styling),
+div.character-card.character-violet:not(.preserve-styling),
+body.character-blayzion div.character-card,
+body.character-crimson div.character-card,
+body.character-blayzica div.character-card,
+body.character-blayzia div.character-card,
+body.character-violet div.character-card,
+body.day-mode div.character-card:not(.character-blayzo),
+body.day-mode.character-blayzion div.character-card,
+body.day-mode.character-crimson div.character-card,
+body.day-mode.character-blayzica div.character-card,
+body.day-mode.character-blayzia div.character-card,
+body.day-mode.character-violet div.character-card,
+.character-blayzion .character-card,
+.character-crimson .character-card,
+.character-blayzica .character-card,
+.character-blayzia .character-card,
+.character-violet .character-card {
+    background: transparent !important;
+    background-color: transparent !important;
+    background-image: none !important;
+    border: none !important;
+    border-width: 0 !important;
+    border-style: none !important;
+    border-color: transparent !important;
+    border-image: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    outline: none !important;
+}
+
+/* ALL COMPANIONS FINAL OVERRIDES - DUAL BORDER SETUP */
+
+/* BLAYZO FINAL OVERRIDE */
+html body div.character-card.character-blayzo {
+    background: #000 !important;
+    border: 2px solid #22d3ee !important;
+    border-radius: 12px !important;
+    padding: 2rem !important;
+}
+
+/* BLAYZICA FINAL OVERRIDE */
+html body div.character-card.character-blayzica {
+    background: #000 !important;
+    border: 2px solid #ff0000 !important;
+    border-radius: 12px !important;
+    padding: 2rem !important;
+}
+
+/* CRIMSON FINAL OVERRIDE */
+html body div.character-card.character-crimson {
+    background: #000 !important;
+    border: 2px solid #ff4500 !important;
+    border-radius: 12px !important;
+    padding: 2rem !important;
+}
+
+/* VIOLET FINAL OVERRIDE */
+html body div.character-card.character-violet {
+    background: #000 !important;
+    border: 2px solid #8b5cf6 !important;
+    border-radius: 12px !important;
+    padding: 2rem !important;
+}
+
+/* BLAYZION FINAL OVERRIDE */
+html body div.character-card.character-blayzion {
+    background: #000 !important;
+    border: 3px solid;
+    border-image: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b) 1 !important;
+    border-radius: 12px !important;
+    padding: 2rem !important;
+}
+
+/* BLAYZIA FINAL OVERRIDE */
+html body div.character-card.character-blayzia {
+    background: #000 !important;
+    border: 3px solid #ff006e !important;
+    border-radius: 12px !important;
+    padding: 2rem !important;
+}
+
+/* ULTIMATE OVERRIDE - ALL COMPANIONS WITH MAXIMUM PRIORITY */
+html body div.character-grid div.character-card.character-blayzica,
+html body div.character-grid div.character-card.character-crimson,
+html body div.character-grid div.character-card.character-violet,
+html body div.character-grid div.character-card.character-blayzion,
+html body div.character-grid div.character-card.character-blayzia {
+    background: #000 !important;
+    background-color: #000 !important;
+    border-radius: 12px !important;
+    padding: 2rem !important;
+}
+
+html body div.character-grid div.character-card.character-blayzica {
+    border: 3px solid #ff0000 !important;
+    border-width: 3px !important;
+    border-style: solid !important;
+    border-color: #ff0000 !important;
+}
+
+html body div.character-grid div.character-card.character-crimson {
+    border: 3px solid #ff4500 !important;
+}
+
+html body div.character-grid div.character-card.character-violet {
+    border: 3px solid #8b5cf6 !important;
+}
+
+html body div.character-grid div.character-card.character-blayzion {
+    border: 3px solid #ff006e !important;
+}
+
+html body div.character-grid div.character-card.character-blayzia {
+    border: 3px solid #ff006e !important;
+}
+
+/* TEXT AREA BORDERS FOR ALL COMPANIONS */
+html body div.character-grid div.character-card.character-blayzica div[style*="text-align: center"]:not([style*="margin-bottom"]) {
+    border: 1px solid #ff0000 !important;
+    border-radius: 8px !important;
+    padding: 1rem !important;
+    margin-top: 1rem !important;
+    background: transparent !important;
+}
+
+html body div.character-grid div.character-card.character-crimson div[style*="text-align: center"]:not([style*="margin-bottom"]) {
+    border: 1px solid #ff4500 !important;
+    border-radius: 8px !important;
+    padding: 1rem !important;
+    margin-top: 1rem !important;
+    background: transparent !important;
+}
+
+html body div.character-grid div.character-card.character-violet div[style*="text-align: center"]:not([style*="margin-bottom"]) {
+    border: 1px solid #8b5cf6 !important;
+    border-radius: 8px !important;
+    padding: 1rem !important;
+    margin-top: 1rem !important;
+    background: transparent !important;
+}
+
+html body div.character-grid div.character-card.character-blayzion div[style*="text-align: center"]:not([style*="margin-bottom"]) {
+    border: 1px solid #ff006e !important;
+    border-radius: 8px !important;
+    padding: 1rem !important;
+    margin-top: 1rem !important;
+    background: transparent !important;
+}
+
+html body div.character-grid div.character-card.character-blayzia div[style*="text-align: center"]:not([style*="margin-bottom"]) {
+    border: 1px solid #ff006e !important;
+    border-radius: 8px !important;
+    padding: 1rem !important;
+    margin-top: 1rem !important;
+    background: transparent !important;
+}
+
+/* BLAYZICA SPECIAL OVERRIDE - MAXIMUM PRIORITY */
+html body div.character-grid div.character-card.character-blayzica,
+html body div.character-card.character-blayzica,
+div.character-card.character-blayzica {
+    background: #000 !important;
+    background-color: #000 !important;
+    border: 2px solid #ff0000 !important;
+    border-width: 2px !important;
+    border-style: solid !important;
+    border-color: #ff0000 !important;
+    border-radius: 12px !important;
+    padding: 2rem !important;
+}
+
+/* BLAYZICA TEXT AREA - SPECIAL OVERRIDE */
+html body div.character-grid div.character-card.character-blayzica div[style*="text-align: center"]:not([style*="margin-bottom"]),
+html body div.character-card.character-blayzica div[style*="text-align: center"]:not([style*="margin-bottom"]),
+div.character-card.character-blayzica div[style*="text-align: center"]:not([style*="margin-bottom"]) {
+    border: 1px solid #ff0000 !important;
+    border-width: 1px !important;
+    border-style: solid !important;
+    border-color: #ff0000 !important;
+    border-radius: 8px !important;
+    padding: 1rem !important;
+    margin-top: 1rem !important;
+    background: transparent !important;
+}
+
+/* FORCE ALL COMPANIONS TEXT AREA BORDERS - MAXIMUM SPECIFICITY */
+
+/* FORCE BLAYZO TEXT AREA - Cyan border */
+html body div.character-grid div.character-card.character-blayzo div[style*="text-align: center"]:not([style*="margin-bottom"]),
+html body div.character-card.character-blayzo div[style*="text-align: center"]:not([style*="margin-bottom"]),
+div.character-card.character-blayzo div[style*="text-align: center"]:not([style*="margin-bottom"]),
+.character-card.character-blayzo div[style*="text-align: center"]:not([style*="margin-bottom"]) {
+    border: 2px solid #22d3ee !important;
+    border-width: 2px !important;
+    border-style: solid !important;
+    border-color: #22d3ee !important;
+    border-radius: 12px !important;
+    padding: 1.5rem !important;
+    margin-top: 1.5rem !important;
+    background: transparent !important;
+    box-shadow: 0 0 15px rgba(34, 211, 238, 0.3) !important;
+}
+
+/* FORCE BLAYZICA TEXT AREA - Red border */
+html body div.character-grid div.character-card.character-blayzica div[style*="text-align: center"]:not([style*="margin-bottom"]),
+html body div.character-card.character-blayzica div[style*="text-align: center"]:not([style*="margin-bottom"]),
+div.character-card.character-blayzica div[style*="text-align: center"]:not([style*="margin-bottom"]),
+.character-card.character-blayzica div[style*="text-align: center"]:not([style*="margin-bottom"]) {
+    border: 2px solid #ff0000 !important;
+    border-width: 2px !important;
+    border-style: solid !important;
+    border-color: #ff0000 !important;
+    border-radius: 12px !important;
+    padding: 1.5rem !important;
+    margin-top: 1.5rem !important;
+    background: transparent !important;
+    box-shadow: 0 0 15px rgba(255, 0, 0, 0.3) !important;
+}
+
+/* FORCE CRIMSON TEXT AREA - Orange border */
+html body div.character-grid div.character-card.character-crimson div[style*="text-align: center"]:not([style*="margin-bottom"]),
+html body div.character-card.character-crimson div[style*="text-align: center"]:not([style*="margin-bottom"]),
+div.character-card.character-crimson div[style*="text-align: center"]:not([style*="margin-bottom"]),
+.character-card.character-crimson div[style*="text-align: center"]:not([style*="margin-bottom"]) {
+    border: 2px solid #ff4500 !important;
+    border-width: 2px !important;
+    border-style: solid !important;
+    border-color: #ff4500 !important;
+    border-radius: 12px !important;
+    padding: 1.5rem !important;
+    margin-top: 1.5rem !important;
+    background: transparent !important;
+    box-shadow: 0 0 15px rgba(255, 69, 0, 0.3) !important;
+}
+
+/* FORCE VIOLET TEXT AREA - Purple border */
+html body div.character-grid div.character-card.character-violet div[style*="text-align: center"]:not([style*="margin-bottom"]),
+html body div.character-card.character-violet div[style*="text-align: center"]:not([style*="margin-bottom"]),
+div.character-card.character-violet div[style*="text-align: center"]:not([style*="margin-bottom"]),
+.character-card.character-violet div[style*="text-align: center"]:not([style*="margin-bottom"]) {
+    border: 2px solid #8b5cf6 !important;
+    border-width: 2px !important;
+    border-style: solid !important;
+    border-color: #8b5cf6 !important;
+    border-radius: 12px !important;
+    padding: 1.5rem !important;
+    margin-top: 1.5rem !important;
+    background: transparent !important;
+    box-shadow: 0 0 15px rgba(139, 92, 246, 0.3) !important;
+}
+
+/* FORCE BLAYZION TEXT AREA - Rainbow border with glow */
+html body div.character-grid div.character-card.character-blayzion div[style*="text-align: center"]:not([style*="margin-bottom"]),
+html body div.character-card.character-blayzion div[style*="text-align: center"]:not([style*="margin-bottom"]),
+div.character-card.character-blayzion div[style*="text-align: center"]:not([style*="margin-bottom"]),
+.character-card.character-blayzion div[style*="text-align: center"]:not([style*="margin-bottom"]) {
+    border: 3px solid !important;
+    border-width: 3px !important;
+    border-style: solid !important;
+    border-image: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b, #fb5607) 1 !important;
+    border-radius: 12px !important;
+    padding: 1.5rem !important;
+    margin-top: 1.5rem !important;
+    background: transparent !important;
+    box-shadow: 0 0 20px rgba(255, 0, 110, 0.4) !important;
+    animation: rainbowGlow 3s ease-in-out infinite !important;
+}
+
+/* FORCE BLAYZIA TEXT AREA - Rainbow border with glow */
+html body div.character-grid div.character-card.character-blayzia div[style*="text-align: center"]:not([style*="margin-bottom"]),
+html body div.character-card.character-blayzia div[style*="text-align: center"]:not([style*="margin-bottom"]),
+div.character-card.character-blayzia div[style*="text-align: center"]:not([style*="margin-bottom"]),
+.character-card.character-blayzia div[style*="text-align: center"]:not([style*="margin-bottom"]) {
+    border: 3px solid !important;
+    border-width: 3px !important;
+    border-style: solid !important;
+    border-image: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b, #fb5607) 1 !important;
+    border-radius: 12px !important;
+    padding: 1.5rem !important;
+    margin-top: 1.5rem !important;
+    background: transparent !important;
+    box-shadow: 0 0 20px rgba(255, 0, 110, 0.4) !important;
+    animation: rainbowGlow 3s ease-in-out infinite !important;
+}
+
+/* Rainbow glow animation */
+@keyframes rainbowGlow {
+    0% { box-shadow: 0 0 20px rgba(255, 0, 110, 0.4) !important; }
+    25% { box-shadow: 0 0 20px rgba(131, 56, 236, 0.4) !important; }
+    50% { box-shadow: 0 0 20px rgba(58, 134, 255, 0.4) !important; }
+    75% { box-shadow: 0 0 20px rgba(6, 255, 165, 0.4) !important; }
+    100% { box-shadow: 0 0 20px rgba(255, 190, 11, 0.4) !important; }
+}
+
+/* FORCE PREMIUM LABELS TO BE VISIBLE - MAXIMUM SPECIFICITY */
+html body div.character-grid div.character-card.premium-character div:contains("💎 Premium: $5.00"),
+html body div.character-card.premium-character div:contains("💎 Premium: $5.00"),
+div.character-card.premium-character div:contains("💎 Premium: $5.00"),
+.character-card.premium-character div:contains("💎 Premium: $5.00"),
+html body div.character-grid div.character-card div[style*="💎 Premium"],
+html body div.character-card div[style*="💎 Premium"],
+div.character-card div[style*="💎 Premium"],
+.character-card div[style*="💎 Premium"] {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    background: rgba(34, 211, 238, 0.2) !important;
+    border: 2px solid #22d3ee !important;
+    border-radius: 20px !important;
+    padding: 12px 20px !important;
+    margin-top: 1.5rem !important;
+    color: #22d3ee !important;
+    font-weight: 900 !important;
+    font-size: 1rem !important;
+    text-align: center !important;
+    box-shadow: 0 0 15px rgba(34, 211, 238, 0.4) !important;
+    animation: premiumPulse 2s ease-in-out infinite !important;
+}
+
+/* Premium pulse animation */
+@keyframes premiumPulse {
+    0% { transform: scale(1) !important; box-shadow: 0 0 15px rgba(34, 211, 238, 0.4) !important; }
+    50% { transform: scale(1.05) !important; box-shadow: 0 0 25px rgba(34, 211, 238, 0.6) !important; }
+    100% { transform: scale(1) !important; box-shadow: 0 0 15px rgba(34, 211, 238, 0.4) !important; }
+}
+
+/* ALL COMPANIONS IMAGE AREAS - NO BORDERS */
+html body div.character-card div[style*="margin-bottom: 1.5rem"] {
+    border: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+}
+
+/* Remove individual borders from ALL companion names and greetings - EXCEPT speech bubbles */
+html body div.character-card .character-name:not(.speech-bubble),
+html body div.character-card .character-description,
+html body div.character-card .character-greeting {
+    border: none !important;
+    padding: 0 !important;
+    margin: 0.5rem 0 !important;
+}
+
+/* Remove backgrounds ONLY for non-gradient companions - EXCEPT speech bubbles */
+html body div.character-card:not(.character-blayzion):not(.character-blayzia) .character-name:not(.speech-bubble),
+html body div.character-card:not(.character-blayzion):not(.character-blayzia) .character-description,
+html body div.character-card:not(.character-blayzion):not(.character-blayzia) .character-greeting {
+    background: transparent !important;
+}
+
+/* Character-specific text colors */
+html body div.character-card.character-blayzo .character-name,
+html body div.character-card.character-blayzo .character-description,
+html body div.character-card.character-blayzo .character-greeting {
+    color: #22d3ee !important;
+}
+
+html body div.character-card.character-blayzica .character-name,
+html body div.character-card.character-blayzica .character-description,
+html body div.character-card.character-blayzica .character-greeting {
+    color: #ff0000 !important;
+}
+
+html body div.character-card.character-crimson .character-name,
+html body div.character-card.character-crimson .character-description,
+html body div.character-card.character-crimson .character-greeting {
+    color: #ff4500 !important;
+}
+
+html body div.character-card.character-violet .character-name,
+html body div.character-card.character-violet .character-description,
+html body div.character-card.character-violet .character-greeting {
+    color: #8b5cf6 !important;
+}
+
+html body div.character-card.character-blayzion .character-name:not(.speech-bubble),
+html body div.character-card.character-blayzion .character-description,
+html body div.character-card.character-blayzion .character-greeting {
+    background: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b) !important;
+    background-clip: text !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    color: transparent !important;
+}
+
+html body div.character-card.character-blayzia .character-name:not(.speech-bubble),
+html body div.character-card.character-blayzia .character-description,
+html body div.character-card.character-blayzia .character-greeting {
+    background: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b) !important;
+    background-clip: text !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    color: transparent !important;
+}
+
+/* Speech Bubble Styles for Character Names */
+.character-name.speech-bubble {
+    position: relative !important;
+    border-radius: 25px 25px 25px 5px !important;
+    padding: 0.75rem 1.5rem !important;
+    margin: 0.5rem auto 1.5rem auto !important;
+    max-width: 80% !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+    border: 2px solid #333 !important;
+    font-size: 1.2rem !important;
+    font-weight: 700 !important;
+    text-align: center !important;
+    color: #333 !important;
+    text-shadow: none !important;
+    letter-spacing: 0.05rem !important;
+    text-transform: uppercase !important;
+}
+
+.character-name.speech-bubble::after {
+    content: "" !important;
+    position: absolute !important;
+    bottom: -15px !important;
+    left: 25px !important;
+    width: 0 !important;
+    height: 0 !important;
+    border-left: 15px solid transparent !important;
+    border-right: 15px solid transparent !important;
+    border-top: 15px solid rgba(255, 255, 255, 0.9) !important;
+    z-index: 1 !important;
+}
+
+.character-name.speech-bubble::before {
+    content: "" !important;
+    position: absolute !important;
+    bottom: -17px !important;
+    left: 24px !important;
+    width: 0 !important;
+    height: 0 !important;
+    border-left: 16px solid transparent !important;
+    border-right: 16px solid transparent !important;
+    border-top: 16px solid #333 !important;
+    z-index: 0 !important;
+}
+
+/* Character-specific speech bubble colors */
+.character-blayzo .character-name.speech-bubble {
+    background: rgba(34, 211, 238, 0.9) !important;
+    border-color: #22d3ee !important;
+    color: #0f172a !important;
+}
+
+.character-blayzo .character-name.speech-bubble::after {
+    border-top-color: rgba(34, 211, 238, 0.9) !important;
+}
+
+.character-blayzo .character-name.speech-bubble::before {
+    border-top-color: #22d3ee !important;
+}
+
+.character-blayzica .character-name.speech-bubble {
+    background: rgba(255, 0, 0, 0.9) !important;
+    border-color: #ff0000 !important;
+    color: #ffffff !important;
+}
+
+.character-blayzica .character-name.speech-bubble::after {
+    border-top-color: rgba(255, 0, 0, 0.9) !important;
+}
+
+.character-blayzica .character-name.speech-bubble::before {
+    border-top-color: #ff0000 !important;
+}
+
+.character-crimson .character-name.speech-bubble {
+    background: rgba(255, 69, 0, 0.9) !important;
+    border-color: #ff4500 !important;
+    color: #ffffff !important;
+}
+
+.character-crimson .character-name.speech-bubble::after {
+    border-top-color: rgba(255, 69, 0, 0.9) !important;
+}
+
+.character-crimson .character-name.speech-bubble::before {
+    border-top-color: #ff4500 !important;
+}
+
+.character-violet .character-name.speech-bubble {
+    background: rgba(139, 92, 246, 0.9) !important;
+    border-color: #8b5cf6 !important;
+    color: #ffffff !important;
+}
+
+.character-violet .character-name.speech-bubble::after {
+    border-top-color: rgba(139, 92, 246, 0.9) !important;
+}
+
+.character-violet .character-name.speech-bubble::before {
+    border-top-color: #8b5cf6 !important;
+}
+
+.character-blayzion .character-name.speech-bubble {
+    background: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b) !important;
+    border-color: #ff006e !important;
+    color: #ffffff !important;
+    background-clip: padding-box !important;
+    -webkit-background-clip: padding-box !important;
+    -webkit-text-fill-color: #ffffff !important;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5) !important;
+}
+
+.character-blayzion .character-name.speech-bubble::after {
+    border-top-color: #ff006e !important;
+}
+
+.character-blayzion .character-name.speech-bubble::before {
+    border-top-color: #ff006e !important;
+}
+
+.character-blayzia .character-name.speech-bubble {
+    background: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b) !important;
+    border-color: #ff006e !important;
+    color: #ffffff !important;
+    background-clip: padding-box !important;
+    -webkit-background-clip: padding-box !important;
+    -webkit-text-fill-color: #ffffff !important;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5) !important;
+}
+
+.character-blayzia .character-name.speech-bubble::after {
+    border-top-color: #ff006e !important;
+}
+
+.character-blayzia .character-name.speech-bubble::before {
+    border-top-color: #ff006e !important;
+}
+
+/* Fix content overflow and spacing within character cards */
+.character-card {
+    overflow: visible !important;
+    position: relative !important;
+    padding-bottom: 1rem !important;
+}
+
+.character-card > div:last-child {
+    flex-grow: 0 !important;
+    display: block !important;
+    padding: 0.5rem !important;
+    margin: 0 auto !important;
+    position: relative !important;
+    top: 0 !important;
+    width: 95% !important;
+    margin-bottom: 1rem !important;
+}
+
+/* Force greeting styling with maximum specificity */
+html body div.character-card div.character-greeting,
+.character-card .character-greeting,
+div.character-greeting {
+    font-size: 0.75rem !important;
+    line-height: 1.3 !important;
+    margin-top: -0.5rem !important;
+    margin-bottom: 1rem !important;
+    overflow: visible !important;
+    max-height: none !important;
+    height: auto !important;
+    padding: 0.5rem 1rem !important;
+    width: 95% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    display: block !important;
+    box-sizing: border-box !important;
+}
+
+/* Remove the CSS rules that were hiding duplicates since we're fixing the HTML directly */
+
+.character-description {
+    font-size: 0.9rem !important;
+    line-height: 1.2 !important;
+    margin-bottom: 0.5rem !important;
+}

@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - SoulBridge AI</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/favicon-512x512.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta name="theme-color" content="#22d3ee">
+    
+    <!-- Modular CSS Files -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/animations.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/themes.css') }}">
+    
+    
+    
+    <style>
+        .auth-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            position: relative;
+        }
+        
+        .auth-card {
+            background: rgba(0,0,0,0.9);
+            border: 2px solid #22d3ee;
+            border-radius: 16px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            backdrop-filter: blur(15px);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .auth-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url('/static/logos/IntroLogo.png?v=2025');
+            background-size: 340px 340px !important;
+            background-repeat: no-repeat;
+            background-position: center 5px;
+            opacity: 0.9;
+            z-index: 0;
+            border-radius: 16px;
+            pointer-events: none;
+        }
+        
+        /* Day mode logo - bigger and positioned higher up with contrast */
+        body.day-mode .auth-card::before {
+            background-image: url('/static/logos/BlackIntroLogo.png?v=2025');
+            background-size: 340px 340px !important;
+            background-position: center 5px;
+            opacity: 1;
+            filter: contrast(2) brightness(0.5);
+        }
+        
+        /* Day mode header spacing */
+        body.day-mode .auth-header {
+            margin-bottom: 10rem;
+        }
+        
+        .auth-card > * {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .auth-header {
+            text-align: center;
+            margin-bottom: 9rem;
+        }
+        
+        .auth-logo {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #22d3ee;
+            margin-bottom: 0.5rem;
+        }
+        
+        .auth-title {
+            font-size: 1.5rem;
+            color: #fff;
+            margin-bottom: 0.5rem;
+        }
+        
+        .auth-subtitle {
+            color: #94a3b8;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-label {
+            display: block;
+            color: #22d3ee;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #22d3ee;
+            border-radius: 8px;
+            background: rgba(0,0,0,0.8);
+            color: #fff;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #0891b2;
+            box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.2);
+        }
+        
+        .form-input::placeholder {
+            color: #e2e8f0;
+        }
+        
+        .password-container {
+            position: relative;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            color: #22d3ee;
+            font-size: 16px;
+            z-index: 10;
+            transition: color 0.3s ease;
+        }
+        
+        .password-toggle:hover {
+            color: #0891b2;
+        }
+        
+        body.day-mode .password-toggle {
+            color: #000;
+        }
+        
+        body.day-mode .password-toggle:hover {
+            color: #22d3ee;
+        }
+        
+        .back-btn {
+            width: 100%;
+            padding: 8px 16px;
+            background: rgba(34, 211, 238, 0.1) !important;
+            border: 2px solid #22d3ee !important;
+            color: #22d3ee !important;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .back-btn:hover {
+            background: rgba(34, 211, 238, 0.2) !important;
+            color: #22d3ee !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(34, 211, 238, 0.3);
+        }
+        
+        body.day-mode .back-btn {
+            background: rgba(34, 211, 238, 0.8) !important;
+            border-color: #22d3ee !important;
+            color: #000 !important;
+        }
+        
+        body.day-mode .back-btn:hover {
+            background: rgba(34, 211, 238, 1) !important;
+            color: #000 !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(34, 211, 238, 0.3);
+        }
+        
+        .form-input.error {
+            border-color: #dc2626;
+        }
+        
+        .form-input.valid {
+            border-color: #22c55e;
+        }
+        
+        .password-strength {
+            margin-top: 0.5rem;
+            font-size: 0.8rem;
+        }
+        
+        .strength-meter {
+            display: flex;
+            gap: 2px;
+            margin-top: 0.25rem;
+        }
+        
+        .strength-bar {
+            height: 4px;
+            flex: 1;
+            background: #374151;
+            border-radius: 2px;
+            transition: background-color 0.3s ease;
+        }
+        
+        .strength-bar.active {
+            background: #22c55e;
+        }
+        
+        .strength-bar.medium {
+            background: #f59e0b;
+        }
+        
+        .strength-bar.weak {
+            background: #dc2626;
+        }
+        
+        .password-requirements {
+            margin-top: 0.5rem;
+            font-size: 0.8rem;
+            color: #e2e8f0;
+        }
+        
+        .requirement {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin: 0.25rem 0;
+        }
+        
+        .requirement.met {
+            color: #22c55e;
+        }
+        
+        .requirement-icon {
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .auth-btn {
+            width: 100%;
+            padding: 14px 24px;
+            background: linear-gradient(135deg, #22d3ee, #0891b2);
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 1rem;
+        }
+        
+        .auth-btn:hover {
+            background: linear-gradient(135deg, #0891b2, #0e7490);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(34, 211, 238, 0.5);
+        }
+        
+        .auth-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .oauth-section {
+            margin: 3rem 0 2rem 0;
+            text-align: center;
+        }
+        
+        .oauth-divider {
+            position: relative;
+            margin: 1.5rem 0;
+            text-align: center;
+        }
+        
+        .oauth-divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #374151;
+        }
+        
+        .oauth-divider span {
+            background: rgba(0,0,0,0.95);
+            color: #e2e8f0;
+            padding: 0 1.5rem;
+            font-size: 1rem;
+            font-weight: 500;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .oauth-btn {
+            width: 100%;
+            padding: 14px 24px;
+            border: 2px solid #374151;
+            border-radius: 8px;
+            background: rgba(0,0,0,0.8);
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            text-decoration: none;
+        }
+        
+        .oauth-btn:hover {
+            border-color: #22d3ee;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        
+        .oauth-btn.google {
+            border-color: #4285f4;
+        }
+        
+        .oauth-btn.google:hover {
+            border-color: #4285f4;
+            background: rgba(66, 133, 244, 0.1);
+        }
+        
+        /* Day mode adjustments for OAuth */
+        body.day-mode .oauth-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border-color: #000;
+            color: #000;
+        }
+        
+        body.day-mode .oauth-divider span {
+            background: rgba(248, 249, 250, 0.95);
+            color: #374151;
+        }
+        
+        .oauth-section {
+            margin: 2rem 0;
+            text-align: center;
+        }
+        
+        .oauth-divider {
+            position: relative;
+            margin: 1.5rem 0;
+            text-align: center;
+        }
+        
+        .oauth-divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #374151;
+        }
+        
+        .oauth-divider span {
+            background: rgba(0,0,0,0.95);
+            color: #e2e8f0;
+            padding: 0 1.5rem;
+            font-size: 1rem;
+            font-weight: 500;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .oauth-btn {
+            width: 100%;
+            padding: 14px 24px;
+            border: 2px solid #374151;
+            border-radius: 8px;
+            background: rgba(0,0,0,0.8);
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            text-decoration: none;
+        }
+        
+        .oauth-btn:hover {
+            border-color: #22d3ee;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        
+        .oauth-btn.google {
+            border-color: #4285f4;
+        }
+        
+        .oauth-btn.google:hover {
+            border-color: #4285f4;
+            background: rgba(66, 133, 244, 0.1);
+        }
+        
+        
+        .auth-footer {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #374151;
+        }
+        
+        .auth-link {
+            color: #22d3ee;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .auth-link:hover {
+            text-decoration: underline;
+        }
+        
+        .error-message {
+            background: rgba(220, 38, 38, 0.1);
+            border: 1px solid #dc2626;
+            color: #dc2626;
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+        
+        .success-message {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid #22c55e;
+            color: #22c55e;
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+        
+        .terms-checkbox {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .terms-checkbox input[type="checkbox"] {
+            margin-top: 0.25rem;
+            width: 18px;
+            height: 18px;
+            accent-color: #22d3ee;
+        }
+        
+        .terms-text {
+            font-size: 1rem;
+            font-weight: 500;
+            color: #e2e8f0;
+            line-height: 1.4;
+        }
+        
+        .terms-text a {
+            color: #22d3ee;
+            text-decoration: none;
+        }
+        
+        .terms-text a:hover {
+            text-decoration: underline;
+        }
+        
+        /* Day mode adjustments */
+        body.day-mode .auth-card {
+            background: rgba(248, 249, 250, 0.95);
+            border-color: #000;
+        }
+        
+        body.day-mode .auth-title {
+            color: #000;
+        }
+        
+        body.day-mode .auth-subtitle {
+            color: #374151;
+        }
+        
+        body.day-mode .form-label {
+            color: #000;
+        }
+        
+        body.day-mode .auth-btn {
+            background: #000;
+            color: #fff;
+        }
+        
+        body.day-mode .auth-btn:hover {
+            background: #374151;
+        }
+        
+        body.day-mode .form-input {
+            background: rgba(255, 255, 255, 0.9);
+            border-color: #000;
+            color: #000;
+        }
+        
+        body.day-mode .oauth-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border-color: #000;
+            color: #000;
+        }
+        
+        body.day-mode .oauth-divider span {
+            background: rgba(248, 249, 250, 0.95);
+            color: #374151;
+        }
+        
+        /* Responsive design */
+        @media (max-width: 480px) {
+            .auth-container {
+                padding: 1rem;
+            }
+            
+            .auth-card {
+                padding: 1.5rem;
+            }
+            
+            .auth-logo {
+                font-size: 1.5rem;
+            }
+            
+            .auth-title {
+                font-size: 1.25rem;
+            }
+        }
+    </style>
+    <script src="{{ url_for('static', filename='js/universal-button-fix.js') }}?v=20250725" defer></script>
+</head>
+<body>
+    <!-- Language Selector moved below Create Account button -->
+
+        <!-- Back Button -->
+        <div style="position: fixed; top: 20px; right: 20px; z-index: 100;">
+            <a href="/login" class="back-btn" data-translate="back">← Back</a>
+        </div>
+
+    <div class="auth-container content-overlay">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="auth-logo">SoulBridge AI</div>
+                <h1 class="auth-title" data-translate="create_account">Create Account</h1>
+                <p class="auth-subtitle" data-translate="start_journey">Start your journey with AI companions</p>
+            </div>
+            
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        {% if category == 'error' %}
+                        <div class="error-message" role="alert">
+                            {{ message }}
+                        </div>
+                        {% elif category == 'success' %}
+                        <div class="success-message" role="status">
+                            {{ message }}
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            <!-- Registration Form -->
+            <form id="registerForm" method="POST" action="/auth/register">
+                <div class="form-group">
+                    <label for="display_name" class="form-label" data-translate="display_name">Display Name</label>
+                    <input 
+                        type="text" 
+                        id="display_name" 
+                        name="display_name" 
+                        class="form-input" 
+                        placeholder="What should we call you?" data-translate-placeholder="what_call_you"
+                        required
+                        autocomplete="name"
+                        value="{{ request.form.display_name or '' }}"
+                    >
+                </div>
+                
+                <div class="form-group">
+                    <label for="email" class="form-label" data-translate="email">Email</label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        class="form-input" 
+                        placeholder="Enter your email" data-translate-placeholder="enter_email"
+                        required
+                        autocomplete="email"
+                        value="{{ request.form.email or '' }}"
+                    >
+                </div>
+                
+                <div class="form-group">
+                    <label for="password" class="form-label" data-translate="password">Password</label>
+                    <div class="password-container">
+                        <input 
+                            type="password" 
+                            id="password" 
+                            name="password" 
+                            class="form-input" 
+                            placeholder="Create a secure password" data-translate-placeholder="create_secure_password"
+                            required
+                            autocomplete="new-password"
+                            style="padding-right: 45px;"
+                        >
+                        <button type="button" class="password-toggle" id="registerToggleBtn" aria-label="Toggle password visibility">
+                            👁️
+                        </button>
+                    </div>
+                    
+                    <div class="password-strength" id="passwordStrength" style="display: none;">
+                        <div class="strength-meter" id="strengthMeter">
+                            <div class="strength-bar"></div>
+                            <div class="strength-bar"></div>
+                            <div class="strength-bar"></div>
+                            <div class="strength-bar"></div>
+                        </div>
+                        <div id="strengthText" style="margin-top: 0.25rem;"></div>
+                    </div>
+                    
+                    <div class="password-requirements" id="passwordRequirements" style="display: none;">
+                        <div class="requirement" id="lengthReq">
+                            <span class="requirement-icon">⚪</span>
+                            <span data-translate="req_8_chars">At least 8 characters</span>
+                        </div>
+                        <div class="requirement" id="upperReq">
+                            <span class="requirement-icon">⚪</span>
+                            <span data-translate="req_uppercase">One uppercase letter</span>
+                        </div>
+                        <div class="requirement" id="lowerReq">
+                            <span class="requirement-icon">⚪</span>
+                            <span data-translate="req_lowercase">One lowercase letter</span>
+                        </div>
+                        <div class="requirement" id="numberReq">
+                            <span class="requirement-icon">⚪</span>
+                            <span data-translate="req_number">One number</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirm_password" class="form-label" data-translate="confirm_password">Confirm Password</label>
+                    <div class="password-container">
+                        <input 
+                            type="password" 
+                            id="confirm_password" 
+                            name="confirm_password" 
+                            class="form-input" 
+                            placeholder="Confirm your password" data-translate-placeholder="confirm_your_password"
+                            required
+                            autocomplete="new-password"
+                            style="padding-right: 45px;"
+                        >
+                        <button type="button" class="password-toggle" id="confirmToggleBtn" aria-label="Toggle confirm password visibility">
+                            👁️
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- AI Tool Notice -->
+                <div style="background: linear-gradient(135deg, rgba(34, 211, 238, 0.15) 0%, rgba(8, 145, 178, 0.15) 100%); border: 2px solid rgba(34, 211, 238, 0.3); border-radius: 12px; padding: 15px; margin: 15px 0; backdrop-filter: blur(10px);">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                        <span style="font-size: 1.2em;">🤖</span>
+                        <strong style="color: #22d3ee; font-size: 0.9rem;">About SoulBridge AI</strong>
+                    </div>
+                    <p style="margin: 0; font-size: 0.8rem; color: #cbd5e1; line-height: 1.3;">
+                        SoulBridge AI is an AI-powered emotional support tool for entertainment and self-reflection. 
+                        <strong>It is not professional therapy, medical, or legal advice.</strong> 
+                        Always consult qualified professionals for serious concerns.
+                    </p>
+                </div>
+
+                <div class="terms-checkbox">
+                    <input type="checkbox" id="terms" name="terms" required>
+                    <label for="terms" class="terms-text">
+                        <span data-translate="agree_to">I agree to the</span> <a href="/terms" target="_blank" data-translate="terms_service">Terms of Service</a> 
+                        <span data-translate="and">and</span> <a href="/terms" target="_blank" data-translate="privacy_policy">Privacy Policy</a>
+                    </label>
+                </div>
+                
+                <button type="submit" class="auth-btn" id="registerBtn" data-translate="create_account">
+                    Create Account
+                </button>
+            </form>
+            
+            
+            <!-- Footer -->
+            <div class="auth-footer">
+                <p style="color: #9ca3af; margin: 0;">
+                    <span data-translate="already_have_account">Already have an account?</span> 
+                    <a href="/login" class="auth-link" data-translate="sign_in">Sign in</a>
+                </p>
+            </div>
+            
+            <!-- Language Selector (Below Create Account) -->
+            <div style="margin-top: 20px; display: flex; justify-content: center; position: relative;">
+                <button type="button" id="languageSelector" style="
+                    background: rgba(34, 211, 238, 0.8);
+                    color: #000;
+                    padding: 8px 12px;
+                    border-radius: 20px;
+                    cursor: pointer;
+                    font-weight: bold;
+                    transition: all 0.3s ease;
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    position: relative;
+                    border: none;
+                    pointer-events: auto;
+                ">
+                    <span>🌐</span>
+                    <span id="currentLanguage" data-translate="language_en">EN</span>
+                </button>
+                
+                <!-- Language Dropdown -->
+                <div id="languageMenu" style="
+                    display: none;
+                    position: absolute;
+                    top: 100%;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: rgba(0, 0, 0, 0.9);
+                    border: 2px solid #22d3ee;
+                    border-radius: 12px;
+                    padding: 8px;
+                    margin-top: 5px;
+                    min-width: 150px;
+                    box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+                    z-index: 1000;
+                ">
+                    <div class="language-option" onclick="changeLanguage('en')" style="padding: 8px 12px; cursor: pointer; border-radius: 8px; transition: all 0.3s ease; color: #22d3ee;" onmouseover="this.style.background='rgba(34, 211, 238, 0.2)'" onmouseout="this.style.background='transparent'">
+                        🇺🇸 <span data-translate="lang_english">English</span>
+                    </div>
+                    <div class="language-option" onclick="changeLanguage('es')" style="padding: 8px 12px; cursor: pointer; border-radius: 8px; transition: all 0.3s ease; color: #22d3ee;" onmouseover="this.style.background='rgba(34, 211, 238, 0.2)'" onmouseout="this.style.background='transparent'">
+                        🇪🇸 <span data-translate="lang_spanish">Español</span>
+                    </div>
+                    <div class="language-option" onclick="changeLanguage('fr')" style="padding: 8px 12px; cursor: pointer; border-radius: 8px; transition: all 0.3s ease; color: #22d3ee;" onmouseover="this.style.background='rgba(34, 211, 238, 0.2)'" onmouseout="this.style.background='transparent'">
+                        🇫🇷 <span data-translate="lang_french">Français</span>
+                    </div>
+                    <div class="language-option" onclick="changeLanguage('de')" style="padding: 8px 12px; cursor: pointer; border-radius: 8px; transition: all 0.3s ease; color: #22d3ee;" onmouseover="this.style.background='rgba(34, 211, 238, 0.2)'" onmouseout="this.style.background='transparent'">
+                        🇩🇪 <span data-translate="lang_german">Deutsch</span>
+                    </div>
+                    <div class="language-option" onclick="changeLanguage('pt')" style="padding: 8px 12px; cursor: pointer; border-radius: 8px; transition: all 0.3s ease; color: #22d3ee;" onmouseover="this.style.background='rgba(34, 211, 238, 0.2)'" onmouseout="this.style.background='transparent'">
+                        🇧🇷 <span data-translate="lang_portuguese">Português</span>
+                    </div>
+                    <div class="language-option" onclick="changeLanguage('zh')" style="padding: 8px 12px; cursor: pointer; border-radius: 8px; transition: all 0.3s ease; color: #22d3ee;" onmouseover="this.style.background='rgba(34, 211, 238, 0.2)'" onmouseout="this.style.background='transparent'">
+                        🇨🇳 <span data-translate="lang_chinese">中文</span>
+                    </div>
+                    <div class="language-option" onclick="changeLanguage('ja')" style="padding: 8px 12px; cursor: pointer; border-radius: 8px; transition: all 0.3s ease; color: #22d3ee;" onmouseover="this.style.background='rgba(34, 211, 238, 0.2)'" onmouseout="this.style.background='transparent'">
+                        🇯🇵 <span data-translate="lang_japanese">日本語</span>
+                    </div>
+                    <div class="language-option" onclick="changeLanguage('ru')" style="padding: 8px 12px; cursor: pointer; border-radius: 8px; transition: all 0.3s ease; color: #22d3ee;" onmouseover="this.style.background='rgba(34, 211, 238, 0.2)'" onmouseout="this.style.background='transparent'">
+                        🇷🇺 <span data-translate="lang_russian">Русский</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Password strength checker
+        function checkPasswordStrength(password) {
+            const requirements = {
+                length: password.length >= 8,
+                upper: /[A-Z]/.test(password),
+                lower: /[a-z]/.test(password),
+                number: /\d/.test(password)
+            };
+            
+            const metCount = Object.values(requirements).filter(Boolean).length;
+            
+            // Update requirement indicators
+            updateRequirement('lengthReq', requirements.length);
+            updateRequirement('upperReq', requirements.upper);
+            updateRequirement('lowerReq', requirements.lower);
+            updateRequirement('numberReq', requirements.number);
+            
+            // Update strength meter
+            updateStrengthMeter(metCount);
+            
+            return metCount === 4;
+        }
+        
+        function updateRequirement(id, met) {
+            const element = document.getElementById(id);
+            const icon = element.querySelector('.requirement-icon');
+            if (met) {
+                element.classList.add('met');
+                icon.textContent = '✅';
+            } else {
+                element.classList.remove('met');
+                icon.textContent = '⚪';
+            }
+        }
+        
+        function updateStrengthMeter(strength) {
+            const bars = document.querySelectorAll('.strength-bar');
+            const strengthText = document.getElementById('strengthText');
+            
+            bars.forEach((bar, index) => {
+                bar.classList.remove('active', 'weak', 'medium');
+                if (index < strength) {
+                    if (strength <= 2) {
+                        bar.classList.add('weak');
+                    } else if (strength === 3) {
+                        bar.classList.add('medium');
+                    } else {
+                        bar.classList.add('active');
+                    }
+                }
+            });
+            
+            const strengthLabels = ['Very Weak', 'Weak', 'Fair', 'Good', 'Strong'];
+            strengthText.textContent = strengthLabels[strength] || 'Very Weak';
+            strengthText.style.color = strength <= 2 ? '#dc2626' : strength === 3 ? '#f59e0b' : '#22c55e';
+        }
+        
+        // Password input handler
+        document.getElementById('password').addEventListener('input', function(e) {
+            const password = e.target.value;
+            const strengthSection = document.getElementById('passwordStrength');
+            const requirementsSection = document.getElementById('passwordRequirements');
+            
+            if (password.length > 0) {
+                strengthSection.style.display = 'block';
+                requirementsSection.style.display = 'block';
+                
+                const isStrong = checkPasswordStrength(password);
+                e.target.className = 'form-input ' + (isStrong ? 'valid' : 'error');
+            } else {
+                strengthSection.style.display = 'none';
+                requirementsSection.style.display = 'none';
+                e.target.className = 'form-input';
+            }
+        });
+        
+        // Confirm password validation
+        document.getElementById('confirm_password').addEventListener('input', function(e) {
+            const password = document.getElementById('password').value;
+            const confirmPassword = e.target.value;
+            
+            if (confirmPassword.length > 0) {
+                if (password === confirmPassword) {
+                    e.target.className = 'form-input valid';
+                } else {
+                    e.target.className = 'form-input error';
+                }
+            } else {
+                e.target.className = 'form-input';
+            }
+        });
+        
+        // Form submission handling with AJAX
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            e.preventDefault(); // Prevent default form submission
+            console.log('Form submit event triggered - using AJAX');
+            
+            const displayName = document.getElementById('display_name').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm_password').value;
+            const termsCheckbox = document.getElementById('terms');
+            
+            // Check terms checkbox first
+            if (!termsCheckbox.checked) {
+                alert('Please accept the Terms of Service and Privacy Policy');
+                return;
+            }
+            
+            if (password !== confirmPassword) {
+                alert('Passwords do not match');
+                return;
+            }
+            
+            if (!checkPasswordStrength(password)) {
+                alert('Please create a stronger password');
+                return;
+            }
+            
+            const submitBtn = document.getElementById('registerBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Creating Account...';
+            
+            // Submit via AJAX
+            console.log('Submitting registration via AJAX...');
+            fetch('/auth/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    display_name: displayName,
+                    email: email,
+                    password: password
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Registration response:', data);
+                if (data.success) {
+                    console.log('Registration successful, redirecting...');
+                    
+                    // Set session flag for persistence across page visits
+                    sessionStorage.setItem('loggedIn', 'true');
+                    
+                    // Clear any previous user's trial data to prevent trial carryover
+                    console.log('🧹 Clearing previous user trial data on new registration...');
+                    localStorage.removeItem('trialActive');
+                    localStorage.removeItem('trialExpiry');
+                    localStorage.removeItem('trialStartTime');
+                    localStorage.removeItem('trialSelectedCompanion');
+                    localStorage.removeItem('premiumCompanionsLocked');
+                    localStorage.removeItem('unlockedPremiumCompanion');
+                    
+                    // Show welcome message before redirect
+                    if (data.message) {
+                        alert(data.message);
+                    }
+                    
+                    window.location.href = data.redirect || '/';
+                } else {
+                    console.log('Registration response:', data.error);
+                    // Don't show error alert - just re-enable the button
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Create Account';
+                }
+            })
+            .catch(error => {
+                console.error('Registration error:', error);
+                // Don't show error alert - just re-enable the button
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Create Account';
+            });
+        });
+        
+        // Auto-focus first input
+        document.getElementById('display_name').focus();
+        
+        // Handle OAuth errors from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const oauthError = urlParams.get('error');
+        const configError = urlParams.get('oauth_error');
+        
+        if (oauthError === 'oauth_failed') {
+            alert('Google sign-up failed. Please try again or use email/password.');
+        } else if (oauthError === 'invalid_state') {
+            alert('Security error during sign-up. Please try again.');
+        } else if (oauthError === 'oauth_denied') {
+            alert('Google sign-up was cancelled.');
+        } else if (configError === 'not_configured') {
+            alert('Google sign-up is temporarily unavailable. Please use email/password to create your account.');
+        }
+        
+        // Theme functionality handled by universal-button-fix.js
+
+        // Language functions
+        function toggleLanguageMenu() {
+            const menu = document.getElementById('languageMenu');
+            if (menu.style.display === 'none' || menu.style.display === '') {
+                menu.style.display = 'block';
+            } else {
+                menu.style.display = 'none';
+            }
+        }
+        
+        function changeLanguage(lang) {
+            localStorage.setItem('selectedLanguage', lang);
+            updateLanguageDisplay(lang);
+            toggleLanguageMenu();
+            // Apply translations immediately
+            applyTranslations(lang);
+        }
+        
+        function updateLanguageDisplay(lang) {
+            const currentLanguage = document.getElementById('currentLanguage');
+            const langMap = {
+                'en': 'EN',
+                'es': 'ES', 
+                'fr': 'FR',
+                'de': 'DE',
+                'pt': 'PT',
+                'zh': 'ZH',
+                'ja': 'JP',
+                'ru': 'RU'
+            };
+            currentLanguage.textContent = langMap[lang] || 'EN';
+        }
+        
+        // Translation data
+        const translations = {
+            en: {
+                create_account: "Create Account",
+                create_account_subtitle: "Join SoulBridge AI today",
+                email_address: "Email Address",
+                password: "Password", 
+                confirm_password: "Confirm Password",
+                already_have_account: "Already have an account?",
+                sign_in: "Sign in",
+                language_en: "EN",
+                lang_english: "English",
+                lang_spanish: "Español",
+                lang_french: "Français", 
+                lang_german: "Deutsch",
+                lang_portuguese: "Português",
+                lang_chinese: "中文",
+                lang_japanese: "日本語",
+                lang_russian: "Русский"
+            },
+            es: {
+                create_account: "Crear Cuenta",
+                create_account_subtitle: "Únete a SoulBridge AI hoy",
+                email_address: "Dirección de Correo",
+                password: "Contraseña",
+                confirm_password: "Confirmar Contraseña", 
+                already_have_account: "¿Ya tienes una cuenta?",
+                sign_in: "Iniciar sesión",
+                language_en: "ES",
+                lang_english: "English",
+                lang_spanish: "Español",
+                lang_french: "Français",
+                lang_german: "Deutsch",
+                lang_portuguese: "Português", 
+                lang_chinese: "中文",
+                lang_japanese: "日本語",
+                lang_russian: "Русский"
+            },
+            fr: {
+                create_account: "Créer un Compte",
+                create_account_subtitle: "Rejoignez SoulBridge AI aujourd'hui",
+                email_address: "Adresse E-mail",
+                password: "Mot de Passe",
+                confirm_password: "Confirmer le Mot de Passe",
+                already_have_account: "Vous avez déjà un compte?",
+                sign_in: "Se connecter",
+                language_en: "FR",
+                lang_english: "English",
+                lang_spanish: "Español",
+                lang_french: "Français",
+                lang_german: "Deutsch",
+                lang_portuguese: "Português",
+                lang_chinese: "中文",
+                lang_japanese: "日本語", 
+                lang_russian: "Русский"
+            },
+            de: {
+                create_account: "Konto Erstellen",
+                create_account_subtitle: "Treten Sie heute SoulBridge AI bei",
+                email_address: "E-Mail-Adresse",
+                password: "Passwort",
+                confirm_password: "Passwort Bestätigen",
+                already_have_account: "Haben Sie bereits ein Konto?", 
+                sign_in: "Anmelden",
+                language_en: "DE",
+                lang_english: "English",
+                lang_spanish: "Español",
+                lang_french: "Français",
+                lang_german: "Deutsch",
+                lang_portuguese: "Português",
+                lang_chinese: "中文",
+                lang_japanese: "日本語",
+                lang_russian: "Русский"
+            },
+            pt: {
+                create_account: "Criar Conta",
+                create_account_subtitle: "Junte-se ao SoulBridge AI hoje",
+                email_address: "Endereço de E-mail",
+                password: "Senha",
+                confirm_password: "Confirmar Senha",
+                already_have_account: "Já tem uma conta?",
+                sign_in: "Entrar",
+                language_en: "PT",
+                lang_english: "English",
+                lang_spanish: "Español",
+                lang_french: "Français",
+                lang_german: "Deutsch",
+                lang_portuguese: "Português",
+                lang_chinese: "中文",
+                lang_japanese: "日本語",
+                lang_russian: "Русский"
+            },
+            zh: {
+                create_account: "创建账户",
+                create_account_subtitle: "今天加入SoulBridge AI",
+                email_address: "电子邮件地址",
+                password: "密码",
+                confirm_password: "确认密码",
+                already_have_account: "已经有账户了？",
+                sign_in: "登录",
+                language_en: "ZH",
+                lang_english: "English",
+                lang_spanish: "Español",
+                lang_french: "Français",
+                lang_german: "Deutsch",
+                lang_portuguese: "Português",
+                lang_chinese: "中文",
+                lang_japanese: "日本語",
+                lang_russian: "Русский"
+            },
+            ja: {
+                create_account: "アカウント作成",
+                create_account_subtitle: "今日SoulBridge AIに参加しましょう",
+                email_address: "メールアドレス",
+                password: "パスワード",
+                confirm_password: "パスワード確認",
+                already_have_account: "すでにアカウントをお持ちですか？",
+                sign_in: "ログイン",
+                language_en: "JP",
+                lang_english: "English",
+                lang_spanish: "Español",
+                lang_french: "Français",
+                lang_german: "Deutsch",
+                lang_portuguese: "Português",
+                lang_chinese: "中文",
+                lang_japanese: "日本語",
+                lang_russian: "Русский"
+            },
+            ru: {
+                create_account: "Создать Аккаунт",
+                create_account_subtitle: "Присоединяйтесь к SoulBridge AI сегодня",
+                email_address: "Адрес электронной почты",
+                password: "Пароль",
+                confirm_password: "Подтвердить Пароль",
+                already_have_account: "Уже есть аккаунт?",
+                sign_in: "Войти",
+                language_en: "RU",
+                lang_english: "English",
+                lang_spanish: "Español",
+                lang_french: "Français",
+                lang_german: "Deutsch",
+                lang_portuguese: "Português",
+                lang_chinese: "中文",
+                lang_japanese: "日本語",
+                lang_russian: "Русский"
+            }
+        };
+        
+        // Apply translations to the page
+        function applyTranslations(lang) {
+            const translation = translations[lang] || translations.en;
+            
+            // Find all elements with data-translate attribute
+            document.querySelectorAll('[data-translate]').forEach(element => {
+                const key = element.getAttribute('data-translate');
+                if (translation[key]) {
+                    element.textContent = translation[key];
+                }
+            });
+            
+            // Update placeholders
+            const emailInput = document.getElementById('email');
+            const passwordInput = document.getElementById('password');
+            const confirmPasswordInput = document.getElementById('confirmPassword');
+            
+            if (emailInput && translation.email_address) {
+                emailInput.placeholder = translation.email_address;
+            }
+            if (passwordInput && translation.password) {
+                passwordInput.placeholder = translation.password;
+            }
+            if (confirmPasswordInput && translation.confirm_password) {
+                confirmPasswordInput.placeholder = translation.confirm_password;
+            }
+        }
+        
+        // Close language menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const selector = document.getElementById('languageSelector');
+            const menu = document.getElementById('languageMenu');
+            if (!selector.contains(event.target) && !menu.contains(event.target)) {
+                menu.style.display = 'none';
+            }
+        });
+        
+        // Load saved language on page load
+        function loadSavedLanguage() {
+            const savedLang = localStorage.getItem('selectedLanguage') || 'en';
+            updateLanguageDisplay(savedLang);
+            applyTranslations(savedLang);
+        }
+
+
+        // Load saved theme function
+        function loadSavedTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'night';
+            if (savedTheme === 'day') {
+                document.body.classList.add('day-mode');
+                const themeText = document.getElementById('themeText');
+                const themeIcon = document.getElementById('themeIcon');
+                const themeToggle = document.getElementById('themeToggle');
+                if (themeText) themeText.textContent = 'Day Mode is ON';
+                if (themeIcon) themeIcon.textContent = '☀️';
+                if (themeToggle) themeToggle.style.background = 'rgba(255, 193, 7, 0.8)';
+            }
+        }
+
+        function loadSavedLanguage() {
+            const savedLang = localStorage.getItem('selectedLanguage') || 'en';
+            // Language loading logic would go here
+        }
+
+        // Load theme on page load
+        window.addEventListener('load', function() {
+            loadSavedTheme();
+            loadSavedLanguage();
+        });
+    </script>
+    <script src="{{ url_for('static', filename='js/app.js') }}?v=20250725" defer></script>
+    
+    <!-- Unified authentication handler -->
+    <script src="/static/js/auth.js?v=20250725" defer></script>
+</body>
+</html>
