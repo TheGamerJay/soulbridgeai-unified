@@ -1907,7 +1907,7 @@ def reset_trial_state():
                     SET trial_active = FALSE, 
                         trial_started_at = NULL,
                         trial_used_permanently = FALSE,
-                        trial_warning_sent IS FALSE
+                        trial_warning_sent = 0
                     WHERE id = %s
                 """, (user_id,))
             else:
@@ -1916,7 +1916,7 @@ def reset_trial_state():
                     SET trial_active = FALSE, 
                         trial_started_at = NULL,
                         trial_used_permanently = FALSE,
-                        trial_warning_sent IS FALSE
+                        trial_warning_sent = 0
                     WHERE id = ?
                 """, (user_id,))
             
@@ -2545,9 +2545,9 @@ def companion_selection():
             conn = db_instance.get_connection()
             cursor = conn.cursor()
             if db_instance.use_postgres:
-                cursor.execute("SELECT referral_count FROM users WHERE id = %s", (user_id,))
+                cursor.execute("SELECT referral_points FROM users WHERE id = %s", (user_id,))
             else:
-                cursor.execute("SELECT referral_count FROM users WHERE id = ?", (user_id,))
+                cursor.execute("SELECT referral_points FROM users WHERE id = ?", (user_id,))
             result = cursor.fetchone()
             if result and result[0]:
                 referral_count = result[0]
@@ -2587,9 +2587,9 @@ def tiers_page():
             conn = db_instance.get_connection()
             cursor = conn.cursor()
             if db_instance.use_postgres:
-                cursor.execute("SELECT referral_count FROM users WHERE id = %s", (user_id,))
+                cursor.execute("SELECT referral_points FROM users WHERE id = %s", (user_id,))
             else:
-                cursor.execute("SELECT referral_count FROM users WHERE id = ?", (user_id,))
+                cursor.execute("SELECT referral_points FROM users WHERE id = ?", (user_id,))
             result = cursor.fetchone()
             if result:
                 referral_count = result[0] or 0
@@ -4476,7 +4476,7 @@ def get_comprehensive_trial_stats():
         
         # Active trials
         if db_instance.use_postgres:
-            cursor.execute("SELECT COUNT(*) FROM users WHERE trial_active IS TRUE")
+            cursor.execute("SELECT COUNT(*) FROM users WHERE trial_active = 1")
             stats['active_trials'] = cursor.fetchone()[0]
             
             cursor.execute("SELECT COUNT(*) FROM users WHERE trial_used_permanently = TRUE")
@@ -4493,7 +4493,7 @@ def get_comprehensive_trial_stats():
             stats['trials_started_today'] = cursor.fetchone()[0]
             
         else:
-            cursor.execute("SELECT COUNT(*) FROM users WHERE trial_active IS TRUE")
+            cursor.execute("SELECT COUNT(*) FROM users WHERE trial_active = 1")
             stats['active_trials'] = cursor.fetchone()[0]
             
             cursor.execute("SELECT COUNT(*) FROM users WHERE trial_used_permanently = TRUE")
@@ -4589,7 +4589,7 @@ def admin_reset_all_trials():
                 SET trial_active = FALSE, 
                     trial_started_at = NULL,
                     trial_used_permanently = FALSE,
-                    trial_warning_sent IS FALSE
+                    trial_warning_sent = 0
             """)
         else:
             cursor.execute("""
@@ -4597,7 +4597,7 @@ def admin_reset_all_trials():
                 SET trial_active = FALSE, 
                     trial_started_at = NULL,
                     trial_used_permanently = FALSE,
-                    trial_warning_sent IS FALSE
+                    trial_warning_sent = 0
             """)
         
         affected_rows = cursor.rowcount
@@ -4636,14 +4636,14 @@ def admin_expire_all_trials():
                 UPDATE users 
                 SET trial_active = FALSE, 
                     trial_used_permanently = TRUE
-                WHERE trial_active IS TRUE
+                WHERE trial_active = 1
             """)
         else:
             cursor.execute("""
                 UPDATE users 
                 SET trial_active = FALSE, 
                     trial_used_permanently = TRUE
-                WHERE trial_active IS TRUE
+                WHERE trial_active = 1
             """)
         
         affected_rows = cursor.rowcount
@@ -4682,13 +4682,13 @@ def admin_send_trial_warnings():
                 cursor.execute("""
                     SELECT email, display_name, trial_started_at 
                     FROM users 
-                    WHERE trial_active IS TRUE AND (trial_warning_sent IS FALSE OR trial_warning_sent IS NULL)
+                    WHERE trial_active = 1 AND (trial_warning_sent = 0 OR trial_warning_sent IS NULL)
                 """)
             else:
                 cursor.execute("""
                     SELECT email, display_name, trial_started_at 
                     FROM users 
-                    WHERE trial_active IS TRUE AND (trial_warning_sent IS FALSE OR trial_warning_sent IS NULL)
+                    WHERE trial_active = 1 AND (trial_warning_sent = 0 OR trial_warning_sent IS NULL)
                 """)
             
             users_to_warn = cursor.fetchall()
@@ -4700,13 +4700,13 @@ def admin_send_trial_warnings():
                     cursor.execute("""
                         UPDATE users 
                         SET trial_warning_sent = TRUE 
-                        WHERE trial_active IS TRUE AND (trial_warning_sent IS FALSE OR trial_warning_sent IS NULL)
+                        WHERE trial_active = 1 AND (trial_warning_sent = 0 OR trial_warning_sent IS NULL)
                     """)
                 else:
                     cursor.execute("""
                         UPDATE users 
                         SET trial_warning_sent = TRUE 
-                        WHERE trial_active IS TRUE AND (trial_warning_sent IS FALSE OR trial_warning_sent IS NULL)
+                        WHERE trial_active = 1 AND (trial_warning_sent = 0 OR trial_warning_sent IS NULL)
                     """)
                 
                 conn.commit()
@@ -7391,9 +7391,9 @@ def api_companions():
                 conn = db_instance.get_connection()
                 cursor = conn.cursor()
                 if db_instance.use_postgres:
-                    cursor.execute("SELECT referral_count FROM users WHERE id = %s", (user_id,))
+                    cursor.execute("SELECT referral_points FROM users WHERE id = %s", (user_id,))
                 else:
-                    cursor.execute("SELECT referral_count FROM users WHERE id = ?", (user_id,))
+                    cursor.execute("SELECT referral_points FROM users WHERE id = ?", (user_id,))
                 result = cursor.fetchone()
                 if result:
                     referrals = result[0] or 0
@@ -13745,7 +13745,7 @@ def is_max_allowed_music(user_id):
         # Check for active trial
         cursor.execute("""
             SELECT expires_at FROM max_trials 
-            WHERE user_id = %s AND active IS TRUE 
+            WHERE user_id = %s AND active = 1 
             ORDER BY id DESC LIMIT 1
         """, (user_id,))
         
