@@ -2597,36 +2597,23 @@ def tiers_page():
         logger.error(f"Error getting referral count: {e}")
         referral_count = 0
     
-    # Companion data organized by tier
-    free_companions = [
-        {'slug': 'blayzo_free', 'name': 'Blayzo Free', 'image_url': '/static/logos/Blayzo.png'},
-        {'slug': 'blayzica_free', 'name': 'Blayzica Free', 'image_url': '/static/logos/Blayzica.png'},
-        {'slug': 'companion_gamerjay', 'name': 'GamerJay', 'image_url': '/static/logos/GamerJay Free companion.png'},
-        {'slug': 'claude_free', 'name': 'Claude Free', 'image_url': '/static/logos/Claude Free.png'},
-        {'slug': 'blayzia_free', 'name': 'Blayzia', 'image_url': '/static/logos/Blayzia.png'},
-        {'slug': 'blayzion_free', 'name': 'Blayzion', 'image_url': '/static/logos/Blayzion.png'},
-    ]
+    # Use bulletproof companion data organized by tier
+    free_companions = []
+    growth_companions = []
+    max_companions = []
     
-    growth_companions = [
-        {'slug': 'companion_sky', 'name': 'Sky', 'image_url': '/static/logos/Sky a premium companion.png'},
-        {'slug': 'blayzo_premium', 'name': 'Blayzo Premium', 'image_url': '/static/logos/Blayzo premium companion.png'},
-        {'slug': 'blayzica_growth', 'name': 'Blayzica Growth', 'image_url': '/static/logos/Blayzica Pro.png'},
-        {'slug': 'gamerjay_premium', 'name': 'GamerJay Premium', 'image_url': '/static/logos/GamerJay premium companion.png'},
-        {'slug': 'watchdog_growth', 'name': 'WatchDog Growth', 'image_url': '/static/logos/WatchDog a Premium companion.png'},
-        {'slug': 'crimson_growth', 'name': 'Crimson Growth', 'image_url': '/static/logos/Crimson.png'},
-        {'slug': 'violet_growth', 'name': 'Violet Growth', 'image_url': '/static/logos/Violet.png'},
-        {'slug': 'claude_growth', 'name': 'Claude Growth', 'image_url': '/static/logos/Claude Growth.png'},
-    ]
-    
-    max_companions = [
-        {'slug': 'companion_crimson', 'name': 'Companion Crimson', 'image_url': '/static/logos/Crimson a Max companion.png'},
-        {'slug': 'companion_violet', 'name': 'Companion Violet', 'image_url': '/static/logos/Violet_Max.png'},
-        {'slug': 'royal_max', 'name': 'Royal Max', 'image_url': '/static/logos/Royal_Max.png'},
-        {'slug': 'watchdog_max', 'name': 'WatchDog Max', 'image_url': '/static/logos/WatchDog a Max Companion.png'},
-        {'slug': 'ven_blayzica', 'name': 'Ven Blayzica', 'image_url': '/static/logos/Ven_Blayzica_Max.png'},
-        {'slug': 'ven_sky', 'name': 'Ven Sky', 'image_url': '/static/logos/Ven_Sky_Max.png'},
-        {'slug': 'claude_max', 'name': 'Claude Max', 'image_url': '/static/logos/Claude Max.png'},
-    ]
+    for c in COMPANIONS_NEW:
+        companion_data = {
+            'slug': c['id'],  # Use 'id' as 'slug' for template compatibility
+            'name': c['name'],
+            'image_url': c['image_url']
+        }
+        if c['tier'] == 'free':
+            free_companions.append(companion_data)
+        elif c['tier'] == 'growth':
+            growth_companions.append(companion_data)
+        elif c['tier'] == 'max':
+            max_companions.append(companion_data)
     
     
     # Referral milestones
