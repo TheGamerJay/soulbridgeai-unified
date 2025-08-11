@@ -491,7 +491,10 @@ def increment_rate_limit_session():
 # Ensure sessions expire when browser closes
 @app.before_request
 def make_session_non_permanent():
-    session.permanent = False
+    # Only make session non-permanent for non-authenticated users
+    # This prevents conflicts with load_user_context() which sets permanent=True for authenticated users
+    if not session.get('user_authenticated'):
+        session.permanent = False
 
 # DISABLED: This was causing session clearing after multiple companion clicks
 # @app.before_request
@@ -1585,6 +1588,11 @@ def user_status():
         logged_in = is_logged_in()
         user_plan = session.get('user_plan', 'free') if logged_in else 'free'
         trial_active = session.get('trial_active', False) if logged_in else False
+        
+        # Debug logging for authentication issues
+        if not logged_in:
+            logger.warning(f"🔍 USER STATUS DEBUG: logged_in=False, session_keys={list(session.keys())}")
+            logger.warning(f"🔍 SESSION DATA: user_authenticated={session.get('user_authenticated')}, user_id={session.get('user_id')}, user_email={session.get('user_email')}, session_version={session.get('session_version')}")
         
         return jsonify({
             "success": True,
@@ -3156,6 +3164,8 @@ def profile():
 def subscription():
     """Subscription route"""
     try:
+        if not is_logged_in():
+            return redirect("/login?return_to=subscription")
         return render_template("subscription.html")
     except Exception as e:
         logger.error(f"Subscription template error: {e}")
