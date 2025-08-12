@@ -101,33 +101,28 @@ def get_user_id_new():
 
 def get_effective_plan_new(user_plan: str, trial_active: bool) -> str:
     """Trial unlocks FEATURES/COMPANIONS for visibility, but limits remain on real plan"""
-    return user_plan  # limits are always the real plan
+    if trial_active:
+        return "max"  # During trial, treat as max tier
+    return user_plan
 
 def get_access_matrix_new(user_plan: str, trial_active: bool):
     """Get feature access matrix - TRIAL DOES NOT CHANGE ACCESS"""
-    base = FEATURE_ACCESS.get(user_plan, FEATURE_ACCESS["free"]).copy()
-    
-    # TRIAL DOES NOT CHANGE FEATURE ACCESS
-    # Trial is just a time-limited experience of the user's current plan
-    # Free users with trial = still same free tier features (just time-limited)
-    return base  # Always return the user's actual plan tier features
+    # During trial, use max tier for access
+    plan = "max" if trial_active else user_plan
+    base = FEATURE_ACCESS.get(plan, FEATURE_ACCESS["free"]).copy()
+    return base
 
 def companion_unlock_state_new(user_plan: str, trial_active: bool, referrals: int):
     """Determine which companions are unlocked - TRIAL DOES NOT CHANGE ACCESS"""
-    unlocked_tiers = set(["free"])  # Everyone gets free
-    
-    # TRIAL DOES NOT CHANGE COMPANION ACCESS
-    # Trial is just a time-limited experience of the user's current plan
-    # Free users with trial = still only free companions (just time-limited)
-    if user_plan == "growth":
-        # Growth subscribers get growth tier companions
-        unlocked_tiers.add("growth")
-    elif user_plan == "max":
-        # Max subscribers get max tier companions (and free)
-        unlocked_tiers.add("max")
-        # Max tier does NOT get growth companions - only free + max
-    # Free users (with or without trial) only get free tier companions
-    
+    # During trial, unlock all companions (growth + max)
+    if trial_active:
+        unlocked_tiers = set(["free", "growth", "max"])
+    else:
+        unlocked_tiers = set(["free"])
+        if user_plan == "growth":
+            unlocked_tiers.add("growth")
+        elif user_plan == "max":
+            unlocked_tiers.add("max")
     # Referral progressive unlocks (separate from subscription tiers)
     referral_unlocks = []
     if referrals >= REFERRAL_THRESHOLDS["blayzike"]: referral_unlocks.append("blayzike")
