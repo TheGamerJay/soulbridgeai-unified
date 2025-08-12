@@ -66,27 +66,27 @@ COMPANIONS_NEW = [
     # Free row
     {"id":"blayzo_free","name":"Blayzo Free","tier":"free","image_url":"/static/logos/Blayzo.png"},
     {"id":"blayzica_free","name":"Blayzica Free","tier":"free","image_url":"/static/logos/Blayzica.png"},
-    {"id":"companion_gamerjay","name":"GamerJay Free","tier":"free","image_url":"/static/logos/GamerJay Free companion.png"},
-    {"id":"claude_free","name":"Claude Free","tier":"free","image_url":"/static/logos/Claude Free.png"},
+    {"id":"companion_gamerjay","name":"GamerJay Free","tier":"free","image_url":"/static/logos/GamerJay_Free_companion.png"},
+    {"id":"claude_free","name":"Claude Free","tier":"free","image_url":"/static/logos/Claude_Free.png"},
     {"id":"blayzia_free","name":"Blayzia","tier":"free","image_url":"/static/logos/Blayzia.png"},
     {"id":"blayzion_free","name":"Blayzion","tier":"free","image_url":"/static/logos/Blayzion.png"},
     # Growth row
-    {"id":"companion_sky","name":"Sky","tier":"growth","image_url":"/static/logos/Sky a premium companion.png"},
-    {"id":"blayzo_premium","name":"Blayzo Premium","tier":"growth","image_url":"/static/logos/Blayzo premium companion.png"},
+    {"id":"companion_sky","name":"Sky","tier":"growth","image_url":"/static/logos/Sky_a_premium_companion.png"},
+    {"id":"blayzo_premium","name":"Blayzo Premium","tier":"growth","image_url":"/static/logos/Blayzo_premium_companion.png"},
     {"id":"blayzica_growth","name":"Blayzica Growth","tier":"growth","image_url":"/static/logos/Blayzica Pro.png"},
-    {"id":"gamerjay_premium","name":"GamerJay Premium","tier":"growth","image_url":"/static/logos/GamerJay premium companion.png"},
-    {"id":"watchdog_growth","name":"WatchDog Growth","tier":"growth","image_url":"/static/logos/WatchDog a Premium companion.png"},
+    {"id":"gamerjay_premium","name":"GamerJay Premium","tier":"growth","image_url":"/static/logos/GamerJay_premium_companion.png"},
+    {"id":"watchdog_growth","name":"WatchDog Growth","tier":"growth","image_url":"/static/logos/WatchDog_a_Premium_companion.png"},
     {"id":"crimson_growth","name":"Crimson Growth","tier":"growth","image_url":"/static/logos/Crimson.png"},
     {"id":"violet_growth","name":"Violet Growth","tier":"growth","image_url":"/static/logos/Violet.png"},
-    {"id":"claude_growth","name":"Claude Growth","tier":"growth","image_url":"/static/logos/Claude Growth.png"},
+    {"id":"claude_growth","name":"Claude Growth","tier":"growth","image_url":"/static/logos/Claude_Growth.png"},
     # Max row
-    {"id":"companion_crimson","name":"Companion Crimson","tier":"max","image_url":"/static/logos/Crimson a Max companion.png"},
-    {"id":"companion_violet","name":"Companion Violet","tier":"max","image_url":"/static/logos/Violet a Max companion.png"},
-    {"id":"royal_max","name":"Royal Max","tier":"max","image_url":"/static/logos/Royal a Max companion.png"},
-    {"id":"watchdog_max","name":"WatchDog Max","tier":"max","image_url":"/static/logos/WatchDog a Max Companion.png"},
-    {"id":"ven_blayzica","name":"Ven Blayzica","tier":"max","image_url":"/static/logos/Ven Blayzica a Max companion.png"},
-    {"id":"ven_sky","name":"Ven Sky","tier":"max","image_url":"/static/logos/Ven Sky a Max companion.png"},
-    {"id":"claude_max","name":"Claude Max","tier":"max","image_url":"/static/logos/Claude Max.png"},
+    {"id":"companion_crimson","name":"Companion Crimson","tier":"max","image_url":"/static/logos/Crimson_a_Max_companion.png"},
+    {"id":"companion_violet","name":"Companion Violet","tier":"max","image_url":"/static/logos/Violet_a_Max_companion.png"},
+    {"id":"royal_max","name":"Royal Max","tier":"max","image_url":"/static/logos/Royal_a_Max_companion.png"},
+    {"id":"watchdog_max","name":"WatchDog Max","tier":"max","image_url":"/static/logos/WatchDog_a_Max_Companion.png"},
+    {"id":"ven_blayzica","name":"Ven Blayzica","tier":"max","image_url":"/static/logos/Ven_Blayzica_a_Max_companion.png"},
+    {"id":"ven_sky","name":"Ven Sky","tier":"max","image_url":"/static/logos/Ven_Sky_a_Max_companion.png"},
+    {"id":"claude_max","name":"Claude Max","tier":"max","image_url":"/static/logos/Claude_Max.png"},
     # Referral (never unlocked by trial)
     {"id":"blayzike","name":"Blayzike","tier":"referral","image_url":"/static/referral/blayzike.png"},
     {"id":"blazelian","name":"Blazelian","tier":"referral","image_url":"/static/referral/blazelian.png"},
@@ -2490,7 +2490,9 @@ def chat():
                     'gamerjay': 'companion_gamerjay',
                     'sky': 'companion_sky',
                     'violet': 'companion_violet',
-                    'crimson': 'companion_crimson'
+                    'crimson': 'companion_crimson',
+                    'royal': 'royal_max',
+                    'watchdog': 'watchdog_max'
                 }
                 if companion_id in legacy_mapping:
                     new_id = legacy_mapping[companion_id]
@@ -2544,37 +2546,37 @@ def chat():
             # Free companions
             'blayzo_free': {'name': 'Blayzo', 'avatar': '/static/logos/Blayzo.png'},
             'blayzica_free': {'name': 'Blayzica', 'avatar': '/static/logos/Blayzica.png'},
-            'companion_gamerjay': {'name': 'GamerJay', 'avatar': '/static/logos/GamerJay Free companion.png'},
+            'companion_gamerjay': {'name': 'GamerJay', 'avatar': '/static/logos/GamerJay_Free_companion.png'},
             'blayzia_free': {'name': 'Blayzia', 'avatar': '/static/logos/Blayzia.png'},
             'blayzion_free': {'name': 'Blayzion', 'avatar': '/static/logos/Blayzion.png'},
-            'claude_free': {'name': 'Claude', 'avatar': '/static/logos/Claude Free.png'},
+            'claude_free': {'name': 'Claude', 'avatar': '/static/logos/Claude_Free.png'},
             
             # Growth companions  
-            'companion_sky': {'name': 'Sky', 'avatar': '/static/logos/Sky a premium companion.png'},
-            'blayzo_premium': {'name': 'Blayzo Pro', 'avatar': '/static/logos/Blayzo premium companion.png'},
-            'blayzo_growth': {'name': 'Blayzo Pro', 'avatar': '/static/logos/Blayzo premium companion.png'},  # Legacy compatibility
-            'blayzo_pro': {'name': 'Blayzo Pro', 'avatar': '/static/logos/Blayzo premium companion.png'},  # Legacy compatibility
+            'companion_sky': {'name': 'Sky', 'avatar': '/static/logos/Sky_a_premium_companion.png'},
+            'blayzo_premium': {'name': 'Blayzo Pro', 'avatar': '/static/logos/Blayzo_premium_companion.png'},
+            'blayzo_growth': {'name': 'Blayzo Pro', 'avatar': '/static/logos/Blayzo_premium_companion.png'},  # Legacy compatibility
+            'blayzo_pro': {'name': 'Blayzo Pro', 'avatar': '/static/logos/Blayzo_premium_companion.png'},  # Legacy compatibility
             'blayzica_growth': {'name': 'Blayzica Pro', 'avatar': '/static/logos/Blayzica Pro.png'},
-            'gamerjay_premium': {'name': 'GamerJay Premium', 'avatar': '/static/logos/GamerJay premium companion.png'},
-            'companion_gamerjay_premium': {'name': 'GamerJay Premium', 'avatar': '/static/logos/GamerJay premium companion.png'},  # Legacy compatibility
-            'gamerjay_pro': {'name': 'GamerJay Premium', 'avatar': '/static/logos/GamerJay premium companion.png'},  # Legacy compatibility
-            'watchdog_growth': {'name': 'WatchDog', 'avatar': '/static/logos/WatchDog a Premium companion.png'},
+            'gamerjay_premium': {'name': 'GamerJay Premium', 'avatar': '/static/logos/GamerJay_premium_companion.png'},
+            'companion_gamerjay_premium': {'name': 'GamerJay Premium', 'avatar': '/static/logos/GamerJay_premium_companion.png'},  # Legacy compatibility
+            'gamerjay_pro': {'name': 'GamerJay Premium', 'avatar': '/static/logos/GamerJay_premium_companion.png'},  # Legacy compatibility
+            'watchdog_growth': {'name': 'WatchDog', 'avatar': '/static/logos/WatchDog_a_Premium_companion.png'},
             'crimson_growth': {'name': 'Crimson', 'avatar': '/static/logos/Crimson.png'},
             'violet_growth': {'name': 'Violet', 'avatar': '/static/logos/Violet.png'},
-            'claude_growth': {'name': 'Claude Growth', 'avatar': '/static/logos/Claude Growth.png'},
+            'claude_growth': {'name': 'Claude Growth', 'avatar': '/static/logos/Claude_Growth.png'},
             
             # Max companions
-            'companion_crimson': {'name': 'Crimson', 'avatar': '/static/logos/Crimson a Max companion.png'},
-            'companion_violet': {'name': 'Violet', 'avatar': '/static/logos/Violet a Max companion.png'},
-            'royal_max': {'name': 'Royal', 'avatar': '/static/logos/Royal a Max companion.png'},
-            'watchdog_max': {'name': 'WatchDog Max', 'avatar': '/static/logos/WatchDog a Max Companion.png'},
-            'ven_blayzica': {'name': 'Ven Blayzica', 'avatar': '/static/logos/Ven Blayzica a Max companion.png'},
-            'ven_sky': {'name': 'Ven Sky', 'avatar': '/static/logos/Ven Sky a Max companion.png'},
-            'claude_max': {'name': 'Claude Max', 'avatar': '/static/logos/Claude Max.png'},
+            'companion_crimson': {'name': 'Crimson', 'avatar': '/static/logos/Crimson_a_Max_companion.png'},
+            'companion_violet': {'name': 'Violet', 'avatar': '/static/logos/Violet_a_Max_companion.png'},
+            'royal_max': {'name': 'Royal', 'avatar': '/static/logos/Royal_a_Max_companion.png'},
+            'watchdog_max': {'name': 'WatchDog Max', 'avatar': '/static/logos/WatchDog_a_Max_Companion.png'},
+            'ven_blayzica': {'name': 'Ven Blayzica', 'avatar': '/static/logos/Ven_Blayzica_a_Max_companion.png'},
+            'ven_sky': {'name': 'Ven Sky', 'avatar': '/static/logos/Ven_Sky_a_Max_companion.png'},
+            'claude_max': {'name': 'Claude Max', 'avatar': '/static/logos/Claude_Max.png'},
             
             # Referral companions
-            'blayzo_referral': {'name': 'Blayzo Referral', 'avatar': '/static/logos/Blayzo Referral.png'},
-            'claude_referral': {'name': 'Claude Referral', 'avatar': '/static/logos/Claude Referral.png'},
+            'blayzo_referral': {'name': 'Blayzo Referral', 'avatar': '/static/logos/Blayzo_Referral.png'},
+            'claude_referral': {'name': 'Claude Referral', 'avatar': '/static/logos/Claude_Referral.png'},
         }
         
         # Add debug logging before returning
