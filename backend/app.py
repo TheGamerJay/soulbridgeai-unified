@@ -2569,20 +2569,32 @@ def chat():
                 if result:
                     db_trial_active, db_trial_started, db_trial_expires, db_trial_used = result
                     
-                    # Check if trial is actually active (not expired)
-                    trial_is_active = False
+                    # FIXED: Preserve existing active trials unless we're 100% sure they should be deactivated
+                    current_trial_active = session.get('trial_active', False)
+                    trial_is_active = current_trial_active  # Start with current state
+                    
                     if db_trial_active and not db_trial_used and db_trial_expires:
                         try:
                             if isinstance(db_trial_expires, str):
                                 expires_time = datetime.fromisoformat(db_trial_expires.replace('Z', '+00:00'))
                             else:
                                 expires_time = db_trial_expires
+                            
+                            # Only change trial state if we can confirm expiry status
                             trial_is_active = datetime.utcnow() < expires_time
+                            logger.info(f"✅ TRIAL SYNC: Confirmed trial status - active={trial_is_active}, expires={expires_time}")
                         except Exception as e:
-                            logger.error(f"Error parsing trial expiry: {e}")
-                            trial_is_active = False
+                            logger.error(f"⚠️ Error parsing trial expiry: {e} - PRESERVING current trial state: {current_trial_active}")
+                            trial_is_active = current_trial_active  # Keep existing state on error
+                    elif db_trial_used:
+                        # Only deactivate if trial is marked as used
+                        trial_is_active = False
+                        logger.info(f"❌ TRIAL SYNC: Trial marked as used - deactivating")
+                    else:
+                        # No trial data in DB - preserve session state
+                        logger.info(f"ℹ️ TRIAL SYNC: No trial data in DB - preserving session state: {current_trial_active}")
                     
-                    # Update session to match database reality
+                    # Update session only if we have reliable data
                     session['trial_active'] = trial_is_active
                     session['trial_started_at'] = db_trial_started.isoformat() if db_trial_started else None
                     session['trial_expires_at'] = (db_trial_expires.isoformat() + 'Z') if db_trial_expires else None  

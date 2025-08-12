@@ -150,8 +150,8 @@
                     <span class="trial-badge" id="trial-badge" style="display: {% if session.get('trial_active') %}inline-flex{% else %}none{% endif %};">
                         <i class="fas fa-clock"></i> Trial Active
                     </span>
-                    <div id="trial-banner" class="simple-timer" style="display: none;">
-                        <strong>Max Trial Active</strong>
+                    <div id="trial-banner" class="simple-timer" style="display: {% if session.get('trial_active') %}block{% else %}none{% endif %};">
+                        <strong>Trial Active</strong>
                         <span id="trial-eta">— 05:00:00</span>
                     </div>
                 </div>
@@ -1119,14 +1119,14 @@
             z-index: 1000;
         }
         
-        /* ALLOW NEW ROBUST TIMER TO SHOW - OVERRIDE HIDE RULES */
+        /* ALLOW NEW ROBUST TIMER TO SHOW ONLY WHEN ACTIVE */
         #trial-banner {
-            display: block !important;
             visibility: visible !important;
             opacity: 1 !important;
             position: static !important;
             left: auto !important;
             top: auto !important;
+            /* Display controlled by template condition - no override */
         }
         
         /* Hide only the OLD problematic timers */
