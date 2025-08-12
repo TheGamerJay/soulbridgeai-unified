@@ -1092,6 +1092,10 @@ def admin_login_page():
         ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', '').lower().strip()
         ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', '').strip()
         
+        # Debug logging for troubleshooting
+        logger.info(f"🔍 Admin login attempt - Email submitted: '{email}', Expected: '{ADMIN_EMAIL}'")
+        logger.info(f"🔍 Admin credentials configured: EMAIL={bool(ADMIN_EMAIL)}, PASSWORD={bool(ADMIN_PASSWORD)}")
+        
         # Security check: Ensure admin credentials are configured
         if not ADMIN_EMAIL or not ADMIN_PASSWORD:
             logger.error("🚨 SECURITY: Admin credentials not configured in environment variables")
