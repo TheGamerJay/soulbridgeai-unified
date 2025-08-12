@@ -2584,7 +2584,12 @@ def chat():
             logger.info(f"✅ COMPANION FOUND: {companion_id} -> {companion_data[companion_id]}")
             return companion_data[companion_id]
         else:
-            logger.warning(f"❌ COMPANION NOT FOUND: {companion_id}, using fallback. Available keys: {list(companion_data.keys())}")
+            logger.error(f"❌ COMPANION NOT FOUND: {companion_id}, using fallback. Available keys: {list(companion_data.keys())}")
+            # Try to find a partial match as emergency fallback
+            for key, data in companion_data.items():
+                if companion_id.lower() in key.lower() or key.lower() in companion_id.lower():
+                    logger.warning(f"🔄 EMERGENCY FALLBACK: Using {key} for {companion_id}")
+                    return data
             return {
                 'name': companion_id.replace('_', ' ').title(),
                 'avatar': '/static/logos/IntroLogo.png'  # fallback
