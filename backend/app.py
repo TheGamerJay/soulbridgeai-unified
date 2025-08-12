@@ -1910,6 +1910,28 @@ def accept_terms():
         logger.error(f"❌ TERMS ACCEPTANCE ERROR: {e}")
         return jsonify({"success": False, "error": "Failed to save terms acceptance"}), 500
 
+@app.route('/api/accept-terms-simple', methods=['POST'])
+def accept_terms_simple():
+    """Simple terms acceptance for existing users - bypasses complex validation"""
+    if not session.get('user_id'):
+        return jsonify({"success": False, "error": "Login required"}), 401
+    
+    try:
+        # Just mark the user as having accepted terms in session
+        session['terms_accepted'] = True
+        user_email = session.get('user_email', 'unknown')
+        logger.info(f"✅ Simple terms acceptance completed for existing user: {user_email}")
+        
+        return jsonify({
+            "success": True, 
+            "message": "Terms accepted successfully",
+            "redirect": "/intro"
+        })
+        
+    except Exception as e:
+        logger.error(f"Error in simple terms acceptance: {e}")
+        return jsonify({"success": False, "error": "Failed to accept terms"}), 500
+
 @app.route('/api/start-trial', methods=['POST'])
 def start_trial():
     """Start 5-hour trial for user"""
