@@ -37,33 +37,46 @@ function updateMessageCount(limit) {
 }
 
 function checkTrialStatus() {
-    let trialStatus = localStorage.getItem("soulbridgeai_trial");
-    const trialStatusDisplay = document.getElementById("trialStatus");
-    
-        if (trialStatus) {
-            // 5 hours in milliseconds
-            const TRIAL_DURATION_MS = 5 * 60 * 60 * 1000;
-            let timePassed = Date.now() - parseInt(trialStatus);
-            if (timePassed < TRIAL_DURATION_MS) {
-            if (trialStatusDisplay) trialStatusDisplay.innerText = "Trial Status: Active";
-            return true;
-        } else {
-            localStorage.removeItem("soulbridgeai_trial");
-            if (trialStatusDisplay) trialStatusDisplay.innerText = "Trial Status: Expired";
-            return false;
-        }
-    } else {
-        if (trialStatusDisplay) trialStatusDisplay.innerText = "Trial Status: None";
-        return false;
-    }
+    // REMOVED: localStorage-based trial logic
+    // Trial status is now controlled by backend and new_trial_system.js
+    console.log('⚠️ OLD checkTrialStatus() called - trial logic moved to backend');
+    return false; // Always return false since this is legacy
 }
 
 function startTrial() {
-    let trialStatus = localStorage.getItem("soulbridgeai_trial");
-    if (trialStatus) {
-        alert("Trial already used.");
-        return;
+    // REMOVED: localStorage-based trial logic
+    // Trial starting is now handled by new_trial_system.js
+    console.log('⚠️ OLD startTrial() called - trial logic moved to new_trial_system.js');
+    alert('Trial system has been updated. Please use the new trial buttons.');
+}
+
+// Chat functionality for dashboard
+async function sendMessage() {
+    const input = document.getElementById('chatInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const messagesContainer = document.getElementById('chatMessages');
+    
+    const message = input?.value?.trim();
+    if (!message || sendBtn?.disabled) return;
+    
+    // Check message limit for non-premium users
+    const isPremium = localStorage.getItem('isPremium') === 'true';
+    const isTrialActive = false; // Legacy - always false since trial is backend-driven
+    
+    if (!isPremium && !isTrialActive) {
+        let messageLimit = parseInt(localStorage.getItem("soulbridgeai_messageLimit")) || 0;
         if (messageLimit <= 0) {
+            alert("Message limit reached. Please subscribe to SoulBridge Plus or start a trial.");
+            return;
+        }
+        messageLimit--;
+        localStorage.setItem("soulbridgeai_messageLimit", messageLimit);
+        updateMessageCount(messageLimit);
+    }
+    
+    // Add user message
+    const userDiv = document.createElement('div');
+    userDiv.className = 'message user-message';
     userDiv.innerHTML = `<strong>You:</strong> ${message}`;
     messagesContainer.appendChild(userDiv);
     
@@ -75,6 +88,7 @@ function startTrial() {
     
     try {
         const response = await fetch('/api/chat', {
+            method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',  // ✅ Include session cookies
             body: JSON.stringify({ message: message })
@@ -132,10 +146,10 @@ window.updateMessageCount = updateMessageCount;
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM loaded - Setting up SoulBridge AI');
     
-    // Initialize trial and message limits
+    // Initialize message limits (trial logic removed - handled by backend)
     const messageLimit = initializeMessageLimit();
     updateMessageCount(messageLimit);
-    checkTrialStatus();
+    // REMOVED: checkTrialStatus() - trial logic moved to backend
     
     // Password toggle initialization DISABLED - Universal Button Fix handles this
     // const passwordToggles = document.querySelectorAll('.password-toggle');
