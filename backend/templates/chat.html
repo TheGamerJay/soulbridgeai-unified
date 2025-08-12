@@ -2543,8 +2543,38 @@ Where emotion meets expression.
             }
         }
 
-        // Initialize robust timer system
-        document.addEventListener('DOMContentLoaded', loadTrial);
+        // Initialize robust timer system - MULTIPLE TRIGGERS
+        console.log('🔧 Timer initialization script loaded');
+        
+        // Try multiple ways to ensure loadTrial runs
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                console.log('🔧 DOMContentLoaded fired, calling loadTrial');
+                loadTrial();
+            });
+        } else {
+            console.log('🔧 DOM already ready, calling loadTrial immediately');
+            loadTrial();
+        }
+        
+        // Also call it after a short delay as backup
+        setTimeout(() => {
+            console.log('🔧 Backup timer trigger after 2 seconds');
+            if (typeof loadTrial === 'function') {
+                console.log('✅ loadTrial function exists, calling it');
+                loadTrial();
+            } else {
+                console.error('❌ loadTrial function NOT FOUND! Check for JS errors above.');
+            }
+            
+            // Debug: Find all elements that might be showing the timer
+            const allTimerElements = document.querySelectorAll('*');
+            allTimerElements.forEach(el => {
+                if (el.textContent && el.textContent.includes('08:') && el.textContent.includes(':')) {
+                    console.error('🔍 FOUND TIMER SHOWING 08:XX:XX:', el.tagName, el.className, el.id, el.textContent);
+                }
+            });
+        }, 2000);
         
         // Refresh user status less frequently 
         setInterval(refreshUserStatus, 15000); // Refresh every 15 seconds (less aggressive)  
