@@ -90,30 +90,31 @@
                 </a>
                 
                 <!-- PREMIUM FEATURES - Only show for actual growth/max subscribers -->
-                {% if session.get('user_plan') in ['growth', 'max'] %}
-                <a href="/voice-journaling" class="action-btn premium-feature" data-tier="growth">
+                <!-- Template user_plan: {{ user_plan }} -->
+                {% if user_plan in ['growth', 'max'] %}
+                <a href="/voice-journaling" class="action-btn" data-tier="growth">
                     <i class="fas fa-microphone"></i>
                     Voice Journal
                 </a>
-                <a href="/ai-image-generation" class="action-btn premium-feature" data-tier="growth">
+                <a href="/ai-image-generation" class="action-btn" data-tier="growth">
                     <i class="fas fa-palette"></i>
                     AI Images
                 </a>
                 {% endif %}
                 
-                {% if session.get('user_plan') == 'max' %}
-                <a href="/music-studio" class="action-btn premium-feature" data-tier="max">
+                {% if user_plan == 'max' %}
+                <a href="/music-studio" class="action-btn" data-tier="max">
                     <i class="fas fa-music"></i>
                     Music Studio
                 </a>
                 {% endif %}
                 
-                {% if session.get('user_plan') in ['growth', 'max'] %}
-                <a href="/relationship-profiles" class="action-btn premium-feature" data-tier="growth">
+                {% if user_plan in ['growth', 'max'] %}
+                <a href="/relationship-profiles" class="action-btn" data-tier="growth">
                     <i class="fas fa-heart"></i>
                     Relationships
                 </a>
-                <a href="/emotional-meditations" class="action-btn premium-feature" data-tier="growth">
+                <a href="/emotional-meditations" class="action-btn" data-tier="growth">
                     <i class="fas fa-om"></i>
                     Meditations
                 </a>
@@ -2449,7 +2450,7 @@ Where emotion meets expression.
         }
 
         // Refresh user status less frequently for simple timer
-        setInterval(refreshUserStatus, 15000); // Refresh every 15 seconds (less aggressive)
+        setInterval(refreshUserStatus, 15000); // Refresh every 15 seconds (less aggressive)  
         refreshUserStatus(); // Run once on load
     </script>
     
