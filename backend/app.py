@@ -1570,18 +1570,36 @@ def trial_status():
             logger.warning(f"Falling back to session-based trial logic: {e}")
             trial_active = session.get('trial_active', False)
             trial_started = session.get('trial_started_at')
+            trial_expires = session.get('trial_expires_at')  # Also check expires_at
+            
+            logger.info(f"🔍 TRIAL DEBUG: trial_active={trial_active}, trial_started={trial_started}, trial_expires={trial_expires}")
+            
             active = False
             expires_at_iso = None
             expires_at_ms = None
-            if trial_active and trial_started:
+            
+            # Try both trial_started_at and trial_expires_at
+            if trial_active and (trial_started or trial_expires):
+                trial_time_ref = trial_expires or trial_started  # Prefer expires_at if available
                 try:
-                    if isinstance(trial_started, str):
-                        trial_start_time = datetime.fromisoformat(trial_started.replace('Z', '+00:00'))
+                    if trial_expires:
+                        # Use expires_at directly if available
+                        if isinstance(trial_expires, str):
+                            expires_at = datetime.fromisoformat(trial_expires.replace('Z', '+00:00'))
+                        else:
+                            expires_at = trial_expires
                     else:
-                        trial_start_time = trial_started
-                    expires_at = trial_start_time + timedelta(hours=5)
+                        # Calculate from start time
+                        if isinstance(trial_started, str):
+                            trial_start_time = datetime.fromisoformat(trial_started.replace('Z', '+00:00'))
+                        else:
+                            trial_start_time = trial_started
+                        expires_at = trial_start_time + timedelta(hours=5)
+                    
                     now = datetime.now(timezone.utc)
                     active = expires_at > now
+                    logger.info(f"✅ TRIAL CALC: expires_at={expires_at}, now={now}, active={active}")
+                    
                     if active:
                         expires_at_iso = expires_at.isoformat().replace("+00:00", "Z")
                         expires_at_ms = int(expires_at.timestamp() * 1000)
