@@ -1,6 +1,46 @@
 // New Clean Trial System - JavaScript Functions
 // Based on the proposed trial system implementation
 
+// Simple toast notification system
+function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 500;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        z-index: 10000;
+        max-width: 400px;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    `;
+    
+    // Set background color based on type
+    const colors = {
+        success: '#10B981',
+        error: '#EF4444', 
+        warning: '#F59E0B',
+        info: '#3B82F6'
+    };
+    toast.style.backgroundColor = colors[type] || colors.info;
+    
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    // Auto remove after 4 seconds
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.style.transition = 'opacity 0.3s ease';
+            toast.style.opacity = '0';
+            setTimeout(() => toast.remove(), 300);
+        }
+    }, 4000);
+}
+
 // Check trial active and update UI
 function refreshTrialUI(trialActive, plan) {
     const buttons = document.querySelectorAll(".btn-select");
@@ -88,16 +128,16 @@ async function startTrial() {
         
         if (data.success) {
             // Trial started successfully
-            alert('🎉 5-hour trial activated! All premium features unlocked.');
+            showToast('🎉 5-hour trial activated! All premium features unlocked.', 'success');
             
             // Refresh the page to update UI
             window.location.reload();
         } else {
-            alert(data.error || 'Failed to start trial');
+            showToast(data.error || 'Failed to start trial', 'error');
         }
     } catch (error) {
         console.error('Error starting trial:', error);
-        alert('Error starting trial. Please try again.');
+        showToast('Error starting trial. Please try again.', 'error');
     }
 }
 

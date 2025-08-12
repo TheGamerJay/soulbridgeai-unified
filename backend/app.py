@@ -35,17 +35,17 @@ from constants import *
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
-# PRODUCTION SECURITY CHECK
-if not ALLOW_DEBUG:
-    logger.warning("🔒 PRODUCTION MODE: Debug endpoints disabled for security")
-else:
-    logger.warning("⚠️ DEVELOPMENT MODE: Debug endpoints enabled - DO NOT USE IN PRODUCTION")
-
 # PRODUCTION SECURITY: Disable debug endpoints in production
 from functools import wraps
 DEBUG_ENABLED = os.environ.get('DEBUG_MODE', 'false').lower() == 'true'
 DEV_MODE = os.environ.get('ENVIRONMENT', 'production').lower() in ['development', 'dev']
 ALLOW_DEBUG = DEBUG_ENABLED or DEV_MODE
+
+# PRODUCTION SECURITY CHECK
+if not ALLOW_DEBUG:
+    logger.warning("🔒 PRODUCTION MODE: Debug endpoints disabled for security")
+else:
+    logger.warning("⚠️ DEVELOPMENT MODE: Debug endpoints enabled - DO NOT USE IN PRODUCTION")
 
 def require_debug_mode():
     """Decorator to disable debug endpoints in production"""
@@ -58,6 +58,71 @@ def require_debug_mode():
             return f(*args, **kwargs)
         return decorated_function
     return decorator
+
+# ENHANCED ADMIN AUTHENTICATION SYSTEM
+def require_admin_auth():
+    """Strong admin authentication decorator with time-limited sessions"""
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            # Check if admin session exists and is valid
+            if not session.get('is_admin'):
+                logger.warning(f"🔒 Unauthorized admin access attempt to {request.endpoint} from {request.remote_addr}")
+                return jsonify({"error": "Admin authentication required"}), 401
+            
+            # Check session timestamp (admin sessions expire after 1 hour)
+            admin_login_time = session.get('admin_login_time')
+            if not admin_login_time:
+                logger.warning(f"🔒 Invalid admin session (no timestamp) for {request.endpoint}")
+                session.clear()
+                return jsonify({"error": "Admin session expired"}), 401
+            
+            # Check if session has expired (1 hour = 3600 seconds)
+            if time.time() - admin_login_time > 3600:
+                logger.warning(f"🔒 Expired admin session for {request.endpoint}")
+                session.clear()
+                return jsonify({"error": "Admin session expired"}), 401
+            
+            # Check for specific admin user ID (additional security layer)
+            if not session.get('admin_user_id'):
+                logger.warning(f"🔒 Invalid admin session (no user ID) for {request.endpoint}")
+                session.clear()
+                return jsonify({"error": "Invalid admin session"}), 401
+            
+            # Update last activity timestamp
+            session['admin_last_activity'] = time.time()
+            
+            logger.info(f"🔑 Admin access granted to {request.endpoint} for user {session.get('admin_user_id')}")
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
+# Admin login rate limiting
+admin_login_attempts = {}
+
+def is_admin_rate_limited(ip_address):
+    """Check if IP is rate limited for admin login attempts"""
+    current_time = time.time()
+    
+    # Clean old attempts (older than 15 minutes)
+    for ip in list(admin_login_attempts.keys()):
+        admin_login_attempts[ip] = [attempt for attempt in admin_login_attempts[ip] 
+                                   if current_time - attempt < 900]
+        if not admin_login_attempts[ip]:
+            del admin_login_attempts[ip]
+    
+    # Check current IP attempts
+    if ip_address not in admin_login_attempts:
+        return False
+    
+    # Allow max 5 attempts per 15 minutes
+    return len(admin_login_attempts[ip_address]) >= 5
+
+def record_admin_login_attempt(ip_address):
+    """Record failed admin login attempt"""
+    if ip_address not in admin_login_attempts:
+        admin_login_attempts[ip_address] = []
+    admin_login_attempts[ip_address].append(time.time())
 
 # Load environment variables from .env file
 try:
@@ -546,8 +611,9 @@ class BasicSurveillanceSystem:
             with open(log_file, "a", encoding="utf-8") as f:
                 f.write(entry + "\n")
         except Exception as e:
-            # Use basic print instead of logger to avoid potential Flask context issues
-            print(f"Failed to write to log {log_file}: {e}")
+            # Use basic logging for surveillance system errors
+            import logging
+            logging.error(f"Failed to write to log {log_file}: {e}")
     
     def log_maintenance(self, action, details):
         """Log maintenance action safely"""
@@ -564,7 +630,8 @@ class BasicSurveillanceSystem:
         except Exception as e:
             # Use safer error logging to prevent recursive formatting errors
             error_msg = str(e)
-            print(f"Error logging maintenance: {error_msg}")
+            import logging
+            logging.error(f"Error logging maintenance: {error_msg}")
     
     def log_threat(self, ip_address, threat_details, severity="medium"):
         """Log security threat safely"""
@@ -588,7 +655,8 @@ class BasicSurveillanceSystem:
         except Exception as e:
             # Use safer error logging to prevent recursive formatting errors
             error_msg = str(e)
-            print(f"Error logging threat: {error_msg}")
+            import logging
+            logging.error(f"Error logging threat: {error_msg}")
     
     def safe_health_check(self):
         """Perform health check without Flask request context"""
@@ -657,7 +725,8 @@ def background_monitoring():
                 try:
                     surveillance_system.log_maintenance("MONITOR_ERROR", f"Background monitoring error: {e}")
                 except:
-                    print(f"Background monitoring error: {e}")
+                    import logging
+                    logging.error(f"Background monitoring error: {e}")
                 time.sleep(60)  # Wait 1 minute before retrying
     
     # Start monitoring in a separate thread
@@ -1018,16 +1087,53 @@ def admin_login_page():
         # POST: process admin login form
         email = request.form.get("email", "").strip().lower()
         password = request.form.get("password", "").strip()
-        # Hardcoded admin credentials
-        ADMIN_EMAIL = "theenvy13@gmail.com"
-        ADMIN_PASSWORD = "Yariel13"
+        # SECURE: Admin credentials from environment variables
+        ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', '').lower().strip()
+        ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', '').strip()
+        
+        # Security check: Ensure admin credentials are configured
+        if not ADMIN_EMAIL or not ADMIN_PASSWORD:
+            logger.error("🚨 SECURITY: Admin credentials not configured in environment variables")
+            flash("Admin system temporarily unavailable", "danger")
+            return redirect("/admin/login")
+        
+        # Rate limiting check
+        client_ip = request.remote_addr
+        if is_admin_rate_limited(client_ip):
+            logger.warning(f"🚨 SECURITY: Admin login rate limited for IP {client_ip}")
+            flash("Too many login attempts. Please wait 15 minutes.", "danger")
+            return redirect("/admin/login")
+        
         if email == ADMIN_EMAIL and password == ADMIN_PASSWORD:
+            # SUCCESS: Setup secure admin session
             setup_user_session(email, is_admin=True)
+            session['admin_login_time'] = time.time()
+            session['admin_last_activity'] = time.time() 
+            session['admin_user_id'] = email
+            session['admin_ip'] = client_ip
+            
+            logger.info(f"🔑 SECURITY: Successful admin login for {email} from {client_ip}")
             flash("Admin login successful!", "success")
             return redirect("/admin/dashboard")
         else:
+            # FAILURE: Record attempt and show error
+            record_admin_login_attempt(client_ip)
+            logger.warning(f"🚨 SECURITY: Failed admin login attempt for {email} from {client_ip}")
             flash("Invalid admin credentials.", "danger")
             return redirect("/admin/login")
+
+@app.route("/admin/logout", methods=["GET", "POST"])
+def admin_logout():
+    """Secure admin logout with complete session cleanup"""
+    if session.get('is_admin'):
+        admin_user = session.get('admin_user_id', 'unknown')
+        admin_ip = session.get('admin_ip', request.remote_addr)
+        logger.info(f"🔓 SECURITY: Admin logout for {admin_user} from {admin_ip}")
+    
+    # Complete session cleanup
+    session.clear()
+    flash("Admin logout successful", "info")
+    return redirect("/admin/login")
 
 @app.route("/health")
 def health():
@@ -3468,8 +3574,8 @@ def voice_chat_process():
         if not audio_file or audio_file.filename == '':
             return jsonify({"success": False, "error": "No audio file selected"}), 400
         
-        print(f"🎤 Processing voice for character: {character}")
-        print(f"🔊 Audio file size: {len(audio_file.read())} bytes")
+        logger.info(f"🎤 Processing voice for character: {character}")
+        logger.info(f"🔊 Audio file size: {len(audio_file.read())} bytes")
         audio_file.seek(0)  # Reset file pointer
         
         # Save audio to temporary file
@@ -3477,7 +3583,7 @@ def voice_chat_process():
         with tempfile.NamedTemporaryFile(delete=False, suffix='.wav') as temp_file:
             audio_path = temp_file.name
             audio_file.save(audio_path)
-            print(f"💾 Saved audio to: {audio_path}")
+            logger.info(f"💾 Saved audio to: {audio_path}")
         
         try:
             # Initialize OpenAI client
@@ -3485,7 +3591,7 @@ def voice_chat_process():
             client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
             
             # Transcribe audio with Whisper
-            print("🔄 Starting Whisper transcription...")
+            logger.info("🔄 Starting Whisper transcription...")
             with open(audio_path, 'rb') as audio_data:
                 transcription = client.audio.transcriptions.create(
                     model="whisper-1",
@@ -3494,7 +3600,7 @@ def voice_chat_process():
                 )
             
             text_input = transcription.strip() if transcription else ""
-            print(f"📝 Transcription result: '{text_input}'")
+            logger.info(f"📝 Transcription result: '{text_input}'")
             
             if not text_input:
                 return jsonify({
@@ -3503,7 +3609,7 @@ def voice_chat_process():
                 }), 400
             
             # Generate GPT-4 response
-            print("🤖 Generating GPT-4 response...")
+            logger.info("🤖 Generating GPT-4 response...")
             system_prompt = f"You are {character}, a compassionate AI companion from SoulBridge AI. Respond naturally and empathetically to the user's voice message. Keep responses conversational, warm, and under 200 words."
             
             chat_response = client.chat.completions.create(
@@ -3517,7 +3623,7 @@ def voice_chat_process():
             )
             
             ai_response = chat_response.choices[0].message.content.strip()
-            print(f"💬 GPT-4 response: '{ai_response}'")
+            logger.info(f"💬 GPT-4 response: '{ai_response}'")
             
             return jsonify({
                 "success": True,
@@ -3530,14 +3636,14 @@ def voice_chat_process():
             # Clean up temporary file
             try:
                 os.unlink(audio_path)
-                print(f"🗑️ Cleaned up temp file: {audio_path}")
+                logger.info(f"🗑️ Cleaned up temp file: {audio_path}")
             except Exception as cleanup_error:
-                print(f"⚠️ Cleanup error: {cleanup_error}")
+                logger.warning(f"⚠️ Cleanup error: {cleanup_error}")
     
     except Exception as e:
-        print(f"❌ Voice chat processing failed: {str(e)}")
+        logger.error(f"❌ Voice chat processing failed: {str(e)}")
         import traceback
-        print(f"❌ Full traceback: {traceback.format_exc()}")
+        logger.error(f"❌ Full traceback: {traceback.format_exc()}")
         return jsonify({"success": False, "error": f"Voice processing error: {str(e)}"}), 500
 
 @app.route("/auth/forgot-password", methods=["GET", "POST"])
@@ -4324,11 +4430,9 @@ def get_admin_css():
 # ========================================
 
 @app.route("/admin/dashboard")
+@require_admin_auth()
 def admin_dashboard():
     """af ADMIN DASHBOARD - System Overview"""
-    # Only allow access if admin is logged in via session
-    if not session.get('is_admin'):
-        return jsonify({"error": "Unauthorized"}), 403
     try:
         # Get system statistics
         stats = {
@@ -4436,6 +4540,7 @@ def admin_dashboard():
         return jsonify({"error": "Dashboard error"}), 500
 
 @app.route("/admin/users")
+@require_admin_auth()
 def admin_users():
     """👥 USER MANAGEMENT - Redirect to new management page"""
     key = request.args.get("key")
@@ -4450,6 +4555,7 @@ def admin_users():
 # ========================================
 
 @app.route("/admin/surveillance")
+@require_admin_auth()
 def admin_surveillance():
     """🚨 SURVEILLANCE COMMAND CENTER - Standalone Security Dashboard"""
     key = request.args.get("key")
@@ -4897,6 +5003,7 @@ def admin_fix_user_plans():
         return jsonify({"error": str(e)}), 500
 
 @app.route("/admin/users/manage")
+@require_admin_auth()
 def admin_manage_users():
     """👥 ADMIN: User Management Dashboard"""
     key = request.args.get("key")

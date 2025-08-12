@@ -64,18 +64,18 @@ class Database:
             
             # Use PostgreSQL connection if all components are available
             self.postgres_url = f"postgresql://{user}:{password}@{host}:{port}/{database}"
-            print(f"Using PostgreSQL private endpoint: {host}")
+            logger.info(f"Using PostgreSQL private endpoint: {host}")
         
         # Fallback to provided URLs (Railway provides DATABASE_URL automatically)
         if not self.postgres_url:
             self.postgres_url = os.environ.get('DATABASE_URL') or os.environ.get('POSTGRES_URL')
             if self.postgres_url:
-                print(f"Using Railway DATABASE_URL: {self.postgres_url[:50]}...")
+                logger.info(f"Using Railway DATABASE_URL: {self.postgres_url[:50]}...")
         
         self.use_postgres = bool(self.postgres_url and POSTGRES_AVAILABLE)
         
         if self.use_postgres:
-            print(f"Using PostgreSQL database: {self.postgres_url[:30]}...")
+            logger.info(f"Using PostgreSQL database: {self.postgres_url[:30]}...")
             self.db_path = None
         else:
             # Fallback to SQLite
@@ -103,20 +103,20 @@ class Database:
                             os.remove(test_file)
                             
                             db_path = path
-                            print(f"Using persistent SQLite path: {db_path}")
+                            logger.info(f"Using persistent SQLite path: {db_path}")
                             break
                         except Exception as e:
-                            print(f"Cannot use path {path}: {e}")
+                            logger.warning(f"Cannot use path {path}: {e}")
                             continue
                     
                     # If no persistent path works, fall back to Railway app directory
                     if not db_path:
                         db_path = "/app/soulbridge.db"
-                        print(f"Using fallback SQLite path: {db_path}")
+                        logger.info(f"Using fallback SQLite path: {db_path}")
                 else:
                     # Development: use local file
                     db_path = "soulbridge.db"
-                    print(f"Using development SQLite path: {db_path}")
+                    logger.info(f"Using development SQLite path: {db_path}")
             
             self.db_path = db_path
             
@@ -129,24 +129,24 @@ class Database:
     def init_database(self):
         """Initialize the database with required tables"""
         try:
-            print(f"Attempting database connection. PostgreSQL: {self.use_postgres}")
+            logger.info(f"Attempting database connection. PostgreSQL: {self.use_postgres}")
             if self.use_postgres:
-                print(f"PostgreSQL URL present: {bool(self.postgres_url)}")
-                print(f"psycopg2 available: {POSTGRES_AVAILABLE}")
+                logger.info(f"PostgreSQL URL present: {bool(self.postgres_url)}")
+                logger.info(f"psycopg2 available: {POSTGRES_AVAILABLE}")
             
             conn = self.get_connection()
             cursor = conn.cursor()
-            print(f"Database connection successful. Using PostgreSQL: {self.use_postgres}")
+            logger.info(f"Database connection successful. Using PostgreSQL: {self.use_postgres}")
             
             # Clean up conflicting schema if needed
             if self.use_postgres:
                 self._cleanup_conflicting_schema(cursor)
                 
         except Exception as e:
-            print(f"Database connection failed: {e}")
-            print(f"Error type: {type(e).__name__}")
+            logger.error(f"Database connection failed: {e}")
+            logger.error(f"Error type: {type(e).__name__}")
             if hasattr(e, 'args'):
-                print(f"Error args: {e.args}")
+                logger.error(f"Error args: {e.args}")
             raise e
 
         # Create users table first (required for foreign keys)
@@ -438,7 +438,7 @@ class Database:
     def _cleanup_conflicting_schema(self, cursor):
         """Clean up conflicting table schemas from previous deployments"""
         try:
-            print("CLEANUP: Checking for conflicting table schemas...")
+            logger.info("CLEANUP: Checking for conflicting table schemas...")
             
             # Simple approach: check if users table has user_id column (old schema)
             cursor.execute("""
@@ -448,7 +448,7 @@ class Database:
             """)
             
             if cursor.fetchone():
-                print("CLEANUP: Found old users table with user_id column. Cleaning up schema...")
+                logger.info("CLEANUP: Found old users table with user_id column. Cleaning up schema...")
                 
                 # Drop all tables that might have conflicts - they'll be recreated
                 tables_to_drop = [
@@ -461,20 +461,20 @@ class Database:
                 
                 for table in tables_to_drop:
                     cursor.execute(f"DROP TABLE IF EXISTS {table} CASCADE")
-                    print(f"   Dropped table: {table}")
+                    logger.info(f"   Dropped table: {table}")
                 
                 # Drop and recreate users table with new schema
                 cursor.execute("DROP TABLE IF EXISTS users CASCADE")
-                print("   Dropped old users table")
+                logger.info("   Dropped old users table")
                 
                 # Commit the drops before creating new tables
                 cursor.connection.commit()
-                print("SUCCESS: Schema cleanup completed - old tables dropped")
+                logger.info("SUCCESS: Schema cleanup completed - old tables dropped")
             else:
-                print("SUCCESS: No conflicting schema found")
+                logger.info("SUCCESS: No conflicting schema found")
                 
         except Exception as e:
-            print(f"WARNING: Schema cleanup failed (will continue): {e}")
+            logger.warning(f"WARNING: Schema cleanup failed (will continue): {e}")
             try:
                 # Rollback on error to clear failed transaction
                 cursor.connection.rollback()
@@ -485,22 +485,22 @@ class Database:
         """Get database connection"""
         if self.use_postgres:
             try:
-                print(f"Connecting to PostgreSQL with URL: {self.postgres_url[:50]}...")
+                logger.info(f"Connecting to PostgreSQL with URL: {self.postgres_url[:50]}...")
                 conn = psycopg2.connect(self.postgres_url)
-                print("PostgreSQL connection established successfully")
+                logger.info("PostgreSQL connection established successfully")
                 return conn
             except Exception as e:
-                print(f"PostgreSQL connection error: {e}")
-                print(f"PostgreSQL URL: {self.postgres_url}")
+                logger.error(f"PostgreSQL connection error: {e}")
+                logger.error(f"PostgreSQL URL: {self.postgres_url}")
                 raise e
         else:
             try:
-                print(f"Connecting to SQLite at: {self.db_path}")
+                logger.info(f"Connecting to SQLite at: {self.db_path}")
                 conn = sqlite3.connect(self.db_path)
-                print("SQLite connection established successfully")
+                logger.info("SQLite connection established successfully")
                 return conn
             except Exception as e:
-                print(f"SQLite connection error: {e}")
+                logger.error(f"SQLite connection error: {e}")
                 raise e
     
     def backup_database(self, backup_path=None):

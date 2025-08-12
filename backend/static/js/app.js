@@ -1,6 +1,46 @@
 // SoulBridge AI - Login/Register System
 console.log('SoulBridge AI Loading...');
 
+// Simple toast notification system (shared)
+function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 500;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        z-index: 10000;
+        max-width: 400px;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    `;
+    
+    // Set background color based on type
+    const colors = {
+        success: '#10B981',
+        error: '#EF4444', 
+        warning: '#F59E0B',
+        info: '#3B82F6'
+    };
+    toast.style.backgroundColor = colors[type] || colors.info;
+    
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    // Auto remove after 4 seconds
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.style.transition = 'opacity 0.3s ease';
+            toast.style.opacity = '0';
+            setTimeout(() => toast.remove(), 300);
+        }
+    }, 4000);
+}
+
 // Password toggle function DISABLED - Universal Button Fix handles this
 // function togglePassword(inputId = 'password') {
 //     // Disabled to prevent conflicts with Universal Button Fix
@@ -47,7 +87,7 @@ function startTrial() {
     // REMOVED: localStorage-based trial logic
     // Trial starting is now handled by new_trial_system.js
     console.log('⚠️ OLD startTrial() called - trial logic moved to new_trial_system.js');
-    alert('Trial system has been updated. Please use the new trial buttons.');
+    showToast('Trial system has been updated. Please use the new trial buttons.', 'warning');
 }
 
 // Chat functionality for dashboard
@@ -66,7 +106,7 @@ async function sendMessage() {
     if (!isPremium && !isTrialActive) {
         let messageLimit = parseInt(localStorage.getItem("soulbridgeai_messageLimit")) || 0;
         if (messageLimit <= 0) {
-            alert("Message limit reached. Please subscribe to SoulBridge Plus or start a trial.");
+            showToast("Message limit reached. Please subscribe to SoulBridge Plus or start a trial.", 'warning');
             return;
         }
         messageLimit--;
