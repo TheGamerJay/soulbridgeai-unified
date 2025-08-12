@@ -55,10 +55,11 @@ def get_feature_limit(user_plan: str, feature: str, trial_active: bool = False) 
     plan = user_plan  # Always use actual plan for limits, never "max" during trial
     return DAILY_LIMITS.get(plan, {}).get(feature, 0)
 
-# GET CREDITS FOR USER (resets monthly, based on actual plan)
+# GET CREDITS FOR USER (resets monthly with NO ROLLOVER, based on actual plan)
 def get_user_credits(user_id):
     """
     Get user's available credits, auto-reset monthly based on actual plan
+    IMPORTANT: Credits DO NOT roll over - any unused credits are lost at reset
     Trial users keep their plan's credit allocation
     """
     try:
@@ -69,7 +70,7 @@ def get_user_credits(user_id):
         conn = psycopg2.connect(database_url)
         cur = conn.cursor()
         cur.execute("""
-            SELECT credits, last_credit_reset, plan_type FROM users WHERE id = %s
+            SELECT credits, last_credit_reset, plan_type, purchased_credits FROM users WHERE id = %s
         """, (user_id,))
         row = cur.fetchone()
         
@@ -77,33 +78,47 @@ def get_user_credits(user_id):
             conn.close()
             return 0
             
-        credits, last_reset, plan_type = row
+        credits, last_reset, plan_type, purchased_credits = row
         plan = plan_type or session.get("user_plan", "free")
+        purchased_credits = purchased_credits or 0
 
         now = datetime.utcnow()
 
-        # Reset if 1 month has passed
+        # Reset if 1 month has passed - NO ROLLOVER
         if not last_reset or (now - last_reset).days >= 30:
-            credits = MONTHLY_CREDITS.get(plan, 0)
+            # RESET: Replace ALL credits with plan allowance (no rollover)
+            plan_credits = MONTHLY_CREDITS.get(plan, 0)
+            
+            # Log credit loss if user had unused credits
+            old_total = (credits or 0) + purchased_credits
+            if old_total > 0:
+                logger.info(f"💳 CREDITS LOST: User {user_id} lost {old_total} unused credits (no rollover policy)")
+            
             cur.execute("""
                 UPDATE users
-                SET credits = %s, last_credit_reset = %s
+                SET credits = %s, last_credit_reset = %s, purchased_credits = 0
                 WHERE id = %s
-            """, (credits, now, user_id))
+            """, (plan_credits, now, user_id))
             conn.commit()
-            logger.info(f"💳 CREDITS RESET: User {user_id} ({plan}) reset to {credits} credits")
+            logger.info(f"💳 CREDITS RESET: User {user_id} ({plan}) reset to {plan_credits} credits (no rollover)")
+            
+            conn.close()
+            return plan_credits
+        else:
+            # Return total of plan credits + purchased credits
+            total_credits = (credits or 0) + purchased_credits
+            conn.close()
+            return total_credits
 
-        conn.close()
-        return credits or 0
-        
     except Exception as e:
         logger.error(f"Error getting user credits: {e}")
         return 0
 
-# DEDUCT CREDITS WHEN USING PREMIUM FEATURE
+# DEDUCT CREDITS WHEN USING PREMIUM FEATURE  
 def deduct_credits(user_id, amount):
     """
     Deduct credits for premium feature usage
+    Prioritizes purchased credits first, then plan credits
     Returns True if successful, False if insufficient credits
     """
     try:
@@ -113,24 +128,36 @@ def deduct_credits(user_id, amount):
             
         conn = psycopg2.connect(database_url)
         cur = conn.cursor()
-        cur.execute("SELECT credits FROM users WHERE id = %s", (user_id,))
+        cur.execute("SELECT credits, purchased_credits FROM users WHERE id = %s", (user_id,))
         row = cur.fetchone()
         
         if not row:
             conn.close()
             return False
 
-        credits = row[0] or 0
-        if credits >= amount:
-            new_credits = credits - amount
-            cur.execute("UPDATE users SET credits = %s WHERE id = %s", (new_credits, user_id))
+        plan_credits = row[0] or 0
+        purchased_credits = row[1] or 0
+        total_credits = plan_credits + purchased_credits
+        
+        if total_credits >= amount:
+            # Deduct from purchased credits first (they don't rollover)
+            if purchased_credits >= amount:
+                new_purchased = purchased_credits - amount
+                cur.execute("UPDATE users SET purchased_credits = %s WHERE id = %s", (new_purchased, user_id))
+                logger.info(f"💳 PURCHASED CREDITS USED: User {user_id} spent {amount} purchased credits, {new_purchased} purchased remaining")
+            else:
+                # Use all purchased credits, then deduct from plan credits
+                remaining_to_deduct = amount - purchased_credits
+                new_plan_credits = plan_credits - remaining_to_deduct
+                cur.execute("UPDATE users SET purchased_credits = 0, credits = %s WHERE id = %s", (new_plan_credits, user_id))
+                logger.info(f"💳 MIXED CREDITS USED: User {user_id} spent {purchased_credits} purchased + {remaining_to_deduct} plan credits")
+            
             conn.commit()
             conn.close()
-            logger.info(f"💳 CREDITS DEDUCTED: User {user_id} spent {amount} credits, {new_credits} remaining")
             return True
 
         conn.close()
-        logger.warning(f"💳 INSUFFICIENT CREDITS: User {user_id} has {credits}, needs {amount}")
+        logger.warning(f"💳 INSUFFICIENT CREDITS: User {user_id} has {total_credits} total, needs {amount}")
         return False
         
     except Exception as e:

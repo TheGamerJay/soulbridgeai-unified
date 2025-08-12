@@ -13225,6 +13225,24 @@ def buy_credits_page():
     user_id = session.get('user_id')
     current_credits = get_user_credits(user_id) if user_id else 0
     
+    # Get breakdown of credits for display
+    credits_breakdown = {"plan": 0, "purchased": 0}
+    if user_id:
+        try:
+            database_url = os.environ.get('DATABASE_URL')
+            if database_url:
+                import psycopg2
+                conn = psycopg2.connect(database_url)
+                cur = conn.cursor()
+                cur.execute("SELECT credits, purchased_credits FROM users WHERE id = %s", (user_id,))
+                row = cur.fetchone()
+                if row:
+                    credits_breakdown["plan"] = row[0] or 0
+                    credits_breakdown["purchased"] = row[1] or 0
+                conn.close()
+        except Exception as e:
+            logger.error(f"Error getting credits breakdown: {e}")
+    
     return render_template_string('''
 <!DOCTYPE html>
 <html lang="en">
@@ -13298,7 +13316,13 @@ def buy_credits_page():
         
         <div class="credits-card">
             <div class="current-credits">
-                💳 Current Credits: {{ current_credits }}
+                💳 Total Credits: {{ current_credits }}
+                <div style="font-size: 1rem; color: #94a3b8; margin-top: 5px;">
+                    Plan: {{ credits_breakdown.plan }} • Purchased: {{ credits_breakdown.purchased }}
+                </div>
+                <div style="font-size: 0.8rem; color: #f97316; margin-top: 5px;">
+                    ⚠️ Credits reset monthly - no rollover
+                </div>
             </div>
             
             <h2>🚀 Boost Your AI Experience</h2>
@@ -13327,7 +13351,7 @@ def buy_credits_page():
     </div>
 </body>
 </html>
-    ''', current_credits=current_credits)
+    ''', current_credits=current_credits, credits_breakdown=credits_breakdown)
 
 @app.route("/api/buy-credits", methods=["POST"])
 def api_buy_credits():
@@ -13387,7 +13411,7 @@ def credits_purchase_success():
     """Credits purchase success page"""
     session_id = request.args.get('session_id')
     
-    # Verify payment and add credits
+    # Verify payment and add credits with security checks
     if session_id:
         try:
             import stripe
@@ -13395,19 +13419,122 @@ def credits_purchase_success():
             
             if stripe.api_key:
                 checkout_session = stripe.checkout.Session.retrieve(session_id)
-                if checkout_session.payment_status == "paid":
-                    user_email = session.get('user_email')
+                # FRAUD PREVENTION: Verify payment is actually paid AND completed
+                if (checkout_session.payment_status == "paid" and 
+                    checkout_session.status == "complete"):
+                    current_user_email = session.get('user_email')
+                    session_user_id = session.get('user_id')
+                    
+                    # FRAUD PREVENTION: Verify payment amount matches expected amount
+                    expected_amount = 350  # $3.50 in cents
+                    if checkout_session.amount_total != expected_amount:
+                        logger.warning(f"🚨 FRAUD: Payment amount mismatch - expected {expected_amount}, got {checkout_session.amount_total}")
+                        return render_template_string('''
+                        <div style="text-align: center; padding: 50px; font-family: Arial;">
+                            <h2 style="color: red;">⚠️ Payment Amount Error</h2>
+                            <p>Payment amount does not match expected price. Please contact support.</p>
+                            <a href="/" style="color: #22d3ee;">← Return to Home</a>
+                        </div>
+                        ''')
+                    
+                    # FRAUD PREVENTION: Check payment is recent (prevent old session reuse)
+                    payment_created = datetime.fromtimestamp(checkout_session.created)
+                    payment_age = datetime.utcnow() - payment_created
+                    if payment_age.total_seconds() > 3600:  # 1 hour limit
+                        logger.warning(f"🚨 FRAUD: Payment session too old - {payment_age.total_seconds()} seconds")
+                        return render_template_string('''
+                        <div style="text-align: center; padding: 50px; font-family: Arial;">
+                            <h2 style="color: red;">⚠️ Payment Session Expired</h2>
+                            <p>This payment session is too old. Please make a new purchase.</p>
+                            <a href="/buy-credits" style="color: #22d3ee;">← Buy Credits Again</a>
+                        </div>
+                        ''')
+                    
+                    # SECURITY: Verify the payment belongs to the current user
+                    payment_user_email = checkout_session.metadata.get('user_email')
+                    
+                    if current_user_email != payment_user_email:
+                        logger.warning(f"🚨 SECURITY: Payment hijack attempt - session user {current_user_email} trying to claim payment for {payment_user_email}")
+                        return render_template_string('''
+                        <div style="text-align: center; padding: 50px; font-family: Arial;">
+                            <h2 style="color: red;">⚠️ Security Error</h2>
+                            <p>This payment does not belong to your account. Please contact support.</p>
+                            <a href="/" style="color: #22d3ee;">← Return to Home</a>
+                        </div>
+                        ''')
                     
                     # Check if this is a credits purchase
                     if checkout_session.metadata and checkout_session.metadata.get('type') == 'credits_purchase':
                         credits_amount = int(checkout_session.metadata.get('credits_amount', 350))
                         
+                        # SECURITY: Verify user is authorized to purchase credits
+                        user_plan = session.get('user_plan', 'free')
+                        trial_active = session.get('trial_active', False)
+                        
+                        if user_plan == 'free' and not trial_active:
+                            logger.warning(f"🚨 SECURITY: Free user {current_user_email} trying to claim credits without authorization")
+                            return render_template_string('''
+                            <div style="text-align: center; padding: 50px; font-family: Arial;">
+                                <h2 style="color: red;">⚠️ Authorization Error</h2>
+                                <p>Credits purchase requires Growth/Max plan or active trial.</p>
+                                <a href="/tiers" style="color: #22d3ee;">← Upgrade Plan</a>
+                            </div>
+                            ''')
+                        
+                        # SECURITY: Prevent duplicate credit grants for same payment
+                        try:
+                            database_url = os.environ.get('DATABASE_URL')
+                            if database_url:
+                                import psycopg2
+                                conn = psycopg2.connect(database_url)
+                                cursor = conn.cursor()
+                                
+                                # Check if this payment was already processed
+                                cursor.execute("""
+                                    SELECT id FROM payment_events 
+                                    WHERE stripe_event_id = %s AND event_type = 'credits_purchase'
+                                """, (session_id,))
+                                
+                                if cursor.fetchone():
+                                    logger.warning(f"🚨 SECURITY: Duplicate credit claim attempt for payment {session_id}")
+                                    conn.close()
+                                    return render_template_string('''
+                                    <div style="text-align: center; padding: 50px; font-family: Arial;">
+                                        <h2 style="color: orange;">⚠️ Payment Already Processed</h2>
+                                        <p>These credits have already been added to your account.</p>
+                                        <a href="/" style="color: #22d3ee;">← Return to Home</a>
+                                    </div>
+                                    ''')
+                                
+                                conn.close()
+                        except Exception as db_check_error:
+                            logger.error(f"Database check error: {db_check_error}")
+                        
                         # Add credits to user account
-                        user_id = session.get('user_id')
-                        if user_id:
-                            success = add_trainer_credits(user_id, credits_amount)
+                        if session_user_id:
+                            success = add_trainer_credits(session_user_id, credits_amount)
                             if success:
-                                logger.info(f"✅ CREDITS ADDED: {credits_amount} credits added to user {user_id} via payment {session_id}")
+                                logger.info(f"✅ CREDITS ADDED: {credits_amount} credits added to user {session_user_id} via payment {session_id}")
+                                
+                                # Record payment event to prevent duplicates
+                                try:
+                                    database_url = os.environ.get('DATABASE_URL')
+                                    if database_url:
+                                        import psycopg2
+                                        conn = psycopg2.connect(database_url)
+                                        cursor = conn.cursor()
+                                        
+                                        cursor.execute("""
+                                            INSERT INTO payment_events 
+                                            (user_id, email, event_type, amount, stripe_event_id, created_at)
+                                            VALUES (%s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                                        """, (session_user_id, current_user_email, 'credits_purchase', 3.50, session_id))
+                                        
+                                        conn.commit()
+                                        conn.close()
+                                        logger.info(f"📝 RECORDED: Payment event for credits purchase {session_id}")
+                                except Exception as record_error:
+                                    logger.error(f"Error recording payment event: {record_error}")
                             
         except Exception as e:
             logger.error(f"Credits verification error: {e}")
@@ -13469,7 +13596,7 @@ def credits_purchase_success():
     ''')
 
 def add_trainer_credits(user_id, amount=350):
-    """Add credits to user account"""
+    """Add purchased credits to user account (separate from plan credits)"""
     try:
         database_url = os.environ.get('DATABASE_URL')
         if not database_url:
@@ -13479,21 +13606,28 @@ def add_trainer_credits(user_id, amount=350):
         conn = psycopg2.connect(database_url)
         cur = conn.cursor()
         
-        # Add credits to user account
+        # Ensure purchased_credits column exists
+        try:
+            cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS purchased_credits INTEGER DEFAULT 0")
+            conn.commit()
+        except Exception as migration_error:
+            logger.warning(f"Migration warning (column might exist): {migration_error}")
+        
+        # Add to purchased_credits (separate from plan credits)
         cur.execute("""
             UPDATE users 
-            SET credits = COALESCE(credits, 0) + %s 
+            SET purchased_credits = COALESCE(purchased_credits, 0) + %s 
             WHERE id = %s
         """, (amount, user_id))
         
         conn.commit()
         conn.close()
         
-        logger.info(f"💳 CREDITS ADDED: {amount} credits added to user {user_id}")
+        logger.info(f"💳 PURCHASED CREDITS ADDED: {amount} purchased credits added to user {user_id}")
         return True
         
     except Exception as e:
-        logger.error(f"Error adding credits: {e}")
+        logger.error(f"Error adding purchased credits: {e}")
         return False
 
 # APPLICATION STARTUP
