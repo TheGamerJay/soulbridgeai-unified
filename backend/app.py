@@ -1622,9 +1622,9 @@ def start_trial():
     # Update database
     try:
         if db.use_postgres:
-            cursor.execute("UPDATE users SET trial_started_at = %s, trial_expires_at = %s, trial_used_permanently = TRUE WHERE id = %s", (now, expires, user_id))
+            cursor.execute("UPDATE users SET trial_started_at = %s, trial_expires_at = %s, trial_used_permanently = FALSE WHERE id = %s", (now, expires, user_id))
         else:
-            cursor.execute("UPDATE users SET trial_started_at = ?, trial_expires_at = ?, trial_used_permanently = TRUE WHERE id = ?", (now.isoformat(), expires.isoformat(), user_id))
+            cursor.execute("UPDATE users SET trial_started_at = ?, trial_expires_at = ?, trial_used_permanently = FALSE WHERE id = ?", (now.isoformat(), expires.isoformat(), user_id))
         
         conn.commit()
         conn.close()
@@ -1633,11 +1633,11 @@ def start_trial():
         logger.error(f"Database error starting trial: {e}")
         return jsonify({"success": False, "error": "Database error"}), 500
 
-    # Update session - CRITICAL: Set trial_active to True and effective_plan to max
+    # Update session - CRITICAL: Set trial_active to True, don't mark as used permanently yet
     session['trial_active'] = True
     session['trial_started_at'] = now.isoformat()
     session['trial_expires_at'] = expires.isoformat()
-    session['trial_used_permanently'] = True
+    session['trial_used_permanently'] = False  # Only set to True when trial expires
     # Don't cache effective_plan - get_effective_plan() will return 'max' when trial_active=True
     session['trial_warning_sent'] = False
 
@@ -7196,7 +7196,7 @@ def start_trial_bulletproof():
                     
                     # Update users table
                     if db_instance.use_postgres:
-                        cursor.execute("UPDATE users SET trial_started_at = %s, trial_expires_at = %s, trial_active = TRUE WHERE id = %s", (now, expires, user_id))
+                        cursor.execute("UPDATE users SET trial_started_at = %s, trial_expires_at = %s, trial_active = TRUE, trial_used_permanently = FALSE WHERE id = %s", (now, expires, user_id))
                         
                         # Create MaxTrial record with 60 credits
                         cursor.execute("""
@@ -7207,7 +7207,7 @@ def start_trial_bulletproof():
                         # Grant 60 credits to user
                         cursor.execute("UPDATE users SET trainer_credits = COALESCE(trainer_credits, 0) + 60 WHERE id = %s", (user_id,))
                     else:
-                        cursor.execute("UPDATE users SET trial_started_at = ?, trial_expires_at = ?, trial_active = TRUE WHERE id = ?", (now.isoformat(), expires.isoformat(), user_id))
+                        cursor.execute("UPDATE users SET trial_started_at = ?, trial_expires_at = ?, trial_active = TRUE, trial_used_permanently = 0 WHERE id = ?", (now.isoformat(), expires.isoformat(), user_id))
                         
                         # Create MaxTrial record with 60 credits
                         cursor.execute("""
