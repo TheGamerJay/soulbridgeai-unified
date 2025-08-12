@@ -409,6 +409,11 @@
     </div>
 
     <style>
+        /* Hide premium features by default to prevent flash */
+        .premium-feature {
+            display: none !important;
+        }
+        
         .creative-modal {
             max-width: 800px;
             width: 90%;
@@ -2397,7 +2402,13 @@ Where emotion meets expression.
                     // Only show premium features for actual growth/max subscribers
                     // Free users never see these buttons (even during trial)
                     const shouldShow = (user_plan === 'growth' || user_plan === 'max');
-                    btn.style.display = shouldShow ? 'inline-block' : 'none';
+                    
+                    if (shouldShow) {
+                        btn.style.display = 'inline-block';
+                        btn.style.removeProperty('display'); // Remove the !important override
+                    } else {
+                        btn.style.display = 'none';
+                    }
                     
                     console.log(`🎯 Premium feature "${btn.textContent.trim()}" should show: ${shouldShow} (display: ${btn.style.display})`);
                 });
