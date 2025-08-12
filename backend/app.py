@@ -7270,10 +7270,12 @@ def api_plan_new():
         effective_plan = get_effective_plan_new(user_plan, trial_active)
         access = get_access_matrix_new(user_plan, trial_active)
         
+        # FIXED: Use actual user_plan for limits, not effective_plan
+        # Trial gives access to features but keeps original plan limits
         limits = {
-            "decoder": get_feature_limit(effective_plan, "decoder"),
-            "fortune": get_feature_limit(effective_plan, "fortune"),
-            "horoscope": get_feature_limit(effective_plan, "horoscope"),
+            "decoder": get_feature_limit(user_plan, "decoder"),
+            "fortune": get_feature_limit(user_plan, "fortune"),
+            "horoscope": get_feature_limit(user_plan, "horoscope"),
         }
         
         return jsonify({
