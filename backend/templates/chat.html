@@ -2207,6 +2207,7 @@ Where emotion meets expression.
                 // Update creative writing button
                 const creativeBtn = document.querySelector('[data-feature="creative_writer"]');
                 const creativeLimit = document.getElementById('creativeLimit');
+                console.log(`🎨 Creative button found: ${!!creativeBtn}, Creative limit element found: ${!!creativeLimit}`);
                 if (creativeBtn && creativeLimit) {
                     const creativeUsed = usage.creative_writer || 0;
                     const creativeMax = limits.creative_writer;
@@ -2236,14 +2237,23 @@ Where emotion meets expression.
             } catch (error) {
                 console.error('❌ Error updating tier limits:', error);
                 
-                // Show error state on buttons
-                const features = ['decoder', 'fortune', 'horoscope', 'creative'];
-                features.forEach(feature => {
-                    const limitElement = document.getElementById(`${feature}Limit`);
-                    if (limitElement) {
-                        limitElement.textContent = 'Error';
-                        limitElement.style.color = '#ff4545';
-                    }
+                // Show default limits for free users when API fails
+                console.log('🔄 Setting default free tier limits due to API error');
+                
+                // Set default free tier limits
+                const decoderLimit = document.getElementById('decoderLimit');
+                const fortuneLimit = document.getElementById('fortuneLimit');
+                const horoscopeLimit = document.getElementById('horoscopeLimit');
+                const creativeLimit = document.getElementById('creativeLimit');
+                
+                if (decoderLimit) decoderLimit.textContent = '0/3';
+                if (fortuneLimit) fortuneLimit.textContent = '0/2';
+                if (horoscopeLimit) horoscopeLimit.textContent = '0/3';
+                if (creativeLimit) creativeLimit.textContent = '0/2';
+                
+                // Ensure all tier buttons are visible
+                document.querySelectorAll('.tier-btn').forEach(btn => {
+                    btn.style.display = 'inline-block';
                 });
             }
         }
