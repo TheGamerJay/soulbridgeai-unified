@@ -616,12 +616,14 @@ class BasicSurveillanceSystem:
             logging.error(f"Failed to write to log {log_file}: {e}")
     
     def log_maintenance(self, action, details):
-        """Log maintenance action safely"""
+        """Log maintenance action in human-readable format"""
         try:
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            # Safely convert details to string to prevent formatting errors
-            details_str = str(details) if details is not None else "None"
-            entry = f"[{timestamp}] 🔧 {action}: {details_str}"
+            
+            # Translate technical actions to human-readable messages
+            human_readable = self.translate_maintenance_action(action, details)
+            
+            entry = f"[{timestamp}] 🔧 {human_readable}"
             self.maintenance_log.append(entry)
             # Keep only last 1000 entries in memory
             if len(self.maintenance_log) > 1000:
@@ -633,15 +635,43 @@ class BasicSurveillanceSystem:
             import logging
             logging.error(f"Error logging maintenance: {error_msg}")
     
+    def translate_maintenance_action(self, action, details):
+        """Convert technical maintenance codes to human-readable messages"""
+        details_str = str(details) if details is not None else ""
+        
+        # Translation dictionary for common maintenance actions
+        translations = {
+            "BIOLOGICAL_BIRTH": "🎉 System Starting Up - All services coming online",
+            "BRAIN_ONLINE": "🧠 AI Processing System - Ready to handle requests", 
+            "HEART_ONLINE": "❤️ Core Database Connection - Successfully connected",
+            "LUNGS_ONLINE": "🫁 API Services - Ready to receive requests",
+            "VESSELS_ONLINE": "🔗 Network Communications - All endpoints active",
+            "BIOLOGICAL_SYSTEMS_ONLINE": "✅ All Systems Operational - Application fully ready",
+            "FILE_MONITOR_INIT": f"👁️ File Security Monitor - Now watching {details_str.replace('Monitoring initialized for ', '')}",
+            "SYSTEM_START": "🚀 Auto-Maintenance System - Background monitoring started",
+            "SYSTEM_SHUTDOWN": "🛑 System Shutdown - All services stopping gracefully",
+            "DATABASE_BACKUP": "💾 Database Backup - Creating safety backup",
+            "SECURITY_SCAN": "🔍 Security Scan - Checking system integrity",
+            "UPDATE_CHECK": "🔄 Update Check - Looking for system improvements",
+            "PERFORMANCE_MONITOR": "📊 Performance Check - Monitoring system health"
+        }
+        
+        # Return human-readable translation or original with details
+        return translations.get(action, f"{action}: {details_str}")
+    
     def log_threat(self, ip_address, threat_details, severity="medium"):
-        """Log security threat safely"""
+        """Log security threat in human-readable format"""
         try:
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             # Safely convert all inputs to strings to prevent formatting errors
             ip_str = str(ip_address) if ip_address is not None else "Unknown"
             details_str = str(threat_details) if threat_details is not None else "None"
             severity_str = str(severity).upper() if severity is not None else "UNKNOWN"
-            entry = f"[{timestamp}] 🚨 THREAT ({severity_str}): {ip_str} - {details_str}"
+            
+            # Translate technical threat details to human-readable messages
+            human_threat = self.translate_threat_details(details_str, severity_str)
+            
+            entry = f"[{timestamp}] 🚨 SECURITY ALERT ({severity_str}): {human_threat} (Source: {ip_str})"
             self.security_threats.append({
                 'timestamp': datetime.now(),
                 'ip': ip_str,
@@ -657,6 +687,53 @@ class BasicSurveillanceSystem:
             error_msg = str(e)
             import logging
             logging.error(f"Error logging threat: {error_msg}")
+    
+    def translate_threat_details(self, details, severity):
+        """Convert technical threat codes to human-readable security messages"""
+        
+        # Severity icons
+        severity_icons = {
+            "LOW": "🟡",
+            "MEDIUM": "🟠", 
+            "HIGH": "🔴",
+            "CRITICAL": "🚨"
+        }
+        
+        icon = severity_icons.get(severity, "⚠️")
+        
+        # Translation patterns for common threats
+        if "file integrity violation" in details.lower():
+            file_name = details.split(": ")[-1] if ": " in details else "system file"
+            return f"{icon} File Security Warning - Important system file '{file_name}' was modified unexpectedly"
+        
+        elif "suspicious login attempt" in details.lower():
+            return f"{icon} Login Security Alert - Multiple failed login attempts detected"
+        
+        elif "malware" in details.lower() or "virus" in details.lower():
+            return f"{icon} Malware Detection - Potential malicious software detected"
+        
+        elif "ddos" in details.lower() or "flood" in details.lower():
+            return f"{icon} Network Attack - Unusual traffic patterns detected (possible DDoS)"
+        
+        elif "sql injection" in details.lower():
+            return f"{icon} Database Attack - Attempted SQL injection attack blocked"
+        
+        elif "brute force" in details.lower():
+            return f"{icon} Password Attack - Brute force login attempt detected"
+        
+        elif "unauthorized access" in details.lower():
+            return f"{icon} Access Violation - Unauthorized access attempt to restricted area"
+        
+        elif "rate limit" in details.lower():
+            return f"{icon} Traffic Control - Excessive requests from this source"
+        
+        elif "firewall" in details.lower():
+            return f"{icon} Firewall Block - Connection blocked by security rules"
+        
+        else:
+            # Fallback: make generic details more readable
+            clean_details = details.replace("_", " ").title()
+            return f"{icon} Security Event - {clean_details}"
     
     def safe_health_check(self):
         """Perform health check without Flask request context"""
