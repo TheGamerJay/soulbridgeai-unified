@@ -2612,6 +2612,10 @@ def chat():
     # Debug logging
     logger.info(f"🎭 CHAT COMPANION DEBUG: companion_name={companion_name}, display_name={companion_info['name']}, avatar={companion_info['avatar']}")
     
+    # SPECIAL DEBUG for GamerJay Premium
+    if "gamerjay" in companion_name.lower():
+        logger.info(f"🔍 GAMERJAY DEBUG: Original companion_id={request.args.get('companion')}, Final companion_name={companion_name}, Avatar path={companion_info['avatar']}")
+    
     return render_template("chat.html",
         companion=companion_name,
         companion_display_name=companion_info['name'],
@@ -4247,10 +4251,11 @@ def admin_surveillance():
     if key != ADMIN_DASH_KEY:
         return jsonify({"error": "Unauthorized - Access Denied"}), 403
 
-    # Clear any existing user session and set pure admin session
-    session.clear()
+    # CRITICAL FIX: Don't clear user session - preserve user data and add admin access
     session["admin_logged_in"] = True
     session["surveillance_access"] = True
+    session.permanent = True
+    logger.info("🔧 ADMIN: Added admin access WITHOUT clearing user session")
 
     try:
         # Read all log files for template
