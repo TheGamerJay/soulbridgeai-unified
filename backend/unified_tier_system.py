@@ -21,6 +21,44 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+def check_active_subscription(user_id, plan):
+    """
+    Check if user has an active subscription for the given plan
+    Returns True if user has active subscription, False if cancelled/expired
+    """
+    try:
+        database_url = os.environ.get('DATABASE_URL')
+        if not database_url:
+            return False
+            
+        conn = psycopg2.connect(database_url)
+        cur = conn.cursor()
+        
+        # Check subscriptions table for active subscription
+        cur.execute("""
+            SELECT status, plan_type FROM subscriptions 
+            WHERE user_id = %s AND plan_type = %s 
+            ORDER BY created_at DESC LIMIT 1
+        """, (user_id, plan))
+        
+        result = cur.fetchone()
+        conn.close()
+        
+        if result:
+            status, plan_type = result
+            # Active subscription means status is 'active' and plan matches
+            is_active = (status == 'active' and plan_type == plan)
+            logger.info(f"🔍 SUBSCRIPTION CHECK: User {user_id} plan {plan} - Status: {status}, Active: {is_active}")
+            return is_active
+        else:
+            # No subscription record found - likely free user or trial
+            logger.info(f"🔍 SUBSCRIPTION CHECK: User {user_id} plan {plan} - No subscription record found")
+            return False
+            
+    except Exception as e:
+        logger.error(f"Error checking subscription status: {e}")
+        return False
+
 # DAILY LIMITS (non-credit features)
 DAILY_LIMITS = {
     "free":    {"decoder": 3,  "fortune": 2,  "horoscope": 3},
@@ -84,26 +122,44 @@ def get_user_credits(user_id):
 
         now = datetime.utcnow()
 
-        # Reset if 1 month has passed - NO ROLLOVER
+        # Reset if 1 month has passed - ONLY FOR ACTIVE SUBSCRIBERS
         if not last_reset or (now - last_reset).days >= 30:
-            # RESET: Replace ALL credits with plan allowance (no rollover)
-            plan_credits = MONTHLY_CREDITS.get(plan, 0)
+            # Check if user has active subscription before resetting
+            subscription_active = check_active_subscription(user_id, plan)
             
-            # Log credit loss if user had unused credits
-            old_total = (credits or 0) + purchased_credits
-            if old_total > 0:
-                logger.info(f"💳 CREDITS LOST: User {user_id} lost {old_total} unused credits (no rollover policy)")
-            
-            cur.execute("""
-                UPDATE users
-                SET credits = %s, last_credit_reset = %s, purchased_credits = 0
-                WHERE id = %s
-            """, (plan_credits, now, user_id))
-            conn.commit()
-            logger.info(f"💳 CREDITS RESET: User {user_id} ({plan}) reset to {plan_credits} credits (no rollover)")
-            
-            conn.close()
-            return plan_credits
+            if subscription_active and plan in ['growth', 'max']:
+                # ACTIVE SUBSCRIBER: Reset to plan allowance (no rollover)
+                plan_credits = MONTHLY_CREDITS.get(plan, 0)
+                
+                # Log credit loss if user had unused credits
+                old_total = (credits or 0) + purchased_credits
+                if old_total > 0:
+                    logger.info(f"💳 CREDITS LOST: Active subscriber {user_id} lost {old_total} unused credits (no rollover policy)")
+                
+                cur.execute("""
+                    UPDATE users
+                    SET credits = %s, last_credit_reset = %s, purchased_credits = 0
+                    WHERE id = %s
+                """, (plan_credits, now, user_id))
+                conn.commit()
+                logger.info(f"💳 CREDITS RESET: Active subscriber {user_id} ({plan}) reset to {plan_credits} credits")
+                
+                conn.close()
+                return plan_credits
+            else:
+                # CANCELLED/FREE USER: No reset, just update timestamp, keep current credits until month end
+                cur.execute("""
+                    UPDATE users
+                    SET last_credit_reset = %s
+                    WHERE id = %s
+                """, (now, user_id))
+                conn.commit()
+                logger.info(f"💳 NO RESET: Cancelled/Free user {user_id} keeps current credits until month end")
+                
+                # Return current credits (they keep what they have until month end)
+                total_credits = (credits or 0) + purchased_credits
+                conn.close()
+                return total_credits
         else:
             # Return total of plan credits + purchased credits
             total_credits = (credits or 0) + purchased_credits

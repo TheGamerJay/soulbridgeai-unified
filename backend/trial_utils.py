@@ -2,10 +2,11 @@
 Trial utility functions for calculating trial status without database columns
 """
 from datetime import datetime, timedelta
+from constants import TRIAL_DURATION_HOURS, TRIAL_DURATION_SECONDS
 
 def is_trial_active(trial_started_at, trial_used_permanently=False):
     """
-    Determine if the 5-hour trial is currently active.
+    Determine if the trial is currently active.
     
     Args:
         trial_started_at (datetime): When the trial started
@@ -18,9 +19,9 @@ def is_trial_active(trial_started_at, trial_used_permanently=False):
         return False
     
     # If trial was used permanently, it means they started the trial
-    # Check if it's still within the 5-hour window
+    # Check if it's still within the trial duration window
     elapsed = datetime.utcnow() - trial_started_at
-    return elapsed.total_seconds() < 5 * 3600  # 5 hours
+    return elapsed.total_seconds() < TRIAL_DURATION_SECONDS
 
 def get_trial_time_remaining(trial_started_at):
     """
@@ -36,7 +37,6 @@ def get_trial_time_remaining(trial_started_at):
         return 0
         
     elapsed = datetime.utcnow() - trial_started_at
-    total_seconds = 5 * 3600  # 5 hours
-    remaining = total_seconds - elapsed.total_seconds()
+    remaining = TRIAL_DURATION_SECONDS - elapsed.total_seconds()
     
     return max(0, int(remaining))

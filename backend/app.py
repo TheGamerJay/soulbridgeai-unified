@@ -1617,7 +1617,7 @@ def start_trial():
         return jsonify({"success": False, "error": "Trial already used"}), 400
 
     now = datetime.utcnow()
-    expires = now + timedelta(hours=5)
+    expires = now + timedelta(hours=TRIAL_DURATION_HOURS)
 
     # Update database
     try:
@@ -2384,23 +2384,26 @@ def tiers_page():
     trial_active = session.get('trial_active', False)
     trial_expires_at = session.get('trial_expires_at')
     
-    # Get referral count from database
+    # Get referral count and trial status from database
     referral_count = 0
+    trial_used_permanently = False
     try:
         db_instance = get_database()
         if db_instance:
             conn = db_instance.get_connection()
             cursor = conn.cursor()
             if db_instance.use_postgres:
-                cursor.execute("SELECT referral_points FROM users WHERE id = %s", (user_id,))
+                cursor.execute("SELECT referral_points, trial_used_permanently FROM users WHERE id = %s", (user_id,))
             else:
-                cursor.execute("SELECT referral_points FROM users WHERE id = ?", (user_id,))
+                cursor.execute("SELECT referral_points, trial_used_permanently FROM users WHERE id = ?", (user_id,))
             result = cursor.fetchone()
             if result:
                 referral_count = result[0] or 0
+                trial_used_permanently = result[1] or False
     except Exception as e:
-        logger.error(f"Error getting referral count: {e}")
+        logger.error(f"Error getting user data: {e}")
         referral_count = 0
+        trial_used_permanently = False
     
     # Use bulletproof companion data organized by tier
     free_companions = []
@@ -2433,6 +2436,7 @@ def tiers_page():
                                 user_plan=user_plan,
                                 trial_active=trial_active,
                                 trial_expires_at=trial_expires_at,
+                                trial_used_permanently=trial_used_permanently,
                                 free_list=free_companions,
                                 growth_list=growth_companions,
                                 max_list=max_companions,
@@ -7181,7 +7185,7 @@ def start_trial_bulletproof():
         # Start trial - only changes visibility, never changes limits
         session["trial_active"] = True
         session["trial_started_at"] = datetime.utcnow().isoformat()
-        session["trial_expires_at"] = (datetime.utcnow() + timedelta(hours=5)).isoformat()
+        session["trial_expires_at"] = (datetime.utcnow() + timedelta(hours=TRIAL_DURATION_HOURS)).isoformat()
         
         # Update database trial status
         try:
@@ -7192,7 +7196,7 @@ def start_trial_bulletproof():
                     conn = db_instance.get_connection()
                     cursor = conn.cursor()
                     now = datetime.utcnow()
-                    expires = now + timedelta(hours=5)
+                    expires = now + timedelta(hours=TRIAL_DURATION_HOURS)
                     
                     # Update users table
                     if db_instance.use_postgres:
@@ -7238,7 +7242,7 @@ def poll_trial_bulletproof():
         
         if active and started_at:
             started = datetime.fromisoformat(started_at)
-            if datetime.utcnow() - started > timedelta(hours=5):
+            if datetime.utcnow() - started > timedelta(hours=TRIAL_DURATION_HOURS):
                 # Trial expired
                 session["trial_active"] = False
                 session["trial_used_permanently"] = True
@@ -7284,8 +7288,22 @@ def mini_studio_bulletproof():
             flash("Mini Studio is exclusive to Max tier subscribers", "error")
             return redirect("/tiers?upgrade=max")
         
-        # Render Mini Studio page
-        return render_template("mini_studio.html")
+        # Get user data for display
+        user_email = session.get('user_email', 'Unknown')
+        user_plan = session.get('user_plan', 'free')
+        trial_active = session.get('trial_active', False)
+        user_id = session.get('user_id')
+        
+        # Get current credits
+        from unified_tier_system import get_user_credits
+        current_credits = get_user_credits(user_id) if user_id else 0
+        
+        # Render Mini Studio page with user data
+        return render_template("mini_studio.html", 
+                             user_email=user_email,
+                             user_plan=user_plan,
+                             trial_active=trial_active,
+                             current_credits=current_credits)
     
     except Exception as e:
         logger.error(f"Mini Studio access error: {e}")
@@ -12678,7 +12696,7 @@ TIERS_TEMPLATE = r"""
       <div id="trialTimer" class="btn" style="background:linear-gradient(90deg,#ff6b35,#ff9500);font-size:14px;padding:8px 16px;cursor:default;" data-expires="{{ trial_expires_at }}">
         ⏱️ Trial: <span id="timeLeft">00:00:00</span>
       </div>
-    {% elif not trial_active and user_plan == 'free' %}
+    {% elif not trial_active and not trial_used_permanently %}
       <button onclick="startTrial()" class="btn" style="background:linear-gradient(90deg,#00ff7f,#00c6ff);font-size:14px;padding:8px 16px;">🚀 Start 5-Hour Trial</button>
     {% endif %}
   </div>
@@ -12707,7 +12725,12 @@ TIERS_TEMPLATE = r"""
 
     <!-- Growth Row -->
     <div>
-      <div class="row-title">🌱 Growth Companions</div>
+      <div class="row-title">
+        🌱 Growth Companions
+        {% if user_plan=='growth' %}
+          <a href="/buy-credits" class="btn" style="margin-left:10px;background:linear-gradient(90deg,#ff6b35,#ff9500);">⚡ Buy More Credits</a>
+        {% endif %}
+      </div>
       <div class="row">
         {% for c in growth_list %}
           {% set locked = (not trial_active) and (user_plan == 'free') %}
@@ -12726,6 +12749,7 @@ TIERS_TEMPLATE = r"""
         🎯 Max Companions
         {% if user_plan=='max' %}
           <a href="/mini-studio" class="btn" style="margin-left:10px;">🎶 GamerJay Mini Studio</a>
+          <a href="/buy-credits" class="btn" style="margin-left:8px;background:linear-gradient(90deg,#ff6b35,#ff9500);">⚡ Buy More Credits</a>
         {% endif %}
       </div>
       <div class="row">
@@ -12783,7 +12807,7 @@ TIERS_TEMPLATE = r"""
     if (remaining <= 0) {
       document.getElementById('timeLeft').textContent = 'EXPIRED';
       timerElement.style.background = 'linear-gradient(90deg,#666,#444)';
-      setTimeout(() => window.location.reload(), 2000);
+      // Don't auto-reload to prevent page jumping
       return;
     }
     
@@ -13222,7 +13246,25 @@ def buy_credits_page():
     if user_plan == 'free' and not trial_active:
         return redirect("/tiers?upgrade=growth")
     
+    # Check if user has active subscription (prevent cancelled users from accessing)
     user_id = session.get('user_id')
+    subscription_active = True
+    if user_plan in ['growth', 'max'] and user_id:
+        from unified_tier_system import check_active_subscription
+        subscription_active = check_active_subscription(user_id, user_plan)
+        if not subscription_active:
+            return render_template_string('''
+            <!DOCTYPE html>
+            <html><head><title>Subscription Required</title></head>
+            <body style="text-align: center; padding: 50px; font-family: Arial; background: #0b0f18; color: white;">
+                <h2 style="color: #f97316;">⚠️ Active Subscription Required</h2>
+                <p>You need an active Growth or Max subscription to purchase credits.</p>
+                <p>You can continue using your remaining credits until your current billing period ends.</p>
+                <a href="/tiers" style="background: #22d3ee; color: #000; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">Resubscribe</a>
+                <br><br>
+                <a href="/" style="color: #22d3ee; text-decoration: none;">← Back to Home</a>
+            </body></html>
+            ''')
     current_credits = get_user_credits(user_id) if user_id else 0
     
     # Get breakdown of credits for display
@@ -13367,6 +13409,14 @@ def api_buy_credits():
         # Only allow Growth/Max users or trial users to purchase credits
         if user_plan == 'free' and not trial_active:
             return jsonify({"success": False, "error": "Credits purchase requires Growth/Max plan or trial"}), 403
+        
+        # Check if user has active subscription (prevent cancelled users from purchasing)
+        user_id = session.get('user_id')
+        if user_plan in ['growth', 'max'] and user_id:
+            from unified_tier_system import check_active_subscription
+            if not check_active_subscription(user_id, user_plan):
+                logger.warning(f"🚨 BLOCKED: Cancelled user {user_email} trying to purchase credits")
+                return jsonify({"success": False, "error": "Credits purchase requires active subscription"}), 403
         
         import stripe
         stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
