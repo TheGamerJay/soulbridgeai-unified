@@ -10055,14 +10055,14 @@ def api_referrals_dashboard():
         
         # Calculate next milestone
         successful = referral_stats["successful_referrals"]
-        next_milestone_count = 2 if successful < 2 else (4 if successful < 4 else (6 if successful < 6 else 8))
+        next_milestone_count = 2 if successful < 2 else (5 if successful < 5 else (8 if successful < 8 else 10))
         remaining = max(0, next_milestone_count - successful)
         
         milestone_rewards = {
             2: "Blayzike - Exclusive Companion",
-            4: "Blazelian - Premium Companion", 
-            6: "Blayzo Special Skin",
-            8: "Claude - The Community Code Architect"
+            5: "Blazelian - Premium Companion", 
+            8: "Claude - The Community Code Architect",
+            10: "Blayzo Special Skin"
         }
         
         next_reward = milestone_rewards.get(next_milestone_count, "Max rewards reached!")
@@ -10085,9 +10085,9 @@ def api_referrals_dashboard():
             "referral_link": f"https://soulbridgeai.com/register?ref={referral_code}",
             "all_rewards": {
                 "2": {"type": "exclusive_companion", "description": "Blayzike - Exclusive Companion"},
-                "4": {"type": "exclusive_companion", "description": "Blazelian - Premium Companion"}, 
-                "6": {"type": "premium_skin", "description": "Blayzo Special Skin"},
-                "8": {"type": "exclusive_companion", "description": "Claude - The Community Code Architect"}
+                "5": {"type": "exclusive_companion", "description": "Blazelian - Premium Companion"}, 
+                "8": {"type": "exclusive_companion", "description": "Claude - The Community Code Architect"},
+                "10": {"type": "premium_skin", "description": "Blayzo Special Skin"}
             },
             "next_milestone": {
                 "count": next_milestone_count,
