@@ -101,8 +101,9 @@ def get_user_id_new():
 
 def get_effective_plan_new(user_plan: str, trial_active: bool) -> str:
     """Trial unlocks FEATURES/COMPANIONS for visibility, but limits remain on real plan"""
+    # Always use 'max' for all access checks if trial is active
     if trial_active:
-        return "max"  # During trial, treat as max tier
+        return "max"
     return user_plan
 
 def get_access_matrix_new(user_plan: str, trial_active: bool):
@@ -115,6 +116,7 @@ def get_access_matrix_new(user_plan: str, trial_active: bool):
 def companion_unlock_state_new(user_plan: str, trial_active: bool, referrals: int):
     """Determine which companions are unlocked - TRIAL DOES NOT CHANGE ACCESS"""
     # During trial, unlock all companions (growth + max)
+    # If trial is active, unlock all non-referral companions (free, growth, max)
     if trial_active:
         unlocked_tiers = set(["free", "growth", "max"])
     else:
