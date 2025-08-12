@@ -2444,10 +2444,11 @@ Where emotion meets expression.
             });
         }
 
-        // Legacy function for compatibility - now calls loadTrial
+        // Legacy function for compatibility - DISABLED to prevent timezone bugs
         function updateSimpleTimer(trialRemaining) {
-            // This is now handled by loadTrial() which uses proper API
-            loadTrial();
+            // DISABLED: Old timer had timezone issues causing 8:99.99 display
+            // Only use loadTrial() which has proper UTC handling
+            console.log('🚫 Old updateSimpleTimer called - ignoring to prevent timezone bugs');
         }
 
         async function refreshUserStatus() {
@@ -2473,8 +2474,8 @@ Where emotion meets expression.
                     if (trialBadge) trialBadge.style.display = 'none';
                 }
                 
-                // Load robust timer independently
-                loadTrial();
+                // DON'T call loadTrial() here - let it run independently to avoid conflicts
+                // The loadTrial() function runs on its own timer and handles timezone correctly
 
                 // DISABLED OLD RING TIMER - Preventing conflicts with new timer system
                 // Use new timer system instead (trial-timer-container)
