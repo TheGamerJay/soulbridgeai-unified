@@ -1625,6 +1625,11 @@ def start_trial():
 
     now = datetime.utcnow()
     expires = now + timedelta(hours=TRIAL_DURATION_HOURS)
+    
+    # DEBUG: Log exact trial duration calculation
+    logger.info(f"🕒 TRIAL START DEBUG: TRIAL_DURATION_HOURS={TRIAL_DURATION_HOURS}")
+    logger.info(f"🕒 TRIAL START DEBUG: now={now}, expires={expires}")
+    logger.info(f"🕒 TRIAL START DEBUG: duration_seconds={(expires-now).total_seconds()}")
 
     # Update database
     try:
@@ -12790,12 +12795,6 @@ TIERS_TEMPLATE = r"""
     {% endif %}
   </div>
 
-  {% if trial_active %}
-    <div class="trial-banner">
-      🕒 Trial Active: You can access Free, Growth, and Max companions for 5 hours.
-      <span class="small">Limits stay based on your plan (Free = 3/2/3, Growth = 15/8/10, Max = ∞). Referral companions never unlock during trial.</span>
-    </div>
-  {% endif %}
 
   <div class="rows">
     <!-- Free Row -->
