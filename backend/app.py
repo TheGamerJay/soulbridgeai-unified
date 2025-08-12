@@ -667,6 +667,13 @@ def is_logged_in():
         if has_email or has_user_id:
             # Ensure auth flag is set
             session['user_authenticated'] = True
+            
+            # ANTI-KICK FIX: Ensure session is permanent to prevent random logouts
+            if not session.permanent:
+                session.permanent = True
+                session.modified = True
+                logger.info("🔒 SESSION: Made session permanent to prevent login kicks")
+            
             return True
         
         return False
