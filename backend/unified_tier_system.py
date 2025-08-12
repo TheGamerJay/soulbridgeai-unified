@@ -79,10 +79,13 @@ CREDIT_FEATURES = ["ai_images", "voice_journaling", "music_studio", "relationshi
 # EFFECTIVE PLAN (trial never changes what tier you are)
 def get_effective_plan(user_plan: str, trial_active: bool) -> str:
     """
-    TIER NEVER CHANGES - you always see your actual plan's interface
-    5hr trial only removes locks on features, doesn't change what you see
+    5hr trial unlocks max tier features but keeps actual plan limits
+    - For feature access: trial gives max tier access
+    - For usage limits: always use actual plan (handled separately)
     """
-    return user_plan  # Always return actual plan - interface never changes
+    if trial_active and user_plan == "free":
+        return "max"  # Unlock all features during trial
+    return user_plan  # Non-trial or already premium users
 
 # GET DAILY LIMITS (always based on actual plan, not trial)
 def get_feature_limit(user_plan: str, feature: str, trial_active: bool = False) -> int:
@@ -405,6 +408,10 @@ def get_tier_status(user_id):
         fortune_limit = get_feature_limit(plan, "fortune")
         horoscope_limit = get_feature_limit(plan, "horoscope")
         creative_limit = get_feature_limit(plan, "creative_writer")
+        
+        # DEBUG: Log limits calculation
+        logger.info(f"🎯 LIMITS DEBUG: actual_plan='{plan}', effective_plan='{effective_plan}', trial={trial_active}")
+        logger.info(f"🎯 LIMITS VALUES: decoder={decoder_limit}, fortune={fortune_limit}, horoscope={horoscope_limit}, creative={creative_limit}")
         
         # Get credits
         credits = get_user_credits(user_id)
