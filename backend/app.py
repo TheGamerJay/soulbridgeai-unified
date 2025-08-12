@@ -13205,6 +13205,297 @@ def music_library_redirect():
 
 logger.info("✅ Music Studio integration completed")
 
+# ============================================
+# CREDITS PURCHASE SYSTEM
+# ============================================
+
+@app.route("/buy-credits")
+def buy_credits_page():
+    """Credits purchase page"""
+    if not is_logged_in():
+        return redirect("/login?return_to=buy-credits")
+    
+    user_plan = session.get('user_plan', 'free')
+    trial_active = session.get('trial_active', False)
+    
+    # Only show for Growth/Max users or trial users
+    if user_plan == 'free' and not trial_active:
+        return redirect("/tiers?upgrade=growth")
+    
+    user_id = session.get('user_id')
+    current_credits = get_user_credits(user_id) if user_id else 0
+    
+    return render_template_string('''
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buy Extra Credits - SoulBridge AI</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+            color: white; 
+            margin: 0; 
+            padding: 20px; 
+            min-height: 100vh;
+        }
+        .container { max-width: 600px; margin: 0 auto; text-align: center; }
+        .credits-card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            margin: 20px 0;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .current-credits {
+            font-size: 2rem;
+            color: #22d3ee;
+            margin-bottom: 20px;
+        }
+        .purchase-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 15px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(139, 92, 246, 0.3);
+        }
+        .purchase-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(139, 92, 246, 0.4);
+        }
+        .benefits {
+            text-align: left;
+            margin: 30px 0;
+            background: rgba(0,0,0,0.3);
+            padding: 20px;
+            border-radius: 10px;
+        }
+        .back-btn {
+            color: #22d3ee;
+            text-decoration: none;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/plans" class="back-btn">← Back to Plans</a>
+        
+        <h1>⚡ Buy Extra Trainer Time</h1>
+        
+        <div class="credits-card">
+            <div class="current-credits">
+                💳 Current Credits: {{ current_credits }}
+            </div>
+            
+            <h2>🚀 Boost Your AI Experience</h2>
+            <p>Need more AI music creation time this month? Instantly add credits to keep creating without waiting for your monthly reset.</p>
+            
+            <form action="/api/buy-credits" method="POST" style="margin: 30px 0;">
+                <button type="submit" class="purchase-btn">
+                    <i>⚡</i> Buy 350 Credits for $3.50
+                </button>
+            </form>
+            
+            <div class="benefits">
+                <h3>🎵 What You Get:</h3>
+                <ul>
+                    <li>350 additional credits added instantly</li>
+                    <li>Use for AI Music Studio, Voice Journaling, AI Images</li>
+                    <li>Credits never expire - use anytime</li>
+                    <li>Stack with your monthly plan allowance</li>
+                </ul>
+            </div>
+            
+            <p style="font-size: 0.9rem; color: #94a3b8; margin-top: 20px;">
+                Secure payment processing by Stripe • One-time purchase
+            </p>
+        </div>
+    </div>
+</body>
+</html>
+    ''', current_credits=current_credits)
+
+@app.route("/api/buy-credits", methods=["POST"])
+def api_buy_credits():
+    """Create Stripe checkout session for credits purchase"""
+    if not is_logged_in():
+        return jsonify({"success": False, "error": "Authentication required"}), 401
+    
+    try:
+        user_email = session.get('user_email')
+        user_plan = session.get('user_plan', 'free')
+        trial_active = session.get('trial_active', False)
+        
+        # Only allow Growth/Max users or trial users to purchase credits
+        if user_plan == 'free' and not trial_active:
+            return jsonify({"success": False, "error": "Credits purchase requires Growth/Max plan or trial"}), 403
+        
+        import stripe
+        stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
+        
+        if not stripe.api_key:
+            return jsonify({"success": False, "error": "Payment system temporarily unavailable"}), 503
+        
+        # Create Stripe checkout session
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[{
+                'price_data': {
+                    'currency': 'usd',
+                    'product_data': {
+                        'name': 'SoulBridge AI - Extra Trainer Time',
+                        'description': '350 credits for AI Music Studio, Voice Journaling, and AI Images',
+                        'images': ['https://soulbridgeai.com/static/logos/IntroLogo.png'],
+                    },
+                    'unit_amount': 350,  # $3.50 in cents
+                },
+                'quantity': 1,
+            }],
+            mode='payment',
+            success_url=request.host_url + 'credits/success?session_id={CHECKOUT_SESSION_ID}',
+            cancel_url=request.host_url + 'buy-credits?cancelled=true',
+            customer_email=user_email,
+            metadata={
+                'type': 'credits_purchase',
+                'user_email': user_email,
+                'credits_amount': '350'
+            }
+        )
+        
+        return redirect(checkout_session.url, code=303)
+        
+    except Exception as e:
+        logger.error(f"Credits purchase error: {e}")
+        return jsonify({"success": False, "error": "Payment setup failed"}), 500
+
+@app.route("/credits/success")
+def credits_purchase_success():
+    """Credits purchase success page"""
+    session_id = request.args.get('session_id')
+    
+    # Verify payment and add credits
+    if session_id:
+        try:
+            import stripe
+            stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
+            
+            if stripe.api_key:
+                checkout_session = stripe.checkout.Session.retrieve(session_id)
+                if checkout_session.payment_status == "paid":
+                    user_email = session.get('user_email')
+                    
+                    # Check if this is a credits purchase
+                    if checkout_session.metadata and checkout_session.metadata.get('type') == 'credits_purchase':
+                        credits_amount = int(checkout_session.metadata.get('credits_amount', 350))
+                        
+                        # Add credits to user account
+                        user_id = session.get('user_id')
+                        if user_id:
+                            success = add_trainer_credits(user_id, credits_amount)
+                            if success:
+                                logger.info(f"✅ CREDITS ADDED: {credits_amount} credits added to user {user_id} via payment {session_id}")
+                            
+        except Exception as e:
+            logger.error(f"Credits verification error: {e}")
+    
+    return render_template_string('''
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Credits Purchase Successful - SoulBridge AI</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+            color: white; 
+            margin: 0; 
+            padding: 20px; 
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .success-card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            border: 1px solid rgba(34, 211, 238, 0.3);
+            max-width: 500px;
+        }
+        .success-icon { font-size: 4rem; margin-bottom: 20px; }
+        .continue-btn {
+            background: linear-gradient(135deg, #22d3ee, #3b82f6);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: bold;
+            display: inline-block;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="success-card">
+        <div class="success-icon">🎉</div>
+        <h1>Credits Added Successfully!</h1>
+        <p>350 credits have been added to your account.</p>
+        <p>You can now use them for AI Music Studio, Voice Journaling, and AI Images.</p>
+        
+        <a href="/music" class="continue-btn">Start Creating Music</a>
+        <br><br>
+        <a href="/" style="color: #22d3ee; text-decoration: none;">← Back to Home</a>
+    </div>
+</body>
+</html>
+    ''')
+
+def add_trainer_credits(user_id, amount=350):
+    """Add credits to user account"""
+    try:
+        database_url = os.environ.get('DATABASE_URL')
+        if not database_url:
+            return False
+            
+        import psycopg2
+        conn = psycopg2.connect(database_url)
+        cur = conn.cursor()
+        
+        # Add credits to user account
+        cur.execute("""
+            UPDATE users 
+            SET credits = COALESCE(credits, 0) + %s 
+            WHERE id = %s
+        """, (amount, user_id))
+        
+        conn.commit()
+        conn.close()
+        
+        logger.info(f"💳 CREDITS ADDED: {amount} credits added to user {user_id}")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Error adding credits: {e}")
+        return False
+
 # APPLICATION STARTUP
 # ========================================
 
