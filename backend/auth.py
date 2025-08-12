@@ -590,7 +590,7 @@ class User:
         placeholder = "%s" if hasattr(db, 'postgres_url') and db.postgres_url else "?"
         
         cursor.execute(
-            f"SELECT id, email, password_hash, display_name, email_verified, created_at FROM users WHERE email = {placeholder}",
+            f"SELECT id, email, password_hash, display_name, email_verified, created_at, plan_type FROM users WHERE email = {placeholder}",
             (email,),
         )
         user_data = cursor.fetchone()
