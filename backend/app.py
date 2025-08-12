@@ -1270,7 +1270,7 @@ def auth_login():
                                 # Trial is still active - restore to session
                                 session["trial_active"] = True
                                 session["trial_companion"] = trial_companion
-                                session["trial_expires_at"] = trial_expires_at.isoformat()
+                                session["trial_expires_at"] = trial_expires_at.isoformat() + 'Z'
                                 
                                 time_remaining = int((trial_expires_at - now).total_seconds() / 60)
                                 logger.info(f"✅ TRIAL RESTORED: {trial_companion} trial active for {time_remaining} minutes")
@@ -1731,7 +1731,7 @@ def start_trial():
     # Update session - CRITICAL: Set trial_active to True, don't mark as used permanently yet
     session['trial_active'] = True
     session['trial_started_at'] = now.isoformat()
-    session['trial_expires_at'] = expires.isoformat()
+    session['trial_expires_at'] = expires.isoformat() + 'Z'
     session['trial_used_permanently'] = False  # Only set to True when trial expires
     # Don't cache effective_plan - get_effective_plan() will return 'max' when trial_active=True
     session['trial_warning_sent'] = False
@@ -2591,7 +2591,7 @@ def chat():
                     # Update session to match database reality
                     session['trial_active'] = trial_is_active
                     session['trial_started_at'] = db_trial_started.isoformat() if db_trial_started else None
-                    session['trial_expires_at'] = db_trial_expires.isoformat() if db_trial_expires else None  
+                    session['trial_expires_at'] = (db_trial_expires.isoformat() + 'Z') if db_trial_expires else None  
                     session['trial_used_permanently'] = bool(db_trial_used)
                     
                     logger.info(f"🔄 TRIAL SYNC: DB trial_active={db_trial_active}, expires={db_trial_expires}, session trial_active={trial_is_active}")
@@ -13024,7 +13024,7 @@ TIERS_TEMPLATE = r"""
       timerCache = {
         timer: timerElement,
         timeLeft: timeLeftElement,
-        expiresAt: new Date(timerElement.dataset.expires)
+        expiresAt: new Date(timerElement.dataset.expires + (timerElement.dataset.expires.includes('Z') ? '' : 'Z'))
       };
     }
     
