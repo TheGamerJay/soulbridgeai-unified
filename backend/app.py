@@ -104,32 +104,29 @@ def get_effective_plan_new(user_plan: str, trial_active: bool) -> str:
     return user_plan  # limits are always the real plan
 
 def get_access_matrix_new(user_plan: str, trial_active: bool):
-    """Get feature access matrix with unified tier 1 logic"""
+    """Get feature access matrix - TRIAL DOES NOT CHANGE ACCESS"""
     base = FEATURE_ACCESS.get(user_plan, FEATURE_ACCESS["free"]).copy()
     
-    # UNIFIED TIER 1: Both free users and trial users get the same access
-    if user_plan == "free":
-        # Both trial and non-trial free users get same tier 1 access
-        return base  # Use standard free tier access
-    else:
-        # For paid subscribers, return their specific tier access
-        return base
+    # TRIAL DOES NOT CHANGE FEATURE ACCESS
+    # Trial is just a time-limited experience of the user's current plan
+    # Free users with trial = still same free tier features (just time-limited)
+    return base  # Always return the user's actual plan tier features
 
 def companion_unlock_state_new(user_plan: str, trial_active: bool, referrals: int):
-    """Determine which companions are unlocked - UNIFIED TIER 1 LOGIC"""
+    """Determine which companions are unlocked - TRIAL DOES NOT CHANGE ACCESS"""
     unlocked_tiers = set(["free"])  # Everyone gets free
     
-    # UNIFIED TIER 1: Both free users and trial users get the same access
-    if user_plan == "free":
-        # Both trial and non-trial free users get same tier 1 access (only free companions)
-        pass  # Only free tier unlocked
-    elif user_plan == "growth":
+    # TRIAL DOES NOT CHANGE COMPANION ACCESS
+    # Trial is just a time-limited experience of the user's current plan
+    # Free users with trial = still only free companions (just time-limited)
+    if user_plan == "growth":
         # Growth subscribers get growth tier companions
         unlocked_tiers.add("growth")
     elif user_plan == "max":
         # Max subscribers get max tier companions (and free)
         unlocked_tiers.add("max")
         # Max tier does NOT get growth companions - only free + max
+    # Free users (with or without trial) only get free tier companions
     
     # Referral progressive unlocks (separate from subscription tiers)
     referral_unlocks = []
@@ -6447,13 +6444,11 @@ def get_effective_plan(user_plan: str, trial_active: bool) -> str:
         logger.warning(f"⚠️ Unknown plan '{user_plan}' defaulting to 'free'")
         user_plan = 'free'
     
-    # UNIFIED TIER 1: Trial and Free users both get the same first tier access
-    # Both trial_active=True (free plan + trial) and trial_active=False (free plan) = 'free' tier
-    if user_plan == 'free':
-        return 'free'  # Both free users and trial users get same tier 1 access
-    else:
-        # For paid subscribers (growth/max), trial doesn't change anything
-        return user_plan  # Use real plan for paid users
+    # TRIAL DOES NOT CHANGE ACCESS LEVEL
+    # Trial is just a time-limited experience of whatever plan the user already has
+    # Free users with trial active = still free tier (just time-limited)
+    # No feature upgrades during trial - trial is purely a time constraint
+    return user_plan  # Always return the user's actual plan tier
 
 def get_feature_limit_v2(effective_plan: str, feature: str) -> int:
     """
@@ -6749,15 +6744,15 @@ def log_user_action():
         return jsonify({"success": False, "error": "Failed to log action"}), 500
 
 def can_access_companion(user_plan: str, companion_tier: str, trial_active: bool) -> bool:
-    """Check companion access - bulletproof implementation"""
-    if trial_active:
-        return True  # Trial users get access to all companions
+    """Check companion access - TRIAL DOES NOT CHANGE ACCESS"""
+    # TRIAL DOES NOT CHANGE COMPANION ACCESS
+    # Trial users get the same access as their plan tier (just time-limited)
     if companion_tier == "free":
-        return True
+        return True  # Everyone gets free companions
     if companion_tier == "growth":
-        return user_plan in ["growth", "max"]
+        return user_plan in ["growth", "max"]  # Only growth/max plans
     if companion_tier == "max":
-        return user_plan == "max"
+        return user_plan == "max"  # Only max plan
     return False
 
 # OLD tier block functions REMOVED - Using bulletproof functions instead
@@ -9156,8 +9151,8 @@ def api_creative_writing():
         user_plan = session.get('user_plan', 'free')
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
-        if user_plan not in ['growth', 'max', 'premium', 'enterprise'] and not trial_active:
-            return jsonify({"success": False, "error": "Creative Writing Assistant requires Growth/Max plan or trial access"}), 403
+        # Creative Writing Assistant is available to all users per FEATURE_ACCESS["free"]["creative_writer"] = True
+        # No plan restriction needed - this check can be removed or simplified
             
         data = request.get_json()
         if not data:
@@ -9290,8 +9285,8 @@ def api_save_creative_content():
         user_plan = session.get('user_plan', 'free')
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
-        if user_plan not in ['growth', 'max', 'premium', 'enterprise'] and not trial_active:
-            return jsonify({"success": False, "error": "Saving creative content requires Growth/Max plan or trial access"}), 403
+        # Creative content saving is available to all users per FEATURE_ACCESS["free"]["creative_writer"] = True
+        # No plan restriction needed
             
         data = request.get_json()
         if not data:
@@ -10149,7 +10144,7 @@ def voice_journaling_page():
     
     # Max tier users get all addon features included, trial users get access
     
-    if user_plan not in ['premium', 'enterprise'] and 'voice-journaling' not in user_addons and not trial_active:
+    if user_plan not in ['premium', 'enterprise'] and 'voice-journaling' not in user_addons:
         return redirect("/subscription?feature=voice-journaling")
     
     return render_template("voice_journaling.html")
@@ -10166,7 +10161,7 @@ def voice_journaling_transcribe():
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
-        if user_plan not in ['premium', 'enterprise'] and 'voice-journaling' not in user_addons and not trial_active:
+        if user_plan not in ['premium', 'enterprise'] and 'voice-journaling' not in user_addons:
             return jsonify({"success": False, "error": "Voice Journaling requires Max tier, addon, or trial"}), 403
         
         if 'audio' not in request.files:
@@ -10260,7 +10255,7 @@ def voice_journaling_save():
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
-        if user_plan not in ['premium', 'enterprise'] and 'voice-journaling' not in user_addons and not trial_active:
+        if user_plan not in ['premium', 'enterprise'] and 'voice-journaling' not in user_addons:
             return jsonify({"success": False, "error": "Voice Journaling requires Max tier, addon, or trial"}), 403
         
         data = request.get_json()
@@ -10307,7 +10302,7 @@ def voice_journaling_entries():
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
-        if user_plan not in ['premium', 'enterprise'] and 'voice-journaling' not in user_addons and not trial_active:
+        if user_plan not in ['premium', 'enterprise'] and 'voice-journaling' not in user_addons:
             return jsonify({"success": False, "error": "Voice Journaling requires Max tier, addon, or trial"}), 403
         
         # Get entries from session (in production, get from database)
@@ -10340,7 +10335,7 @@ def relationship_profiles_page():
     user_addons = session.get('user_addons', [])
     trial_active = check_trial_active_from_db(session.get('user_id'))
     
-    if user_plan not in ['premium', 'enterprise'] and 'relationship' not in user_addons and not trial_active:
+    if user_plan not in ['premium', 'enterprise'] and 'relationship' not in user_addons:
         return redirect("/subscription?feature=relationship")
     
     return render_template("relationship_profiles.html")
@@ -10476,7 +10471,7 @@ def emotional_meditations_page():
     user_addons = session.get('user_addons', [])
     trial_active = check_trial_active_from_db(session.get('user_id'))
     
-    if user_plan not in ['premium', 'enterprise'] and 'emotional-meditations' not in user_addons and not trial_active:
+    if user_plan not in ['premium', 'enterprise'] and 'emotional-meditations' not in user_addons:
         return redirect("/subscription?feature=emotional-meditations")
     
     return render_template("emotional_meditations.html")
@@ -10493,7 +10488,7 @@ def emotional_meditations_save_session():
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
-        if user_plan not in ['premium', 'enterprise'] and 'emotional-meditations' not in user_addons and not trial_active:
+        if user_plan not in ['premium', 'enterprise'] and 'emotional-meditations' not in user_addons:
             return jsonify({"success": False, "error": "Emotional Meditations requires Growth/Max tier, addon, or trial"}), 403
         
         data = request.get_json()
@@ -10541,7 +10536,7 @@ def emotional_meditations_stats():
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
-        if user_plan not in ['premium', 'enterprise'] and 'emotional-meditations' not in user_addons and not trial_active:
+        if user_plan not in ['premium', 'enterprise'] and 'emotional-meditations' not in user_addons:
             return jsonify({"success": False, "error": "Emotional Meditations requires Growth/Max tier, addon, or trial"}), 403
         
         # Get sessions from session storage
@@ -10625,7 +10620,7 @@ def ai_image_generation_page():
     user_addons = session.get('user_addons', [])
     trial_active = check_trial_active_from_db(session.get('user_id'))
     
-    if user_plan not in ['premium', 'enterprise'] and 'ai-image-generation' not in user_addons and not trial_active:
+    if user_plan not in ['premium', 'enterprise'] and 'ai-image-generation' not in user_addons:
         return redirect("/subscription?feature=ai-image-generation")
     
     return render_template("ai_image_generation.html")
@@ -10642,7 +10637,7 @@ def ai_image_generation_generate():
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
-        if user_plan not in ['premium', 'enterprise'] and 'ai-image-generation' not in user_addons and not trial_active:
+        if user_plan not in ['premium', 'enterprise'] and 'ai-image-generation' not in user_addons:
             return jsonify({"success": False, "error": "AI Image Generation requires Growth/Max tier, addon, or trial"}), 403
         
         data = request.get_json()
@@ -10666,10 +10661,7 @@ def ai_image_generation_generate():
         
         if monthly_limit is not None and monthly_usage >= monthly_limit:
             tier_name = {"free": "Free", "growth": "Growth", "max": "Max"}[effective_plan]
-            if monthly_limit == 0 and trial_active:
-                return jsonify({"success": False, "error": f"AI Image Generation requires Growth/Max subscription (trial unlocks access but uses your {tier_name} plan limits: {monthly_limit} images/month)"}), 403
-            else:
-                return jsonify({"success": False, "error": f"Monthly AI image limit reached ({monthly_limit} images for {tier_name} tier)"}), 403
+            return jsonify({"success": False, "error": f"Monthly AI image limit reached ({monthly_limit} images for {tier_name} tier)"}), 403
         
         # Generate image using OpenAI DALL-E API
         try:
@@ -10726,7 +10718,7 @@ def ai_image_generation_analyze_reference():
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
-        if user_plan not in ['premium', 'enterprise'] and 'ai-image-generation' not in user_addons and not trial_active:
+        if user_plan not in ['premium', 'enterprise'] and 'ai-image-generation' not in user_addons:
             return jsonify({"success": False, "error": "AI Image Generation requires Growth/Max tier, addon, or trial"}), 403
         
         data = request.get_json()
@@ -10797,7 +10789,7 @@ def ai_image_generation_save():
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
-        if user_plan not in ['premium', 'enterprise'] and 'ai-image-generation' not in user_addons and not trial_active:
+        if user_plan not in ['premium', 'enterprise'] and 'ai-image-generation' not in user_addons:
             return jsonify({"success": False, "error": "AI Image Generation requires Growth/Max tier, addon, or trial"}), 403
         
         data = request.get_json()
@@ -10844,7 +10836,7 @@ def ai_image_generation_gallery():
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
-        if user_plan not in ['premium', 'enterprise'] and 'ai-image-generation' not in user_addons and not trial_active:
+        if user_plan not in ['premium', 'enterprise'] and 'ai-image-generation' not in user_addons:
             return jsonify({"success": False, "error": "AI Image Generation requires Growth/Max tier, addon, or trial"}), 403
         
         # Get images from session (in production, get from database)
@@ -10874,7 +10866,7 @@ def ai_image_generation_usage():
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
-        if user_plan not in ['premium', 'enterprise'] and 'ai-image-generation' not in user_addons and not trial_active:
+        if user_plan not in ['premium', 'enterprise'] and 'ai-image-generation' not in user_addons:
             return jsonify({"success": False, "error": "AI Image Generation requires Growth/Max tier, addon, or trial"}), 403
         
         # Get current month usage
@@ -13273,8 +13265,8 @@ def buy_credits_page():
     user_plan = session.get('user_plan', 'free')
     trial_active = session.get('trial_active', False)
     
-    # Only show for Growth/Max users or trial users
-    if user_plan == 'free' and not trial_active:
+    # Only show for Growth/Max users (trial doesn't change this)
+    if user_plan == 'free':
         return redirect("/tiers?upgrade=growth")
     
     # Check if user has active subscription (prevent cancelled users from accessing)
@@ -13437,9 +13429,9 @@ def api_buy_credits():
         user_plan = session.get('user_plan', 'free')
         trial_active = session.get('trial_active', False)
         
-        # Only allow Growth/Max users or trial users to purchase credits
-        if user_plan == 'free' and not trial_active:
-            return jsonify({"success": False, "error": "Credits purchase requires Growth/Max plan or trial"}), 403
+        # Only allow Growth/Max users to purchase credits (trial doesn't change this)
+        if user_plan == 'free':
+            return jsonify({"success": False, "error": "Credits purchase requires Growth/Max plan"}), 403
         
         # Check if user has active subscription (prevent cancelled users from purchasing)
         user_id = session.get('user_id')
@@ -13552,7 +13544,7 @@ def credits_purchase_success():
                         user_plan = session.get('user_plan', 'free')
                         trial_active = session.get('trial_active', False)
                         
-                        if user_plan == 'free' and not trial_active:
+                        if user_plan == 'free':
                             logger.warning(f"🚨 SECURITY: Free user {current_user_email} trying to claim credits without authorization")
                             return render_template_string('''
                             <div style="text-align: center; padding: 50px; font-family: Arial;">
