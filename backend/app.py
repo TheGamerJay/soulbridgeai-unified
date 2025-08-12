@@ -1085,7 +1085,8 @@ def admin_login_page():
             return "Admin login page temporarily unavailable", 500
     else:
         # POST: process admin login form
-        email = request.form.get("email", "").strip().lower()
+        # Accept both 'email' and 'username' field names from the form
+        email = (request.form.get("email") or request.form.get("username", "")).strip().lower()
         password = request.form.get("password", "").strip()
         # SECURE: Admin credentials from environment variables
         ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', '').lower().strip()
