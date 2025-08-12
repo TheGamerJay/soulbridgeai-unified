@@ -158,37 +158,45 @@ function updateCharacterDisplay() {
         // Map display names to their actual image files
         const avatarMap = {
             // FREE TIER
-            'GamerJay': '/static/logos/GamerJay Free companion.png',
-            'Claude': '/static/logos/Claude Free.png',
+            'GamerJay': '/static/logos/GamerJay_Free_companion.png', // URL-safe filename
+            'Claude': '/static/logos/Claude_Free.png', // URL-safe filename
             
             // GROWTH TIER
-            'Sky': '/static/logos/Sky a premium companion.png',
+            'Sky': '/static/logos/Sky_a_premium_companion.png', // URL-safe filename
             'Blayzo': '/static/logos/Blayzo.png',
-            'Blayzo Pro': '/static/logos/Blayzo premium companion.png',
-            'Blayzo Champion': '/static/logos/Blayzo Referral.png',
+            'Blayzo Pro': '/static/logos/Blayzo_premium_companion.png', // URL-safe filename
+            'Blayzo Champion': '/static/logos/Blayzo_Referral.png', // URL-safe filename
             'Blayzica': '/static/logos/Blayzica.png', // Free version
             'Blayzica Pro': '/static/logos/Blayzica Pro.png', // Using correct Pro image
-            'GamerJay Premium': '/static/logos/GamerJay premium companion.png', // Fixed typo: GamgerJay -> GamerJay
-            'Claude Growth': '/static/logos/Claude Growth.png',
-            'WatchDog': '/static/logos/WatchDog a Premium companion.png',
+            'GamerJay Premium': '/static/logos/GamerJay_premium_companion.png', // URL-safe filename
+            'gamerjay_premium': '/static/logos/GamerJay_premium_companion.png', // Backend companion ID format
+            'Claude Growth': '/static/logos/Claude_Growth.png', // URL-safe filename
+            'WatchDog': '/static/logos/WatchDog_a_Premium_companion.png', // URL-safe filename
             
             // MAX TIER
             'Crimson': '/static/logos/Crimson.png',
-            'Crimson Max': '/static/logos/Crimson a Max companion.png',
+            'Crimson Max': '/static/logos/Crimson_a_Max_companion.png', // URL-safe filename
+            'companion_crimson': '/static/logos/Crimson_a_Max_companion.png', // Backend ID
             'Violet': '/static/logos/Violet.png',
-            'Violet Max': '/static/logos/Violet a Max companion.png',
-            'WatchDog Max': '/static/logos/WatchDog a Max Companion.png',
-            'Royal': '/static/logos/Royal a Max companion.png',
-            'Ven Blayzica': '/static/logos/Ven Blayzica a Max companion.png',
-            'Ven Sky': '/static/logos/Ven Sky a Max companion.png',
-            'Claude Max': '/static/logos/Claude Max.png',
+            'Violet Max': '/static/logos/Violet_a_Max_companion.png', // URL-safe filename
+            'companion_violet': '/static/logos/Violet_a_Max_companion.png', // Backend ID
+            'WatchDog Max': '/static/logos/WatchDog_a_Max_Companion.png', // URL-safe filename
+            'watchdog_max': '/static/logos/WatchDog_a_Max_Companion.png', // Backend ID
+            'Royal': '/static/logos/Royal_a_Max_companion.png', // URL-safe filename
+            'royal_max': '/static/logos/Royal_a_Max_companion.png', // Backend ID
+            'Ven Blayzica': '/static/logos/Ven_Blayzica_a_Max_companion.png', // URL-safe filename
+            'ven_blayzica': '/static/logos/Ven_Blayzica_a_Max_companion.png', // Backend ID
+            'Ven Sky': '/static/logos/Ven_Sky_a_Max_companion.png', // URL-safe filename
+            'ven_sky': '/static/logos/Ven_Sky_a_Max_companion.png', // Backend ID
+            'Claude Max': '/static/logos/Claude_Max.png', // URL-safe filename
+            'claude_max': '/static/logos/Claude_Max.png', // Backend ID
             
             // REFERRAL TIER
             'Blayzia': '/static/logos/Blayzia.png',
             'Blayzion': '/static/logos/Blayzion.png',
             'Blayzike': '/static/logos/Blayzike.png',
             'Blazelian': '/static/logos/Blazelian.png',
-            'Claude Referral': '/static/logos/Claude Referral.png',
+            'Claude Referral': '/static/logos/Claude_Referral.png', // URL-safe filename
             'Sapphire': '/static/logos/Sapphire.png'
         };
         
