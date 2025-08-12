@@ -273,6 +273,12 @@
       border: 1px solid rgba(16, 185, 129, 0.3);
       border-radius: 12px;
     }
+
+    .credit-package:hover {
+      border-color: #22d3ee !important;
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(34, 211, 238, 0.3);
+    }
   </style>
 </head>
 <body>
@@ -351,6 +357,56 @@
       
       <button class="select-btn premium">Choose Max Plan</button>
     </div>
+  </div>
+
+  <!-- Credit Purchase Section for Max Plan Subscribers -->
+  <div id="credit-purchase-section" style="
+    display: none;
+    margin-top: 40px;
+    background: rgba(34, 211, 238, 0.1);
+    border: 2px solid #22d3ee;
+    border-radius: 20px;
+    padding: 40px;
+    text-align: center;
+  ">
+    <div style="font-size: 2rem; margin-bottom: 20px;">💳</div>
+    <h3 style="color: #22d3ee; margin-bottom: 20px; font-size: 1.8rem;">Need More Credits?</h3>
+    <p style="color: #e2e8f0; line-height: 1.6; margin-bottom: 30px; font-size: 1.1rem;">
+      Max Plan subscribers get 650 credits monthly. Running low? Purchase additional credits anytime!
+    </p>
+    
+    <button class="select-btn premium" onclick="purchaseCredits()" style="
+      max-width: 400px;
+      margin: 30px auto;
+      display: block;
+      font-size: 1.2rem;
+      padding: 20px 30px;
+    ">
+      💳 Purchase Additional Credits
+    </button>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin: 20px 0; max-width: 500px; margin: 20px auto;">
+      <div style="background: rgba(34, 211, 238, 0.1); border: 1px solid rgba(34, 211, 238, 0.3); border-radius: 8px; padding: 15px; text-align: center;">
+        <div style="color: #22d3ee; font-weight: bold;">100 Credits</div>
+        <div style="color: #e2e8f0; font-size: 1.2rem;">$4.99</div>
+      </div>
+      
+      <div style="background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 8px; padding: 15px; text-align: center;">
+        <div style="color: #fbbf24; font-weight: bold;">250 Credits</div>
+        <div style="color: #e2e8f0; font-size: 1.2rem;">$9.99</div>
+        <div style="color: #10b981; font-size: 0.7rem;">Popular</div>
+      </div>
+      
+      <div style="background: rgba(147, 51, 234, 0.1); border: 1px solid rgba(147, 51, 234, 0.3); border-radius: 8px; padding: 15px; text-align: center;">
+        <div style="color: #9333ea; font-weight: bold;">500 Credits</div>
+        <div style="color: #e2e8f0; font-size: 1.2rem;">$19.99</div>
+        <div style="color: #10b981; font-size: 0.7rem;">Best Value</div>
+      </div>
+    </div>
+    
+    <p style="color: #94a3b8; font-size: 0.9rem; margin-top: 20px;">
+      Credits are added instantly and never expire. Only Max Plan subscribers can purchase additional credits.
+    </p>
   </div>
 
   <!-- Yearly Savings Banner -->
@@ -721,15 +777,59 @@ async function selectPlanViaAPI(planType, billing) {
   }
 }
 
+// Credit purchase functionality - redirect to existing buy-credits page
+async function purchaseCredits() {
+  try {
+    // Check if user is Max plan subscriber
+    const statusResponse = await fetch('/api/user-status', {
+      method: 'GET',
+      credentials: 'include'
+    });
+    const statusData = await statusResponse.json();
+    
+    if (!statusData.logged_in) {
+      alert('Please log in to purchase credits');
+      window.location.href = '/login?return_to=buy-credits';
+      return;
+    }
+    
+    if (statusData.plan_type !== 'max') {
+      alert('Credit purchases are only available for Max Plan subscribers. Please upgrade to Max Plan first!');
+      return;
+    }
+    
+    // Redirect to the existing buy-credits page
+    window.location.href = '/buy-credits';
+  } catch (error) {
+    console.error('Credit purchase error:', error);
+    alert('Failed to access credit purchase page. Please try again.');
+  }
+}
+
+// Check if user should see credit purchase section
+async function checkCreditPurchaseAccess() {
+  try {
+    const statusResponse = await fetch('/api/user-status', {
+      method: 'GET',
+      credentials: 'include'
+    });
+    const statusData = await statusResponse.json();
+    
+    if (statusData.logged_in && statusData.plan_type === 'max') {
+      // Show credit purchase section for Max plan subscribers
+      document.getElementById('credit-purchase-section').style.display = 'block';
+    }
+  } catch (error) {
+    console.error('Error checking credit purchase access:', error);
+  }
+}
+
 // Initialize with monthly pricing
 document.addEventListener('DOMContentLoaded', function() {
   togglePricing('monthly');
   
-  // Addon payment handling removed - all features now in Max tier
-  // handleAddonPaymentSuccess(); // No longer needed
-  
-  // Addon functionality removed - all premium features now included in Max tier
-  // updateAddonStatus(); // No longer needed
+  // Check if user should see credit purchase section
+  checkCreditPurchaseAccess();
 });
 </script>
 
