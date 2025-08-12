@@ -1539,17 +1539,15 @@ def trial_status():
             "expires_at_ms": None
         }), 200
     
+    # Always robust: try app_core, but fallback to session logic on any error
     try:
-        # Get current user from app_core if available
         try:
             from app_core import current_user, MaxTrial
             u = current_user()
             now = datetime.now(timezone.utc)
-            
             if u:
                 trial = MaxTrial.query.filter_by(user_id=u.id, active=True).order_by(MaxTrial.id.desc()).first()
                 if trial and trial.expires_at.tzinfo is None:
-                    # Normalize old naive datetimes to UTC
                     trial.expires_at = trial.expires_at.replace(tzinfo=timezone.utc)
                     from app_core import db
                     db.session.commit()
@@ -1561,51 +1559,45 @@ def trial_status():
                 expires_at_iso = trial.expires_at.isoformat().replace("+00:00", "Z") if active else None
                 expires_at_ms  = int(trial.expires_at.timestamp() * 1000) if active else None
             else:
-                active = False
-                expires_at_iso = None
-                expires_at_ms = None
-        except ImportError:
-            # Fallback to session-based logic if app_core is not available
+                raise Exception("No user found in app_core")
+        except Exception as e:
+            # Fallback to session-based logic if app_core is not available or any error occurs
+            logger.warning(f"Falling back to session-based trial logic: {e}")
             trial_active = session.get('trial_active', False)
             trial_started = session.get('trial_started_at')
-            
             active = False
             expires_at_iso = None
             expires_at_ms = None
-            
             if trial_active and trial_started:
                 try:
                     if isinstance(trial_started, str):
                         trial_start_time = datetime.fromisoformat(trial_started.replace('Z', '+00:00'))
                     else:
                         trial_start_time = trial_started
-                    
                     expires_at = trial_start_time + timedelta(hours=5)
                     now = datetime.now(timezone.utc)
-                    
                     active = expires_at > now
                     if active:
                         expires_at_iso = expires_at.isoformat().replace("+00:00", "Z")
                         expires_at_ms = int(expires_at.timestamp() * 1000)
-                except Exception as e:
-                    logger.error(f"Error calculating trial expiry: {e}")
+                except Exception as e2:
+                    logger.error(f"Error calculating trial expiry: {e2}")
                     active = False
-        
         return jsonify({
             "logged_in": True,
             "active": active,
-            "expires_at": expires_at_iso,   # e.g., "2025-08-12T02:34:56Z"
-            "expires_at_ms": expires_at_ms  # unix ms for precise countdown
+            "expires_at": expires_at_iso,
+            "expires_at_ms": expires_at_ms
         }), 200
-        
     except Exception as e:
-        logger.error(f"Error getting trial status: {e}")
+        logger.error(f"Error getting trial status (permanent fallback): {e}")
+        # Always return a valid response, never 500
         return jsonify({
             "logged_in": True,
             "active": False,
             "expires_at": None,
             "expires_at_ms": None
-        }), 500
+        }), 200
 
 @app.route('/api/accept-terms', methods=['POST'])
 def accept_terms():
