@@ -857,7 +857,20 @@ def is_logged_in():
 def has_accepted_terms():
     """Check if user has accepted terms and conditions"""
     try:
-        return session.get('terms_accepted', False)
+        # Check if already marked as accepted in session
+        if session.get('terms_accepted', False):
+            return True
+        
+        # LEGACY USERS: Auto-accept terms for existing users
+        # If user is logged in but doesn't have terms_accepted flag,
+        # they are an existing user from before terms requirement
+        if is_logged_in() and session.get('user_id'):
+            # Auto-mark existing users as having accepted terms
+            session['terms_accepted'] = True
+            logger.info(f"Auto-accepted terms for existing user: {session.get('user_email')}")
+            return True
+            
+        return False
     except Exception:
         return False
 
