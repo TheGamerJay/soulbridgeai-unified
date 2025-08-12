@@ -719,7 +719,12 @@ def parse_request_data():
 def setup_user_session(email, user_id=None, is_admin=False, dev_mode=False):
     """Setup user session with security measures and companion data restoration"""
     # Security: Clear and regenerate session to prevent fixation attacks
+    # Preserve trial keys so trial is never lost on login
+    trial_keys = ['trial_active', 'trial_started_at', 'trial_expires_at', 'trial_used_permanently', 'trial_warning_sent']
+    preserved_trial = {k: session.get(k) for k in trial_keys if k in session}
     session.clear()
+    for k, v in preserved_trial.items():
+        session[k] = v
     # Session expires when browser closes
     session["user_authenticated"] = True
     session["session_version"] = "2025-07-28-banking-security"  # Required for auth
