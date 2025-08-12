@@ -2865,9 +2865,14 @@ def api_companions_select():
                 "tier_required": companion_tier
             }), 403
         
-        # Store selected companion in session
+        # Store selected companion in session, preserving trial keys
+        trial_keys = ['trial_active', 'trial_started_at', 'trial_expires_at', 'trial_used_permanently', 'trial_warning_sent']
+        preserved_trial = {k: session.get(k) for k in trial_keys if k in session}
         session['selected_companion'] = companion_id
         session['companion_selected_at'] = time.time()
+        # Restore trial keys if they existed
+        for k, v in preserved_trial.items():
+            session[k] = v
         
         # CRITICAL FIX: Save companion selection to database
         try:
