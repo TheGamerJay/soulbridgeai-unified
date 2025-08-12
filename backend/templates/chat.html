@@ -108,9 +108,12 @@
                     <i class="fas fa-om"></i>
                     Meditations
                 </a>
-                <button onclick="console.log('Write button clicked!'); openCreativeWriting();" class="action-btn creative-btn premium-feature" data-tier="growth" title="Creative Writing Assistant" style="cursor: pointer;">
+                <button onclick="console.log('Write button clicked!'); openCreativeWriting();" class="action-btn creative-btn tier-btn" data-feature="creative_writer" title="Creative Writing Assistant" style="cursor: pointer;">
                     <i class="fas fa-feather-alt"></i>
-                    Write
+                    <div class="btn-content">
+                        <span class="btn-title">Write</span>
+                        <span class="btn-limit" id="creativeLimit">Loading...</span>
+                    </div>
                 </button>
                 
                 <!-- DUPLICATE SECTION REMOVED - Using isolated tier blocks above -->
@@ -2196,13 +2199,40 @@ Where emotion meets expression.
                     }
                 }
                 
+                // Update creative writing button
+                const creativeBtn = document.querySelector('[data-feature="creative_writer"]');
+                const creativeLimit = document.getElementById('creativeLimit');
+                if (creativeBtn && creativeLimit) {
+                    const creativeUsed = usage.creative_writer || 0;
+                    const creativeMax = limits.creative_writer;
+                    
+                    if (unlimited_features.includes('creative_writer') || creativeMax === 'unlimited' || creativeMax === Infinity) {
+                        creativeLimit.textContent = '∞';
+                        creativeBtn.classList.add('unlimited');
+                        creativeBtn.setAttribute('data-tooltip', `Unlimited creative writing uses available`);
+                    } else {
+                        creativeLimit.textContent = `${creativeUsed}/${creativeMax}`;
+                        creativeBtn.classList.remove('unlimited', 'limit-exceeded', 'limit-warning');
+                        
+                        if (creativeUsed >= creativeMax) {
+                            creativeBtn.classList.add('limit-exceeded');
+                            creativeBtn.setAttribute('data-tooltip', `Daily limit reached (${creativeUsed}/${creativeMax})`);
+                        } else if (creativeUsed >= creativeMax * 0.8) {
+                            creativeBtn.classList.add('limit-warning');
+                            creativeBtn.setAttribute('data-tooltip', `${creativeMax - creativeUsed} uses remaining today`);
+                        } else {
+                            creativeBtn.setAttribute('data-tooltip', `${creativeMax - creativeUsed} uses remaining today`);
+                        }
+                    }
+                }
+                
                 console.log('✅ Tier limits updated successfully');
                 
             } catch (error) {
                 console.error('❌ Error updating tier limits:', error);
                 
                 // Show error state on buttons
-                const features = ['decoder', 'fortune', 'horoscope'];
+                const features = ['decoder', 'fortune', 'horoscope', 'creative'];
                 features.forEach(feature => {
                     const limitElement = document.getElementById(`${feature}Limit`);
                     if (limitElement) {
@@ -2360,10 +2390,16 @@ Where emotion meets expression.
                     trialBtn.classList.add("hidden");
                 }
 
-                // Show/hide premium features
+                // Show/hide premium features - Interface never changes, only actual plan matters
+                console.log(`🔍 PREMIUM FEATURE DEBUG: effective_plan="${effective_plan}", user_plan="${user_plan}", trial_active=${trial_active}`);
+                
                 document.querySelectorAll(".premium-feature").forEach(btn => {
-                    btn.style.display = (effective_plan === 'growth' || effective_plan === 'max')
-                        ? 'inline-block' : 'none';
+                    // Only show premium features for actual growth/max subscribers
+                    // Free users never see these buttons (even during trial)
+                    const shouldShow = (user_plan === 'growth' || user_plan === 'max');
+                    btn.style.display = shouldShow ? 'inline-block' : 'none';
+                    
+                    console.log(`🎯 Premium feature "${btn.textContent.trim()}" should show: ${shouldShow} (display: ${btn.style.display})`);
                 });
 
                 // Confetti if user subscribed after trial

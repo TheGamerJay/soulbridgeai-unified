@@ -61,9 +61,9 @@ def check_active_subscription(user_id, plan):
 
 # DAILY LIMITS (non-credit features)
 DAILY_LIMITS = {
-    "free":    {"decoder": 3,  "fortune": 2,  "horoscope": 3},
-    "growth":  {"decoder": 15, "fortune": 8,  "horoscope": 10},
-    "max":     {"decoder": 999999, "fortune": 999999, "horoscope": 999999}
+    "free":    {"decoder": 3,  "fortune": 2,  "horoscope": 3, "creative_writer": 2},
+    "growth":  {"decoder": 15, "fortune": 8,  "horoscope": 10, "creative_writer": 20},
+    "max":     {"decoder": 999999, "fortune": 999999, "horoscope": 999999, "creative_writer": 999999}
 }
 
 # MONTHLY CREDITS (premium features)
@@ -76,13 +76,13 @@ MONTHLY_CREDITS = {
 # FEATURES THAT REQUIRE CREDITS
 CREDIT_FEATURES = ["ai_images", "voice_journaling", "music_studio", "relationship_profiles", "meditations"]
 
-# EFFECTIVE PLAN (trial unlocks features, keeps limits/credits of actual plan)
+# EFFECTIVE PLAN (trial never changes what tier you are)
 def get_effective_plan(user_plan: str, trial_active: bool) -> str:
     """
-    Trial unlocks Max FEATURES but keeps your plan's LIMITS and CREDITS
-    This prevents trial abuse while giving full feature access
+    TIER NEVER CHANGES - you always see your actual plan's interface
+    5hr trial only removes locks on features, doesn't change what you see
     """
-    return "max" if trial_active else user_plan
+    return user_plan  # Always return actual plan - interface never changes
 
 # GET DAILY LIMITS (always based on actual plan, not trial)
 def get_feature_limit(user_plan: str, feature: str, trial_active: bool = False) -> int:
@@ -92,6 +92,27 @@ def get_feature_limit(user_plan: str, feature: str, trial_active: bool = False) 
     """
     plan = user_plan  # Always use actual plan for limits, never "max" during trial
     return DAILY_LIMITS.get(plan, {}).get(feature, 0)
+
+# GET TRIAL TRAINER TIME (60 credits for free users during 5hr trial)
+def get_trial_trainer_time(user_id):
+    """
+    Get trainer time credits for free users during 5hr trial
+    Returns 60 credits for Mini Studio access during trial period
+    """
+    try:
+        trial_active = session.get("trial_active", False)
+        plan = session.get("user_plan", "free")
+        
+        if plan == "free" and trial_active:
+            # Free users get 60 trainer time during trial
+            return 60
+        else:
+            # Not applicable for other cases
+            return 0
+            
+    except Exception as e:
+        logger.error(f"Error getting trial trainer time: {e}")
+        return 0
 
 # GET CREDITS FOR USER (resets monthly with NO ROLLOVER, based on actual plan)
 def get_user_credits(user_id):
@@ -231,31 +252,61 @@ def can_access_feature(user_id, feature):
         plan = session.get("user_plan", "free")
         effective_plan = get_effective_plan(plan, trial_active)
 
-        # Daily limit features (decoder, fortune, horoscope)
-        if feature in ["decoder", "fortune", "horoscope"]:
-            # Feature access based on effective plan (trial unlocks)
-            if effective_plan not in ["growth", "max"] and feature != "decoder":
-                if feature == "fortune" and effective_plan == "free":
+        # Daily limit features (decoder, fortune, horoscope, creative_writer)
+        if feature in ["decoder", "fortune", "horoscope", "creative_writer"]:
+            if feature == "decoder":
+                # Decoder available to all tiers
+                limit = get_feature_limit(plan, feature, trial_active)
+                return limit > 0
+            elif feature in ["fortune", "horoscope"]:
+                # Fortune/Horoscope: Trial removes the lock for free users
+                if plan == "free" and trial_active:
+                    # Free user on trial can use these features (lock removed)
+                    limit = get_feature_limit(plan, feature, trial_active)
+                    return limit > 0
+                elif plan in ["growth", "max"]:
+                    # Growth/Max users always have access
+                    limit = get_feature_limit(plan, feature, trial_active)
+                    return limit > 0
+                else:
+                    # Free user without trial - locked
                     return False
-                if feature == "horoscope" and effective_plan == "free":
-                    return False
-            
-            # Limit based on actual plan (trial doesn't increase limits)
-            limit = get_feature_limit(plan, feature, trial_active)
-            return limit > 0
+            elif feature == "creative_writer":
+                # Creative writer available to all tiers (with different limits)
+                limit = get_feature_limit(plan, feature, trial_active)
+                return limit > 0
 
         # Credit-based features (AI images, voice journaling, etc.)
         if feature in CREDIT_FEATURES:
-            # Feature access based on effective plan (trial unlocks)
-            if effective_plan not in ["growth", "max"]:
+            # Trial removes the lock for free users
+            if plan == "free" and trial_active:
+                # Free user on trial can use these features (but with 0 credits)
+                credits = get_user_credits(user_id)
+                return credits >= 0  # Allow access even with 0 credits during trial
+            elif plan in ["growth", "max"]:
+                # Growth/Max users always have access
+                credits = get_user_credits(user_id)
+                return credits > 0
+            else:
+                # Free user without trial - locked
                 return False
-                
-            # Credit availability based on actual plan
-            credits = get_user_credits(user_id)
-            return credits > 0
+        
+        # Mini Studio (max tier exclusive with trainer time)
+        if feature == "mini_studio":
+            if plan == "max":
+                # Max users have full access with their trainer time
+                return True
+            elif plan == "free" and trial_active:
+                # Free users on trial get 60 trainer time to taste Mini Studio
+                return True  # Access granted, will handle trainer time separately
+            else:
+                # Growth users and free users without trial - no access
+                return False
 
-        # All other features default to plan-based access
-        return effective_plan in ["growth", "max"]
+        # All other features: Trial removes locks for free users
+        if plan == "free" and trial_active:
+            return True  # Trial removes all locks
+        return plan in ["growth", "max"]
         
     except Exception as e:
         logger.error(f"Error checking feature access: {e}")
@@ -339,15 +390,21 @@ def get_tier_status(user_id):
         # DEBUG: Log what we got from session
         logger.info(f"🔍 UNIFIED DEBUG: user_id={user_id}, plan='{plan}', trial={trial_active}, effective='{effective_plan}'")
         
-        # Get current usage
+        # Get current usage from session for creative_writer (matches app.py implementation)
         decoder_usage = get_feature_usage_today(user_id, "decoder")
         fortune_usage = get_feature_usage_today(user_id, "fortune") 
         horoscope_usage = get_feature_usage_today(user_id, "horoscope")
+        
+        # Creative writer uses session-based tracking like in app.py
+        today_str = datetime.now().strftime("%Y-%m-%d")
+        creative_usage_key = f'creative_usage_{user_id}_{today_str}'
+        creative_usage = session.get(creative_usage_key, 0)
         
         # Get limits (always based on actual plan)
         decoder_limit = get_feature_limit(plan, "decoder")
         fortune_limit = get_feature_limit(plan, "fortune")
         horoscope_limit = get_feature_limit(plan, "horoscope")
+        creative_limit = get_feature_limit(plan, "creative_writer")
         
         # Get credits
         credits = get_user_credits(user_id)
@@ -359,18 +416,21 @@ def get_tier_status(user_id):
             "limits": {
                 "decoder": decoder_limit,
                 "fortune": fortune_limit,
-                "horoscope": horoscope_limit
+                "horoscope": horoscope_limit,
+                "creative_writer": creative_limit
             },
             "usage": {
                 "decoder": decoder_usage,
                 "fortune": fortune_usage,
-                "horoscope": horoscope_usage
+                "horoscope": horoscope_usage,
+                "creative_writer": creative_usage
             },
             "credits": credits,
             "feature_access": {
                 "decoder": can_access_feature(user_id, "decoder"),
                 "fortune": can_access_feature(user_id, "fortune"),
                 "horoscope": can_access_feature(user_id, "horoscope"),
+                "creative_writer": can_access_feature(user_id, "creative_writer"),
                 "ai_images": can_access_feature(user_id, "ai_images"),
                 "voice_journaling": can_access_feature(user_id, "voice_journaling"),
                 "music_studio": can_access_feature(user_id, "music_studio")
