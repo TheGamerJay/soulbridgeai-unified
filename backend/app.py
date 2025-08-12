@@ -2934,6 +2934,11 @@ def referrals():
         logger.error(f"Referrals template error: {e}")
         return jsonify({"error": "Referrals page temporarily unavailable"}), 500
 
+@app.route("/referral")
+def referral_redirect():
+    """Redirect /referral to /referrals for backward compatibility"""
+    return redirect("/referrals", 301)
+
 @app.route("/decoder")
 def decoder():
     """Decoder page with usage limits by tier"""
@@ -12937,7 +12942,7 @@ TIERS_TEMPLATE = r"""
   }
   
   function goToReferral() {
-    window.location.href = '/referral';
+    window.location.href = '/referrals';  // Fixed: plural to match actual route
   }
 </script>
 </body>
