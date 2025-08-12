@@ -104,36 +104,34 @@ def get_effective_plan_new(user_plan: str, trial_active: bool) -> str:
     return user_plan  # limits are always the real plan
 
 def get_access_matrix_new(user_plan: str, trial_active: bool):
-    """Get feature access matrix with trial visibility"""
+    """Get feature access matrix with unified tier 1 logic"""
     base = FEATURE_ACCESS.get(user_plan, FEATURE_ACCESS["free"]).copy()
-    if trial_active:
-        # During trial: unlock visibility of Growth + Max features
-        # BUT limits still follow real plan
-        base["voice_journal"] = True
-        base["ai_image"] = True
-        base["creative_writer"] = True
-        base["library"] = True
-        # Keep mini_studio locked unless user is Max (uncomment next line to show during trial)
-        # base["mini_studio"] = True
-    return base
+    
+    # UNIFIED TIER 1: Both free users and trial users get the same access
+    if user_plan == "free":
+        # Both trial and non-trial free users get same tier 1 access
+        return base  # Use standard free tier access
+    else:
+        # For paid subscribers, return their specific tier access
+        return base
 
 def companion_unlock_state_new(user_plan: str, trial_active: bool, referrals: int):
-    """Determine which companions are unlocked - CORRECTED LOGIC"""
+    """Determine which companions are unlocked - UNIFIED TIER 1 LOGIC"""
     unlocked_tiers = set(["free"])  # Everyone gets free
     
-    if trial_active:
-        # Trial unlocks ALL companions for 5 hours
+    # UNIFIED TIER 1: Both free users and trial users get the same access
+    if user_plan == "free":
+        # Both trial and non-trial free users get same tier 1 access (only free companions)
+        pass  # Only free tier unlocked
+    elif user_plan == "growth":
+        # Growth subscribers get growth tier companions
         unlocked_tiers.add("growth")
+    elif user_plan == "max":
+        # Max subscribers get max tier companions (and free)
         unlocked_tiers.add("max")
-    else:
-        # No trial - only get your specific tier
-        if user_plan == "growth":
-            unlocked_tiers.add("growth")
-        elif user_plan == "max":
-            unlocked_tiers.add("max")
-            # Max tier does NOT get growth companions - only free + max
+        # Max tier does NOT get growth companions - only free + max
     
-    # Referral progressive unlocks (never by trial)
+    # Referral progressive unlocks (separate from subscription tiers)
     referral_unlocks = []
     if referrals >= REFERRAL_THRESHOLDS["blayzike"]: referral_unlocks.append("blayzike")
     if referrals >= REFERRAL_THRESHOLDS["blazelian"]: referral_unlocks.append("blazelian")
@@ -6449,12 +6447,13 @@ def get_effective_plan(user_plan: str, trial_active: bool) -> str:
         logger.warning(f"⚠️ Unknown plan '{user_plan}' defaulting to 'free'")
         user_plan = 'free'
     
-    # FIXED: During trial, unlock all features (max access) but keep subscription limits
-    # Trial gives 'max' feature access while usage limits stay tied to actual subscription
-    if trial_active:
-        return 'max'  # Unlock all features during trial
+    # UNIFIED TIER 1: Trial and Free users both get the same first tier access
+    # Both trial_active=True (free plan + trial) and trial_active=False (free plan) = 'free' tier
+    if user_plan == 'free':
+        return 'free'  # Both free users and trial users get same tier 1 access
     else:
-        return user_plan  # Use real plan when no trial
+        # For paid subscribers (growth/max), trial doesn't change anything
+        return user_plan  # Use real plan for paid users
 
 def get_feature_limit_v2(effective_plan: str, feature: str) -> int:
     """
