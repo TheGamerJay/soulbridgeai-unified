@@ -663,6 +663,9 @@ def is_logged_in():
         has_email = bool(session.get('user_email') or session.get('email'))
         has_user_id = bool(session.get('user_id'))
         
+        # DEBUG: Log authentication check details
+        logger.info(f"🔍 AUTH CHECK: has_email={has_email}, has_user_id={has_user_id}, session_keys={list(session.keys())}")
+        
         # If they have either email or user_id, they're logged in
         if has_email or has_user_id:
             # Ensure auth flag is set
@@ -674,8 +677,10 @@ def is_logged_in():
                 session.modified = True
                 logger.info("🔒 SESSION: Made session permanent to prevent login kicks")
             
+            logger.info("✅ AUTH CHECK: User is logged in")
             return True
         
+        logger.warning("❌ AUTH CHECK: User is NOT logged in - no email or user_id found")
         return False
         
     except Exception as e:
