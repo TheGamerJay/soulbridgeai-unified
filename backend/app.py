@@ -1623,6 +1623,7 @@ def start_trial():
         conn.close()
         return jsonify({"success": False, "error": "Trial already used"}), 400
 
+    # ALWAYS reset trial time to correct 5-hour duration
     now = datetime.utcnow()
     expires = now + timedelta(hours=TRIAL_DURATION_HOURS)
     
@@ -12878,24 +12879,35 @@ TIERS_TEMPLATE = r"""
 </div>
 
 <script>
-  function openChat(slug){ window.location.href = '/chat?companion=' + encodeURIComponent(slug); }
+  function openChat(slug){ 
+    // Performance optimization: use requestAnimationFrame to prevent blocking
+    requestAnimationFrame(() => {
+      window.location.href = '/chat?companion=' + encodeURIComponent(slug);
+    });
+  }
   
-  // Countdown timer for trial
+  // Countdown timer for trial (optimized for performance)
+  let timerCache = null;
   function updateTrialTimer() {
-    const timerElement = document.getElementById('trialTimer');
-    if (!timerElement) return;
+    // Cache DOM elements to avoid repeated lookups
+    if (!timerCache) {
+      const timerElement = document.getElementById('trialTimer');
+      const timeLeftElement = document.getElementById('timeLeft');
+      if (!timerElement || !timeLeftElement) return;
+      
+      timerCache = {
+        timer: timerElement,
+        timeLeft: timeLeftElement,
+        expiresAt: new Date(timerElement.dataset.expires)
+      };
+    }
     
-    const expiresAt = timerElement.dataset.expires;
-    if (!expiresAt) return;
-    
-    const now = new Date();
-    const expires = new Date(expiresAt);
-    const remaining = Math.max(0, expires - now);
+    const now = Date.now();
+    const remaining = Math.max(0, timerCache.expiresAt.getTime() - now);
     
     if (remaining <= 0) {
-      document.getElementById('timeLeft').textContent = 'EXPIRED';
-      timerElement.style.background = 'linear-gradient(90deg,#666,#444)';
-      // Don't auto-reload to prevent page jumping
+      timerCache.timeLeft.textContent = 'EXPIRED';
+      timerCache.timer.style.background = 'linear-gradient(90deg,#666,#444)';
       return;
     }
     
@@ -12903,7 +12915,7 @@ TIERS_TEMPLATE = r"""
     const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
     const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
     
-    document.getElementById('timeLeft').textContent = 
+    timerCache.timeLeft.textContent = 
       String(hours).padStart(2, '0') + ':' + 
       String(minutes).padStart(2, '0') + ':' + 
       String(seconds).padStart(2, '0');
@@ -12915,23 +12927,29 @@ TIERS_TEMPLATE = r"""
     setInterval(updateTrialTimer, 1000);
   }
   
-  function startTrial() {
-    if (confirm('Start your 5-hour trial now? You\'ll get temporary access to preview Growth and Max companions.')) {
-      fetch('/api/start-trial', {
+  async function startTrial() {
+    if (!confirm('Start your 5-hour trial now? You\'ll get temporary access to preview Growth and Max companions.')) {
+      return;
+    }
+    
+    try {
+      const response = await fetch('/api/start-trial', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({})
-      }).then(response => response.json())
-        .then(data => {
-          if (data.success) {
-            alert('✅ Trial started! Refreshing page to unlock companions...');
-            window.location.reload();
-          } else {
-            alert('❌ Trial failed: ' + (data.error || 'Unknown error'));
-          }
-        }).catch(err => {
-          alert('❌ Network error starting trial');
-        });
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        alert('✅ Trial started! Refreshing page to unlock companions...');
+        // Use requestAnimationFrame for smoother page reload
+        requestAnimationFrame(() => window.location.reload());
+      } else {
+        alert('❌ Trial failed: ' + (data.error || 'Unknown error'));
+      }
+    } catch (err) {
+      alert('❌ Network error starting trial');
     }
   }
   function notifyUpgrade(tier){
