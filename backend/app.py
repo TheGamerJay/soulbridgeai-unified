@@ -2472,7 +2472,51 @@ def chat():
     
     # Get user data
     user_id = session.get('user_id')
-    # Use session values set by @app.before_request (already calculated)
+    
+    # CRITICAL FIX: Sync trial data from database to session before loading chat
+    if user_id:
+        try:
+            db_instance = get_database()
+            if db_instance:
+                conn = db_instance.get_connection()
+                cursor = conn.cursor()
+                
+                # Get current trial state from database
+                if db_instance.use_postgres:
+                    cursor.execute("SELECT trial_active, trial_started_at, trial_expires_at, trial_used_permanently FROM users WHERE id = %s", (user_id,))
+                else:
+                    cursor.execute("SELECT trial_active, trial_started_at, trial_expires_at, trial_used_permanently FROM users WHERE id = ?", (user_id,))
+                
+                result = cursor.fetchone()
+                conn.close()
+                
+                if result:
+                    db_trial_active, db_trial_started, db_trial_expires, db_trial_used = result
+                    
+                    # Check if trial is actually active (not expired)
+                    trial_is_active = False
+                    if db_trial_active and not db_trial_used and db_trial_expires:
+                        try:
+                            if isinstance(db_trial_expires, str):
+                                expires_time = datetime.fromisoformat(db_trial_expires.replace('Z', '+00:00'))
+                            else:
+                                expires_time = db_trial_expires
+                            trial_is_active = datetime.utcnow() < expires_time
+                        except Exception as e:
+                            logger.error(f"Error parsing trial expiry: {e}")
+                            trial_is_active = False
+                    
+                    # Update session to match database reality
+                    session['trial_active'] = trial_is_active
+                    session['trial_started_at'] = db_trial_started.isoformat() if db_trial_started else None
+                    session['trial_expires_at'] = db_trial_expires.isoformat() if db_trial_expires else None  
+                    session['trial_used_permanently'] = bool(db_trial_used)
+                    
+                    logger.info(f"🔄 TRIAL SYNC: DB trial_active={db_trial_active}, expires={db_trial_expires}, session trial_active={trial_is_active}")
+        except Exception as e:
+            logger.error(f"Error syncing trial session: {e}")
+    
+    # Use session values (now synced with database)
     user_plan = session.get('user_plan', 'free') or 'free'
     trial_active = session.get('trial_active', False)
     effective_plan = get_effective_plan(user_plan, trial_active)  # FIXED: Calculate fresh
