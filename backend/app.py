@@ -3115,7 +3115,7 @@ def unified_library(content_type="all"):
         trial_active = session.get('trial_active', False)
         
         # Get user's saved content based on type
-        content_data = get_library_content(user_id, content_type)
+        content_data = get_library_content(user_id, content_type, user_plan)
         
         return render_template("library.html", 
                              content_type=content_type,
@@ -3126,12 +3126,16 @@ def unified_library(content_type="all"):
         logger.error(f"Unified library error: {e}")
         return redirect("/")
 
-def get_library_content(user_id, content_type="all"):
-    """Get user's saved content from unified library system"""
+def get_library_content(user_id, content_type="all", user_plan="free"):
+    """Get user's saved content from unified library system with plan-based limits"""
     try:
+        # Get plan-based limits
+        effective_plan = get_effective_plan(user_plan, False)
+        chat_limit = get_feature_limit(effective_plan, 'library_chats')
+        
         db_instance = get_database()
         if not db_instance:
-            return {"chat_conversations": [], "music_tracks": [], "creative_content": []}
+            return {"chat_conversations": [], "music_tracks": [], "creative_content": [], "limits": {"chat_limit": chat_limit}}
             
         conn = db_instance.get_connection()
         cursor = conn.cursor()
@@ -3139,7 +3143,11 @@ def get_library_content(user_id, content_type="all"):
         content_data = {
             "chat_conversations": [],
             "music_tracks": [],
-            "creative_content": []
+            "creative_content": [],
+            "limits": {
+                "chat_limit": chat_limit,
+                "music_enabled": effective_plan in ['growth', 'max']  # Free tier can't save music
+            }
         }
         
         # Get chat conversations if requested
@@ -3150,15 +3158,15 @@ def get_library_content(user_id, content_type="all"):
                         SELECT id, title, content, created_at, conversation_type
                         FROM user_library 
                         WHERE user_id = %s AND content_type IN ('chat', 'conversation')
-                        ORDER BY created_at DESC LIMIT 50
-                    """, (user_id,))
+                        ORDER BY created_at DESC LIMIT %s
+                    """, (user_id, chat_limit))
                 else:
                     cursor.execute("""
                         SELECT id, title, content, created_at, conversation_type
                         FROM user_library 
                         WHERE user_id = ? AND content_type IN ('chat', 'conversation')
-                        ORDER BY created_at DESC LIMIT 50
-                    """, (user_id,))
+                        ORDER BY created_at DESC LIMIT ?
+                    """, (user_id, chat_limit))
                 
                 content_data["chat_conversations"] = [
                     {
@@ -3172,8 +3180,8 @@ def get_library_content(user_id, content_type="all"):
             except Exception as e:
                 logger.warning(f"Could not fetch chat conversations: {e}")
         
-        # Get music tracks if requested  
-        if content_type in ["all", "music", "tracks"]:
+        # Get music tracks if requested (only for Growth/Max users)
+        if content_type in ["all", "music", "tracks"] and effective_plan in ['growth', 'max']:
             try:
                 if db_instance.use_postgres:
                     cursor.execute("""
@@ -9147,12 +9155,21 @@ def api_creative_writing():
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
             
-        # Check if user has access to creative writing (Growth/Max tiers or active trial)
+        # Check daily usage limits for creative writing
         user_plan = session.get('user_plan', 'free')
-        trial_active = check_trial_active_from_db(session.get('user_id'))
+        user_id = session.get('user_id')
         
-        # Creative Writing Assistant is available to all users per FEATURE_ACCESS["free"]["creative_writer"] = True
-        # No plan restriction needed - this check can be removed or simplified
+        # Get effective plan for limits (not trial-affected)
+        effective_plan = get_effective_plan(user_plan, False)
+        daily_limit = get_feature_limit(effective_plan, 'creative_writer')
+        
+        # Check daily usage
+        usage_key = f'creative_usage_{user_id}_{datetime.now().strftime("%Y-%m-%d")}'
+        daily_usage = session.get(usage_key, 0)
+        
+        if daily_usage >= daily_limit:
+            tier_name = {"free": "Free", "growth": "Growth", "max": "Max"}[effective_plan]
+            return jsonify({"success": False, "error": f"Daily creative writing limit reached ({daily_limit} per day for {tier_name} tier). Upgrade for more uses!"}), 403
             
         data = request.get_json()
         if not data:
@@ -9169,7 +9186,16 @@ def api_creative_writing():
         if not services["openai"]:
             # Provide fallback creative content
             fallback_content = generate_fallback_creative_content(mode, prompt, mood)
-            return jsonify({"success": True, "content": fallback_content})
+            
+            # Track usage even for fallback content
+            session[usage_key] = daily_usage + 1
+            
+            return jsonify({
+                "success": True, 
+                "content": fallback_content,
+                "daily_usage": daily_usage + 1,
+                "daily_limit": daily_limit
+            })
         
         # Create mode-specific prompts
         system_prompts = {
@@ -9205,20 +9231,34 @@ def api_creative_writing():
             companion_signature = f"\n\n— Created with {companion}'s creative guidance 💫"
             final_content = creative_content + companion_signature
             
-            logger.info(f"Creative writing generated: {mode} for user {session.get('user_email')}")
+            # Track usage for daily limits
+            session[usage_key] = daily_usage + 1
+            
+            logger.info(f"Creative writing generated: {mode} for user {session.get('user_email')} ({daily_usage + 1}/{daily_limit} daily uses)")
             
             return jsonify({
                 "success": True,
                 "content": final_content,
                 "mode": mode,
-                "mood": mood
+                "mood": mood,
+                "daily_usage": daily_usage + 1,
+                "daily_limit": daily_limit
             })
             
         except Exception as openai_error:
             logger.error(f"OpenAI creative writing error: {openai_error}")
             # Fallback to predefined creative content
             fallback_content = generate_fallback_creative_content(mode, prompt, mood)
-            return jsonify({"success": True, "content": fallback_content})
+            
+            # Track usage even for fallback content
+            session[usage_key] = daily_usage + 1
+            
+            return jsonify({
+                "success": True, 
+                "content": fallback_content,
+                "daily_usage": daily_usage + 1,
+                "daily_limit": daily_limit
+            })
             
     except Exception as e:
         logger.error(f"Creative writing API error: {e}")
@@ -9281,12 +9321,38 @@ def api_save_creative_content():
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
             
-        # Check if user has access to creative writing (Growth/Max tiers or active trial)
-        user_plan = session.get('user_plan', 'free')
-        trial_active = check_trial_active_from_db(session.get('user_id'))
+        # Check user's library limits before saving
+        user_plan = session.get('user_plan', 'free') 
+        user_id = session.get('user_id')
         
-        # Creative content saving is available to all users per FEATURE_ACCESS["free"]["creative_writer"] = True
-        # No plan restriction needed
+        # Get effective plan for limits (not trial-affected)
+        effective_plan = get_effective_plan(user_plan, False)
+        library_limit = get_feature_limit(effective_plan, 'library_chats')
+        
+        # Check current saved count for this user
+        if library_limit != float("inf"):  # Only check if there's a limit
+            try:
+                db_instance = get_database()
+                if db_instance:
+                    conn = db_instance.get_connection()
+                    cursor = conn.cursor()
+                    
+                    if db_instance.use_postgres:
+                        cursor.execute("SELECT COUNT(*) FROM user_library WHERE user_id = %s AND content_type = 'creative'", (user_id,))
+                    else:
+                        cursor.execute("SELECT COUNT(*) FROM user_library WHERE user_id = ? AND content_type = 'creative'", (user_id,))
+                    
+                    current_count = cursor.fetchone()[0]
+                    
+                    if current_count >= library_limit:
+                        tier_name = {"free": "Free", "growth": "Growth", "max": "Max"}[effective_plan]
+                        return jsonify({
+                            "success": False, 
+                            "error": f"Library storage limit reached ({library_limit} items for {tier_name} tier). Upgrade your plan for more storage!"
+                        }), 403
+            except Exception as e:
+                logger.error(f"Error checking library limits: {e}")
+                # Continue with save if check fails
             
         data = request.get_json()
         if not data:

@@ -9,17 +9,23 @@ PLAN_LIMITS = {
     "free": {
         "decoder": 3,
         "fortune": 2, 
-        "horoscope": 3
+        "horoscope": 3,
+        "creative_writer": 2,  # 2 uses per day for free tier
+        "library_chats": 3     # Save max 3 chat conversations
     },
     "growth": {
         "decoder": 15,
         "fortune": 8,
-        "horoscope": 10
+        "horoscope": 10,
+        "creative_writer": 20,  # 20 uses per day
+        "library_chats": 50     # Save max 50 chat conversations
     },
     "max": {
         "decoder": float("inf"),
         "fortune": float("inf"), 
-        "horoscope": float("inf")
+        "horoscope": float("inf"),
+        "creative_writer": float("inf"),  # Unlimited
+        "library_chats": float("inf")     # Unlimited
     }
 }
 
