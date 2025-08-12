@@ -90,6 +90,7 @@ function cleanCharacterName(name) {
         'blayzike': 'Blayzike',
         'blazelian': 'Blazelian',
         'claude_referral': 'Claude Referral',
+        'blayzo_skin': 'Blayzo Special Skin',  // Missing referral companion!
         'sapphire': 'Sapphire'
     };
     
@@ -197,6 +198,8 @@ function updateCharacterDisplay() {
             'Blayzike': '/static/logos/Blayzike.png',
             'Blazelian': '/static/logos/Blazelian.png',
             'Claude Referral': '/static/logos/Claude_Referral.png', // URL-safe filename
+            'Blayzo Special Skin': '/static/referral/blayzo_skin.png', // Missing referral companion!
+            'blayzo_skin': '/static/referral/blayzo_skin.png', // Backend ID format
             'Sapphire': '/static/logos/Sapphire.png'
         };
         

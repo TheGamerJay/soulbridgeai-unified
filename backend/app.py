@@ -2587,8 +2587,11 @@ def chat():
             'claude_max': {'name': 'Claude Max', 'avatar': '/static/logos/Claude_Max.png'},
             
             # Referral companions
+            'blayzike': {'name': 'Blayzike', 'avatar': '/static/referral/blayzike.png'},
+            'blazelian': {'name': 'Blazelian', 'avatar': '/static/referral/blazelian.png'},
             'blayzo_referral': {'name': 'Blayzo Referral', 'avatar': '/static/logos/Blayzo_Referral.png'},
-            'claude_referral': {'name': 'Claude Referral', 'avatar': '/static/logos/Claude_Referral.png'},
+            'claude_referral': {'name': 'Claude Referral', 'avatar': '/static/referral/claude_referral.png'},
+            'blayzo_skin': {'name': 'Blayzo Special Skin', 'avatar': '/static/referral/blayzo_skin.png'}
         }
         
         # Add debug logging before returning
