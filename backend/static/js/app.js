@@ -42,7 +42,7 @@ function checkTrialStatus() {
     
     if (trialStatus) {
         let timePassed = Date.now() - parseInt(trialStatus);
-        if (timePassed < 86400000) { // 24 hours
+        if (timePassed < 18000000) { // 5 hours (5 * 60 * 60 * 1000)
             if (trialStatusDisplay) trialStatusDisplay.innerText = "Trial Status: Active";
             return true;
         } else {
@@ -63,7 +63,7 @@ function startTrial() {
         return;
     }
     localStorage.setItem("soulbridgeai_trial", Date.now());
-    alert("1-Day Free Trial Activated!");
+    alert("5-Hour Max Trial Activated!");
     const trialStatusDisplay = document.getElementById("trialStatus");
     if (trialStatusDisplay) trialStatusDisplay.innerText = "Trial Status: Active";
 }
