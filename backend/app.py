@@ -3548,7 +3548,7 @@ def get_library_content(user_id, content_type="all", user_plan="free"):
     try:
         # Get plan-based limits
         effective_plan = get_effective_plan(user_plan, False)
-        chat_limit = get_feature_limit(effective_plan, 'library_chats')
+        chat_limit = get_feature_limit(user_plan, 'library_chats')  # Use actual plan for limits, not effective
         
         db_instance = get_database()
         if not db_instance:
@@ -9583,7 +9583,7 @@ def api_creative_writing():
         
         # Get effective plan for limits (not trial-affected)
         effective_plan = get_effective_plan(user_plan, False)
-        daily_limit = get_feature_limit(effective_plan, 'creative_writer')
+        daily_limit = get_feature_limit(user_plan, 'creative_writer')  # Use actual plan for limits, not effective
         
         # Check daily usage
         usage_key = f'creative_usage_{user_id}_{datetime.now().strftime("%Y-%m-%d")}'
@@ -9749,7 +9749,7 @@ def api_save_creative_content():
         
         # Get effective plan for limits (not trial-affected)
         effective_plan = get_effective_plan(user_plan, False)
-        library_limit = get_feature_limit(effective_plan, 'library_chats')
+        library_limit = get_feature_limit(user_plan, 'library_chats')  # Use actual plan for limits, not effective
         
         # Check current saved count for this user
         if library_limit < 999999:  # Only check if there's a limit
