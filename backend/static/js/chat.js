@@ -73,6 +73,8 @@ function cleanCharacterName(name) {
         'blayzo_growth': 'Blayzo Pro',
         'blayzica_growth': 'Blayzica Pro',
         'companion_gamerjay_premium': 'GamerJay Premium',
+        'gamerjay_premium': 'GamerJay Premium',  // Missing mapping!
+        'blayzo_premium': 'Blayzo Pro',  // Missing mapping!
         'watchdog_growth': 'WatchDog',
         'crimson_growth': 'Crimson',
         'violet_growth': 'Violet',
@@ -123,10 +125,8 @@ function loadCharacterInfo() {
     // Show voice chat button for Growth+ companions
     showVoiceChatButton();
     
-    // Show trial banner if this is a trial session
-    if (urlParams.get('trial') === 'true') {
-        checkTrialStatus();
-    }
+    // REMOVED: Old trial system integration - handled by new_trial_system.js
+    console.log('🚫 OLD: Trial initialization disabled - using new_trial_system.js');
     
     // Show selection success message
     const selectionTime = localStorage.getItem('companionSelectionTime');
@@ -548,19 +548,9 @@ setTimeout(showQuickResponses, 2000);
 
 // Trial system integration
 function checkTrialStatus() {
-    const trialActive = localStorage.getItem('trialActive') === 'true';
-    const trialExpiry = localStorage.getItem('trialExpiry');
-    
-    if (trialActive && trialExpiry) {
-        const timeRemaining = parseInt(trialExpiry) - Date.now();
-        if (timeRemaining > 0) {
-            showTrialBanner(timeRemaining);
-        } else {
-            // Trial expired
-            localStorage.removeItem('trialActive');
-            localStorage.removeItem('trialExpiry');
-        }
-    }
+    // REMOVED: Old localStorage-based trial system that conflicted with new system
+    // Trial status is now handled by new_trial_system.js exclusively
+    console.log('🚫 OLD: Legacy trial check disabled - using new_trial_system.js');
 }
 
 function showTrialBanner(timeRemaining) {
@@ -618,9 +608,9 @@ function startNewTrialTimer() {
     const circumference = 2 * Math.PI * radius;
     
     function updateNewTimer() {
-        const trialExpiry = parseInt(localStorage.getItem('trialExpiry') || '0');
-        const now = Date.now();
-        const remaining = trialExpiry - now;
+        // REMOVED: localStorage trial logic - let new_trial_system.js handle this
+        console.log('🚫 OLD: Timer update disabled - using new_trial_system.js');
+        return;
         
         if (remaining <= 0) {
             container.style.display = 'none';
@@ -656,8 +646,8 @@ function startNewTrialTimer() {
     console.log('✅ NEW: Circular trial timer started');
 }
 
-// Initialize trial status check
-checkTrialStatus();
+// REMOVED: Old trial initialization - handled by new_trial_system.js
+console.log('🚫 OLD: Removed duplicate trial initialization');
 
 // Bulletproof tier display logic
 function updateTierDisplay() {
