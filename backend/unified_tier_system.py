@@ -253,6 +253,9 @@ def get_tier_status(user_id):
         plan = session.get("user_plan", "free")
         effective_plan = get_effective_plan(plan, trial_active)
         
+        # DEBUG: Log what we got from session
+        logger.info(f"🔍 UNIFIED DEBUG: user_id={user_id}, plan='{plan}', trial={trial_active}, effective='{effective_plan}'")
+        
         # Get current usage
         decoder_usage = get_feature_usage_today(user_id, "decoder")
         fortune_usage = get_feature_usage_today(user_id, "fortune") 

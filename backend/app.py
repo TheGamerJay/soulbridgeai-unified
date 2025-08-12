@@ -144,11 +144,11 @@ def companion_unlock_state_new(user_plan: str, trial_active: bool, referrals: in
 # Removed duplicate get_feature_limit() - using comprehensive version at line 6450
 
 def require_max_for_mini_studio_new():
-    """Hard gate Mini Studio; never trust client"""
-    if session.get("user_plan") != "max":
-        return False
-    # For now, allow if user_plan is max (add payment verification later)
-    return True
+    """Hard gate Mini Studio; use unified system for trial support"""
+    trial_active = session.get('trial_active', False)
+    user_plan = session.get('user_plan', 'free')
+    effective_plan = get_effective_plan(user_plan, trial_active)
+    return effective_plan == 'max'
 
 # ============================================
 # END BULLETPROOF TIER ISOLATION SYSTEM
@@ -11031,6 +11031,11 @@ def get_tier_limits():
         if not user_id:
             return jsonify({"success": False, "error": "User ID required"}), 401
             
+        # DEBUG: Log session values before calling unified system
+        session_plan = session.get('user_plan', 'unknown')
+        session_trial = session.get('trial_active', False)
+        logger.info(f"🔍 DEBUG SESSION: user_plan='{session_plan}', trial_active={session_trial}")
+        
         # Use unified tier system for consistent behavior
         tier_status = get_tier_status(user_id)
         
@@ -11046,6 +11051,7 @@ def get_tier_limits():
         
         logger.info(f"🎯 UNIFIED TIER LIMITS: {tier_status['user_plan']} plan, {tier_status['effective_plan']} features, trial: {tier_status['trial_active']}")
         logger.info(f"🎯 LIMITS: {limits}, USAGE: {tier_status['usage']}")
+        logger.info(f"🔍 DEBUG RAW LIMITS: {tier_status['limits']}")
         
         return jsonify({
             "success": True,
@@ -13114,7 +13120,11 @@ def music_home():
         except Exception as e:
             logger.error(f"User info fetch error: {e}")
     
-    allowed = is_max_allowed_music(user_id)
+    # Use unified system for consistent trial handling
+    trial_active = session.get('trial_active', False)
+    user_plan = session.get('user_plan', 'free')
+    effective_plan = get_effective_plan(user_plan, trial_active)
+    allowed = effective_plan == 'max'
     
     return render_template_string('''
 <!doctype html><meta charset="utf-8">
@@ -13178,8 +13188,12 @@ def music_create_track():
     if not is_logged_in():
         return redirect("/login?return_to=music/create-track")
     
-    user_id = session.get('user_id')
-    if not is_max_allowed_music(user_id):
+    # Use unified system for consistent trial handling
+    trial_active = session.get('trial_active', False)
+    user_plan = session.get('user_plan', 'free')
+    effective_plan = get_effective_plan(user_plan, trial_active)
+    
+    if effective_plan != 'max':
         return redirect("/tiers?upgrade=max")
     
     return redirect("/creative-writing?mode=music&prompt=Create%20a%20new%20music%20track")
