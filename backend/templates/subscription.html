@@ -364,15 +364,16 @@
     </div>
   </div>
 
-  <!-- Credit Purchase Section for Max Plan Subscribers -->
+  <!-- Trainer Time Purchase Section - Visible to all, locked for non-Max subscribers -->
   <div id="credit-purchase-section" style="
-    display: none;
+    display: block;
     margin-top: 40px;
     background: rgba(34, 211, 238, 0.1);
     border: 2px solid #22d3ee;
     border-radius: 20px;
     padding: 40px;
     text-align: center;
+    position: relative;
   ">
     <div style="font-size: 2rem; margin-bottom: 20px;">💳</div>
     <h3 style="color: #22d3ee; margin-bottom: 20px; font-size: 1.8rem;">Need More Trainer Time?</h3>
@@ -465,6 +466,41 @@
     <p style="color: #94a3b8; font-size: 0.9rem; margin-top: 20px;">
       Trainer time is added instantly and never expires. Only Max Plan subscribers can purchase additional trainer time.
     </p>
+    
+    <!-- Lock overlay for non-Max subscribers -->
+    <div id="trainer-time-lock" style="
+      display: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      border-radius: 20px;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      z-index: 10;
+    ">
+      <div style="font-size: 3rem; margin-bottom: 20px;">🔒</div>
+      <h3 style="color: #22d3ee; margin-bottom: 15px; font-size: 1.5rem;">Max Plan Required</h3>
+      <p style="color: #e2e8f0; text-align: center; max-width: 400px; margin-bottom: 25px; line-height: 1.5;">
+        Upgrade to Max Plan to purchase additional trainer time when you run out of your monthly allowance.
+      </p>
+      <button onclick="selectPlan('enterprise')" style="
+        background: linear-gradient(135deg, #22d3ee, #0891b2);
+        color: #000;
+        border: none;
+        padding: 15px 30px;
+        border-radius: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+      " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+        🚀 Upgrade to Max Plan
+      </button>
+    </div>
   </div>
 
   <!-- Yearly Savings Banner -->
@@ -899,7 +935,7 @@ async function purchaseTrainerTime(amount, price) {
   }
 }
 
-// Check if user should see trainer time purchase section
+// Check user access and show/hide lock overlay
 async function checkTrainerTimePurchaseAccess() {
   try {
     const statusResponse = await fetch('/api/user-status', {
@@ -908,12 +944,25 @@ async function checkTrainerTimePurchaseAccess() {
     });
     const statusData = await statusResponse.json();
     
+    const section = document.getElementById('credit-purchase-section');
+    const lockOverlay = document.getElementById('trainer-time-lock');
+    
+    // Always show the section
+    section.style.display = 'block';
+    
     if (statusData.logged_in && statusData.plan_type === 'max') {
-      // Show trainer time purchase section for Max plan subscribers
-      document.getElementById('credit-purchase-section').style.display = 'block';
+      // Max plan subscribers: hide lock, enable purchases
+      lockOverlay.style.display = 'none';
+      console.log('✅ Max Plan subscriber - trainer time purchases enabled');
+    } else {
+      // Non-Max subscribers: show lock overlay
+      lockOverlay.style.display = 'flex';
+      console.log('🔒 Non-Max subscriber - showing upgrade prompt');
     }
   } catch (error) {
     console.error('Error checking trainer time purchase access:', error);
+    // On error, show lock overlay as fallback
+    document.getElementById('trainer-time-lock').style.display = 'flex';
   }
 }
 
