@@ -21,11 +21,11 @@ PLAN_LIMITS = {
         "library_chats": 50     # Save max 50 chat conversations
     },
     "max": {
-        "decoder": float("inf"),
-        "fortune": float("inf"), 
-        "horoscope": float("inf"),
-        "creative_writer": float("inf"),  # Unlimited
-        "library_chats": float("inf")     # Unlimited
+        "decoder": 999999,  # Large number that displays as "unlimited"
+        "fortune": 999999,  # Large number that displays as "unlimited"
+        "horoscope": 999999,  # Large number that displays as "unlimited"
+        "creative_writer": 999999,  # Large number that displays as "unlimited"
+        "library_chats": 999999     # Large number that displays as "unlimited"
     }
 }
 
@@ -139,7 +139,7 @@ MONTHLY_CREDIT_RESET_AMOUNT = 650
 AI_IMAGE_LIMITS = {
     "free": 5,
     "growth": 50, 
-    "max": float("inf")
+    "max": 999999
 }
 
 # Legacy plan migration mapping

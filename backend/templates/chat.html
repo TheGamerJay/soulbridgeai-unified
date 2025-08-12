@@ -268,14 +268,23 @@
                     <textarea id="writingPrompt" placeholder="Describe what you'd like help with..." rows="4"></textarea>
                     <div class="mood-selector">
                         <label>Mood/Tone:</label>
-                        <select id="moodSelect">
+                        <select id="moodSelect" onchange="toggleCustomMood()">
                             <option value="uplifting">Uplifting & Positive</option>
                             <option value="calming">Calm & Peaceful</option>
                             <option value="motivational">Motivational & Energizing</option>
                             <option value="romantic">Romantic & Loving</option>
                             <option value="reflective">Reflective & Thoughtful</option>
                             <option value="playful">Playful & Fun</option>
+                            <option value="custom">Custom (Write Your Own)</option>
                         </select>
+                        <div id="customMoodInput" style="display: none; margin-top: 10px;">
+                            <input type="text" id="customMood" placeholder="Describe your desired mood/tone (e.g., mysterious, nostalgic, adventurous...)" 
+                                   style="width: 100%; padding: 12px; background: rgba(0, 0, 0, 0.3); border: 2px solid rgba(34, 211, 238, 0.3); 
+                                          border-radius: 8px; color: #e2e8f0; font-size: 1rem;" maxlength="100">
+                            <small style="color: #94a3b8; font-size: 0.8rem; margin-top: 5px; display: block;">
+                                Keep it appropriate and descriptive (max 100 characters)
+                            </small>
+                        </div>
                     </div>
                     <button onclick="generateCreativeContent()" class="generate-btn">
                         <i class="fas fa-magic"></i> Generate Creative Content
@@ -1207,10 +1216,34 @@
             document.getElementById('writingPrompt').dataset.mode = mode;
         }
         
+        function toggleCustomMood() {
+            const moodSelect = document.getElementById('moodSelect');
+            const customMoodInput = document.getElementById('customMoodInput');
+            
+            if (moodSelect.value === 'custom') {
+                customMoodInput.style.display = 'block';
+            } else {
+                customMoodInput.style.display = 'none';
+            }
+        }
+        
         async function generateCreativeContent() {
             const prompt = document.getElementById('writingPrompt').value.trim();
-            const mood = document.getElementById('moodSelect').value;
+            const moodSelect = document.getElementById('moodSelect');
             const mode = document.getElementById('writingPrompt').dataset.mode;
+            
+            // Get mood - use custom input if "custom" is selected
+            let mood;
+            if (moodSelect.value === 'custom') {
+                const customMood = document.getElementById('customMood').value.trim();
+                if (!customMood) {
+                    alert('Please enter your custom mood/tone or select a preset option.');
+                    return;
+                }
+                mood = customMood;
+            } else {
+                mood = moodSelect.value;
+            }
             
             if (!prompt) {
                 alert('Please describe what you\'d like help writing!');

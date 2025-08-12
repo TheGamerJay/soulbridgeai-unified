@@ -6423,7 +6423,7 @@ def get_feature_limit(plan: str, feature: str) -> int:
     ai_image_limits = {
         "free": 5,
         "growth": 50, 
-        "max": float("inf")
+        "max": 999999
     }
     
     if feature == "ai_image_monthly":
@@ -9078,7 +9078,7 @@ def api_chat():
             current_usage = get_decoder_usage()
             
             # Check if user has exceeded limit
-            if daily_limit != float('inf') and current_usage >= daily_limit:
+            if daily_limit < 999999 and current_usage >= daily_limit:
                 return jsonify({
                     "success": False, 
                     "response": f"Daily decoder limit reached ({daily_limit} uses). Upgrade to Growth for 15 daily uses, or Max for unlimited access!",
@@ -9330,7 +9330,7 @@ def api_save_creative_content():
         library_limit = get_feature_limit(effective_plan, 'library_chats')
         
         # Check current saved count for this user
-        if library_limit != float("inf"):  # Only check if there's a limit
+        if library_limit < 999999:  # Only check if there's a limit
             try:
                 db_instance = get_database()
                 if db_instance:
