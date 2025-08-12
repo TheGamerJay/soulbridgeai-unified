@@ -136,9 +136,7 @@ def companion_unlock_state_new(user_plan: str, trial_active: bool, referrals: in
     if referrals >= REFERRAL_THRESHOLDS["blayzo_skin"]: referral_unlocks.append("blayzo_skin")
     return unlocked_tiers, set(referral_unlocks)
 
-def get_feature_limit(real_plan: str, feature: str):
-    """Get feature limits based on real plan (never trial)"""
-    return PLAN_LIMITS.get(real_plan, PLAN_LIMITS["free"]).get(feature, 0)
+# Removed duplicate get_feature_limit() - using comprehensive version at line 6450
 
 def require_max_for_mini_studio_new():
     """Hard gate Mini Studio; never trust client"""
@@ -2602,89 +2600,7 @@ def chat():
         effective_plan=effective_plan
     )
 
-@app.route("/api/companions-old-disabled", methods=["GET"])
-def api_companions_old_disabled():
-    """Get available companions organized by tiers"""
-    try:
-        # Allow access without authentication so users can see companions before login
-        if is_logged_in():
-            # Calculate effective_plan fresh from current session data
-            user_plan = session.get('user_plan', 'free')  # Original plan for display
-            trial_active = session.get('trial_active', False)
-            effective_plan = get_effective_plan(user_plan, trial_active)  # FIXED: Calculate fresh
-        else:
-            effective_plan = 'free'
-            user_plan = 'free'
-            trial_active = False
-        
-        # Helper function to determine lock reason using bulletproof access control
-        def get_lock_reason(tier):
-            if tier == "free":
-                return None
-            elif tier == "growth":
-                # Growth companions: use bulletproof access control
-                if can_access_companion(user_plan, 'growth', trial_active):
-                    return None
-                else:
-                    return "Try 5hr Free or Upgrade"
-            elif tier == "max":
-                # Max companions: use bulletproof access control
-                if can_access_companion(user_plan, 'max', trial_active):
-                    return None
-                else:
-                    return "Try 5hr Free or Purchase Max Plan"
-            return "Upgrade Required"
-        
-        # Define companions by tier
-        companions = {
-            "free": [
-                {"companion_id": "blayzo_free", "display_name": "Blayzo", "description": "Your creative and fun AI companion", "avatar_image": "/static/logos/Blayzo.png", "tier": "free", "is_recommended": True, "popularity_score": 90, "lock_reason": None},
-                {"companion_id": "blayzica_free", "display_name": "Blayzica", "description": "Your empathetic and caring AI companion", "avatar_image": "/static/logos/Blayzica.png", "tier": "free", "is_recommended": True, "popularity_score": 88, "lock_reason": None},
-                {"companion_id": "companion_gamerjay", "display_name": "GamerJay", "description": "Your friendly gaming companion", "avatar_image": "/static/logos/GamerJay Free companion.png", "tier": "free", "is_recommended": False, "popularity_score": 85, "lock_reason": None},
-                {"companion_id": "blayzia_free", "display_name": "Blayzia", "description": "Mystical wisdom and spiritual insight", "avatar_image": "/static/logos/Blayzia.png", "tier": "free", "is_recommended": True, "popularity_score": 90, "lock_reason": None},
-                {"companion_id": "blayzion_free", "display_name": "Blayzion", "description": "Creative innovation and breakthrough thinking", "avatar_image": "/static/logos/Blayzion.png", "tier": "free", "is_recommended": False, "popularity_score": 89, "lock_reason": None},
-                {"companion_id": "claude_free", "display_name": "Claude", "description": "Your friendly coding assistant", "avatar_image": "/static/logos/Claude Free.png", "tier": "free", "is_recommended": False, "popularity_score": 85, "lock_reason": None}
-            ],
-            "growth": [
-                {"companion_id": "companion_sky", "display_name": "Sky", "description": "Premium companion with advanced features", "avatar_image": "/static/logos/Sky a premium companion.png", "tier": "growth", "is_recommended": True, "popularity_score": 90, "lock_reason": get_lock_reason("growth")},
-                {"companion_id": "blayzo_premium", "display_name": "Blayzo Pro", "description": "Advanced Blayzo with enhanced creativity", "avatar_image": "/static/logos/Blayzo premium companion.png", "tier": "growth", "is_recommended": True, "popularity_score": 92, "lock_reason": get_lock_reason("growth")},
-                {"companion_id": "blayzica_growth", "display_name": "Blayzica Pro", "description": "Enhanced emotional intelligence companion", "avatar_image": "/static/logos/Blayzica Pro.png", "tier": "growth", "is_recommended": True, "popularity_score": 91, "lock_reason": get_lock_reason("growth")},
-                {"companion_id": "gamerjay_premium", "display_name": "GamerJay Premium", "description": "Enhanced GamerJay with premium features", "avatar_image": "/static/logos/GamerJay premium companion.png", "tier": "growth", "is_recommended": False, "popularity_score": 88, "lock_reason": get_lock_reason("growth")},
-                {"companion_id": "watchdog_growth", "display_name": "WatchDog", "description": "Your protective guardian companion", "avatar_image": "/static/logos/WatchDog a Premium companion.png", "tier": "growth", "is_recommended": False, "popularity_score": 78, "lock_reason": get_lock_reason("growth")},
-                {"companion_id": "crimson_growth", "display_name": "Crimson", "description": "Motivational drive to overcome challenges", "avatar_image": "/static/logos/Crimson.png", "tier": "growth", "is_recommended": True, "popularity_score": 87, "lock_reason": get_lock_reason("growth")},
-                {"companion_id": "violet_growth", "display_name": "Violet", "description": "Creative inspiration and artistic guidance", "avatar_image": "/static/logos/Violet.png", "tier": "growth", "is_recommended": False, "popularity_score": 84, "lock_reason": get_lock_reason("growth")},
-                {"companion_id": "claude_growth", "display_name": "Claude Growth", "description": "Advanced coding guidance and architecture", "avatar_image": "/static/logos/Claude Growth.png", "tier": "growth", "is_recommended": True, "popularity_score": 93, "lock_reason": get_lock_reason("growth")}
-            ],
-            "max": [
-                {"companion_id": "companion_crimson", "display_name": "Crimson Max", "description": "Elite transformation companion", "avatar_image": "/static/logos/Crimson a Max companion.png", "tier": "max", "is_recommended": True, "popularity_score": 98, "lock_reason": get_lock_reason("max")},
-                {"companion_id": "companion_violet", "display_name": "Violet Max", "description": "Premium creative companion", "avatar_image": "/static/logos/Violet a Max companion.png", "tier": "max", "is_recommended": False, "popularity_score": 91, "lock_reason": get_lock_reason("max")},
-                {"companion_id": "royal_max", "display_name": "Royal", "description": "Majestic guide with sophisticated wisdom", "avatar_image": "/static/logos/Royal a Max companion.png", "tier": "max", "is_recommended": False, "popularity_score": 95, "lock_reason": get_lock_reason("max")},
-                {"companion_id": "watchdog_max", "display_name": "WatchDog Max", "description": "Ultimate guardian companion", "avatar_image": "/static/logos/WatchDog a Max Companion.png", "tier": "max", "is_recommended": False, "popularity_score": 93, "lock_reason": get_lock_reason("max")},
-                {"companion_id": "ven_blayzica", "display_name": "Ven Blayzica", "description": "Enhanced healer with emotional mastery", "avatar_image": "/static/logos/Ven Blayzica a Max companion.png", "tier": "max", "is_recommended": True, "popularity_score": 94, "lock_reason": get_lock_reason("max")},
-                {"companion_id": "ven_sky", "display_name": "Ven Sky", "description": "Ascended spiritual guide", "avatar_image": "/static/logos/Ven Sky a Max companion.png", "tier": "max", "is_recommended": True, "popularity_score": 96, "lock_reason": get_lock_reason("max")},
-                {"companion_id": "claude_max", "display_name": "Claude Max", "description": "Elite coding mastery and system design", "avatar_image": "/static/logos/Claude Max.png", "tier": "max", "is_recommended": True, "popularity_score": 97, "lock_reason": get_lock_reason("max")}
-            ],
-            "referral": [
-                {"companion_id": "blayzo", "display_name": "Blayzo Champion", "description": "Exclusive community champion", "avatar_image": "/static/logos/Blayzo Referral.png", "tier": "referral", "is_recommended": True, "popularity_score": 100, "lock_reason": "Unlock through referrals"},
-                {"companion_id": "blayzike", "display_name": "Blayzike", "description": "Mysterious guide with hidden wisdom", "avatar_image": "/static/logos/Blayzike.png", "tier": "referral", "is_recommended": True, "popularity_score": 97, "lock_reason": "Unlock through referrals"},
-                {"companion_id": "blazelian", "display_name": "Blazelian", "description": "Celestial wanderer with cosmic wisdom", "avatar_image": "/static/logos/Blazelian.png", "tier": "referral", "is_recommended": True, "popularity_score": 98, "lock_reason": "Unlock through referrals"},
-                {"companion_id": "claude_referral", "display_name": "Claude Referral", "description": "Elite coding companion for champions", "avatar_image": "/static/logos/Claude Referral.png", "tier": "referral", "is_recommended": True, "popularity_score": 100, "lock_reason": "Unlock through referrals"}
-            ]
-        }
-        
-        return jsonify({
-            "success": True,
-            "companions": companions,
-            "user_plan": user_plan,
-            "trial_active": trial_active,
-            "trial_used_permanently": session.get('trial_used_permanently', False),
-            "trial_expires_at": session.get('trial_expires_at'),
-            "effective_plan": effective_plan  # Use actual effective_plan
-        })
-        
-    except Exception as e:
-        logger.error(f"Companions API error: {e}")
-        return jsonify({"success": False, "error": "Failed to load companions"}), 500
+# REMOVED: api_companions_old_disabled function - was a disabled/deprecated companions API endpoint
 
 @app.route("/api/companions/accessible", methods=["GET"])
 def api_companions_accessible():
@@ -3159,15 +3075,143 @@ def terms_acceptance_page():
         return redirect("/login")
 
 @app.route("/library")
-def library_page():
-    """Conversation library page"""
+@app.route("/library/<content_type>")
+def unified_library(content_type="all"):
+    """Unified library for chat conversations and music content"""
     try:
         if not is_logged_in():
-            return redirect("/login")
-        return render_template("library.html")
+            return redirect("/login?return_to=library")
+        
+        user_id = session.get('user_id')
+        user_plan = session.get('user_plan', 'free')
+        trial_active = session.get('trial_active', False)
+        
+        # Get user's saved content based on type
+        content_data = get_library_content(user_id, content_type)
+        
+        return render_template("unified_library.html", 
+                             content_type=content_type,
+                             content_data=content_data,
+                             user_plan=user_plan,
+                             trial_active=trial_active)
     except Exception as e:
-        logger.error(f"Library page error: {e}")
+        logger.error(f"Unified library error: {e}")
         return redirect("/")
+
+def get_library_content(user_id, content_type="all"):
+    """Get user's saved content from unified library system"""
+    try:
+        db_instance = get_database()
+        if not db_instance:
+            return {"chat_conversations": [], "music_tracks": [], "creative_content": []}
+            
+        conn = db_instance.get_connection()
+        cursor = conn.cursor()
+        
+        content_data = {
+            "chat_conversations": [],
+            "music_tracks": [],
+            "creative_content": []
+        }
+        
+        # Get chat conversations if requested
+        if content_type in ["all", "chat", "conversations"]:
+            try:
+                if db_instance.use_postgres:
+                    cursor.execute("""
+                        SELECT id, title, content, created_at, conversation_type
+                        FROM user_library 
+                        WHERE user_id = %s AND content_type IN ('chat', 'conversation')
+                        ORDER BY created_at DESC LIMIT 50
+                    """, (user_id,))
+                else:
+                    cursor.execute("""
+                        SELECT id, title, content, created_at, conversation_type
+                        FROM user_library 
+                        WHERE user_id = ? AND content_type IN ('chat', 'conversation')
+                        ORDER BY created_at DESC LIMIT 50
+                    """, (user_id,))
+                
+                content_data["chat_conversations"] = [
+                    {
+                        "id": row[0],
+                        "title": row[1], 
+                        "content": row[2],
+                        "created_at": row[3],
+                        "type": row[4] if len(row) > 4 else "chat"
+                    } for row in cursor.fetchall()
+                ]
+            except Exception as e:
+                logger.warning(f"Could not fetch chat conversations: {e}")
+        
+        # Get music tracks if requested  
+        if content_type in ["all", "music", "tracks"]:
+            try:
+                if db_instance.use_postgres:
+                    cursor.execute("""
+                        SELECT id, title, description, file_path, created_at, genre, duration
+                        FROM music_tracks 
+                        WHERE user_id = %s 
+                        ORDER BY created_at DESC LIMIT 50
+                    """, (user_id,))
+                else:
+                    cursor.execute("""
+                        SELECT id, title, description, file_path, created_at, genre, duration
+                        FROM music_tracks 
+                        WHERE user_id = ? 
+                        ORDER BY created_at DESC LIMIT 50
+                    """, (user_id,))
+                
+                content_data["music_tracks"] = [
+                    {
+                        "id": row[0],
+                        "title": row[1],
+                        "description": row[2],
+                        "file_path": row[3],
+                        "created_at": row[4],
+                        "genre": row[5] if len(row) > 5 else None,
+                        "duration": row[6] if len(row) > 6 else None
+                    } for row in cursor.fetchall()
+                ]
+            except Exception as e:
+                logger.warning(f"Could not fetch music tracks: {e}")
+        
+        # Get creative content (stories, poems, etc.) if requested
+        if content_type in ["all", "creative", "writing"]:
+            try:
+                if db_instance.use_postgres:
+                    cursor.execute("""
+                        SELECT id, title, content, created_at, content_type
+                        FROM user_library 
+                        WHERE user_id = %s AND content_type IN ('story', 'poem', 'creative', 'writing')
+                        ORDER BY created_at DESC LIMIT 50
+                    """, (user_id,))
+                else:
+                    cursor.execute("""
+                        SELECT id, title, content, created_at, content_type
+                        FROM user_library 
+                        WHERE user_id = ? AND content_type IN ('story', 'poem', 'creative', 'writing')
+                        ORDER BY created_at DESC LIMIT 50
+                    """, (user_id,))
+                
+                content_data["creative_content"] = [
+                    {
+                        "id": row[0],
+                        "title": row[1],
+                        "content": row[2], 
+                        "created_at": row[3],
+                        "type": row[4] if len(row) > 4 else "creative"
+                    } for row in cursor.fetchall()
+                ]
+            except Exception as e:
+                logger.warning(f"Could not fetch creative content: {e}")
+        
+        conn.close()
+        return content_data
+        
+    except Exception as e:
+        logger.error(f"Error fetching library content: {e}")
+        return {"chat_conversations": [], "music_tracks": [], "creative_content": []}
 
 @app.route("/voice-chat")
 def voice_chat_page():
@@ -5212,133 +5256,7 @@ def select_plan():
         logger.error(f"Plan selection error: {e}")
         return jsonify({"success": False, "error": "Plan selection failed"}), 500
 
-# REMOVED: Duplicate route - using /api/start-trial instead
-@app.route("/start-trial", methods=["POST"])
-def start_trial_old():
-    """Start a 5-hour premium companion trial"""
-    try:
-        if not is_logged_in():
-            return jsonify({"success": False, "error": "Authentication required"}), 401
-            
-        data = request.get_json()
-        if not data:
-            return jsonify({"success": False, "error": "Invalid request data"}), 400
-            
-        companion_id = data.get("companion_id")
-        if not companion_id:
-            return jsonify({"success": False, "error": "Missing companion_id"}), 400
-            
-        user_email = session.get("user_email")
-        user_id = session.get("user_id")
-        if not user_email:
-            return jsonify({"success": False, "error": "No user session found"}), 401
-            
-        # Database connection and user lookup
-        database_url = os.environ.get('DATABASE_URL')
-        if database_url:
-            import psycopg2
-            conn = psycopg2.connect(database_url)
-            cursor = conn.cursor()
-            
-            # Get current user data
-            cursor.execute("SELECT trial_used_permanently, trial_started_at FROM users WHERE email = %s", (user_email,))
-            user_data = cursor.fetchone()
-            
-            if not user_data:
-                conn.close()
-                return jsonify({"success": False, "error": "User not found"}), 404
-            
-            trial_used, trial_started = user_data
-            
-            # If trial is currently active, allow companion switching
-            if trial_used and trial_started:
-                trial_active = is_trial_active(user_id)
-                if trial_active:
-                    # Update trial companion for current trial
-                    cursor.execute("UPDATE users SET trial_companion = %s WHERE email = %s", (companion_id, user_email))
-                    conn.commit()
-                    conn.close()
-                    
-                    session["trial_companion"] = companion_id
-                    logger.info(f"✅ Trial companion updated to {companion_id} for {user_email}")
-                    
-                    return jsonify({
-                        "success": True,
-                        "message": f"Switched to {companion_id} during active trial!",
-                        "trial_companion": companion_id
-                    })
-            
-            # If trial was used and is not active, block new trial
-            if trial_used:
-                # Double-check if trial is still active (safety check)
-                trial_active = is_trial_active(user_id)
-                if trial_active:
-                    # Trial is still active, allow companion switching
-                    cursor.execute("UPDATE users SET trial_companion = %s WHERE email = %s", (companion_id, user_email))
-                    conn.commit()
-                    conn.close()
-                    
-                    session["trial_companion"] = companion_id
-                    logger.info(f"✅ Trial companion updated to {companion_id} for {user_email} (safety check)")
-                    
-                    return jsonify({
-                        "success": True,
-                        "message": f"Switched to {companion_id} during active trial!",
-                        "trial_companion": companion_id
-                    })
-                else:
-                    # Trial expired, block new trial
-                    conn.close()
-                    return jsonify({"success": False, "error": "Trial already used"}), 403
-            
-            # Start trial - use CURRENT_TIMESTAMP for PostgreSQL compatibility
-            cursor.execute("""
-                UPDATE users 
-                SET trial_started_at = CURRENT_TIMESTAMP, 
-                    trial_companion = %s, 
-                    trial_used_permanently = TRUE,
-                    trial_expires_at = CURRENT_TIMESTAMP + INTERVAL '5 hours'
-                WHERE email = %s
-            """, (companion_id, user_email))
-            conn.commit()
-            conn.close()
-            
-            logger.info(f"✅ Trial started in PostgreSQL: {companion_id} for {user_email}")
-            
-            # Update session for immediate frontend use
-            session["trial_active"] = True
-            session["trial_companion"] = companion_id
-            
-            return jsonify({
-                "success": True,
-                "message": f"5-hour trial started for {companion_id}!",
-                "trial_companion": companion_id
-            })
-        else:
-            # Fallback to session-only for local development
-            if session.get("trial_used_permanently"):
-                return jsonify({"success": False, "error": "Trial already used"}), 403
-                
-            now = datetime.utcnow()
-            expires_at = now + timedelta(hours=5)
-            
-            session["trial_active"] = True
-            session["trial_companion"] = companion_id
-            session["trial_expires"] = expires_at.isoformat()
-            session["trial_started_at"] = now.isoformat()
-            session["trial_used_permanently"] = False
-            
-            logger.info(f"✅ Trial started in session: {companion_id}")
-            
-            return jsonify({
-                "success": True,
-                "message": f"5-hour trial started for {companion_id}!",
-                "trial_companion": companion_id
-            })
-        
-    except Exception as e:
-        logger.error(f"Trial start error: {e}")
-        return jsonify({"success": False, "error": "Trial start failed"}), 500
+# REMOVED: start_trial_old function - was an old trial system implementation
 
 @app.route("/get-trial-status", methods=["GET", "POST"])
 def get_trial_status():
@@ -7360,96 +7278,7 @@ def mini_studio_bulletproof():
 # END BULLETPROOF API ENDPOINTS  
 # ============================================
 
-# REMOVED: Another duplicate route - using the newer one at line 979
-# @app.route("/api/start-trial", methods=["POST"])
-def api_start_trial_old():
-    """Start 5-hour trial using new clean system"""
-    try:
-        if not is_logged_in():
-            return jsonify({"success": False, "error": "Authentication required"}), 401
-        
-        user_id = session.get('user_id')
-        user_email = session.get('user_email')
-        
-        if not user_email:
-            return jsonify({"success": False, "error": "No user session found"}), 401
-        
-        # Check if trial already used
-        database_url = os.environ.get('DATABASE_URL')
-        if not database_url:
-            return jsonify({"success": False, "error": "Database not available"}), 500
-        
-        import psycopg2
-        conn = psycopg2.connect(database_url)
-        cursor = conn.cursor()
-        
-        # Check trial status - allow access during active trial
-        cursor.execute("SELECT trial_used_permanently, trial_started_at FROM users WHERE email = %s", (user_email,))
-        result = cursor.fetchone()
-        
-        if not result:
-            conn.close()
-            return jsonify({"success": False, "error": "User not found"}), 404
-        
-        trial_used, trial_started = result
-        
-        # If trial is currently active, allow access without starting new trial
-        if trial_used and trial_started:
-            trial_active = is_trial_active(user_id)
-            if trial_active:
-                conn.close()
-                return jsonify({
-                    "success": True, 
-                    "message": "Trial is already active!",
-                    "trial_active": True
-                })
-        
-        # If trial was used, check if it's still active
-        if trial_used:
-            trial_active = is_trial_active(user_id)
-            if trial_active:
-                # Trial is still active
-                conn.close()
-                return jsonify({
-                    "success": True, 
-                    "message": "Trial is already active!",
-                    "trial_active": True
-                })
-            else:
-                # Trial expired, block new trial
-                conn.close()
-                return jsonify({"success": False, "error": "Trial already used"}), 403
-        
-        # Start trial with new system
-        now = datetime.utcnow()
-        expires_at = now + timedelta(hours=5)
-        
-        cursor.execute("""
-            UPDATE users 
-            SET trial_started_at = %s,
-                trial_expires_at = %s,
-                trial_used_permanently = TRUE
-            WHERE email = %s
-        """, (now, expires_at, user_email))
-        
-        conn.commit()
-        conn.close()
-        
-        # Update session with trial status and refresh access flags
-        session['trial_active'] = True
-        
-        # CRITICAL: Trial started successfully
-        logger.info(f"🎉 TRIAL STARTED: Trial active for user {user_id} until {expires_at}")
-        
-        return jsonify({
-            "success": True,
-            "message": "5-hour trial started successfully!",
-            "expires_at": expires_at.isoformat()
-        })
-        
-    except Exception as e:
-        logger.error(f"Start trial error: {e}")
-        return jsonify({"success": False, "error": "Failed to start trial"}), 500
+# REMOVED: api_start_trial_old function - was a duplicate/old trial function
 
 # Manual upgrade endpoints for testing tiers
 @app.route("/debug/upgrade-to-free", methods=["POST"])
@@ -7535,54 +7364,7 @@ def admin_fix_terms_schema():
         logger.error(error_msg)
         return jsonify({"success": False, "error": error_msg}), 500
 
-@app.route("/admin/clean-old-plans", methods=["POST"])
-def admin_clean_old_plans():
-    """ADMIN: Update database to use new plan names and remove old migration code"""
-    try:
-        database_url = os.environ.get('DATABASE_URL')
-        if not database_url:
-            return jsonify({"success": False, "error": "Database not available"}), 500
-        
-        import psycopg2
-        conn = psycopg2.connect(database_url)
-        cursor = conn.cursor()
-        
-        # First check what columns exist
-        cursor.execute("SELECT column_name FROM information_schema.columns WHERE table_name = 'users'")
-        columns = cursor.fetchall()
-        logger.info(f"📋 USER TABLE COLUMNS: {[col[0] for col in columns]}")
-        
-        # Check current plan values
-        cursor.execute("SELECT email, plan FROM users LIMIT 5")
-        sample_users = cursor.fetchall()
-        logger.info(f"📊 SAMPLE USER PLANS: {sample_users}")
-        
-        # Update old plan names in database (correct column name is 'plan')
-        cursor.execute("UPDATE users SET plan = 'free' WHERE plan = 'foundation'")
-        foundation_updated = cursor.rowcount
-        
-        cursor.execute("UPDATE users SET plan = 'growth' WHERE plan = 'premium'") 
-        premium_updated = cursor.rowcount
-        
-        cursor.execute("UPDATE users SET plan = 'max' WHERE plan = 'enterprise'")
-        enterprise_updated = cursor.rowcount
-        
-        conn.commit()
-        conn.close()
-        
-        return jsonify({
-            "success": True, 
-            "message": "Database cleaned up successfully",
-            "updated": {
-                "foundation_to_free": foundation_updated,
-                "premium_to_growth": premium_updated, 
-                "enterprise_to_max": enterprise_updated
-            }
-        })
-        
-    except Exception as e:
-        logger.error(f"Database cleanup error: {e}")
-        return jsonify({"success": False, "error": str(e)}), 500
+# REMOVED: admin_clean_old_plans function - was an old migration cleanup function
 
 # OLD /debug/test-tier-isolation ENDPOINT DELETED - No longer needed
 
@@ -11598,202 +11380,7 @@ def emergency_login_page():
 # COMPANION API ENDPOINTS
 # ========================================
 
-@app.route("/api/companions-old", methods=["GET"])
-def get_companions_old():
-    """Get all available companions (no auth required for viewing)"""
-    try:
-        # Companion data structure
-        companions_data = {
-            "free": [
-                {
-                    "companion_id": "blayzo_free",
-                    "display_name": "Blayzo", 
-                    "avatar_image": "/static/logos/Blayzo.png",
-                    "short_bio": "Your creative and fun AI companion",
-                    "personality_tags": ["Creative", "Fun"],
-                    "special_features": ["Creative assistance", "Fun conversations", "Idea generation", "Entertainment"],
-                    "tier": "free",
-                    "lock_reason": None,
-                    "popularity_score": 90,
-                    "is_recommended": True
-                },
-                {
-                    "companion_id": "blayzica_free",
-                    "display_name": "Blayzica",
-                    "avatar_image": "/static/logos/Blayzica.png", 
-                    "short_bio": "Your empathetic and caring AI companion",
-                    "personality_tags": ["Empathetic", "Caring"],
-                    "special_features": ["Emotional support", "Active listening", "Compassionate advice", "Wellness guidance"],
-                    "tier": "free",
-                    "lock_reason": None,
-                    "popularity_score": 88,
-                    "is_recommended": True
-                },
-                {
-                    "companion_id": "companion_gamerjay",
-                    "display_name": "GamerJay",
-                    "avatar_image": "/static/logos/GamerJay Free companion.png",
-                    "short_bio": "Your friendly gaming companion", 
-                    "personality_tags": ["Gaming", "Motivational"],
-                    "special_features": ["Gaming tips", "Achievement tracking", "Motivation boosts", "Strategy advice"],
-                    "tier": "free",
-                    "lock_reason": None,
-                    "popularity_score": 85,
-                    "is_recommended": False
-                },
-                {
-                    "companion_id": "blayzia_free",
-                    "display_name": "Blayzia",
-                    "avatar_image": "/static/logos/Blayzia.png",
-                    "short_bio": "Mystical wisdom and spiritual insight",
-                    "personality_tags": ["Mystical", "Intuitive", "Wise"],
-                    "special_features": ["Intuitive guidance", "Dream interpretation", "Spiritual awakening", "Inner wisdom"],
-                    "tier": "free",
-                    "lock_reason": None,
-                    "popularity_score": 90,
-                    "is_recommended": True
-                },
-                {
-                    "companion_id": "blayzion_free",
-                    "display_name": "Blayzion",
-                    "avatar_image": "/static/logos/Blayzion.png",
-                    "short_bio": "Creative innovation and breakthrough thinking",
-                    "personality_tags": ["Creative", "Innovative", "Visionary"],
-                    "special_features": ["Creative problem solving", "Innovation coaching", "Breakthrough thinking", "Artistic inspiration"],
-                    "tier": "free",
-                    "lock_reason": None,
-                    "popularity_score": 89,
-                    "is_recommended": False
-                },
-                {
-                    "companion_id": "claude_free",
-                    "display_name": "Claude",
-                    "avatar_image": "/static/logos/Claude Free.png",
-                    "short_bio": "Your friendly coding assistant",
-                    "personality_tags": ["Helpful", "Methodical", "Patient"],
-                    "special_features": ["Basic code help", "Problem solving", "Learning support", "Step-by-step guidance"],
-                    "tier": "free",
-                    "lock_reason": None,
-                    "popularity_score": 85,
-                    "is_recommended": False
-                }
-            ],
-            "growth": [
-                {
-                    "companion_id": "companion_sky",
-                    "display_name": "Sky",
-                    "avatar_image": "/static/logos/Sky a premium companion.png",
-                    "short_bio": "Premium companion with advanced features",
-                    "personality_tags": ["Spiritual", "Healing"],
-                    "special_features": ["Spiritual guidance", "Meditation sessions", "Energy healing", "Voice interactions"],
-                    "tier": "growth",
-                    "lock_reason": "Requires Growth Plan ($12.99/month)",
-                    "popularity_score": 90,
-                    "is_recommended": True
-                },
-                {
-                    "companion_id": "blayzo_premium",
-                    "display_name": "Blayzo Pro",
-                    "avatar_image": "/static/logos/Blayzo premium companion.png",
-                    "short_bio": "Advanced Blayzo with enhanced creativity and memory",
-                    "personality_tags": ["Creative", "Advanced"],
-                    "special_features": ["Enhanced creativity", "Memory retention", "Advanced problem solving", "Deep conversations"],
-                    "tier": "growth",
-                    "lock_reason": "Requires Growth Plan ($12.99/month)",
-                    "popularity_score": 92,
-                    "is_recommended": True
-                },
-                {
-                    "companion_id": "blayzica_growth",
-                    "display_name": "Blayzica Pro",
-                    "avatar_image": "/static/logos/Blayzica.png",
-                    "short_bio": "Enhanced Blayzica with deeper emotional intelligence",
-                    "personality_tags": ["Empathetic", "Intelligent"],
-                    "special_features": ["Deep emotional support", "Advanced empathy", "Personalized guidance", "Crisis support"],
-                    "tier": "growth",
-                    "lock_reason": "Requires Growth Plan ($12.99/month)",
-                    "popularity_score": 91,
-                    "is_recommended": True
-                },
-                {
-                    "companion_id": "gamerjay_premium",
-                    "display_name": "GamerJay Premium",
-                    "avatar_image": "/static/logos/GamerJay premium companion.png",
-                    "short_bio": "Enhanced GamerJay with premium features",
-                    "personality_tags": ["Gaming", "Premium"],
-                    "special_features": ["Pro gaming strategies", "Performance analysis", "Competitive coaching", "Advanced metrics"],
-                    "tier": "growth",
-                    "lock_reason": "Requires Growth Plan ($12.99/month)",
-                    "popularity_score": 88,
-                    "is_recommended": False
-                }
-            ],
-            "max": [
-                {
-                    "companion_id": "companion_crimson",
-                    "display_name": "Crimson",
-                    "avatar_image": "/static/logos/Crimson a Max companion.png",
-                    "short_bio": "Elite max-tier companion",
-                    "personality_tags": ["Healing", "Protective", "Wise"],
-                    "special_features": ["Trauma healing", "Transformation coaching", "Crisis support", "Advanced voice AI"],
-                    "tier": "max",
-                    "lock_reason": "Requires Max Plan ($19.99/month)",
-                    "popularity_score": 95,
-                    "is_recommended": True
-                },
-                {
-                    "companion_id": "companion_violet",
-                    "display_name": "Violet",
-                    "avatar_image": "/static/logos/Violet a Max companion.png",
-                    "short_bio": "Premium Max companion with exclusive features",
-                    "personality_tags": ["Elite", "Exclusive", "Advanced"],
-                    "special_features": ["Premium features", "Exclusive access", "Priority support", "Advanced AI"],
-                    "tier": "max",
-                    "lock_reason": "Requires Max Plan ($19.99/month)",
-                    "popularity_score": 92,
-                    "is_recommended": False
-                }
-            ],
-            "referral": [
-                {
-                    "companion_id": "blayzo",
-                    "display_name": "Blayzo",
-                    "avatar_image": "/static/logos/Blayzo Referral.png",
-                    "short_bio": "Exclusive referral companion",
-                    "personality_tags": ["Exclusive", "Referral"],
-                    "special_features": ["Exclusive access", "Referral rewards", "Special bonuses", "Premium features"],
-                    "tier": "referral",
-                    "lock_reason": "Unlock through referrals",
-                    "popularity_score": 100,
-                    "is_recommended": False
-                }
-            ]
-        }
-
-        # Get user trial status if logged in
-        if is_logged_in():
-            user_plan = session.get('user_plan', 'free')
-            trial_active = session.get('trial_active', False)
-            effective_plan = session.get('effective_plan', 'free')
-        else:
-            user_plan = 'free'
-            trial_active = False
-            effective_plan = 'free'
-
-        return jsonify({
-            "success": True,
-            "companions": companions_data,
-            "user_plan": user_plan,
-            "trial_active": trial_active,
-            "effective_plan": effective_plan
-        })
-
-    except Exception as e:
-        logger.error(f"Get companions error: {e}")
-        return jsonify({
-            "success": False,
-            "error": "Failed to load companions"
-        }), 500
+# REMOVED: get_companions_old function - was an old companions API endpoint
 
 
 # MINI ASSISTANT - ADMIN HELPER
@@ -13551,24 +13138,9 @@ a.btn,button{background:#06b6d4;color:#001018;border:none;padding:10px 14px;bord
 ''', email=user_info['email'], plan=user_info['plan'], credits=user_info['credits'], allowed=allowed)
 
 @app.route("/music/library")
-def music_library():
-    """Music library page"""
-    if not is_logged_in():
-        return redirect("/login?return_to=music/library")
-    
-    return render_template_string('''
-<!doctype html><meta charset="utf-8">
-<title>Music Library</title>
-<style>
-body{font-family:system-ui;background:#0b0f17;color:#e6f1ff;padding:24px}
-.btn{background:#06b6d4;color:#001018;border:none;padding:8px 12px;border-radius:8px;text-decoration:none}
-</style>
-<h1>🎵 Music Library</h1>
-<div>
-  <a href="/music" class="btn">← Back to Studio</a>
-</div>
-<p>Your music library will appear here once you create songs.</p>
-''')
+def music_library_redirect():
+    """Redirect to unified library with music filter"""
+    return redirect("/library/music")
 
 logger.info("✅ Music Studio integration completed")
 

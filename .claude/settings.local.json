@@ -76,7 +76,8 @@
       "WebFetch(domain:localhost)",
       "Bash(npm:*)",
       "Bash(vsce package:*)",
-      "Bash(code:*)"
+      "Bash(code:*)",
+      "Bash(awk:*)"
     ],
     "deny": []
   }

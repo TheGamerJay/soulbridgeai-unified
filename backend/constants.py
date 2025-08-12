@@ -120,3 +120,25 @@ MEMORY_CACHE_MAX_ENTRIES = 1000
 # Logging settings
 LOG_MAX_LENGTH = 500
 DEBUG_LOG_MAX_ENTRIES = 100
+
+# Background task intervals (in seconds)
+CLEANUP_INTERVAL_SECONDS = 21600  # 6 hours
+CLEANUP_RETRY_DELAY = 60  # 1 minute
+BACKGROUND_SLEEP_INTERVAL = 300  # 5 minutes
+
+# Credit reset amounts
+MONTHLY_CREDIT_RESET_AMOUNT = 650
+
+# AI Image generation limits per plan
+AI_IMAGE_LIMITS = {
+    "free": 5,
+    "growth": 50, 
+    "max": float("inf")
+}
+
+# Legacy plan migration mapping
+LEGACY_PLAN_MAPPING = {
+    'foundation': 'free',
+    'premium': 'growth', 
+    'enterprise': 'max'
+}
