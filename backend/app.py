@@ -35,6 +35,30 @@ from constants import *
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
+# PRODUCTION SECURITY CHECK
+if not ALLOW_DEBUG:
+    logger.warning("🔒 PRODUCTION MODE: Debug endpoints disabled for security")
+else:
+    logger.warning("⚠️ DEVELOPMENT MODE: Debug endpoints enabled - DO NOT USE IN PRODUCTION")
+
+# PRODUCTION SECURITY: Disable debug endpoints in production
+from functools import wraps
+DEBUG_ENABLED = os.environ.get('DEBUG_MODE', 'false').lower() == 'true'
+DEV_MODE = os.environ.get('ENVIRONMENT', 'production').lower() in ['development', 'dev']
+ALLOW_DEBUG = DEBUG_ENABLED or DEV_MODE
+
+def require_debug_mode():
+    """Decorator to disable debug endpoints in production"""
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if not ALLOW_DEBUG:
+                logger.warning(f"🚫 Debug endpoint {request.endpoint} blocked in production")
+                return jsonify({"error": "Debug endpoints disabled in production"}), 404
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
 # Load environment variables from .env file
 try:
     from dotenv import load_dotenv
@@ -1116,6 +1140,7 @@ def test_login_page():
     return render_template("test-login.html")
 
 @app.route("/debug/test-user")
+@require_debug_mode()
 def debug_test_user():
     """Debug endpoint to test if user exists"""
     try:
@@ -1760,6 +1785,7 @@ def start_trial():
 # REMOVED: Duplicate debug_session_info function - using the more comprehensive one at /debug/session-info
 
 @app.route("/api/debug/force-session-reset")
+@require_debug_mode()
 def force_session_reset():
     """Force reset session to clean free user state"""
     if not is_logged_in():
@@ -1785,6 +1811,7 @@ def force_session_reset():
     })
 
 @app.route("/api/debug/reset-to-free")
+@require_debug_mode()
 def reset_to_free():
     """Reset current user to free plan (for testing)"""
     if not is_logged_in():
@@ -1799,6 +1826,7 @@ def reset_to_free():
     })
 
 @app.route("/api/debug/reset-trial-state")
+@require_debug_mode()
 def reset_trial_state():
     """Reset trial state for testing - allows trial to be started again"""
     if not is_logged_in():
@@ -1857,6 +1885,7 @@ def reset_trial_state():
         return jsonify({"success": False, "error": f"Database error: {str(e)}"}), 500
 
 @app.route("/api/debug/upgrade-to-growth")
+@require_debug_mode()
 def upgrade_to_growth():
     """Upgrade current user to Growth plan (for testing decoder limits)"""
     if not is_logged_in():
@@ -1871,6 +1900,7 @@ def upgrade_to_growth():
     })
 
 @app.route("/api/debug/upgrade-to-max")
+@require_debug_mode()
 def upgrade_to_max():
     """Upgrade current user to Max plan (for testing decoder limits)"""
     if not is_logged_in():
@@ -1885,6 +1915,7 @@ def upgrade_to_max():
     })
 
 @app.route("/api/debug/force-max-for-live")
+@require_debug_mode()
 def force_max_for_live():
     """Force current user to max plan in both session and database"""
     if not is_logged_in():
@@ -1953,6 +1984,7 @@ def get_current_plan():
     })
 
 @app.route("/admin/force-logout-all", methods=["POST"])
+@require_debug_mode()
 def force_logout_all():
     """ADMIN: Force logout all users by incrementing session version"""
     try:
@@ -2045,6 +2077,7 @@ def sitemap():
     return response
 
 @app.route("/debug/session")
+@require_debug_mode()
 def debug_session():
     """Debug endpoint to check session state"""
     return jsonify({
@@ -7601,6 +7634,7 @@ def admin_fix_terms_schema():
 # OLD /debug/test-tier-isolation ENDPOINT DELETED - No longer needed
 
 @app.route("/debug/session-state")
+@require_debug_mode()
 def debug_session_state():
     """Bulletproof session state API for frontend"""
     if not is_logged_in():
@@ -7628,6 +7662,7 @@ def debug_session_state():
     })
 
 @app.route("/debug/session-info")
+@require_debug_mode()
 def debug_session_info():
     """Debug endpoint to show current session state"""
     user_id = session.get('user_id')
