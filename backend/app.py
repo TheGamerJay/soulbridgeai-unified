@@ -13148,6 +13148,34 @@ TIERS_TEMPLATE = r"""
     window.location.href = '/referrals';  // Fixed: plural to match actual route
   }
 </script>
+
+<!-- Load New Trial System for backend-driven trial logic -->
+<script>
+  // Override old startTrial with new backend-driven version
+  window.startTrial = async function() {
+    try {
+      const response = await fetch('/api/start-trial', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        alert('🎉 5-hour trial activated! All premium features unlocked.');
+        window.location.reload(); // Refresh to update UI
+      } else {
+        alert(data.error || 'Failed to start trial');
+      }
+    } catch (error) {
+      console.error('Error starting trial:', error);
+      alert('Error starting trial. Please try again.');
+    }
+  };
+  
+  console.log('✅ New backend-driven trial system loaded');
+</script>
+
 </body>
 </html>
 """
