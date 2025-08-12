@@ -762,22 +762,6 @@
         
         <div id="companions-container" style="min-height: 200px;">
             <!-- Dynamic tier-aware content with stable layout -->
-            {% if trial_active %}
-                <div class="tier-section trial-tier" style="background: #2a1a2a; border: 2px solid #a855f7;">
-                    <h2 class="tier-title" style="color: #a855f7;">🕒 5-Hour Trial Active</h2>
-                    <div class="tier-description">
-                        <p><strong>Trial Status:</strong> You have access to Max tier features temporarily!</p>
-                        <p><strong>Your Limits:</strong> {{ user_plan|title }} limits still apply during trial</p>
-                        {% if user_plan == 'free' %}
-                            <p><strong>Current Limits:</strong> 3 Decoders / 2 Fortunes / 3 Horoscopes per day</p>
-                        {% elif user_plan == 'growth' %}
-                            <p><strong>Current Limits:</strong> 15 Decoders / 8 Fortunes / 10 Horoscopes per day</p>
-                        {% else %}
-                            <p><strong>Current Limits:</strong> Unlimited access</p>
-                        {% endif %}
-                    </div>
-                </div>
-            {% endif %}
 
             <!-- ========================= -->
             <!-- 🎯 FREE TIER COMPANIONS -->
