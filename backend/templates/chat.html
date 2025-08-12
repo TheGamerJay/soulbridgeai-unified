@@ -150,8 +150,9 @@
                     <span class="trial-badge" id="trial-badge" style="display: {% if session.get('trial_active') %}inline-flex{% else %}none{% endif %};">
                         <i class="fas fa-clock"></i> Trial Active
                     </span>
-                    <div id="simple-timer" class="simple-timer" style="display: none;">
-                        <span id="timer-display">5:00:00</span>
+                    <div id="trial-banner" class="simple-timer" style="display: none;">
+                        <strong>Max Trial Active</strong>
+                        <span id="trial-eta">— 05:00:00</span>
                     </div>
                 </div>
             </div>
@@ -2332,11 +2333,11 @@ Where emotion meets expression.
                 console.log('🔍 Current Session State:', sessionData);
                 
                 // Show alert with debug info ONLY if user SHOULD have premium features but doesn't
-                const shouldHavePremium = sessionData.session_data.access_growth || sessionData.session_data.access_max || sessionData.trial_active;
+                const shouldHavePremium = sessionData.access_growth || sessionData.access_max || sessionData.trial_active;
                 const hasPremiumFeatures = voiceJournal || aiImages || relationships || meditations || writeBtn;
                 
                 if (shouldHavePremium && !hasPremiumFeatures) {
-                    alert(`🚨 BUG DETECTED! Premium features missing!\nSession Plan: ${sessionData.user_plan}\nAccess Growth: ${sessionData.session_data.access_growth}\nAccess Max: ${sessionData.session_data.access_max}\nTrial Active: ${sessionData.trial_active}`);
+                    alert(`🚨 BUG DETECTED! Premium features missing!\nSession Plan: ${sessionData.user_plan}\nAccess Growth: ${sessionData.access_growth}\nAccess Max: ${sessionData.access_max}\nTrial Active: ${sessionData.trial_active}`);
                 } else if (!shouldHavePremium && !hasPremiumFeatures) {
                     console.log('✅ Free user correctly showing no premium features');
                 } else {
@@ -2374,38 +2375,79 @@ Where emotion meets expression.
             setTimeout(() => confettiCanvas.classList.add("hidden"), 3000);
         }
 
-        // Simple timer update function (unobtrusive)
-        function updateSimpleTimer(trialRemaining) {
-            const timerElement = document.getElementById('simple-timer');
-            const displayElement = document.getElementById('timer-display');
-            
-            if (!timerElement || !displayElement) return;
-            
-            if (trialRemaining <= 0) {
-                timerElement.style.display = 'none';
+        // =========================
+        // Front-end JS – robust countdown
+        // =========================
+        // Common mistakes this fixes:
+        // - Using centiseconds as seconds (→ 8:99.99)
+        // - Parsing ISO without 'Z' (→ timezone drift)
+        // - Letting setInterval drift while tab is hidden
+
+        async function loadTrial() {
+            const r = await fetch('/api/trial-status', { credentials: 'include' });
+            const d = await r.json();
+            if (!d.logged_in) { return; }
+
+            const banner = document.getElementById('trial-banner');
+            const etaEl  = document.getElementById('trial-eta');
+
+            if (!d.active) {
+                if (banner) banner.style.display = 'none';
                 return;
             }
-            
-            // Show timer
-            timerElement.style.display = 'block';
-            
-            // Calculate time components (trialRemaining might be in seconds, not milliseconds)
-            const totalSeconds = Math.floor(trialRemaining > 1000000 ? trialRemaining / 1000 : trialRemaining);
-            const hours = Math.floor(totalSeconds / 3600);
-            const minutes = Math.floor((totalSeconds % 3600) / 60);
-            const seconds = totalSeconds % 60;
-            
-            // Update display
-            displayElement.textContent = `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            
-            // Update warning states
-            timerElement.classList.remove('warning', 'critical');
-            const timeInSeconds = trialRemaining > 1000000 ? trialRemaining / 1000 : trialRemaining;
-            if (timeInSeconds < 600) { // < 10 minutes
-                timerElement.classList.add('critical');
-            } else if (timeInSeconds < 1800) { // < 30 minutes
-                timerElement.classList.add('warning');
+
+            if (banner) banner.style.display = 'block';
+
+            // Prefer server-provided epoch ms to avoid TZ parsing bugs
+            const expireMs = typeof d.expires_at_ms === 'number'
+                ? d.expires_at_ms
+                : new Date(d.expires_at).getTime(); // fallback if needed
+
+            function fmt(h, m, s) {
+                return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
             }
+
+            function tick() {
+                const now = Date.now();
+                let delta = Math.max(0, expireMs - now);  // clamp at 0
+                const hours   = Math.floor(delta / 3600000);
+                const minutes = Math.floor((delta % 3600000) / 60000);
+                const seconds = Math.floor((delta % 60000) / 1000);
+
+                if (etaEl) etaEl.textContent = `— ${fmt(hours, minutes, seconds)}`;
+
+                // Update warning states
+                if (banner) {
+                    banner.classList.remove('warning', 'critical');
+                    const timeInSeconds = delta / 1000;
+                    if (timeInSeconds < 600) { // < 10 minutes
+                        banner.classList.add('critical');
+                    } else if (timeInSeconds < 1800) { // < 30 minutes
+                        banner.classList.add('warning');
+                    }
+                }
+
+                if (delta === 0) {
+                    clearInterval(timerId);
+                    if (etaEl) etaEl.textContent = '— 00:00:00';
+                    // optionally refresh UI/limits here
+                }
+            }
+
+            // First draw + stable 1s cadence
+            tick();
+            let timerId = setInterval(tick, 1000);
+
+            // Recover quickly from background-tab drift
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden) tick();
+            });
+        }
+
+        // Legacy function for compatibility - now calls loadTrial
+        function updateSimpleTimer(trialRemaining) {
+            // This is now handled by loadTrial() which uses proper API
+            loadTrial();
         }
 
         async function refreshUserStatus() {
@@ -2420,19 +2462,19 @@ Where emotion meets expression.
 
                 const { trial_active, trial_remaining, effective_plan, user_plan, trial_used_permanently } = data;
 
-                // Update trial badge and simple timer
+                // Update trial badge
                 const trialBadge = document.getElementById('trial-badge');
-                const timerElement = document.getElementById('simple-timer');
                 
                 if (trial_active && trial_remaining > 0) {
-                    // Show trial badge and update timer
+                    // Show trial badge
                     if (trialBadge) trialBadge.style.display = 'inline-flex';
-                    updateSimpleTimer(trial_remaining);
                 } else {
-                    // Hide both trial badge and timer if no trial active
+                    // Hide trial badge if no trial active
                     if (trialBadge) trialBadge.style.display = 'none';
-                    if (timerElement) timerElement.style.display = 'none';
                 }
+                
+                // Load robust timer independently
+                loadTrial();
 
                 // DISABLED OLD RING TIMER - Preventing conflicts with new timer system
                 // Use new timer system instead (trial-timer-container)
@@ -2482,7 +2524,10 @@ Where emotion meets expression.
             }
         }
 
-        // Refresh user status less frequently for simple timer
+        // Initialize robust timer system
+        document.addEventListener('DOMContentLoaded', loadTrial);
+        
+        // Refresh user status less frequently 
         setInterval(refreshUserStatus, 15000); // Refresh every 15 seconds (less aggressive)  
         refreshUserStatus(); // Run once on load
     </script>

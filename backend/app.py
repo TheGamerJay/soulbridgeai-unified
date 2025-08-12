@@ -1528,6 +1528,88 @@ def user_info():
         logger.error(f"Error getting user info: {e}")
         return jsonify({"success": False, "error": "Failed to get user information"}), 500
 
+# Trial status should return both ISO8601 *with 'Z'* and epoch ms.
+@app.route('/api/trial-status')
+def trial_status():
+    """Get trial status with precise timing data"""
+    from datetime import datetime, timezone, timedelta
+    
+    if not is_logged_in():
+        return jsonify({
+            "logged_in": False,
+            "active": False,
+            "expires_at": None,
+            "expires_at_ms": None
+        }), 200
+    
+    try:
+        # Get current user from app_core if available
+        try:
+            from app_core import current_user, MaxTrial
+            u = current_user()
+            now = datetime.now(timezone.utc)
+            
+            if u:
+                trial = MaxTrial.query.filter_by(user_id=u.id, active=True).order_by(MaxTrial.id.desc()).first()
+                if trial and trial.expires_at.tzinfo is None:
+                    # Normalize old naive datetimes to UTC
+                    trial.expires_at = trial.expires_at.replace(tzinfo=timezone.utc)
+                    from app_core import db
+                    db.session.commit()
+                active = bool(trial and trial.expires_at > now)
+                if not active and trial:
+                    trial.active = False
+                    from app_core import db
+                    db.session.commit()
+                expires_at_iso = trial.expires_at.isoformat().replace("+00:00", "Z") if active else None
+                expires_at_ms  = int(trial.expires_at.timestamp() * 1000) if active else None
+            else:
+                active = False
+                expires_at_iso = None
+                expires_at_ms = None
+        except ImportError:
+            # Fallback to session-based logic if app_core is not available
+            trial_active = session.get('trial_active', False)
+            trial_started = session.get('trial_started_at')
+            
+            active = False
+            expires_at_iso = None
+            expires_at_ms = None
+            
+            if trial_active and trial_started:
+                try:
+                    if isinstance(trial_started, str):
+                        trial_start_time = datetime.fromisoformat(trial_started.replace('Z', '+00:00'))
+                    else:
+                        trial_start_time = trial_started
+                    
+                    expires_at = trial_start_time + timedelta(hours=5)
+                    now = datetime.now(timezone.utc)
+                    
+                    active = expires_at > now
+                    if active:
+                        expires_at_iso = expires_at.isoformat().replace("+00:00", "Z")
+                        expires_at_ms = int(expires_at.timestamp() * 1000)
+                except Exception as e:
+                    logger.error(f"Error calculating trial expiry: {e}")
+                    active = False
+        
+        return jsonify({
+            "logged_in": True,
+            "active": active,
+            "expires_at": expires_at_iso,   # e.g., "2025-08-12T02:34:56Z"
+            "expires_at_ms": expires_at_ms  # unix ms for precise countdown
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Error getting trial status: {e}")
+        return jsonify({
+            "logged_in": True,
+            "active": False,
+            "expires_at": None,
+            "expires_at_ms": None
+        }), 500
+
 @app.route('/api/accept-terms', methods=['POST'])
 def accept_terms():
     """Accept terms and conditions"""

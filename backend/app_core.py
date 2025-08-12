@@ -277,12 +277,13 @@ def upgrade_plan():
 def start_max_trial():
     u = current_user()
     if u.used_max_trial: return 'Trial already used', 400
-    expires = datetime.utcnow() + timedelta(hours=5)
-    trial = MaxTrial(user_id=u.id, expires_at=expires, credits_granted=TRIAL_CREDITS, active=True)
-    db.session.add(trial); db.session.commit()
-    add_trainer_credits(u, TRIAL_CREDITS)
-    u.used_max_trial = True; db.session.commit()
-    return redirect(url_for('music_home'))
+    expires = datetime.now(timezone.utc) + timedelta(hours=5)  # exact 5h in UTC
+    trial = MaxTrial(user_id=u.id, expires_at=expires, active=True, credits_granted=TRIAL_CREDITS)
+    db.session.add(trial)
+    add_trainer_credits(u, TRIAL_CREDITS)    # grant credits on trial start
+    u.used_max_trial = True
+    db.session.commit()
+    return '', 204
 
 @app.route('/music/billing/checkout', methods=['POST'])
 @login_required
