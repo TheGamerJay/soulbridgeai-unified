@@ -2169,7 +2169,7 @@ Where emotion meets expression.
                     const decoderUsed = usage.decoder || 0;
                     const decoderMax = limits.decoder;
                     
-                    if (unlimited_features.includes('decoder') || decoderMax === 'unlimited' || decoderMax === Infinity) {
+                    if (unlimited_features.includes('decoder') || decoderMax === 'unlimited' || decoderMax >= 999999) {
                         decoderLimit.textContent = '∞';
                         decoderBtn.classList.add('unlimited');
                         decoderBtn.setAttribute('data-tooltip', `Unlimited decoder uses available`);
@@ -2196,7 +2196,7 @@ Where emotion meets expression.
                     const fortuneUsed = usage.fortune || 0;
                     const fortuneMax = limits.fortune;
                     
-                    if (unlimited_features.includes('fortune') || fortuneMax === 'unlimited' || fortuneMax === Infinity) {
+                    if (unlimited_features.includes('fortune') || fortuneMax === 'unlimited' || fortuneMax >= 999999) {
                         fortuneLimit.textContent = '∞';
                         fortuneBtn.classList.add('unlimited');
                         fortuneBtn.setAttribute('data-tooltip', `Unlimited fortune uses available`);
@@ -2223,7 +2223,7 @@ Where emotion meets expression.
                     const horoscopeUsed = usage.horoscope || 0;
                     const horoscopeMax = limits.horoscope;
                     
-                    if (unlimited_features.includes('horoscope') || horoscopeMax === 'unlimited' || horoscopeMax === Infinity) {
+                    if (unlimited_features.includes('horoscope') || horoscopeMax === 'unlimited' || horoscopeMax >= 999999) {
                         horoscopeLimit.textContent = '∞';
                         horoscopeBtn.classList.add('unlimited');
                         horoscopeBtn.setAttribute('data-tooltip', `Unlimited horoscope uses available`);
@@ -2251,7 +2251,7 @@ Where emotion meets expression.
                     const creativeUsed = usage.creative_writer || 0;
                     const creativeMax = limits.creative_writer;
                     
-                    if (unlimited_features.includes('creative_writer') || creativeMax === 'unlimited' || creativeMax === Infinity) {
+                    if (unlimited_features.includes('creative_writer') || creativeMax === 'unlimited' || creativeMax >= 999999) {
                         creativeLimit.textContent = '∞';
                         creativeBtn.classList.add('unlimited');
                         creativeBtn.setAttribute('data-tooltip', `Unlimited creative writing uses available`);

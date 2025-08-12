@@ -154,9 +154,9 @@ class MaxTier(TierSystem):
             'priority_support'
         ]
         self.limits = {
-            'decoder': float('inf'),
-            'fortune': float('inf'),
-            'horoscope': float('inf'),
+            'decoder': 999999,
+            'fortune': 999999,
+            'horoscope': 999999,
             'companions': [
                 # Free companions
                 'blayzo_free', 'blayzica_free', 'companion_gamerjay',
@@ -180,7 +180,7 @@ class MaxTier(TierSystem):
     
     def get_feature_limit(self, feature: str) -> int:
         """Get max tier limits (unlimited)"""
-        return self.limits.get(feature, float('inf'))
+        return self.limits.get(feature, 999999)
     
     def initialize_user_session(self, user_data: Dict[str, Any]):
         """Initialize max tier user session"""
