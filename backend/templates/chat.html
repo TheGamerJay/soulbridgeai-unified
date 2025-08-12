@@ -2152,8 +2152,11 @@ Where emotion meets expression.
             // Update tier limits every 30 seconds
             setInterval(updateTierLimits, 30000);
             
-            // EMERGENCY DEBUG: Check why premium features are missing
-            emergencyDebugPremiumFeatures();
+            // Debug premium features only for premium users or when debugging
+            const effectivePlan = '{{ effective_plan }}';
+            if (effectivePlan !== 'free' || sessionStorage.getItem('debugPremiumFeatures')) {
+                emergencyDebugPremiumFeatures();
+            }
         });
         
         // Update tier limits display in real-time
@@ -2307,7 +2310,7 @@ Where emotion meets expression.
         }
         
         async function emergencyDebugPremiumFeatures() {
-            console.log('🚨 EMERGENCY DEBUG: Checking premium features...');
+            console.log('🔍 DEBUG: Checking premium features for plan:', '{{ effective_plan }}');
             
             // Log template-side session data directly
             console.log('📋 TEMPLATE SESSION DATA:', {
@@ -2326,13 +2329,31 @@ Where emotion meets expression.
             const meditations = document.querySelector('a[href="/emotional-meditations"]');
             const writeBtn = document.querySelector('button[onclick="openCreativeWriting()"]');
             
-            console.log('🔍 Premium Feature Elements Found:', {
+            const effectivePlan = '{{ effective_plan }}';
+            const expectedFeatures = {
+                free: ['writeBtn'],
+                growth: ['writeBtn', 'voiceJournal', 'aiImages'],
+                max: ['writeBtn', 'voiceJournal', 'aiImages', 'relationships', 'meditations']
+            };
+            
+            const shouldHave = expectedFeatures[effectivePlan] || [];
+            const actualFeatures = {
                 voiceJournal: voiceJournal ? 'EXISTS' : 'MISSING',
                 aiImages: aiImages ? 'EXISTS' : 'MISSING', 
                 relationships: relationships ? 'EXISTS' : 'MISSING',
                 meditations: meditations ? 'EXISTS' : 'MISSING',
                 writeBtn: writeBtn ? 'EXISTS' : 'MISSING'
-            });
+            };
+            
+            console.log(`🔍 Premium Features for ${effectivePlan}:`, actualFeatures);
+            
+            // Only warn about missing features that should exist for this plan
+            const missing = shouldHave.filter(feature => actualFeatures[feature] === 'MISSING');
+            if (missing.length > 0) {
+                console.warn(`⚠️ Missing expected features for ${effectivePlan} plan:`, missing);
+            } else {
+                console.log(`✅ All expected features present for ${effectivePlan} plan`);
+            }
             
             // Check session state from backend
             try {
