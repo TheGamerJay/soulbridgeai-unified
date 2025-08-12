@@ -83,8 +83,14 @@ def get_effective_plan(user_plan: str, trial_active: bool) -> str:
     - For feature access: trial gives max tier access
     - For usage limits: always use actual plan (handled separately)
     """
+    # DEBUG: Log the function call
+    logger.info(f"🎯 GET_EFFECTIVE_PLAN DEBUG: user_plan='{user_plan}', trial_active={trial_active}")
+    
     if trial_active and user_plan == "free":
+        logger.info(f"🎯 GET_EFFECTIVE_PLAN: Returning 'max' for free user on trial")
         return "max"  # Unlock all features during trial
+    
+    logger.info(f"🎯 GET_EFFECTIVE_PLAN: Returning '{user_plan}' (no trial or already premium)")
     return user_plan  # Non-trial or already premium users
 
 # GET DAILY LIMITS (always based on actual plan, not trial)
