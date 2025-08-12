@@ -77,7 +77,8 @@
       "Bash(npm:*)",
       "Bash(vsce package:*)",
       "Bash(code:*)",
-      "Bash(awk:*)"
+      "Bash(awk:*)",
+      "Bash(DATABASE_URL=\"postgresql://postgres:sDCOyvWZKSxyJvnJBZNSJemzZKbbSjIT@postgres-wj-8.railway.internal:5432/railway\" python fix_database_schema.py)"
     ],
     "deny": []
   }

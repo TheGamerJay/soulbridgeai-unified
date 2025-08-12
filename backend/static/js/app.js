@@ -40,9 +40,11 @@ function checkTrialStatus() {
     let trialStatus = localStorage.getItem("soulbridgeai_trial");
     const trialStatusDisplay = document.getElementById("trialStatus");
     
-    if (trialStatus) {
-        let timePassed = Date.now() - parseInt(trialStatus);
-        if (timePassed < 18000000) { // 5 hours (5 * 60 * 60 * 1000)
+        if (trialStatus) {
+            // 5 hours in milliseconds
+            const TRIAL_DURATION_MS = 5 * 60 * 60 * 1000;
+            let timePassed = Date.now() - parseInt(trialStatus);
+            if (timePassed < TRIAL_DURATION_MS) {
             if (trialStatusDisplay) trialStatusDisplay.innerText = "Trial Status: Active";
             return true;
         } else {
@@ -61,40 +63,7 @@ function startTrial() {
     if (trialStatus) {
         alert("Trial already used.");
         return;
-    }
-    localStorage.setItem("soulbridgeai_trial", Date.now());
-    alert("5-Hour Max Trial Activated!");
-    const trialStatusDisplay = document.getElementById("trialStatus");
-    if (trialStatusDisplay) trialStatusDisplay.innerText = "Trial Status: Active";
-}
-
-// Chat functionality for dashboard
-async function sendMessage() {
-    const input = document.getElementById('chatInput');
-    const sendBtn = document.getElementById('sendBtn');
-    const messagesContainer = document.getElementById('chatMessages');
-    
-    const message = input?.value?.trim();
-    if (!message || sendBtn?.disabled) return;
-    
-    // Check message limit for non-premium users
-    const isPremium = localStorage.getItem('isPremium') === 'true';
-    const isTrialActive = checkTrialStatus();
-    
-    if (!isPremium && !isTrialActive) {
-        let messageLimit = parseInt(localStorage.getItem("soulbridgeai_messageLimit")) || 0;
         if (messageLimit <= 0) {
-            alert("Message limit reached. Please subscribe to SoulBridge Plus or start a trial.");
-            return;
-        }
-        messageLimit--;
-        localStorage.setItem("soulbridgeai_messageLimit", messageLimit);
-        updateMessageCount(messageLimit);
-    }
-    
-    // Add user message
-    const userDiv = document.createElement('div');
-    userDiv.className = 'message user-message';
     userDiv.innerHTML = `<strong>You:</strong> ${message}`;
     messagesContainer.appendChild(userDiv);
     
@@ -106,7 +75,6 @@ async function sendMessage() {
     
     try {
         const response = await fetch('/api/chat', {
-            method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',  // ✅ Include session cookies
             body: JSON.stringify({ message: message })
