@@ -248,6 +248,11 @@ tier_manager = TierManager()
 
 def get_current_user_tier() -> str:
     """Get current user's tier from session"""
+    # If trial is active, user gets max tier access
+    trial_active = session.get('trial_active', False)
+    if trial_active:
+        return 'max'
+    
     # Check each tier session to see which one is active
     for tier_name in ['free', 'growth', 'max']:
         tier_session = session.get(f'tier_{tier_name}', {})

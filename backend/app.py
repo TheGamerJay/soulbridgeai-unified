@@ -24,6 +24,11 @@ from flask import Flask, jsonify, render_template, render_template_string, reque
 # Local imports
 from trial_utils import is_trial_active as calculate_trial_active, get_trial_time_remaining
 from tier_isolation import tier_manager, get_current_user_tier, get_current_tier_system
+from unified_tier_system import (
+    get_effective_plan, get_feature_limit, get_user_credits, 
+    deduct_credits, can_access_feature, get_tier_status,
+    increment_feature_usage, get_feature_usage_today
+)
 from constants import *
 
 # Configure logging first
@@ -76,11 +81,11 @@ COMPANIONS_NEW = [
     {"id":"claude_growth","name":"Claude Growth","tier":"growth","image_url":"/static/logos/Claude Growth.png"},
     # Max row
     {"id":"companion_crimson","name":"Companion Crimson","tier":"max","image_url":"/static/logos/Crimson a Max companion.png"},
-    {"id":"companion_violet","name":"Companion Violet","tier":"max","image_url":"/static/logos/Violet_Max.png"},
-    {"id":"royal_max","name":"Royal Max","tier":"max","image_url":"/static/logos/Royal_Max.png"},
+    {"id":"companion_violet","name":"Companion Violet","tier":"max","image_url":"/static/logos/Violet a Max companion.png"},
+    {"id":"royal_max","name":"Royal Max","tier":"max","image_url":"/static/logos/Royal a Max companion.png"},
     {"id":"watchdog_max","name":"WatchDog Max","tier":"max","image_url":"/static/logos/WatchDog a Max Companion.png"},
-    {"id":"ven_blayzica","name":"Ven Blayzica","tier":"max","image_url":"/static/logos/Ven_Blayzica_Max.png"},
-    {"id":"ven_sky","name":"Ven Sky","tier":"max","image_url":"/static/logos/Ven_Sky_Max.png"},
+    {"id":"ven_blayzica","name":"Ven Blayzica","tier":"max","image_url":"/static/logos/Ven Blayzica a Max companion.png"},
+    {"id":"ven_sky","name":"Ven Sky","tier":"max","image_url":"/static/logos/Ven Sky a Max companion.png"},
     {"id":"claude_max","name":"Claude Max","tier":"max","image_url":"/static/logos/Claude Max.png"},
     # Referral (never unlocked by trial)
     {"id":"blayzike","name":"Blayzike","tier":"referral","image_url":"/static/referral/blayzike.png"},
@@ -1604,14 +1609,7 @@ def start_trial():
 
     trial_started_at, trial_used = row
     
-    # Check if trial is still active
-    if trial_started_at:
-        trial_time = trial_started_at
-        if isinstance(trial_started_at, str):
-            trial_time = datetime.fromisoformat(trial_started_at.replace('Z', '+00:00'))
-        if datetime.utcnow() < trial_time + timedelta(hours=5):
-            conn.close()
-            return jsonify({"success": False, "error": "Trial already active"}), 400
+    # Allow restarting trial - removed "Trial already active" check for better user experience
     
     # Check if trial was already used
     if trial_used:
@@ -3089,7 +3087,7 @@ def unified_library(content_type="all"):
         # Get user's saved content based on type
         content_data = get_library_content(user_id, content_type)
         
-        return render_template("unified_library.html", 
+        return render_template("library.html", 
                              content_type=content_type,
                              content_data=content_data,
                              user_plan=user_plan,
@@ -7196,10 +7194,29 @@ def start_trial_bulletproof():
                     now = datetime.utcnow()
                     expires = now + timedelta(hours=5)
                     
+                    # Update users table
                     if db_instance.use_postgres:
                         cursor.execute("UPDATE users SET trial_started_at = %s, trial_expires_at = %s, trial_active = TRUE WHERE id = %s", (now, expires, user_id))
+                        
+                        # Create MaxTrial record with 60 credits
+                        cursor.execute("""
+                            INSERT INTO max_trials (user_id, expires_at, credits_granted, active)
+                            VALUES (%s, %s, 60, TRUE)
+                        """, (user_id, expires))
+                        
+                        # Grant 60 credits to user
+                        cursor.execute("UPDATE users SET trainer_credits = COALESCE(trainer_credits, 0) + 60 WHERE id = %s", (user_id,))
                     else:
                         cursor.execute("UPDATE users SET trial_started_at = ?, trial_expires_at = ?, trial_active = TRUE WHERE id = ?", (now.isoformat(), expires.isoformat(), user_id))
+                        
+                        # Create MaxTrial record with 60 credits
+                        cursor.execute("""
+                            INSERT INTO max_trials (user_id, expires_at, credits_granted, active)
+                            VALUES (?, ?, 60, 1)
+                        """, (user_id, expires.isoformat()))
+                        
+                        # Grant 60 credits to user
+                        cursor.execute("UPDATE users SET trainer_credits = COALESCE(trainer_credits, 0) + 60 WHERE id = ?", (user_id,))
                     
                     conn.commit()
                     conn.close()
@@ -11005,45 +11022,41 @@ def get_user_tier_status():
 
 @app.route("/api/tier-limits", methods=["GET"])
 def get_tier_limits():
-    """Get current user's tier limits and usage for feature buttons"""
+    """Get current user's tier limits and usage for feature buttons - UNIFIED SYSTEM"""
     try:
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
-        # TIER ISOLATION: Use tier system instead of cached session values
-        current_tier = get_current_user_tier()
-        tier_system = get_current_tier_system()
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({"success": False, "error": "User ID required"}), 401
+            
+        # Use unified tier system for consistent behavior
+        tier_status = get_tier_status(user_id)
         
-        # Get current usage from session
-        tier_session = tier_system.get_session_data()
-        usage = tier_session.get('usage', {
-            'decoder': 0,
-            'fortune': 0,
-            'horoscope': 0
-        })
-        
-        # Get tier limits
-        limits = {
-            'decoder': tier_system.get_feature_limit('decoder'),
-            'fortune': tier_system.get_feature_limit('fortune'),
-            'horoscope': tier_system.get_feature_limit('horoscope')
-        }
-        
-        # Check for unlimited features (float('inf') means unlimited)
+        # Convert large numbers to "unlimited" for display
+        limits = {}
         unlimited_features = []
-        for feature, limit in limits.items():
-            if limit == float('inf') or limit == 'unlimited':
+        for feature, limit in tier_status['limits'].items():
+            if limit >= 999999:
+                limits[feature] = 'unlimited'
                 unlimited_features.append(feature)
-                limits[feature] = 'unlimited'  # Convert to string for JSON
+            else:
+                limits[feature] = limit
         
-        logger.info(f"🎯 TIER LIMITS API: {current_tier} tier - limits: {limits}, usage: {usage}")
+        logger.info(f"🎯 UNIFIED TIER LIMITS: {tier_status['user_plan']} plan, {tier_status['effective_plan']} features, trial: {tier_status['trial_active']}")
+        logger.info(f"🎯 LIMITS: {limits}, USAGE: {tier_status['usage']}")
         
         return jsonify({
             "success": True,
-            "tier": current_tier,
+            "tier": tier_status['effective_plan'],
+            "user_plan": tier_status['user_plan'],
+            "trial_active": tier_status['trial_active'],
             "limits": limits,
-            "usage": usage,
-            "unlimited_features": unlimited_features
+            "usage": tier_status['usage'],
+            "credits": tier_status['credits'],
+            "unlimited_features": unlimited_features,
+            "feature_access": tier_status['feature_access']
         })
         
     except Exception as e:
@@ -13128,14 +13141,48 @@ a.btn,button{background:#06b6d4;color:#001018;border:none;padding:10px 14px;bord
 <h1>🎵 Music Studio</h1>
 <div class="row">
   <div class="card">
-    <h3>Coming Soon</h3>
-    <p>Advanced music generation and editing tools will be available here.</p>
-    {% if not allowed %}
+    <h3>🎶 Music Creation</h3>
+    <p>Generate song lyrics, melodies, and complete tracks using AI assistance.</p>
+    {% if allowed %}
+      <a class="btn" href="/creative-writing?mode=music" style="margin-top: 10px;">Start Creating Music</a>
+    {% else %}
       <p class="muted">Requires Max plan or trial</p>
+    {% endif %}
+  </div>
+  
+  <div class="card">
+    <h3>🎤 Song Lyrics</h3>
+    <p>Create custom song lyrics in any genre or style with AI help.</p>
+    {% if allowed %}
+      <a class="btn" href="/creative-writing?mode=songs" style="margin-top: 10px;">Write Song Lyrics</a>
+    {% else %}
+      <p class="muted">Requires Max plan or trial</p>
+    {% endif %}
+  </div>
+  
+  <div class="card">
+    <h3>🎹 Interactive Studio</h3>
+    <p>Access the full GamerJay Mini Studio for Max-tier subscribers.</p>
+    {% if allowed %}
+      <a class="btn" href="/mini-studio" style="margin-top: 10px;">Open Mini Studio</a>
+    {% else %}
+      <p class="muted">Upgrade to Max tier to access</p>
     {% endif %}
   </div>
 </div>
 ''', email=user_info['email'], plan=user_info['plan'], credits=user_info['credits'], allowed=allowed)
+
+@app.route("/music/create-track")
+def music_create_track():
+    """Music track creation page"""
+    if not is_logged_in():
+        return redirect("/login?return_to=music/create-track")
+    
+    user_id = session.get('user_id')
+    if not is_max_allowed_music(user_id):
+        return redirect("/tiers?upgrade=max")
+    
+    return redirect("/creative-writing?mode=music&prompt=Create%20a%20new%20music%20track")
 
 @app.route("/music/library")
 def music_library_redirect():
