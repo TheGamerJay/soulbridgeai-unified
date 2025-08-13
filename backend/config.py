@@ -14,6 +14,8 @@ PATHS = {
     "images": os.path.join(STORAGE_DIR, "images"),
     "models": os.path.join(MODELS_DIR),
     "diffsinger_models": os.path.join(MODELS_DIR, "diffsinger"),
+    "logs":   os.path.join(BASE_DIR, "logs"),
+    "uploads": os.path.join(STORAGE_DIR, "uploads"),
 }
 
 # Ensure folders
@@ -39,3 +41,11 @@ RATE_LIMIT_PER_MIN = int(os.getenv("RATE_LIMIT_PER_MIN", "60"))  # per IP
 
 # Production safety
 STUDIO_DEBUG_MODE = os.getenv("STUDIO_DEBUG_MODE", "1") == "1"
+
+# CORS
+CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", "*")  # comma-separated or "*"
+
+# Redis / RQ for background jobs
+REDIS_URL = os.getenv("REDIS_URL", "redis://127.0.0.1:6379/0")
+RQ_QUEUE_NAME = os.getenv("RQ_QUEUE_NAME", "mini_studio")
+RQ_ENABLED = os.getenv("RQ_ENABLED", "0") == "1"  # Enable background jobs

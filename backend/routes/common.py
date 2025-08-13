@@ -3,6 +3,7 @@
 # ===============================
 import os, time, functools, logging
 from flask import request, jsonify
+from config import PATHS
 
 log = logging.getLogger("api")
 
@@ -10,7 +11,6 @@ log = logging.getLogger("api")
 def is_safe_path(path: str, base_dir: str = None) -> bool:
     """Check if path is within allowed storage directory"""
     if not base_dir:
-        from config import PATHS
         base_dir = PATHS.get("storage", "storage")
     
     try:
