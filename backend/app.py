@@ -7775,38 +7775,7 @@ def poll_trial_bulletproof():
 # BULLETPROOF MINI STUDIO GATE
 # ============================================
 
-@app.route("/mini-studio")
-def mini_studio_bulletproof():
-    """Hard-gated Mini Studio - Max tier only"""
-    try:
-        if not is_logged_in():
-            return redirect("/login?return_to=mini-studio")
-        
-        # Hard gate: Only Max users can access
-        if not require_max_for_mini_studio_new():
-            flash("Mini Studio is exclusive to Max tier subscribers", "error")
-            return redirect("/tiers?upgrade=max")
-        
-        # Get user data for display
-        user_email = session.get('user_email', 'Unknown')
-        user_plan = session.get('user_plan', 'free')
-        trial_active = session.get('trial_active', False)
-        user_id = session.get('user_id')
-        
-        # Get current credits
-        from unified_tier_system import get_user_credits
-        current_credits = get_user_credits(user_id) if user_id else 0
-        
-        # Render Mini Studio page with user data
-        return render_template("mini_studio.html", 
-                             user_email=user_email,
-                             user_plan=user_plan,
-                             trial_active=trial_active,
-                             current_credits=current_credits)
-    
-    except Exception as e:
-        logger.error(f"Mini Studio access error: {e}")
-        return redirect("/tiers")
+# Removed duplicate mini-studio route - using the cleaner implementation below
 
 # ============================================
 # END BULLETPROOF API ENDPOINTS  
@@ -14526,6 +14495,15 @@ def mini_studio():
 </body>
 </html>
     ''', credits=credits)
+
+@app.route("/mini_studio_health")
+def mini_studio_health():
+    """Health check endpoint for Mini Studio"""
+    try:
+        return jsonify({"status": "online", "service": "mini_studio"})
+    except Exception as e:
+        logger.error(f"Mini Studio health check error: {e}")
+        return jsonify({"status": "error", "error": str(e)}), 500
 
 # Mini Studio API Endpoints
 @app.route("/api/mini-studio/vocal-recording", methods=["POST"])
