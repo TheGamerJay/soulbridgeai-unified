@@ -8,6 +8,20 @@ from datetime import datetime
 from typing import Dict, List, Optional, Union
 import uuid
 
+# SQLAlchemy imports for new PostgreSQL models
+from sqlalchemy import Column, Integer, String, DateTime, func
+from .db import Base
+
+
+# New PostgreSQL User model using SQLAlchemy (updated to match existing schema)
+class User(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True)
+    email = Column(String, unique=True, index=True, nullable=False)
+    password_hash = Column(String, nullable=False)
+    user_plan = Column(String, nullable=False, default="free")  # Match existing schema
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
 
 class DatabaseManager:
     def __init__(self, db_file: str = "soulbridge_data.json"):

@@ -91,3 +91,12 @@ def cleanup_rate_limit_buckets():
     to_remove = [k for k in _BUCKETS.keys() if k[2] < now - 5]  # Keep 5 minutes
     for k in to_remove:
         del _BUCKETS[k]
+
+# ---- JSON response helpers
+def j_ok(**kwargs):
+    """Return success JSON response"""
+    return jsonify({"ok": True, **kwargs})
+
+def j_err(error: str, code: int = 400):
+    """Return error JSON response"""
+    return jsonify({"ok": False, "error": error}), code

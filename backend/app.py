@@ -21,6 +21,9 @@ from datetime import datetime, timezone, timedelta
 # Flask imports
 from flask import Flask, jsonify, render_template, render_template_string, request, session, redirect, url_for, flash, make_response
 
+# Auth system imports
+from routes.auth import bp as auth_bp
+
 # Local imports
 from trial_utils import is_trial_active as calculate_trial_active, get_trial_time_remaining
 from tier_isolation import tier_manager, get_current_user_tier, get_current_tier_system
@@ -143,6 +146,9 @@ if not secret_key:
     logger.warning("Generated temporary secret key - set SECRET_KEY environment variable for production")
 
 app.secret_key = secret_key
+
+# Register auth blueprint
+app.register_blueprint(auth_bp)
 
 # ============================================
 # BULLETPROOF TIER ISOLATION SYSTEM
@@ -533,6 +539,18 @@ def increment_rate_limit_session():
 # TEMPORARILY DISABLED - Testing if this interferes with authentication
 @app.before_request
 def ensure_session_persistence():
+    # Allow auth + static + home + mini-studio page itself (so it can show the UI)
+    open_paths = {"/api/login", "/api/logout", "/", "/mini-studio", "/mini_studio_health"}
+    if request.path.startswith("/static/") or request.path in open_paths:
+        return
+    
+    # For every other route, require a user_id
+    if "user_id" not in session:
+        # For APIs, return JSON 401; for pages, redirect if you prefer
+        if request.path.startswith("/api/"):
+            return {"ok": False, "error": "Unauthorized"}, 401
+        return redirect("/")
+    
     # PERMANENT FIX: Make sessions persistent for all authenticated users
     # Sessions should only expire when browser closes or explicit logout
     if session.get('user_authenticated') or session.get('user_email') or session.get('email'):
@@ -1302,6 +1320,14 @@ def health():
 def home():
     """Home route - redirect based on authentication status"""
     try:
+        # Check if user is logged in (using new session-based auth)
+        if "user_id" in session:
+            # User is authenticated, redirect to mini-studio
+            return redirect("/mini-studio")
+        else:
+            # User is not authenticated, serve login form
+            return redirect("/login")
+            
         # Check if user is logged in
         if is_logged_in():
             # Check if user has accepted terms
