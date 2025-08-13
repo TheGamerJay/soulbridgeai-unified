@@ -36,7 +36,7 @@ try:
 except ImportError:
     try:
         from simple_ai_service import get_premium_free_ai_service
-        print("✅ Using Simple AI Service (no ML dependencies)")
+        print("[OK] Using Simple AI Service (no ML dependencies)")
     except ImportError:
         # Final fallback
         def get_premium_free_ai_service():
@@ -50,7 +50,7 @@ except ImportError:
                         "enhancement_level": "fallback"
                     }
             return FallbackAI()
-        print("⚠️ Using minimal fallback AI")
+        print("[WARNING] Using minimal fallback AI")
 from trial_utils import is_trial_active as calculate_trial_active, get_trial_time_remaining
 from tier_isolation import tier_manager, get_current_user_tier, get_current_tier_system
 from unified_tier_system import (
@@ -184,17 +184,17 @@ app.config['SESSION_COOKIE_DOMAIN'] = '.soulbridgeai.com'
 # Register auth blueprint
 if auth_available and auth_bp:
     app.register_blueprint(auth_bp)
-    print("✅ Auth system registered successfully")
+    print("[OK] Auth system registered successfully")
 else:
-    print("⚠️ Auth system disabled - continuing without authentication")
+    print("[WARNING] Auth system disabled - continuing without authentication")
 
 # Register companion API blueprint
 try:
     from routes.api_companion import bp as companion_bp
     app.register_blueprint(companion_bp)
-    print("✅ Companion API registered successfully")
+    print("[OK] Companion API registered successfully")
 except ImportError as e:
-    print(f"⚠️ Companion API not available: {e}")
+    print(f"[WARNING] Companion API not available: {e}")
 
 # ============================================
 # BULLETPROOF TIER ISOLATION SYSTEM
@@ -586,7 +586,7 @@ def increment_rate_limit_session():
 @app.before_request
 def ensure_session_persistence():
     # Allow auth + static + home + mini-studio page itself (so it can show the UI)
-    open_paths = {"/api/login", "/api/logout", "/login", "/", "/mini-studio", "/mini_studio_health"}
+    open_paths = {"/api/login", "/api/logout", "/login", "/auth/login", "/", "/mini-studio", "/mini_studio_health"}
     if request.path.startswith("/static/") or request.path in open_paths:
         return
     
