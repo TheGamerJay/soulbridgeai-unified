@@ -9591,21 +9591,43 @@ def api_chat():
                 message, character, "gpt-3.5-turbo", 200, 0.75,
                 f"You are {character}, an enhanced AI companion from SoulBridge AI Growth Plan. You provide more detailed responses and have access to advanced conversation features. You're helpful, insightful, and offer quality guidance."
             )
-        else:  # Foundation (Free) - Premium Local AI
-            logger.info(f"Using premium free AI for user: {character}")
+        else:  # Foundation (Free) - Use Local AI (Ollama/Mixtral)
+            logger.info(f"Using local AI for free user: {character}")
             try:
-                premium_ai = get_premium_free_ai_service()
-                user_id = session.get('user_id', 'anonymous')
-                premium_response = premium_ai.generate_response(message, character, context, user_id)
-                ai_response = premium_response["response"]
+                # Use companion router for free users - it routes to local AI
+                from companion_router import get_companion_router
+                router = get_companion_router()
                 
-                logger.info(f"Premium free AI response generated in {premium_response.get('response_time', 0):.2f}s")
-                logger.info(f"Emotions detected: {premium_response.get('emotions_detected', [])}")
-                logger.info(f"Enhancement level: {premium_response.get('enhancement_level', 'none')}")
+                user_id = session.get('user_id', 'anonymous')
+                local_response = router.route_request(
+                    message=message,
+                    character=character,
+                    context=context,
+                    user_id=user_id,
+                    user_plan="free",
+                    force_provider="local"
+                )
+                
+                if local_response.get("success", False):
+                    ai_response = local_response["response"]
+                    logger.info(f"Local AI response generated successfully for free user")
+                else:
+                    # Fallback to enhanced templates if local AI fails
+                    logger.warning(f"Local AI failed, using template fallback: {local_response.get('error', 'Unknown error')}")
+                    premium_ai = get_premium_free_ai_service()
+                    premium_response = premium_ai.generate_response(message, character, context, user_id)
+                    ai_response = premium_response["response"]
                     
-            except Exception as premium_error:
-                logger.error(f"Premium free AI error: {premium_error}")
-                ai_response = f"Hello! I'm {character}, your caring AI companion from SoulBridge AI. I'm here to listen and support you through whatever you're experiencing. What would you like to talk about today?"
+            except Exception as local_error:
+                logger.error(f"Local AI error, using template fallback: {local_error}")
+                # Ultimate fallback to template system
+                try:
+                    premium_ai = get_premium_free_ai_service()
+                    user_id = session.get('user_id', 'anonymous')
+                    premium_response = premium_ai.generate_response(message, character, context, user_id)
+                    ai_response = premium_response["response"]
+                except Exception:
+                    ai_response = f"Hello! I'm {character}, your caring AI companion. I understand you said: '{message[:50]}...'. I'm here to help and support you!"
         
         return jsonify({
             "success": True, 
