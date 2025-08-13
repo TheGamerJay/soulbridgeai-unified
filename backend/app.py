@@ -586,7 +586,7 @@ def increment_rate_limit_session():
 @app.before_request
 def ensure_session_persistence():
     # Allow auth + static + home + mini-studio page itself (so it can show the UI)
-    open_paths = {"/api/login", "/api/logout", "/login", "/auth/login", "/", "/mini-studio", "/mini_studio_health"}
+    open_paths = {"/api/login", "/api/logout", "/login", "/auth/login", "/", "/mini-studio", "/mini_studio_health", "/api/mini-assistant-status"}
     if request.path.startswith("/static/") or request.path in open_paths:
         return
     
@@ -670,8 +670,24 @@ def check_trial_active_from_db(user_id):
 def mini_assistant_status():
     """Public status endpoint for Mini Assistant modal (no authentication required)"""
     try:
-        # Optionally, you can add more diagnostics here
-        return jsonify({"online": True, "status": "ok"})
+        import os
+        claude_api_key = os.getenv('CLAUDE_API_KEY')
+        claude_available = bool(claude_api_key)
+        
+        # Test if anthropic module is available
+        try:
+            import anthropic
+            anthropic_available = True
+        except ImportError:
+            anthropic_available = False
+            claude_available = False
+        
+        return jsonify({
+            "success": True,
+            "claude_available": claude_available and anthropic_available,
+            "online": True,
+            "status": "ok"
+        })
     except Exception as e:
         logger.error(f"Mini Assistant status error: {e}")
         return jsonify({"online": False, "status": "error", "error": str(e)}), 500
@@ -12280,44 +12296,7 @@ def api_mini_assistant_history():
             "error": "Failed to load conversation history"
         }), 500
 
-@app.route("/api/mini-assistant-status", methods=["GET"])
-def api_mini_assistant_status():
-    """Check Mini Assistant capabilities"""
-    try:
-        import os
-        claude_api_key = os.getenv('CLAUDE_API_KEY')
-        claude_available = bool(claude_api_key)
-        
-        # Test if anthropic module is available
-        try:
-            import anthropic
-            anthropic_available = True
-        except ImportError:
-            anthropic_available = False
-            claude_available = False
-        
-        # Get rate limit status
-        rate_limit_status = get_rate_limit_status()
-        
-        return jsonify({
-            "success": True,
-            "claude_available": claude_available and anthropic_available,
-            "anthropic_module": anthropic_available,
-            "api_key_configured": bool(claude_api_key),
-            "rate_limited": rate_limit_status.get('rate_limited', False),
-            "auto_helper_active": rate_limit_status.get('auto_helper_active', False),
-            "timestamp": rate_limit_status.get('timestamp', 'Unknown'),
-            "backend_status": "Online",
-            "claude_status": "Available" if claude_available and anthropic_available and not rate_limit_status.get('rate_limited', False) else "Rate Limited" if rate_limit_status.get('rate_limited', False) else "Unavailable"
-        })
-        
-    except Exception as e:
-        logger.error(f"Mini Assistant status check error: {e}")
-        return jsonify({
-            "success": False,
-            "claude_available": False,
-            "error": str(e)
-        }), 500
+# Removed duplicate /api/mini-assistant-status endpoint - using the public one above
 
 @app.route("/api/mini-assistant/push", methods=["POST"])
 def api_mini_assistant_push():
