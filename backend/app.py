@@ -1366,15 +1366,7 @@ def health():
 def home():
     """Home route - redirect based on authentication status"""
     try:
-        # Check if user is logged in (using new session-based auth)
-        if "user_id" in session:
-            # User is authenticated, redirect to mini-studio
-            return redirect("/mini-studio")
-        else:
-            # User is not authenticated, serve login form
-            return redirect("/login")
-            
-        # Check if user is logged in
+        # Check if user is properly logged in (using proper authentication check)
         if is_logged_in():
             # Check if user has accepted terms
             if not session.get('terms_accepted', False):
