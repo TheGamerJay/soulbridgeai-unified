@@ -662,41 +662,6 @@
     <script>
         // Wait for DOM to be ready before attaching event listeners
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🔧 DOM loaded - setting up login form');
-            
-            // Let Universal Button Fix handle everything - no double initialization
-            console.log('✅ DOM ready - Universal Button Fix will handle button events');
-            
-            // Add click listeners for debugging
-            const loginBtn = document.getElementById('loginBtn');
-            const themeToggle = document.getElementById('themeToggle');
-            const languageSelector = document.getElementById('languageSelector');
-            
-            // Add form submission handler to handle JSON response
-            const loginForm = document.getElementById('loginForm');
-            if (loginForm) {
-                console.log('✅ Adding login form submission handler');
-                
-                loginForm.addEventListener('submit', function(e) {
-                    console.log('🔑 Login form submitted');
-                    // Set sessionStorage flag on successful login
-                    sessionStorage.setItem('loggedIn', 'true');
-                });
-            }
-            
-            if (themeToggle) {
-                themeToggle.addEventListener('click', function(e) {
-                    console.log('🌙 Theme toggle clicked directly');
-                });
-            }
-            
-            if (languageSelector) {
-                languageSelector.addEventListener('click', function(e) {
-                    console.log('🌐 Language selector clicked directly');
-                });
-            }
-            
-            
             // Auto-focus first input
             const emailInput = document.getElementById('email');
             if (emailInput) {

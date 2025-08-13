@@ -1,8 +1,5 @@
 // Complete working login system - replaces all broken functionality
-console.log("🔧 Loading complete login fix...");
-
 document.addEventListener("DOMContentLoaded", function() {
-    console.log("✅ DOM loaded - initializing login system");
     
     // === LOGIN FORM HANDLING ===
     const loginForm = document.getElementById("loginForm");
@@ -11,29 +8,20 @@ document.addEventListener("DOMContentLoaded", function() {
     const passwordInput = document.getElementById("password");
     
     if (loginForm) {
-        // Clear any existing handlers
         loginForm.onsubmit = null;
-        
         loginForm.addEventListener("submit", function(e) {
-            console.log("🚀 Form submitted - checking validation only");
-            
             const email = emailInput ? emailInput.value.trim() : "";
             const password = passwordInput ? passwordInput.value : "";
-            
             if (!email || !password) {
                 e.preventDefault();
                 alert("Please enter both email and password");
                 return;
             }
-            
             if (loginBtn) {
                 loginBtn.disabled = true;
                 loginBtn.textContent = "Signing in...";
             }
-            
-            // DO NOT prevent default - let form submit normally
-            console.log("✅ Form validation passed - submitting to /auth/login");
-            // Form will submit naturally to action="/auth/login" method="POST"
+            // Let form submit naturally
         });
     }
     
@@ -198,5 +186,4 @@ document.addEventListener("DOMContentLoaded", function() {
     // Initialize settings
     loadSavedSettings();
     
-    console.log("✅ Complete login system initialized successfully");
 });
