@@ -4,6 +4,8 @@
 from flask import Blueprint, request, jsonify, session
 from studio.inspiration_writer import write_lyrics
 from studio.library import studio_library
+from .common import safe_api, rate_limit
+from config import MAX_LYRICS_LENGTH, RATE_LIMIT_ENABLED
 import logging
 
 logger = logging.getLogger(__name__)
@@ -19,6 +21,8 @@ def get_effective_plan(user_plan, trial_active):
 bp = Blueprint("api_lyrics", __name__)
 
 @bp.route("/api/lyrics", methods=["POST"])
+@rate_limit(per_min=30 if RATE_LIMIT_ENABLED else 999999)
+@safe_api
 def api_lyrics():
     """Generate song lyrics using InspirationWriter"""
     try:
@@ -33,14 +37,21 @@ def api_lyrics():
         if effective_plan != 'max':
             return jsonify({"success": False, "error": "Mini Studio requires Max tier or trial"}), 403
         
-        data = request.get_json(force=True)
-        theme = data.get("theme", "love").strip()
-        mood = data.get("mood", "emotional").strip()
-        lang = data.get("lang", "en").strip()
+        data = request.get_json(force=True, silent=True) or {}
+        theme = (data.get("theme") or "love").strip()
+        mood = (data.get("mood") or "emotional").strip()
+        lang = (data.get("lang") or "en").strip()
         syllables = int(data.get("syllables", 10))
         
+        # Input validation
         if not theme:
             return jsonify({"success": False, "error": "Theme is required"}), 400
+        
+        if len(theme) > MAX_LYRICS_LENGTH:
+            return jsonify({"success": False, "error": f"Theme too long (max {MAX_LYRICS_LENGTH} chars)"}), 400
+        
+        if syllables < 1 or syllables > 50:
+            return jsonify({"success": False, "error": "Syllables must be between 1 and 50"}), 400
         
         # Check credits
         user_id = session.get('user_id')
