@@ -667,36 +667,7 @@
             if (emailInput) {
                 emailInput.focus();
             }
-            
-            // Debug form setup
-            console.log('✅ Login form setup complete');
-            console.log('Form action:', loginForm.action);
-            console.log('Form method:', loginForm.method);
-            
-            // Test button functions
-            setTimeout(function() {
-                console.log('🔧 Testing button functions:');
-                console.log('  toggleTheme:', typeof window.toggleTheme);
-                console.log('  toggleLanguageMenu:', typeof window.toggleLanguageMenu);
-                console.log('  changeLanguage:', typeof window.changeLanguage);
-                console.log('  togglePassword:', typeof window.togglePassword);
-                
-                // Test if theme toggle button exists and has onclick
-                const themeBtn = document.getElementById('themeToggle');
-                if (themeBtn) {
-                    console.log('✅ Theme button found, onclick:', themeBtn.getAttribute('onclick'));
-                } else {
-                    console.error('❌ Theme button not found');
-                }
-                
-                // Test if language button exists
-                const langBtn = document.querySelector('[onclick*="toggleLanguageMenu"]');
-                if (langBtn) {
-                    console.log('✅ Language button found');
-                } else {
-                    console.error('❌ Language button not found');
-                }
-            }, 1000);
+            // Cleaned up: Removed debug checks for missing theme/language buttons/functions
         });
         
         // Global error handler with watchdog reporting
