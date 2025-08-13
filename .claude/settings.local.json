@@ -82,7 +82,12 @@
       "Bash(if [ -f \"backend/soulbridge.db\" ])",
       "Bash(then sqlite3 backend/soulbridge.db \"SELECT email, plan_type, user_plan FROM users LIMIT 5;\")",
       "Bash(else echo \"No local SQLite database found\")",
-      "Bash(fi)"
+      "Bash(fi)",
+      "Bash(ffmpeg:*)",
+      "Bash(where:*)",
+      "Bash(choco install:*)",
+      "Bash(ollama:*)",
+      "WebFetch(domain:ollama.com)"
     ],
     "deny": []
   }

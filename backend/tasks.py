@@ -54,3 +54,28 @@ def task_generate_art(prompt: str, size: str):
     except Exception as e:
         logger.error(f"Cover art generation failed: {e}")
         raise
+
+def task_master_track(wav_path: str, target_lufs: float, ceiling_db: float, highpass_hz: float = None, lowpass_hz: float = None):
+    """Background task for audio mastering"""
+    logger.info(f"Starting mastering task: {wav_path}")
+    try:
+        from studio.mastering import master_track
+        result = master_track(wav_path, target_lufs=target_lufs, ceiling_db=ceiling_db, 
+                             highpass_hz=highpass_hz, lowpass_hz=lowpass_hz)
+        logger.info(f"Mastering completed: {result}")
+        return result
+    except Exception as e:
+        logger.error(f"Mastering failed: {e}")
+        raise
+
+def task_create_loop(wav_path: str, loop_seconds: int, crossfade_ms: int):
+    """Background task for seamless loop creation"""
+    logger.info(f"Starting loop creation task: {wav_path}")
+    try:
+        from studio.mastering import make_seamless_loop
+        result = make_seamless_loop(wav_path, loop_seconds=loop_seconds, crossfade_ms=crossfade_ms)
+        logger.info(f"Loop creation completed: {result}")
+        return result
+    except Exception as e:
+        logger.error(f"Loop creation failed: {e}")
+        raise
