@@ -615,7 +615,8 @@ def ensure_session_persistence():
     
     # PERMANENT FIX: Make sessions persistent for all authenticated users
     # Sessions should only expire when browser closes or explicit logout
-    if session.get('user_authenticated') or session.get('user_email') or session.get('email'):
+    # If user has user_id, they are authenticated and should have persistent sessions
+    if session.get('user_id') or session.get('user_authenticated') or session.get('user_email') or session.get('email'):
         session.permanent = True
         # Set reasonable session lifetime
         app.permanent_session_lifetime = timedelta(hours=SESSION_LIFETIME_HOURS)
