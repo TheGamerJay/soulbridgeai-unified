@@ -78,7 +78,11 @@
       "Bash(vsce package:*)",
       "Bash(code:*)",
       "Bash(awk:*)",
-      "Bash(DATABASE_URL=\"postgresql://postgres:sDCOyvWZKSxyJvnJBZNSJemzZKbbSjIT@postgres-wj-8.railway.internal:5432/railway\" python fix_database_schema.py)"
+      "Bash(DATABASE_URL=\"postgresql://postgres:sDCOyvWZKSxyJvnJBZNSJemzZKbbSjIT@postgres-wj-8.railway.internal:5432/railway\" python fix_database_schema.py)",
+      "Bash(if [ -f \"backend/soulbridge.db\" ])",
+      "Bash(then sqlite3 backend/soulbridge.db \"SELECT email, plan_type, user_plan FROM users LIMIT 5;\")",
+      "Bash(else echo \"No local SQLite database found\")",
+      "Bash(fi)"
     ],
     "deny": []
   }

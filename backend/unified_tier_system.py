@@ -74,7 +74,7 @@ MONTHLY_CREDITS = {
 }
 
 # FEATURES THAT REQUIRE CREDITS
-CREDIT_FEATURES = ["ai_images", "voice_journaling", "music_studio", "relationship_profiles", "meditations"]
+CREDIT_FEATURES = ["ai_images", "voice_journaling", "relationship_profiles", "meditations"]
 
 # EFFECTIVE PLAN (trial never changes what tier you are)
 def get_effective_plan(user_plan: str, trial_active: bool) -> str:
@@ -456,10 +456,10 @@ def get_tier_status(user_id):
         creative_usage = session.get(creative_usage_key, 0)
         
         # Get limits (always based on actual plan)
-        decoder_limit = get_feature_limit(plan, "decoder")
-        fortune_limit = get_feature_limit(plan, "fortune")
-        horoscope_limit = get_feature_limit(plan, "horoscope")
-        creative_limit = get_feature_limit(plan, "creative_writer")
+        decoder_limit = get_feature_limit(plan, "decoder", trial_active)
+        fortune_limit = get_feature_limit(plan, "fortune", trial_active)
+        horoscope_limit = get_feature_limit(plan, "horoscope", trial_active)
+        creative_limit = get_feature_limit(plan, "creative_writer", trial_active)
         
         # DEBUG: Log limits calculation
         logger.info(f"🎯 LIMITS DEBUG: actual_plan='{plan}', effective_plan='{effective_plan}', trial={trial_active}")

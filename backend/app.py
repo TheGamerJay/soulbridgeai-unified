@@ -6822,35 +6822,14 @@ def get_user_addons():
 
 def get_feature_limit(plan: str, feature: str) -> int:
     """
-    Get usage limits based on SUBSCRIPTION TIER (ignores trial status)
-    Usage limits are tied to what you pay for, not trial access
+    DEPRECATED: Redirect to unified tier system
+    This function redirects to the unified tier system for consistency
     """
-    # Defensive migration for any legacy plans
-    legacy_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
-    plan = legacy_mapping.get(plan, plan)
+    # Import here to avoid circular imports
+    from unified_tier_system import get_feature_limit as unified_get_feature_limit
     
-    # Ensure we only work with valid plans
-    if plan not in ['free', 'growth', 'max']:
-        logger.warning(f"⚠️ Unknown plan '{plan}' in feature limits, defaulting to 'free'")
-        plan = 'free'
-    
-    # Use centralized constants instead of hardcoded values
-    limits = PLAN_LIMITS.get(plan, PLAN_LIMITS["free"])
-    
-    # Add AI image limits if not in constants yet
-    ai_image_limits = {
-        "free": 5,
-        "growth": 50, 
-        "max": 999999
-    }
-    
-    if feature == "ai_image_monthly":
-        return ai_image_limits.get(plan, 5)
-    
-    # Get limit from centralized constants
-    limit = limits.get(feature, 0)
-    logger.info(f"🎯 USAGE LIMIT: plan='{plan}' feature='{feature}' → limit={limit}")
-    return limit
+    # Call unified tier system with trial_active=False (legacy behavior)
+    return unified_get_feature_limit(plan, feature, False)
 
 def get_feature_access_tier(user_plan: str, trial_active: bool) -> str:
     """
@@ -9624,8 +9603,6 @@ def api_creative_writing():
             "poetry": f"You are a skilled poet and creative writing assistant. Create beautiful, inspiring poetry based on the user's request. Focus on {mood} themes and emotions. Keep poems between 8-16 lines.",
             "inspiration": f"You are an inspirational writer. Create uplifting, motivational content that helps boost mood and confidence. Focus on {mood} themes. Provide 2-3 inspiring quotes or affirmations.",
             "story": f"You are a creative storyteller. Write engaging short stories (3-4 paragraphs) that capture {mood} emotions. Create vivid characters and settings that resonate with the reader. Focus on themes of adventure, growth, hope, and human connection.",
-            "music": f"You are a talented songwriter and lyricist. Create {mood} song lyrics, verses, or musical ideas based on the user's request. Include rhythm, rhyme, and emotional depth. You can suggest chord progressions or musical styles when relevant.",
-            "songs": f"You are a talented songwriter and lyricist. Create complete {mood} songs with proper structure including intro, verse, chorus, bridge, and outro. Include rhythm, rhyme, and emotional depth based on the user's request. Make it feel like a real song with proper lyrics structure.",
             "thoughts": f"You are a thoughtful journaling companion. Help the user explore and organize their thoughts in a {mood} way. Provide gentle reflection prompts, insights, or help structure their ideas. Be supportive and non-judgmental.",
             "letter": f"You are a compassionate letter writer. Help write heartfelt, personal letters that convey {mood} emotions and genuine care. Make it warm and authentic."
         }
@@ -10657,6 +10634,31 @@ def voice_journaling_transcribe():
         
         audio_file = request.files['audio']
         
+        # Check and deduct credits before processing
+        user_id = session.get('user_id')
+        from credit_costs import get_feature_cost
+        from unified_tier_system import get_user_credits, deduct_credits
+        
+        VOICE_JOURNAL_COST = get_feature_cost("voice_journaling")
+        
+        # Check if user has enough credits
+        current_credits = get_user_credits(user_id) if user_id else 0
+        
+        if current_credits < VOICE_JOURNAL_COST:
+            return jsonify({
+                "success": False, 
+                "error": f"Insufficient credits. Need {VOICE_JOURNAL_COST} credits, you have {current_credits}."
+            }), 403
+        
+        # Deduct credits before processing
+        if not deduct_credits(user_id, VOICE_JOURNAL_COST):
+            return jsonify({
+                "success": False, 
+                "error": "Failed to deduct credits. Please try again."
+            }), 500
+        
+        logger.info(f"💳 Deducted {VOICE_JOURNAL_COST} credits from user {user_id} for voice journaling")
+        
         # Transcribe audio using OpenAI Whisper API
         try:
             logger.info(f"🎙️ Transcribing audio file: {audio_file.filename}")
@@ -10843,6 +10845,31 @@ def relationship_profiles_add():
         if user_plan not in ['premium', 'enterprise'] and 'relationship' not in user_addons:
             return jsonify({"success": False, "error": "Relationship Profiles requires Max tier or addon"}), 403
         
+        # Check and deduct credits before processing
+        user_id = session.get('user_id')
+        from credit_costs import get_feature_cost
+        from unified_tier_system import get_user_credits, deduct_credits
+        
+        RELATIONSHIP_COST = get_feature_cost("relationship_profiles")
+        
+        # Check if user has enough credits
+        current_credits = get_user_credits(user_id) if user_id else 0
+        
+        if current_credits < RELATIONSHIP_COST:
+            return jsonify({
+                "success": False, 
+                "error": f"Insufficient credits. Need {RELATIONSHIP_COST} credits, you have {current_credits}."
+            }), 403
+        
+        # Deduct credits before processing
+        if not deduct_credits(user_id, RELATIONSHIP_COST):
+            return jsonify({
+                "success": False, 
+                "error": "Failed to deduct credits. Please try again."
+            }), 500
+        
+        logger.info(f"💳 Deducted {RELATIONSHIP_COST} credits from user {user_id} for relationship profile")
+        
         data = request.get_json()
         if not data:
             return jsonify({"success": False, "error": "No data provided"}), 400
@@ -10978,6 +11005,31 @@ def emotional_meditations_save_session():
         
         if user_plan not in ['premium', 'enterprise'] and 'emotional-meditations' not in user_addons:
             return jsonify({"success": False, "error": "Emotional Meditations requires Growth/Max tier, addon, or trial"}), 403
+        
+        # Check and deduct credits before processing
+        user_id = session.get('user_id')
+        from credit_costs import get_feature_cost
+        from unified_tier_system import get_user_credits, deduct_credits
+        
+        MEDITATION_COST = get_feature_cost("meditations")
+        
+        # Check if user has enough credits
+        current_credits = get_user_credits(user_id) if user_id else 0
+        
+        if current_credits < MEDITATION_COST:
+            return jsonify({
+                "success": False, 
+                "error": f"Insufficient credits. Need {MEDITATION_COST} credits, you have {current_credits}."
+            }), 403
+        
+        # Deduct credits before processing
+        if not deduct_credits(user_id, MEDITATION_COST):
+            return jsonify({
+                "success": False, 
+                "error": "Failed to deduct credits. Please try again."
+            }), 500
+        
+        logger.info(f"💳 Deducted {MEDITATION_COST} credits from user {user_id} for meditation session")
         
         data = request.get_json()
         if not data:
@@ -11150,6 +11202,29 @@ def ai_image_generation_generate():
         if monthly_limit is not None and monthly_usage >= monthly_limit:
             tier_name = {"free": "Free", "growth": "Growth", "max": "Max"}[effective_plan]
             return jsonify({"success": False, "error": f"Monthly AI image limit reached ({monthly_limit} images for {tier_name} tier)"}), 403
+        
+        # Check and deduct credits before generating
+        user_id = session.get('user_id')
+        AI_IMAGE_COST = 5  # 5 credits per AI image
+        
+        # Check if user has enough credits
+        from unified_tier_system import get_user_credits, deduct_credits
+        current_credits = get_user_credits(user_id) if user_id else 0
+        
+        if current_credits < AI_IMAGE_COST:
+            return jsonify({
+                "success": False, 
+                "error": f"Insufficient credits. Need {AI_IMAGE_COST} credits, you have {current_credits}."
+            }), 403
+        
+        # Deduct credits before generation (prevents abuse if generation fails)
+        if not deduct_credits(user_id, AI_IMAGE_COST):
+            return jsonify({
+                "success": False, 
+                "error": "Failed to deduct credits. Please try again."
+            }), 500
+        
+        logger.info(f"💳 Deducted {AI_IMAGE_COST} credits from user {user_id} for AI image generation")
         
         # Generate image using OpenAI DALL-E API
         try:
@@ -13655,106 +13730,17 @@ def is_max_allowed_music(user_id):
 # Music Studio Routes
 @app.route("/music-studio")
 def music_studio_redirect():
-    """Redirect to music studio"""
+    """Redirect music studio to mini studio"""
     if not is_logged_in():
-        return redirect("/login?return_to=music-studio")
-    return redirect("/music")
+        return redirect("/login?return_to=mini-studio")
+    return redirect("/mini-studio")
 
 @app.route("/music")
 def music_home():
-    """Music Studio home page"""
+    """Redirect to mini studio"""
     if not is_logged_in():
-        return redirect("/login?return_to=music")
-    
-    user_id = session.get('user_id')
-    ensure_monthly_credits(user_id)
-    
-    # Get user info
-    database_url = os.environ.get('DATABASE_URL')
-    user_info = {'email': session.get('user_email', 'unknown'), 'plan': 'free', 'credits': 0}
-    
-    if database_url:
-        try:
-            import psycopg2
-            conn = psycopg2.connect(database_url)
-            cursor = conn.cursor()
-            cursor.execute("""
-                SELECT user_plan, trainer_credits, disclaimer_accepted_at
-                FROM users WHERE id = %s
-            """, (user_id,))
-            result = cursor.fetchone()
-            if result:
-                user_info.update({
-                    'plan': result[0] or 'free',
-                    'credits': result[1] or 0,
-                    'disclaimer_accepted': result[2] is not None
-                })
-            cursor.close()
-            conn.close()
-        except Exception as e:
-            logger.error(f"User info fetch error: {e}")
-    
-    # Use unified system for consistent trial handling
-    trial_active = session.get('trial_active', False)
-    user_plan = session.get('user_plan', 'free')
-    effective_plan = get_effective_plan(user_plan, trial_active)
-    allowed = effective_plan == 'max'
-    
-    return render_template_string('''
-<!doctype html><meta charset="utf-8">
-<title>SoulBridge AI – Music Studio</title>
-<style>
-body{font-family:system-ui;background:#0b0f17;color:#e6f1ff;padding:24px}
-.card{background:#111827;border:1px solid #1f2937;border-radius:12px;padding:16px;display:inline-block;margin:8px;width:300px}
-a.btn,button{background:#06b6d4;color:#001018;border:none;padding:10px 14px;border-radius:8px;text-decoration:none;cursor:pointer}
-.muted{color:#9aa8bd}.row{display:flex;gap:12px;flex-wrap:wrap}
-.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-</style>
-<div class="top">
-  <div>
-    <div>Logged in as <b>{{email}}</b></div>
-    <div class="muted">Plan: <b>{{plan}}</b> • Credits: <b>{{credits}}</b></div>
-  </div>
-  <div>
-    {% if allowed %}<a class="btn" href="/music/mini-studio">🎶 Mini Studio</a>{% endif %}
-    <a class="btn" href="/music/library">🎵 Library</a>
-    <a class="btn" href="/">← Back to Main</a>
-  </div>
-</div>
-
-<h1>🎵 Music Studio</h1>
-<div class="row">
-  <div class="card">
-    <h3>🎶 Music Creation</h3>
-    <p>Generate song lyrics, melodies, and complete tracks using AI assistance.</p>
-    {% if allowed %}
-      <a class="btn" href="/creative-writing?mode=music" style="margin-top: 10px;">Start Creating Music</a>
-    {% else %}
-      <p class="muted">Requires Max plan or trial</p>
-    {% endif %}
-  </div>
-  
-  <div class="card">
-    <h3>🎤 Song Lyrics</h3>
-    <p>Create custom song lyrics in any genre or style with AI help.</p>
-    {% if allowed %}
-      <a class="btn" href="/creative-writing?mode=songs" style="margin-top: 10px;">Write Song Lyrics</a>
-    {% else %}
-      <p class="muted">Requires Max plan or trial</p>
-    {% endif %}
-  </div>
-  
-  <div class="card">
-    <h3>🎹 Interactive Studio</h3>
-    <p>Access the full GamerJay Mini Studio for Max-tier subscribers.</p>
-    {% if allowed %}
-      <a class="btn" href="/mini-studio" style="margin-top: 10px;">Open Mini Studio</a>
-    {% else %}
-      <p class="muted">Upgrade to Max tier to access</p>
-    {% endif %}
-  </div>
-</div>
-''', email=user_info['email'], plan=user_info['plan'], credits=user_info['credits'], allowed=allowed)
+        return redirect("/login?return_to=mini-studio")
+    return redirect("/mini-studio")
 
 @app.route("/music/create-track")
 def music_create_track():
@@ -13776,6 +13762,1156 @@ def music_create_track():
 def music_library_redirect():
     """Redirect to unified library with music filter"""
     return redirect("/library/music")
+
+@app.route("/mini-studio")
+def mini_studio():
+    """Mini Studio - Feel like you're in an actual recording studio"""
+    if not is_logged_in():
+        return redirect("/login?return_to=mini-studio")
+    
+    # Check access permissions
+    user_plan = session.get('user_plan', 'free')
+    trial_active = session.get('trial_active', False)
+    effective_plan = get_effective_plan(user_plan, trial_active)
+    user_id = session.get('user_id')
+    
+    # Mini studio is Max tier exclusive + trial users get 60 minutes
+    if effective_plan != 'max':
+        return redirect("/tiers?upgrade=max")
+    
+    # Get user credits (trainer time for mini studio)
+    from unified_tier_system import get_user_credits
+    credits = get_user_credits(user_id) if user_id else 0
+    
+    # For trial users, they get 60 "trainer time" credits specifically for mini studio
+    if user_plan == 'free' and trial_active:
+        from unified_tier_system import get_trial_trainer_time
+        trial_credits = get_trial_trainer_time(user_id)
+        credits = max(credits, trial_credits)  # Use trial credits if higher
+    
+    return render_template_string('''
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>🎵 Mini Studio | SoulBridge AI</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        /* Studio Environment */
+        .studio-container {
+            min-height: 100vh;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(120, 0, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 0, 120, 0.1) 0%, transparent 50%),
+                linear-gradient(135deg, #0a0a0a 0%, #1e1e1e 100%);
+            position: relative;
+        }
+        
+        /* Studio Lighting Effects */
+        .studio-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 200px;
+            background: linear-gradient(180deg, rgba(66, 153, 225, 0.05) 0%, transparent 100%);
+            pointer-events: none;
+        }
+        
+        /* Header with Studio Vibe */
+        .studio-header {
+            padding: 20px 30px;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .studio-header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, #4fd1c7, #81e6d9);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
+        }
+        
+        .studio-info {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+        }
+        
+        .credits-display {
+            display: inline-block;
+            background: rgba(129, 230, 217, 0.1);
+            border: 1px solid rgba(129, 230, 217, 0.3);
+            padding: 4px 12px;
+            border-radius: 20px;
+            margin-left: 15px;
+            font-weight: 600;
+        }
+        
+        /* Main Studio Interface */
+        .studio-workspace {
+            padding: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        /* Equipment Panels */
+        .equipment-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .equipment-panel {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .equipment-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #4fd1c7, #81e6d9);
+        }
+        
+        .equipment-panel:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(129, 230, 217, 0.3);
+        }
+        
+        .equipment-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .equipment-icon {
+            font-size: 2rem;
+            margin-right: 15px;
+            filter: drop-shadow(0 0 10px currentColor);
+        }
+        
+        .equipment-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #ffffff;
+        }
+        
+        .equipment-description {
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        
+        /* Studio Controls */
+        .studio-btn {
+            background: linear-gradient(135deg, #4fd1c7 0%, #81e6d9 100%);
+            color: #0a0a0a;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            box-shadow: 0 4px 15px rgba(79, 209, 199, 0.3);
+        }
+        
+        .studio-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(79, 209, 199, 0.4);
+        }
+        
+        .studio-btn:active {
+            transform: translateY(0);
+        }
+        
+        /* Recording Session Area */
+        .recording-session {
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            margin-top: 30px;
+            text-align: center;
+        }
+        
+        .session-timer {
+            font-size: 3rem;
+            font-weight: 300;
+            color: #4fd1c7;
+            margin-bottom: 10px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .session-status {
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 20px;
+        }
+        
+        /* Navigation */
+        .studio-nav {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .nav-btn {
+            background: rgba(0, 0, 0, 0.8);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 10px 15px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .studio-workspace { padding: 20px; }
+            .equipment-grid { grid-template-columns: 1fr; }
+            .studio-header h1 { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="studio-container">
+        <header class="studio-header">
+            <h1>🎵 Mini Studio</h1>
+            <div class="studio-info">
+                Professional music creation environment
+                <span class="credits-display">{{ credits }} minutes available</span>
+            </div>
+        </header>
+        
+        <main class="studio-workspace">
+            <div class="equipment-grid">
+                <div class="equipment-panel">
+                    <div class="equipment-header">
+                        <div class="equipment-icon">🎤</div>
+                        <div class="equipment-title">Vocal Recording</div>
+                    </div>
+                    <div class="equipment-description">
+                        High-quality vocal recording with real-time effects and processing. Perfect for laying down vocals, harmonies, and voice-overs.
+                    </div>
+                    <button class="studio-btn" onclick="startVocalSession()">Start Recording</button>
+                </div>
+                
+                <div class="equipment-panel">
+                    <div class="equipment-header">
+                        <div class="equipment-icon">🎹</div>
+                        <div class="equipment-title">Instrumental Creation</div>
+                    </div>
+                    <div class="equipment-description">
+                        Create beats, melodies, and full instrumental tracks with our AI-powered composition tools and virtual instruments.
+                    </div>
+                    <button class="studio-btn" onclick="startInstrumentalSession()">Create Beat</button>
+                </div>
+                
+                <div class="equipment-panel">
+                    <div class="equipment-header">
+                        <div class="equipment-icon">✍️</div>
+                        <div class="equipment-title">Lyric Writing</div>
+                    </div>
+                    <div class="equipment-description">
+                        Craft compelling lyrics with AI assistance. Generate verses, choruses, and complete songs in any style or genre.
+                    </div>
+                    <button class="studio-btn" onclick="startLyricSession()">Write Lyrics</button>
+                </div>
+                
+                <div class="equipment-panel">
+                    <div class="equipment-header">
+                        <div class="equipment-icon">🎚️</div>
+                        <div class="equipment-title">Mixing & Mastering</div>
+                    </div>
+                    <div class="equipment-description">
+                        Professional mixing console for balancing, EQ, compression, and mastering your tracks to radio-ready quality.
+                    </div>
+                    <button class="studio-btn" onclick="startMixingSession()">Open Mixer</button>
+                </div>
+            </div>
+            
+            <div class="recording-session">
+                <div class="session-timer" id="sessionTimer">00:00:00</div>
+                <div class="session-status" id="sessionStatus">Studio ready - Select an instrument to begin</div>
+                <button class="studio-btn" id="sessionControl" onclick="toggleSession()" style="background: #ff6b6b;">● Start Session</button>
+            </div>
+        </main>
+        
+        <nav class="studio-nav">
+            <a href="/library/music" class="nav-btn">🎵 Library</a>
+            <a href="/" class="nav-btn">← Exit Studio</a>
+        </nav>
+    </div>
+    
+    <script>
+        let sessionActive = false;
+        let sessionStartTime = null;
+        let timerInterval = null;
+        let creditsRemaining = {{ credits }};
+        
+        function updateTimer() {
+            if (!sessionActive || !sessionStartTime) return;
+            
+            const now = new Date();
+            const elapsed = Math.floor((now - sessionStartTime) / 1000);
+            const minutes = Math.floor(elapsed / 60);
+            const seconds = elapsed % 60;
+            const hours = Math.floor(minutes / 60);
+            const displayMinutes = minutes % 60;
+            
+            document.getElementById('sessionTimer').textContent = 
+                `${hours.toString().padStart(2, '0')}:${displayMinutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            // Deduct credits (1 per minute)
+            if (minutes > 0 && minutes !== window.lastMinuteDeducted) {
+                window.lastMinuteDeducted = minutes;
+                creditsRemaining = Math.max(0, creditsRemaining - 1);
+                updateCreditsDisplay();
+                
+                if (creditsRemaining <= 0) {
+                    endSession("Session ended - No credits remaining");
+                }
+            }
+        }
+        
+        async function toggleSession() {
+            if (!sessionActive) {
+                await startSession();
+            } else {
+                await endSession("Session ended manually");
+            }
+        }
+        
+        async function startSession() {
+            if (creditsRemaining <= 0) {
+                alert("No studio time remaining. Please purchase more credits or upgrade your plan.");
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/mini-studio/session', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({action: 'start'})
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    sessionActive = true;
+                    sessionStartTime = new Date();
+                    window.lastMinuteDeducted = 0;
+                    
+                    document.getElementById('sessionStatus').textContent = "🔴 Recording in progress...";
+                    document.getElementById('sessionControl').innerHTML = "⏹ End Session";
+                    document.getElementById('sessionControl').style.background = "#ff6b6b";
+                    
+                    timerInterval = setInterval(updateTimer, 1000);
+                    
+                    // Add studio ambience
+                    document.body.style.filter = "brightness(1.1) saturate(1.2)";
+                    
+                    creditsRemaining = data.credits_remaining;
+                    updateCreditsDisplay();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Failed to start session: ' + error.message);
+            }
+        }
+        
+        async function endSession(reason) {
+            if (!sessionActive) return;
+            
+            const duration = sessionStartTime ? Math.floor((new Date() - sessionStartTime) / 60000) : 0;
+            
+            try {
+                const response = await fetch('/api/mini-studio/session', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({action: 'stop', duration: duration})
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    sessionActive = false;
+                    sessionStartTime = null;
+                    
+                    if (timerInterval) {
+                        clearInterval(timerInterval);
+                        timerInterval = null;
+                    }
+                    
+                    document.getElementById('sessionStatus').textContent = reason || "Studio ready - Select an instrument to begin";
+                    document.getElementById('sessionControl').innerHTML = "● Start Session";
+                    document.getElementById('sessionControl').style.background = "#4fd1c7";
+                    
+                    // Reset studio ambience
+                    document.body.style.filter = "none";
+                    
+                    if (data.credits_deducted > 0) {
+                        creditsRemaining = data.credits_remaining;
+                        updateCreditsDisplay();
+                        
+                        showStudioModal('Session Complete', `
+                            <div style="text-align: center;">
+                                <h4>Studio Session Ended</h4>
+                                <p>Session Duration: ${duration} minutes</p>
+                                <p>Credits Deducted: ${data.credits_deducted}</p>
+                                <p>Credits Remaining: ${data.credits_remaining}</p>
+                                <br>
+                                <p style="color: #4fd1c7;">Thank you for using Mini Studio!</p>
+                            </div>
+                        `);
+                    }
+                } else {
+                    alert('Error ending session: ' + data.error);
+                }
+            } catch (error) {
+                alert('Failed to end session: ' + error.message);
+                // Force end session locally if API fails
+                sessionActive = false;
+                sessionStartTime = null;
+                if (timerInterval) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                }
+                document.getElementById('sessionStatus').textContent = "Session ended (connection error)";
+                document.getElementById('sessionControl').innerHTML = "● Start Session";
+                document.getElementById('sessionControl').style.background = "#4fd1c7";
+                document.body.style.filter = "none";
+            }
+        }
+        
+        function updateCreditsDisplay() {
+            const display = document.querySelector('.credits-display');
+            if (display) {
+                display.textContent = `${creditsRemaining} minutes available`;
+            }
+        }
+        
+        async function startVocalSession() {
+            if (creditsRemaining <= 0) {
+                alert("No studio time remaining. Please purchase more credits or upgrade your plan.");
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/mini-studio/vocal-recording', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({})
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showStudioModal('🎤 Vocal Recording', `
+                        <div class="studio-config">
+                            <h4>Recording Configuration:</h4>
+                            <p><strong>Sample Rate:</strong> ${data.config.sample_rate} Hz</p>
+                            <p><strong>Bit Depth:</strong> ${data.config.bit_depth} bit</p>
+                            <p><strong>Channels:</strong> ${data.config.channels}</p>
+                            <p><strong>Effects:</strong> ${data.config.effects.join(', ')}</p>
+                            <p><strong>Monitoring:</strong> ${data.config.monitoring}</p>
+                            <br>
+                            <p style="color: #4fd1c7;">🔴 Ready to record! Press the red button to start.</p>
+                        </div>
+                    `);
+                    creditsRemaining = data.credits_remaining;
+                    updateCreditsDisplay();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Failed to initialize vocal recording: ' + error.message);
+            }
+        }
+        
+        async function startInstrumentalSession() {
+            if (creditsRemaining <= 0) {
+                alert("No studio time remaining. Please purchase more credits or upgrade your plan.");
+                return;
+            }
+            
+            const genre = prompt("Enter genre (hip-hop, pop, rock, electronic, jazz):", "hip-hop") || "hip-hop";
+            const tempo = parseInt(prompt("Enter tempo (BPM):", "120")) || 120;
+            const mood = prompt("Enter mood (energetic, chill, dark, uplifting):", "energetic") || "energetic";
+            
+            try {
+                const response = await fetch('/api/mini-studio/instrumental', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({genre, tempo, mood})
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showStudioModal('🎹 Instrumental Created', `
+                        <div class="track-info">
+                            <h4>${data.track.title}</h4>
+                            <p><strong>Genre:</strong> ${data.track.genre}</p>
+                            <p><strong>Tempo:</strong> ${data.track.tempo} BPM</p>
+                            <p><strong>Mood:</strong> ${data.track.mood}</p>
+                            <p><strong>Duration:</strong> ${data.track.duration}</p>
+                            <p><strong>Key:</strong> ${data.track.key}</p>
+                            <br>
+                            <h5>Arrangement:</h5>
+                            <pre style="white-space: pre-wrap; font-size: 0.9rem;">${data.track.arrangement}</pre>
+                        </div>
+                    `);
+                    creditsRemaining = data.credits_remaining;
+                    updateCreditsDisplay();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Failed to create instrumental: ' + error.message);
+            }
+        }
+        
+        async function startLyricSession() {
+            if (creditsRemaining <= 0) {
+                alert("No studio time remaining. Please purchase more credits or upgrade your plan.");
+                return;
+            }
+            
+            const theme = prompt("Enter song theme (love, inspiration, struggle, party):", "love") || "love";
+            const genre = prompt("Enter genre (pop, hip-hop, rock, country, r&b):", "pop") || "pop";
+            const mood = prompt("Enter mood (uplifting, sad, energetic, romantic):", "uplifting") || "uplifting";
+            
+            try {
+                const response = await fetch('/api/mini-studio/lyrics', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({theme, genre, mood})
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showStudioModal('✍️ Song Lyrics', `
+                        <div class="lyrics-display">
+                            <h4>${data.lyrics.title}</h4>
+                            <p><strong>Theme:</strong> ${data.lyrics.theme} | <strong>Genre:</strong> ${data.lyrics.genre} | <strong>Mood:</strong> ${data.lyrics.mood}</p>
+                            <p><strong>Duration:</strong> ${data.lyrics.estimated_duration}</p>
+                            <br>
+                            <div style="white-space: pre-wrap; line-height: 1.6; font-family: serif;">${data.lyrics.lyrics}</div>
+                        </div>
+                    `);
+                    creditsRemaining = data.lyrics.credits_remaining;
+                    updateCreditsDisplay();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Failed to create lyrics: ' + error.message);
+            }
+        }
+        
+        async function startMixingSession() {
+            if (creditsRemaining <= 0) {
+                alert("No studio time remaining. Please purchase more credits or upgrade your plan.");
+                return;
+            }
+            
+            const genre = prompt("Enter genre for mixing preset (pop, hip-hop, rock, electronic):", "pop") || "pop";
+            
+            try {
+                const response = await fetch('/api/mini-studio/mixing', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({genre})
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    const mixer = data.mixer;
+                    showStudioModal('🎚️ Mixing Console', `
+                        <div class="mixing-console">
+                            <h4>Professional Mixing Console - ${genre.toUpperCase()}</h4>
+                            <p><strong>Channels:</strong> ${mixer.track_channels.join(', ')}</p>
+                            <br>
+                            <div class="eq-section">
+                                <h5>EQ Settings:</h5>
+                                <p>Low: ${mixer.mixing_settings.eq_settings.low.frequency} (${mixer.mixing_settings.eq_settings.low.gain})</p>
+                                <p>Mid: ${mixer.mixing_settings.eq_settings.mid.frequency} (${mixer.mixing_settings.eq_settings.mid.gain})</p>
+                                <p>High: ${mixer.mixing_settings.eq_settings.high.frequency} (${mixer.mixing_settings.eq_settings.high.gain})</p>
+                            </div>
+                            <br>
+                            <div class="effects-section">
+                                <h5>Available Effects:</h5>
+                                <p>${mixer.available_effects.join(' • ')}</p>
+                            </div>
+                            <br>
+                            <div class="mastering-section">
+                                <h5>Mastering Chain:</h5>
+                                <p>Limiter: ${mixer.mixing_settings.mastering.limiter_ceiling}</p>
+                                <p>Loudness: ${mixer.mixing_settings.mastering.loudness}</p>
+                                <p>Dynamics: ${mixer.mixing_settings.mastering.dynamics}</p>
+                            </div>
+                        </div>
+                    `);
+                    creditsRemaining = data.credits_remaining;
+                    updateCreditsDisplay();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Failed to load mixing console: ' + error.message);
+            }
+        }
+        
+        function showStudioModal(title, content) {
+            // Create modal overlay
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+                background: rgba(0,0,0,0.8); z-index: 1000;
+                display: flex; align-items: center; justify-content: center;
+                backdrop-filter: blur(5px);
+            `;
+            
+            // Create modal content
+            modal.innerHTML = `
+                <div style="
+                    background: #111827; border: 1px solid #1f2937; border-radius: 16px;
+                    padding: 30px; max-width: 600px; max-height: 80vh; overflow-y: auto;
+                    color: #ffffff; box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+                ">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3 style="margin: 0; color: #4fd1c7;">${title}</h3>
+                        <button onclick="this.closest('.modal-overlay').remove()" style="
+                            background: none; border: none; color: #ffffff; font-size: 24px;
+                            cursor: pointer; padding: 0; width: 30px; height: 30px;
+                        ">×</button>
+                    </div>
+                    ${content}
+                </div>
+            `;
+            
+            modal.className = 'modal-overlay';
+            document.body.appendChild(modal);
+            
+            // Close on click outside
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) modal.remove();
+            });
+        }
+        
+        // Auto-save session state
+        window.addEventListener('beforeunload', function() {
+            if (sessionActive) {
+                // In production, save session state to backend
+                console.log('Saving session state...');
+            }
+        });
+    </script>
+</body>
+</html>
+    ''', credits=credits)
+
+# Mini Studio API Endpoints
+@app.route("/api/mini-studio/vocal-recording", methods=["POST"])
+def mini_studio_vocal_recording():
+    """Start vocal recording session"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        # Check access
+        user_plan = session.get('user_plan', 'free')
+        trial_active = session.get('trial_active', False)
+        effective_plan = get_effective_plan(user_plan, trial_active)
+        
+        if effective_plan != 'max':
+            return jsonify({"success": False, "error": "Mini Studio requires Max tier or trial"}), 403
+        
+        data = request.get_json()
+        user_id = session.get('user_id')
+        
+        # Check if user has credits
+        from unified_tier_system import get_user_credits, deduct_credits
+        credits = get_user_credits(user_id) if user_id else 0
+        
+        if user_plan == 'free' and trial_active:
+            from unified_tier_system import get_trial_trainer_time
+            trial_credits = get_trial_trainer_time(user_id)
+            credits = max(credits, trial_credits)
+        
+        if credits <= 0:
+            return jsonify({"success": False, "error": "No studio time remaining"}), 403
+        
+        # Simulate vocal recording setup
+        recording_config = {
+            "sample_rate": 44100,
+            "bit_depth": 24,
+            "channels": "stereo",
+            "effects": ["noise_reduction", "auto_tune", "reverb"],
+            "monitoring": "enabled"
+        }
+        
+        return jsonify({
+            "success": True,
+            "message": "Vocal recording session initialized",
+            "config": recording_config,
+            "credits_remaining": credits
+        })
+        
+    except Exception as e:
+        logger.error(f"Vocal recording error: {e}")
+        return jsonify({"success": False, "error": "Failed to start vocal recording"}), 500
+
+@app.route("/api/mini-studio/instrumental", methods=["POST"])
+def mini_studio_instrumental():
+    """Create instrumental beats and melodies"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        # Check access
+        user_plan = session.get('user_plan', 'free')
+        trial_active = session.get('trial_active', False)
+        effective_plan = get_effective_plan(user_plan, trial_active)
+        
+        if effective_plan != 'max':
+            return jsonify({"success": False, "error": "Mini Studio requires Max tier or trial"}), 403
+        
+        data = request.get_json()
+        user_id = session.get('user_id')
+        genre = data.get('genre', 'hip-hop')
+        tempo = data.get('tempo', 120)
+        mood = data.get('mood', 'energetic')
+        
+        # Check credits
+        from unified_tier_system import get_user_credits, deduct_credits
+        credits = get_user_credits(user_id) if user_id else 0
+        
+        if user_plan == 'free' and trial_active:
+            from unified_tier_system import get_trial_trainer_time
+            trial_credits = get_trial_trainer_time(user_id)
+            credits = max(credits, trial_credits)
+        
+        if credits <= 0:
+            return jsonify({"success": False, "error": "No studio time remaining"}), 403
+        
+        # Generate instrumental based on parameters
+        if services["openai"]:
+            try:
+                response = openai.ChatCompletion.create(
+                    model="gpt-3.5-turbo",
+                    messages=[
+                        {
+                            "role": "system", 
+                            "content": f"You are a professional music producer. Create a detailed {genre} instrumental arrangement at {tempo} BPM with a {mood} mood. Provide: 1) Chord progression, 2) Drum pattern, 3) Bass line, 4) Melody suggestions, 5) Arrangement structure. Be specific with musical notation and timing."
+                        },
+                        {
+                            "role": "user", 
+                            "content": f"Create a {genre} instrumental track that's {mood} with {tempo} BPM. Include all instrumental elements and arrangement details."
+                        }
+                    ],
+                    max_tokens=800,
+                    temperature=0.8
+                )
+                
+                instrumental_content = response.choices[0].message.content
+                
+                # Simulate track creation
+                track_info = {
+                    "title": f"{mood.title()} {genre.title()} Beat",
+                    "tempo": tempo,
+                    "genre": genre,
+                    "mood": mood,
+                    "arrangement": instrumental_content,
+                    "tracks": ["drums", "bass", "melody", "harmony"],
+                    "duration": "2:30",
+                    "key": "C major"
+                }
+                
+                return jsonify({
+                    "success": True,
+                    "message": "Instrumental track created successfully",
+                    "track": track_info,
+                    "credits_remaining": credits - 1
+                })
+                
+            except Exception as e:
+                logger.error(f"OpenAI instrumental error: {e}")
+                # Fallback instrumental
+                pass
+        
+        # Fallback instrumental creation
+        fallback_track = {
+            "title": f"{mood.title()} {genre.title()} Beat",
+            "tempo": tempo,
+            "genre": genre,
+            "mood": mood,
+            "arrangement": f"Basic {genre} arrangement:\n- Kick drum on 1 and 3\n- Snare on 2 and 4\n- Hi-hats on 8th notes\n- Bass line following root progression\n- Simple melody in {mood} style",
+            "tracks": ["drums", "bass", "melody"],
+            "duration": "2:00",
+            "key": "C major"
+        }
+        
+        return jsonify({
+            "success": True,
+            "message": "Basic instrumental track created",
+            "track": fallback_track,
+            "credits_remaining": credits
+        })
+        
+    except Exception as e:
+        logger.error(f"Instrumental creation error: {e}")
+        return jsonify({"success": False, "error": "Failed to create instrumental"}), 500
+
+@app.route("/api/mini-studio/lyrics", methods=["POST"])
+def mini_studio_lyrics():
+    """Generate song lyrics with AI assistance"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        # Check access
+        user_plan = session.get('user_plan', 'free')
+        trial_active = session.get('trial_active', False)
+        effective_plan = get_effective_plan(user_plan, trial_active)
+        
+        if effective_plan != 'max':
+            return jsonify({"success": False, "error": "Mini Studio requires Max tier or trial"}), 403
+        
+        data = request.get_json()
+        user_id = session.get('user_id')
+        theme = data.get('theme', 'love')
+        genre = data.get('genre', 'pop')
+        mood = data.get('mood', 'uplifting')
+        structure = data.get('structure', 'verse-chorus-verse-chorus-bridge-chorus')
+        
+        # Check credits
+        from unified_tier_system import get_user_credits, deduct_credits
+        credits = get_user_credits(user_id) if user_id else 0
+        
+        if user_plan == 'free' and trial_active:
+            from unified_tier_system import get_trial_trainer_time
+            trial_credits = get_trial_trainer_time(user_id)
+            credits = max(credits, trial_credits)
+        
+        if credits <= 0:
+            return jsonify({"success": False, "error": "No studio time remaining"}), 403
+        
+        # Generate lyrics with AI
+        if services["openai"]:
+            try:
+                response = openai.ChatCompletion.create(
+                    model="gpt-3.5-turbo",
+                    messages=[
+                        {
+                            "role": "system", 
+                            "content": f"You are a talented songwriter specializing in {genre} music. Create complete song lyrics about {theme} with a {mood} mood. Follow the structure: {structure}. Include proper verse/chorus/bridge sections with rhyme schemes and emotional depth. Make it radio-ready quality."
+                        },
+                        {
+                            "role": "user", 
+                            "content": f"Write a {genre} song about {theme} that feels {mood}. Structure: {structure}. Make it catchy and meaningful."
+                        }
+                    ],
+                    max_tokens=1000,
+                    temperature=0.8
+                )
+                
+                lyrics_content = response.choices[0].message.content
+                
+                # Parse structure for better presentation
+                sections = lyrics_content.split('\n\n')
+                
+                lyrics_data = {
+                    "title": f"{theme.title()} Song",
+                    "theme": theme,
+                    "genre": genre,
+                    "mood": mood,
+                    "structure": structure,
+                    "lyrics": lyrics_content,
+                    "sections": sections,
+                    "rhyme_scheme": "ABAB",
+                    "estimated_duration": "3:30"
+                }
+                
+                return jsonify({
+                    "success": True,
+                    "message": "Song lyrics created successfully",
+                    "lyrics": lyrics_data,
+                    "credits_remaining": credits - 1
+                })
+                
+            except Exception as e:
+                logger.error(f"OpenAI lyrics error: {e}")
+                # Fallback to simple lyrics
+                pass
+        
+        # Fallback lyrics generation
+        fallback_lyrics = f"""[Verse 1]
+{theme.title()} fills my heart today
+In this {mood} {genre} way
+Every moment feels so right
+Like a beacon in the night
+
+[Chorus]
+This is our {theme} song
+{mood} and strong
+{genre} melody
+Sets our spirits free
+
+[Verse 2]
+Walking down this winding road
+Carrying {theme}'s heavy load
+But the music lifts me high
+Underneath this endless sky
+
+[Chorus]
+This is our {theme} song
+{mood} and strong
+{genre} melody
+Sets our spirits free"""
+        
+        lyrics_data = {
+            "title": f"{theme.title()} Song",
+            "theme": theme,
+            "genre": genre,
+            "mood": mood,
+            "structure": structure,
+            "lyrics": fallback_lyrics,
+            "sections": fallback_lyrics.split('\n\n'),
+            "rhyme_scheme": "ABAB",
+            "estimated_duration": "3:00"
+        }
+        
+        return jsonify({
+            "success": True,
+            "message": "Song lyrics created",
+            "lyrics": lyrics_data,
+            "credits_remaining": credits
+        })
+        
+    except Exception as e:
+        logger.error(f"Lyrics creation error: {e}")
+        return jsonify({"success": False, "error": "Failed to create lyrics"}), 500
+
+@app.route("/api/mini-studio/mixing", methods=["POST"])
+def mini_studio_mixing():
+    """Professional mixing and mastering tools"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        # Check access
+        user_plan = session.get('user_plan', 'free')
+        trial_active = session.get('trial_active', False)
+        effective_plan = get_effective_plan(user_plan, trial_active)
+        
+        if effective_plan != 'max':
+            return jsonify({"success": False, "error": "Mini Studio requires Max tier or trial"}), 403
+        
+        data = request.get_json()
+        user_id = session.get('user_id')
+        track_type = data.get('track_type', 'full_mix')
+        genre = data.get('genre', 'pop')
+        
+        # Check credits
+        from unified_tier_system import get_user_credits, deduct_credits
+        credits = get_user_credits(user_id) if user_id else 0
+        
+        if user_plan == 'free' and trial_active:
+            from unified_tier_system import get_trial_trainer_time
+            trial_credits = get_trial_trainer_time(user_id)
+            credits = max(credits, trial_credits)
+        
+        if credits <= 0:
+            return jsonify({"success": False, "error": "No studio time remaining"}), 403
+        
+        # Create mixing console settings
+        mixing_settings = {
+            "eq_settings": {
+                "low": {"frequency": "80Hz", "gain": "+2dB"},
+                "mid": {"frequency": "1kHz", "gain": "0dB"},
+                "high": {"frequency": "8kHz", "gain": "+1dB"}
+            },
+            "compression": {
+                "threshold": "-12dB",
+                "ratio": "4:1",
+                "attack": "10ms",
+                "release": "100ms"
+            },
+            "reverb": {
+                "type": "Hall",
+                "decay": "2.5s",
+                "wet_level": "15%"
+            },
+            "stereo_imaging": {
+                "width": "120%",
+                "bass_mono": "enabled"
+            },
+            "mastering": {
+                "limiter_ceiling": "-0.3dB",
+                "loudness": "-14 LUFS",
+                "dynamics": "medium"
+            }
+        }
+        
+        # Genre-specific adjustments
+        if genre == "hip-hop":
+            mixing_settings["eq_settings"]["low"]["gain"] = "+4dB"
+            mixing_settings["compression"]["ratio"] = "6:1"
+        elif genre == "rock":
+            mixing_settings["eq_settings"]["high"]["gain"] = "+3dB"
+            mixing_settings["compression"]["attack"] = "5ms"
+        elif genre == "electronic":
+            mixing_settings["stereo_imaging"]["width"] = "150%"
+            mixing_settings["reverb"]["type"] = "Plate"
+        
+        mixer_response = {
+            "console_loaded": True,
+            "track_channels": ["vocals", "drums", "bass", "guitars", "synths", "fx"],
+            "mixing_settings": mixing_settings,
+            "available_effects": [
+                "EQ", "Compressor", "Reverb", "Delay", "Chorus", 
+                "Distortion", "Limiter", "Gate", "De-esser", "Exciter"
+            ],
+            "automation": "enabled",
+            "real_time_analysis": "enabled"
+        }
+        
+        return jsonify({
+            "success": True,
+            "message": f"Mixing console loaded for {genre} production",
+            "mixer": mixer_response,
+            "credits_remaining": credits - 1
+        })
+        
+    except Exception as e:
+        logger.error(f"Mixing console error: {e}")
+        return jsonify({"success": False, "error": "Failed to load mixing console"}), 500
+
+@app.route("/api/mini-studio/session", methods=["POST"])
+def mini_studio_session_control():
+    """Handle studio session start/stop with real credit deduction"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        data = request.get_json()
+        action = data.get('action')  # 'start' or 'stop'
+        session_duration = data.get('duration', 0)  # in minutes
+        user_id = session.get('user_id')
+        
+        # Check access
+        user_plan = session.get('user_plan', 'free')
+        trial_active = session.get('trial_active', False)
+        effective_plan = get_effective_plan(user_plan, trial_active)
+        
+        if effective_plan != 'max':
+            return jsonify({"success": False, "error": "Mini Studio requires Max tier or trial"}), 403
+        
+        from unified_tier_system import get_user_credits, deduct_credits
+        
+        if action == 'start':
+            # Check if user has credits to start session
+            credits = get_user_credits(user_id) if user_id else 0
+            
+            if user_plan == 'free' and trial_active:
+                from unified_tier_system import get_trial_trainer_time
+                trial_credits = get_trial_trainer_time(user_id)
+                credits = max(credits, trial_credits)
+            
+            if credits <= 0:
+                return jsonify({"success": False, "error": "No studio time remaining"}), 403
+            
+            # Initialize session in backend
+            session['studio_session_start'] = datetime.now().isoformat()
+            session['studio_session_active'] = True
+            
+            return jsonify({
+                "success": True,
+                "message": "Studio session started",
+                "credits_remaining": credits,
+                "session_id": f"studio_{user_id}_{int(datetime.now().timestamp())}"
+            })
+            
+        elif action == 'stop':
+            # Deduct credits based on session duration
+            if session_duration > 0:
+                credits_to_deduct = max(1, int(session_duration))  # Minimum 1 minute
+                
+                if deduct_credits(user_id, credits_to_deduct):
+                    logger.info(f"💳 Deducted {credits_to_deduct} credits from user {user_id} for {session_duration} minute studio session")
+                    
+                    # Clear session data
+                    session.pop('studio_session_start', None)
+                    session.pop('studio_session_active', None)
+                    
+                    remaining_credits = get_user_credits(user_id) if user_id else 0
+                    
+                    return jsonify({
+                        "success": True,
+                        "message": f"Studio session ended. {credits_to_deduct} credits deducted.",
+                        "credits_deducted": credits_to_deduct,
+                        "credits_remaining": remaining_credits
+                    })
+                else:
+                    return jsonify({"success": False, "error": "Failed to deduct credits"}), 500
+            else:
+                # Session ended without time - no charge
+                session.pop('studio_session_start', None)
+                session.pop('studio_session_active', None)
+                
+                return jsonify({
+                    "success": True,
+                    "message": "Studio session ended (no charge for session under 1 minute)",
+                    "credits_deducted": 0
+                })
+        
+        return jsonify({"success": False, "error": "Invalid action"}), 400
+        
+    except Exception as e:
+        logger.error(f"Studio session control error: {e}")
+        return jsonify({"success": False, "error": "Failed to control studio session"}), 500
 
 logger.info("✅ Music Studio integration completed")
 
