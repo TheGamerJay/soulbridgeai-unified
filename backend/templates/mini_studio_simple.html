@@ -1,0 +1,310 @@
+<!-- ================================================
+templates/mini_studio_simple.html
+Simple testing interface with instant/background toggle
+For development and testing of Mini Studio features
+===================================================== -->
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>GamerJay Mini Studio - Simple</title>
+    <script src="/static/vendor/wavesurfer.min.js"></script>
+    <style>
+      :root { --gap:12px; }
+      body{font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;padding:24px;background:#f8f9fa}
+      .row{display:flex;gap:var(--gap);flex-wrap:wrap;margin-bottom:18px}
+      .card{border:1px solid #eee;padding:16px;border-radius:14px;flex:1;min-width:290px;background:white;box-shadow:0 2px 8px rgba(0,0,0,0.1)}
+      input,textarea,select{padding:10px;border-radius:10px;border:1px solid #ddd;width:100%;font-size:14px}
+      button{padding:10px 14px;border:0;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.1);cursor:pointer;background:#007bff;color:white;font-weight:500}
+      button:hover{background:#0056b3}
+      .muted{color:#666}
+      #wave{height:110px;border:1px dashed #ccc;border-radius:10px;background:#f8f9fa}
+      .toolbar{display:flex;align-items:center;gap:10px;margin:10px 0 18px;padding:15px;background:white;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.1)}
+      .toggle{display:flex;align-items:center;gap:8px}
+      .status{font-size:13px}
+      .pill{display:inline-block;padding:4px 10px;border-radius:999px;background:#e9ecef;margin-left:8px;font-size:12px}
+      .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+      .link{color:#007bff;text-decoration:none}
+      .btn-secondary{background:#6c757d}
+      .btn-secondary:hover{background:#545b62}
+      h1{color:#343a40;margin-bottom:20px}
+      h3{color:#495057;margin-bottom:15px}
+    </style>
+  </head>
+  <body>
+    <h1>🎵 GamerJay Mini Studio - Simple Interface</h1>
+
+    <!-- GLOBAL TOOLBAR -->
+    <div class="toolbar">
+      <div class="toggle">
+        <label for="modeToggle"><b>Processing Mode:</b></label>
+        <select id="modeToggle">
+          <option value="instant">⚡ Instant Processing</option>
+          <option value="background">⏳ Background Jobs (Redis/RQ)</option>
+        </select>
+      </div>
+      <span class="status muted">Switch between instant processing and background jobs. Background mode won't block the UI.</span>
+    </div>
+
+    <div class="row">
+      <div class="card">
+        <h3>Lyrics</h3>
+        <div class="grid2">
+          <input id="theme" placeholder="Theme (e.g., heartbreak redemption)" />
+          <input id="mood"  value="emotional" />
+          <input id="lang"  value="en" />
+          <input id="syll"  type="number" value="10" />
+        </div>
+        <div style="margin-top:8px;display:flex;gap:8px">
+          <button onclick="writeLyrics()">✍️ Write Lyrics</button>
+          <span id="lyricsStatus" class="status muted"></span>
+        </div>
+        <textarea id="lyrics" rows="7" placeholder="Or paste your own lyrics here" style="margin-top:10px"></textarea>
+      </div>
+
+      <div class="card">
+        <h3>Auto MIDI</h3>
+        <div class="grid2">
+          <input id="chords" value="Cmaj7|Am|F|G" />
+          <input id="bpm"    type="number" value="88" />
+          <input id="bars"   type="number" value="8" />
+          <select id="style"><option>arp</option><option>block</option></select>
+        </div>
+        <div style="margin-top:8px;display:flex;gap:8px">
+          <button onclick="genMIDI()">🎼 Generate MIDI</button>
+          <span id="midiStatus" class="status muted"></span>
+        </div>
+        <div id="midiPath" class="muted pill"></div>
+      </div>
+
+      <div class="card">
+        <h3>Vocals (DiffSinger)</h3>
+        <div class="grid2">
+          <input id="voice" value="default" />
+          <input id="vocBpm" type="number" value="120" />
+        </div>
+        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+          <button onclick="runVocals()">🎤 Generate Vocals</button>
+          <button onclick="enqueueVocals()" class="btn-secondary">⏳ Queue Job</button>
+          <span id="vocalsStatus" class="status muted"></span>
+        </div>
+        <div id="vocalsPath" class="muted pill"></div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="card">
+        <h3>Effects</h3>
+        <div class="grid2">
+          <label>Pitch (semitones)<input id="pitch" type="number" value="0" /></label>
+          <label>Reverb (0–1)<input id="reverb" type="number" step="0.1" value="0.2" /></label>
+        </div>
+        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+          <button onclick="runFX()">🎛️ Apply FX</button>
+          <button onclick="enqueueFX()" class="btn-secondary">⏳ Queue FX</button>
+          <span id="fxStatus" class="status muted"></span>
+        </div>
+        <div id="fxPath" class="muted pill"></div>
+      </div>
+
+      <div class="card">
+        <h3>Cover Art</h3>
+        <input id="artPrompt" value="neon cyberpunk album cover, pink & cyan glow, cinematic" />
+        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+          <button onclick="runArt()">🖼️ Generate Art</button>
+          <button onclick="enqueueArt()" class="btn-secondary">⏳ Queue Art</button>
+          <span id="artStatus" class="status muted"></span>
+        </div>
+        <div id="imgOut" class="muted" style="margin-top:8px"></div>
+      </div>
+
+      <div class="card">
+        <h3>Waveform Player</h3>
+        <div id="wave"></div>
+        <div style="margin-top:8px;display:flex;gap:8px">
+          <button onclick="playWave()">▶︎ Play / Pause</button>
+          <a id="dlLatest" class="link" href="#" target="_blank" style="display:none">Download Latest</a>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ---------- helpers ----------
+      const $ = (id)=>document.getElementById(id);
+      const mode = ()=> $('modeToggle').value; // 'instant' | 'background'
+
+      const api = async (url, body) => {
+        const res = await fetch(url, {
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
+          body: JSON.stringify(body||{})
+        });
+        const data = await res.json().catch(()=>({}));
+        if(!res.ok || data.success === false){
+          throw new Error(data.error || (await res.text()));
+        }
+        return data;
+      };
+
+      let wave, latestAudioPath=null;
+      function renderWave(url){
+        latestAudioPath = url;
+        $('dlLatest').style.display = url ? 'inline-block' : 'none';
+        $('dlLatest').href = "/api/export?path="+encodeURIComponent(url);
+        $('wave').innerHTML = "";
+        wave = WaveSurfer.create({ container: '#wave' });
+        wave.load(url);
+      }
+      function playWave(){ if(wave) wave.playPause(); }
+
+      async function pollJob(id, onStatus){
+        const t = setInterval(async ()=>{
+          const s = await fetch("/api/jobs/"+id).then(r=>r.json());
+          if(!s.success){ clearInterval(t); onStatus({status:"failed", error:"query failed"}); return; }
+          onStatus(s);
+          if(s.status === "finished" || s.status === "failed"){ clearInterval(t); }
+        }, 1200);
+      }
+
+      // ---------- Lyrics ----------
+      async function writeLyrics(){
+        try{
+          $('lyricsStatus').textContent="Generating...";
+          const r = await api("/api/lyrics", {
+            theme: $('theme').value, mood: $('mood').value,
+            lang: $('lang').value, syllables: Number($('syll').value)
+          });
+          $('lyrics').value = r.lyrics;
+          $('lyricsStatus').textContent="✅ Done";
+        }catch(e){
+          $('lyricsStatus').textContent="❌ Error: "+e.message;
+        }
+      }
+
+      // ---------- MIDI ----------
+      async function genMIDI(){
+        try{
+          $('midiStatus').textContent="Generating...";
+          const r = await api("/api/midi", {
+            chords: $('chords').value, bpm: Number($('bpm').value),
+            bars: Number($('bars').value), style: $('style').value
+          });
+          $('midiPath').textContent = r.midi_path;
+          $('midiStatus').textContent="✅ Done";
+        }catch(e){
+          $('midiStatus').textContent="❌ Error: "+e.message;
+        }
+      }
+
+      // ---------- Vocals ----------
+      async function genVocalsInstant(){
+        const r = await api("/api/vocals", {
+          lyrics: $('lyrics').value,
+          midi_path: $('midiPath').textContent || null,
+          bpm: Number($('vocBpm').value),
+          voice: $('voice').value
+        });
+        $('vocalsPath').textContent = r.wav_path || r.asset_id;
+        if(r.wav_path) renderWave(r.wav_path);
+        return r;
+      }
+
+      async function genVocalsJob(){
+        const j = await api("/api/jobs/vocals", {
+          lyrics: $('lyrics').value,
+          midi_path: $('midiPath').textContent || null,
+          bpm: Number($('vocBpm').value),
+          voice: $('voice').value
+        });
+        $('vocalsStatus').textContent = "⏳ Queued: "+j.job_id;
+        pollJob(j.job_id, (s)=>{
+          $('vocalsStatus').textContent = "Status: "+s.status+(s.error?(" — "+s.error):"");
+          if(s.status==="finished" && s.result){
+            const wav = s.result.wav_path || s.result;
+            $('vocalsPath').textContent = wav;
+            if(wav && wav.includes('.wav')) renderWave(wav);
+          }
+        });
+        return j;
+      }
+
+      async function runVocals(){
+        $('vocalsStatus').textContent = "Processing...";
+        try{
+          (mode()==='background') ? await genVocalsJob() : await genVocalsInstant();
+        }catch(e){
+          $('vocalsStatus').textContent = "❌ Error: "+e.message;
+        }
+      }
+      async function enqueueVocals(){
+        try{ await genVocalsJob(); }catch(e){ $('vocalsStatus').textContent="❌ Error: "+e.message; }
+      }
+
+      // ---------- Effects ----------
+      async function fxInstant(){
+        const src = $('fxPath').textContent || $('vocalsPath').textContent;
+        if(!src) throw new Error("No source WAV. Generate vocals first.");
+        const r = await api("/api/effects", {
+          wav_path: src,
+          pitch_semitones: Number($('pitch').value),
+          reverb_amount: Number($('reverb').value)
+        });
+        $('fxPath').textContent = r.wav_path;
+        renderWave(r.wav_path);
+      }
+      async function fxJob(){
+        const src = $('fxPath').textContent || $('vocalsPath').textContent;
+        if(!src) throw new Error("No source WAV. Generate vocals first.");
+        const j = await api("/api/jobs/effects", {
+          wav_path: src,
+          pitch_semitones: Number($('pitch').value),
+          reverb_amount: Number($('reverb').value)
+        });
+        $('fxStatus').textContent = "⏳ Queued: "+j.job_id;
+        pollJob(j.job_id, (s)=>{
+          $('fxStatus').textContent = "Status: "+s.status+(s.error?(" — "+s.error):"");
+          if(s.status==="finished" && s.result){
+            const wav = s.result.wav_path || s.result;
+            $('fxPath').textContent = wav;
+            renderWave(wav);
+          }
+        });
+      }
+      async function runFX(){
+        $('fxStatus').textContent="Processing...";
+        try{
+          (mode()==='background') ? await fxJob() : await fxInstant();
+        }catch(e){
+          $('fxStatus').textContent="❌ Error: "+e.message;
+        }
+      }
+      async function enqueueFX(){ try{ await fxJob(); }catch(e){ $('fxStatus').textContent="❌ Error: "+e.message; } }
+
+      // ---------- Cover Art ----------
+      async function artInstant(){
+        const r = await api("/api/cover-art", { prompt: $('artPrompt').value, size: "1024x1024" });
+        $('imgOut').innerHTML = `<a class="link" href="/api/export?path=${encodeURIComponent(r.image_path)}" target="_blank">📥 Download Art</a>`;
+      }
+      async function artJob(){
+        const j = await api("/api/jobs/cover-art", { prompt: $('artPrompt').value, size: "1024x1024" });
+        $('artStatus').textContent = "⏳ Queued: "+j.job_id;
+        pollJob(j.job_id, (s)=>{
+          $('artStatus').textContent = "Status: "+s.status+(s.error?(" — "+s.error):"");
+          if(s.status==="finished" && s.result){
+            const img = s.result.image_path || s.result;
+            $('imgOut').innerHTML = `<a class="link" href="/api/export?path=${encodeURIComponent(img)}" target="_blank">📥 Download Art</a>`;
+          }
+        });
+      }
+      async function runArt(){
+        $('artStatus').textContent="Processing...";
+        try{
+          (mode()==='background') ? await artJob() : await artInstant();
+        }catch(e){
+          $('artStatus').textContent="❌ Error: "+e.message;
+        }
+      }
+      async function enqueueArt(){ try{ await artJob(); }catch(e){ $('artStatus').textContent="❌ Error: "+e.message; } }
+    </script>
+  </body>
+</html>

@@ -320,7 +320,16 @@
     <div class="studio-container">
         <header class="studio-header">
             <h1>🎵 Professional Mini Studio</h1>
-            <div class="credits-display" id="creditsDisplay">{{ credits }} minutes available</div>
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <div class="mode-toggle">
+                    <label for="processingMode" style="color: #4fd1c7; font-weight: 500;">Mode:</label>
+                    <select id="processingMode" style="padding: 5px 10px; border-radius: 5px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(79,209,199,0.3);">
+                        <option value="instant">⚡ Instant</option>
+                        <option value="background">⏳ Background</option>
+                    </select>
+                </div>
+                <div class="credits-display" id="creditsDisplay">{{ credits }} minutes available</div>
+            </div>
         </header>
         
         <main class="studio-workspace">
@@ -662,6 +671,44 @@
             }
         }
         
+        // Processing Mode Helper
+        function getProcessingMode() {
+            return document.getElementById('processingMode').value;
+        }
+        
+        // Background Job Polling
+        async function pollJob(jobId, onUpdate) {
+            const interval = setInterval(async () => {
+                try {
+                    const response = await fetch(`/api/jobs/${jobId}`);
+                    const result = await response.json();
+                    
+                    if (!result.success) {
+                        clearInterval(interval);
+                        onUpdate({status: 'failed', error: 'Failed to query job status'});
+                        return;
+                    }
+                    
+                    onUpdate(result);
+                    
+                    if (result.status === 'finished' || result.status === 'failed') {
+                        clearInterval(interval);
+                    }
+                } catch (error) {
+                    clearInterval(interval);
+                    onUpdate({status: 'failed', error: error.message});
+                }
+            }, 2000); // Poll every 2 seconds
+        }
+        
+        // Enhanced Status Display
+        function updateStatus(elementId, message, isError = false) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.innerHTML = `<span style="color: ${isError ? '#ff6b6b' : '#4fd1c7'}">${message}</span>`;
+            }
+        }
+        
         // Credits Management
         function updateCreditsDisplay() {
             document.getElementById('creditsDisplay').textContent = `${creditsRemaining} minutes available`;
@@ -680,7 +727,7 @@
             }
         }
         
-        // Generate Vocals
+        // Generate Vocals (Enhanced with Background Processing)
         async function generateVocals() {
             const button = event.target;
             const lyrics = document.getElementById('vocalLyrics').value.trim();
@@ -692,31 +739,60 @@
                 return;
             }
             
+            const mode = getProcessingMode();
             setLoading(button, true);
             
-            const result = await apiCall('/api/vocals', {
-                lyrics: lyrics,
-                voice: voice,
-                bpm: bpm
-            });
-            
-            setLoading(button, false);
-            
-            if (result.success) {
-                creditsRemaining = result.credits_remaining;
-                updateCreditsDisplay();
-                
-                // Show success and update waveform placeholder
-                document.getElementById('vocalWaveform').innerHTML = `
-                    <div style="color: #4fd1c7;">
-                        ✅ Vocals generated successfully!<br>
-                        <small>Asset ID: ${result.asset_id}</small>
-                    </div>
-                `;
-                
-                alert('Vocals generated successfully!');
-            } else {
-                alert('Error: ' + result.error);
+            try {
+                if (mode === 'background') {
+                    // Background processing mode
+                    const result = await apiCall('/api/jobs/vocals', {
+                        lyrics: lyrics,
+                        voice: voice,
+                        bpm: bpm
+                    });
+                    
+                    if (result.success) {
+                        updateStatus('vocalWaveform', `⏳ Job queued: ${result.job_id}`);
+                        
+                        // Poll for results
+                        pollJob(result.job_id, (jobResult) => {
+                            if (jobResult.status === 'finished') {
+                                creditsRemaining = jobResult.credits_remaining || (creditsRemaining - 1);
+                                updateCreditsDisplay();
+                                
+                                updateStatus('vocalWaveform', `✅ Vocals generated successfully! Asset ID: ${jobResult.result.asset_id || 'N/A'}`);
+                                alert('Vocals generated successfully!');
+                            } else if (jobResult.status === 'failed') {
+                                updateStatus('vocalWaveform', `❌ Generation failed: ${jobResult.error}`, true);
+                            } else {
+                                updateStatus('vocalWaveform', `⏳ Status: ${jobResult.status}`);
+                            }
+                        });
+                    } else {
+                        updateStatus('vocalWaveform', `❌ Failed to queue job: ${result.error}`, true);
+                    }
+                } else {
+                    // Instant processing mode  
+                    const result = await apiCall('/api/vocals', {
+                        lyrics: lyrics,
+                        voice: voice,
+                        bpm: bpm
+                    });
+                    
+                    if (result.success) {
+                        creditsRemaining = result.credits_remaining;
+                        updateCreditsDisplay();
+                        
+                        updateStatus('vocalWaveform', `✅ Vocals generated successfully! Asset ID: ${result.asset_id}`);
+                        alert('Vocals generated successfully!');
+                    } else {
+                        updateStatus('vocalWaveform', `❌ Error: ${result.error}`, true);
+                    }
+                }
+            } catch (error) {
+                updateStatus('vocalWaveform', `❌ Error: ${error.message}`, true);
+            } finally {
+                setLoading(button, false);
             }
         }
         
