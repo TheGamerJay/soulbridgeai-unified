@@ -137,34 +137,73 @@ class SimpleAIService:
             "confused": ["confused", "lost", "uncertain", "unclear", "mixed up"]
         }
     
+    def _handle_math(self, message: str) -> str:
+        """Handle basic math questions"""
+        import re
+        
+        # Look for simple math patterns
+        math_pattern = r'(\d+)\s*([+\-*/])\s*(\d+)'
+        match = re.search(math_pattern, message)
+        
+        if match:
+            num1, operator, num2 = match.groups()
+            num1, num2 = int(num1), int(num2)
+            
+            try:
+                if operator == '+':
+                    result = num1 + num2
+                elif operator == '-':
+                    result = num1 - num2
+                elif operator == '*':
+                    result = num1 * num2
+                elif operator == '/':
+                    if num2 != 0:
+                        result = num1 / num2
+                    else:
+                        return "I can't divide by zero, but I'm happy to help with other math!"
+                else:
+                    return None
+                
+                return f"That's {result}! Is there anything else I can help you with?"
+            except:
+                return None
+        
+        return None
+    
     def generate_response(self, message: str, character: str = "Blayzo", context: str = "", user_id: str = "anonymous") -> Dict[str, Any]:
         """Generate a quality response using template-based approach"""
         start_time = time.time()
         
         try:
-            # Detect emotions
-            emotions = self._detect_emotions(message)
-            
-            # Check if greeting
-            is_greeting = self._is_greeting(message)
-            
-            # Get character responses
-            char_responses = self.character_responses.get(character, self.character_responses["Blayzo"])
-            
-            # Choose appropriate response type
-            if is_greeting:
-                response = random.choice(char_responses["greetings"])
-            elif "stress" in emotions:
-                response = random.choice(char_responses["stress_responses"])
-            elif "sad" in emotions:
-                response = random.choice(char_responses["sad_responses"])
-            elif "happy" in emotions:
-                response = random.choice(char_responses["happy_responses"])
+            # Check for basic math questions first
+            math_response = self._handle_math(message)
+            if math_response:
+                response = math_response
+                emotions = []  # No emotions detected for math
             else:
-                response = random.choice(char_responses["default_responses"])
+                # Detect emotions
+                emotions = self._detect_emotions(message)
+                
+                # Check if greeting
+                is_greeting = self._is_greeting(message)
+                
+                # Get character responses
+                char_responses = self.character_responses.get(character, self.character_responses["Blayzo"])
+                
+                # Choose appropriate response type
+                if is_greeting:
+                    response = random.choice(char_responses["greetings"])
+                elif "stress" in emotions:
+                    response = random.choice(char_responses["stress_responses"])
+                elif "sad" in emotions:
+                    response = random.choice(char_responses["sad_responses"])
+                elif "happy" in emotions:
+                    response = random.choice(char_responses["happy_responses"])
+                else:
+                    response = random.choice(char_responses["default_responses"])
             
-            # Add follow-up question sometimes
-            if random.random() < 0.3:
+            # Add follow-up question sometimes (but not for math)
+            if not math_response and random.random() < 0.3:
                 follow_ups = [
                     " What's been on your mind about this?",
                     " How can I support you right now?",
