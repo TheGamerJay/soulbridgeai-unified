@@ -689,7 +689,7 @@ def mini_assistant_status():
             # Use basic logging for surveillance system errors
             import logging
             logging.error(f"Failed to write to log {log_file}: {e}")
-    
+    pass
     def log_maintenance(self, action, details):
         """Log maintenance action in human-readable format"""
         try:
