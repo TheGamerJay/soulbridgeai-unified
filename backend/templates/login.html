@@ -943,26 +943,7 @@
         
         // Wait for all scripts to load, then initialize
         window.addEventListener('load', function() {
-            setTimeout(function() {
-                console.log('🔧 Initializing login page functionality');
-                
-                // Force initialize Universal Button Fix if it exists
-                if (window.UniversalButtonFix && typeof window.UniversalButtonFix.init === 'function') {
-                    window.UniversalButtonFix.init();
-                    window.UniversalButtonFix.reinitialize();
-                    console.log('✅ Universal Button Fix initialized for login page');
-                } else {
-                    console.error('❌ Universal Button Fix not available');
-                }
-                
-                // Test all buttons by trying to call their functions
-                console.log('🔧 Testing button functions:');
-                console.log('  toggleTheme available:', typeof window.toggleTheme);
-                console.log('  toggleLanguageMenu available:', typeof window.toggleLanguageMenu);
-                console.log('  changeLanguage available:', typeof window.changeLanguage);
-                console.log('  togglePassword available:', typeof window.togglePassword);
-                
-            }, 300); // Give extra time for all scripts to load
+            // Cleaned up: Removed Universal Button Fix and debug logs for a silent console
         });
     </script>
     
