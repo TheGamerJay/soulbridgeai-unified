@@ -162,6 +162,7 @@ except ImportError:
     logger.warning("python-dotenv not installed, relying on system environment variables")
 
 # Create Flask app with secure session configuration
+
 app = Flask(__name__)
 
 # Security: Use strong secret key or generate one
@@ -170,8 +171,15 @@ if not secret_key:
     import secrets
     secret_key = secrets.token_hex(32)
     logger.warning("Generated temporary secret key - set SECRET_KEY environment variable for production")
-
 app.secret_key = secret_key
+
+# --- SESSION COOKIE SETTINGS FOR PRODUCTION ---
+# Always set these for production deployments!
+app.config['SESSION_COOKIE_SECURE'] = True  # Only send cookie over HTTPS
+app.config['SESSION_COOKIE_SAMESITE'] = 'None'  # Allow cross-site cookies (for custom domains)
+app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevent JS access to session cookie
+# Set domain for your site (uncomment and set if needed)
+app.config['SESSION_COOKIE_DOMAIN'] = '.soulbridgeai.com'
 
 # Register auth blueprint
 if auth_available and auth_bp:
