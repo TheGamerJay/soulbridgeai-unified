@@ -12201,9 +12201,30 @@ RECENT ACHIEVEMENTS:
                         save_conversation_context(user_message, base_response, file_path, "mixtral_fallback")
                     except Exception as e2:
                         logs.append(f"⚠️ Mixtral failed: {e2}. Using enhanced mini helper...")
-                        base_response = generate_enhanced_mini_helper_response(user_message, file_path, project_context)
-                        logs.append("🤖 Enhanced Mini Helper used as final fallback.")
-                        save_conversation_context(user_message, base_response, file_path, "final_fallback")
+                        try:
+                            base_response = generate_enhanced_mini_helper_response(user_message, file_path, project_context)
+                            logs.append("🤖 Enhanced Mini Helper used as final fallback.")
+                        except Exception as e3:
+                            logs.append(f"⚠️ Enhanced Mini Helper failed: {e3}. Using basic fallback...")
+                            base_response = f"""🤖 **Mini Assistant (Emergency Mode)**
+
+I apologize - I'm experiencing technical difficulties with all AI services:
+- ❌ Claude API: {e}
+- ❌ Mixtral: {e2}  
+- ❌ Mini Helper: {e3}
+
+**Your request:** {user_message}
+
+**Basic assistance available:**
+I can still provide general guidance for your SoulBridge AI project. Based on your recent work:
+
+1. **Login Issues**: Check middleware open_paths and session cookie settings
+2. **Mini Assistant**: Verify API keys and error handling
+3. **Tier Isolation**: Ensure feature visibility matches user plans
+
+Would you like me to provide specific suggestions for any of these areas?
+"""
+                        save_conversation_context(user_message, base_response, file_path, "emergency_fallback")
         
         # Handle file editing with comprehensive logging
         if file_path and is_safe_file_path_ultimate(file_path):
