@@ -696,17 +696,9 @@
     
     <script src="{{ url_for('static', filename='js/login-fixed.js') }}"></script>
     <script>
-        // Session persistence check - logout if no sessionStorage (browser was closed)
-        console.log('🔍 INTRO: Checking sessionStorage loggedIn flag:', sessionStorage.getItem('loggedIn'));
-        
-        if (!sessionStorage.getItem('loggedIn')) {
-            console.log('❌ INTRO: No sessionStorage flag found - browser was closed, logging out');
-            fetch('/auth/logout').then(() => {
-                window.location.href = '/login';
-            });
-        } else {
-            console.log('✅ INTRO: sessionStorage flag found - user can stay logged in');
-        }
+        // Set sessionStorage flag since user successfully reached intro page (logged in)
+        sessionStorage.setItem('loggedIn', 'true');
+        console.log('✅ INTRO: Set sessionStorage loggedIn flag - user is authenticated');
         
         // AGGRESSIVE intro page styling enforcement
         function forceIntroStyling() {
