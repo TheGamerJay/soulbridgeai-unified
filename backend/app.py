@@ -1472,13 +1472,8 @@ def auth_login():
     # Handle POST requests - process login
     try:
         logger.info(f"[LOGIN] Received {request.method} request at /auth/login from {request.remote_addr}")
-        # ...existing code...
-    except Exception as e:
-        logger.error(f"[LOGIN] Exception at start of auth_login: {e}")
-        # Parse request data
-    email, password, _ = parse_request_data()
-    logger.info(f"[LOGIN] Parsed email: {email}, password: {'***' if password else None}")
-        
+        email, password, _ = parse_request_data()
+        logger.info(f"[LOGIN] Parsed email: {email}, password: {'***' if password else None}")
         if not email or not password:
             logger.warning(f"[LOGIN] Missing email or password. Email: {email}, Password present: {bool(password)}")
             # Handle both form submissions and AJAX requests for missing fields
@@ -1489,27 +1484,22 @@ def auth_login():
                 # Form submission - redirect back to login with error
                 flash("Email and password are required", "error")
                 return redirect("/login")
-        
         # Initialize database if needed
         if not services["database"] or not db:
             logger.warning("[LOGIN] Database not initialized, calling init_database()")
             init_database()
-        
         # Create database connection directly if needed
         from auth import Database
         if not db:
             temp_db = Database()
         else:
             temp_db = db
-        
         # Use clean authentication system
         from simple_auth import SimpleAuth
         auth = SimpleAuth(temp_db)
-        
         # Try to authenticate
-    result = auth.authenticate(email, password)
-    logger.info(f"[LOGIN] Authentication result: {result}")
-        
+        result = auth.authenticate(email, password)
+        logger.info(f"[LOGIN] Authentication result: {result}")
         if result["success"]:
             logger.info(f"[LOGIN] Authenticated successfully for {email}, setting up session...")
             # Use proper session setup instead of simple create_session
@@ -1518,14 +1508,12 @@ def auth_login():
                 user_id=result["user_id"]
             )
             logger.info(f"[LOGIN] Session after setup: {dict(session)}")
-            
             # Set user plan from database result (migrate old plan names immediately)
             raw_plan = result.get('plan_type', 'free')
             raw_user_plan = result.get('user_plan', 'free')
             plan_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
             session['user_plan'] = plan_mapping.get(raw_plan, raw_plan)
             session['display_name'] = result.get('display_name', 'User')
-            
             # Auto-migrate legacy plans in database
             needs_migration = False
             if raw_plan in plan_mapping or raw_user_plan in plan_mapping:
@@ -1534,10 +1522,8 @@ def auth_login():
                     if db_instance:
                         conn = db_instance.get_connection()
                         cursor = conn.cursor()
-                        
                         new_plan_type = plan_mapping.get(raw_plan, raw_plan)
                         new_user_plan = plan_mapping.get(raw_user_plan, raw_user_plan)
-                        
                         if db_instance.use_postgres:
                             cursor.execute("""
                                 UPDATE users 
@@ -1550,29 +1536,24 @@ def auth_login():
                                 SET plan_type = ?, user_plan = ? 
                                 WHERE id = ? AND (plan_type = ? OR user_plan = ?)
                             """, (new_plan_type, new_user_plan, result["user_id"], raw_plan, raw_user_plan))
-                        
                         if cursor.rowcount > 0:
                             conn.commit()
                             logger.info(f"🧼 Migrated legacy database plans for user {result['user_id']}: {raw_plan}/{raw_user_plan} → {new_plan_type}/{new_user_plan}")
                         conn.close()
                 except Exception as migrate_error:
                     logger.error(f"Error migrating legacy plans: {migrate_error}")
-            
             # Log plan migration if it occurred
             if raw_plan in plan_mapping:
                 logger.info(f"🔄 AUTH: Migrated OLD plan {raw_plan} → {session['user_plan']} during login")
-            
             # Restore active trial status from database if exists
             # Initialize trial status to False by default
             session["trial_active"] = False
-            
             try:
                 database_url = os.environ.get('DATABASE_URL')
                 if database_url:
                     import psycopg2
                     conn = psycopg2.connect(database_url)
                     cursor = conn.cursor()
-                    
                     # Check if user has an active trial
                     cursor.execute("""
                         SELECT trial_started_at, trial_companion, trial_used_permanently, trial_expires_at
@@ -1580,10 +1561,8 @@ def auth_login():
                     """, (email,))
                     trial_result = cursor.fetchone()
                     conn.close()
-                    
                     if trial_result:
                         trial_started_at, trial_companion, trial_used_permanently, trial_expires_at = trial_result
-                        
                         # Check if trial is still active
                         if not trial_used_permanently and trial_expires_at:
                             now = datetime.utcnow()
@@ -1592,7 +1571,6 @@ def auth_login():
                                 session["trial_active"] = True
                                 session["trial_companion"] = trial_companion
                                 session["trial_expires_at"] = trial_expires_at.isoformat() + 'Z'
-                                
                                 time_remaining = int((trial_expires_at - now).total_seconds() / 60)
                                 logger.info(f"✅ TRIAL RESTORED: {trial_companion} trial active for {time_remaining} minutes")
                             else:
@@ -1602,14 +1580,11 @@ def auth_login():
                             logger.info(f"ℹ️ User {email} has no active trial (used_permanently: {trial_used_permanently})")
                     else:
                         logger.info(f"ℹ️ No trial data found for user {email}")
-                        
             except Exception as trial_error:
                 logger.warning(f"Failed to restore trial status on login: {trial_error}")
-            
             # ISOLATED TIER ACCESS FLAGS - Prevents cross-contamination
             user_plan = session.get('user_plan', 'free')
             trial_active = session.get('trial_active', False)
-            
             # Define isolated access flags for each tier using effective_plan
             effective_plan = get_effective_plan(user_plan, trial_active)
             session['access_free'] = True  # Everyone gets free features
@@ -1618,17 +1593,14 @@ def auth_login():
             session['access_trial'] = trial_active
             session.modified = True  # Ensure session changes are saved
             logger.info(f"[LOGIN] Session marked as modified. Session: {dict(session)}")
-            
             logger.info(f"[LOGIN] Login successful: {email} (plan: {session['user_plan']}, trial: {trial_active})")
             logger.info(f"[LOGIN] Access flags: free={session['access_free']}, growth={session['access_growth']}, max={session['access_max']}, trial={session['access_trial']}")
-            
             # Handle both form submissions and AJAX requests
             # Check if user needs to accept terms
             if not session.get('terms_accepted', False):
                 redirect_url = "/terms-acceptance"
             else:
                 redirect_url = "/intro"
-                
             if request.headers.get('Content-Type') == 'application/json' or request.is_json:
                 # AJAX request - return JSON
                 return jsonify({"success": True, "redirect": redirect_url})
@@ -1638,7 +1610,6 @@ def auth_login():
                 return redirect(redirect_url)
         else:
             logger.warning(f"[LOGIN] Login failed: {email}")
-            
             # Handle both form submissions and AJAX requests for errors
             if request.headers.get('Content-Type') == 'application/json' or request.is_json:
                 # AJAX request - return JSON
@@ -1648,10 +1619,8 @@ def auth_login():
                 logger.warning(f"[LOGIN] Flashing error: {result['error']}")
                 flash(result["error"], "error")
                 return redirect("/login")
-        
     except Exception as e:
-    logger.error(f"[LOGIN] Exception during login: {e}")
-        
+        logger.error(f"[LOGIN] Exception during login: {e}")
         # Handle both form submissions and AJAX requests for exceptions
         if request.headers.get('Content-Type') == 'application/json' or request.is_json:
             # AJAX request - return JSON
