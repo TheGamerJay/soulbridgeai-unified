@@ -10,7 +10,17 @@ import uuid
 
 # SQLAlchemy imports for new PostgreSQL models
 from sqlalchemy import Column, Integer, String, DateTime, func
-from db import Base
+
+# Import Base with fallback for different contexts
+try:
+    from db import Base
+except ImportError:
+    # Fallback for relative import contexts
+    import sys
+    import os
+    backend_dir = os.path.dirname(os.path.abspath(__file__))
+    sys.path.insert(0, backend_dir)
+    from db import Base
 
 
 # New PostgreSQL User model using SQLAlchemy (updated to match existing schema)

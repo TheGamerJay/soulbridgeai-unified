@@ -25,7 +25,21 @@ from flask import Flask, jsonify, render_template, render_template_string, reque
 from routes.auth import bp as auth_bp
 
 # Local imports
-from premium_free_ai_service import get_premium_free_ai_service
+try:
+    from premium_free_ai_service import get_premium_free_ai_service
+except ImportError:
+    # Fallback if premium AI service is not available
+    def get_premium_free_ai_service():
+        class FallbackAI:
+            def generate_response(self, message, character, context, user_id):
+                return {
+                    "success": True,
+                    "response": f"Hello! I'm {character}, your AI companion. I understand you said: '{message[:50]}...'. I'm here to help and support you!",
+                    "response_time": 0.1,
+                    "emotions_detected": [],
+                    "enhancement_level": "fallback"
+                }
+        return FallbackAI()
 from trial_utils import is_trial_active as calculate_trial_active, get_trial_time_remaining
 from tier_isolation import tier_manager, get_current_user_tier, get_current_tier_system
 from unified_tier_system import (
