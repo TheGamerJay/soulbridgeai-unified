@@ -578,7 +578,7 @@ def increment_rate_limit_session():
 @app.before_request
 def ensure_session_persistence():
     # Allow auth + static + home + mini-studio page itself (so it can show the UI)
-    open_paths = {"/api/login", "/api/logout", "/", "/mini-studio", "/mini_studio_health"}
+    open_paths = {"/api/login", "/api/logout", "/login", "/", "/mini-studio", "/mini_studio_health"}
     if request.path.startswith("/static/") or request.path in open_paths:
         return
     
@@ -592,10 +592,10 @@ def ensure_session_persistence():
     
     # For every other route, require a user_id
     if "user_id" not in session:
-        # For APIs, return JSON 401; for pages, redirect if you prefer
+        # For APIs, return JSON 401; for pages, redirect to login
         if request.path.startswith("/api/"):
             return {"ok": False, "error": "Unauthorized"}, 401
-        return redirect("/")
+        return redirect("/login")
     
     # PERMANENT FIX: Make sessions persistent for all authenticated users
     # Sessions should only expire when browser closes or explicit logout
