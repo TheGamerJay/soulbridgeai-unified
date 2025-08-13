@@ -204,6 +204,14 @@ try:
 except ImportError as e:
     print(f"[WARNING] Companion API not available: {e}")
 
+# Register LLM Health Check blueprint
+try:
+    from routes.api_llm_health import bp as llm_health_bp
+    app.register_blueprint(llm_health_bp)
+    print("[OK] LLM health check endpoints registered")
+except ImportError as e:
+    print(f"[WARNING] Could not register LLM health endpoints: {e}")
+
 # ============================================
 # BULLETPROOF TIER ISOLATION SYSTEM
 # ============================================
@@ -9591,21 +9599,38 @@ def api_chat():
                 message, character, "gpt-3.5-turbo", 200, 0.75,
                 f"You are {character}, an enhanced AI companion from SoulBridge AI Growth Plan. You provide more detailed responses and have access to advanced conversation features. You're helpful, insightful, and offer quality guidance."
             )
-        else:  # Foundation (Free) - Enhanced Smart AI
-            logger.info(f"Using enhanced smart AI for free user: {character}")
+        else:  # Foundation (Free) - Local Ollama AI
+            logger.info(f"Using local Ollama AI for free user: {character}")
             try:
-                premium_ai = get_premium_free_ai_service()
-                user_id = session.get('user_id', 'anonymous')
-                premium_response = premium_ai.generate_response(message, character, context, user_id)
-                ai_response = premium_response["response"]
+                # Try Ollama first (real AI)
+                from ollama_client import generate_companion_response, is_available
                 
-                logger.info(f"Enhanced AI response generated in {premium_response.get('response_time', 0):.2f}s")
-                logger.info(f"Emotions detected: {premium_response.get('emotions_detected', [])}")
-                logger.info(f"Enhancement level: {premium_response.get('enhancement_level', 'none')}")
+                if is_available():
+                    logger.info("Ollama is available, using local AI")
+                    ollama_response = generate_companion_response(message, character, context)
                     
-            except Exception as premium_error:
-                logger.error(f"Enhanced AI error: {premium_error}")
-                ai_response = f"Hello! I'm {character}, your caring AI companion. I understand you said: '{message[:50]}...'. I'm here to help and support you!"
+                    if ollama_response.get("success", False):
+                        ai_response = ollama_response["response"]
+                        logger.info(f"Ollama AI response generated successfully")
+                    else:
+                        logger.warning(f"Ollama failed: {ollama_response.get('error', 'Unknown error')}")
+                        raise Exception("Ollama response failed")
+                else:
+                    logger.info("Ollama not available, using enhanced templates")
+                    raise Exception("Ollama not available")
+                    
+            except Exception as ollama_error:
+                logger.info(f"Ollama unavailable, using enhanced templates: {ollama_error}")
+                # Fallback to enhanced template system
+                try:
+                    premium_ai = get_premium_free_ai_service()
+                    user_id = session.get('user_id', 'anonymous')
+                    premium_response = premium_ai.generate_response(message, character, context, user_id)
+                    ai_response = premium_response["response"]
+                    logger.info(f"Enhanced template AI used as fallback")
+                except Exception as template_error:
+                    logger.error(f"All AI systems failed: {template_error}")
+                    ai_response = f"Hello! I'm {character}, your caring AI companion. I understand you said: '{message[:50]}...'. I'm here to help and support you!"
         
         return jsonify({
             "success": True, 
