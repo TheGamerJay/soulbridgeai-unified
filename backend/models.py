@@ -10,7 +10,7 @@ import uuid
 
 # SQLAlchemy imports for new PostgreSQL models
 from sqlalchemy import Column, Integer, String, DateTime, func
-from .db import Base
+from db import Base
 
 
 # New PostgreSQL User model using SQLAlchemy (updated to match existing schema)

@@ -2,9 +2,9 @@
 from flask import Blueprint, request, session
 from werkzeug.security import check_password_hash
 from sqlalchemy import select
-from ..db import SessionLocal
-from ..models import User
-from .common import j_ok, j_err, safe_api, rate_limit
+from db import SessionLocal
+from models import User
+from routes.common import j_ok, j_err, safe_api, rate_limit
 
 bp = Blueprint("auth", __name__)
 

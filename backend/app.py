@@ -25,6 +25,7 @@ from flask import Flask, jsonify, render_template, render_template_string, reque
 from routes.auth import bp as auth_bp
 
 # Local imports
+from premium_free_ai_service import get_premium_free_ai_service
 from trial_utils import is_trial_active as calculate_trial_active, get_trial_time_remaining
 from tier_isolation import tier_manager, get_current_user_tier, get_current_tier_system
 from unified_tier_system import (
@@ -9467,6 +9468,27 @@ def database_query():
             "error_type": type(e).__name__
         }), 500
 
+def _get_openai_response(message: str, character: str, model: str, max_tokens: int, temperature: float, system_prompt: str) -> str:
+    """Helper function to get OpenAI response with error handling"""
+    try:
+        if not openai_client:
+            return f"Hello! I'm {character}, your AI companion. I'm currently experiencing technical difficulties with our premium AI service, but I'm still here to help you!"
+        
+        response = openai_client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": message}
+            ],
+            max_tokens=max_tokens,
+            temperature=temperature
+        )
+        return response.choices[0].message.content
+        
+    except Exception as ai_error:
+        logger.warning(f"OpenAI API error: {ai_error}")
+        return f"Hello! I'm {character}, your AI companion. I understand you said: '{message[:50]}...'. I'm experiencing some technical difficulties with our premium service right now, but I'm still here to help you! What would you like to talk about?"
+
 @app.route("/api/chat", methods=["POST"])
 def api_chat():
     """Chat API endpoint"""
@@ -9525,44 +9547,32 @@ def api_chat():
         # Get user's subscription tier for enhanced features (use effective_plan)
         user_tier = session.get('effective_plan', 'free')
         
-        # Tier-specific AI model and parameters - simple pay model
-        if user_tier == 'max':  # Max Plan
-            model = "gpt-4"
-            max_tokens = 300
-            temperature = 0.8
-            system_prompt = f"You are {character}, an advanced AI companion from SoulBridge AI Max Plan. You have enhanced emotional intelligence, deeper insights, and provide more thoughtful, nuanced responses. You can engage in complex discussions and offer premium-level guidance."
-        elif user_tier == 'growth':  # Growth Plan
-            model = "gpt-3.5-turbo"
-            max_tokens = 200
-            temperature = 0.75
-            system_prompt = f"You are {character}, an enhanced AI companion from SoulBridge AI Growth Plan. You provide more detailed responses and have access to advanced conversation features. You're helpful, insightful, and offer quality guidance."
-        else:  # Foundation (Free)
-            model = "gpt-3.5-turbo"
-            max_tokens = 150
-            temperature = 0.7
-            system_prompt = f"You are {character}, a helpful AI companion from SoulBridge AI."
-        
-        # Use OpenAI for actual AI response with tier-specific enhancements
-        try:
-            response = openai_client.chat.completions.create(
-                model=model,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": message}
-                ],
-                max_tokens=max_tokens,
-                temperature=temperature
+        # Tier-specific AI model and parameters
+        if user_tier == 'max':  # Max Plan - Premium OpenAI
+            ai_response = _get_openai_response(
+                message, character, "gpt-4", 300, 0.8,
+                f"You are {character}, an advanced AI companion from SoulBridge AI Max Plan. You have enhanced emotional intelligence, deeper insights, and provide more thoughtful, nuanced responses. You can engage in complex discussions and offer premium-level guidance."
             )
-            ai_response = response.choices[0].message.content
-            
-            # Add tier-specific response enhancements - old function removed
-            # if user_tier in ['premium', 'enterprise']:
-            #     # Premium users get enhanced response formatting - removed old function
-            pass  # Old enhancement logic removed
-        except Exception as ai_error:
-            logger.warning(f"OpenAI API error: {ai_error}")
-            # Provide a more natural fallback response
-            ai_response = f"Hello! I'm {character}, your AI companion. I understand you said: '{message[:50]}...'. I'm experiencing some technical difficulties right now, but I'm still here to help you! What would you like to talk about?"
+        elif user_tier == 'growth':  # Growth Plan - Standard OpenAI
+            ai_response = _get_openai_response(
+                message, character, "gpt-3.5-turbo", 200, 0.75,
+                f"You are {character}, an enhanced AI companion from SoulBridge AI Growth Plan. You provide more detailed responses and have access to advanced conversation features. You're helpful, insightful, and offer quality guidance."
+            )
+        else:  # Foundation (Free) - Premium Local AI
+            logger.info(f"Using premium free AI for user: {character}")
+            try:
+                premium_ai = get_premium_free_ai_service()
+                user_id = session.get('user_id', 'anonymous')
+                premium_response = premium_ai.generate_response(message, character, context, user_id)
+                ai_response = premium_response["response"]
+                
+                logger.info(f"Premium free AI response generated in {premium_response.get('response_time', 0):.2f}s")
+                logger.info(f"Emotions detected: {premium_response.get('emotions_detected', [])}")
+                logger.info(f"Enhancement level: {premium_response.get('enhancement_level', 'none')}")
+                    
+            except Exception as premium_error:
+                logger.error(f"Premium free AI error: {premium_error}")
+                ai_response = f"Hello! I'm {character}, your caring AI companion from SoulBridge AI. I'm here to listen and support you through whatever you're experiencing. What would you like to talk about today?"
         
         return jsonify({
             "success": True, 
