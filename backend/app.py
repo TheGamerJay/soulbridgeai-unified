@@ -659,6 +659,17 @@ def check_trial_active_from_db(user_id):
 
 # Enhanced surveillance system with Flask context safety
 class BasicSurveillanceSystem:
+    
+# Public status endpoint for Mini Assistant modal (no authentication required)
+@app.route("/api/mini-assistant-status", methods=["GET"])
+def mini_assistant_status():
+    """Public status endpoint for Mini Assistant modal (no authentication required)"""
+    try:
+        # Optionally, you can add more diagnostics here
+        return jsonify({"online": True, "status": "ok"})
+    except Exception as e:
+        logger.error(f"Mini Assistant status error: {e}")
+        return jsonify({"online": False, "status": "error", "error": str(e)}), 500
     def __init__(self):
         self.system_start_time = datetime.now()
         self.blocked_ips = set()
