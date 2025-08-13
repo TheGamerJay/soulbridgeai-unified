@@ -657,10 +657,7 @@ def check_trial_active_from_db(user_id):
     # Use the cleaner is_trial_active function
     return is_trial_active(user_id)
 
-# Enhanced surveillance system with Flask context safety
-class BasicSurveillanceSystem:
-
-# Public status endpoint for Mini Assistant modal (no authentication required)
+ # Public status endpoint for Mini Assistant modal (no authentication required)
 @app.route("/api/mini-assistant-status", methods=["GET"])
 def mini_assistant_status():
     """Public status endpoint for Mini Assistant modal (no authentication required)"""
@@ -670,6 +667,9 @@ def mini_assistant_status():
     except Exception as e:
         logger.error(f"Mini Assistant status error: {e}")
         return jsonify({"online": False, "status": "error", "error": str(e)}), 500
+
+# Enhanced surveillance system with Flask context safety
+class BasicSurveillanceSystem:
     def __init__(self):
         self.system_start_time = datetime.now()
         self.blocked_ips = set()
