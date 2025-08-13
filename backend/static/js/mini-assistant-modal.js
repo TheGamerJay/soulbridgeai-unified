@@ -47,7 +47,9 @@
       statusDiv.textContent = 'Checking status...';
       try {
         const res = await fetch('/api/mini-assistant-status');
+        console.log('Mini Assistant Status Response:', res.status, res.statusText);
         const data = await res.json();
+        console.log('Mini Assistant Status Data:', data);
         if (data.success) {
           statusDiv.textContent = data.claude_available ? '🧠 Claude Ready' : '🟢 Ready';
           statusDiv.style.color = data.claude_available ? '#00d4aa' : '#00d4aa';
@@ -55,7 +57,8 @@
           statusDiv.textContent = '❌ Offline';
           statusDiv.style.color = '#e74c3c';
         }
-      } catch {
+      } catch (error) {
+        console.error('Mini Assistant Status Error:', error);
         statusDiv.textContent = '❌ Could not check status: fetch failed';
         statusDiv.style.color = '#e74c3c';
       }

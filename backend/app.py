@@ -174,12 +174,20 @@ if not secret_key:
 app.secret_key = secret_key
 
 # --- SESSION COOKIE SETTINGS FOR PRODUCTION ---
-# Always set these for production deployments!
-app.config['SESSION_COOKIE_SECURE'] = True  # Only send cookie over HTTPS
-app.config['SESSION_COOKIE_SAMESITE'] = 'None'  # Allow cross-site cookies (for custom domains)
-app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevent JS access to session cookie
-# Set domain for your site (uncomment and set if needed)
-app.config['SESSION_COOKIE_DOMAIN'] = '.soulbridgeai.com'
+# Adapt cookie settings based on environment
+is_production = os.environ.get('RAILWAY_ENVIRONMENT') or os.environ.get('PRODUCTION')
+if is_production:
+    # Production settings
+    app.config['SESSION_COOKIE_SECURE'] = True  # Only send cookie over HTTPS
+    app.config['SESSION_COOKIE_SAMESITE'] = 'None'  # Allow cross-site cookies (for custom domains)
+    app.config['SESSION_COOKIE_DOMAIN'] = '.soulbridgeai.com'
+else:
+    # Development settings - allow HTTP and localhost
+    app.config['SESSION_COOKIE_SECURE'] = False  # Allow HTTP for local development
+    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # Less restrictive for local development
+    app.config['SESSION_COOKIE_DOMAIN'] = None  # No domain restriction for localhost
+
+app.config['SESSION_COOKIE_HTTPONLY'] = True  # Always prevent JS access to session cookie
 
 # Register auth blueprint
 if auth_available and auth_bp:
@@ -586,7 +594,7 @@ def increment_rate_limit_session():
 @app.before_request
 def ensure_session_persistence():
     # Allow auth + static + home + mini-studio page itself (so it can show the UI)
-    open_paths = {"/api/login", "/api/logout", "/login", "/auth/login", "/", "/mini-studio", "/mini_studio_health", "/api/mini-assistant-status"}
+    open_paths = {"/api/login", "/api/logout", "/login", "/auth/login", "/", "/mini-studio", "/mini_studio_health", "/api/mini-assistant-status", "/terms-acceptance", "/api/accept-terms", "/intro"}
     if request.path.startswith("/static/") or request.path in open_paths:
         return
     
