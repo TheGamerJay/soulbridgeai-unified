@@ -1471,10 +1471,13 @@ def auth_login():
     
     # Handle POST requests - process login
     try:
+        logger.info(f"[LOGIN] Received {request.method} request at /auth/login from {request.remote_addr}")
         # Parse request data
-        email, password, _ = parse_request_data()
+    email, password, _ = parse_request_data()
+    logger.info(f"[LOGIN] Parsed email: {email}, password: {'***' if password else None}")
         
         if not email or not password:
+            logger.warning(f"[LOGIN] Missing email or password. Email: {email}, Password present: {bool(password)}")
             # Handle both form submissions and AJAX requests for missing fields
             if request.headers.get('Content-Type') == 'application/json' or request.is_json:
                 # AJAX request - return JSON
@@ -1486,6 +1489,7 @@ def auth_login():
         
         # Initialize database if needed
         if not services["database"] or not db:
+            logger.warning("[LOGIN] Database not initialized, calling init_database()")
             init_database()
         
         # Create database connection directly if needed
@@ -1500,14 +1504,17 @@ def auth_login():
         auth = SimpleAuth(temp_db)
         
         # Try to authenticate
-        result = auth.authenticate(email, password)
+    result = auth.authenticate(email, password)
+    logger.info(f"[LOGIN] Authentication result: {result}")
         
         if result["success"]:
+            logger.info(f"[LOGIN] Authenticated successfully for {email}, setting up session...")
             # Use proper session setup instead of simple create_session
             setup_user_session(
                 email=result["email"],
                 user_id=result["user_id"]
             )
+            logger.info(f"[LOGIN] Session after setup: {dict(session)}")
             
             # Set user plan from database result (migrate old plan names immediately)
             raw_plan = result.get('plan_type', 'free')
@@ -1607,9 +1614,10 @@ def auth_login():
             session['access_max'] = effective_plan == 'max' or trial_active  
             session['access_trial'] = trial_active
             session.modified = True  # Ensure session changes are saved
+            logger.info(f"[LOGIN] Session marked as modified. Session: {dict(session)}")
             
-            logger.info(f"Login successful: {email} (plan: {session['user_plan']}, trial: {trial_active})")
-            logger.info(f"Access flags: free={session['access_free']}, growth={session['access_growth']}, max={session['access_max']}, trial={session['access_trial']}")
+            logger.info(f"[LOGIN] Login successful: {email} (plan: {session['user_plan']}, trial: {trial_active})")
+            logger.info(f"[LOGIN] Access flags: free={session['access_free']}, growth={session['access_growth']}, max={session['access_max']}, trial={session['access_trial']}")
             
             # Handle both form submissions and AJAX requests
             # Check if user needs to accept terms
@@ -1623,9 +1631,10 @@ def auth_login():
                 return jsonify({"success": True, "redirect": redirect_url})
             else:
                 # Form submission - redirect directly
+                logger.info(f"[LOGIN] Redirecting to {redirect_url} after successful login.")
                 return redirect(redirect_url)
         else:
-            logger.warning(f"Login failed: {email}")
+            logger.warning(f"[LOGIN] Login failed: {email}")
             
             # Handle both form submissions and AJAX requests for errors
             if request.headers.get('Content-Type') == 'application/json' or request.is_json:
@@ -1633,11 +1642,12 @@ def auth_login():
                 return jsonify({"success": False, "error": result["error"]}), 401
             else:
                 # Form submission - redirect back to login with error
+                logger.warning(f"[LOGIN] Flashing error: {result['error']}")
                 flash(result["error"], "error")
                 return redirect("/login")
         
     except Exception as e:
-        logger.error(f"Login error: {e}")
+    logger.error(f"[LOGIN] Exception during login: {e}")
         
         # Handle both form submissions and AJAX requests for exceptions
         if request.headers.get('Content-Type') == 'application/json' or request.is_json:
@@ -1645,6 +1655,7 @@ def auth_login():
             return jsonify({"success": False, "error": "Login failed"}), 500
         else:
             # Form submission - redirect back to login with error
+            logger.warning(f"[LOGIN] Flashing generic error: Login failed. Please try again.")
             flash("Login failed. Please try again.", "error")
             return redirect("/login")
 
