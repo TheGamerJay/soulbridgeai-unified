@@ -936,10 +936,8 @@
         // }
         
         // Remove "loggedIn" flag from sessionStorage on tab close
-        sessionStorage.removeItem('loggedIn');
-
-        // Simple initialization that doesn't conflict
-        console.log('🔧 Login page ready - waiting for Universal Button Fix');
+    sessionStorage.removeItem('loggedIn');
+    // Cleaned up: Removed all debug logs for a silent login page
         
         // Wait for all scripts to load, then initialize
         window.addEventListener('load', function() {
