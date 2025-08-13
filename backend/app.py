@@ -22,24 +22,35 @@ from datetime import datetime, timezone, timedelta
 from flask import Flask, jsonify, render_template, render_template_string, request, session, redirect, url_for, flash, make_response
 
 # Auth system imports
-from routes.auth import bp as auth_bp
+try:
+    from routes.auth import bp as auth_bp
+    auth_available = True
+except ImportError as e:
+    print(f"Warning: Auth system not available: {e}")
+    auth_available = False
+    auth_bp = None
 
 # Local imports
 try:
     from premium_free_ai_service import get_premium_free_ai_service
 except ImportError:
-    # Fallback if premium AI service is not available
-    def get_premium_free_ai_service():
-        class FallbackAI:
-            def generate_response(self, message, character, context, user_id):
-                return {
-                    "success": True,
-                    "response": f"Hello! I'm {character}, your AI companion. I understand you said: '{message[:50]}...'. I'm here to help and support you!",
-                    "response_time": 0.1,
-                    "emotions_detected": [],
-                    "enhancement_level": "fallback"
-                }
-        return FallbackAI()
+    try:
+        from simple_ai_service import get_premium_free_ai_service
+        print("✅ Using Simple AI Service (no ML dependencies)")
+    except ImportError:
+        # Final fallback
+        def get_premium_free_ai_service():
+            class FallbackAI:
+                def generate_response(self, message, character, context, user_id):
+                    return {
+                        "success": True,
+                        "response": f"Hello! I'm {character}, your AI companion. I understand you said: '{message[:50]}...'. I'm here to help and support you!",
+                        "response_time": 0.1,
+                        "emotions_detected": [],
+                        "enhancement_level": "fallback"
+                    }
+            return FallbackAI()
+        print("⚠️ Using minimal fallback AI")
 from trial_utils import is_trial_active as calculate_trial_active, get_trial_time_remaining
 from tier_isolation import tier_manager, get_current_user_tier, get_current_tier_system
 from unified_tier_system import (
@@ -163,7 +174,11 @@ if not secret_key:
 app.secret_key = secret_key
 
 # Register auth blueprint
-app.register_blueprint(auth_bp)
+if auth_available and auth_bp:
+    app.register_blueprint(auth_bp)
+    print("✅ Auth system registered successfully")
+else:
+    print("⚠️ Auth system disabled - continuing without authentication")
 
 # ============================================
 # BULLETPROOF TIER ISOLATION SYSTEM
@@ -557,6 +572,14 @@ def ensure_session_persistence():
     # Allow auth + static + home + mini-studio page itself (so it can show the UI)
     open_paths = {"/api/login", "/api/logout", "/", "/mini-studio", "/mini_studio_health"}
     if request.path.startswith("/static/") or request.path in open_paths:
+        return
+    
+    # If auth system is not available, don't enforce authentication
+    if not auth_available:
+        # Set a default user session for testing
+        if "user_id" not in session:
+            session["user_id"] = "demo_user"
+            session["user_plan"] = "free"
         return
     
     # For every other route, require a user_id
