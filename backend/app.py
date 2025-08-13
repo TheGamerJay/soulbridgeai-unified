@@ -659,7 +659,7 @@ def check_trial_active_from_db(user_id):
 
 # Enhanced surveillance system with Flask context safety
 class BasicSurveillanceSystem:
-    
+
 # Public status endpoint for Mini Assistant modal (no authentication required)
 @app.route("/api/mini-assistant-status", methods=["GET"])
 def mini_assistant_status():
