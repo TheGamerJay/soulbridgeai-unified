@@ -1470,8 +1470,8 @@ def auth_login():
         return render_template("login.html")
     
     # Handle POST requests - process login
+    logger.info(f"[LOGIN] Received {request.method} request at /auth/login from {request.remote_addr}")
     try:
-        logger.info(f"[LOGIN] Received {request.method} request at /auth/login from {request.remote_addr}")
         # Parse request data
     email, password, _ = parse_request_data()
     logger.info(f"[LOGIN] Parsed email: {email}, password: {'***' if password else None}")
