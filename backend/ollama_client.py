@@ -2,25 +2,36 @@
 Minimal Ollama client for local AI responses
 """
 import os
+import time
 import requests
 import logging
 from typing import List, Dict, Any
 
 logger = logging.getLogger(__name__)
 
-def _default_base():
-    # Default to localhost for embedded Ollama setup
-    return "http://localhost:11434"
-
-OLLAMA_BASE = (
-    os.getenv("DEBUG_OLLAMA_BASE")
-    or os.getenv("LLM_BASE")
-    or os.getenv("OLLAMA_BASE") 
-    or os.getenv("OLLAMA_URL")
-    or _default_base()
-)
-
+OLLAMA_BASE = os.getenv("OLLAMA_BASE", "http://127.0.0.1:11434")
 FREE_MODEL = os.getenv("FREE_MODEL", "tinyllama")
+_READY = False
+
+def wait_ready(timeout=90):
+    """Wait for Ollama to be ready with proper timeout"""
+    global _READY
+    if _READY: 
+        return True
+    
+    t0 = time.time()
+    while time.time() - t0 < timeout:
+        try:
+            if requests.get(f"{OLLAMA_BASE}/api/tags", timeout=5).ok:
+                _READY = True
+                logger.info("Ollama ready and available")
+                return True
+        except Exception:
+            pass
+        time.sleep(1)
+    
+    logger.error("Ollama not ready after timeout")
+    return False
 
 # Default options for CPU-only inference - absolutely minimal
 DEFAULT_OPTIONS = {
@@ -35,32 +46,36 @@ DEFAULT_OPTIONS = {
     "main_gpu": -1,   # No GPU
 }
 
-def chat(messages: List[Dict[str, str]], model: str = None, options: dict = None) -> str:
+def chat(messages: List[Dict[str, str]], model: str = None, options: dict = None, timeout: int = 300) -> str:
     """
-    Minimal Ollama chat client. Expects OpenAI-style messages:
+    Ollama chat client with readiness check. Expects OpenAI-style messages:
     [{'role':'system'|'user'|'assistant','content':'...'}, ...]
     """
+    if not wait_ready(90):
+        raise Exception("Ollama not ready")
+        
     model = model or FREE_MODEL
     
     try:
-        # Use Ollama chat endpoint - generate endpoint doesn't exist
         url = f"{OLLAMA_BASE}/api/chat"
-        
         payload = {
             "model": model,
             "messages": messages,
             "stream": False,
-            "keep_alive": "5m",  # Shorter keep alive
-            "options": {**DEFAULT_OPTIONS, **(options or {})}
+            "keep_alive": "24h",  # Long keep alive
         }
         
+        # Map options if needed
+        if options:
+            payload["options"] = options
+        else:
+            payload["options"] = DEFAULT_OPTIONS
+        
         logger.info(f"Sending request to Ollama: {url} with model: {model}")
-        logger.info(f"Messages: {messages}")
-        r = requests.post(url, json=payload, timeout=120)  # Give CPU more time
+        r = requests.post(url, json=payload, timeout=timeout)
         r.raise_for_status()
         
         data = r.json()
-        # Ollama chat API returns message.content
         response = data.get("message", {}).get("content", "").strip()
         logger.info(f"Ollama response received: {len(response)} characters")
         return response

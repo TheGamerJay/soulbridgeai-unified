@@ -5,9 +5,9 @@ Combines working initialization with all essential routes
 Voice chat processing enabled
 """
 
-# CRITICAL: eventlet monkey patching MUST be first for Gunicorn compatibility
-import eventlet
-eventlet.monkey_patch()
+# DISABLED: eventlet monkey patching can interfere with blocking HTTP requests
+# import eventlet
+# eventlet.monkey_patch()
 
 # Standard library imports
 import os
@@ -1440,8 +1440,16 @@ def health():
 
 @app.route("/healthz")
 def healthz():
-    """Simple health endpoint for Railway"""
-    return "ok", 200, {"Content-Type": "text/plain"}
+    """Health endpoint with Ollama status check"""
+    import requests
+    import os
+    
+    base = os.getenv("OLLAMA_BASE", "http://127.0.0.1:11434")
+    try:
+        r = requests.get(f"{base}/api/tags", timeout=3)
+        return ("ok", 200) if r.ok else ("degraded", 503)
+    except Exception:
+        return ("degraded", 503)
 
 @app.route("/test-direct")
 def test_direct():
