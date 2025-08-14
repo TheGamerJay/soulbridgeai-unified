@@ -12,9 +12,25 @@ logger = logging.getLogger(__name__)
 # Create blueprint
 bp = Blueprint('api_database_fix', __name__)
 
-@bp.route("/api/database/fix-schema", methods=['POST'])
+@bp.route("/api/database/fix-schema", methods=['GET', 'POST'])
 def fix_database_schema():
     """Fix missing database tables and columns"""
+    from flask import request
+    
+    # GET request returns info about what the endpoint does
+    if request.method == 'GET':
+        return jsonify({
+            "success": True,
+            "message": "Database schema fix endpoint",
+            "description": "POST to this endpoint to fix missing database tables and columns",
+            "fixes": [
+                "Creates feature_usage table if missing",
+                "Adds credits, last_credit_reset, purchased_credits columns to users table",
+                "Creates performance indexes"
+            ]
+        })
+    
+    # POST request performs the actual fix
     try:
         database_url = os.environ.get('DATABASE_URL')
         if not database_url:
