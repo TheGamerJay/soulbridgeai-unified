@@ -32,8 +32,8 @@ def companion_free():
 
     try:
         from ollama_client import chat
-        text = chat(msgs, model="gemma2:2b", max_tokens=220)
-        return j_ok(reply=text, source="local", model="gemma2:2b")
+        text = chat(msgs, model="phi3:mini", max_tokens=220)
+        return j_ok(reply=text, source="local", model="phi3:mini")
     except Exception as e:
         logger.error(f"Free companion error: {e}")
         return j_err(f"Local AI unavailable: {str(e)}", 500)
