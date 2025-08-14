@@ -1459,7 +1459,7 @@ def debug_ollama():
         or os.getenv("OLLAMA_URL")
         or _default_base()
     )
-    model = os.getenv("FREE_MODEL", "phi3:mini")
+    model = os.getenv("FREE_MODEL", "tinyllama")
 
     out = {"llm_base": base, "model": model}
 
