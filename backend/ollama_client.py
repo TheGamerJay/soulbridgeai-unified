@@ -25,10 +25,10 @@ def chat(messages: List[Dict[str, str]], model: str = None, max_tokens: int = 30
             "model": model,
             "messages": messages,
             "options": {
-                "num_predict": min(max_tokens, 128),  # Shorter responses for speed
+                "num_predict": min(max_tokens, 50),  # Very short responses for speed
                 "temperature": 0.7,
-                "num_ctx": 768,  # Conservative for gemma2:2b on free tier
-                "num_keep": 32,  # Keep small prefix between turns
+                "num_ctx": 512,  # Even smaller context
+                "num_keep": 16,  # Minimal context retention
                 "repeat_penalty": 1.1
             },
             "stream": False,
