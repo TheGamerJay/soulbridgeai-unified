@@ -7,8 +7,8 @@ bind = "0.0.0.0:8080"
 backlog = 2048
 
 # Worker processes
-workers = multiprocessing.cpu_count() * 2 + 1  # Recommended formula
-worker_class = "eventlet"  # For SocketIO compatibility
+workers = 2  # Reduced for Railway container limits
+worker_class = "gthread"  # Changed from eventlet to support blocking Ollama calls
 worker_connections = 1000
 max_requests = 1000
 max_requests_jitter = 100
@@ -42,7 +42,7 @@ limit_request_fields = 100
 limit_request_field_size = 8190
 
 # Timeout settings
-timeout = 120  # 2 minutes for AI responses
+timeout = 300  # 5 minutes for Ollama responses
 keepalive = 5
 graceful_timeout = 30
 
