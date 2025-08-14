@@ -36,7 +36,7 @@ def chat(messages: List[Dict[str, str]], model: str = None, max_tokens: int = 30
         }
         
         logger.info(f"Sending request to Ollama: {url}")
-        r = requests.post(url, json=payload, timeout=120)  # 2 minutes for slow inference
+        r = requests.post(url, json=payload, timeout=30)  # Fail fast if not working
         r.raise_for_status()
         
         data = r.json()
