@@ -31,7 +31,8 @@ def chat(messages: List[Dict[str, str]], model: str = None, max_tokens: int = 30
                 "num_ctx": 1024,
                 "num_thread": 4
             },
-            "stream": False
+            "stream": False,
+            "keep_alive": "5m"
         }
         
         logger.info(f"Sending request to Ollama: {url}")

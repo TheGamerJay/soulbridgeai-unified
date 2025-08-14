@@ -1,20 +1,11 @@
-FROM ubuntu:22.04
+FROM ollama/ollama:latest
 
-# Install curl and other dependencies
-RUN apt-get update && apt-get install -y \
-    curl \
-    ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install Ollama
-RUN curl -fsSL https://ollama.com/install.sh | sh
-
-# Set environment variables
 ENV OLLAMA_HOST=0.0.0.0:11434
-ENV OLLAMA_ORIGINS=*
+ENV OLLAMA_KEEP_ALIVE=5m
+ENV OLLAMA_NUM_PARALLEL=4
 
-# Expose port
 EXPOSE 11434
 
-# Start Ollama
-CMD ["ollama", "serve"]
+RUN echo '#!/bin/bash\nset -e\nollama serve &\nsleep 10\nif ! ollama list | grep -q "gemma2:2b"; then\n    ollama pull gemma2:2b\nfi\nwait' > /usr/local/bin/start-ollama.sh && chmod +x /usr/local/bin/start-ollama.sh
+
+CMD ["/usr/local/bin/start-ollama.sh"]
