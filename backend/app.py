@@ -1472,14 +1472,19 @@ def debug_supervisor_logs():
         
         logs = {}
         
-        # Check if log files exist and read them
-        log_files = ["/tmp/ollama.log", "/tmp/preload.log", "/tmp/web.log", "/tmp/supervisord.log"]
+        # Check if log files exist and read them (focus on preload for warmup verification)
+        log_files = ["/tmp/preload.log", "/tmp/ollama.log", "/tmp/web.log", "/tmp/supervisord.log"]
         
         for log_file in log_files:
             if os.path.exists(log_file):
                 try:
                     with open(log_file, 'r') as f:
-                        logs[log_file] = f.read()[-2000:]  # Last 2000 chars
+                        content = f.read()
+                        # Show more for preload log to see full warmup sequence
+                        if 'preload' in log_file:
+                            logs[log_file] = content[-4000:]  # More content for preload
+                        else:
+                            logs[log_file] = content[-2000:]  # Last 2000 chars for others
                 except:
                     logs[log_file] = "Error reading file"
             else:
