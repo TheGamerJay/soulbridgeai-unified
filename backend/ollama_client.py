@@ -25,7 +25,7 @@ def chat(messages: List[Dict[str, str]], model: str = None, max_tokens: int = 30
             "model": model,
             "messages": messages,
             "options": {
-                "num_predict": min(max_tokens, 256),  # Cap at 256 for stability
+                "num_predict": min(max_tokens, 128),  # Shorter responses for speed
                 "temperature": 0.7,
                 "num_ctx": 768,  # Conservative for gemma2:2b on free tier
                 "num_keep": 32,  # Keep small prefix between turns
@@ -36,7 +36,7 @@ def chat(messages: List[Dict[str, str]], model: str = None, max_tokens: int = 30
         }
         
         logger.info(f"Sending request to Ollama: {url}")
-        r = requests.post(url, json=payload, timeout=60)  # Increased for model loading
+        r = requests.post(url, json=payload, timeout=120)  # 2 minutes for slow inference
         r.raise_for_status()
         
         data = r.json()
