@@ -32,7 +32,8 @@ def companion_free():
 
     try:
         from ollama_client import chat
-        text = chat(msgs, model="phi3:mini", max_tokens=220)
+        response = chat(msgs, model="phi3:mini")
+        text = response["message"]["content"].strip()
         return j_ok(reply=text, source="local", model="phi3:mini")
     except Exception as e:
         logger.error(f"Free companion error: {e}")
