@@ -20,7 +20,7 @@ OLLAMA_BASE = (
     or _default_base()
 )
 
-FREE_MODEL = os.getenv("FREE_MODEL", "phi3:mini")
+FREE_MODEL = os.getenv("FREE_MODEL", "tinyllama")
 
 # Default options for small containers
 DEFAULT_OPTIONS = {

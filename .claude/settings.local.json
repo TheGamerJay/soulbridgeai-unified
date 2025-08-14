@@ -90,7 +90,10 @@
       "WebFetch(domain:ollama.com)",
       "Bash(del test_login.py simple_test.py test_known_user.py create_test_user.py test_auth_direct.py)",
       "WebFetch(domain:ollama-ai.railway.internal)",
-      "Bash(del railway.toml)"
+      "Bash(del railway.toml)",
+      "WebFetch(domain:ollama-ai-production.up.railway.app)",
+      "WebFetch(domain:station.railway.com)",
+      "WebFetch(domain:railway.com)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"
