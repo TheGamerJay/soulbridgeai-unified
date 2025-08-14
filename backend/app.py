@@ -1419,6 +1419,29 @@ def healthz():
     """Simple health endpoint for Railway"""
     return "ok", 200, {"Content-Type": "text/plain"}
 
+@app.route("/debug/ollama")
+def debug_ollama():
+    """Debug endpoint to check Ollama connection"""
+    try:
+        from ollama_client import OLLAMA_BASE, is_available, get_models
+        import requests
+        
+        # Test connection
+        try:
+            r = requests.get(f"{OLLAMA_BASE}/api/tags", timeout=5)
+            tags_response = r.json() if r.status_code == 200 else {"error": f"Status {r.status_code}"}
+        except Exception as e:
+            tags_response = {"error": str(e)}
+        
+        return jsonify({
+            "llm_base": OLLAMA_BASE,
+            "is_available": is_available(),
+            "models": get_models(),
+            "tags_response": tags_response
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route("/", methods=["GET", "POST"])
 def home():
     """Home route - redirect based on authentication status"""
