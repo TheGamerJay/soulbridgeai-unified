@@ -8,10 +8,29 @@ from typing import List, Dict, Any
 
 logger = logging.getLogger(__name__)
 
-OLLAMA_BASE = os.getenv("LLM_BASE", os.getenv("OLLAMA_URL", "http://localhost:11434"))
-FREE_MODEL = os.getenv("FREE_COMPANION_MODEL", "phi3:mini")
+def _default_base():
+    # Safe default for Railway multi-service projects if ENV not set
+    return "http://ollama-ai:11434"  # service name "ollama-ai"
 
-def chat(messages: List[Dict[str, str]], model: str = None, max_tokens: int = 300) -> str:
+OLLAMA_BASE = (
+    os.getenv("LLM_BASE")
+    or os.getenv("OLLAMA_BASE") 
+    or os.getenv("OLLAMA_URL")
+    or _default_base()
+)
+
+FREE_MODEL = os.getenv("FREE_MODEL", "phi3:mini")
+
+# Default options for small containers
+DEFAULT_OPTIONS = {
+    "num_ctx": 768,
+    "num_keep": 32, 
+    "num_predict": 160,
+    "temperature": 0.7,
+    "repeat_penalty": 1.1,
+}
+
+def chat(messages: List[Dict[str, str]], model: str = None, options: dict = None) -> str:
     """
     Minimal Ollama chat client. Expects OpenAI-style messages:
     [{'role':'system'|'user'|'assistant','content':'...'}, ...]
@@ -24,19 +43,13 @@ def chat(messages: List[Dict[str, str]], model: str = None, max_tokens: int = 30
         payload = {
             "model": model,
             "messages": messages,
-            "options": {
-                "num_predict": min(max_tokens, 50),  # Very short responses for speed
-                "temperature": 0.7,
-                "num_ctx": 512,  # Even smaller context
-                "num_keep": 16,  # Minimal context retention
-                "repeat_penalty": 1.1
-            },
             "stream": False,
-            "keep_alive": "30m"  # Extended keep-alive
+            "keep_alive": "30m",
+            "options": {**DEFAULT_OPTIONS, **(options or {})}
         }
         
         logger.info(f"Sending request to Ollama: {url}")
-        r = requests.post(url, json=payload, timeout=30)  # Fail fast if not working
+        r = requests.post(url, json=payload, timeout=120)
         r.raise_for_status()
         
         data = r.json()
