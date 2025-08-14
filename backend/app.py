@@ -626,7 +626,7 @@ def increment_rate_limit_session():
 @app.before_request
 def ensure_session_persistence():
     # Allow auth + static + home + mini-studio page itself (so it can show the UI)
-    open_paths = {"/api/login", "/api/logout", "/login", "/auth/login", "/", "/mini-studio", "/mini_studio_health", "/api/mini-assistant-status", "/terms-acceptance", "/api/accept-terms", "/intro", "/debug/ollama", "/debug/test-chat", "/debug/simple-chat", "/api/database/fix-schema", "/api/ollama/pull-model", "/api/ollama/status", "/api/companion/free", "/healthz"}
+    open_paths = {"/api/login", "/api/logout", "/login", "/auth/login", "/", "/mini-studio", "/mini_studio_health", "/api/mini-assistant-status", "/terms-acceptance", "/api/accept-terms", "/intro", "/debug/ollama", "/debug/test-chat", "/debug/simple-chat", "/test-direct", "/api/database/fix-schema", "/api/ollama/pull-model", "/api/ollama/status", "/api/companion/free", "/healthz"}
     if request.path.startswith("/static/") or request.path in open_paths:
         return
     
@@ -1442,6 +1442,18 @@ def health():
 def healthz():
     """Simple health endpoint for Railway"""
     return "ok", 200, {"Content-Type": "text/plain"}
+
+@app.route("/test-direct")
+def test_direct():
+    """Ultra simple test endpoint"""
+    try:
+        from ollama_client import chat
+        messages = [{"role": "user", "content": "2+2"}]
+        result = chat(messages)
+        return f"SUCCESS: {result}"
+    except Exception as e:
+        import traceback
+        return f"ERROR: {str(e)}\nTRACE: {traceback.format_exc()}", 500
 
 @app.route("/debug/test-chat")
 def debug_test_chat():
