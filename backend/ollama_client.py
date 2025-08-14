@@ -19,7 +19,7 @@ def chat(messages: List[Dict[str, str]], model: str = None, max_tokens: int = 30
     model = model or FREE_MODEL
     
     try:
-        # Ollama chat endpoint
+        # Ollama chat endpoint - use environment variable
         url = f"{OLLAMA_BASE}/api/chat"
         payload = {
             "model": model,
@@ -33,7 +33,7 @@ def chat(messages: List[Dict[str, str]], model: str = None, max_tokens: int = 30
         }
         
         logger.info(f"Sending request to Ollama: {url}")
-        r = requests.post(url, json=payload, timeout=30)
+        r = requests.post(url, json=payload, timeout=20)
         r.raise_for_status()
         
         data = r.json()

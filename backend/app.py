@@ -212,6 +212,14 @@ try:
 except ImportError as e:
     print(f"[WARNING] Could not register LLM health endpoints: {e}")
 
+# Register Free Companion API blueprint
+try:
+    from routes.api_companion_free import bp as companion_free_bp
+    app.register_blueprint(companion_free_bp)
+    print("[OK] Free Companion API registered successfully")
+except ImportError as e:
+    print(f"[WARNING] Free Companion API not available: {e}")
+
 # ============================================
 # BULLETPROOF TIER ISOLATION SYSTEM
 # ============================================
@@ -1422,25 +1430,38 @@ def healthz():
 @app.route("/debug/ollama")
 def debug_ollama():
     """Debug endpoint to check Ollama connection"""
+    import os, requests
+    base = os.getenv("LLM_BASE", "")
+    model = os.getenv("FREE_COMPANION_MODEL", "gemma2:2b")
+
+    out = {"llm_base": base, "model": model}
+
+    # /api/tags
     try:
-        from ollama_client import OLLAMA_BASE, is_available, get_models
-        import requests
-        
-        # Test connection
-        try:
-            r = requests.get(f"{OLLAMA_BASE}/api/tags", timeout=5)
-            tags_response = r.json() if r.status_code == 200 else {"error": f"Status {r.status_code}"}
-        except Exception as e:
-            tags_response = {"error": str(e)}
-        
-        return jsonify({
-            "llm_base": OLLAMA_BASE,
-            "is_available": is_available(),
-            "models": get_models(),
-            "tags_response": tags_response
-        })
+        r = requests.get(f"{base}/api/tags", timeout=8)
+        out["tags_status"] = r.status_code
+        out["tags_response"] = r.json() if r.ok else r.text
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        out["tags_error"] = str(e)
+
+    # minimal /api/chat test (no streaming)
+    try:
+        r = requests.post(
+            f"{base}/api/chat",
+            json={
+                "model": model,
+                "messages": [{"role": "user", "content": "ping"}],
+                "stream": False,
+                "options": {"num_predict": 8},
+            },
+            timeout=12,
+        )
+        out["chat_status"] = r.status_code
+        out["chat_response"] = r.json() if r.ok else r.text
+    except Exception as e:
+        out["chat_error"] = str(e)
+
+    return jsonify(out)
 
 @app.route("/", methods=["GET", "POST"])
 def home():

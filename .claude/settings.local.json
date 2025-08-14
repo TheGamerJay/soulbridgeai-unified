@@ -92,6 +92,7 @@
       "WebFetch(domain:ollama-ai.railway.internal)",
       "Bash(del railway.toml)"
     ],
-    "deny": []
+    "deny": [],
+    "defaultMode": "acceptEdits"
   }
 }
