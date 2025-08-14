@@ -9,36 +9,10 @@ ENV OLLAMA_USE_GPU=0
 
 EXPOSE 11434
 
-# Create improved startup script
+# Create simple startup script - no model download during build
 RUN echo '#!/bin/bash\n\
 set -e\n\
-echo "=== Starting Ollama Server ==="\n\
-ollama serve &\n\
-OLLAMA_PID=$!\n\
-\n\
-echo "Waiting for Ollama server to start..."\n\
-for i in {1..30}; do\n\
-  if curl -s http://localhost:11434/api/tags >/dev/null 2>&1; then\n\
-    echo "Ollama server is ready!"\n\
-    break\n\
-  fi\n\
-  echo "Waiting... ($i/30)"\n\
-  sleep 2\n\
-done\n\
-\n\
-echo "=== Downloading tinyllama model (smallest available) ==="\n\
-if ollama pull tinyllama; then\n\
-  echo "✅ tinyllama downloaded successfully"\n\
-else\n\
-  echo "❌ Failed to download tinyllama, trying qwen2:0.5b..."\n\
-  ollama pull qwen2:0.5b\n\
-  echo "✅ qwen2:0.5b downloaded as fallback"\n\
-fi\n\
-\n\
-echo "=== Available Models ==="\n\
-ollama list\n\
-\n\
-echo "=== Ollama Ready! ==="\n\
-wait $OLLAMA_PID' > /usr/local/bin/start-ollama.sh && chmod +x /usr/local/bin/start-ollama.sh
+echo "Starting Ollama server..."\n\
+ollama serve' > /usr/local/bin/start-ollama.sh && chmod +x /usr/local/bin/start-ollama.sh
 
 CMD ["/usr/local/bin/start-ollama.sh"]

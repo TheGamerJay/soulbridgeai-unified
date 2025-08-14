@@ -17,7 +17,7 @@ def pull_model():
     """Manually pull phi3:mini model to Ollama"""
     try:
         ollama_base = os.getenv("LLM_BASE", "http://ollama:11434")
-        model_name = os.getenv("FREE_COMPANION_MODEL", "phi3:mini")
+        model_name = os.getenv("FREE_MODEL", "tinyllama")
         
         logger.info(f"Attempting to pull model {model_name} from {ollama_base}")
         
