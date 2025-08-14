@@ -18,7 +18,7 @@ def j_err(message, status=400):
     """Helper for error JSON responses"""
     return jsonify({"success": False, "error": message}), status
 
-@bp.post("/api/companion/free")
+@bp.route("/api/companion/free", methods=['GET', 'POST'])
 def companion_free():
     """Free companion endpoint that uses local Ollama directly"""
     data = request.get_json(force=True, silent=True) or {}
