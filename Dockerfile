@@ -1,20 +1,32 @@
-FROM ubuntu:22.04
+# Use Python 3.11 slim image
+FROM python:3.11-slim
 
-# Install curl and other dependencies
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
-    curl \
-    ca-certificates \
+    gcc \
+    g++ \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Ollama
-RUN curl -fsSL https://ollama.com/install.sh | sh
+# Copy requirements and install Python dependencies
+COPY backend/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy backend application
+COPY backend/ .
+
+# Create necessary directories
+RUN mkdir -p static/uploads static/logos
 
 # Set environment variables
-ENV OLLAMA_HOST=0.0.0.0:11434
-ENV OLLAMA_ORIGINS=*
+ENV FLASK_APP=app.py
+ENV FLASK_ENV=production
+ENV PYTHONPATH=/app
 
 # Expose port
-EXPOSE 11434
+EXPOSE 5000
 
-# Start Ollama
-CMD ["ollama", "serve"]
+# Start the application
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "2", "--timeout", "120", "app:app"]
