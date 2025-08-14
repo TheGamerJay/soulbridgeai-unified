@@ -220,6 +220,14 @@ try:
 except ImportError as e:
     print(f"[WARNING] Free Companion API not available: {e}")
 
+# Register Database Fix API blueprint
+try:
+    from routes.api_database_fix import bp as database_fix_bp
+    app.register_blueprint(database_fix_bp)
+    print("[OK] Database Fix API registered successfully")
+except ImportError as e:
+    print(f"[WARNING] Database Fix API not available: {e}")
+
 # ============================================
 # BULLETPROOF TIER ISOLATION SYSTEM
 # ============================================
