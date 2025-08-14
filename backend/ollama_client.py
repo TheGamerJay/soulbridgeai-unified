@@ -49,7 +49,8 @@ def chat(messages: List[Dict[str, str]], model: str = None, options: dict = None
             "options": {**DEFAULT_OPTIONS, **(options or {})}
         }
         
-        logger.info(f"Sending request to Ollama: {url}")
+        logger.info(f"Sending request to Ollama: {url} with model: {model}")
+        logger.info(f"Payload: {payload}")
         r = requests.post(url, json=payload, timeout=300)
         r.raise_for_status()
         

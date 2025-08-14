@@ -1443,6 +1443,21 @@ def healthz():
     """Simple health endpoint for Railway"""
     return "ok", 200, {"Content-Type": "text/plain"}
 
+@app.route("/debug/test-chat")
+def debug_test_chat():
+    """Simple test endpoint to try Ollama chat without authentication"""
+    try:
+        from ollama_client import generate_companion_response
+        result = generate_companion_response("What is 2+2?", "Blayzo")
+        return jsonify(result)
+    except Exception as e:
+        import traceback
+        return jsonify({
+            "error": str(e), 
+            "success": False, 
+            "traceback": traceback.format_exc()
+        }), 500
+
 @app.route("/debug/ollama")
 def debug_ollama():
     """Debug endpoint to check Ollama connection"""
