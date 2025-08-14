@@ -212,13 +212,6 @@ try:
 except ImportError as e:
     print(f"[WARNING] Could not register LLM health endpoints: {e}")
 
-# Register Free Companion API blueprint
-try:
-    from routes.api_companion_free import bp as companion_free_bp
-    app.register_blueprint(companion_free_bp)
-    print("[OK] Free Companion API registered successfully")
-except ImportError as e:
-    print(f"[WARNING] Free Companion API not available: {e}")
 
 # Register Database Fix API blueprint
 try:
@@ -9788,33 +9781,34 @@ def api_chat():
                 message, character, "gpt-3.5-turbo", 200, 0.75,
                 f"You are {character}, an enhanced AI companion from SoulBridge AI Growth Plan. You provide more detailed responses and have access to advanced conversation features. You're helpful, insightful, and offer quality guidance."
             )
-        else:  # Foundation (Free) - Local Ollama AI
-            logger.info(f"Using local Ollama AI for free user: {character}")
+        else:  # Foundation (Free) - OpenAI with budget limits
+            logger.info(f"Using OpenAI for free user: {character}")
             try:
-                # Try Ollama first (real AI)
-                from ollama_client import generate_companion_response, is_available
+                from openai_clients import get_openai_client
                 
-                if is_available():
-                    logger.info("Ollama is available, using local AI")
-                    ollama_response = generate_companion_response(message, character, context)
+                openai_client = get_openai_client()
+                if openai_client.is_available():
+                    logger.info("OpenAI available for free user")
+                    openai_response = openai_client.generate_companion_response(
+                        message, character, context, user_plan="free"
+                    )
                     
-                    if ollama_response.get("success", False):
-                        ai_response = ollama_response["response"]
-                        logger.info(f"Ollama AI response generated successfully")
+                    if openai_response.get("success", False):
+                        ai_response = openai_response["response"]
+                        logger.info(f"OpenAI response generated for free user")
                     else:
-                        logger.warning(f"Ollama failed: {ollama_response.get('error', 'Unknown error')}")
-                        raise Exception("Ollama response failed")
+                        logger.warning(f"OpenAI failed: {openai_response.get('reason', 'Unknown error')}")
+                        # Fallback to template for free users when OpenAI fails
+                        ai_response = f"Hello! I'm {character}, your AI companion. Our service is experiencing high demand, but I'm here to help! How can I assist you today?"
+                        logger.info("Used template fallback for free user")
                 else:
-                    logger.info("Ollama not available, using enhanced templates")
-                    raise Exception("Ollama not available")
+                    logger.info("OpenAI not available for free user, using template response")
+                    ai_response = f"Hello! I'm {character}, your AI companion. Our service is experiencing high demand, but I'm here to help! How can I assist you today?"
                     
-            except Exception as ollama_error:
-                logger.error(f"Ollama failed: {ollama_error}")
-                return jsonify({
-                    "success": False,
-                    "error": f"Ollama AI failed: {str(ollama_error)}",
-                    "debug": True
-                })
+            except Exception as openai_error:
+                logger.error(f"OpenAI error for free user: {openai_error}")
+                ai_response = f"Hello! I'm {character}, your AI companion. Our service is experiencing high demand, but I'm here to help! How can I assist you today?"
+                logger.info("Used template fallback due to OpenAI error")
         
         return jsonify({
             "success": True, 

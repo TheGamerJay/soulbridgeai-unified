@@ -94,7 +94,8 @@
       "WebFetch(domain:ollama-ai-production.up.railway.app)",
       "WebFetch(domain:station.railway.com)",
       "WebFetch(domain:railway.com)",
-      "Bash(true)"
+      "Bash(true)",
+      "Bash(del \"C:\\Users\\jaaye\\OneDrive\\Desktop\\soulbridgeai-unified\\backend\\routes\\api_companion_free.py\")"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"
