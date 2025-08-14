@@ -27,7 +27,9 @@ def chat(messages: List[Dict[str, str]], model: str = None, max_tokens: int = 30
             "options": {
                 "num_predict": max_tokens,
                 "temperature": 0.7,
-                "top_p": 0.9
+                "top_p": 0.9,
+                "num_ctx": 1024,
+                "num_thread": 4
             },
             "stream": False
         }

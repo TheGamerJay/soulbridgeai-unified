@@ -1462,7 +1462,7 @@ def debug_ollama():
                 "stream": False,
                 "options": {"num_predict": 8},
             },
-            timeout=12,
+            timeout=30,
         )
         out["chat_status"] = r.status_code
         out["chat_response"] = r.json() if r.ok else r.text
