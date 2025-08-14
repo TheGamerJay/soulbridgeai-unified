@@ -22,13 +22,17 @@ OLLAMA_BASE = (
 
 FREE_MODEL = os.getenv("FREE_MODEL", "tinyllama")
 
-# Default options for small containers - extreme minimal for speed
+# Default options for CPU-only inference - absolutely minimal
 DEFAULT_OPTIONS = {
-    "num_ctx": 128,   # Minimal context
-    "num_keep": 4,    # Minimal keep
-    "num_predict": 8,  # Very short responses
-    "temperature": 0.1,  # Almost no randomness
+    "num_ctx": 32,    # Tiny context window
+    "num_keep": 1,    # Keep almost nothing
+    "num_predict": 3, # Only 3 tokens (like "4")
+    "temperature": 0.0,  # No randomness at all
     "repeat_penalty": 1.0,  # No penalty
+    "num_batch": 1,   # Process one token at a time
+    "num_gqa": 1,     # Single group query attention
+    "num_gpu": 0,     # Force CPU-only
+    "main_gpu": -1,   # No GPU
 }
 
 def chat(messages: List[Dict[str, str]], model: str = None, options: dict = None) -> str:
@@ -52,7 +56,7 @@ def chat(messages: List[Dict[str, str]], model: str = None, options: dict = None
         
         logger.info(f"Sending request to Ollama: {url} with model: {model}")
         logger.info(f"Messages: {messages}")
-        r = requests.post(url, json=payload, timeout=30)
+        r = requests.post(url, json=payload, timeout=120)  # Give CPU more time
         r.raise_for_status()
         
         data = r.json()
