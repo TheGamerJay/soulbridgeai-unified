@@ -9625,12 +9625,21 @@ def _get_openai_response(message: str, character: str, model: str, max_tokens: i
 def api_chat():
     """Chat API endpoint"""
     try:
-        if not is_logged_in():
-            return jsonify({"success": False, "response": "Authentication required"}), 401
-            
+        # Allow free users to access local Ollama without full authentication
+        logged_in = is_logged_in()
+        
         data = request.get_json()
         if not data:
             return jsonify({"success": False, "response": "Invalid request data"}), 400
+            
+        if not logged_in:
+            # For unauthenticated users, allow basic Ollama access (free tier)
+            if data and data.get("message"):
+                logger.info("Processing request for unauthenticated user via local Ollama")
+                # Set as free user for the rest of the function
+                session['effective_plan'] = 'free'
+            else:
+                return jsonify({"success": False, "response": "Authentication required"}), 401
             
         # OpenAI check moved below - free users use Ollama, not OpenAI
             
