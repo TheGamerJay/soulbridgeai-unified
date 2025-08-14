@@ -49,7 +49,7 @@ def chat(messages: List[Dict[str, str]], model: str = None, options: dict = None
         }
         
         logger.info(f"Sending request to Ollama: {url}")
-        r = requests.post(url, json=payload, timeout=120)
+        r = requests.post(url, json=payload, timeout=180)
         r.raise_for_status()
         
         data = r.json()
