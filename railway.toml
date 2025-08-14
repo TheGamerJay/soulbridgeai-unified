@@ -5,4 +5,4 @@ dockerfilePath = "Dockerfile"
 [deploy]
 healthcheckPath = "/"
 healthcheckTimeout = 300
-startCommand = "gunicorn app:app -b 0.0.0.0:$PORT --workers 2 --threads 4 --timeout 120 --worker-class eventlet"
+startCommand = "sh -c 'gunicorn app:app -b 0.0.0.0:${PORT:-5000} --workers 2 --threads 4 --timeout 120 --worker-class eventlet'"
