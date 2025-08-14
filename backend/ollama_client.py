@@ -52,12 +52,17 @@ def chat(messages: List[Dict[str, str]], model: str = None, max_tokens: int = 30
 def is_available() -> bool:
     """Check if Ollama is running and has models"""
     try:
+        logger.info(f"Testing Ollama connection to: {OLLAMA_BASE}")
         r = requests.get(f"{OLLAMA_BASE}/api/tags", timeout=5)
+        logger.info(f"Ollama response status: {r.status_code}")
         if r.status_code != 200:
+            logger.warning(f"Ollama returned status {r.status_code}")
             return False
         models = r.json().get("models", [])
+        logger.info(f"Ollama models found: {[m.get('name') for m in models]}")
         return len(models) > 0
-    except:
+    except Exception as e:
+        logger.error(f"Ollama connection failed: {e}")
         return False
 
 def get_models() -> List[str]:
