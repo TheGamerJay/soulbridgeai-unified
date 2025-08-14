@@ -9688,17 +9688,12 @@ def api_chat():
                     raise Exception("Ollama not available")
                     
             except Exception as ollama_error:
-                logger.info(f"Ollama unavailable, using enhanced templates: {ollama_error}")
-                # Fallback to enhanced template system
-                try:
-                    premium_ai = get_premium_free_ai_service()
-                    user_id = session.get('user_id', 'anonymous')
-                    premium_response = premium_ai.generate_response(message, character, context, user_id)
-                    ai_response = premium_response["response"]
-                    logger.info(f"Enhanced template AI used as fallback")
-                except Exception as template_error:
-                    logger.error(f"All AI systems failed: {template_error}")
-                    ai_response = f"Hello! I'm {character}, your caring AI companion. I understand you said: '{message[:50]}...'. I'm here to help and support you!"
+                logger.error(f"Ollama failed: {ollama_error}")
+                return jsonify({
+                    "success": False,
+                    "error": f"Ollama AI failed: {str(ollama_error)}",
+                    "debug": True
+                })
         
         return jsonify({
             "success": True, 
