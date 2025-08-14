@@ -1,19 +1,21 @@
 #!/usr/bin/env python3
 """
-Script to manually pull phi3:mini model to Ollama service
+Script to manually pull model to Ollama service
 Run this after basic Ollama service is running
 """
 import requests
 import time
+import os
 
 def pull_model():
-    """Pull phi3:mini model to Ollama service"""
-    ollama_url = "http://ollama:11434"  # Internal Railway URL
+    """Pull model to Ollama service using FREE_MODEL environment variable"""
+    model_name = os.getenv("FREE_MODEL", "tinyllama")
+    ollama_url = "http://localhost:11434"  # Use localhost for embedded setup
     
-    print("Pulling phi3:mini model...")
+    print(f"Pulling {model_name} model...")
     
     response = requests.post(f"{ollama_url}/api/pull", 
-                           json={"name": "phi3:mini"},
+                           json={"name": model_name},
                            timeout=300)  # 5 minute timeout
     
     if response.status_code == 200:

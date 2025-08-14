@@ -93,7 +93,8 @@
       "Bash(del railway.toml)",
       "WebFetch(domain:ollama-ai-production.up.railway.app)",
       "WebFetch(domain:station.railway.com)",
-      "WebFetch(domain:railway.com)"
+      "WebFetch(domain:railway.com)",
+      "Bash(true)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"
