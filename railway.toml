@@ -1,26 +1,7 @@
 [build]
-builder = "nixpacks" 
-# Force redeploy: updated PostgreSQL password Yar1el_2025_Secure! - 2025-07-26
+builder = "dockerfile"
+dockerfilePath = "Dockerfile"
 
 [deploy]
-startCommand = "cd backend && python app.py"
-
-[deploy.env]
-DATABASE_URL = "${{Postgres-wJ-8.DATABASE_URL}}"
-PGHOST = "${{Postgres-wJ-8.PGHOST}}"  
-PGPORT = "${{Postgres-wJ-8.PGPORT}}"
-PGUSER = "${{Postgres-wJ-8.PGUSER}}"
-PGPASSWORD = "${{Postgres-wJ-8.PGPASSWORD}}"
-PGDATABASE = "${{Postgres-wJ-8.PGDATABASE}}"
-healthcheckPath = "/health"
-healthcheckTimeout = 120
-restartPolicyType = "on_failure"
-restartPolicyMaxRetries = 3
-
-# Persistent volume for database storage
-[volumes]
-data = "/data"
-
-[build.env]
-NIXPACKS_PYTHON_VERSION = "3.11"
-NIXPACKS_INSTALL_CMD = "pip install -r backend/requirements.txt"
+healthcheckPath = "/api/tags"
+healthcheckTimeout = 300
