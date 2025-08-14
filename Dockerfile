@@ -29,4 +29,4 @@ ENV PYTHONPATH=/app
 EXPOSE 5000
 
 # Start the application
-CMD ["python", "-m", "gunicorn", "--bind", "0.0.0.0:5000", "--workers", "2", "--timeout", "120", "--worker-class", "eventlet", "app:app"]
+CMD ["gunicorn", "-c", "gunicorn.conf.py", "app:app"]

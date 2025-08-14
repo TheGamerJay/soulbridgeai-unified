@@ -1414,6 +1414,11 @@ def health():
             "timestamp": datetime.now(timezone.utc).isoformat()
         }), 500
 
+@app.route("/healthz")
+def healthz():
+    """Simple health endpoint for Railway"""
+    return "ok", 200, {"Content-Type": "text/plain"}
+
 @app.route("/", methods=["GET", "POST"])
 def home():
     """Home route - redirect based on authentication status"""
