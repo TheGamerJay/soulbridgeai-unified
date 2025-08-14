@@ -9,8 +9,8 @@ from typing import List, Dict, Any
 logger = logging.getLogger(__name__)
 
 def _default_base():
-    # Safe default for Railway multi-service projects if ENV not set
-    return "http://ollama-ai:11434"  # service name "ollama-ai"
+    # Default to localhost for embedded Ollama setup
+    return "http://localhost:11434"
 
 OLLAMA_BASE = (
     os.getenv("DEBUG_OLLAMA_BASE")

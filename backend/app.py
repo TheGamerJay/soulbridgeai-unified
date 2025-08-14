@@ -1450,7 +1450,7 @@ def debug_ollama():
     
     # Use same logic as ollama_client.py
     def _default_base():
-        return "http://ollama-ai:11434"
+        return "http://localhost:11434"
     
     base = (
         os.getenv("DEBUG_OLLAMA_BASE")
