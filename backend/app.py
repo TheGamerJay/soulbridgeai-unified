@@ -1453,7 +1453,8 @@ def debug_ollama():
         return "http://ollama-ai:11434"
     
     base = (
-        os.getenv("LLM_BASE")
+        os.getenv("DEBUG_OLLAMA_BASE")
+        or os.getenv("LLM_BASE")
         or os.getenv("OLLAMA_BASE") 
         or os.getenv("OLLAMA_URL")
         or _default_base()

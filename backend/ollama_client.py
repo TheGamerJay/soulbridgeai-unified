@@ -13,7 +13,8 @@ def _default_base():
     return "http://ollama-ai:11434"  # service name "ollama-ai"
 
 OLLAMA_BASE = (
-    os.getenv("LLM_BASE")
+    os.getenv("DEBUG_OLLAMA_BASE")
+    or os.getenv("LLM_BASE")
     or os.getenv("OLLAMA_BASE") 
     or os.getenv("OLLAMA_URL")
     or _default_base()
