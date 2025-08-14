@@ -1447,8 +1447,18 @@ def healthz():
 def debug_ollama():
     """Debug endpoint to check Ollama connection"""
     import os, requests
-    base = os.getenv("LLM_BASE", "")
-    model = os.getenv("FREE_COMPANION_MODEL", "gemma2:2b")
+    
+    # Use same logic as ollama_client.py
+    def _default_base():
+        return "http://ollama-ai:11434"
+    
+    base = (
+        os.getenv("LLM_BASE")
+        or os.getenv("OLLAMA_BASE") 
+        or os.getenv("OLLAMA_URL")
+        or _default_base()
+    )
+    model = os.getenv("FREE_MODEL", "phi3:mini")
 
     out = {"llm_base": base, "model": model}
 
