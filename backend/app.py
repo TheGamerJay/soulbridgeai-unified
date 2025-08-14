@@ -9546,12 +9546,7 @@ def api_chat():
         if not data:
             return jsonify({"success": False, "response": "Invalid request data"}), 400
             
-        if not services["openai"]:
-            logger.warning("OpenAI service not available - providing fallback response")
-            # Provide a fallback response instead of failing
-            character = data.get("character", "Blayzo")
-            fallback_response = f"Hello! I'm {character}, your AI companion. I'm currently running in offline mode, but I'm here to help! How can I assist you today?"
-            return jsonify({"success": True, "response": fallback_response})
+        # OpenAI check moved below - free users use Ollama, not OpenAI
             
         message = data.get("message", "").strip()
         character = data.get("character", "Blayzo")
@@ -9595,11 +9590,19 @@ def api_chat():
         
         # Tier-specific AI model and parameters
         if user_tier == 'max':  # Max Plan - Premium OpenAI
+            if not services["openai"]:
+                logger.warning("OpenAI service not available for premium user")
+                fallback_response = f"Hello! I'm {character}, your AI companion. Our premium service is temporarily unavailable, but I'm here to help! How can I assist you today?"
+                return jsonify({"success": True, "response": fallback_response})
             ai_response = _get_openai_response(
                 message, character, "gpt-4", 300, 0.8,
                 f"You are {character}, an advanced AI companion from SoulBridge AI Max Plan. You have enhanced emotional intelligence, deeper insights, and provide more thoughtful, nuanced responses. You can engage in complex discussions and offer premium-level guidance."
             )
         elif user_tier == 'growth':  # Growth Plan - Standard OpenAI
+            if not services["openai"]:
+                logger.warning("OpenAI service not available for premium user")
+                fallback_response = f"Hello! I'm {character}, your AI companion. Our premium service is temporarily unavailable, but I'm here to help! How can I assist you today?"
+                return jsonify({"success": True, "response": fallback_response})
             ai_response = _get_openai_response(
                 message, character, "gpt-3.5-turbo", 200, 0.75,
                 f"You are {character}, an enhanced AI companion from SoulBridge AI Growth Plan. You provide more detailed responses and have access to advanced conversation features. You're helpful, insightful, and offer quality guidance."
