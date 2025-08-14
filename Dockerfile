@@ -28,5 +28,8 @@ ENV PYTHONPATH=/app
 # Expose port
 EXPOSE 5000
 
+# Make start script executable
+RUN chmod +x start.sh
+
 # Start the application
-CMD ["gunicorn", "-c", "gunicorn.conf.py", "app:app"]
+CMD ["./start.sh"]
