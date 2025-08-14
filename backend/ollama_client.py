@@ -22,13 +22,13 @@ OLLAMA_BASE = (
 
 FREE_MODEL = os.getenv("FREE_MODEL", "tinyllama")
 
-# Default options for small containers
+# Default options for small containers - ultra minimal for speed
 DEFAULT_OPTIONS = {
-    "num_ctx": 768,
-    "num_keep": 32, 
-    "num_predict": 160,
-    "temperature": 0.7,
-    "repeat_penalty": 1.1,
+    "num_ctx": 512,  # Reduced context
+    "num_keep": 16,  # Reduced keep
+    "num_predict": 32,  # Much shorter responses
+    "temperature": 0.3,  # Less randomness for speed
+    "repeat_penalty": 1.05,  # Reduced penalty
 }
 
 def chat(messages: List[Dict[str, str]], model: str = None, options: dict = None) -> str:
@@ -39,24 +39,34 @@ def chat(messages: List[Dict[str, str]], model: str = None, options: dict = None
     model = model or FREE_MODEL
     
     try:
-        # Ollama chat endpoint - use environment variable
-        url = f"{OLLAMA_BASE}/api/chat"
+        # Try simple generate endpoint first for better performance
+        url = f"{OLLAMA_BASE}/api/generate"
+        
+        # Convert messages to simple prompt
+        prompt = ""
+        for msg in messages:
+            if msg.get("role") == "system":
+                prompt += f"System: {msg.get('content', '')}\n"
+            elif msg.get("role") == "user":
+                prompt += f"User: {msg.get('content', '')}\n"
+        prompt += "Assistant: "
+        
         payload = {
             "model": model,
-            "messages": messages,
+            "prompt": prompt,
             "stream": False,
-            "keep_alive": "30m",
+            "keep_alive": "5m",  # Shorter keep alive
             "options": {**DEFAULT_OPTIONS, **(options or {})}
         }
         
         logger.info(f"Sending request to Ollama: {url} with model: {model}")
-        logger.info(f"Payload: {payload}")
-        r = requests.post(url, json=payload, timeout=300)
+        logger.info(f"Prompt: {prompt[:100]}...")  # First 100 chars only
+        r = requests.post(url, json=payload, timeout=60)
         r.raise_for_status()
         
         data = r.json()
-        # Ollama returns a single final 'message' when stream=False
-        response = data["message"]["content"].strip()
+        # Ollama generate API returns response directly
+        response = data.get("response", "").strip()
         logger.info(f"Ollama response received: {len(response)} characters")
         return response
         
