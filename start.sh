@@ -1,7 +1,3 @@
 #!/bin/bash
-PORT=${PORT:-8080}
-WEB_CONCURRENCY=${WEB_CONCURRENCY:-1}
-WORKER_CLASS=${WORKER_CLASS:-sync}
-GUNICORN_TIMEOUT=${GUNICORN_TIMEOUT:-120}
 cd /app/backend
-exec gunicorn app:app --bind 0.0.0.0:$PORT --workers $WEB_CONCURRENCY --worker-class $WORKER_CLASS --timeout $GUNICORN_TIMEOUT
+exec gunicorn app:app --bind 0.0.0.0:8080 --workers 1 --timeout 30
