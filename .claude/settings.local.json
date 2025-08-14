@@ -87,7 +87,8 @@
       "Bash(where:*)",
       "Bash(choco install:*)",
       "Bash(ollama:*)",
-      "WebFetch(domain:ollama.com)"
+      "WebFetch(domain:ollama.com)",
+      "Bash(del test_login.py simple_test.py test_known_user.py create_test_user.py test_auth_direct.py)"
     ],
     "deny": []
   }
