@@ -1448,7 +1448,7 @@ def test_direct():
     """Ultra simple test endpoint"""
     try:
         from ollama_client import chat
-        messages = [{"role": "user", "content": "2+2"}]
+        messages = [{"role": "user", "content": "hi"}]  # Simplest possible message
         result = chat(messages)
         return f"SUCCESS: {result}"
     except Exception as e:

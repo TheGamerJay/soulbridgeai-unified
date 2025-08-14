@@ -22,13 +22,13 @@ OLLAMA_BASE = (
 
 FREE_MODEL = os.getenv("FREE_MODEL", "tinyllama")
 
-# Default options for small containers - ultra minimal for speed
+# Default options for small containers - extreme minimal for speed
 DEFAULT_OPTIONS = {
-    "num_ctx": 512,  # Reduced context
-    "num_keep": 16,  # Reduced keep
-    "num_predict": 32,  # Much shorter responses
-    "temperature": 0.3,  # Less randomness for speed
-    "repeat_penalty": 1.05,  # Reduced penalty
+    "num_ctx": 128,   # Minimal context
+    "num_keep": 4,    # Minimal keep
+    "num_predict": 8,  # Very short responses
+    "temperature": 0.1,  # Almost no randomness
+    "repeat_penalty": 1.0,  # No penalty
 }
 
 def chat(messages: List[Dict[str, str]], model: str = None, options: dict = None) -> str:
@@ -52,7 +52,7 @@ def chat(messages: List[Dict[str, str]], model: str = None, options: dict = None
         
         logger.info(f"Sending request to Ollama: {url} with model: {model}")
         logger.info(f"Messages: {messages}")
-        r = requests.post(url, json=payload, timeout=60)
+        r = requests.post(url, json=payload, timeout=30)
         r.raise_for_status()
         
         data = r.json()
