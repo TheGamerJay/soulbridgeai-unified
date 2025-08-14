@@ -1,0 +1,5 @@
+backend/
+frontend/
+README.md
+.gitignore
+!Dockerfile
