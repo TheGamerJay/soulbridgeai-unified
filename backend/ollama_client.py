@@ -39,34 +39,25 @@ def chat(messages: List[Dict[str, str]], model: str = None, options: dict = None
     model = model or FREE_MODEL
     
     try:
-        # Try simple generate endpoint first for better performance
-        url = f"{OLLAMA_BASE}/api/generate"
-        
-        # Convert messages to simple prompt
-        prompt = ""
-        for msg in messages:
-            if msg.get("role") == "system":
-                prompt += f"System: {msg.get('content', '')}\n"
-            elif msg.get("role") == "user":
-                prompt += f"User: {msg.get('content', '')}\n"
-        prompt += "Assistant: "
+        # Use Ollama chat endpoint - generate endpoint doesn't exist
+        url = f"{OLLAMA_BASE}/api/chat"
         
         payload = {
             "model": model,
-            "prompt": prompt,
+            "messages": messages,
             "stream": False,
             "keep_alive": "5m",  # Shorter keep alive
             "options": {**DEFAULT_OPTIONS, **(options or {})}
         }
         
         logger.info(f"Sending request to Ollama: {url} with model: {model}")
-        logger.info(f"Prompt: {prompt[:100]}...")  # First 100 chars only
+        logger.info(f"Messages: {messages}")
         r = requests.post(url, json=payload, timeout=60)
         r.raise_for_status()
         
         data = r.json()
-        # Ollama generate API returns response directly
-        response = data.get("response", "").strip()
+        # Ollama chat API returns message.content
+        response = data.get("message", {}).get("content", "").strip()
         logger.info(f"Ollama response received: {len(response)} characters")
         return response
         
