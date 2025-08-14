@@ -120,7 +120,7 @@ def generate_companion_response(message: str, character: str = "Blayzo", context
         messages.insert(1, {"role": "assistant", "content": f"Context: {context}"})
     
     try:
-        response = chat(messages, max_tokens=250)
+        response = chat(messages)
         return {
             "success": True,
             "response": response,
