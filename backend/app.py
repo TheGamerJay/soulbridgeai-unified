@@ -626,7 +626,7 @@ def increment_rate_limit_session():
 @app.before_request
 def ensure_session_persistence():
     # Allow auth + static + home + mini-studio page itself (so it can show the UI)
-    open_paths = {"/api/login", "/api/logout", "/login", "/auth/login", "/", "/mini-studio", "/mini_studio_health", "/api/mini-assistant-status", "/terms-acceptance", "/api/accept-terms", "/intro", "/debug/ollama", "/debug/test-chat", "/debug/simple-chat", "/test-direct", "/api/database/fix-schema", "/api/ollama/pull-model", "/api/ollama/status", "/api/companion/free", "/healthz"}
+    open_paths = {"/api/login", "/api/logout", "/login", "/auth/login", "/", "/mini-studio", "/mini_studio_health", "/api/mini-assistant-status", "/terms-acceptance", "/api/accept-terms", "/intro", "/debug/ollama", "/debug/test-chat", "/debug/simple-chat", "/debug/supervisor-logs", "/test-direct", "/api/database/fix-schema", "/api/ollama/pull-model", "/api/ollama/status", "/api/companion/free", "/healthz"}
     if request.path.startswith("/static/") or request.path in open_paths:
         return
     
@@ -1454,6 +1454,39 @@ def test_direct():
     except Exception as e:
         import traceback
         return f"ERROR: {str(e)}\nTRACE: {traceback.format_exc()}", 500
+
+@app.route("/debug/supervisor-logs")
+def debug_supervisor_logs():
+    """Check what's actually happening in supervisor"""
+    try:
+        import subprocess
+        import os
+        
+        logs = {}
+        
+        # Check if log files exist and read them
+        log_files = ["/tmp/ollama.log", "/tmp/preload.log", "/tmp/web.log", "/tmp/supervisord.log"]
+        
+        for log_file in log_files:
+            if os.path.exists(log_file):
+                try:
+                    with open(log_file, 'r') as f:
+                        logs[log_file] = f.read()[-2000:]  # Last 2000 chars
+                except:
+                    logs[log_file] = "Error reading file"
+            else:
+                logs[log_file] = "File not found"
+        
+        # Also check if Ollama process is actually running
+        try:
+            ps_result = subprocess.check_output(['ps', 'aux'], universal_newlines=True)
+            logs['processes'] = ps_result
+        except:
+            logs['processes'] = "Error getting processes"
+            
+        return f"<pre>{logs}</pre>"
+    except Exception as e:
+        return f"ERROR: {str(e)}", 500
 
 @app.route("/debug/test-chat")
 def debug_test_chat():
