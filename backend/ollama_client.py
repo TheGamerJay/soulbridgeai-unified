@@ -8,7 +8,7 @@ from typing import List, Dict, Any
 
 logger = logging.getLogger(__name__)
 
-OLLAMA_BASE = os.getenv("LLM_BASE", "http://localhost:11434")
+OLLAMA_BASE = os.getenv("LLM_BASE", os.getenv("OLLAMA_URL", "http://localhost:11434"))
 FREE_MODEL = os.getenv("FREE_COMPANION_MODEL", "llama3:8b-instruct")
 
 def chat(messages: List[Dict[str, str]], model: str = None, max_tokens: int = 300) -> str:
