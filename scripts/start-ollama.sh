@@ -1,13 +1,16 @@
-#!/bin/bash
+#!/bin/sh
 
 # Start Ollama in background
 ollama serve &
 
 # Wait for Ollama to be ready
-sleep 10
+echo "Waiting for Ollama to start..."
+sleep 15
 
 # Pull the model we need
-ollama pull llama3:8b-instruct
+echo "Pulling llama3:8b-instruct model..."
+ollama pull llama3:8b-instruct || echo "Model pull failed, continuing..."
 
 # Keep the container running
+echo "Ollama is ready!"
 wait
