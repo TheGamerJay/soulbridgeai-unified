@@ -6,6 +6,6 @@ ENV OLLAMA_NUM_PARALLEL=4
 
 EXPOSE 11434
 
-RUN echo '#!/bin/bash\nset -e\nollama serve &\nsleep 10\nif ! ollama list | grep -q "gemma2:2b"; then\n    ollama pull gemma2:2b\nfi\nwait' > /usr/local/bin/start-ollama.sh && chmod +x /usr/local/bin/start-ollama.sh
+RUN echo '#!/bin/bash\nset -e\nollama serve &\nsleep 10\necho "Pulling phi3:mini model..."\nollama pull phi3:mini\necho "Model pull completed"\nwait' > /usr/local/bin/start-ollama.sh && chmod +x /usr/local/bin/start-ollama.sh
 
 CMD ["/usr/local/bin/start-ollama.sh"]
