@@ -25,18 +25,18 @@ def chat(messages: List[Dict[str, str]], model: str = None, max_tokens: int = 30
             "model": model,
             "messages": messages,
             "options": {
-                "num_predict": max_tokens,
+                "num_predict": min(max_tokens, 256),  # Cap at 256 for stability
                 "temperature": 0.7,
-                "top_p": 0.9,
-                "num_ctx": 1024,
-                "num_thread": 4
+                "num_ctx": 768,  # Conservative for gemma2:2b on free tier
+                "num_keep": 32,  # Keep small prefix between turns
+                "repeat_penalty": 1.1
             },
             "stream": False,
-            "keep_alive": "5m"
+            "keep_alive": "30m"  # Extended keep-alive
         }
         
         logger.info(f"Sending request to Ollama: {url}")
-        r = requests.post(url, json=payload, timeout=20)
+        r = requests.post(url, json=payload, timeout=60)  # Increased for model loading
         r.raise_for_status()
         
         data = r.json()
