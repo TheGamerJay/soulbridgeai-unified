@@ -618,7 +618,7 @@ def increment_rate_limit_session():
 @app.before_request
 def ensure_session_persistence():
     # Allow auth + static + home + mini-studio page itself (so it can show the UI)
-    open_paths = {"/api/login", "/api/logout", "/login", "/auth/login", "/", "/mini-studio", "/mini_studio_health", "/api/mini-assistant-status", "/terms-acceptance", "/api/accept-terms", "/intro", "/debug/ollama", "/healthz"}
+    open_paths = {"/api/login", "/api/logout", "/login", "/auth/login", "/", "/mini-studio", "/mini_studio_health", "/api/mini-assistant-status", "/terms-acceptance", "/api/accept-terms", "/intro", "/debug/ollama", "/api/database/fix-schema", "/healthz"}
     if request.path.startswith("/static/") or request.path in open_paths:
         return
     
