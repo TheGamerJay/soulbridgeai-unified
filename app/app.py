@@ -8,7 +8,7 @@ LOG = setup_logger(os.getenv("LOG_LEVEL","info"))
 app = Flask(__name__)
 limiter = init_limiter(app)
 
-FREE_MODEL = os.getenv("FREE_MODEL","phi3:mini")
+FREE_MODEL = os.getenv("FREE_MODEL","tinyllama")
 DEFAULT_MODEL = os.getenv("DEFAULT_MODEL","llama3.1:8b")
 OLLAMA_BASE = os.getenv("LLM_BASE", os.getenv("OLLAMA_BASE","http://ollama-ai.railway.internal:11434"))
 API_KEY = os.getenv("APP_API_KEY")
