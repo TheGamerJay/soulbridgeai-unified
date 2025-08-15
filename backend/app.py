@@ -983,8 +983,8 @@ def is_logged_in():
         has_email = bool(session.get('user_email') or session.get('email'))
         has_user_id = bool(session.get('user_id'))
         
-        # DEBUG: Log authentication check details
-        logger.info(f"🔍 AUTH CHECK: has_email={has_email}, has_user_id={has_user_id}, session_keys={list(session.keys())}")
+        # Reduce logging spam - only log once per session or on failures
+        auth_already_logged = session.get('auth_logged_this_session')
         
         # If they have either email or user_id, they're logged in
         if has_email or has_user_id:
@@ -997,7 +997,10 @@ def is_logged_in():
                 session.modified = True
                 logger.info("🔒 SESSION: Made session permanent to prevent login kicks")
             
-            logger.info("✅ AUTH CHECK: User is logged in")
+            # Only log once per session to reduce spam
+            if not auth_already_logged:
+                logger.info(f"✅ AUTH CHECK: User logged in (email={has_email}, user_id={has_user_id})")
+                session['auth_logged_this_session'] = True
             return True
         
         logger.warning("❌ AUTH CHECK: User is NOT logged in - no email or user_id found")
@@ -3063,8 +3066,12 @@ def companion_selection():
     # DEBUG: Log template variables to identify flash cause
     logger.info(f"🎨 TEMPLATE DEBUG: referral_count={referral_count}, trial_active={trial_active}, user_plan={user_plan}")
     
-    # Use ultra-minimal template to eliminate ALL potential flash sources
-    return render_template("companion_minimal.html")
+    # Return proper companion selector with all necessary variables
+    return render_template("companion_selector.html", 
+                         user_plan=user_plan,
+                         trial_active=trial_active,
+                         referral_count=referral_count,
+                         session=session)
 
 # ---- CLEAN NETFLIX-STYLE TIERS PAGE ----
 @app.route("/tiers")
@@ -13804,12 +13811,46 @@ TIERS_TEMPLATE = r"""
 </div>
 
 <script>
+  console.log('🔧 TIERS JS: Script loaded successfully');
+  
   function openChat(slug){ 
-    // Performance optimization: use requestAnimationFrame to prevent blocking
-    requestAnimationFrame(() => {
-      window.location.href = '/chat?companion=' + encodeURIComponent(slug);
-    });
+    console.log('🔧 openChat called with slug:', slug);
+    
+    // Add debug logging and error handling
+    try {
+      console.log('🔧 About to navigate to chat with companion:', slug);
+      
+      // Performance optimization: use requestAnimationFrame to prevent blocking
+      requestAnimationFrame(() => {
+        const url = '/chat?companion=' + encodeURIComponent(slug);
+        console.log('🔧 Navigating to URL:', url);
+        window.location.href = url;
+      });
+    } catch (error) {
+      console.error('🔧 Error in openChat:', error);
+      alert('Error opening chat: ' + error.message);
+    }
   }
+  
+  // Debug: Check if function exists and test onclick handlers
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log('🔧 DOM loaded');
+    console.log('🔧 openChat function exists:', typeof openChat);
+    
+    // Find all cards with onclick handlers
+    const cards = document.querySelectorAll('.card[onclick]');
+    console.log('🔧 Found cards with onclick:', cards.length);
+    
+    cards.forEach((card, index) => {
+      console.log(`🔧 Card ${index + 1} onclick:`, card.getAttribute('onclick'));
+      
+      // Add manual click listener to debug
+      card.addEventListener('click', function(e) {
+        console.log('🔧 Manual click listener triggered for card:', index + 1);
+        console.log('🔧 Card onclick attribute:', this.getAttribute('onclick'));
+      });
+    });
+  });
   
   // Countdown timer for trial (optimized for performance)
   let timerCache = null;

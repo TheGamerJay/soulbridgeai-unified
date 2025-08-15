@@ -773,6 +773,7 @@
                 <i class="fas fa-star"></i> Premium Trial Active - All Features Unlocked! 
                 <span id="trial-eta">5:00:00</span>
             </div>
+            
         </div>
         
         <div id="companions-container" style="min-height: 200px;">
@@ -790,21 +791,21 @@
 
               <div class="companion-row">
                 <!-- Blayzo Free -->
-                <div class="companion-card" onclick="selectCompanion('blayzo_free')" style="cursor: pointer;">
+                <div class="companion-card" data-companion="blayzo_free" style="cursor: pointer;">
                   <img src="/static/logos/Blayzo.png" alt="Blayzo Free">
                   <div class="companion-name">Blayzo Free</div>
                   <div class="companion-lock">✅ Unlocked</div>
                 </div>
 
                 <!-- Blayzica Free -->
-                <div class="companion-card" onclick="selectCompanion('blayzica_free')" style="cursor: pointer;">
+                <div class="companion-card" data-companion="blayzica_free" style="cursor: pointer;">
                   <img src="/static/logos/Blayzica.png" alt="Blayzica Free">
                   <div class="companion-name">Blayzica Free</div>
                   <div class="companion-lock">✅ Unlocked</div>
                 </div>
 
                 <!-- GamerJay -->
-                <div class="companion-card" onclick="selectCompanion('gamerjay')" style="cursor: pointer;">
+                <div class="companion-card" data-companion="gamerjay" style="cursor: pointer;">
                   <img src="/static/logos/GamerJay Free companion.png" alt="GamerJay">
                   <div class="companion-name">GamerJay</div>
                   <div class="companion-lock">✅ Unlocked</div>
@@ -817,7 +818,7 @@
                 <div class="companion-row">
                   <!-- Sky -->
                   <div class="companion-card {% if user_plan in ['growth', 'max'] or trial_active %}unlocked{% else %}locked{% endif %}" 
-                       onclick="checkAccessAndSelect('sky', ['growth', 'max'])" 
+                       data-companion="sky" data-tiers="growth,max"
                        style="cursor: pointer;">
                     <img src="/static/logos/Sky.png" alt="Sky" onerror="this.src='/static/logos/IntroLogo.png'">
                     <div class="companion-name">Sky</div>
@@ -826,7 +827,7 @@
 
                   <!-- Blayzo Premium -->
                   <div class="companion-card {% if user_plan in ['growth', 'max'] or trial_active %}unlocked{% else %}locked{% endif %}" 
-                       onclick="checkAccessAndSelect('blayzo_premium', ['growth', 'max'])" 
+                       data-companion="blayzo_premium" data-tiers="growth,max"
                        style="cursor: pointer;">
                     <img src="/static/logos/Blayzo Premium.png" alt="Blayzo Premium" onerror="this.src='/static/logos/IntroLogo.png'">
                     <div class="companion-name">Blayzo Premium</div>
@@ -835,7 +836,7 @@
 
                   <!-- Blayzica Growth -->
                   <div class="companion-card {% if user_plan in ['growth', 'max'] or trial_active %}unlocked{% else %}locked{% endif %}" 
-                       onclick="checkAccessAndSelect('blayzica_growth', ['growth', 'max'])" 
+                       data-companion="blayzica_growth" data-tiers="growth,max"
                        style="cursor: pointer;">
                     <img src="/static/logos/Blayzica Growth.png" alt="Blayzica Growth" onerror="this.src='/static/logos/IntroLogo.png'">
                     <div class="companion-name">Blayzica Growth</div>
@@ -850,7 +851,7 @@
                 <div class="companion-row">
                   <!-- Companion Crimson -->
                   <div class="companion-card {% if user_plan == 'max' or trial_active %}unlocked{% else %}locked{% endif %}" 
-                       onclick="checkAccessAndSelect('companion_crimson', ['max'])" 
+                       data-companion="companion_crimson" data-tiers="max"
                        style="cursor: pointer;">
                     <img src="/static/logos/Companion Crimson.png" alt="Companion Crimson" onerror="this.src='/static/logos/IntroLogo.png'">
                     <div class="companion-name">Companion Crimson</div>
@@ -859,7 +860,7 @@
 
                   <!-- Companion Violet -->
                   <div class="companion-card {% if user_plan == 'max' or trial_active %}unlocked{% else %}locked{% endif %}" 
-                       onclick="checkAccessAndSelect('companion_violet', ['max'])" 
+                       data-companion="companion_violet" data-tiers="max"
                        style="cursor: pointer;">
                     <img src="/static/logos/Companion Violet.png" alt="Companion Violet" onerror="this.src='/static/logos/IntroLogo.png'">
                     <div class="companion-name">Companion Violet</div>
@@ -868,7 +869,7 @@
 
                   <!-- Royal Max -->
                   <div class="companion-card {% if user_plan == 'max' or trial_active %}unlocked{% else %}locked{% endif %}" 
-                       onclick="checkAccessAndSelect('royal_max', ['max'])" 
+                       data-companion="royal_max" data-tiers="max"
                        style="cursor: pointer;">
                     <img src="/static/logos/Royal Max.png" alt="Royal Max" onerror="this.src='/static/logos/IntroLogo.png'">
                     <div class="companion-name">Royal Max</div>
@@ -1316,6 +1317,37 @@
 
         // Initialize trial status checking
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('🔧 JavaScript loaded successfully!');
+            console.log('🔧 checkAccessAndSelect function exists:', typeof checkAccessAndSelect);
+            console.log('🔧 selectCompanion function exists:', typeof selectCompanion);
+            
+            // Add event listeners to all companion cards with data attributes
+            const companionCards = document.querySelectorAll('.companion-card[data-companion]');
+            console.log('🔧 Found', companionCards.length, 'companion cards with data attributes');
+            
+            companionCards.forEach((card, index) => {
+                const companionId = card.getAttribute('data-companion');
+                const requiredTiers = card.getAttribute('data-tiers');
+                
+                if (companionId) {
+                    console.log(`🔧 Adding click listener for ${companionId} (card ${index + 1})`);
+                    
+                    card.addEventListener('click', function(event) {
+                        event.preventDefault();
+                        console.log(`🔧 Click detected on ${companionId}`);
+                        
+                        if (requiredTiers) {
+                            const tierArray = requiredTiers.split(',');
+                            console.log(`🔧 Calling checkAccessAndSelect for ${companionId} with tiers:`, tierArray);
+                            checkAccessAndSelect(companionId, tierArray);
+                        } else {
+                            console.log(`🔧 Calling selectCompanion directly for ${companionId}`);
+                            selectCompanion(companionId);
+                        }
+                    });
+                }
+            });
+            
             // Check trial status on page load
             loadTrialStatus();
             
