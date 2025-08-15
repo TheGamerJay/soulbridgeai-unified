@@ -1915,6 +1915,64 @@ def session_refresh():
         logger.error(f"Error refreshing session: {e}")
         return jsonify({"success": False, "error": "Failed to refresh session"}), 500
 
+@app.route("/api/session/me", methods=["GET"])
+def session_me():
+    """Check current session status for companion access"""
+    try:
+        if not is_logged_in():
+            return jsonify({"error": "Not authenticated"}), 401
+            
+        return jsonify({
+            "authenticated": True,
+            "user_plan": session.get('user_plan', 'free'),
+            "trial_active": session.get('trial_active', False),
+            "user_id": session.get('user_id')
+        })
+    except Exception as e:
+        logger.error(f"Session check error: {e}")
+        return jsonify({"error": "Session check failed"}), 500
+
+@app.route("/api/companions/<slug>/access", methods=["GET"])
+def companion_access_check(slug):
+    """Check if user can access a specific companion"""
+    try:
+        if not is_logged_in():
+            return jsonify({"error": "Not authenticated"}), 401
+            
+        # Define valid companion slugs and their tier requirements
+        VALID_COMPANIONS = {
+            # Free tier
+            'blayzo_free': ['free'], 'blayzica_free': ['free'], 'companion_gamerjay': ['free'],
+            'claude_free': ['free'], 'blayzia_free': ['free'], 'blayzion_free': ['free'],
+            # Growth tier  
+            'companion_sky': ['growth', 'max'], 'blayzo_premium': ['growth', 'max'],
+            'blayzica_growth': ['growth', 'max'], 'gamerjay_premium': ['growth', 'max'],
+            'watchdog_growth': ['growth', 'max'], 'crimson_growth': ['growth', 'max'],
+            'violet_growth': ['growth', 'max'], 'claude_growth': ['growth', 'max'],
+            # Max tier
+            'companion_crimson': ['max'], 'companion_violet': ['max'], 'royal_max': ['max'],
+            'watchdog_max': ['max'], 'ven_blayzica': ['max'], 'ven_sky': ['max'], 'claude_max': ['max']
+        }
+        
+        if slug not in VALID_COMPANIONS:
+            return jsonify({"error": "Invalid companion"}), 404
+            
+        user_plan = session.get('user_plan', 'free')
+        trial_active = session.get('trial_active', False)
+        required_tiers = VALID_COMPANIONS[slug]
+        
+        # Check access: subscription plan or active trial
+        has_access = (user_plan in required_tiers) or trial_active
+        
+        if not has_access:
+            return jsonify({"error": "Companion locked for your tier"}), 403
+            
+        return jsonify({"allowed": True, "companion": slug})
+        
+    except Exception as e:
+        logger.error(f"Companion access check error: {e}")
+        return jsonify({"error": "Access check failed"}), 500
+
 @app.route("/api/user-status", methods=["GET"])
 def user_status():
     """Check if user is logged in for frontend authentication checks"""
@@ -3149,7 +3207,7 @@ def tiers_page():
                                 max_list=max_companions,
                                 referral_milestones=referral_milestones,
                                 referral_count=referral_count,
-                                cache_bust="20250815_2226")
+                                cache_bust="20250815_2230")
 
 @app.route("/test-companions")
 def test_companions():
@@ -3229,10 +3287,8 @@ def test_companions():
 def chat():
     """Chat page with bulletproof tier system"""
     if not is_logged_in():
-        companion = request.args.get('companion')
-        if companion:
-            return redirect(f"/login?return_to=chat&companion={companion}")
-        return redirect("/login?return_to=chat")
+        # Return 401 instead of redirect to prevent refresh loops
+        return jsonify({"error": "Authentication required", "redirect": "/login"}), 401
         
     # Check if user has accepted terms
     terms_check = requires_terms_acceptance()
@@ -13891,109 +13947,42 @@ TIERS_TEMPLATE = r"""
 <script>
   console.log('🔧 TIERS JS: Script loaded successfully - v{{ cache_bust }}');
   
-  async function openChat(slug){ 
-    console.log('🔧 openChat called with slug:', slug);
-    console.log('🔧 Version: TIMEOUT_FIX_V2');
+  async function openChat(slug) {
+    console.log('🔧 NEW ROBUST openChat called with:', slug);
     
     try {
-      // Get current user plan from template
-      const userPlan = '{{ user_plan }}' || 'free';
-      console.log('👤 User plan:', userPlan);
-      
-      // TEMP DEBUG: Check trial status from template instead of API  
-      const trialActive = '{{ trial_active }}' === 'True';
-      console.log('🔍 Template trial status:', trialActive);
-      
-      if (slug === 'blayzo_premium' || slug === 'blayzica_growth') {
-        if (trialActive || userPlan === 'growth' || userPlan === 'max') {
-          console.log('✅ Access granted via template data');
-          navigateToChat(slug);
-        } else {
-          console.log('❌ No access via template data');
-          alert('Start trial or upgrade to access this companion!');
-        }
+      // 1) Quick client-side lock check if companion is marked as locked
+      const card = document.querySelector(`[data-slug="${slug}"]`);
+      if (card && card.dataset.locked === "true") {
+        alert("Locked — upgrade to access.");
         return;
       }
-      
-      // Define tier requirements for each companion
-      const companionTiers = {
-        // Free tier companions - always accessible
-        'blayzo_free': ['free'],
-        'blayzica_free': ['free'], 
-        'companion_gamerjay': ['free'],
-        'claude_free': ['free'],
-        'blayzia_free': ['free'],
-        'blayzion_free': ['free'],
-        
-        // Growth tier companions
-        'companion_sky': ['growth', 'max'],
-        'blayzo_premium': ['growth', 'max'],
-        'blayzica_growth': ['growth', 'max'],
-        'gamerjay_premium': ['growth', 'max'],
-        'watchdog_growth': ['growth', 'max'],
-        'crimson_growth': ['growth', 'max'],
-        'violet_growth': ['growth', 'max'],
-        'claude_growth': ['growth', 'max'],
-        
-        // Max tier companions
-        'companion_crimson': ['max'],
-        'companion_violet': ['max'],
-        'royal_max': ['max'],
-        'watchdog_max': ['max'],
-        'ven_blayzica': ['max'],
-        'ven_sky': ['max'],
-        'claude_max': ['max']
-      };
-      
-      const requiredTiers = companionTiers[slug] || ['free'];
-      console.log(`🔍 Checking access for ${slug}, required tiers:`, requiredTiers);
-      
-      // Check subscription access first
-      if (requiredTiers.includes(userPlan)) {
-        console.log(`✅ Access granted via subscription: ${userPlan}`);
-        navigateToChat(slug);
+
+      // 2) Confirm session on the same origin to avoid cross-site cookie issues
+      const me = await fetch("/api/session/me", { credentials: "include" });
+      if (me.status === 401) {
+        // Not logged in — send to login explicitly instead of attempting chat
+        window.location.assign("/login?next=" + encodeURIComponent(`/chat?companion=${slug}`));
         return;
       }
-      
-      // If no subscription access, check trial status via API
-      console.log(`🔍 Checking trial status via API...`);
-      
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
-        
-        const response = await fetch('/api/trial-status', { 
-          credentials: 'include',
-          signal: controller.signal
-        });
-        
-        clearTimeout(timeoutId);
-        
-        if (!response.ok) {
-          throw new Error(`API responded with status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        console.log(`📊 Trial status:`, data);
-        
-        if (data.active) {
-          console.log(`✅ Access granted via active trial`);
-          navigateToChat(slug);
-        } else {
-          console.log(`❌ No access - trial not active`);
-          const tierText = requiredTiers.join(' or ');
-          alert(`Upgrade to ${tierText} or start trial to unlock this companion!`);
-        }
-      } catch (fetchError) {
-        console.error('🔧 Error fetching trial status:', fetchError);
-        
-        // Fallback: Allow access if API fails (better UX)
-        console.log(`⚠️ API failed, allowing access as fallback`);
-        navigateToChat(slug);
+
+      // 3) Ask the server if access is allowed BEFORE navigating (prevents redirect loops)
+      const can = await fetch(`/api/companions/${encodeURIComponent(slug)}/access`, { credentials: "include" });
+      if (can.status === 403) {
+        alert("This companion is locked for your current tier or trial.");
+        return;
       }
-    } catch (error) {
-      console.error('🔧 Error in openChat:', error);
-      alert('Error checking companion access: ' + error.message);
+      if (!can.ok) {
+        alert("We couldn't open this chat right now. Please try again in a moment.");
+        return;
+      }
+
+      // 4) Navigate to chat
+      console.log('🚀 Access confirmed, navigating to chat');
+      window.location.assign(`/chat?companion=${encodeURIComponent(slug)}`);
+    } catch (e) {
+      console.error('🔧 Error in openChat:', e);
+      alert("Unexpected error opening chat.");
     }
   }
   
