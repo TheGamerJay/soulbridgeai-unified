@@ -685,45 +685,8 @@ def is_user_ad_free():
         logger.error(f"Error checking ad-free status: {e}")
         return False
 
-def clear_invalid_trial_for_free_users():
-    """Safety check: Clear trial status for free users (they should use ads instead)"""
-    user_plan = session.get('user_plan', 'free')
-    trial_active = session.get('trial_active', False)
-    
-    if user_plan == 'free' and trial_active:
-        logger.warning(f"⚠️ Clearing invalid trial status for free user {session.get('user_id')}")
-        session['trial_active'] = False
-        session['trial_started_at'] = None
-        session['trial_expires_at'] = None
-        session.modified = True
-        
-        # Also clear in database
-        try:
-            user_id = session.get('user_id')
-            if user_id:
-                db_instance = get_database()
-                if db_instance:
-                    conn = db_instance.get_connection()
-                    cursor = conn.cursor()
-                    
-                    if db_instance.use_postgres:
-                        cursor.execute("""
-                            UPDATE users 
-                            SET trial_active = FALSE, trial_started_at = NULL, trial_expires_at = NULL 
-                            WHERE id = %s AND (user_plan = 'free' OR plan_type = 'free')
-                        """, (user_id,))
-                    else:
-                        cursor.execute("""
-                            UPDATE users 
-                            SET trial_active = 0, trial_started_at = NULL, trial_expires_at = NULL 
-                            WHERE id = ? AND (user_plan = 'free' OR plan_type = 'free')
-                        """, (user_id,))
-                    
-                    conn.commit()
-                    conn.close()
-                    logger.info(f"✅ Cleared invalid trial status in database for free user {user_id}")
-        except Exception as e:
-            logger.error(f"Error clearing invalid trial status: {e}")
+# REMOVED: clear_invalid_trial_for_free_users() function was incorrectly clearing trials for free users
+# Free users ARE ALLOWED to use 5-hour trials - that's the whole point of the trial system
 
 # Global variables for services
 services = {
@@ -3012,8 +2975,7 @@ def intro():
         logger.info(f"✅ INTRO: trial_active={trial_active}, effective_plan={effective_plan}, access_growth={session['access_growth']}, access_max={session['access_max']}")
         logger.info(f"Access flags: free={session['access_free']}, growth={session['access_growth']}, max={session['access_max']}, trial={session['access_trial']}")
         
-        # Safety check: Clear any invalid trial status for free users
-        clear_invalid_trial_for_free_users()
+        # Trial system allows free users to have 5-hour trials - no need to clear
         
         return render_template("intro.html", 
                                 ad_free=is_user_ad_free(),
@@ -3379,8 +3341,7 @@ def chat():
     if "gamerjay" in companion_name.lower():
         logger.info(f"🔍 GAMERJAY DEBUG: Original companion_id={request.args.get('companion')}, Final companion_name={companion_name}, Avatar path={companion_info['avatar']}")
     
-    # Safety check: Clear any invalid trial status for free users
-    clear_invalid_trial_for_free_users()
+    # Trial system allows free users to have 5-hour trials - no need to clear
     
     return render_template("chat.html",
         companion=companion_name,
