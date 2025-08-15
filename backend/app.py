@@ -3207,7 +3207,7 @@ def tiers_page():
                                 max_list=max_companions,
                                 referral_milestones=referral_milestones,
                                 referral_count=referral_count,
-                                cache_bust="20250815_2230")
+                                cache_bust="20250815_2235")
 
 @app.route("/test-companions")
 def test_companions():
@@ -3289,6 +3289,35 @@ def chat():
     if not is_logged_in():
         # Return 401 instead of redirect to prevent refresh loops
         return jsonify({"error": "Authentication required", "redirect": "/login"}), 401
+    
+    # Check companion access FIRST before heavy database operations
+    companion_slug = request.args.get('companion')
+    if companion_slug:
+        # Define valid companions and tier requirements  
+        VALID_COMPANIONS = {
+            # Free tier
+            'blayzo_free': ['free'], 'blayzica_free': ['free'], 'companion_gamerjay': ['free'],
+            'claude_free': ['free'], 'blayzia_free': ['free'], 'blayzion_free': ['free'],
+            # Growth tier  
+            'companion_sky': ['growth', 'max'], 'blayzo_premium': ['growth', 'max'],
+            'blayzica_growth': ['growth', 'max'], 'gamerjay_premium': ['growth', 'max'],
+            'watchdog_growth': ['growth', 'max'], 'crimson_growth': ['growth', 'max'],
+            'violet_growth': ['growth', 'max'], 'claude_growth': ['growth', 'max'],
+            # Max tier
+            'companion_crimson': ['max'], 'companion_violet': ['max'], 'royal_max': ['max'],
+            'watchdog_max': ['max'], 'ven_blayzica': ['max'], 'ven_sky': ['max'], 'claude_max': ['max']
+        }
+        
+        if companion_slug in VALID_COMPANIONS:
+            user_plan = session.get('user_plan', 'free')
+            trial_active = session.get('trial_active', False)
+            required_tiers = VALID_COMPANIONS[companion_slug]
+            
+            # Check access: subscription plan or active trial
+            has_access = (user_plan in required_tiers) or trial_active
+            
+            if not has_access:
+                return jsonify({"error": f"Companion '{companion_slug}' requires {' or '.join(required_tiers)} plan or active trial"}), 403
         
     # Check if user has accepted terms
     terms_check = requires_terms_acceptance()
@@ -13948,37 +13977,11 @@ TIERS_TEMPLATE = r"""
   console.log('🔧 TIERS JS: Script loaded successfully - v{{ cache_bust }}');
   
   async function openChat(slug) {
-    console.log('🔧 NEW ROBUST openChat called with:', slug);
+    console.log('🔧 FAST openChat called with:', slug);
     
     try {
-      // 1) Quick client-side lock check if companion is marked as locked
-      const card = document.querySelector(`[data-slug="${slug}"]`);
-      if (card && card.dataset.locked === "true") {
-        alert("Locked — upgrade to access.");
-        return;
-      }
-
-      // 2) Confirm session on the same origin to avoid cross-site cookie issues
-      const me = await fetch("/api/session/me", { credentials: "include" });
-      if (me.status === 401) {
-        // Not logged in — send to login explicitly instead of attempting chat
-        window.location.assign("/login?next=" + encodeURIComponent(`/chat?companion=${slug}`));
-        return;
-      }
-
-      // 3) Ask the server if access is allowed BEFORE navigating (prevents redirect loops)
-      const can = await fetch(`/api/companions/${encodeURIComponent(slug)}/access`, { credentials: "include" });
-      if (can.status === 403) {
-        alert("This companion is locked for your current tier or trial.");
-        return;
-      }
-      if (!can.ok) {
-        alert("We couldn't open this chat right now. Please try again in a moment.");
-        return;
-      }
-
-      // 4) Navigate to chat
-      console.log('🚀 Access confirmed, navigating to chat');
+      // Go straight to chat; server guard will enforce access (no API dependency)
+      console.log('🚀 Navigating directly to chat - server will handle access');
       window.location.assign(`/chat?companion=${encodeURIComponent(slug)}`);
     } catch (e) {
       console.error('🔧 Error in openChat:', e);
