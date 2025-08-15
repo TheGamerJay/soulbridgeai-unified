@@ -13813,23 +13813,81 @@ TIERS_TEMPLATE = r"""
 <script>
   console.log('🔧 TIERS JS: Script loaded successfully');
   
-  function openChat(slug){ 
+  async function openChat(slug){ 
     console.log('🔧 openChat called with slug:', slug);
     
-    // Add debug logging and error handling
     try {
-      console.log('🔧 About to navigate to chat with companion:', slug);
+      // Get current user plan from template
+      const userPlan = '{{ user_plan }}' || 'free';
+      console.log('👤 User plan:', userPlan);
       
-      // Performance optimization: use requestAnimationFrame to prevent blocking
-      requestAnimationFrame(() => {
-        const url = '/chat?companion=' + encodeURIComponent(slug);
-        console.log('🔧 Navigating to URL:', url);
-        window.location.href = url;
-      });
+      // Define tier requirements for each companion
+      const companionTiers = {
+        // Free tier companions - always accessible
+        'blayzo_free': ['free'],
+        'blayzica_free': ['free'], 
+        'companion_gamerjay': ['free'],
+        'claude_free': ['free'],
+        'blayzia_free': ['free'],
+        'blayzion_free': ['free'],
+        
+        // Growth tier companions
+        'companion_sky': ['growth', 'max'],
+        'blayzo_premium': ['growth', 'max'],
+        'blayzica_growth': ['growth', 'max'],
+        'gamerjay_premium': ['growth', 'max'],
+        'watchdog_growth': ['growth', 'max'],
+        'crimson_growth': ['growth', 'max'],
+        'violet_growth': ['growth', 'max'],
+        'claude_growth': ['growth', 'max'],
+        
+        // Max tier companions
+        'companion_crimson': ['max'],
+        'companion_violet': ['max'],
+        'royal_max': ['max'],
+        'watchdog_max': ['max'],
+        'ven_blayzica': ['max'],
+        'ven_sky': ['max'],
+        'claude_max': ['max']
+      };
+      
+      const requiredTiers = companionTiers[slug] || ['free'];
+      console.log(`🔍 Checking access for ${slug}, required tiers:`, requiredTiers);
+      
+      // Check subscription access first
+      if (requiredTiers.includes(userPlan)) {
+        console.log(`✅ Access granted via subscription: ${userPlan}`);
+        navigateToChat(slug);
+        return;
+      }
+      
+      // If no subscription access, check trial status via API
+      console.log(`🔍 Checking trial status via API...`);
+      const response = await fetch('/api/trial-status', { credentials: 'include' });
+      const data = await response.json();
+      console.log(`📊 Trial status:`, data);
+      
+      if (data.active) {
+        console.log(`✅ Access granted via active trial`);
+        navigateToChat(slug);
+      } else {
+        console.log(`❌ No access - trial not active`);
+        const tierText = requiredTiers.join(' or ');
+        alert(`Upgrade to ${tierText} or start trial to unlock this companion!`);
+      }
     } catch (error) {
       console.error('🔧 Error in openChat:', error);
-      alert('Error opening chat: ' + error.message);
+      alert('Error checking companion access: ' + error.message);
     }
+  }
+  
+  function navigateToChat(slug) {
+    console.log('🔧 About to navigate to chat with companion:', slug);
+    requestAnimationFrame(() => {
+      const url = '/chat?companion=' + encodeURIComponent(slug);
+      console.log('🔧 Navigating to URL:', url);
+      window.location.href = url;
+    });
   }
   
   // Debug: Check if function exists and test onclick handlers
