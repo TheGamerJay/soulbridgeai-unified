@@ -2266,7 +2266,10 @@ def accept_terms():
 @app.route('/api/start-trial', methods=['POST'])
 def start_trial():
     """Start 5-hour trial for ALL users (one-time only to unlock premium features)"""
+    logger.info(f"🎯 TRIAL REQUEST: user_id={session.get('user_id')}, session_keys={list(session.keys())}")
+    
     if not session.get('user_id'):
+        logger.error("🚨 TRIAL ERROR: No user_id in session")
         return jsonify({"success": False, "error": "Login required"}), 401
 
     # Check if trial already used permanently
@@ -2284,72 +2287,71 @@ def start_trial():
             "error": "Trial is already active!"
         }), 400
 
-    db = get_database()
-    if not db:
-        return jsonify({"success": False, "error": "Database unavailable"}), 500
-
-    conn = db.get_connection()
-    cursor = conn.cursor()
-
-    user_id = session['user_id']
-    if db.use_postgres:
-        cursor.execute("SELECT trial_started_at, trial_used_permanently FROM users WHERE id = %s", (user_id,))
-    else:
-        cursor.execute("SELECT trial_started_at, trial_used_permanently FROM users WHERE id = ?", (user_id,))
-
-    row = cursor.fetchone()
-    if not row:
-        conn.close()
-        return jsonify({"success": False, "error": "User not found"}), 404
-
-    trial_started_at, trial_used = row
-    
-    # Allow restarting trial - removed "Trial already active" check for better user experience
-    
-    # Check if trial was already used
-    if trial_used:
-        conn.close()
-        return jsonify({"success": False, "error": "Trial already used"}), 400
-
-    # ALWAYS reset trial time to correct 5-hour duration
-    now = datetime.utcnow()
-    expires = now + timedelta(hours=TRIAL_DURATION_HOURS)
-    
-    # DEBUG: Log exact trial duration calculation
-    logger.info(f"🕒 TRIAL START DEBUG: TRIAL_DURATION_HOURS={TRIAL_DURATION_HOURS}")
-    logger.info(f"🕒 TRIAL START DEBUG: now={now}, expires={expires}")
-    logger.info(f"🕒 TRIAL START DEBUG: duration_seconds={(expires-now).total_seconds()}")
-
-    # Update database
     try:
-        if db.use_postgres:
-            cursor.execute("UPDATE users SET trial_started_at = %s, trial_expires_at = %s, trial_used_permanently = FALSE WHERE id = %s", (now, expires, user_id))
-        else:
-            cursor.execute("UPDATE users SET trial_started_at = ?, trial_expires_at = ?, trial_used_permanently = FALSE WHERE id = ?", (now.isoformat(), expires.isoformat(), user_id))
+        database_url = os.environ.get('DATABASE_URL')
+        if not database_url:
+            return jsonify({"success": False, "error": "Database configuration unavailable"}), 500
+
+        import psycopg2
+        conn = psycopg2.connect(database_url)
+        cursor = conn.cursor()
+
+        user_id = session['user_id']
+        cursor.execute("SELECT trial_started_at, trial_used_permanently FROM users WHERE id = %s", (user_id,))
+
+        row = cursor.fetchone()
+        if not row:
+            conn.close()
+            return jsonify({"success": False, "error": "User not found"}), 404
+
+        trial_started_at, trial_used = row
         
+        # Check if trial was already used
+        if trial_used:
+            conn.close()
+            return jsonify({"success": False, "error": "You have already used your one-time 5-hour trial"}), 400
+
+        # Start 5-hour trial
+        from datetime import datetime, timedelta
+        now = datetime.utcnow()
+        expires = now + timedelta(hours=5)
+        
+        logger.info(f"🎯 STARTING TRIAL: User {user_id} trial expires at {expires}")
+
+        # Update database
+        cursor.execute("UPDATE users SET trial_started_at = %s, trial_expires_at = %s WHERE id = %s", (now, expires, user_id))
         conn.commit()
         conn.close()
+
+        # Update session - CRITICAL: Set trial_active to True, don't mark as used permanently yet
+        session['trial_active'] = True
+        session['trial_started_at'] = now.isoformat()
+        session['trial_expires_at'] = expires.isoformat() + 'Z'
+        session['trial_used_permanently'] = False  # Only set to True when trial expires
+        session['trial_warning_sent'] = False
+        session.modified = True
+
+        logger.info(f"🎯 Trial started for user {user_id} - expires at {expires}")
+
+        return jsonify({
+            "success": True,
+            "message": "🔥 5-Hour Trial Activated! Growth + Max features unlocked + 60 trainer time!",
+            "expires_at": expires.isoformat(),
+            "effective_plan": 'max'
+        })
+        
     except Exception as e:
-        conn.close()
-        logger.error(f"Database error starting trial: {e}")
-        return jsonify({"success": False, "error": "Database error"}), 500
-
-    # Update session - CRITICAL: Set trial_active to True, don't mark as used permanently yet
-    session['trial_active'] = True
-    session['trial_started_at'] = now.isoformat()
-    session['trial_expires_at'] = expires.isoformat() + 'Z'
-    session['trial_used_permanently'] = False  # Only set to True when trial expires
-    # Don't cache effective_plan - get_effective_plan() will return 'max' when trial_active=True
-    session['trial_warning_sent'] = False
-
-    logger.info(f"Trial started for user {user_id}")
-
-    return jsonify({
-        "success": True, 
-        "message": "🔥 5-Hour Trial Activated! Growth + Max companions unlocked!",
-        "expires_at": expires.isoformat(),
-        "effective_plan": 'max'
-    })
+        if 'conn' in locals():
+            conn.close()
+        logger.error(f"🚨 TRIAL ERROR: {type(e).__name__}: {str(e)}")
+        
+        # Provide more specific error messages
+        if "does not exist" in str(e):
+            return jsonify({"success": False, "error": f"Database schema error: {str(e)}"}), 500
+        elif "connect" in str(e).lower():
+            return jsonify({"success": False, "error": "Database connection failed"}), 500
+        else:
+            return jsonify({"success": False, "error": f"Trial error: {str(e)}"}), 500
 
 # REMOVED: Duplicate debug_session_info function - using the more comprehensive one at /debug/session-info
 
