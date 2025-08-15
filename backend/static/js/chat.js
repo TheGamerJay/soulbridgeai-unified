@@ -351,6 +351,9 @@ async function sendMessage() {
         if (data.success && data.response) {
             console.log('📥 Received response:', data.response);
             addMessage(data.response, 'assistant');
+            
+            // Show ad after AI response for free users
+            await handlePostResponseAd(data);
         } else {
             console.error('❌ API error:', data.error);
             addMessage('I apologize, but I encountered an error. Please try again.', 'assistant', true);
@@ -1457,6 +1460,161 @@ function formatConversationForLibrary() {
     });
     
     return formattedContent;
+}
+
+// Ad-Gated Messaging System
+async function handlePostResponseAd(responseData) {
+    // Check if user needs to see ads (not on ad-free plan)
+    const userPlan = await getUserPlan();
+    
+    if (shouldShowAd(userPlan)) {
+        console.log('📺 Showing ad for free user');
+        disableMessageInput();
+        await showAdBeforeNextMessage();
+    }
+}
+
+function shouldShowAd(userPlan) {
+    // Show ads for free users (not on $5 ad-free plan or higher tiers)
+    const adFreePlans = ['ad_free', 'growth', 'max', 'premium', 'enterprise'];
+    return !adFreePlans.includes(userPlan?.toLowerCase());
+}
+
+async function getUserPlan() {
+    try {
+        const response = await fetch('/api/user-plan');
+        const data = await response.json();
+        return data.plan || 'free';
+    } catch (error) {
+        console.error('Error getting user plan:', error);
+        return 'free'; // Default to free (show ads)
+    }
+}
+
+function disableMessageInput() {
+    const sendButton = document.querySelector('.send-button');
+    const messageInput = document.getElementById('messageInput');
+    
+    if (sendButton) {
+        sendButton.disabled = true;
+        sendButton.innerHTML = '<i class="fas fa-clock"></i>';
+        sendButton.title = 'Please watch the ad to continue';
+    }
+    
+    if (messageInput) {
+        messageInput.disabled = true;
+        messageInput.placeholder = 'Please watch the ad to continue messaging...';
+    }
+}
+
+function enableMessageInput() {
+    const sendButton = document.querySelector('.send-button');
+    const messageInput = document.getElementById('messageInput');
+    
+    if (sendButton) {
+        sendButton.disabled = false;
+        sendButton.innerHTML = '<i class="fas fa-paper-plane"></i>';
+        sendButton.title = 'Send message';
+    }
+    
+    if (messageInput) {
+        messageInput.disabled = false;
+        messageInput.placeholder = 'Type your message here or click the microphone to speak...';
+    }
+}
+
+async function showAdBeforeNextMessage() {
+    return new Promise((resolve) => {
+        // Create ad container
+        const adContainer = document.createElement('div');
+        adContainer.className = 'ad-container';
+        adContainer.innerHTML = `
+            <div class="ad-header">
+                <span class="ad-label">Advertisement</span>
+                <span class="ad-timer">Please wait <span id="adTimer">15</span> seconds...</span>
+            </div>
+            <div class="ad-content" id="adContent">
+                <!-- AdSense ad will be inserted here -->
+                <div class="ad-placeholder">
+                    <div class="ad-placeholder-content">
+                        <i class="fas fa-ad"></i>
+                        <p>Loading advertisement...</p>
+                        <p class="ad-placeholder-note">Support SoulBridge AI by viewing this ad</p>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Insert ad after the last message
+        const messagesContainer = document.getElementById('chatMessages');
+        messagesContainer.appendChild(adContainer);
+        scrollToBottom();
+        
+        // Start countdown timer
+        let timeLeft = 15;
+        const timerElement = document.getElementById('adTimer');
+        
+        const countdown = setInterval(() => {
+            timeLeft--;
+            if (timerElement) {
+                timerElement.textContent = timeLeft;
+            }
+            
+            if (timeLeft <= 0) {
+                clearInterval(countdown);
+                completeAdViewing(adContainer, resolve);
+            }
+        }, 1000);
+        
+        // Load actual AdSense ad (placeholder for now)
+        loadAdSenseAd('adContent');
+    });
+}
+
+function loadAdSenseAd(containerId) {
+    // This will be replaced with actual AdSense code once you have Publisher ID
+    console.log('📺 Loading AdSense ad into:', containerId);
+    
+    // For now, show wellness/gaming themed placeholder ad
+    const adContent = document.getElementById(containerId);
+    if (adContent) {
+        setTimeout(() => {
+            adContent.innerHTML = `
+                <div class="demo-ad">
+                    <div class="demo-ad-content">
+                        <h3>🧘‍♀️ Calm - Meditation & Sleep</h3>
+                        <p>Find your inner peace with guided meditations</p>
+                        <button class="demo-ad-button">Download Free</button>
+                    </div>
+                </div>
+            `;
+        }, 1000);
+    }
+}
+
+function completeAdViewing(adContainer, resolve) {
+    // Show completion message
+    const adHeader = adContainer.querySelector('.ad-header');
+    if (adHeader) {
+        adHeader.innerHTML = `
+            <span class="ad-label">Advertisement</span>
+            <span class="ad-timer ad-complete">✅ Thank you! You can continue chatting</span>
+        `;
+    }
+    
+    // Re-enable messaging after brief delay
+    setTimeout(() => {
+        enableMessageInput();
+        
+        // Remove ad after another delay
+        setTimeout(() => {
+            if (adContainer.parentNode) {
+                adContainer.remove();
+            }
+        }, 2000);
+        
+        resolve();
+    }, 1000);
 }
 
 // Export functions for testing

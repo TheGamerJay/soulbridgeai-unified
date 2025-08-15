@@ -5919,9 +5919,10 @@ def select_plan():
         raw_plan = data.get("plan_type", "").lower()
         billing = data.get("billing", "monthly")
         
-        # ✅ Bulletproof plan normalization - ONLY accept Growth/Max for manual selection
+        # ✅ Bulletproof plan normalization - Accept Ad-Free/Growth/Max for manual selection
         # Free tier is assigned automatically during signup, not selectable
         plan_map = {
+            'ad_free': 'ad_free',
             'growth': 'growth',
             'premium': 'growth',
             'max': 'max',
@@ -6057,18 +6058,20 @@ def payment_page():
         if plan not in VALID_PLANS or plan == "foundation":
             return redirect("/subscription")
             
-        plan_names = {"growth": "Growth", "max": "Max"}
+        plan_names = {"ad_free": "Ad-Free", "growth": "Growth", "max": "Max"}
         plan_display = plan_names.get(plan, plan.title())
         
         # Prices in cents - Updated for accurate yearly pricing
         plan_prices = {
             "monthly": {
-                "premium": 1299,  # $12.99/month
-                "enterprise": 1999  # $19.99/month
+                "ad_free": 500,    # $5.00/month
+                "premium": 1299,   # $12.99/month
+                "enterprise": 1999 # $19.99/month
             },
             "yearly": {
+                "ad_free": 5000,   # $50/year (17% savings from $60)
                 "premium": 11700,  # $117/year (25% savings from $155.88)
-                "enterprise": 18000  # $180/year (25% savings from $239.88)
+                "enterprise": 18000 # $180/year (25% savings from $239.88)
             }
         }
         
@@ -6101,8 +6104,8 @@ def create_checkout_session():
         plan_type = data.get("plan_type")
         billing = data.get("billing", "monthly")
         
-        # Accept both old and new plan names for payment
-        valid_plans = ["premium", "enterprise", "growth", "max"]
+        # Accept both old and new plan names for payment including ad_free
+        valid_plans = ["ad_free", "premium", "enterprise", "growth", "max"]
         if plan_type not in valid_plans:
             return jsonify({"success": False, "error": "Invalid plan type"}), 400
         
@@ -6130,15 +6133,18 @@ def create_checkout_session():
         
         # Plan details (use normalized plan names)
         plan_names = {
+            "ad_free": "Ad-Free Plan",
             "premium": "Growth Plan", "growth": "Growth Plan",
             "enterprise": "Max Plan", "max": "Max Plan"
         }
         plan_prices = {
             "monthly": {
+                "ad_free": 500,     # $5.00/month
                 "premium": 1299, "growth": 1299,  # $12.99/month
                 "enterprise": 1999, "max": 1999  # $19.99/month
             },
             "yearly": {
+                "ad_free": 5000,    # $50/year (17% savings)
                 "premium": 11700, "growth": 11700,  # $117/year (25% savings)
                 "enterprise": 18000, "max": 18000  # $180/year (25% savings)
             }
