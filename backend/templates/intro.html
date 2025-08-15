@@ -286,7 +286,8 @@
 <body class="intro-page" style="background: #000000 !important; background-attachment: fixed !important; background-size: 100% 100% !important; min-height: 100vh !important; margin: 0 !important; font-family: system-ui, -apple-system, sans-serif !important; color: #00ffff !important;">
     <!-- Navigation -->
     <div class="top-nav" style="position: fixed; top: 0; left: 0; right: 0; z-index: 1000; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;">
-        <!-- 🚀 NEW Enhanced Trial Timer - Beautiful Modern Design -->
+        <!-- 🚀 Trial Timer - Only for growth/max users (free users use ads, no trials) -->
+        {% if user_plan != 'free' %}
         <div id="trial-timer-container" style="display:none; position: fixed; top: 20px; right: 20px; z-index: 1500;">
             <div class="timer-glass-card">
                 <div class="timer-glow-ring">
@@ -334,9 +335,11 @@
                 </div>
             </div>
         </div>
+        {% endif %}
 
+        {% if user_plan != 'free' %}
         <style>
-        /* 🎨 Beautiful Modern Timer Styles - Intro Page */
+        /* 🎨 Beautiful Modern Timer Styles - Intro Page (Growth/Max only) */
         .timer-glass-card {
             background: linear-gradient(135deg, rgba(0, 0, 0, 0.9) 0%, rgba(15, 23, 42, 0.9) 100%);
             backdrop-filter: blur(20px);
@@ -542,11 +545,13 @@
             100% { opacity: 0.6; }
         }
         </style>
+        {% endif %}
         
         <!-- Right side buttons -->
         <div style="display: flex; gap: 15px; align-items: center;">
             
-            <!-- Trial Badge with Simple Timer - Hidden by default, shown by JavaScript when active -->
+            <!-- Trial Badge - Only for growth/max users (free users use ads, no trials) -->
+            {% if user_plan != 'free' %}
             <div class="trial-status-container">
                 <span class="trial-badge" id="trial-badge" style="display: none;">
                     🕐 Trial Active
@@ -555,6 +560,7 @@
                     <span id="timer-display">5:00:00</span>
                 </div>
             </div>
+            {% endif %}
             <a href="/auth/logout" class="btn-danger">Logout</a>
         </div>
     </div>
@@ -1329,6 +1335,8 @@ What specific area would you like help with? I know every feature of SoulBridge 
         // ✨ NEW ENHANCED TIMER SYSTEM - Simple and conflict-free
         let timerUpdateInterval;
 
+        // Trial functions - only for growth/max users
+        {% if user_plan != 'free' %}
         function initializeEnhancedTimer() {
             const container = document.getElementById('trial-timer-container');
             if (!container) return;
@@ -1379,6 +1387,7 @@ What specific area would you like help with? I know every feature of SoulBridge 
                 timerElement.classList.add('warning');
             }
         }
+        {% endif %}
 
         async function refreshUserStatus() {
             try {
@@ -1391,6 +1400,13 @@ What specific area would you like help with? I know every feature of SoulBridge 
                 }
 
                 const { trial_active, trial_remaining, effective_plan, trial_used_permanently } = data;
+
+                // Skip trial logic for free users (they use ads, not trials)
+                const userPlan = '{{ user_plan or "free" }}';
+                if (userPlan === 'free') {
+                    console.log('🚫 Skipping trial logic - free user uses ads');
+                    return;
+                }
 
                 // Update trial badge and simple timer
                 const trialBadge = document.getElementById('trial-badge');

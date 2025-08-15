@@ -185,11 +185,13 @@
                 
                 <!-- Trial Badge (shows when trial is active) -->
                 <div class="trial-status-container">
-                    <!-- Removed redundant trial badge - timer banner shows trial status -->
+                    <!-- Trial banner - Only for growth/max users (free users use ads, no trials) -->
+                    {% if user_plan != 'free' %}
                     <div id="trial-banner" class="simple-timer" style="display: {% if session.get('trial_active') %}block{% else %}none{% endif %};">
                         <strong><i class="fas fa-clock"></i> Trial Active</strong>
                         <span id="trial-eta">— 05:00:00</span>
                     </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -2543,6 +2545,12 @@ Where emotion meets expression.
                 }
 
                 const { trial_active, trial_remaining, effective_plan, user_plan, trial_used_permanently } = data;
+
+                // Skip trial logic for free users (they use ads, not trials) 
+                if (user_plan === 'free') {
+                    console.log('🚫 Skipping trial logic in chat - free user uses ads');
+                    return;
+                }
 
                 // Update trial badge
                 const trialBadge = document.getElementById('trial-badge');

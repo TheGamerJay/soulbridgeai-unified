@@ -3014,7 +3014,9 @@ def intro():
         # Safety check: Clear any invalid trial status for free users
         clear_invalid_trial_for_free_users()
         
-        return render_template("intro.html", ad_free=is_user_ad_free())
+        return render_template("intro.html", 
+                                ad_free=is_user_ad_free(),
+                                user_plan=user_plan)
     except Exception as e:
         logger.error(f"❌ INTRO ERROR: {e}")
         import traceback
