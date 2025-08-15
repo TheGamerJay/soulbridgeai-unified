@@ -15815,6 +15815,36 @@ def add_trainer_credits(user_id, amount=350):
         logger.error(f"Error adding purchased credits: {e}")
         return False
 
+@app.route('/fix-schema')
+def fix_database_schema_endpoint():
+    """Manual database schema fix endpoint"""
+    try:
+        from unified_tier_system import ensure_database_schema
+        
+        logger.info("🔧 Manual database schema fix triggered")
+        success = ensure_database_schema()
+        
+        if success:
+            return jsonify({
+                "success": True,
+                "message": "✅ Database schema updated successfully",
+                "details": "Added missing columns: timezone, credits, last_credit_reset, purchased_credits and feature_usage table"
+            })
+        else:
+            return jsonify({
+                "success": False,
+                "message": "❌ Database schema update failed",
+                "error": "Check server logs for details"
+            }), 500
+            
+    except Exception as e:
+        logger.error(f"Manual schema fix error: {e}")
+        return jsonify({
+            "success": False,
+            "message": "❌ Database schema update failed",
+            "error": str(e)
+        }), 500
+
 @app.route('/api/update-timezone', methods=['POST'])
 def update_user_timezone():
     """Update user's timezone for personalized daily resets"""
