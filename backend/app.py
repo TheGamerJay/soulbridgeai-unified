@@ -3151,6 +3151,80 @@ def tiers_page():
                                 referral_count=referral_count,
                                 cache_bust="20250815_2226")
 
+@app.route("/test-companions")
+def test_companions():
+    """Test page for companion clicking with fresh JavaScript"""
+    if not is_logged_in():
+        return redirect("/login")
+    
+    user_plan = session.get('user_plan', 'free')
+    trial_active = session.get('trial_active', False)
+    
+    return f"""<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Test Companions</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <style>
+        body {{ background: #111; color: #fff; font-family: Arial; padding: 20px; }}
+        .companion {{ background: #333; padding: 15px; margin: 10px; border-radius: 8px; cursor: pointer; }}
+        .companion:hover {{ background: #555; }}
+    </style>
+</head>
+<body>
+    <h1>Test Companion Clicking</h1>
+    <p>User Plan: {user_plan}</p>
+    <p>Trial Active: {trial_active}</p>
+    
+    <div class="companion" onclick="testOpenChat('blayzo_free')">Blayzo Free (Should work)</div>
+    <div class="companion" onclick="testOpenChat('blayzo_premium')">Blayzo Premium (TEST)</div>
+    <div class="companion" onclick="testOpenChat('companion_crimson')">Companion Crimson (TEST)</div>
+    
+    <script>
+        console.log('🔧 TEST PAGE: Script loaded fresh - no cache');
+        console.log('👤 User plan: {user_plan}');
+        console.log('🔍 Trial active: {trial_active}');
+        
+        function testOpenChat(slug) {{
+            console.log('🔧 testOpenChat called with:', slug);
+            
+            const userPlan = '{user_plan}';
+            const trialActive = {str(trial_active).lower()};
+            
+            // Define tier requirements
+            const companionTiers = {{
+                'blayzo_free': ['free'],
+                'blayzo_premium': ['growth', 'max'],
+                'companion_crimson': ['max']
+            }};
+            
+            const requiredTiers = companionTiers[slug] || ['free'];
+            console.log('🔍 Required tiers:', requiredTiers);
+            
+            // Check access
+            if (requiredTiers.includes(userPlan)) {{
+                console.log('✅ Access granted via subscription');
+                navigateToChat(slug);
+            }} else if (trialActive) {{
+                console.log('✅ Access granted via active trial');
+                navigateToChat(slug);
+            }} else {{
+                console.log('❌ No access');
+                alert('Need ' + requiredTiers.join(' or ') + ' plan or active trial!');
+            }}
+        }}
+        
+        function navigateToChat(slug) {{
+            console.log('🚀 Navigating to chat with:', slug);
+            window.location.href = '/chat?companion=' + encodeURIComponent(slug);
+        }}
+    </script>
+</body>
+</html>"""
+
 @app.route("/chat")
 def chat():
     """Chat page with bulletproof tier system"""
