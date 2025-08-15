@@ -317,6 +317,9 @@ async function sendMessage() {
     
     console.log('📤 Sending message:', message);
     
+    // Emit message start event for ad pause system
+    window.dispatchEvent(new Event('soulbridge:message:start'));
+    
     // Add user message to chat
     addMessage(message, 'user');
     
@@ -366,6 +369,9 @@ async function sendMessage() {
     } finally {
         isProcessing = false;
         updateSendButtonState();
+        
+        // Emit message complete event for ad resume system
+        window.dispatchEvent(new Event('soulbridge:message:complete'));
     }
 }
 
@@ -1464,48 +1470,19 @@ function formatConversationForLibrary() {
 
 // Ad-Gated Messaging System
 async function handlePostResponseAd(responseData) {
-    // Check if user needs to see ads (not on ad-free plan)
-    console.log('🔍 AD DEBUG: handlePostResponseAd called');
-    const userPlan = await getUserPlan();
-    console.log('🔍 AD DEBUG: User plan:', userPlan);
-    
-    const shouldShow = shouldShowAd(userPlan);
-    console.log('🔍 AD DEBUG: Should show ad:', shouldShow);
-    
-    if (shouldShow) {
-        console.log('📺 Showing ad for free user');
-        disableMessageInput();
-        await showAdBeforeNextMessage();
-    } else {
-        console.log('⏭️ Skipping ad - user has ad-free plan');
+    // Check if user is ad-free using server-injected flag
+    if (window.__AD_FREE__ === true || window.__AD_FREE__ === 'true') {
+        console.log('🚫 Skipping ad - user has ad-free subscription');
+        return;
     }
+    
+    console.log('📺 Showing ad for non-ad-free user');
+    disableMessageInput();
+    await showAdBeforeNextMessage();
 }
 
-function shouldShowAd(userPlan) {
-    // Show ads for free users (not on $5 ad-free plan or higher tiers)
-    const adFreePlans = ['ad_free', 'growth', 'max', 'premium', 'enterprise'];
-    const lowerPlan = userPlan?.toLowerCase();
-    const isAdFree = adFreePlans.includes(lowerPlan);
-    console.log('🔍 AD DEBUG: shouldShowAd - userPlan:', userPlan, 'lowerPlan:', lowerPlan, 'isAdFree:', isAdFree);
-    return !isAdFree;
-}
-
-async function getUserPlan() {
-    try {
-        console.log('🔍 AD DEBUG: Fetching user plan from /api/user-plan');
-        const response = await fetch('/api/user-plan');
-        console.log('🔍 AD DEBUG: Response status:', response.status);
-        const data = await response.json();
-        console.log('🔍 AD DEBUG: Response data:', data);
-        const plan = data.plan || 'free';
-        console.log('🔍 AD DEBUG: Final plan:', plan);
-        return plan;
-    } catch (error) {
-        console.error('Error getting user plan:', error);
-        console.log('🔍 AD DEBUG: Defaulting to free plan due to error');
-        return 'free'; // Default to free (show ads)
-    }
-}
+// Legacy functions removed - now using server-injected window.__AD_FREE__ flag
+// This is more reliable and faster than API calls
 
 function disableMessageInput() {
     const sendButton = document.querySelector('.send-button');

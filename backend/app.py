@@ -229,6 +229,14 @@ try:
 except ImportError as e:
     print(f"[WARNING] Ollama Admin API not available: {e}")
 
+# Register Stripe Billing blueprint
+try:
+    from stripe_billing import bp_billing
+    app.register_blueprint(bp_billing)
+    print("[OK] Stripe Billing API registered successfully")
+except ImportError as e:
+    print(f"[WARNING] Stripe Billing API not available: {e}")
+
 # ============================================
 # BULLETPROOF TIER ISOLATION SYSTEM
 # ============================================
@@ -662,6 +670,20 @@ def prevent_caching(response):
     response.headers["Pragma"] = "no-cache"
     response.headers["Expires"] = "0"
     return response
+
+# Helper function to check if user is ad-free
+def is_user_ad_free():
+    """Check if current user has ad-free subscription"""
+    if not session.get('logged_in') or not session.get('user_id'):
+        return False
+        
+    try:
+        from stripe_billing import get_current_user
+        user = get_current_user()
+        return user.get('ad_free', False) if user else False
+    except Exception as e:
+        logger.error(f"Error checking ad-free status: {e}")
+        return False
 
 # Global variables for services
 services = {
@@ -2933,7 +2955,7 @@ def intro():
         logger.info(f"✅ INTRO: trial_active={trial_active}, effective_plan={effective_plan}, access_growth={session['access_growth']}, access_max={session['access_max']}")
         logger.info(f"Access flags: free={session['access_free']}, growth={session['access_growth']}, max={session['access_max']}, trial={session['access_trial']}")
         
-        return render_template("intro.html")
+        return render_template("intro.html", ad_free=is_user_ad_free())
     except Exception as e:
         logger.error(f"❌ INTRO ERROR: {e}")
         import traceback
@@ -3301,7 +3323,8 @@ def chat():
         companion_avatar=companion_info['avatar'],
         user_plan=user_plan,
         trial_active=trial_active, 
-        effective_plan=effective_plan
+        effective_plan=effective_plan,
+        ad_free=is_user_ad_free()
     )
 
 # REMOVED: api_companions_old_disabled function - was a disabled/deprecated companions API endpoint
@@ -7766,10 +7789,10 @@ def check_horoscope_limit():
 
 @app.route("/api/user-plan")
 def get_user_plan_api():
-    """Get user plan and trial status for frontend API"""
+    """Get user plan, trial status, and ad-free status for frontend API"""
     try:
         if not is_logged_in():
-            return jsonify({"plan": "free", "trial_active": False})
+            return jsonify({"plan": "free", "trial_active": False, "ad_free": False})
         
         user_id = session.get('user_id')
         user_plan = session.get('user_plan', 'free')
@@ -7781,9 +7804,13 @@ def get_user_plan_api():
         # Use session values set by @app.before_request 
         trial_active = session.get('trial_active', False)
         
+        # Get ad-free status
+        ad_free = is_user_ad_free()
+        
         return jsonify({
             "success": True,
             "plan": user_plan,
+            "ad_free": ad_free,
             "trial_active": trial_active
         })
         

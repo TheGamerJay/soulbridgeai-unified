@@ -35,11 +35,45 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     
-    <!-- Google AdSense -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3869471953521437"
-         crossorigin="anonymous"></script>
+    <!-- Ad-Free Status (Server-Injected) -->
+    <script>
+        window.__AD_FREE__ = {{ 'true' if ad_free else 'false' }};
+    </script>
+    
+    <!-- Conditional AdSense Loading (Only for non-ad-free users) -->
+    <script>
+        (function() {
+            var adFree = (window.__AD_FREE__ === true || window.__AD_FREE__ === 'true');
+            if (!adFree) {
+                var s = document.createElement('script');
+                s.async = true;
+                s.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3869471953521437";
+                s.crossOrigin = "anonymous";
+                document.head.appendChild(s);
+                console.log('📺 AdSense loaded for free user');
+            } else {
+                console.log('🚫 AdSense blocked - user has ad-free subscription');
+            }
+        })();
+    </script>
+    
+    <!-- Hide ad containers for ad-free users -->
+    <style>
+        html.ad-free .adsbygoogle, 
+        html.ad-free .ad-slot,
+        html.ad-free .ad-container { 
+            display: none !important; 
+        }
+    </style>
 </head>
 <body>
+    <!-- Set ad-free class on HTML element for CSS targeting -->
+    <script>
+        if (window.__AD_FREE__ === true || window.__AD_FREE__ === 'true') {
+            document.documentElement.classList.add('ad-free');
+        }
+    </script>
+    
     <div class="chat-container">
         <!-- Header -->
         <div class="chat-header">
@@ -2608,6 +2642,68 @@ Where emotion meets expression.
         // Refresh user status less frequently 
         setInterval(refreshUserStatus, 15000); // Refresh every 15 seconds (less aggressive)  
         refreshUserStatus(); // Run once on load
+    </script>
+    
+    <!-- Enhanced Ad Management System -->
+    <script>
+        // Global ad management functions
+        window.disableAds = function() {
+            if (window.__AD_FREE__) return; // Don't affect ad-free users
+            
+            document.querySelectorAll('.adsbygoogle, .ad-slot, .ad-container').forEach(el => {
+                el.dataset.prevDisplay = el.style.display || '';
+                el.style.display = 'none';
+            });
+            console.log('🔇 Ads paused during interaction');
+        };
+        
+        window.enableAds = function() {
+            if (window.__AD_FREE__) return; // Don't affect ad-free users
+            
+            document.querySelectorAll('.adsbygoogle, .ad-slot, .ad-container').forEach(el => {
+                el.style.display = el.dataset.prevDisplay || 'block';
+            });
+            
+            // Re-initialize AdSense ads
+            if (window.adsbygoogle) {
+                document.querySelectorAll('.adsbygoogle').forEach(() => {
+                    try {
+                        (adsbygoogle = window.adsbygoogle || []).push({});
+                    } catch (e) {
+                        console.warn('AdSense re-init failed:', e);
+                    }
+                });
+            }
+            console.log('📺 Ads re-enabled after interaction');
+        };
+        
+        // Auto pause/resume for message interactions
+        function setupAdPauseResume() {
+            if (window.__AD_FREE__) {
+                console.log('🚫 Ad-free user - skipping ad pause/resume setup');
+                return;
+            }
+            
+            // Listen for custom events from chat system
+            window.addEventListener('soulbridge:message:start', () => {
+                window.disableAds();
+            });
+            
+            window.addEventListener('soulbridge:message:complete', () => {
+                setTimeout(() => {
+                    window.enableAds();
+                }, 1000); // Small delay to avoid flashing
+            });
+            
+            console.log('📺 Ad pause/resume system initialized');
+        }
+        
+        // Initialize when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', setupAdPauseResume);
+        } else {
+            setupAdPauseResume();
+        }
     </script>
     
     <script src="{{ url_for('static', filename='js/chat.js') }}?v={{ range(1000000) | random }}"></script>
