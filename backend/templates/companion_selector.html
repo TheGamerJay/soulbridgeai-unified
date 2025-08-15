@@ -817,7 +817,7 @@
                 <div class="companion-row">
                   <!-- Sky -->
                   <div class="companion-card {% if user_plan in ['growth', 'max'] or trial_active %}unlocked{% else %}locked{% endif %}" 
-                       onclick="{% if user_plan in ['growth', 'max'] or trial_active %}selectCompanion('sky'){% else %}alert('Upgrade to Growth or start trial to unlock!'){% endif %}" 
+                       onclick="checkAccessAndSelect('sky', ['growth', 'max'])" 
                        style="cursor: pointer;">
                     <img src="/static/logos/Sky.png" alt="Sky" onerror="this.src='/static/logos/IntroLogo.png'">
                     <div class="companion-name">Sky</div>
@@ -826,7 +826,7 @@
 
                   <!-- Blayzo Premium -->
                   <div class="companion-card {% if user_plan in ['growth', 'max'] or trial_active %}unlocked{% else %}locked{% endif %}" 
-                       onclick="{% if user_plan in ['growth', 'max'] or trial_active %}selectCompanion('blayzo_premium'){% else %}alert('Upgrade to Growth or start trial to unlock!'){% endif %}" 
+                       onclick="checkAccessAndSelect('blayzo_premium', ['growth', 'max'])" 
                        style="cursor: pointer;">
                     <img src="/static/logos/Blayzo Premium.png" alt="Blayzo Premium" onerror="this.src='/static/logos/IntroLogo.png'">
                     <div class="companion-name">Blayzo Premium</div>
@@ -835,7 +835,7 @@
 
                   <!-- Blayzica Growth -->
                   <div class="companion-card {% if user_plan in ['growth', 'max'] or trial_active %}unlocked{% else %}locked{% endif %}" 
-                       onclick="{% if user_plan in ['growth', 'max'] or trial_active %}selectCompanion('blayzica_growth'){% else %}alert('Upgrade to Growth or start trial to unlock!'){% endif %}" 
+                       onclick="checkAccessAndSelect('blayzica_growth', ['growth', 'max'])" 
                        style="cursor: pointer;">
                     <img src="/static/logos/Blayzica Growth.png" alt="Blayzica Growth" onerror="this.src='/static/logos/IntroLogo.png'">
                     <div class="companion-name">Blayzica Growth</div>
@@ -850,7 +850,7 @@
                 <div class="companion-row">
                   <!-- Companion Crimson -->
                   <div class="companion-card {% if user_plan == 'max' or trial_active %}unlocked{% else %}locked{% endif %}" 
-                       onclick="{% if user_plan == 'max' or trial_active %}selectCompanion('companion_crimson'){% else %}alert('Upgrade to Max or start trial to unlock!'){% endif %}" 
+                       onclick="checkAccessAndSelect('companion_crimson', ['max'])" 
                        style="cursor: pointer;">
                     <img src="/static/logos/Companion Crimson.png" alt="Companion Crimson" onerror="this.src='/static/logos/IntroLogo.png'">
                     <div class="companion-name">Companion Crimson</div>
@@ -859,7 +859,7 @@
 
                   <!-- Companion Violet -->
                   <div class="companion-card {% if user_plan == 'max' or trial_active %}unlocked{% else %}locked{% endif %}" 
-                       onclick="{% if user_plan == 'max' or trial_active %}selectCompanion('companion_violet'){% else %}alert('Upgrade to Max or start trial to unlock!'){% endif %}" 
+                       onclick="checkAccessAndSelect('companion_violet', ['max'])" 
                        style="cursor: pointer;">
                     <img src="/static/logos/Companion Violet.png" alt="Companion Violet" onerror="this.src='/static/logos/IntroLogo.png'">
                     <div class="companion-name">Companion Violet</div>
@@ -868,7 +868,7 @@
 
                   <!-- Royal Max -->
                   <div class="companion-card {% if user_plan == 'max' or trial_active %}unlocked{% else %}locked{% endif %}" 
-                       onclick="{% if user_plan == 'max' or trial_active %}selectCompanion('royal_max'){% else %}alert('Upgrade to Max or start trial to unlock!'){% endif %}" 
+                       onclick="checkAccessAndSelect('royal_max', ['max'])" 
                        style="cursor: pointer;">
                     <img src="/static/logos/Royal Max.png" alt="Royal Max" onerror="this.src='/static/logos/IntroLogo.png'">
                     <div class="companion-name">Royal Max</div>
@@ -1193,6 +1193,26 @@
             if (confirm(`Select ${companionId.replace('_', ' ')} as your companion?`)) {
                 // Redirect to chat with selected companion
                 window.location.href = `/chat?companion=${companionId}`;
+            }
+        }
+
+        // Dynamic access check that works with trials
+        function checkAccessAndSelect(companionId, requiredTiers) {
+            // Get current user plan and trial status
+            const userPlan = '{{ user_plan }}' || 'free';
+            
+            // Check if trial is currently active by looking for trial banner
+            const trialBanner = document.getElementById('trial-banner');
+            const trialActive = trialBanner && trialBanner.style.display !== 'none';
+            
+            // Check if user has required tier OR trial is active
+            const hasAccess = requiredTiers.includes(userPlan) || trialActive;
+            
+            if (hasAccess) {
+                selectCompanion(companionId);
+            } else {
+                const tierText = requiredTiers.join(' or ');
+                alert(`Upgrade to ${tierText} or start trial to unlock this companion!`);
             }
         }
         
