@@ -627,7 +627,7 @@ def increment_rate_limit_session():
 @app.before_request
 def ensure_session_persistence():
     # Allow auth + static + home + mini-studio page itself (so it can show the UI)
-    open_paths = {"/api/login", "/api/logout", "/login", "/auth/login", "/", "/mini-studio", "/mini_studio_health", "/api/mini-assistant-status", "/terms-acceptance", "/api/accept-terms", "/intro", "/debug/ollama", "/debug/test-chat", "/debug/simple-chat", "/debug/supervisor-logs", "/test-direct", "/api/database/fix-schema", "/api/ollama/pull-model", "/api/ollama/status", "/api/companion/free", "/healthz", "/fix-schema"}
+    open_paths = {"/api/login", "/api/logout", "/login", "/auth/login", "/", "/mini-studio", "/mini_studio_health", "/api/mini-assistant-status", "/terms-acceptance", "/api/accept-terms", "/intro", "/debug/ollama", "/debug/test-chat", "/debug/simple-chat", "/debug/supervisor-logs", "/test-direct", "/api/database/fix-schema", "/api/ollama/pull-model", "/api/ollama/status", "/api/companion/free", "/healthz", "/fix-schema", "/debug-logs"}
     if request.path.startswith("/static/") or request.path in open_paths:
         return
     
@@ -15825,6 +15825,38 @@ def add_trainer_credits(user_id, amount=350):
     except Exception as e:
         logger.error(f"Error adding purchased credits: {e}")
         return False
+
+@app.route('/debug-logs')
+def debug_logs_endpoint():
+    """Show recent debug logs for troubleshooting"""
+    try:
+        import logging
+        import io
+        
+        # Get recent logs from the logger
+        log_contents = []
+        
+        # Try to get logs from the current logger
+        for handler in logging.getLogger().handlers:
+            if hasattr(handler, 'stream') and hasattr(handler.stream, 'getvalue'):
+                log_contents.append(handler.stream.getvalue())
+        
+        # If no logs found, show system info instead
+        if not log_contents:
+            log_contents = ["No recent logs available. Logger may not be capturing to memory."]
+            
+        return jsonify({
+            "success": True,
+            "logs": log_contents,
+            "message": "Recent debug logs (refresh page and try decoder, then check this endpoint again)"
+        })
+        
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e),
+            "message": "Could not retrieve debug logs"
+        })
 
 @app.route('/fix-schema')
 def fix_database_schema_endpoint():
