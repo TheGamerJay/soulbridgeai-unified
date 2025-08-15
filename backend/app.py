@@ -2092,9 +2092,9 @@ def user_info():
             "effective_plan": effective_plan,
             "trial_remaining": trial_remaining,
             "limits": {
-                "decoder": get_feature_limit(user_plan, "decoder"), 
-                "fortune": get_feature_limit(user_plan, "fortune"),
-                "horoscope": get_feature_limit(user_plan, "horoscope")
+                "decoder": get_feature_limit(effective_plan, "decoder"), 
+                "fortune": get_feature_limit(effective_plan, "fortune"),
+                "horoscope": get_feature_limit(effective_plan, "horoscope")
             },
             "usage": usage_counts
         })
@@ -3902,8 +3902,8 @@ def fortune():
         effective_plan = session.get('effective_plan', 'free')
         trial_active = session.get('trial_active', False)
         
-        # FIXED: Use user_plan for limits, effective_plan for feature access
-        daily_limit = get_feature_limit(user_plan, 'fortune')  # Limits based on subscription
+        # FIXED: Use effective_plan for limits during trial
+        daily_limit = get_feature_limit(effective_plan, 'fortune')  # Limits based on effective plan (includes trial)
         
         # DEBUG: Log fortune access info
         logger.info(f"🔮 FORTUNE DEBUG: user_plan = {user_plan}")
@@ -3942,8 +3942,8 @@ def horoscope():
         effective_plan = session.get('effective_plan', 'free')
         trial_active = session.get('trial_active', False)
         
-        # FIXED: Use user_plan for limits, effective_plan for feature access
-        daily_limit = get_feature_limit(user_plan, 'horoscope')  # Limits based on subscription
+        # FIXED: Use effective_plan for limits during trial
+        daily_limit = get_feature_limit(effective_plan, 'horoscope')  # Limits based on effective plan (includes trial)
         
         # DEBUG: Log horoscope access info
         logger.info(f"⭐ HOROSCOPE DEBUG: user_plan = {user_plan}")
@@ -8060,12 +8060,12 @@ def api_plan_new():
         effective_plan = get_effective_plan_new(user_plan, trial_active)
         access = get_access_matrix_new(user_plan, trial_active)
         
-        # FIXED: Use actual user_plan for limits, not effective_plan
-        # Trial gives access to features but keeps original plan limits
+        # FIXED: Use effective_plan for limits during trial
+        # Trial gives access to features AND max tier limits
         limits = {
-            "decoder": get_feature_limit(user_plan, "decoder"),
-            "fortune": get_feature_limit(user_plan, "fortune"),
-            "horoscope": get_feature_limit(user_plan, "horoscope"),
+            "decoder": get_feature_limit(effective_plan, "decoder"),
+            "fortune": get_feature_limit(effective_plan, "fortune"),
+            "horoscope": get_feature_limit(effective_plan, "horoscope"),
         }
         
         return jsonify({
@@ -8448,9 +8448,9 @@ def debug_session_info():
         "session_trial_active": session.get('trial_active'),
         "session_user_plan": session.get('user_plan'),
         "session_effective_plan": session.get('effective_plan'),
-        "decoder_limit": get_feature_limit(session.get('user_plan', 'free'), 'decoder'),
-        "fortune_limit": get_feature_limit(session.get('user_plan', 'free'), 'fortune'),
-        "horoscope_limit": get_feature_limit(session.get('user_plan', 'free'), 'horoscope')
+        "decoder_limit": get_feature_limit(get_effective_plan(session.get('user_plan', 'free'), session.get('trial_active', False)), 'decoder'),
+        "fortune_limit": get_feature_limit(get_effective_plan(session.get('user_plan', 'free'), session.get('trial_active', False)), 'fortune'),
+        "horoscope_limit": get_feature_limit(get_effective_plan(session.get('user_plan', 'free'), session.get('trial_active', False)), 'horoscope')
     })
 
 @app.route("/debug/state", methods=["GET"])
@@ -10041,7 +10041,7 @@ def api_chat():
             user_plan = session.get('user_plan', 'free')
             trial_active = session.get('trial_active', False)
             user_id = session.get('user_id')
-            daily_limit = get_feature_limit(user_plan, 'decoder')
+            daily_limit = get_feature_limit(effective_plan, 'decoder')
             
             # Check decoder usage limits using database tracking
             from unified_tier_system import get_feature_usage_today
