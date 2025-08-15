@@ -183,22 +183,20 @@
                 <!-- Timer removed from chat page - too distracting during conversations -->
 
                 
-                <!-- Trial Badge (shows when trial is active) -->
+                <!-- Trial Badge (shows when trial is active for ANY user) -->
                 <div class="trial-status-container">
-                    <!-- Trial banner - Only for growth/max users (free users use ads, no trials) -->
-                    {% if user_plan != 'free' %}
+                    <!-- Trial banner - Shows when trial is active for any user -->
                     <div id="trial-banner" class="simple-timer" style="display: {% if session.get('trial_active') %}block{% else %}none{% endif %};">
-                        <strong><i class="fas fa-clock"></i> Trial Active</strong>
+                        <strong><i class="fas fa-clock"></i> Trial Active - All Features Unlocked!</strong>
                         <span id="trial-eta">— 05:00:00</span>
                     </div>
                     
-                    <!-- Start Trial Button (shows when trial not active for growth/max users) -->
+                    <!-- Start Trial Button - Available for ALL users (one-time only) -->
                     <button id="start-trial-btn" class="action-btn trial-btn" onclick="startTrial()" 
                             style="display: {% if not session.get('trial_active') and not session.get('trial_used_permanently') %}block{% else %}none{% endif %};"
-                            title="Start 5-hour trial to unlock all premium features">
-                        <i class="fas fa-star"></i> Start 5hr Trial
+                            title="Start your one-time 5-hour trial to unlock ALL premium features">
+                        <i class="fas fa-star"></i> Start 5hr Premium Trial
                     </button>
-                    {% endif %}
                 </div>
             </div>
         </div>

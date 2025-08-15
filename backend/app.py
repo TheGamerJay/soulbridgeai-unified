@@ -2265,25 +2265,24 @@ def accept_terms():
 
 @app.route('/api/start-trial', methods=['POST'])
 def start_trial():
-    """Start 5-hour trial for growth/max users only (free users use ads)"""
+    """Start 5-hour trial for ALL users (one-time only to unlock premium features)"""
     if not session.get('user_id'):
         return jsonify({"success": False, "error": "Login required"}), 401
 
-    # NEW: Check if user is eligible for trial (growth/max only, not free)
-    user_plan = session.get('user_plan', 'free')
-    if user_plan == 'free':
+    # Check if trial already used permanently
+    if session.get('trial_used_permanently'):
         return jsonify({
             "success": False, 
-            "error": "Free users enjoy unlimited chat with ads (daily limits on special features). Trials are only for growth/max tiers.",
+            "error": "You have already used your one-time 5-hour trial. Upgrade to get permanent access to premium features!",
             "redirect": "/plan-selection"
         }), 403
 
-    if user_plan not in ['growth', 'max']:
+    # Check if trial is currently active
+    if session.get('trial_active'):
         return jsonify({
             "success": False, 
-            "error": "Trials are only available for growth and max tier subscriptions.",
-            "redirect": "/plan-selection"
-        }), 403
+            "error": "Trial is already active!"
+        }), 400
 
     db = get_database()
     if not db:
@@ -8028,26 +8027,25 @@ def api_companions():
 
 @app.route("/start-trial", methods=["POST"])
 def start_trial_bulletproof():
-    """Bulletproof trial start - only for growth/max users (free users use ads)"""
+    """Bulletproof trial start - for ALL users (one-time only)"""
     try:
         if not is_logged_in():
             return jsonify({"ok": False, "error": "Authentication required"}), 401
         
-        # NEW: Check if user is eligible for trial (growth/max only, not free)
-        user_plan = session.get('user_plan', 'free')
-        if user_plan == 'free':
+        # Check if trial already used permanently
+        if session.get('trial_used_permanently'):
             return jsonify({
                 "ok": False, 
-                "error": "Free users enjoy unlimited chat with ads (daily limits on special features). Trials are only for growth/max tiers.",
+                "error": "You have already used your one-time 5-hour trial. Upgrade to get permanent access to premium features!",
                 "redirect": "/plan-selection"
             }), 403
 
-        if user_plan not in ['growth', 'max']:
+        # Check if trial is currently active
+        if session.get('trial_active'):
             return jsonify({
                 "ok": False, 
-                "error": "Trials are only available for growth and max tier subscriptions.",
-                "redirect": "/plan-selection"
-            }), 403
+                "error": "Trial is already active!"
+            }), 400
         
         if session.get("trial_used_permanently"):
             return jsonify({"ok": False, "error": "Trial already used"}), 400
