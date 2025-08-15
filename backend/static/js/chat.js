@@ -1465,28 +1465,44 @@ function formatConversationForLibrary() {
 // Ad-Gated Messaging System
 async function handlePostResponseAd(responseData) {
     // Check if user needs to see ads (not on ad-free plan)
+    console.log('🔍 AD DEBUG: handlePostResponseAd called');
     const userPlan = await getUserPlan();
+    console.log('🔍 AD DEBUG: User plan:', userPlan);
     
-    if (shouldShowAd(userPlan)) {
+    const shouldShow = shouldShowAd(userPlan);
+    console.log('🔍 AD DEBUG: Should show ad:', shouldShow);
+    
+    if (shouldShow) {
         console.log('📺 Showing ad for free user');
         disableMessageInput();
         await showAdBeforeNextMessage();
+    } else {
+        console.log('⏭️ Skipping ad - user has ad-free plan');
     }
 }
 
 function shouldShowAd(userPlan) {
     // Show ads for free users (not on $5 ad-free plan or higher tiers)
     const adFreePlans = ['ad_free', 'growth', 'max', 'premium', 'enterprise'];
-    return !adFreePlans.includes(userPlan?.toLowerCase());
+    const lowerPlan = userPlan?.toLowerCase();
+    const isAdFree = adFreePlans.includes(lowerPlan);
+    console.log('🔍 AD DEBUG: shouldShowAd - userPlan:', userPlan, 'lowerPlan:', lowerPlan, 'isAdFree:', isAdFree);
+    return !isAdFree;
 }
 
 async function getUserPlan() {
     try {
+        console.log('🔍 AD DEBUG: Fetching user plan from /api/user-plan');
         const response = await fetch('/api/user-plan');
+        console.log('🔍 AD DEBUG: Response status:', response.status);
         const data = await response.json();
-        return data.plan || 'free';
+        console.log('🔍 AD DEBUG: Response data:', data);
+        const plan = data.plan || 'free';
+        console.log('🔍 AD DEBUG: Final plan:', plan);
+        return plan;
     } catch (error) {
         console.error('Error getting user plan:', error);
+        console.log('🔍 AD DEBUG: Defaulting to free plan due to error');
         return 'free'; // Default to free (show ads)
     }
 }
