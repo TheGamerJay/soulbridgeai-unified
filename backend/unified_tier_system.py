@@ -58,10 +58,10 @@ def ensure_database_schema():
             ('credits', 'INTEGER DEFAULT 0'),
             ('last_credit_reset', 'TIMESTAMP'),
             ('purchased_credits', 'INTEGER DEFAULT 0'),
-            ('trial_active', 'BOOLEAN DEFAULT FALSE'),
+            ('trial_active', 'INTEGER DEFAULT 0'),
             ('trial_started_at', 'TIMESTAMP'),
             ('trial_expires_at', 'TIMESTAMP'),
-            ('trial_used_permanently', 'BOOLEAN DEFAULT FALSE')
+            ('trial_used_permanently', 'INTEGER DEFAULT 0')
         ]
         
         for column_name, column_def in missing_columns:
