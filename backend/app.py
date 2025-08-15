@@ -3148,7 +3148,8 @@ def tiers_page():
                                 growth_list=growth_companions,
                                 max_list=max_companions,
                                 referral_milestones=referral_milestones,
-                                referral_count=referral_count)
+                                referral_count=referral_count,
+                                cache_bust="20250815_2226")
 
 @app.route("/chat")
 def chat():
@@ -13666,6 +13667,9 @@ TIERS_TEMPLATE = r"""
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <meta charset="UTF-8"/>
   <title>Plans & Companions — SoulBridge AI</title>
   <style>
@@ -13811,7 +13815,7 @@ TIERS_TEMPLATE = r"""
 </div>
 
 <script>
-  console.log('🔧 TIERS JS: Script loaded successfully - v20250815_2225');
+  console.log('🔧 TIERS JS: Script loaded successfully - v{{ cache_bust }}');
   
   async function openChat(slug){ 
     console.log('🔧 openChat called with slug:', slug);
