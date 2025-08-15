@@ -9923,7 +9923,9 @@ def api_chat():
             
             # Increment usage for decoder requests using database tracking
             from unified_tier_system import increment_feature_usage
-            increment_feature_usage(user_id, "decoder")
+            logger.info(f"🔢 INCREMENTING decoder usage for user {user_id}")
+            success = increment_feature_usage(user_id, "decoder")
+            logger.info(f"🔢 Increment result: {success}")
         
         # Increment usage for fortune and horoscope requests using database tracking
         if context in ['fortune_reading']:

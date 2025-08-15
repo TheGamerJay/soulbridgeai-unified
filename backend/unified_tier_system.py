@@ -448,8 +448,10 @@ def increment_feature_usage(user_id, feature):
     Record feature usage for daily limit tracking
     """
     try:
+        logger.info(f"📊 INCREMENT_FEATURE_USAGE: user_id={user_id}, feature={feature}")
         database_url = os.environ.get('DATABASE_URL')
         if not database_url:
+            logger.error("📊 INCREMENT_FEATURE_USAGE: No DATABASE_URL")
             return False
             
         conn = psycopg2.connect(database_url)
@@ -459,17 +461,19 @@ def increment_feature_usage(user_id, feature):
         ensure_database_schema()
         
         # Insert usage record
+        logger.info(f"📊 INCREMENT_FEATURE_USAGE: Inserting record for user {user_id}, feature {feature}")
         cur.execute("""
             INSERT INTO feature_usage (user_id, feature)
             VALUES (%s, %s)
         """, (user_id, feature))
         
         conn.commit()
+        logger.info(f"📊 INCREMENT_FEATURE_USAGE: Successfully inserted and committed for user {user_id}, feature {feature}")
         conn.close()
         return True
         
     except Exception as e:
-        logger.error(f"Error incrementing feature usage: {e}")
+        logger.error(f"📊 INCREMENT_FEATURE_USAGE ERROR: {e}")
         return False
 
 # UNIFIED TIER STATUS FOR API RESPONSES
