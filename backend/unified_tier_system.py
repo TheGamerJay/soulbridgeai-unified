@@ -57,7 +57,10 @@ def ensure_database_schema():
             ('timezone', 'VARCHAR(50) DEFAULT \'America/New_York\''),
             ('credits', 'INTEGER DEFAULT 0'),
             ('last_credit_reset', 'TIMESTAMP'),
-            ('purchased_credits', 'INTEGER DEFAULT 0')
+            ('purchased_credits', 'INTEGER DEFAULT 0'),
+            ('trial_started_at', 'TIMESTAMP'),
+            ('trial_expires_at', 'TIMESTAMP'),
+            ('trial_used_permanently', 'BOOLEAN DEFAULT FALSE')
         ]
         
         for column_name, column_def in missing_columns:
