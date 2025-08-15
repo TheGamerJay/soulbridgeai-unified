@@ -1319,6 +1319,9 @@
                     document.getElementById('generatedContent').textContent = data.content;
                     document.getElementById('writingOutput').style.display = 'block';
                     document.getElementById('writingInput').style.display = 'none';
+                    
+                    // Show ad after successful creative writing for free users
+                    await handleCreativeWritingAd();
                 } else {
                     alert('Sorry, there was an error generating your creative content. Please try again.');
                 }
@@ -2190,6 +2193,45 @@ Where emotion meets expression.
             // Update tier limits every 30 seconds
             setInterval(updateTierLimits, 30000);
             
+            // Refresh limits when returning to chat page (e.g., from decoder)
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden) {
+                    console.log('🔄 Page visible - refreshing tier limits');
+                    updateTierLimits();
+                }
+            });
+            
+            // Also refresh on window focus (for better compatibility)
+            window.addEventListener('focus', () => {
+                console.log('🔄 Window focused - refreshing tier limits');
+                updateTierLimits();
+            });
+            
+            // Debug: Test all feature buttons are working
+            console.log('🧪 Testing feature button connectivity...');
+            const testButtons = () => {
+                const decoder = document.querySelector('[data-feature="decoder"]');
+                const fortune = document.querySelector('[data-feature="fortune"]');
+                const horoscope = document.querySelector('[data-feature="horoscope"]');
+                const creative = document.querySelector('[data-feature="creative_writer"]');
+                
+                console.log('Button test results:');
+                console.log('  🧠 Decoder:', !!decoder, decoder?.href);
+                console.log('  🔮 Fortune:', !!fortune, fortune?.href);
+                console.log('  ⭐ Horoscope:', !!horoscope, horoscope?.href);
+                console.log('  📝 Creative:', !!creative, creative?.onclick ? 'has onclick' : 'no onclick');
+                
+                if (decoder && fortune && horoscope && creative) {
+                    console.log('✅ All 4 feature buttons found and should be working!');
+                } else {
+                    console.log('❌ Some buttons missing!');
+                }
+            };
+            
+            setTimeout(testButtons, 1000); // Run after page loads
+            
+            // Feature buttons work normally (navigate to separate pages)
+            
             // Debug premium features only for premium users or when debugging
             const effectivePlan = '{{ effective_plan }}';
             if (effectivePlan !== 'free' || sessionStorage.getItem('debugPremiumFeatures')) {
@@ -2716,6 +2758,57 @@ Where emotion meets expression.
             document.addEventListener('DOMContentLoaded', setupAdPauseResume);
         } else {
             setupAdPauseResume();
+        }
+        
+        // Auto-detect and save user timezone for personalized daily resets
+        async function detectAndSaveTimezone() {
+            try {
+                // Get user's timezone using JavaScript
+                const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                
+                // Map to supported timezones
+                const timezoneMap = {
+                    'America/New_York': 'America/New_York',
+                    'America/Chicago': 'America/Chicago', 
+                    'America/Denver': 'America/Denver',
+                    'America/Los_Angeles': 'America/Los_Angeles',
+                    'America/Toronto': 'America/New_York', // Same as Eastern
+                    'America/Vancouver': 'America/Los_Angeles', // Same as Pacific
+                    'Europe/London': 'Europe/London',
+                    'Europe/Paris': 'Europe/Paris',
+                    'Europe/Berlin': 'Europe/Berlin',
+                    'Asia/Tokyo': 'Asia/Tokyo',
+                    'Asia/Shanghai': 'Asia/Shanghai',
+                    'Australia/Sydney': 'Australia/Sydney'
+                };
+                
+                const mappedTimezone = timezoneMap[userTimezone] || 'America/New_York';
+                
+                // Only send if different from default
+                if (mappedTimezone !== 'America/New_York') {
+                    console.log(`🌍 Detected timezone: ${userTimezone} -> ${mappedTimezone}`);
+                    
+                    const response = await fetch('/api/update-timezone', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ timezone: mappedTimezone })
+                    });
+                    
+                    const data = await response.json();
+                    if (data.success) {
+                        console.log(`✅ Timezone saved: ${mappedTimezone}`);
+                    }
+                }
+            } catch (error) {
+                console.log('⚠️ Timezone detection failed:', error);
+            }
+        }
+        
+        // Call timezone detection on page load
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', detectAndSaveTimezone);
+        } else {
+            detectAndSaveTimezone();
         }
     </script>
     

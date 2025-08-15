@@ -95,7 +95,8 @@
       "WebFetch(domain:station.railway.com)",
       "WebFetch(domain:railway.com)",
       "Bash(true)",
-      "Bash(del \"C:\\Users\\jaaye\\OneDrive\\Desktop\\soulbridgeai-unified\\backend\\routes\\api_companion_free.py\")"
+      "Bash(del \"C:\\Users\\jaaye\\OneDrive\\Desktop\\soulbridgeai-unified\\backend\\routes\\api_companion_free.py\")",
+      "Bash(del:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"

@@ -21,6 +21,30 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+def get_user_timezone(user_id):
+    """Get user's timezone, default to Eastern Time"""
+    try:
+        database_url = os.environ.get('DATABASE_URL')
+        if not database_url:
+            return 'America/New_York'  # Default fallback
+            
+        conn = psycopg2.connect(database_url)
+        cur = conn.cursor()
+        
+        # Try to get user's timezone from database
+        cur.execute("SELECT timezone FROM users WHERE id = %s", (user_id,))
+        result = cur.fetchone()
+        conn.close()
+        
+        if result and result[0]:
+            return result[0]
+        else:
+            return 'America/New_York'  # Default to Eastern Time
+            
+    except Exception as e:
+        logger.error(f"Error getting user timezone: {e}")
+        return 'America/New_York'  # Default fallback
+
 def check_active_subscription(user_id, plan):
     """
     Check if user has an active subscription for the given plan
@@ -334,11 +358,22 @@ def get_feature_usage_today(user_id, feature):
         conn = psycopg2.connect(database_url)
         cur = conn.cursor()
         
-        today = datetime.utcnow().date()
+        # Get user's timezone for personalized daily reset
+        user_timezone = get_user_timezone(user_id)
+        
+        # Set session timezone to user's timezone
+        cur.execute(f"SET TIME ZONE '{user_timezone}'")
+        
+        # Get today's date in user's timezone
+        cur.execute("SELECT CURRENT_DATE")
+        today_user_tz = cur.fetchone()[0]
+        
+        # Count usage for today in user's timezone
         cur.execute("""
             SELECT COUNT(*) FROM feature_usage 
-            WHERE user_id = %s AND feature = %s AND DATE(created_at) = %s
-        """, (user_id, feature, today))
+            WHERE user_id = %s AND feature = %s 
+            AND DATE(created_at AT TIME ZONE 'UTC' AT TIME ZONE %s) = %s
+        """, (user_id, feature, user_timezone, today_user_tz))
         
         result = cur.fetchone()
         conn.close()

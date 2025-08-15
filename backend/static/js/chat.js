@@ -1481,6 +1481,18 @@ async function handlePostResponseAd(responseData) {
     await showAdBeforeNextMessage();
 }
 
+// Ad handling for creative writing
+window.handleCreativeWritingAd = async function() {
+    // Check if user is ad-free using server-injected flag
+    if (window.__AD_FREE__ === true || window.__AD_FREE__ === 'true') {
+        console.log('🚫 Skipping creative writing ad - user has ad-free subscription');
+        return;
+    }
+    
+    console.log('📺 Showing creative writing ad for non-ad-free user');
+    await showCreativeWritingAd();
+}
+
 // Legacy functions removed - now using server-injected window.__AD_FREE__ flag
 // This is more reliable and faster than API calls
 
@@ -1562,6 +1574,100 @@ async function showAdBeforeNextMessage() {
         // Load actual AdSense ad (placeholder for now)
         loadAdSenseAd('adContent');
     });
+}
+
+async function showCreativeWritingAd() {
+    return new Promise((resolve) => {
+        // Create ad container
+        const adContainer = document.createElement('div');
+        adContainer.className = 'ad-container';
+        adContainer.innerHTML = `
+            <div class="ad-header">
+                <span class="ad-label">Advertisement</span>
+                <span class="ad-timer">Please wait <span id="creativeAdTimer">15</span> seconds...</span>
+            </div>
+            <div class="ad-content" id="creativeAdContent">
+                <!-- AdSense ad will be inserted here -->
+                <div class="ad-placeholder">
+                    <div class="ad-placeholder-content">
+                        <i class="fas fa-ad"></i>
+                        <p>Loading advertisement...</p>
+                        <p class="ad-placeholder-note">Support SoulBridge AI by viewing this ad</p>
+                    </div>
+                </div>
+            </div>
+            <button class="ad-skip-button" id="creativeAdSkip" disabled>Continue (15s)</button>
+        `;
+        
+        // Insert ad in the creative writing modal
+        const writingOutput = document.getElementById('writingOutput');
+        if (writingOutput) {
+            writingOutput.appendChild(adContainer);
+            
+            // Scroll to ad within modal
+            adContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        
+        // Start countdown timer
+        let timeLeft = 15;
+        const timerElement = document.getElementById('creativeAdTimer');
+        const skipButton = document.getElementById('creativeAdSkip');
+        
+        const countdown = setInterval(() => {
+            timeLeft--;
+            if (timerElement) {
+                timerElement.textContent = timeLeft;
+            }
+            if (skipButton) {
+                skipButton.textContent = `Continue (${timeLeft}s)`;
+            }
+            
+            if (timeLeft <= 0) {
+                clearInterval(countdown);
+                if (skipButton) {
+                    skipButton.disabled = false;
+                    skipButton.textContent = 'Continue';
+                    skipButton.style.background = '#22d3ee';
+                }
+            }
+        }, 1000);
+        
+        // Handle skip button click
+        skipButton.addEventListener('click', () => {
+            if (!skipButton.disabled) {
+                adContainer.remove();
+                resolve();
+            }
+        });
+        
+        // Load actual AdSense ad
+        loadCreativeAdSenseAd('creativeAdContent');
+    });
+}
+
+function loadCreativeAdSenseAd(containerId) {
+    console.log('📺 Loading real AdSense ad into creative writing:', containerId);
+    
+    // Create a real AdSense ad unit
+    try {
+        const adContainer = document.getElementById(containerId);
+        if (adContainer && window.adsbygoogle) {
+            adContainer.innerHTML = `
+                <ins class="adsbygoogle"
+                     style="display:block"
+                     data-ad-client="ca-pub-3869471953521437"
+                     data-ad-slot="1234567890"
+                     data-ad-format="auto"
+                     data-full-width-responsive="true"></ins>
+            `;
+            
+            // Initialize AdSense
+            (adsbygoogle = window.adsbygoogle || []).push({});
+            console.log('📺 Creative writing AdSense ad initialized');
+        }
+    } catch (error) {
+        console.warn('⚠️ Failed to load creative writing AdSense ad:', error);
+    }
 }
 
 function loadAdSenseAd(containerId) {

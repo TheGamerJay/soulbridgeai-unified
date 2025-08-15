@@ -91,7 +91,11 @@ class OpenAIClient:
             # Adjust parameters based on plan
             max_tokens = self.max_tokens
             if user_plan == "free":
-                max_tokens = 50  # Very short responses for free users (save costs)
+                # Special handling for decoder/fortune/horoscope - need longer responses for ads model
+                if context in ['decoder_mode', 'fortune_reading', 'daily_horoscope', 'love_compatibility', 'yearly_horoscope']:
+                    max_tokens = 400  # Longer responses for special features (users watch ads)
+                else:
+                    max_tokens = 50  # Very short responses for free chat (save costs)
             elif user_plan in ["vip", "max"]:
                 max_tokens = int(max_tokens * 1.5)  # Longer responses for premium users
             

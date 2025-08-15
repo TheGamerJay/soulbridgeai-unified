@@ -11,6 +11,28 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
     
+    <!-- Ad-Free Detection Script -->
+    <script>
+        window.__AD_FREE__ = {{ 'true' if ad_free else 'false' }};
+    </script>
+    
+    <!-- Conditional AdSense Loading (Only for non-ad-free users) -->
+    <script>
+        (function() {
+            var adFree = (window.__AD_FREE__ === true || window.__AD_FREE__ === 'true');
+            if (!adFree) {
+                var s = document.createElement('script');
+                s.async = true;
+                s.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3869471953521437";
+                s.crossOrigin = "anonymous";
+                document.head.appendChild(s);
+                console.log('📺 AdSense loaded for fortune page');
+            } else {
+                console.log('🚫 AdSense blocked - user has ad-free subscription');
+            }
+        })();
+    </script>
+    
     <style>
         * {
             margin: 0;
@@ -326,6 +348,89 @@
             .fortune-interface {
                 padding: 20px;
             }
+        }
+
+        /* Ad Container Styles */
+        .ad-container {
+            background: rgba(30, 27, 75, 0.8);
+            border: 2px solid rgba(251, 191, 36, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .ad-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            color: #fbbf24;
+            font-size: 0.9rem;
+        }
+
+        .ad-label {
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .ad-timer {
+            color: #c7d2fe;
+        }
+
+        .ad-content {
+            min-height: 250px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .ad-placeholder {
+            text-align: center;
+            color: #c7d2fe;
+        }
+
+        .ad-placeholder i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        .ad-placeholder p {
+            margin: 10px 0;
+        }
+
+        .ad-placeholder-note {
+            font-size: 0.85rem;
+            color: #fbbf24;
+        }
+
+        .ad-skip-button {
+            background: #fbbf24;
+            color: #1a0033;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .ad-skip-button:hover {
+            background: #f59e0b;
+            transform: translateY(-2px);
+        }
+
+        .ad-skip-button:disabled {
+            background: #4b5563;
+            color: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
         }
     </style>
 </head>
@@ -658,6 +763,9 @@ async function getFortune() {
                 document.getElementById('save-button').style.display = 'block';
             }
             
+            // Show ad after successful fortune reading for free users
+            await handleFortuneAd();
+            
         } else {
             // Check if this is a usage limit error
             if (result.limit_reached) {
@@ -705,6 +813,110 @@ function saveToJournal() {
     localStorage.setItem('fortuneJournal', JSON.stringify(existingEntries.slice(0, 50))); // Keep last 50
     
     alert('🌟 Fortune saved to your mystical journal!');
+}
+
+// Ad handling for fortune
+async function handleFortuneAd() {
+    // Check if user is ad-free using server-injected flag
+    if (window.__AD_FREE__ === true || window.__AD_FREE__ === 'true') {
+        console.log('🚫 Skipping fortune ad - user has ad-free subscription');
+        return;
+    }
+    
+    console.log('📺 Showing fortune ad for non-ad-free user');
+    await showFortuneAd();
+}
+
+async function showFortuneAd() {
+    return new Promise((resolve) => {
+        // Create ad container
+        const adContainer = document.createElement('div');
+        adContainer.className = 'ad-container';
+        adContainer.innerHTML = `
+            <div class="ad-header">
+                <span class="ad-label">Advertisement</span>
+                <span class="ad-timer">Please wait <span id="fortuneAdTimer">15</span> seconds...</span>
+            </div>
+            <div class="ad-content" id="fortuneAdContent">
+                <!-- AdSense ad will be inserted here -->
+                <div class="ad-placeholder">
+                    <div class="ad-placeholder-content">
+                        <i class="fas fa-ad"></i>
+                        <p>Loading advertisement...</p>
+                        <p class="ad-placeholder-note">Support SoulBridge AI by viewing this ad</p>
+                    </div>
+                </div>
+            </div>
+            <button class="ad-skip-button" id="fortuneAdSkip" disabled>Continue (15s)</button>
+        `;
+        
+        // Insert ad after the fortune output
+        const outputBox = document.getElementById('output-box');
+        outputBox.parentNode.insertBefore(adContainer, outputBox.nextSibling);
+        
+        // Scroll to ad
+        adContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        
+        // Start countdown timer
+        let timeLeft = 15;
+        const timerElement = document.getElementById('fortuneAdTimer');
+        const skipButton = document.getElementById('fortuneAdSkip');
+        
+        const countdown = setInterval(() => {
+            timeLeft--;
+            if (timerElement) {
+                timerElement.textContent = timeLeft;
+            }
+            if (skipButton) {
+                skipButton.textContent = `Continue (${timeLeft}s)`;
+            }
+            
+            if (timeLeft <= 0) {
+                clearInterval(countdown);
+                if (skipButton) {
+                    skipButton.disabled = false;
+                    skipButton.textContent = 'Continue';
+                    skipButton.style.background = '#fbbf24';
+                }
+            }
+        }, 1000);
+        
+        // Handle skip button click
+        skipButton.addEventListener('click', () => {
+            if (!skipButton.disabled) {
+                adContainer.remove();
+                resolve();
+            }
+        });
+        
+        // Load actual AdSense ad (placeholder for now)
+        loadFortuneAdSenseAd('fortuneAdContent');
+    });
+}
+
+function loadFortuneAdSenseAd(containerId) {
+    console.log('📺 Loading real AdSense ad into fortune:', containerId);
+    
+    // Create a real AdSense ad unit
+    try {
+        const adContainer = document.getElementById(containerId);
+        if (adContainer && window.adsbygoogle) {
+            adContainer.innerHTML = `
+                <ins class="adsbygoogle"
+                     style="display:block"
+                     data-ad-client="ca-pub-3869471953521437"
+                     data-ad-slot="1234567890"
+                     data-ad-format="auto"
+                     data-full-width-responsive="true"></ins>
+            `;
+            
+            // Initialize AdSense
+            (adsbygoogle = window.adsbygoogle || []).push({});
+            console.log('📺 Fortune AdSense ad initialized');
+        }
+    } catch (error) {
+        console.warn('⚠️ Failed to load fortune AdSense ad:', error);
+    }
 }
 
 // Event listeners

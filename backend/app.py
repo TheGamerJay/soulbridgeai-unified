@@ -3720,7 +3720,10 @@ def decoder():
         # Get user's plan and decoder usage
         user_id = session.get('user_id')
         user_plan = session.get('user_plan', 'free')
-        decoder_usage = get_decoder_usage()
+        
+        # Use database tracking instead of session tracking
+        from unified_tier_system import get_feature_usage_today
+        decoder_usage = get_feature_usage_today(user_id, "decoder")
         
         # Use session values set by @app.before_request (more efficient)
         effective_plan = session.get('effective_plan', 'free')
@@ -3735,10 +3738,14 @@ def decoder():
         logger.info(f"🔍 DECODER DEBUG: daily_limit = {daily_limit}")
         logger.info(f"🔍 DECODER DEBUG: decoder_usage = {decoder_usage}")
         
+        # Check if user has ad-free subscription
+        ad_free = is_user_ad_free()
+        
         return render_template("decoder.html", 
                              user_plan=effective_plan,  # Show effective access tier
                              daily_limit=daily_limit,   # But use subscription limits
-                             current_usage=decoder_usage)
+                             current_usage=decoder_usage,
+                             ad_free=ad_free)
     except Exception as e:
         logger.error(f"Decoder template error: {e}")
         return jsonify({"error": "Decoder temporarily unavailable"}), 500
@@ -3753,7 +3760,10 @@ def fortune():
         # Get user's plan and fortune usage
         user_id = session.get('user_id')
         user_plan = session.get('user_plan', 'free')
-        fortune_usage = get_fortune_usage()
+        
+        # Use database tracking instead of session tracking
+        from unified_tier_system import get_feature_usage_today
+        fortune_usage = get_feature_usage_today(user_id, "fortune")
         
         # Use session values set by @app.before_request (more efficient)
         effective_plan = session.get('effective_plan', 'free')
@@ -3768,10 +3778,14 @@ def fortune():
         logger.info(f"🔮 FORTUNE DEBUG: daily_limit = {daily_limit}")
         logger.info(f"🔮 FORTUNE DEBUG: fortune_usage = {fortune_usage}")
         
+        # Check if user has ad-free subscription
+        ad_free = is_user_ad_free()
+        
         return render_template("fortune.html", 
                              user_plan=effective_plan,  # Show effective access tier
                              daily_limit=daily_limit,   # But use subscription limits
-                             current_usage=fortune_usage)
+                             current_usage=fortune_usage,
+                             ad_free=ad_free)
     except Exception as e:
         logger.error(f"Fortune template error: {e}")
         return jsonify({"error": "Fortune teller temporarily unavailable"}), 500
@@ -3786,7 +3800,10 @@ def horoscope():
         # Get user's plan and horoscope usage
         user_id = session.get('user_id')
         user_plan = session.get('user_plan', 'free')
-        horoscope_usage = get_horoscope_usage()
+        
+        # Use database tracking instead of session tracking
+        from unified_tier_system import get_feature_usage_today
+        horoscope_usage = get_feature_usage_today(user_id, "horoscope")
         
         # Use session values set by @app.before_request (more efficient)
         effective_plan = session.get('effective_plan', 'free')
@@ -3801,10 +3818,14 @@ def horoscope():
         logger.info(f"⭐ HOROSCOPE DEBUG: daily_limit = {daily_limit}")
         logger.info(f"⭐ HOROSCOPE DEBUG: horoscope_usage = {horoscope_usage}")
         
+        # Check if user has ad-free subscription
+        ad_free = is_user_ad_free()
+        
         return render_template("horoscope.html", 
                              user_plan=effective_plan,
                              daily_limit=daily_limit,
-                             current_usage=horoscope_usage)
+                             current_usage=horoscope_usage,
+                             ad_free=ad_free)
     except Exception as e:
         logger.error(f"Horoscope template error: {e}")
         return jsonify({"error": "Horoscope temporarily unavailable"}), 500
@@ -7773,7 +7794,9 @@ def check_decoder_limit():
     daily_limit = tier_system.get_feature_limit("decoder")
     
     logger.info(f"🔒 TIER ISOLATION: user_plan={user_plan}, tier={current_tier}, effective_plan={effective_plan}, trial_active={trial_active}, limit={daily_limit}")
-    usage_today = get_decoder_usage()
+    # Use database tracking instead of session tracking
+    from unified_tier_system import get_feature_usage_today
+    usage_today = get_feature_usage_today(user_id, "decoder")
     
     # Check if trial should be active by calling is_trial_active directly
     direct_trial_check = is_trial_active(user_id)
@@ -9883,8 +9906,9 @@ def api_chat():
             user_id = session.get('user_id')
             daily_limit = get_feature_limit(user_plan, 'decoder')
             
-            # Check decoder usage limits
-            current_usage = get_decoder_usage()
+            # Check decoder usage limits using database tracking
+            from unified_tier_system import get_feature_usage_today
+            current_usage = get_feature_usage_today(user_id, "decoder")
             
             # Check if user has exceeded limit
             if daily_limit < 999999 and current_usage >= daily_limit:
@@ -9897,8 +9921,17 @@ def api_chat():
                     "upgrade_required": True
                 }), 429
             
-            # Increment usage for decoder requests
-            increment_decoder_usage()
+            # Increment usage for decoder requests using database tracking
+            from unified_tier_system import increment_feature_usage
+            increment_feature_usage(user_id, "decoder")
+        
+        # Increment usage for fortune and horoscope requests using database tracking
+        if context in ['fortune_reading']:
+            from unified_tier_system import increment_feature_usage
+            increment_feature_usage(user_id, "fortune")
+        elif context in ['daily_horoscope', 'love_compatibility', 'yearly_horoscope']:
+            from unified_tier_system import increment_feature_usage
+            increment_feature_usage(user_id, "horoscope")
         
         # Sanitize character input
         if character not in VALID_CHARACTERS:
@@ -15781,6 +15814,53 @@ def add_trainer_credits(user_id, amount=350):
     except Exception as e:
         logger.error(f"Error adding purchased credits: {e}")
         return False
+
+@app.route('/api/update-timezone', methods=['POST'])
+def update_user_timezone():
+    """Update user's timezone for personalized daily resets"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Not logged in"}), 401
+            
+        data = request.get_json()
+        timezone = data.get('timezone', '').strip()
+        
+        # Validate timezone
+        valid_timezones = [
+            'America/New_York', 'America/Chicago', 'America/Denver', 'America/Los_Angeles',
+            'America/Toronto', 'America/Vancouver', 'Europe/London', 'Europe/Paris',
+            'Europe/Berlin', 'Asia/Tokyo', 'Asia/Shanghai', 'Australia/Sydney',
+            'America/Mexico_City', 'America/Sao_Paulo', 'Asia/Mumbai', 'Africa/Cairo'
+        ]
+        
+        if not timezone or timezone not in valid_timezones:
+            return jsonify({"success": False, "error": "Invalid timezone"}), 400
+            
+        user_id = session.get('user_id')
+        database_url = os.environ.get('DATABASE_URL')
+        
+        if not database_url:
+            return jsonify({"success": False, "error": "Database unavailable"}), 500
+            
+        conn = psycopg2.connect(database_url)
+        cur = conn.cursor()
+        
+        # Update user's timezone
+        cur.execute("UPDATE users SET timezone = %s WHERE id = %s", (timezone, user_id))
+        conn.commit()
+        conn.close()
+        
+        logger.info(f"🌍 User {user_id} timezone updated to {timezone}")
+        
+        return jsonify({
+            "success": True, 
+            "message": f"Timezone updated to {timezone}",
+            "timezone": timezone
+        })
+        
+    except Exception as e:
+        logger.error(f"Error updating user timezone: {e}")
+        return jsonify({"success": False, "error": "Failed to update timezone"}), 500
 
 # APPLICATION STARTUP
 # ========================================
