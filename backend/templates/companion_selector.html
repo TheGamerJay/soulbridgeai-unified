@@ -758,6 +758,21 @@
         <div class="header">
             <h1>🤖 Choose Your AI Companion</h1>
             <p>Select the perfect companion to guide you on your wellness journey</p>
+            
+            <!-- Trial Button - One-time 5-hour trial for ALL users -->
+            <button id="start-trial-btn" class="trial-btn" onclick="startTrial()" 
+                    style="display: {% if not session.get('trial_active') and not session.get('trial_used_permanently') %}inline-block{% else %}none{% endif %}; margin-top: 20px; background: linear-gradient(135deg, #ff6b35, #ff9500); color: white; border: none; padding: 12px 24px; border-radius: 25px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3); transition: all 0.3s ease;"
+                    title="Start your one-time 5-hour trial to unlock ALL premium features + 60 trainer time"
+                    onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(255, 107, 53, 0.4)'"
+                    onmouseout="this.style.transform='translateY(0px)'; this.style.boxShadow='0 4px 15px rgba(255, 107, 53, 0.3)'">
+                <i class="fas fa-star"></i> Start 5hr Premium Trial
+            </button>
+            
+            <!-- Trial Active Banner -->
+            <div id="trial-banner" style="display: {% if session.get('trial_active') %}block{% else %}none{% endif %}; margin-top: 20px; background: linear-gradient(135deg, #22d3ee, #06b6d4); color: white; padding: 12px 20px; border-radius: 15px; font-weight: bold;">
+                <i class="fas fa-star"></i> Premium Trial Active - All Features Unlocked! 
+                <span id="trial-eta">5:00:00</span>
+            </div>
         </div>
         
         <div id="companions-container" style="min-height: 200px;">
@@ -775,34 +790,90 @@
 
               <div class="companion-row">
                 <!-- Blayzo Free -->
-                <div class="companion-card">
+                <div class="companion-card" onclick="selectCompanion('blayzo_free')" style="cursor: pointer;">
                   <img src="/static/logos/Blayzo.png" alt="Blayzo Free">
                   <div class="companion-name">Blayzo Free</div>
                   <div class="companion-lock">✅ Unlocked</div>
                 </div>
 
                 <!-- Blayzica Free -->
-                <div class="companion-card">
+                <div class="companion-card" onclick="selectCompanion('blayzica_free')" style="cursor: pointer;">
                   <img src="/static/logos/Blayzica.png" alt="Blayzica Free">
                   <div class="companion-name">Blayzica Free</div>
                   <div class="companion-lock">✅ Unlocked</div>
                 </div>
 
                 <!-- GamerJay -->
-                <div class="companion-card">
+                <div class="companion-card" onclick="selectCompanion('gamerjay')" style="cursor: pointer;">
                   <img src="/static/logos/GamerJay Free companion.png" alt="GamerJay">
                   <div class="companion-name">GamerJay</div>
                   <div class="companion-lock">✅ Unlocked</div>
                 </div>
               </div>
 
-              <!-- 🔒 LOCKED TIERS -->
-              <div class="locked-tier-notice">
-                <p>Upgrade to <strong>Growth</strong> or <strong>Max</strong> to unlock more companions and features.</p>
-                <div class="locked-tier-row">
-                  <div class="locked-box">🔒 Growth Tier Companions Locked</div>
-                  <div class="locked-box">🔒 Max Tier Companions Locked</div>
-                  <div class="locked-box">🔒 Referral Companions Locked</div>
+              <!-- Growth Tier Companions -->
+              <div class="tier-section growth-companions" style="margin-top: 2rem;">
+                <h3 style="color: #22c55e; margin-bottom: 1rem;">🌱 Growth Tier Companions</h3>
+                <div class="companion-row">
+                  <!-- Sky -->
+                  <div class="companion-card {% if user_plan in ['growth', 'max'] or trial_active %}unlocked{% else %}locked{% endif %}" 
+                       onclick="{% if user_plan in ['growth', 'max'] or trial_active %}selectCompanion('sky'){% else %}alert('Upgrade to Growth or start trial to unlock!'){% endif %}" 
+                       style="cursor: pointer;">
+                    <img src="/static/logos/Sky.png" alt="Sky" onerror="this.src='/static/logos/IntroLogo.png'">
+                    <div class="companion-name">Sky</div>
+                    <div class="companion-lock">{% if user_plan in ['growth', 'max'] or trial_active %}✅ Unlocked{% else %}🔒 Growth Tier{% endif %}</div>
+                  </div>
+
+                  <!-- Blayzo Premium -->
+                  <div class="companion-card {% if user_plan in ['growth', 'max'] or trial_active %}unlocked{% else %}locked{% endif %}" 
+                       onclick="{% if user_plan in ['growth', 'max'] or trial_active %}selectCompanion('blayzo_premium'){% else %}alert('Upgrade to Growth or start trial to unlock!'){% endif %}" 
+                       style="cursor: pointer;">
+                    <img src="/static/logos/Blayzo Premium.png" alt="Blayzo Premium" onerror="this.src='/static/logos/IntroLogo.png'">
+                    <div class="companion-name">Blayzo Premium</div>
+                    <div class="companion-lock">{% if user_plan in ['growth', 'max'] or trial_active %}✅ Unlocked{% else %}🔒 Growth Tier{% endif %}</div>
+                  </div>
+
+                  <!-- Blayzica Growth -->
+                  <div class="companion-card {% if user_plan in ['growth', 'max'] or trial_active %}unlocked{% else %}locked{% endif %}" 
+                       onclick="{% if user_plan in ['growth', 'max'] or trial_active %}selectCompanion('blayzica_growth'){% else %}alert('Upgrade to Growth or start trial to unlock!'){% endif %}" 
+                       style="cursor: pointer;">
+                    <img src="/static/logos/Blayzica Growth.png" alt="Blayzica Growth" onerror="this.src='/static/logos/IntroLogo.png'">
+                    <div class="companion-name">Blayzica Growth</div>
+                    <div class="companion-lock">{% if user_plan in ['growth', 'max'] or trial_active %}✅ Unlocked{% else %}🔒 Growth Tier{% endif %}</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Max Tier Companions -->
+              <div class="tier-section max-companions" style="margin-top: 2rem;">
+                <h3 style="color: #8b5cf6; margin-bottom: 1rem;">⭐ Max Tier Companions</h3>
+                <div class="companion-row">
+                  <!-- Companion Crimson -->
+                  <div class="companion-card {% if user_plan == 'max' or trial_active %}unlocked{% else %}locked{% endif %}" 
+                       onclick="{% if user_plan == 'max' or trial_active %}selectCompanion('companion_crimson'){% else %}alert('Upgrade to Max or start trial to unlock!'){% endif %}" 
+                       style="cursor: pointer;">
+                    <img src="/static/logos/Companion Crimson.png" alt="Companion Crimson" onerror="this.src='/static/logos/IntroLogo.png'">
+                    <div class="companion-name">Companion Crimson</div>
+                    <div class="companion-lock">{% if user_plan == 'max' or trial_active %}✅ Unlocked{% else %}🔒 Max Tier{% endif %}</div>
+                  </div>
+
+                  <!-- Companion Violet -->
+                  <div class="companion-card {% if user_plan == 'max' or trial_active %}unlocked{% else %}locked{% endif %}" 
+                       onclick="{% if user_plan == 'max' or trial_active %}selectCompanion('companion_violet'){% else %}alert('Upgrade to Max or start trial to unlock!'){% endif %}" 
+                       style="cursor: pointer;">
+                    <img src="/static/logos/Companion Violet.png" alt="Companion Violet" onerror="this.src='/static/logos/IntroLogo.png'">
+                    <div class="companion-name">Companion Violet</div>
+                    <div class="companion-lock">{% if user_plan == 'max' or trial_active %}✅ Unlocked{% else %}🔒 Max Tier{% endif %}</div>
+                  </div>
+
+                  <!-- Royal Max -->
+                  <div class="companion-card {% if user_plan == 'max' or trial_active %}unlocked{% else %}locked{% endif %}" 
+                       onclick="{% if user_plan == 'max' or trial_active %}selectCompanion('royal_max'){% else %}alert('Upgrade to Max or start trial to unlock!'){% endif %}" 
+                       style="cursor: pointer;">
+                    <img src="/static/logos/Royal Max.png" alt="Royal Max" onerror="this.src='/static/logos/IntroLogo.png'">
+                    <div class="companion-name">Royal Max</div>
+                    <div class="companion-lock">{% if user_plan == 'max' or trial_active %}✅ Unlocked{% else %}🔒 Max Tier{% endif %}</div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1137,6 +1208,32 @@
             const currentReferrals = {{ referral_count or 0 }};
             const needed = requiredReferrals - currentReferrals;
             alert(`You need ${needed} more referrals to unlock this companion!\n\nCurrent referrals: ${currentReferrals}\nRequired: ${requiredReferrals}\n\nClick "Start Referring Friends" to get your referral link!`);
+        }
+        
+        // Trial System Functions
+        async function startTrial() {
+            try {
+                const res = await fetch('/api/start-trial', { method: 'POST' });
+                const data = await res.json();
+                
+                if (data.success) {
+                    alert("🎉 5-Hour Premium Trial Started!\n\n✅ All Growth & Max features unlocked\n✅ 60 trainer time for Mini Studio\n⏰ 5 hours to explore everything!");
+                    
+                    // Hide trial button and show banner
+                    document.getElementById('start-trial-btn').style.display = 'none';
+                    document.getElementById('trial-banner').style.display = 'block';
+                    
+                    // Refresh page to update companion locks
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
+                } else {
+                    alert("Trial could not be started: " + (data.error || "Unknown error"));
+                }
+            } catch (error) {
+                console.error('Error starting trial:', error);
+                alert("Error starting trial. Please try again.");
+            }
         }
     </script>
 </body>
