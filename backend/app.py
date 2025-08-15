@@ -282,10 +282,10 @@ def get_user_id_new():
     return session.get("user_id", "demo_user")
 
 def get_effective_plan_new(user_plan: str, trial_active: bool) -> str:
-    """Trial unlocks FEATURES/COMPANIONS for visibility, but limits remain on real plan"""
-    # NEW: Only growth/max users can have trials. Free users should never get trial benefits.
-    if trial_active and user_plan in ['growth', 'max']:
-        return "max"
+    """Trial unlocks COMPANIONS for access, but limits remain on real plan"""
+    # TRIAL DESIGN: Free users with trial can access Growth/Max companions
+    if trial_active and user_plan == 'free':
+        return "max"  # For companion access only, not limits
     return user_plan
 
 def get_access_matrix_new(user_plan: str, trial_active: bool):
@@ -2092,9 +2092,9 @@ def user_info():
             "effective_plan": effective_plan,
             "trial_remaining": trial_remaining,
             "limits": {
-                "decoder": get_feature_limit(effective_plan, "decoder"), 
-                "fortune": get_feature_limit(effective_plan, "fortune"),
-                "horoscope": get_feature_limit(effective_plan, "horoscope")
+                "decoder": get_feature_limit(user_plan, "decoder"), 
+                "fortune": get_feature_limit(user_plan, "fortune"),
+                "horoscope": get_feature_limit(user_plan, "horoscope")
             },
             "usage": usage_counts
         })
@@ -3902,8 +3902,8 @@ def fortune():
         effective_plan = session.get('effective_plan', 'free')
         trial_active = session.get('trial_active', False)
         
-        # FIXED: Use effective_plan for limits during trial
-        daily_limit = get_feature_limit(effective_plan, 'fortune')  # Limits based on effective plan (includes trial)
+        # TRIAL DESIGN: Use user_plan for limits (trial doesn't change limits)
+        daily_limit = get_feature_limit(user_plan, 'fortune')  # Limits based on actual plan
         
         # DEBUG: Log fortune access info
         logger.info(f"🔮 FORTUNE DEBUG: user_plan = {user_plan}")
@@ -3942,8 +3942,8 @@ def horoscope():
         effective_plan = session.get('effective_plan', 'free')
         trial_active = session.get('trial_active', False)
         
-        # FIXED: Use effective_plan for limits during trial
-        daily_limit = get_feature_limit(effective_plan, 'horoscope')  # Limits based on effective plan (includes trial)
+        # TRIAL DESIGN: Use user_plan for limits (trial doesn't change limits)
+        daily_limit = get_feature_limit(user_plan, 'horoscope')  # Limits based on actual plan
         
         # DEBUG: Log horoscope access info
         logger.info(f"⭐ HOROSCOPE DEBUG: user_plan = {user_plan}")
@@ -7397,11 +7397,10 @@ def get_effective_plan(user_plan: str, trial_active: bool) -> str:
         logger.warning(f"⚠️ Unknown plan '{user_plan}' defaulting to 'free'")
         user_plan = 'free'
     
-    # FIXED: Trial DOES change access level for FREE users
-    # Free users with active trial get MAX tier access during trial period
-    if trial_active and user_plan == 'free':
-        return 'max'  # Free users get max access during trial
-    return user_plan  # Non-free users keep their plan level
+    # TRIAL DESIGN: Trial unlocks ACCESS but keeps original LIMITS
+    # Free users with trial can access Growth/Max companions but keep free tier limits
+    # This lets them "taste" the companions without false hope about limits
+    return user_plan  # Always return actual plan - trial only affects companion access
 
 def get_feature_limit_v2(effective_plan: str, feature: str) -> int:
     """
@@ -8060,12 +8059,12 @@ def api_plan_new():
         effective_plan = get_effective_plan_new(user_plan, trial_active)
         access = get_access_matrix_new(user_plan, trial_active)
         
-        # FIXED: Use effective_plan for limits during trial
-        # Trial gives access to features AND max tier limits
+        # TRIAL DESIGN: Use user_plan for limits (trial doesn't change limits)
+        # Trial unlocks companion access but keeps original plan limits
         limits = {
-            "decoder": get_feature_limit(effective_plan, "decoder"),
-            "fortune": get_feature_limit(effective_plan, "fortune"),
-            "horoscope": get_feature_limit(effective_plan, "horoscope"),
+            "decoder": get_feature_limit(user_plan, "decoder"),
+            "fortune": get_feature_limit(user_plan, "fortune"),
+            "horoscope": get_feature_limit(user_plan, "horoscope"),
         }
         
         return jsonify({
@@ -10041,7 +10040,7 @@ def api_chat():
             user_plan = session.get('user_plan', 'free')
             trial_active = session.get('trial_active', False)
             user_id = session.get('user_id')
-            daily_limit = get_feature_limit(effective_plan, 'decoder')
+            daily_limit = get_feature_limit(user_plan, 'decoder')
             
             # Check decoder usage limits using database tracking
             from unified_tier_system import get_feature_usage_today
