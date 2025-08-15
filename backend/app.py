@@ -2318,8 +2318,8 @@ def start_trial():
         
         logger.info(f"🎯 STARTING TRIAL: User {user_id} trial expires at {expires}")
 
-        # Update database
-        cursor.execute("UPDATE users SET trial_started_at = %s, trial_expires_at = %s WHERE id = %s", (now, expires, user_id))
+        # Update database - CRITICAL: Set trial_active = TRUE so it persists across sessions
+        cursor.execute("UPDATE users SET trial_started_at = %s, trial_expires_at = %s, trial_active = TRUE WHERE id = %s", (now, expires, user_id))
         conn.commit()
         conn.close()
 
