@@ -31,7 +31,7 @@ class OpenAIClient:
         """Check if OpenAI client is available and budget is safe"""
         if not self.available:
             return False
-        return check_budget_safe()
+        return check_budget_safe(min_remaining=0.05)  # Allow usage until $0.05 left
     
     def generate_companion_response(
         self, 
@@ -89,7 +89,9 @@ class OpenAIClient:
             
             # Adjust parameters based on plan
             max_tokens = self.max_tokens
-            if user_plan in ["vip", "max"]:
+            if user_plan == "free":
+                max_tokens = 50  # Very short responses for free users (save costs)
+            elif user_plan in ["vip", "max"]:
                 max_tokens = int(max_tokens * 1.5)  # Longer responses for premium users
             
             # Make OpenAI API call
