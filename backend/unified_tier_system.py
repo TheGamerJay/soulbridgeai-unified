@@ -21,12 +21,67 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+def ensure_database_schema():
+    """
+    Ensure all required tables and columns exist for the unified tier system
+    """
+    try:
+        database_url = os.environ.get('DATABASE_URL')
+        if not database_url:
+            return False
+            
+        conn = psycopg2.connect(database_url)
+        cur = conn.cursor()
+        
+        # Create feature_usage table if it doesn't exist
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS feature_usage (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER NOT NULL,
+                feature VARCHAR(50) NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        
+        # Add missing columns to users table (ignore errors if they exist)
+        missing_columns = [
+            'ADD COLUMN timezone VARCHAR(50) DEFAULT \'America/New_York\'',
+            'ADD COLUMN credits INTEGER DEFAULT 0',
+            'ADD COLUMN last_credit_reset TIMESTAMP',
+            'ADD COLUMN purchased_credits INTEGER DEFAULT 0'
+        ]
+        
+        for alter_statement in missing_columns:
+            try:
+                cur.execute(f"ALTER TABLE users {alter_statement}")
+                logger.info(f"✅ Added users table column: {alter_statement}")
+            except Exception:
+                # Column likely already exists, ignore error
+                conn.rollback()
+        
+        # Create index for performance
+        try:
+            cur.execute("CREATE INDEX IF NOT EXISTS idx_feature_usage_user_feature_date ON feature_usage(user_id, feature, DATE(created_at))")
+        except Exception:
+            pass
+        
+        conn.commit()
+        conn.close()
+        return True
+        
+    except Exception as e:
+        logger.error(f"Error ensuring database schema: {e}")
+        return False
+
 def get_user_timezone(user_id):
     """Get user's timezone, default to Eastern Time"""
     try:
         database_url = os.environ.get('DATABASE_URL')
         if not database_url:
             return 'America/New_York'  # Default fallback
+            
+        # Ensure schema exists first
+        ensure_database_schema()
             
         conn = psycopg2.connect(database_url)
         cur = conn.cursor()
@@ -158,6 +213,9 @@ def get_user_credits(user_id):
         database_url = os.environ.get('DATABASE_URL')
         if not database_url:
             return 0
+            
+        # Ensure schema exists first
+        ensure_database_schema()
             
         conn = psycopg2.connect(database_url)
         cur = conn.cursor()
@@ -385,58 +443,6 @@ def get_feature_usage_today(user_id, feature):
         return 0
 
 # INCREMENT FEATURE USAGE
-def ensure_database_schema():
-    """
-    Ensure all required tables and columns exist for the unified tier system
-    """
-    try:
-        database_url = os.environ.get('DATABASE_URL')
-        if not database_url:
-            return False
-            
-        conn = psycopg2.connect(database_url)
-        cur = conn.cursor()
-        
-        # Create feature_usage table if it doesn't exist
-        cur.execute("""
-            CREATE TABLE IF NOT EXISTS feature_usage (
-                id SERIAL PRIMARY KEY,
-                user_id INTEGER NOT NULL,
-                feature VARCHAR(50) NOT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        """)
-        
-        # Add missing columns to users table (ignore errors if they exist)
-        missing_columns = [
-            'ADD COLUMN timezone VARCHAR(50) DEFAULT \'America/New_York\'',
-            'ADD COLUMN credits INTEGER DEFAULT 0',
-            'ADD COLUMN last_credit_reset TIMESTAMP',
-            'ADD COLUMN purchased_credits INTEGER DEFAULT 0'
-        ]
-        
-        for alter_statement in missing_columns:
-            try:
-                cur.execute(f"ALTER TABLE users {alter_statement}")
-                logger.info(f"✅ Added users table column: {alter_statement}")
-            except Exception:
-                # Column likely already exists, ignore error
-                conn.rollback()
-        
-        # Create index for performance
-        try:
-            cur.execute("CREATE INDEX IF NOT EXISTS idx_feature_usage_user_feature_date ON feature_usage(user_id, feature, DATE(created_at))")
-        except Exception:
-            pass
-        
-        conn.commit()
-        conn.close()
-        return True
-        
-    except Exception as e:
-        logger.error(f"Error ensuring database schema: {e}")
-        return False
-
 def increment_feature_usage(user_id, feature):
     """
     Record feature usage for daily limit tracking
