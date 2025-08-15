@@ -7397,11 +7397,11 @@ def get_effective_plan(user_plan: str, trial_active: bool) -> str:
         logger.warning(f"⚠️ Unknown plan '{user_plan}' defaulting to 'free'")
         user_plan = 'free'
     
-    # TRIAL DOES NOT CHANGE ACCESS LEVEL
-    # Trial is just a time-limited experience of whatever plan the user already has
-    # Free users with trial active = still free tier (just time-limited)
-    # No feature upgrades during trial - trial is purely a time constraint
-    return user_plan  # Always return the user's actual plan tier
+    # FIXED: Trial DOES change access level for FREE users
+    # Free users with active trial get MAX tier access during trial period
+    if trial_active and user_plan == 'free':
+        return 'max'  # Free users get max access during trial
+    return user_plan  # Non-free users keep their plan level
 
 def get_feature_limit_v2(effective_plan: str, feature: str) -> int:
     """
