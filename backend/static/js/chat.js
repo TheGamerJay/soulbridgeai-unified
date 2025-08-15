@@ -1572,23 +1572,37 @@ async function showAdBeforeNextMessage() {
 }
 
 function loadAdSenseAd(containerId) {
-    // This will be replaced with actual AdSense code once you have Publisher ID
-    console.log('📺 Loading AdSense ad into:', containerId);
+    console.log('📺 Loading real AdSense ad into:', containerId);
     
-    // For now, show wellness/gaming themed placeholder ad
     const adContent = document.getElementById(containerId);
     if (adContent) {
-        setTimeout(() => {
+        // Create responsive AdSense ad unit
+        adContent.innerHTML = `
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-client="ca-pub-3869471953521437"
+                 data-ad-slot="auto"
+                 data-ad-format="auto"
+                 data-full-width-responsive="true"></ins>
+        `;
+        
+        // Push the ad to AdSense
+        try {
+            (adsbygoogle = window.adsbygoogle || []).push({});
+            console.log('✅ AdSense ad loaded successfully');
+        } catch (error) {
+            console.error('❌ AdSense ad failed to load:', error);
+            // Fallback to placeholder ad
             adContent.innerHTML = `
                 <div class="demo-ad">
                     <div class="demo-ad-content">
-                        <h3>🧘‍♀️ Calm - Meditation & Sleep</h3>
-                        <p>Find your inner peace with guided meditations</p>
-                        <button class="demo-ad-button">Download Free</button>
+                        <h3>🧘‍♀️ Support SoulBridge AI</h3>
+                        <p>Ad loading... Please wait or upgrade to ad-free!</p>
+                        <button class="demo-ad-button" onclick="window.open('/plan-selection', '_blank')">Go Ad-Free $5/mo</button>
                     </div>
                 </div>
             `;
-        }, 1000);
+        }
     }
 }
 
