@@ -183,20 +183,13 @@
                 <!-- Timer removed from chat page - too distracting during conversations -->
 
                 
-                <!-- Trial Badge (shows when trial is active for ANY user) -->
+                <!-- Trial Status (shows only when active) -->
                 <div class="trial-status-container">
-                    <!-- Trial banner - Shows when trial is active for any user -->
+                    <!-- Trial banner - Shows when trial is active -->
                     <div id="trial-banner" class="simple-timer" style="display: {% if session.get('trial_active') %}block{% else %}none{% endif %};">
-                        <strong><i class="fas fa-clock"></i> Trial Active - All Features Unlocked!</strong>
+                        <strong><i class="fas fa-clock"></i> Premium Trial Active!</strong>
                         <span id="trial-eta">— 05:00:00</span>
                     </div>
-                    
-                    <!-- Start Trial Button - Available for ALL users (one-time only) -->
-                    <button id="start-trial-btn" class="action-btn trial-btn" onclick="startTrial()" 
-                            style="display: {% if not session.get('trial_active') and not session.get('trial_used_permanently') %}block{% else %}none{% endif %};"
-                            title="Start your one-time 5-hour trial to unlock ALL premium features">
-                        <i class="fas fa-star"></i> Start 5hr Premium Trial
-                    </button>
                 </div>
             </div>
         </div>
@@ -1079,9 +1072,7 @@
             display: none !important;
         }
         
-        .trial-btn {
-            animation: pulse-gold 2s infinite;
-        }
+        /* Trial button CSS removed - trial button only available on companion selector page */
         
         @keyframes pulse-gold {
             0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7); }
@@ -2617,16 +2608,7 @@ Where emotion meets expression.
                 // Use new timer system instead (trial-timer-container)
                 console.log('🔄 OLD ring timer disabled, using new timer system instead');
 
-                // Hide trial button if used, active, OR user is on free plan (free users use ads)
-                const trialBtn = document.getElementById("start-trial-btn");
-                const userPlan = '{{ user_plan }}' || 'free';
-                if (trialBtn && (trial_active || trial_used_permanently || userPlan === 'free')) {
-                    trialBtn.classList.add("hidden");
-                    // Add tooltip for free users
-                    if (userPlan === 'free') {
-                        trialBtn.title = "Free users enjoy unlimited chat with ads (daily limits on special features). Trials are for growth/max tiers.";
-                    }
-                }
+                // Trial button removed from chat page - now only available on companion selector page
 
                 // Premium features are now conditionally rendered by server template
                 // No need for JavaScript show/hide logic anymore
@@ -2643,28 +2625,7 @@ Where emotion meets expression.
             }
         }
 
-        async function startTrial() {
-            try {
-                const res = await fetch('/api/start-trial', { method: 'POST' });
-                const data = await res.json();
-                
-                if (data.success) {
-                    alert("🌟 5-Hour Trial started! Enjoy all premium features!");
-                    refreshUserStatus();
-                    
-                    // Hide the trial button immediately
-                    const trialBtn = document.getElementById("start-trial-btn");
-                    if (trialBtn) {
-                        trialBtn.classList.add("hidden");
-                    }
-                } else {
-                    alert("Trial could not be started: " + (data.error || "Unknown error"));
-                }
-            } catch (error) {
-                console.error('Error starting trial:', error);
-                alert("Error starting trial. Please try again.");
-            }
-        }
+        // Trial functionality removed from chat page - available only on companion selector page
 
         // Initialize robust timer system - MULTIPLE TRIGGERS
         console.log('🔧 Timer initialization script loaded');
