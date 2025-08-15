@@ -13822,10 +13822,18 @@ TIERS_TEMPLATE = r"""
       const userPlan = '{{ user_plan }}' || 'free';
       console.log('👤 User plan:', userPlan);
       
-      // TEMP DEBUG: Just navigate immediately to test if function is working
+      // TEMP DEBUG: Check trial status from template instead of API  
+      const trialActive = '{{ trial_active }}' === 'True';
+      console.log('🔍 Template trial status:', trialActive);
+      
       if (slug === 'blayzo_premium' || slug === 'blayzica_growth') {
-        console.log('🚀 DEBUG: Forcing navigation for test companion');
-        navigateToChat(slug);
+        if (trialActive || userPlan === 'growth' || userPlan === 'max') {
+          console.log('✅ Access granted via template data');
+          navigateToChat(slug);
+        } else {
+          console.log('❌ No access via template data');
+          alert('Start trial or upgrade to access this companion!');
+        }
         return;
       }
       
