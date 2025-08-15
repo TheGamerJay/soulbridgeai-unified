@@ -13863,17 +13863,39 @@ TIERS_TEMPLATE = r"""
       
       // If no subscription access, check trial status via API
       console.log(`🔍 Checking trial status via API...`);
-      const response = await fetch('/api/trial-status', { credentials: 'include' });
-      const data = await response.json();
-      console.log(`📊 Trial status:`, data);
       
-      if (data.active) {
-        console.log(`✅ Access granted via active trial`);
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+        
+        const response = await fetch('/api/trial-status', { 
+          credentials: 'include',
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+          throw new Error(`API responded with status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log(`📊 Trial status:`, data);
+        
+        if (data.active) {
+          console.log(`✅ Access granted via active trial`);
+          navigateToChat(slug);
+        } else {
+          console.log(`❌ No access - trial not active`);
+          const tierText = requiredTiers.join(' or ');
+          alert(`Upgrade to ${tierText} or start trial to unlock this companion!`);
+        }
+      } catch (fetchError) {
+        console.error('🔧 Error fetching trial status:', fetchError);
+        
+        // Fallback: Allow access if API fails (better UX)
+        console.log(`⚠️ API failed, allowing access as fallback`);
         navigateToChat(slug);
-      } else {
-        console.log(`❌ No access - trial not active`);
-        const tierText = requiredTiers.join(' or ');
-        alert(`Upgrade to ${tierText} or start trial to unlock this companion!`);
       }
     } catch (error) {
       console.error('🔧 Error in openChat:', error);
