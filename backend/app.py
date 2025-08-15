@@ -13811,7 +13811,7 @@ TIERS_TEMPLATE = r"""
 </div>
 
 <script>
-  console.log('🔧 TIERS JS: Script loaded successfully');
+  console.log('🔧 TIERS JS: Script loaded successfully - v20250815_2225');
   
   async function openChat(slug){ 
     console.log('🔧 openChat called with slug:', slug);
