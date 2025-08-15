@@ -283,23 +283,23 @@ def get_user_id_new():
 
 def get_effective_plan_new(user_plan: str, trial_active: bool) -> str:
     """Trial unlocks FEATURES/COMPANIONS for visibility, but limits remain on real plan"""
-    # Always use 'max' for all access checks if trial is active
-    if trial_active:
+    # NEW: Only growth/max users can have trials. Free users should never get trial benefits.
+    if trial_active and user_plan in ['growth', 'max']:
         return "max"
     return user_plan
 
 def get_access_matrix_new(user_plan: str, trial_active: bool):
     """Get feature access matrix - TRIAL DOES NOT CHANGE ACCESS"""
-    # During trial, use max tier for access
-    plan = "max" if trial_active else user_plan
+    # NEW: Only growth/max users can have trials. Free users should never get trial benefits.
+    plan = "max" if (trial_active and user_plan in ['growth', 'max']) else user_plan
     base = FEATURE_ACCESS.get(plan, FEATURE_ACCESS["free"]).copy()
     return base
 
 def companion_unlock_state_new(user_plan: str, trial_active: bool, referrals: int):
     """Determine which companions are unlocked - TRIAL DOES NOT CHANGE ACCESS"""
-    # During trial, unlock all companions (growth + max)
-    # If trial is active, unlock all non-referral companions (free, growth, max)
-    if trial_active:
+    # NEW: Only growth/max users can have trials. Free users should never get trial benefits.
+    # If trial is active AND user is on growth/max plan, unlock all non-referral companions
+    if trial_active and user_plan in ['growth', 'max']:
         unlocked_tiers = set(["free", "growth", "max"])
     else:
         unlocked_tiers = set(["free"])
@@ -684,6 +684,46 @@ def is_user_ad_free():
     except Exception as e:
         logger.error(f"Error checking ad-free status: {e}")
         return False
+
+def clear_invalid_trial_for_free_users():
+    """Safety check: Clear trial status for free users (they should use ads instead)"""
+    user_plan = session.get('user_plan', 'free')
+    trial_active = session.get('trial_active', False)
+    
+    if user_plan == 'free' and trial_active:
+        logger.warning(f"⚠️ Clearing invalid trial status for free user {session.get('user_id')}")
+        session['trial_active'] = False
+        session['trial_started_at'] = None
+        session['trial_expires_at'] = None
+        session.modified = True
+        
+        # Also clear in database
+        try:
+            user_id = session.get('user_id')
+            if user_id:
+                db_instance = get_database()
+                if db_instance:
+                    conn = db_instance.get_connection()
+                    cursor = conn.cursor()
+                    
+                    if db_instance.use_postgres:
+                        cursor.execute("""
+                            UPDATE users 
+                            SET trial_active = FALSE, trial_started_at = NULL, trial_expires_at = NULL 
+                            WHERE id = %s AND (user_plan = 'free' OR plan_type = 'free')
+                        """, (user_id,))
+                    else:
+                        cursor.execute("""
+                            UPDATE users 
+                            SET trial_active = 0, trial_started_at = NULL, trial_expires_at = NULL 
+                            WHERE id = ? AND (user_plan = 'free' OR plan_type = 'free')
+                        """, (user_id,))
+                    
+                    conn.commit()
+                    conn.close()
+                    logger.info(f"✅ Cleared invalid trial status in database for free user {user_id}")
+        except Exception as e:
+            logger.error(f"Error clearing invalid trial status: {e}")
 
 # Global variables for services
 services = {
@@ -2225,9 +2265,25 @@ def accept_terms():
 
 @app.route('/api/start-trial', methods=['POST'])
 def start_trial():
-    """Start 5-hour trial for user"""
+    """Start 5-hour trial for growth/max users only (free users use ads)"""
     if not session.get('user_id'):
         return jsonify({"success": False, "error": "Login required"}), 401
+
+    # NEW: Check if user is eligible for trial (growth/max only, not free)
+    user_plan = session.get('user_plan', 'free')
+    if user_plan == 'free':
+        return jsonify({
+            "success": False, 
+            "error": "Free users enjoy unlimited access with ads. Trials are only for growth/max tiers.",
+            "redirect": "/plan-selection"
+        }), 403
+
+    if user_plan not in ['growth', 'max']:
+        return jsonify({
+            "success": False, 
+            "error": "Trials are only available for growth and max tier subscriptions.",
+            "redirect": "/plan-selection"
+        }), 403
 
     db = get_database()
     if not db:
@@ -2955,6 +3011,9 @@ def intro():
         logger.info(f"✅ INTRO: trial_active={trial_active}, effective_plan={effective_plan}, access_growth={session['access_growth']}, access_max={session['access_max']}")
         logger.info(f"Access flags: free={session['access_free']}, growth={session['access_growth']}, max={session['access_max']}, trial={session['access_trial']}")
         
+        # Safety check: Clear any invalid trial status for free users
+        clear_invalid_trial_for_free_users()
+        
         return render_template("intro.html", ad_free=is_user_ad_free())
     except Exception as e:
         logger.error(f"❌ INTRO ERROR: {e}")
@@ -3316,6 +3375,9 @@ def chat():
     # SPECIAL DEBUG for GamerJay Premium
     if "gamerjay" in companion_name.lower():
         logger.info(f"🔍 GAMERJAY DEBUG: Original companion_id={request.args.get('companion')}, Final companion_name={companion_name}, Avatar path={companion_info['avatar']}")
+    
+    # Safety check: Clear any invalid trial status for free users
+    clear_invalid_trial_for_free_users()
     
     return render_template("chat.html",
         companion=companion_name,
@@ -7941,10 +8003,26 @@ def api_companions():
 
 @app.route("/start-trial", methods=["POST"])
 def start_trial_bulletproof():
-    """Bulletproof trial start - only visibility changes"""
+    """Bulletproof trial start - only for growth/max users (free users use ads)"""
     try:
         if not is_logged_in():
             return jsonify({"ok": False, "error": "Authentication required"}), 401
+        
+        # NEW: Check if user is eligible for trial (growth/max only, not free)
+        user_plan = session.get('user_plan', 'free')
+        if user_plan == 'free':
+            return jsonify({
+                "ok": False, 
+                "error": "Free users enjoy unlimited access with ads. Trials are only for growth/max tiers.",
+                "redirect": "/plan-selection"
+            }), 403
+
+        if user_plan not in ['growth', 'max']:
+            return jsonify({
+                "ok": False, 
+                "error": "Trials are only available for growth and max tier subscriptions.",
+                "redirect": "/plan-selection"
+            }), 403
         
         if session.get("trial_used_permanently"):
             return jsonify({"ok": False, "error": "Trial already used"}), 400

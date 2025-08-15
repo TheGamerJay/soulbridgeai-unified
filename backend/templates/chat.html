@@ -2562,10 +2562,15 @@ Where emotion meets expression.
                 // Use new timer system instead (trial-timer-container)
                 console.log('🔄 OLD ring timer disabled, using new timer system instead');
 
-                // Hide trial button if used or active
+                // Hide trial button if used, active, OR user is on free plan (free users use ads)
                 const trialBtn = document.getElementById("start-trial-btn");
-                if (trialBtn && (trial_active || trial_used_permanently)) {
+                const userPlan = '{{ user_plan }}' || 'free';
+                if (trialBtn && (trial_active || trial_used_permanently || userPlan === 'free')) {
                     trialBtn.classList.add("hidden");
+                    // Add tooltip for free users
+                    if (userPlan === 'free') {
+                        trialBtn.title = "Free users enjoy unlimited access with ads. Trials are for growth/max tiers.";
+                    }
                 }
 
                 // Premium features are now conditionally rendered by server template
