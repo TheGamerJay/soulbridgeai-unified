@@ -840,27 +840,23 @@ async function showDecoderAd() {
 }
 
 function loadDecoderAdSenseAd(containerId) {
-    console.log('📺 Loading real AdSense ad into decoder:', containerId);
+    console.log('📺 Loading ad placeholder for decoder:', containerId);
     
-    // Create a real AdSense ad unit
+    // Show a placeholder ad for now (until real AdSense slots are configured)
     try {
         const adContainer = document.getElementById(containerId);
-        if (adContainer && window.adsbygoogle) {
+        if (adContainer) {
             adContainer.innerHTML = `
-                <ins class="adsbygoogle"
-                     style="display:block"
-                     data-ad-client="ca-pub-3869471953521437"
-                     data-ad-slot="1234567890"
-                     data-ad-format="auto"
-                     data-full-width-responsive="true"></ins>
+                <div style="background: linear-gradient(135deg, #22d3ee, #06b6d4); color: white; padding: 40px; border-radius: 8px; text-align: center; font-family: Arial, sans-serif;">
+                    <h3 style="margin: 0 0 10px 0; font-size: 1.2em;">✨ Support SoulBridge AI ✨</h3>
+                    <p style="margin: 0; opacity: 0.9; font-size: 0.9em;">Thank you for watching this ad! Your support helps keep SoulBridge AI free.</p>
+                    <p style="margin: 10px 0 0 0; opacity: 0.8; font-size: 0.8em;">🧠 Dream decoding powered by AI</p>
+                </div>
             `;
-            
-            // Initialize AdSense
-            (adsbygoogle = window.adsbygoogle || []).push({});
-            console.log('📺 Decoder AdSense ad initialized');
+            console.log('📺 Decoder ad placeholder loaded');
         }
     } catch (error) {
-        console.warn('⚠️ Failed to load decoder AdSense ad:', error);
+        console.warn('⚠️ Failed to load decoder ad placeholder:', error);
     }
 }
 
