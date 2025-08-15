@@ -72,9 +72,9 @@ def check_budget_safe(min_remaining: float = None) -> bool:
     remaining = get_openai_remaining()
     
     if remaining is None:
-        # If we can't check budget, be conservative and use local
-        logger.warning("Unable to check budget - defaulting to local AI")
-        return False
+        # If we can't check budget due to API issues, allow limited usage for ad-supported users
+        logger.warning("Unable to check budget - allowing limited OpenAI usage for ad revenue")
+        return True
     
     is_safe = remaining >= min_remaining
     

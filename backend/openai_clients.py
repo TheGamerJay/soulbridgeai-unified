@@ -3,10 +3,10 @@ OpenAI Client Wrappers
 Handles OpenAI API calls with budget monitoring and error handling
 """
 import os
-import openai
 import logging
 from typing import Dict, Any, Optional
-from backend.billing.openai_budget import check_budget_safe, get_budget_status
+from openai import OpenAI
+from billing.openai_budget import check_budget_safe, get_budget_status
 
 logger = logging.getLogger(__name__)
 
@@ -16,10 +16,11 @@ class OpenAIClient:
     def __init__(self):
         self.api_key = os.getenv("OPENAI_API_KEY", "")
         if self.api_key:
-            openai.api_key = self.api_key
+            self.client = OpenAI(api_key=self.api_key)
             self.available = True
             logger.info("✅ OpenAI client initialized")
         else:
+            self.client = None
             self.available = False
             logger.warning("⚠️ No OpenAI API key - OpenAI client disabled")
         
@@ -95,7 +96,7 @@ class OpenAIClient:
                 max_tokens = int(max_tokens * 1.5)  # Longer responses for premium users
             
             # Make OpenAI API call
-            response = openai.ChatCompletion.create(
+            response = self.client.chat.completions.create(
                 model=self.default_model,
                 messages=messages,
                 max_tokens=max_tokens,
@@ -120,41 +121,41 @@ class OpenAIClient:
                 "enhancement_level": "openai_gpt"
             }
             
-        except openai.error.RateLimitError:
-            logger.warning("OpenAI rate limit exceeded")
-            return {
-                "success": False,
-                "error": "rate_limit",
-                "reason": "OpenAI rate limit exceeded",
-                "fallback_recommended": True
-            }
-        
-        except openai.error.AuthenticationError:
-            logger.error("OpenAI authentication failed")
-            return {
-                "success": False,
-                "error": "auth_error",
-                "reason": "OpenAI API key invalid",
-                "fallback_recommended": True
-            }
-        
-        except openai.error.InsufficientQuotaError:
-            logger.error("OpenAI quota exceeded")
-            return {
-                "success": False,
-                "error": "quota_exceeded",
-                "reason": "OpenAI quota exceeded",
-                "fallback_recommended": True
-            }
-        
         except Exception as e:
-            logger.error(f"OpenAI API error: {e}")
-            return {
-                "success": False,
-                "error": "api_error",
-                "reason": str(e),
-                "fallback_recommended": True
-            }
+            error_str = str(e).lower()
+            
+            if "rate limit" in error_str or "rate_limit" in error_str:
+                logger.warning("OpenAI rate limit exceeded")
+                return {
+                    "success": False,
+                    "error": "rate_limit",
+                    "reason": "OpenAI rate limit exceeded",
+                    "fallback_recommended": True
+                }
+            elif "authentication" in error_str or "401" in error_str:
+                logger.error("OpenAI authentication failed")
+                return {
+                    "success": False,
+                    "error": "auth_error",
+                    "reason": "OpenAI API key invalid",
+                    "fallback_recommended": True
+                }
+            elif "quota" in error_str or "insufficient" in error_str:
+                logger.error("OpenAI quota exceeded")
+                return {
+                    "success": False,
+                    "error": "quota_exceeded",
+                    "reason": "OpenAI quota exceeded",
+                    "fallback_recommended": True
+                }
+            else:
+                logger.error(f"OpenAI API error: {e}")
+                return {
+                    "success": False,
+                    "error": "api_error",
+                    "reason": str(e),
+                    "fallback_recommended": True
+                }
     
     def get_client_status(self) -> Dict[str, Any]:
         """Get detailed client status"""
