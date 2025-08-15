@@ -9894,11 +9894,16 @@ def api_chat():
         character = data.get("character", "Blayzo")
         context = data.get("context", "")
         
+        logger.info(f"🔍 API CHAT DEBUG: context='{context}', character='{character}', message_length={len(message)}")
+        
         if not message or len(message) > 1000:
             return jsonify({"success": False, "response": "Message is required and must be under 1000 characters"}), 400
         
         # Check decoder usage limits if this is a decoder request
         if context == 'decoder_mode':
+            logger.info(f"🔍 DECODER MODE DETECTED: context='{context}'")
+            logger.info(f"🔍 SESSION USER_ID: {session.get('user_id')}")
+            logger.info(f"🔍 SESSION USER_PLAN: {session.get('user_plan')}")
             # Use effective_plan from session (set by @app.before_request)
             effective_plan = session.get('effective_plan', 'free')
             user_plan = session.get('user_plan', 'free')
@@ -9910,6 +9915,8 @@ def api_chat():
             from unified_tier_system import get_feature_usage_today
             current_usage = get_feature_usage_today(user_id, "decoder")
             
+            logger.info(f"🔍 USAGE CHECK: current_usage={current_usage}, daily_limit={daily_limit}")
+            
             # Check if user has exceeded limit
             if daily_limit < 999999 and current_usage >= daily_limit:
                 return jsonify({
@@ -9920,6 +9927,8 @@ def api_chat():
                     "daily_limit": daily_limit,
                     "upgrade_required": True
                 }), 429
+            
+            logger.info(f"🔍 PROCEEDING TO INCREMENT: user passed limit check")
             
             # Increment usage for decoder requests using database tracking
             from unified_tier_system import increment_feature_usage
