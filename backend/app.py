@@ -3751,6 +3751,38 @@ def help_page():
         </body></html>
         """
 
+@app.route("/about")
+def about_page():
+    """About us page"""
+    try:
+        return render_template("about.html")
+    except Exception as e:
+        logger.error(f"About page error: {e}")
+        return """
+        <html><head><title>About Us - SoulBridge AI</title></head>
+        <body style="font-family: Arial; padding: 20px; background: #0f172a; color: #e2e8f0;">
+            <h1 style="color: #22d3ee;">About SoulBridge AI</h1>
+            <p>SoulBridge AI is your personal AI companion for emotional support and meaningful conversations.</p>
+            <a href="/" style="color: #22d3ee;">← Back to Home</a>
+        </body></html>
+        """
+
+@app.route("/contact")
+def contact_page():
+    """Contact us page"""
+    try:
+        return render_template("contact.html")
+    except Exception as e:
+        logger.error(f"Contact page error: {e}")
+        return """
+        <html><head><title>Contact Us - SoulBridge AI</title></head>
+        <body style="font-family: Arial; padding: 20px; background: #0f172a; color: #e2e8f0;">
+            <h1 style="color: #22d3ee;">Contact Us</h1>
+            <p>Email us at support@soulbridgeai.com for help with your account or questions.</p>
+            <a href="/" style="color: #22d3ee;">← Back to Home</a>
+        </body></html>
+        """
+
 @app.route("/terms")
 def terms_page():
     """Terms of service and privacy policy"""

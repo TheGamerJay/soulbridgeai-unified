@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us - SoulBridge AI</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Contact SoulBridge AI for support, feedback, or partnership inquiries. We're here to help with your AI companion experience.">
+    <meta name="keywords" content="contact SoulBridge AI, support, customer service, AI companion help">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <meta name="theme-color" content="#00ffff">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        body {
+            background: linear-gradient(135deg, #000000 0%, #0f172a 50%, #1e293b 100%);
+            color: #e2e8f0;
+            font-family: system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #22d3ee, #06b6d4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #94a3b8;
+        }
+
+        .contact-section {
+            background: rgba(0,0,0,0.4);
+            border: 1px solid rgba(34, 211, 238, 0.3);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .contact-section h2 {
+            color: #22d3ee;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .contact-methods {
+            display: grid;
+            gap: 20px;
+        }
+
+        .contact-item {
+            background: rgba(34, 211, 238, 0.1);
+            border: 1px solid rgba(34, 211, 238, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .contact-item i {
+            font-size: 1.5rem;
+            color: #22d3ee;
+            min-width: 30px;
+        }
+
+        .contact-item h3 {
+            margin: 0 0 5px 0;
+            color: #22d3ee;
+        }
+
+        .contact-item p {
+            margin: 0;
+            color: #94a3b8;
+        }
+
+        .contact-item a {
+            color: #22d3ee;
+            text-decoration: none;
+        }
+
+        .contact-item a:hover {
+            text-decoration: underline;
+        }
+
+        .form-section {
+            background: rgba(0,0,0,0.4);
+            border: 1px solid rgba(34, 211, 238, 0.3);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #22d3ee;
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            color: #e2e8f0;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #22d3ee;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #22d3ee, #06b6d4);
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            color: #000;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(34, 211, 238, 0.3);
+        }
+
+        .back-btn {
+            background: rgba(34, 211, 238, 0.2);
+            border: 1px solid #22d3ee;
+            border-radius: 8px;
+            padding: 12px 24px;
+            color: #22d3ee;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .back-btn:hover {
+            background: rgba(34, 211, 238, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .title {
+                font-size: 2rem;
+            }
+            .container {
+                padding: 20px 15px;
+            }
+            .contact-item {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
+    
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3869471953521437"
+         crossorigin="anonymous"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="title">Contact Us</h1>
+            <p class="subtitle">We're here to help with your SoulBridge AI experience</p>
+        </div>
+
+        <div class="contact-section">
+            <h2><i class="fas fa-envelope"></i> Get in Touch</h2>
+            <div class="contact-methods">
+                <div class="contact-item">
+                    <i class="fas fa-envelope"></i>
+                    <div>
+                        <h3>General Support</h3>
+                        <p>For questions, technical issues, or account help</p>
+                        <a href="mailto:support@soulbridgeai.com">support@soulbridgeai.com</a>
+                    </div>
+                </div>
+                
+                <div class="contact-item">
+                    <i class="fas fa-handshake"></i>
+                    <div>
+                        <h3>Business Inquiries</h3>
+                        <p>Partnerships, media, or business opportunities</p>
+                        <a href="mailto:business@soulbridgeai.com">business@soulbridgeai.com</a>
+                    </div>
+                </div>
+                
+                <div class="contact-item">
+                    <i class="fas fa-bug"></i>
+                    <div>
+                        <h3>Bug Reports</h3>
+                        <p>Found a bug? Help us improve SoulBridge AI</p>
+                        <a href="mailto:bugs@soulbridgeai.com">bugs@soulbridgeai.com</a>
+                    </div>
+                </div>
+                
+                <div class="contact-item">
+                    <i class="fas fa-lightbulb"></i>
+                    <div>
+                        <h3>Feature Requests</h3>
+                        <p>Suggest new features or improvements</p>
+                        <a href="mailto:feedback@soulbridgeai.com">feedback@soulbridgeai.com</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h2><i class="fas fa-paper-plane"></i> Quick Contact Form</h2>
+            <form id="contactForm" onsubmit="handleSubmit(event)">
+                <div class="form-group">
+                    <label for="name">Name *</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email *</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="subject">Subject *</label>
+                    <select id="subject" name="subject" required>
+                        <option value="">Select a topic...</option>
+                        <option value="technical">Technical Support</option>
+                        <option value="account">Account Issues</option>
+                        <option value="billing">Billing Questions</option>
+                        <option value="feature">Feature Request</option>
+                        <option value="bug">Bug Report</option>
+                        <option value="business">Business Inquiry</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="message">Message *</label>
+                    <textarea id="message" name="message" placeholder="Please describe your question or issue in detail..." required></textarea>
+                </div>
+                
+                <button type="submit" class="submit-btn">
+                    <i class="fas fa-paper-plane"></i>
+                    Send Message
+                </button>
+            </form>
+        </div>
+
+        <div class="contact-section">
+            <h2><i class="fas fa-clock"></i> Response Times</h2>
+            <ul>
+                <li><strong>Technical Support:</strong> 24-48 hours</li>
+                <li><strong>Account Issues:</strong> 12-24 hours</li>
+                <li><strong>Billing Questions:</strong> 12-24 hours</li>
+                <li><strong>General Inquiries:</strong> 2-3 business days</li>
+                <li><strong>Business Inquiries:</strong> 3-5 business days</li>
+            </ul>
+        </div>
+
+        <a href="/" class="back-btn">
+            <i class="fas fa-home"></i>
+            Return to SoulBridge AI
+        </a>
+    </div>
+
+    <script>
+        function handleSubmit(event) {
+            event.preventDefault();
+            
+            // Get form data
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const subject = document.getElementById('subject').value;
+            const message = document.getElementById('message').value;
+            
+            // Create mailto link
+            const mailtoLink = `mailto:support@soulbridgeai.com?subject=${encodeURIComponent(subject + ' - Contact Form')}&body=${encodeURIComponent(`Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`)}`;
+            
+            // Open email client
+            window.location.href = mailtoLink;
+            
+            // Show confirmation
+            alert('Thank you for contacting us! Your default email client should open with your message. If not, please email us directly at support@soulbridgeai.com');
+        }
+    </script>
+</body>
+</html>
