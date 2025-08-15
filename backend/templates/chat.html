@@ -191,6 +191,13 @@
                         <strong><i class="fas fa-clock"></i> Trial Active</strong>
                         <span id="trial-eta">— 05:00:00</span>
                     </div>
+                    
+                    <!-- Start Trial Button (shows when trial not active for growth/max users) -->
+                    <button id="start-trial-btn" class="action-btn trial-btn" onclick="startTrial()" 
+                            style="display: {% if not session.get('trial_active') and not session.get('trial_used_permanently') %}block{% else %}none{% endif %};"
+                            title="Start 5-hour trial to unlock all premium features">
+                        <i class="fas fa-star"></i> Start 5hr Trial
+                    </button>
                     {% endif %}
                 </div>
             </div>
