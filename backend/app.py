@@ -13815,11 +13815,19 @@ TIERS_TEMPLATE = r"""
   
   async function openChat(slug){ 
     console.log('🔧 openChat called with slug:', slug);
+    console.log('🔧 Version: TIMEOUT_FIX_V2');
     
     try {
       // Get current user plan from template
       const userPlan = '{{ user_plan }}' || 'free';
       console.log('👤 User plan:', userPlan);
+      
+      // TEMP DEBUG: Just navigate immediately to test if function is working
+      if (slug === 'blayzo_premium' || slug === 'blayzica_growth') {
+        console.log('🚀 DEBUG: Forcing navigation for test companion');
+        navigateToChat(slug);
+        return;
+      }
       
       // Define tier requirements for each companion
       const companionTiers = {
