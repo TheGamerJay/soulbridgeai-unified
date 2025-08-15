@@ -1255,6 +1255,56 @@
                 alert("Error starting trial. Please try again.");
             }
         }
+
+        // Trial status monitoring - check for expired trials
+        async function loadTrialStatus() {
+            try {
+                const response = await fetch('/api/trial-status', { credentials: 'include' });
+                const data = await response.json();
+                
+                if (!data.logged_in) {
+                    return; // Not logged in
+                }
+
+                const banner = document.getElementById('trial-banner');
+                const trialBtn = document.getElementById('start-trial-btn');
+
+                if (!data.active) {
+                    // Trial is not active (expired or never started)
+                    if (banner) banner.style.display = 'none';
+                    if (trialBtn && !data.trial_used_permanently) {
+                        trialBtn.style.display = 'inline-block'; // Show trial button if trial not used
+                    }
+                } else {
+                    // Trial is active
+                    if (banner) banner.style.display = 'block';
+                    if (trialBtn) trialBtn.style.display = 'none';
+                    
+                    // Update trial countdown
+                    const etaEl = document.getElementById('trial-eta');
+                    if (etaEl && data.expires_at_ms) {
+                        const expireMs = data.expires_at_ms;
+                        const now = Date.now();
+                        const remaining = Math.max(0, expireMs - now);
+                        const hours = Math.floor(remaining / (1000 * 60 * 60));
+                        const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+                        const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
+                        etaEl.textContent = `${hours}:${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}`;
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking trial status:', error);
+            }
+        }
+
+        // Initialize trial status checking
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check trial status on page load
+            loadTrialStatus();
+            
+            // Check trial status every 30 seconds
+            setInterval(loadTrialStatus, 30000);
+        });
     </script>
 </body>
 </html>

@@ -2123,6 +2123,27 @@ def trial_status():
                     if active:
                         expires_at_iso = expires_at.isoformat().replace("+00:00", "Z")
                         expires_at_ms = int(expires_at.timestamp() * 1000)
+                    else:
+                        # Trial has expired - mark as used permanently in database and session
+                        user_id = session.get('user_id')
+                        if user_id:
+                            try:
+                                database_url = os.environ.get('DATABASE_URL')
+                                if database_url:
+                                    import psycopg2
+                                    conn = psycopg2.connect(database_url)
+                                    cursor = conn.cursor()
+                                    cursor.execute("UPDATE users SET trial_active = 0, trial_used_permanently = 1 WHERE id = %s", (user_id,))
+                                    conn.commit()
+                                    conn.close()
+                                    logger.info(f"🔒 TRIAL EXPIRED: Marked trial as used permanently for user {user_id}")
+                                    
+                                    # Update session to reflect expiration
+                                    session['trial_active'] = False
+                                    session['trial_used_permanently'] = True
+                                    session.modified = True
+                            except Exception as e:
+                                logger.error(f"Error marking expired trial as used: {e}")
                 except Exception as e2:
                     logger.error(f"Error calculating trial expiry: {e2}")
                     active = False
@@ -2130,7 +2151,8 @@ def trial_status():
             "logged_in": True,
             "active": active,
             "expires_at": expires_at_iso,
-            "expires_at_ms": expires_at_ms
+            "expires_at_ms": expires_at_ms,
+            "trial_used_permanently": session.get('trial_used_permanently', False)
         }), 200
     except Exception as e:
         logger.error(f"Error getting trial status (permanent fallback): {e}")
