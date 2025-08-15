@@ -224,7 +224,7 @@ def get_user_credits(user_id):
     """
     Get user's available credits, auto-reset monthly based on actual plan
     IMPORTANT: Credits DO NOT roll over - any unused credits are lost at reset
-    Trial users keep their plan's credit allocation
+    Trial users get 60 trainer time credits during trial
     """
     try:
         database_url = os.environ.get('DATABASE_URL')
@@ -233,6 +233,15 @@ def get_user_credits(user_id):
             
         # Ensure schema exists first
         ensure_database_schema()
+        
+        # For trial users, give them 60 trainer time
+        trial_active = session.get("trial_active", False)
+        plan = session.get("user_plan", "free")
+        if plan == "free" and trial_active:
+            trial_credits = get_trial_trainer_time(user_id)
+            if trial_credits > 0:
+                logger.info(f"🎯 TRIAL CREDITS: User {user_id} gets {trial_credits} trainer time during trial")
+                return trial_credits
             
         conn = psycopg2.connect(database_url)
         cur = conn.cursor()
