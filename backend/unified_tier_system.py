@@ -409,6 +409,7 @@ def ensure_database_schema():
         
         # Add missing columns to users table (ignore errors if they exist)
         missing_columns = [
+            'ADD COLUMN timezone VARCHAR(50) DEFAULT \'America/New_York\'',
             'ADD COLUMN credits INTEGER DEFAULT 0',
             'ADD COLUMN last_credit_reset TIMESTAMP',
             'ADD COLUMN purchased_credits INTEGER DEFAULT 0'
