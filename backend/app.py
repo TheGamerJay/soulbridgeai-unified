@@ -8447,9 +8447,9 @@ def debug_session_info():
         "session_trial_active": session.get('trial_active'),
         "session_user_plan": session.get('user_plan'),
         "session_effective_plan": session.get('effective_plan'),
-        "decoder_limit": get_feature_limit(get_effective_plan(session.get('user_plan', 'free'), session.get('trial_active', False)), 'decoder'),
-        "fortune_limit": get_feature_limit(get_effective_plan(session.get('user_plan', 'free'), session.get('trial_active', False)), 'fortune'),
-        "horoscope_limit": get_feature_limit(get_effective_plan(session.get('user_plan', 'free'), session.get('trial_active', False)), 'horoscope')
+        "decoder_limit": get_feature_limit(session.get('user_plan', 'free'), 'decoder'),
+        "fortune_limit": get_feature_limit(session.get('user_plan', 'free'), 'fortune'),
+        "horoscope_limit": get_feature_limit(session.get('user_plan', 'free'), 'horoscope')
     })
 
 @app.route("/debug/state", methods=["GET"])
