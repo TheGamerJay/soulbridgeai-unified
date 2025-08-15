@@ -1915,63 +1915,55 @@ def session_refresh():
         logger.error(f"Error refreshing session: {e}")
         return jsonify({"success": False, "error": "Failed to refresh session"}), 500
 
-@app.route("/api/session/me", methods=["GET"])
-def session_me():
-    """Check current session status for companion access"""
-    try:
-        if not is_logged_in():
-            return jsonify({"error": "Not authenticated"}), 401
-            
-        return jsonify({
-            "authenticated": True,
-            "user_plan": session.get('user_plan', 'free'),
-            "trial_active": session.get('trial_active', False),
-            "user_id": session.get('user_id')
-        })
-    except Exception as e:
-        logger.error(f"Session check error: {e}")
-        return jsonify({"error": "Session check failed"}), 500
+def current_user_id():
+    """Get current user ID from session"""
+    return session.get("user_id")
 
-@app.route("/api/companions/<slug>/access", methods=["GET"])
-def companion_access_check(slug):
-    """Check if user can access a specific companion"""
-    try:
-        if not is_logged_in():
-            return jsonify({"error": "Not authenticated"}), 401
-            
-        # Define valid companion slugs and their tier requirements
-        VALID_COMPANIONS = {
-            # Free tier
-            'blayzo_free': ['free'], 'blayzica_free': ['free'], 'companion_gamerjay': ['free'],
-            'claude_free': ['free'], 'blayzia_free': ['free'], 'blayzion_free': ['free'],
-            # Growth tier  
-            'companion_sky': ['growth', 'max'], 'blayzo_premium': ['growth', 'max'],
-            'blayzica_growth': ['growth', 'max'], 'gamerjay_premium': ['growth', 'max'],
-            'watchdog_growth': ['growth', 'max'], 'crimson_growth': ['growth', 'max'],
-            'violet_growth': ['growth', 'max'], 'claude_growth': ['growth', 'max'],
-            # Max tier
-            'companion_crimson': ['max'], 'companion_violet': ['max'], 'royal_max': ['max'],
-            'watchdog_max': ['max'], 'ven_blayzica': ['max'], 'ven_sky': ['max'], 'claude_max': ['max']
+def is_unlocked(slug: str) -> bool:
+    """Check if companion is unlocked based on session flags"""
+    s = session
+    if slug.endswith("_free"):
+        return True
+    # Growth / Max unlock during trial should be true in session
+    if slug.endswith("_growth"):
+        return bool(s.get("access_growth"))
+    if slug.endswith("_max"):
+        return bool(s.get("access_max"))
+    # Generic companions (e.g., companion_violet)
+    return bool(s.get("access_growth") or s.get("access_max"))
+
+@app.before_request
+def guard_chat_requires_login():
+    """Guard chat routes - return status codes, not redirects"""
+    if request.path.startswith("/chat/"):
+        if not current_user_id():
+            return ("Unauthorized", 401)
+
+@app.get("/api/session/me")
+def api_me():
+    """Minimal session check API"""
+    if not current_user_id():
+        return ("Unauthorized", 401)
+    return jsonify({
+        "user_id": session["user_id"],
+        "email": session.get("user_email"),
+        "plan": session.get("user_plan"),
+        "access": {
+            "free":   bool(session.get("access_free")),
+            "growth": bool(session.get("access_growth")),
+            "max":    bool(session.get("access_max")),
+            "trial":  bool(session.get("access_trial")),
         }
-        
-        if slug not in VALID_COMPANIONS:
-            return jsonify({"error": "Invalid companion"}), 404
-            
-        user_plan = session.get('user_plan', 'free')
-        trial_active = session.get('trial_active', False)
-        required_tiers = VALID_COMPANIONS[slug]
-        
-        # Check access: subscription plan or active trial
-        has_access = (user_plan in required_tiers) or trial_active
-        
-        if not has_access:
-            return jsonify({"error": "Companion locked for your tier"}), 403
-            
-        return jsonify({"allowed": True, "companion": slug})
-        
-    except Exception as e:
-        logger.error(f"Companion access check error: {e}")
-        return jsonify({"error": "Access check failed"}), 500
+    })
+
+@app.get("/api/companions/<slug>/access")
+def api_companion_access(slug):
+    """Check companion access without external dependencies"""
+    if not current_user_id():
+        return ("Unauthorized", 401)
+    if not is_unlocked(slug):
+        return ("Forbidden", 403)
+    return jsonify({"allowed": True})
 
 @app.route("/api/user-status", methods=["GET"])
 def user_status():
@@ -3207,7 +3199,7 @@ def tiers_page():
                                 max_list=max_companions,
                                 referral_milestones=referral_milestones,
                                 referral_count=referral_count,
-                                cache_bust="20250815_2235")
+                                cache_bust="20250815_2240")
 
 @app.route("/test-companions")
 def test_companions():
@@ -3283,42 +3275,32 @@ def test_companions():
 </body>
 </html>"""
 
+@app.get("/chat/<slug>")
+def chat_with_slug(slug):
+    """Chat route with companion slug - bulletproof access control"""
+    if not current_user_id():
+        return ("Unauthorized", 401)
+    if not is_unlocked(slug):
+        return ("Forbidden", 403)
+    
+    # Check if user has accepted terms
+    terms_check = requires_terms_acceptance()
+    if terms_check:
+        return terms_check
+    
+    # Set companion in session for the chat template
+    session['selected_companion'] = slug
+    
+    # Redirect to the main chat page which will pick up the selected companion
+    return redirect("/chat")
+
 @app.route("/chat")
 def chat():
-    """Chat page with bulletproof tier system"""
+    """Main chat page with bulletproof tier system"""
     if not is_logged_in():
         # Return 401 instead of redirect to prevent refresh loops
         return jsonify({"error": "Authentication required", "redirect": "/login"}), 401
     
-    # Check companion access FIRST before heavy database operations
-    companion_slug = request.args.get('companion')
-    if companion_slug:
-        # Define valid companions and tier requirements  
-        VALID_COMPANIONS = {
-            # Free tier
-            'blayzo_free': ['free'], 'blayzica_free': ['free'], 'companion_gamerjay': ['free'],
-            'claude_free': ['free'], 'blayzia_free': ['free'], 'blayzion_free': ['free'],
-            # Growth tier  
-            'companion_sky': ['growth', 'max'], 'blayzo_premium': ['growth', 'max'],
-            'blayzica_growth': ['growth', 'max'], 'gamerjay_premium': ['growth', 'max'],
-            'watchdog_growth': ['growth', 'max'], 'crimson_growth': ['growth', 'max'],
-            'violet_growth': ['growth', 'max'], 'claude_growth': ['growth', 'max'],
-            # Max tier
-            'companion_crimson': ['max'], 'companion_violet': ['max'], 'royal_max': ['max'],
-            'watchdog_max': ['max'], 'ven_blayzica': ['max'], 'ven_sky': ['max'], 'claude_max': ['max']
-        }
-        
-        if companion_slug in VALID_COMPANIONS:
-            user_plan = session.get('user_plan', 'free')
-            trial_active = session.get('trial_active', False)
-            required_tiers = VALID_COMPANIONS[companion_slug]
-            
-            # Check access: subscription plan or active trial
-            has_access = (user_plan in required_tiers) or trial_active
-            
-            if not has_access:
-                return jsonify({"error": f"Companion '{companion_slug}' requires {' or '.join(required_tiers)} plan or active trial"}), 403
-        
     # Check if user has accepted terms
     terms_check = requires_terms_acceptance()
     if terms_check:
@@ -13976,15 +13958,33 @@ TIERS_TEMPLATE = r"""
 <script>
   console.log('🔧 TIERS JS: Script loaded successfully - v{{ cache_bust }}');
   
+  /* Bulletproof openChat — no refresh, clear UX */
   async function openChat(slug) {
-    console.log('🔧 FAST openChat called with:', slug);
+    console.log('🔧 BULLETPROOF openChat called with:', slug);
     
     try {
-      // Go straight to chat; server guard will enforce access (no API dependency)
-      console.log('🚀 Navigating directly to chat - server will handle access');
-      window.location.assign(`/chat?companion=${encodeURIComponent(slug)}`);
+      // Preflight: confirm session (prevents 302 loop feeling like a refresh)
+      const me = await fetch("/api/session/me", { credentials: "include" });
+      if (me.status === 401) {
+        window.location.assign("/login?next=" + encodeURIComponent(`/chat/${slug}`));
+        return;
+      }
+      // Check access (works even if you're on trial)
+      const can = await fetch(`/api/companions/${encodeURIComponent(slug)}/access`,
+                              { credentials: "include" });
+      if (can.status === 403) {
+        alert("This companion is locked for your current tier/trial.");
+        return;
+      }
+      if (!can.ok) {
+        alert("Couldn't verify access. Try again.");
+        return;
+      }
+      // Navigate. No preventDefault, no redirect loops.
+      console.log('🚀 Access verified, navigating to chat');
+      window.location.assign(`/chat/${encodeURIComponent(slug)}`);
     } catch (e) {
-      console.error('🔧 Error in openChat:', e);
+      console.error(e);
       alert("Unexpected error opening chat.");
     }
   }
@@ -13998,24 +13998,28 @@ TIERS_TEMPLATE = r"""
     });
   }
   
-  // Debug: Check if function exists and test onclick handlers
-  document.addEventListener('DOMContentLoaded', function() {
-    console.log('🔧 DOM loaded');
-    console.log('🔧 openChat function exists:', typeof openChat);
+  /* Attach handler safely (ignores forms & overlay issues) */
+  document.addEventListener("DOMContentLoaded", () => {
+    console.log('🔧 DOM loaded - setting up bulletproof handlers');
     
-    // Find all cards with onclick handlers
-    const cards = document.querySelectorAll('.card[onclick]');
-    console.log('🔧 Found cards with onclick:', cards.length);
-    
-    cards.forEach((card, index) => {
-      console.log(`🔧 Card ${index + 1} onclick:`, card.getAttribute('onclick'));
-      
-      // Add manual click listener to debug
-      card.addEventListener('click', function(e) {
-        console.log('🔧 Manual click listener triggered for card:', index + 1);
-        console.log('🔧 Card onclick attribute:', this.getAttribute('onclick'));
-      });
+    document.querySelectorAll(".companion-card, .card").forEach(el => {
+      // Make sure this is not a submitting button
+      if (el.tagName === "BUTTON" && !el.getAttribute("type")) {
+        el.setAttribute("type", "button");
+      }
+      // Normalize: if inline onclick exists, keep it; otherwise wire here
+      if (!el.getAttribute("onclick")) {
+        const slug = el.dataset.slug || el.dataset.companion;
+        if (slug) {
+          el.addEventListener("click", () => openChat(slug));
+        }
+      }
+      // Defensive: if a parent <a href="#"> exists, disable its default behavior
+      const parentLink = el.closest('a[href="#"]');
+      if (parentLink) parentLink.addEventListener("click", (e) => e.preventDefault());
     });
+    
+    console.log('🔧 Bulletproof companion handlers installed');
   });
   
   // Countdown timer for trial (optimized for performance)
