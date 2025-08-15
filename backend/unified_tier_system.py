@@ -28,49 +28,66 @@ def ensure_database_schema():
     try:
         database_url = os.environ.get('DATABASE_URL')
         if not database_url:
+            logger.error("📊 SCHEMA: No DATABASE_URL found")
             return False
             
         conn = psycopg2.connect(database_url)
         cur = conn.cursor()
         
-        # Create feature_usage table if it doesn't exist
-        cur.execute("""
-            CREATE TABLE IF NOT EXISTS feature_usage (
-                id SERIAL PRIMARY KEY,
-                user_id INTEGER NOT NULL,
-                feature VARCHAR(50) NOT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        """)
+        logger.info("📊 SCHEMA: Starting database schema migration")
         
-        # Add missing columns to users table (ignore errors if they exist)
+        # Create feature_usage table if it doesn't exist
+        try:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS feature_usage (
+                    id SERIAL PRIMARY KEY,
+                    user_id INTEGER NOT NULL,
+                    feature VARCHAR(50) NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+            conn.commit()
+            logger.info("📊 SCHEMA: feature_usage table created/verified")
+        except Exception as e:
+            logger.error(f"📊 SCHEMA ERROR creating feature_usage: {e}")
+            conn.rollback()
+        
+        # Add missing columns to users table one by one
         missing_columns = [
-            'ADD COLUMN timezone VARCHAR(50) DEFAULT \'America/New_York\'',
-            'ADD COLUMN credits INTEGER DEFAULT 0',
-            'ADD COLUMN last_credit_reset TIMESTAMP',
-            'ADD COLUMN purchased_credits INTEGER DEFAULT 0'
+            ('timezone', 'VARCHAR(50) DEFAULT \'America/New_York\''),
+            ('credits', 'INTEGER DEFAULT 0'),
+            ('last_credit_reset', 'TIMESTAMP'),
+            ('purchased_credits', 'INTEGER DEFAULT 0')
         ]
         
-        for alter_statement in missing_columns:
+        for column_name, column_def in missing_columns:
             try:
-                cur.execute(f"ALTER TABLE users {alter_statement}")
-                logger.info(f"✅ Added users table column: {alter_statement}")
-            except Exception:
-                # Column likely already exists, ignore error
-                conn.rollback()
+                cur.execute(f"ALTER TABLE users ADD COLUMN {column_name} {column_def}")
+                conn.commit()
+                logger.info(f"📊 SCHEMA: Added column users.{column_name}")
+            except psycopg2.Error as e:
+                if 'already exists' in str(e).lower():
+                    logger.info(f"📊 SCHEMA: Column users.{column_name} already exists")
+                    conn.rollback()
+                else:
+                    logger.error(f"📊 SCHEMA ERROR adding users.{column_name}: {e}")
+                    conn.rollback()
         
         # Create index for performance
         try:
             cur.execute("CREATE INDEX IF NOT EXISTS idx_feature_usage_user_feature_date ON feature_usage(user_id, feature, DATE(created_at))")
-        except Exception:
-            pass
+            conn.commit()
+            logger.info("📊 SCHEMA: Index created/verified")
+        except Exception as e:
+            logger.error(f"📊 SCHEMA ERROR creating index: {e}")
+            conn.rollback()
         
-        conn.commit()
         conn.close()
+        logger.info("📊 SCHEMA: Migration completed successfully")
         return True
         
     except Exception as e:
-        logger.error(f"Error ensuring database schema: {e}")
+        logger.error(f"📊 SCHEMA ERROR: {e}")
         return False
 
 def get_user_timezone(user_id):
