@@ -2274,7 +2274,7 @@ def start_trial():
     if user_plan == 'free':
         return jsonify({
             "success": False, 
-            "error": "Free users enjoy unlimited access with ads. Trials are only for growth/max tiers.",
+            "error": "Free users enjoy unlimited chat with ads (daily limits on special features). Trials are only for growth/max tiers.",
             "redirect": "/plan-selection"
         }), 403
 
@@ -8013,7 +8013,7 @@ def start_trial_bulletproof():
         if user_plan == 'free':
             return jsonify({
                 "ok": False, 
-                "error": "Free users enjoy unlimited access with ads. Trials are only for growth/max tiers.",
+                "error": "Free users enjoy unlimited chat with ads (daily limits on special features). Trials are only for growth/max tiers.",
                 "redirect": "/plan-selection"
             }), 403
 
@@ -12000,7 +12000,7 @@ def get_user_tier_status():
                 'voice_chat': False,
                 'advanced_ai': False,
                 'priority_support': False,
-                'unlimited_messages': False,
+                'unlimited_messages': True,  # Free users have unlimited chat (with ads)
                 'custom_themes': False,
                 'premium_animations': False,
                 'max_companions': 'free_only'
