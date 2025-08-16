@@ -1586,9 +1586,10 @@ def login_page():
         logger.error(f"Login template error: {e}")
         return jsonify({"error": "Login page temporarily unavailable"}), 200
 
-@app.route("/auth/login", methods=["GET", "POST"])
-@limiter.limit("10 per minute")  # Prevent brute force attacks
-def auth_login():
+# DISABLED - Using main auth_login from app.py instead
+# @app.route("/auth/login", methods=["GET", "POST"])
+# @limiter.limit("10 per minute")  # Prevent brute force attacks
+def auth_login_DISABLED():
     if request.method == "GET":
         return render_template("login.html")
     

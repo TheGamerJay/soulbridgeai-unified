@@ -633,14 +633,20 @@ def increment_rate_limit_session():
     except Exception as e:
         logger.error(f"Failed to increment rate limit session: {e}")
 
-# TEMPORARILY DISABLED - Testing if this interferes with authentication
+# Session middleware with correct open paths handling
 @app.before_request
 def ensure_session_persistence():
-    # Allow auth + static + home + mini-studio page itself (so it can show the UI)
-
-#
-    open_paths = {"/api/login", "/api/logout", "/login", "/", "/mini-studio", "/mini_studio_health"}
+    # IMPORTANT: Check open paths FIRST before authentication checks
+    open_paths = {"/api/login", "/api/logout", "/login", "/auth/login", "/auth/login-test", "/auth/register", "/auth/forgot-password", "/", "/mini-studio", "/mini_studio_health"}
+    
+    # Debug logging
+    if "/auth" in request.path:
+        print(f"DEBUG MIDDLEWARE: path={request.path}, in_open_paths={request.path in open_paths}")
+    
+    # Allow static files and open paths without authentication
     if request.path.startswith("/static/") or request.path in open_paths:
+        if "/auth" in request.path:
+            print(f"DEBUG MIDDLEWARE: Allowing {request.path}")
         return
     
     # If auth system is not available, don't enforce authentication
@@ -653,6 +659,8 @@ def ensure_session_persistence():
     
     # For every other route, require a user_id
     if "user_id" not in session:
+        if "/auth" in request.path:
+            print(f"DEBUG MIDDLEWARE: {request.path} has no user_id, redirecting to login")
         # For APIs, return JSON 401; for pages, redirect to login
         if request.path.startswith("/api/"):
             return {"ok": False, "error": "Unauthorized"}, 401
@@ -1553,9 +1561,11 @@ def debug_test_user():
         import traceback
         return {"error": str(e), "traceback": traceback.format_exc()}
 
-@app.route("/auth/login", methods=["GET", "POST"])
+@app.route("/auth/login-test", methods=["GET", "POST"])
 def auth_login():
     """Clean, simple login authentication"""
+    print(f"[DEBUG] auth_login called! Method: {request.method}")
+    logger.info(f"[DEBUG] auth_login called! Method: {request.method}")
     # Handle GET requests - show login form
     if request.method == "GET":
         return render_template("login.html")
