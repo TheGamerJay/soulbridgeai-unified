@@ -1,9 +1,0 @@
-gunicorn.conf.py
-*.pyc
-__pycache__/
-.env
-.env.local
-soulbridge.db
-soulbridge.log
-.coverage
-htmlcov/

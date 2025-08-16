@@ -1199,45 +1199,43 @@
 
         // Dynamic access check that works with trials
         async function checkAccessAndSelect(companionId, requiredTiers) {
-            console.log(`🔍 Checking access for ${companionId}, required tiers:`, requiredTiers);
+            // Checking access for companion
             
             // Get current user plan 
             const userPlan = '{{ user_plan }}' || 'free';
-            console.log(`👤 User plan: ${userPlan}`);
+            // User plan
             
             // Check subscription access first
             if (requiredTiers.includes(userPlan)) {
-                console.log(`✅ Access granted via subscription: ${userPlan}`);
+                // Access granted via subscription
                 selectCompanion(companionId);
                 return;
             }
             
             // If no subscription access, check trial status via API
             try {
-                console.log(`🔍 Checking trial status via API...`);
+                // Checking trial status via API
                 const response = await fetch('/api/trial-status', { credentials: 'include' });
                 const data = await response.json();
-                console.log(`📊 Trial status:`, data);
+                // Trial status
                 
                 if (data.active) {
-                    console.log(`✅ Access granted via active trial`);
+                    // Access granted via active trial
                     selectCompanion(companionId);
                 } else {
-                    console.log(`❌ No access - trial not active`);
+                    // No access - trial not active
                     const tierText = requiredTiers.join(' or ');
-                    alert(`Upgrade to ${tierText} or start trial to unlock this companion!`);
                 }
             } catch (error) {
-                console.error('Error checking trial status:', error);
+                // Error checking trial status
                 const tierText = requiredTiers.join(' or ');
-                alert(`Upgrade to ${tierText} or start trial to unlock this companion!`);
             }
         }
         
         function selectSkin(skinId) {
             // Show skin selection confirmation
             if (confirm(`Apply ${skinId.replace('_', ' ')} skin?`)) {
-                alert('Skin applied! Your companion now has a new look.');
+                // Skin applied
                 // Here you could make an API call to save the skin preference
             }
         }
@@ -1245,7 +1243,7 @@
         function showReferralInfo(requiredReferrals) {
             const currentReferrals = {{ referral_count or 0 }};
             const needed = requiredReferrals - currentReferrals;
-            alert(`You need ${needed} more referrals to unlock this companion!\n\nCurrent referrals: ${currentReferrals}\nRequired: ${requiredReferrals}\n\nClick "Start Referring Friends" to get your referral link!`);
+            // Referral info
         }
         
         // Trial System Functions
@@ -1255,7 +1253,7 @@
                 const data = await res.json();
                 
                 if (data.success) {
-                    alert("🎉 5-Hour Premium Trial Started!\n\n✅ All Growth & Max features unlocked\n✅ 60 trainer time for Mini Studio\n⏰ 5 hours to explore everything!");
+                    // 5-Hour Premium Trial Started
                     
                     // Hide trial button and show banner
                     document.getElementById('start-trial-btn').style.display = 'none';
@@ -1266,11 +1264,10 @@
                         window.location.reload();
                     }, 2000);
                 } else {
-                    alert("Trial could not be started: " + (data.error || "Unknown error"));
+                    // Trial could not be started
                 }
             } catch (error) {
-                console.error('Error starting trial:', error);
-                alert("Error starting trial. Please try again.");
+                // Error starting trial
             }
         }
 
@@ -1307,7 +1304,7 @@
                         
                         if (remaining <= 0) {
                             // Trial expired - hide banner immediately and refresh
-                            console.log('🔒 Trial expired - hiding banner and refreshing');
+                            // Trial expired - hiding banner and refreshing
                             const banner = document.getElementById('trial-banner');
                             if (banner) banner.style.display = 'none';
                             
@@ -1325,29 +1322,20 @@
                     }
                 }
             } catch (error) {
-                console.error('Error checking trial status:', error);
+                // Error checking trial status
             }
         }
 
         // Initialize trial status checking
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🔧 JavaScript loaded successfully!');
-            console.log('🔧 checkAccessAndSelect function exists:', typeof checkAccessAndSelect);
-            console.log('🔧 selectCompanion function exists:', typeof selectCompanion);
-            
-            // Add event listeners to all companion cards with data attributes
-            const companionCards = document.querySelectorAll('.companion-card[data-companion]');
-            console.log('🔧 Found', companionCards.length, 'companion cards with data attributes');
-            
-            companionCards.forEach((card, index) => {
-                const companionId = card.getAttribute('data-companion');
-                const requiredTiers = card.getAttribute('data-tiers');
-                
-                if (companionId) {
-                    console.log(`🔧 Adding click listener for ${companionId} (card ${index + 1})`);
-                    
-                    card.addEventListener('click', function(event) {
-                        event.preventDefault();
+      // Add event listeners to all companion cards with data attributes
+      const companionCards = document.querySelectorAll('.companion-card[data-companion]');
+      companionCards.forEach((card, index) => {
+        const companionId = card.getAttribute('data-companion');
+        const requiredTiers = card.getAttribute('data-tiers');
+        if (companionId) {
+          card.addEventListener('click', function(event) {
+            event.preventDefault();
                         console.log(`🔧 Click detected on ${companionId}`);
                         
                         if (requiredTiers) {

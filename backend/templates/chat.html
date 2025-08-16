@@ -1235,7 +1235,6 @@
             if (moodSelect.value === 'custom') {
                 const customMood = document.getElementById('customMood').value.trim();
                 if (!customMood) {
-                    alert('Please enter your custom mood/tone or select a preset option.');
                     return;
                 }
                 mood = customMood;
@@ -1424,7 +1423,6 @@ Where emotion meets expression.
             const theme = document.getElementById('canvasTheme').value;
             
             if (!prompt) {
-                alert('Please describe what you\'d like to express through art!');
                 return;
             }
             
@@ -1599,8 +1597,7 @@ Where emotion meets expression.
                     throw new Error(data.error || 'Save failed');
                 }
             } catch (error) {
-                console.error('Save canvas error:', error);
-                alert('Sorry, there was an error saving your artwork. Please try again.');
+                // Save canvas error
                 saveBtn.innerHTML = originalText;
                 saveBtn.disabled = false;
             }
@@ -1641,7 +1638,6 @@ Where emotion meets expression.
             const mood = document.getElementById('moodSelect').value;
             
             if (!content) {
-                alert('No content to share!');
                 return;
             }
             
@@ -1738,11 +1734,9 @@ Where emotion meets expression.
             };
             
             currentSpeech.onerror = (event) => {
-                console.error('Speech synthesis error:', event);
                 readBtn.innerHTML = '<i class="fas fa-volume-up"></i> Read Aloud';
                 readBtn.classList.remove('speaking');
                 currentSpeech = null;
-                alert('Sorry, there was an error with text-to-speech. Please check your browser settings.');
             };
             
             // Start speaking
@@ -1770,7 +1764,6 @@ Where emotion meets expression.
             const translateActionBtn = document.querySelector('.translate-action-btn');
             
             if (!content.trim()) {
-                alert('No content to translate!');
                 return;
             }
             
@@ -1806,8 +1799,7 @@ Where emotion meets expression.
                 }
                 
             } catch (error) {
-                console.error('Translation error:', error);
-                alert('Sorry, there was an error translating your content. Please try again.');
+                // Error handling for translation failure (silent in production)
             }
             
             // Reset button
@@ -1847,7 +1839,6 @@ Where emotion meets expression.
             const theme = document.getElementById('canvasTheme').value;
             
             if (!canvasDataURL) {
-                alert('No artwork to share!');
                 return;
             }
             
@@ -1876,17 +1867,10 @@ Where emotion meets expression.
                         shareBtn.innerHTML = originalText;
                         shareBtn.disabled = false;
                     }, 3000);
-                    
-                    // Show success message with link to gallery
-                    if (confirm(data.message + ' Would you like to visit the Wellness Gallery to see shared content?')) {
-                        window.open('/wellness-gallery', '_blank');
-                    }
                 } else {
                     throw new Error(data.error || 'Share failed');
                 }
             } catch (error) {
-                console.error('Share canvas error:', error);
-                alert('Sorry, there was an error sharing your artwork. Please ensure your content follows our wellness community guidelines.');
                 shareBtn.innerHTML = originalText;
                 shareBtn.disabled = false;
             }
@@ -1974,7 +1958,7 @@ Where emotion meets expression.
                         // Play AI response as speech if audio is provided
                         if (data.audio_url) {
                             const audio = new Audio(data.audio_url);
-                            audio.play().catch(e => console.log('Audio playback failed:', e));
+                            audio.play().catch(e => {/* Audio playback failed, silent in production */});
                         }
                     }
                 } else {
@@ -1982,7 +1966,6 @@ Where emotion meets expression.
                 }
                 
             } catch (error) {
-                console.error('Voice chat error:', error);
                 addSystemMessage('❌ Voice chat error. Please try again.');
             }
         }
@@ -2119,7 +2102,6 @@ Where emotion meets expression.
                 try {
                     speechRecognition.start();
                 } catch (error) {
-                    console.error('Error starting speech recognition:', error);
                     document.getElementById('speechStatus').innerText = "Error starting voice input. Please try again.";
                 }
             } else {
@@ -2151,11 +2133,10 @@ Where emotion meets expression.
                 const data = await response.json();
                 
                 if (!data.success) {
-                    console.error('Failed to get tier limits:', data.error);
                     return;
                 }
                 
-                console.log('🎯 Tier limits data:', data);
+                
                 
                 const { limits, usage, tier, unlimited_features } = data;
                 
@@ -2270,11 +2251,9 @@ Where emotion meets expression.
                 
                 console.log('✅ Tier limits updated successfully');
                 
-            } catch (error) {
-                console.error('❌ Error updating tier limits:', error);
                 
+            } catch (error) {
                 // Show default limits for free users when API fails
-                console.log('🔄 Setting default free tier limits due to API error');
                 
                 // Set default free tier limits
                 const decoderLimit = document.getElementById('decoderLimit');
@@ -2295,20 +2274,7 @@ Where emotion meets expression.
         }
         
         async function emergencyDebugPremiumFeatures() {
-            // Only log in development mode
-            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-                console.log('🔍 DEBUG: Checking premium features for plan:', '{{ effective_plan }}');
-            }
-            
-            // Log template-side session data directly
-            console.log('📋 TEMPLATE SESSION DATA:', {
-                user_plan: '{{ session.get("user_plan") }}',
-                user_authenticated: '{{ session.get("user_authenticated") }}',
-                access_free: '{{ session.get("access_free") }}',
-                access_growth: '{{ session.get("access_growth") }}',
-                access_max: '{{ session.get("access_max") }}',
-                trial_active: '{{ session.get("trial_active") }}'
-            });
+            // Logging removed for production hygiene
             
             // Check if premium feature elements exist in HTML
             const voiceJournal = document.querySelector('a[href="/voice-journaling"]');
@@ -2335,36 +2301,36 @@ Where emotion meets expression.
             
             // Only log in development mode
             if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-                console.log(`🔍 Premium Features for ${effectivePlan}:`, actualFeatures);
+                // Logging removed for production hygiene
             }
             
             // Only warn about missing features that should exist for this plan
             const missing = shouldHave.filter(feature => actualFeatures[feature] === 'MISSING');
             if (missing.length > 0 && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
-                console.warn(`⚠️ Missing expected features for ${effectivePlan} plan:`, missing);
+                // Logging removed for production hygiene
             } else if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-                console.log(`✅ All expected features present for ${effectivePlan} plan`);
+                // Logging removed for production hygiene
             }
             
             // Check session state from backend
             try {
                 const response = await fetch('/debug/session-state');
                 const sessionData = await response.json();
-                console.log('🔍 Current Session State:', sessionData);
+                // Logging removed for production hygiene
                 
                 // Show alert with debug info ONLY if user SHOULD have premium features but doesn't
                 const shouldHavePremium = sessionData.access_growth || sessionData.access_max || sessionData.trial_active;
                 const hasPremiumFeatures = voiceJournal || aiImages || relationships || meditations || writeBtn;
                 
                 if (shouldHavePremium && !hasPremiumFeatures) {
-                    alert(`🚨 BUG DETECTED! Premium features missing!\nSession Plan: ${sessionData.user_plan}\nAccess Growth: ${sessionData.access_growth}\nAccess Max: ${sessionData.access_max}\nTrial Active: ${sessionData.trial_active}`);
+                    // Alert removed for production hygiene
                 } else if (!shouldHavePremium && !hasPremiumFeatures) {
-                    console.log('✅ Free user correctly showing no premium features');
+                    // Logging removed for production hygiene
                 } else {
-                    console.log('✅ Premium user correctly showing premium features');
+                    // Logging removed for production hygiene
                 }
             } catch (error) {
-                console.error('🚨 Debug session check failed:', error);
+                // Logging removed for production hygiene
             }
         }
 
@@ -2478,7 +2444,6 @@ Where emotion meets expression.
         function updateSimpleTimer(trialRemaining) {
             // DISABLED: Old timer had timezone issues causing 8:99.99 display
             // Only use loadTrial() which has proper UTC handling
-            console.log('🚫 Old updateSimpleTimer called - ignoring to prevent timezone bugs');
         }
 
         async function refreshUserStatus() {
@@ -2487,7 +2452,6 @@ Where emotion meets expression.
                 const data = await res.json();
 
                 if (!data.success) {
-                    console.error('Failed to get user info:', data.error);
                     return;
                 }
 
@@ -2509,7 +2473,7 @@ Where emotion meets expression.
 
                 // DISABLED OLD RING TIMER - Preventing conflicts with new timer system
                 // Use new timer system instead (trial-timer-container)
-                console.log('🔄 OLD ring timer disabled, using new timer system instead');
+                
 
                 // Hide trial button if used or active
                 const trialBtn = document.getElementById("start-trial-btn");
@@ -2519,7 +2483,7 @@ Where emotion meets expression.
 
                 // Premium features are now conditionally rendered by server template
                 // No need for JavaScript show/hide logic anymore
-                console.log(`✅ Interface loaded for ${user_plan} user, trial: ${trial_active}`);
+                
 
                 // Confetti if user subscribed after trial
                 if (!trial_active && user_plan !== "free" && alertPlayed) {
@@ -2528,7 +2492,7 @@ Where emotion meets expression.
                 }
 
             } catch (error) {
-                console.error('Error refreshing user status:', error);
+                
             }
         }
 
@@ -2538,54 +2502,35 @@ Where emotion meets expression.
                 const data = await res.json();
                 
                 if (data.success) {
-                    alert("🌟 5-Hour Trial started! Enjoy all premium features!");
                     refreshUserStatus();
-                    
                     // Hide the trial button immediately
                     const trialBtn = document.getElementById("start-trial-btn");
                     if (trialBtn) {
                         trialBtn.classList.add("hidden");
                     }
-                } else {
-                    alert("Trial could not be started: " + (data.error || "Unknown error"));
                 }
             } catch (error) {
-                console.error('Error starting trial:', error);
-                alert("Error starting trial. Please try again.");
+                
             }
         }
 
         // Initialize robust timer system - MULTIPLE TRIGGERS
-        console.log('🔧 Timer initialization script loaded');
+        
         
         // Try multiple ways to ensure loadTrial runs
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => {
-                console.log('🔧 DOMContentLoaded fired, calling loadTrial');
                 loadTrial();
             });
         } else {
-            console.log('🔧 DOM already ready, calling loadTrial immediately');
             loadTrial();
         }
         
         // Also call it after a short delay as backup
         setTimeout(() => {
-            console.log('🔧 Backup timer trigger after 2 seconds');
             if (typeof loadTrial === 'function') {
-                console.log('✅ loadTrial function exists, calling it');
                 loadTrial();
-            } else {
-                console.error('❌ loadTrial function NOT FOUND! Check for JS errors above.');
             }
-            
-            // Debug: Find all elements that might be showing the timer
-            const allTimerElements = document.querySelectorAll('*');
-            allTimerElements.forEach(el => {
-                if (el.textContent && el.textContent.includes('08:') && el.textContent.includes(':')) {
-                    console.error('🔍 FOUND TIMER SHOWING 08:XX:XX:', el.tagName, el.className, el.id, el.textContent);
-                }
-            });
         }, 2000);
         
         // Refresh user status less frequently 
