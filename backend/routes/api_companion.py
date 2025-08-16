@@ -4,12 +4,12 @@ Handles companion chat requests with routing, caching, and quota management
 """
 import logging
 from flask import Blueprint, request, jsonify, session
-from backend.companion_router import get_companion_router
-from backend.limits import get_quota_status
-from backend.studio.cache import get_cache_stats, clear_cache
-from backend.billing.openai_budget import get_budget_status, get_budget_window_info
-from backend.billing.auto_quota import get_quota_for_plan, get_quota_recommendations
-from backend.billing.costing import get_spend_stats
+from companion_router import get_companion_router
+from limits import get_quota_status
+from studio.cache import get_cache_stats, clear_cache
+from billing.openai_budget import get_budget_status, get_budget_window_info
+from billing.auto_quota import get_quota_for_plan, get_quota_recommendations
+from billing.costing import get_spend_stats
 
 logger = logging.getLogger(__name__)
 

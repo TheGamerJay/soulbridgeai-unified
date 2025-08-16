@@ -5,13 +5,13 @@ Routes requests between OpenAI GPT and Local AI based on plan, budget, and prefe
 import os
 import logging
 from typing import Dict, Any, Optional
-from backend.openai_clients import get_openai_client
-from backend.local_clients import get_local_client, get_hybrid_local_client  
-from backend.limits import bump_and_check, get_usage
-from backend.studio.cache import get_cached_response, cache_response
-from backend.billing.openai_budget import check_budget_safe, get_budget_status, get_budget_window_info
-from backend.billing.auto_quota import get_quota_for_plan, auto_quota_tokens
-from backend.billing.costing import estimate_cost, add_spend
+from openai_clients import get_openai_client
+from local_clients import get_local_client, get_hybrid_local_client  
+from limits import bump_and_check, get_usage
+from studio.cache import get_cached_response, cache_response
+from billing.openai_budget import check_budget_safe, get_budget_status, get_budget_window_info
+from billing.auto_quota import get_quota_for_plan, auto_quota_tokens
+from billing.costing import estimate_cost, add_spend
 
 logger = logging.getLogger(__name__)
 

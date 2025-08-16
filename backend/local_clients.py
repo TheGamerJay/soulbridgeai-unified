@@ -5,7 +5,7 @@ Handles local AI models with fallback to simple template-based responses
 import os
 import logging
 from typing import Dict, Any, Optional
-from backend.simple_ai_service import get_simple_ai_service
+from simple_ai_service import get_simple_ai_service
 
 logger = logging.getLogger(__name__)
 
