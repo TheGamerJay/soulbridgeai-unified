@@ -705,7 +705,12 @@
         function updateStatus(elementId, message, isError = false) {
             const element = document.getElementById(elementId);
             if (element) {
-                element.innerHTML = `<span style="color: ${isError ? '#ff6b6b' : '#4fd1c7'}">${message}</span>`;
+                // SECURITY: Safe DOM creation instead of innerHTML to prevent XSS
+                const span = document.createElement('span');
+                span.style.color = isError ? '#ff6b6b' : '#4fd1c7';
+                span.textContent = message;
+                element.textContent = '';
+                element.appendChild(span);
             }
         }
         
@@ -954,12 +959,21 @@
                 creditsRemaining = result.credits_remaining;
                 updateCreditsDisplay();
                 
-                document.getElementById('artPreview').innerHTML = `
-                    <div style="color: #4fd1c7;">
-                        ✅ Cover art generated successfully!<br>
-                        <small>Asset ID: ${result.asset_id}</small>
-                    </div>
-                `;
+                // SECURITY: Safe DOM creation to prevent XSS
+                const artPreview = document.getElementById('artPreview');
+                const successDiv = document.createElement('div');
+                successDiv.style.color = '#4fd1c7';
+                successDiv.textContent = '✅ Cover art generated successfully!';
+                
+                const assetIdSmall = document.createElement('small');
+                assetIdSmall.textContent = `Asset ID: ${result.asset_id}`;
+                
+                const br = document.createElement('br');
+                successDiv.appendChild(br);
+                successDiv.appendChild(assetIdSmall);
+                
+                artPreview.textContent = '';
+                artPreview.appendChild(successDiv);
                 
                 alert('Cover art generated successfully!');
             } else {
@@ -976,22 +990,56 @@
                 if (result.success) {
                     const libraryContent = document.getElementById('libraryContent');
                     
+                    // SECURITY: Safe DOM creation to prevent XSS
+                    libraryContent.textContent = '';
+                    
                     if (Object.keys(result.assets).length === 0) {
-                        libraryContent.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.5);">No assets in library yet. Create some music!</p>';
+                        const emptyMsg = document.createElement('p');
+                        emptyMsg.style.textAlign = 'center';
+                        emptyMsg.style.color = 'rgba(255,255,255,0.5)';
+                        emptyMsg.textContent = 'No assets in library yet. Create some music!';
+                        libraryContent.appendChild(emptyMsg);
                         return;
                     }
                     
-                    libraryContent.innerHTML = Object.entries(result.assets).map(([id, asset]) => `
-                        <div class="library-item">
-                            <h4>${asset.kind.replace('_', ' ').toUpperCase()}</h4>
-                            <p>${asset.filename}</p>
-                            <p><small>${new Date(asset.created_at).toLocaleDateString()}</small></p>
-                            <div class="library-actions">
-                                <button class="studio-btn" onclick="downloadAsset('${id}')">📥 Download</button>
-                                <button class="studio-btn" onclick="deleteAsset('${id}')">🗑️ Delete</button>
-                            </div>
-                        </div>
-                    `).join('');
+                    Object.entries(result.assets).forEach(([id, asset]) => {
+                        const item = document.createElement('div');
+                        item.className = 'library-item';
+                        
+                        const title = document.createElement('h4');
+                        title.textContent = asset.kind.replace('_', ' ').toUpperCase();
+                        
+                        const filename = document.createElement('p');
+                        filename.textContent = asset.filename;
+                        
+                        const dateP = document.createElement('p');
+                        const dateSmall = document.createElement('small');
+                        dateSmall.textContent = new Date(asset.created_at).toLocaleDateString();
+                        dateP.appendChild(dateSmall);
+                        
+                        const actions = document.createElement('div');
+                        actions.className = 'library-actions';
+                        
+                        const downloadBtn = document.createElement('button');
+                        downloadBtn.className = 'studio-btn';
+                        downloadBtn.textContent = '📥 Download';
+                        downloadBtn.onclick = () => downloadAsset(id);
+                        
+                        const deleteBtn = document.createElement('button');
+                        deleteBtn.className = 'studio-btn';
+                        deleteBtn.textContent = '🗑️ Delete';
+                        deleteBtn.onclick = () => deleteAsset(id);
+                        
+                        actions.appendChild(downloadBtn);
+                        actions.appendChild(deleteBtn);
+                        
+                        item.appendChild(title);
+                        item.appendChild(filename);
+                        item.appendChild(dateP);
+                        item.appendChild(actions);
+                        
+                        libraryContent.appendChild(item);
+                    });
                 } else {
                     alert('Failed to load library: ' + result.error);
                 }
@@ -1038,22 +1086,39 @@
                     const mixVocalsSelect = document.getElementById('mixVocals');
                     const mixBGMSelect = document.getElementById('mixBGM');
                     
-                    // Clear existing options
-                    effectsSelect.innerHTML = '<option value="">Select from library...</option>';
-                    mixVocalsSelect.innerHTML = '<option value="">Select vocals...</option>';
-                    mixBGMSelect.innerHTML = '<option value="">Select background track...</option>';
+                    // SECURITY: Clear existing options safely
+                    effectsSelect.textContent = '';
+                    mixVocalsSelect.textContent = '';
+                    mixBGMSelect.textContent = '';
                     
-                    // Add assets to selectors
+                    // Add default options
+                    const createDefaultOption = (text) => {
+                        const option = document.createElement('option');
+                        option.value = '';
+                        option.textContent = text;
+                        return option;
+                    };
+                    
+                    effectsSelect.appendChild(createDefaultOption('Select from library...'));
+                    mixVocalsSelect.appendChild(createDefaultOption('Select vocals...'));
+                    mixBGMSelect.appendChild(createDefaultOption('Select background track...'));
+                    
+                    // Add assets to selectors safely
                     Object.entries(result.assets).forEach(([id, asset]) => {
-                        const option = `<option value="${asset.path}">${asset.filename}</option>`;
+                        const createOption = () => {
+                            const option = document.createElement('option');
+                            option.value = asset.path;
+                            option.textContent = asset.filename;
+                            return option;
+                        };
                         
                         if (asset.kind === 'vocal' || asset.kind === 'vocal_fx') {
-                            effectsSelect.innerHTML += option;
-                            mixVocalsSelect.innerHTML += option;
+                            effectsSelect.appendChild(createOption());
+                            mixVocalsSelect.appendChild(createOption());
                         }
                         
                         if (asset.kind === 'midi' || asset.kind === 'mixed') {
-                            mixBGMSelect.innerHTML += option;
+                            mixBGMSelect.appendChild(createOption());
                         }
                     });
                 }

@@ -826,11 +826,23 @@
         item.className = 'gallery-item';
         item.onclick = () => displayGeneratedImage(image.imageUrl, image.prompt, image.style);
 
-        item.innerHTML = `
-          <img src="${image.imageUrl}" alt="${image.prompt}" class="gallery-image">
-          <div class="gallery-prompt">${image.prompt}</div>
-          <div class="gallery-date">${new Date(image.timestamp).toLocaleDateString()}</div>
-        `;
+        // SECURITY: Safe DOM creation instead of innerHTML to prevent XSS
+        const img = document.createElement('img');
+        img.src = image.imageUrl;
+        img.alt = image.prompt;
+        img.className = 'gallery-image';
+        
+        const promptDiv = document.createElement('div');
+        promptDiv.className = 'gallery-prompt';
+        promptDiv.textContent = image.prompt;
+        
+        const dateDiv = document.createElement('div');
+        dateDiv.className = 'gallery-date';
+        dateDiv.textContent = new Date(image.timestamp).toLocaleDateString();
+        
+        item.appendChild(img);
+        item.appendChild(promptDiv);
+        item.appendChild(dateDiv);
 
         galleryGrid.appendChild(item);
       });
