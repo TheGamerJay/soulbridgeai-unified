@@ -483,7 +483,7 @@
     </div>
     
     <p style="color: #94a3b8; font-size: 0.9rem; margin-top: 20px;">
-      Purchased trainer time is added instantly. <strong>Note:</strong> All trainer time (monthly + purchased) resets at your billing cycle with no rollover. Only Max Plan subscribers can purchase additional trainer time.
+      Purchased trainer time is added instantly. <strong>Note:</strong> All trainer time (monthly + purchased) resets at your billing cycle with no rollover. Growth and Max Plan subscribers can purchase additional trainer time.
     </p>
     
     <!-- Lock overlay for non-Max subscribers -->
@@ -502,23 +502,38 @@
       z-index: 10;
     ">
       <div style="font-size: 3rem; margin-bottom: 20px;">🔒</div>
-      <h3 style="color: #22d3ee; margin-bottom: 15px; font-size: 1.5rem;">Max Plan Required</h3>
+      <h3 style="color: #22d3ee; margin-bottom: 15px; font-size: 1.5rem;">Growth or Max Plan Required</h3>
       <p style="color: #e2e8f0; text-align: center; max-width: 400px; margin-bottom: 25px; line-height: 1.5;">
-        Upgrade to Max Plan to purchase additional trainer time when you run out of your monthly allowance. Remember: trainer time resets monthly with no rollover.
+        Upgrade to Growth or Max Plan to purchase additional trainer time when you run out of your monthly allowance. Remember: trainer time resets monthly with no rollover.
       </p>
-      <button onclick="selectPlan('enterprise')" style="
-        background: linear-gradient(135deg, #22d3ee, #0891b2);
-        color: #000;
-        border: none;
-        padding: 15px 30px;
-        border-radius: 12px;
-        font-weight: 600;
-        cursor: pointer;
-        font-size: 1.1rem;
-        transition: all 0.3s ease;
-      " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
-        🚀 Upgrade to Max Plan
-      </button>
+      <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;">
+        <button onclick="selectPlan('growth')" style="
+          background: linear-gradient(135deg, #22d3ee, #0891b2);
+          color: #000;
+          border: none;
+          padding: 12px 25px;
+          border-radius: 12px;
+          font-weight: 600;
+          cursor: pointer;
+          font-size: 1rem;
+          transition: all 0.3s ease;
+        " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+          🌱 Growth Plan
+        </button>
+        <button onclick="selectPlan('enterprise')" style="
+          background: linear-gradient(135deg, #22d3ee, #0891b2);
+          color: #000;
+          border: none;
+          padding: 12px 25px;
+          border-radius: 12px;
+          font-weight: 600;
+          cursor: pointer;
+          font-size: 1rem;
+          transition: all 0.3s ease;
+        " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+          🚀 Max Plan
+        </button>
+      </div>
     </div>
   </div>
 
@@ -969,14 +984,14 @@ async function checkTrainerTimePurchaseAccess() {
     // Always show the section
     section.style.display = 'block';
     
-    if (statusData.logged_in && statusData.plan_type === 'max') {
-      // Max plan subscribers: hide lock, enable purchases
+    if (statusData.logged_in && (statusData.plan_type === 'max' || statusData.plan_type === 'growth')) {
+      // Growth/Max plan subscribers: hide lock, enable purchases
       lockOverlay.style.display = 'none';
-      console.log('✅ Max Plan subscriber - trainer time purchases enabled');
+      console.log(`✅ ${statusData.plan_type.charAt(0).toUpperCase() + statusData.plan_type.slice(1)} Plan subscriber - trainer time purchases enabled`);
     } else {
-      // Non-Max subscribers: show lock overlay
+      // Non-Growth/Max subscribers: show lock overlay
       lockOverlay.style.display = 'flex';
-      console.log('🔒 Non-Max subscriber - showing upgrade prompt');
+      console.log('🔒 Non-Growth/Max subscriber - showing upgrade prompt');
     }
   } catch (error) {
     console.error('Error checking trainer time purchase access:', error);
