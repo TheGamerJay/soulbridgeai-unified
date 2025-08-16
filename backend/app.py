@@ -16395,6 +16395,24 @@ def create_adfree_checkout_direct():
         logger.error(f"❌ Traceback: {traceback.format_exc()}")
         return jsonify({"error": "Checkout temporarily unavailable"}), 500
 
+@app.route("/api/stripe-debug")
+def stripe_debug():
+    """Debug endpoint to check Stripe configuration"""
+    try:
+        import stripe
+        stripe_import_ok = True
+    except ImportError as e:
+        stripe_import_ok = False
+        import_error = str(e)
+    
+    return jsonify({
+        "stripe_import_ok": stripe_import_ok,
+        "import_error": import_error if not stripe_import_ok else None,
+        "stripe_secret_key_set": bool(STRIPE_SECRET_KEY),
+        "stripe_secret_key_value": STRIPE_SECRET_KEY[:10] + "..." if STRIPE_SECRET_KEY else None,
+        "price_adfree": PRICE_ADFREE
+    })
+
 # APPLICATION STARTUP
 # ========================================
 
