@@ -74,7 +74,6 @@
             document.documentElement.style.background = gradient + ' !important';
             document.documentElement.style.backgroundAttachment = 'fixed';
             document.documentElement.style.backgroundSize = '100% 100%';
-            console.log('🚀 IMMEDIATE intro styling applied');
         })();
     </script>
     
@@ -278,16 +277,11 @@
             box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
         }
     </style>
-    
-    <!-- Google AdSense -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3869471953521437"
-         crossorigin="anonymous"></script>
 </head>
 <body class="intro-page" style="background: #000000 !important; background-attachment: fixed !important; background-size: 100% 100% !important; min-height: 100vh !important; margin: 0 !important; font-family: system-ui, -apple-system, sans-serif !important; color: #00ffff !important;">
     <!-- Navigation -->
     <div class="top-nav" style="position: fixed; top: 0; left: 0; right: 0; z-index: 1000; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;">
-        <!-- 🚀 Trial Timer - Only for growth/max users (free users use ads, no trials) -->
-        {% if user_plan != 'free' %}
+        <!-- 🚀 NEW Enhanced Trial Timer - Beautiful Modern Design -->
         <div id="trial-timer-container" style="display:none; position: fixed; top: 20px; right: 20px; z-index: 1500;">
             <div class="timer-glass-card">
                 <div class="timer-glow-ring">
@@ -335,11 +329,9 @@
                 </div>
             </div>
         </div>
-        {% endif %}
 
-        {% if user_plan != 'free' %}
         <style>
-        /* 🎨 Beautiful Modern Timer Styles - Intro Page (Growth/Max only) */
+        /* 🎨 Beautiful Modern Timer Styles - Intro Page */
         .timer-glass-card {
             background: linear-gradient(135deg, rgba(0, 0, 0, 0.9) 0%, rgba(15, 23, 42, 0.9) 100%);
             backdrop-filter: blur(20px);
@@ -545,13 +537,11 @@
             100% { opacity: 0.6; }
         }
         </style>
-        {% endif %}
         
         <!-- Right side buttons -->
         <div style="display: flex; gap: 15px; align-items: center;">
             
-            <!-- Trial Badge - Only for growth/max users (free users use ads, no trials) -->
-            {% if user_plan != 'free' %}
+            <!-- Trial Badge with Simple Timer - Hidden by default, shown by JavaScript when active -->
             <div class="trial-status-container">
                 <span class="trial-badge" id="trial-badge" style="display: none;">
                     🕐 Trial Active
@@ -560,7 +550,6 @@
                     <span id="timer-display">5:00:00</span>
                 </div>
             </div>
-            {% endif %}
             <a href="/auth/logout" class="btn-danger">Logout</a>
         </div>
     </div>
@@ -706,9 +695,12 @@
     
     <script src="{{ url_for('static', filename='js/login-fixed.js') }}"></script>
     <script>
-        // Set sessionStorage flag since user successfully reached intro page (logged in)
-        sessionStorage.setItem('loggedIn', 'true');
-        console.log('✅ INTRO: Set sessionStorage loggedIn flag - user is authenticated');
+        // Session persistence check - logout if no sessionStorage (browser was closed)
+        if (!sessionStorage.getItem('loggedIn')) {
+            fetch('/auth/logout').then(() => {
+                window.location.href = '/login';
+            });
+        }
         
         // AGGRESSIVE intro page styling enforcement
         function forceIntroStyling() {
@@ -744,7 +736,6 @@
         function showIntroWhenReady() {
             forceIntroStyling();
             document.documentElement.classList.add('ready');
-            console.log('✅ Intro page fully ready - showing with fade-in');
         }
         
         // Wait for both DOM and all scripts to load
@@ -753,13 +744,11 @@
         
         document.addEventListener('DOMContentLoaded', function() {
             domReady = true;
-            console.log('📄 DOM ready');
             checkIfFullyReady();
         });
         
         window.addEventListener('load', function() {
             scriptsReady = true;
-            console.log('📜 Scripts ready');
             checkIfFullyReady();
         });
         
@@ -773,14 +762,12 @@
         // Multiple emergency fallbacks to ensure page always shows
         setTimeout(() => {
             if (!document.documentElement.classList.contains('ready')) {
-                console.log('⚠️ Emergency fallback 1: Showing intro page after 1s');
                 showIntroWhenReady();
             }
         }, 1000);
         
         setTimeout(() => {
             if (!document.documentElement.classList.contains('ready')) {
-                console.log('🚨 Emergency fallback 2: Force showing intro page after 2s');
                 document.documentElement.style.opacity = '1';
                 document.documentElement.classList.add('ready');
             }
@@ -790,7 +777,6 @@
         setTimeout(() => {
             document.documentElement.style.opacity = '1';
             document.documentElement.style.visibility = 'visible';
-            console.log('🛡️ Ultimate safety: Page is now guaranteed visible');
         }, 3000);
         
         // Apply styling on focus when navigating back
@@ -800,7 +786,6 @@
         ['click', 'keydown', 'touchstart', 'mousemove'].forEach(event => {
             document.addEventListener(event, function() {
                 if (!document.documentElement.classList.contains('ready')) {
-                    console.log('👆 User interaction detected - showing page immediately');
                     showIntroWhenReady();
                 }
             }, { once: true });
@@ -809,13 +794,9 @@
         // Remove any duplicate profile buttons on page load
         document.addEventListener('DOMContentLoaded', function() {
             const profileButtons = document.querySelectorAll('a[href="/profile"]');
-            console.log(`🔍 Found ${profileButtons.length} profile buttons`);
-            
             if (profileButtons.length > 1) {
-                // Keep only the main profile button (the one with ID)
                 profileButtons.forEach((button, index) => {
                     if (button.id !== 'main-profile-button') {
-                        console.log(`🗑️ Removing duplicate profile button ${index}`);
                         button.remove();
                     }
                 });
@@ -823,7 +804,7 @@
         });
         
         // Intro page uses default night mode - no theme switching needed
-        console.log('📄 Intro page loaded - using default styling');
+        
         
         // Add Sapphire navigation assistant function
         function toggleNavigationAssistant() {
@@ -1335,8 +1316,6 @@ What specific area would you like help with? I know every feature of SoulBridge 
         // ✨ NEW ENHANCED TIMER SYSTEM - Simple and conflict-free
         let timerUpdateInterval;
 
-        // Trial functions - only for growth/max users
-        {% if user_plan != 'free' %}
         function initializeEnhancedTimer() {
             const container = document.getElementById('trial-timer-container');
             if (!container) return;
@@ -1387,7 +1366,6 @@ What specific area would you like help with? I know every feature of SoulBridge 
                 timerElement.classList.add('warning');
             }
         }
-        {% endif %}
 
         async function refreshUserStatus() {
             try {
@@ -1400,13 +1378,6 @@ What specific area would you like help with? I know every feature of SoulBridge 
                 }
 
                 const { trial_active, trial_remaining, effective_plan, trial_used_permanently } = data;
-
-                // Skip trial logic for free users (they use ads, not trials)
-                const userPlan = '{{ user_plan or "free" }}';
-                if (userPlan === 'free') {
-                    console.log('🚫 Skipping trial logic - free user uses ads');
-                    return;
-                }
 
                 // Update trial badge and simple timer
                 const trialBadge = document.getElementById('trial-badge');
@@ -1441,11 +1412,6 @@ What specific area would you like help with? I know every feature of SoulBridge 
                     });
                     
                     console.log('🔒 INTRO: ALL timer elements permanently removed - trial expired');
-                    
-                    // Auto refresh to update companion access
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1000);
                 }
 
 

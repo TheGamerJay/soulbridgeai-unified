@@ -1190,11 +1190,8 @@
         
         // Netflix-style companion selection functions
         function selectCompanion(companionId) {
-            // Show selection confirmation
-            if (confirm(`Select ${companionId.replace('_', ' ')} as your companion?`)) {
-                // Redirect to chat with selected companion
-                window.location.href = `/chat?companion=${companionId}`;
-            }
+            // Redirect to chat with selected companion (confirmation removed for production)
+            window.location.href = `/chat?companion=${companionId}`;
         }
 
         // Dynamic access check that works with trials
@@ -1233,11 +1230,8 @@
         }
         
         function selectSkin(skinId) {
-            // Show skin selection confirmation
-            if (confirm(`Apply ${skinId.replace('_', ' ')} skin?`)) {
-                // Skin applied
-                // Here you could make an API call to save the skin preference
-            }
+            // Skin applied (confirmation removed for production)
+            // Here you could make an API call to save the skin preference
         }
         
         function showReferralInfo(requiredReferrals) {
@@ -1340,10 +1334,8 @@
                         
                         if (requiredTiers) {
                             const tierArray = requiredTiers.split(',');
-                            console.log(`🔧 Calling checkAccessAndSelect for ${companionId} with tiers:`, tierArray);
                             checkAccessAndSelect(companionId, tierArray);
                         } else {
-                            console.log(`🔧 Calling selectCompanion directly for ${companionId}`);
                             selectCompanion(companionId);
                         }
                     });

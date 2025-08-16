@@ -628,15 +628,11 @@
         }
 
         function loadConversation(id) {
-            if (confirm('Loading this conversation will replace your current chat. Continue?')) {
-                const conversation = allConversations[id];
-                
-                // Store the conversation to load
-                sessionStorage.setItem('conversationToLoad', JSON.stringify(conversation));
-                
-                // Redirect back to chat
-                window.location.href = '/chat';
-            }
+            const conversation = allConversations[id];
+            // Store the conversation to load (confirmation removed for production)
+            sessionStorage.setItem('conversationToLoad', JSON.stringify(conversation));
+            // Redirect back to chat
+            window.location.href = '/chat';
         }
 
         function toggleFavorite(id) {
@@ -666,7 +662,7 @@
             const fullText = `${conversation.title}\nCharacter: ${conversation.character}\nDate: ${conversation.date}\n\n${textContent}`;
             
             navigator.clipboard.writeText(fullText).then(function() {
-                alert('Conversation copied to clipboard!');
+                // Conversation copied (alert removed for production)
             }, function(err) {
                 // Fallback for older browsers
                 const textArea = document.createElement('textarea');
@@ -675,7 +671,7 @@
                 textArea.select();
                 document.execCommand('copy');
                 document.body.removeChild(textArea);
-                alert('Conversation copied to clipboard!');
+                // Conversation copied (alert removed for production)
             });
         }
 
@@ -696,31 +692,27 @@
             link.download = `${conversation.title.replace(/[^a-z0-9]/gi, '_')}_conversation.json`;
             link.click();
             
-            alert('Conversation exported successfully!');
+            // Conversation exported (alert removed for production)
         }
 
         function deleteConversation(id) {
             const conversation = allConversations[id];
             
-            if (confirm(`Are you sure you want to delete "${conversation.title}"?\n\nThis action cannot be undone.`)) {
-                // Remove from saved conversations
-                const savedConversations = JSON.parse(localStorage.getItem('savedConversations') || '[]');
-                savedConversations.splice(id, 1);
-                localStorage.setItem('savedConversations', JSON.stringify(savedConversations));
-                
-                // Remove from favorites if present
-                const favorites = JSON.parse(localStorage.getItem('favoriteConversations') || '[]');
-                const favIndex = favorites.indexOf(id);
-                if (favIndex > -1) {
-                    favorites.splice(favIndex, 1);
-                    // Update remaining favorite indices
-                    const updatedFavorites = favorites.map(fav => fav > id ? fav - 1 : fav);
-                    localStorage.setItem('favoriteConversations', JSON.stringify(updatedFavorites));
-                }
-                
-                alert('Conversation deleted successfully!');
-                loadConversations(); // Reload the list
+            // Remove from saved conversations (confirmation removed for production)
+            const savedConversations = JSON.parse(localStorage.getItem('savedConversations') || '[]');
+            savedConversations.splice(id, 1);
+            localStorage.setItem('savedConversations', JSON.stringify(savedConversations));
+            // Remove from favorites if present
+            const favorites = JSON.parse(localStorage.getItem('favoriteConversations') || '[]');
+            const favIndex = favorites.indexOf(id);
+            if (favIndex > -1) {
+                favorites.splice(favIndex, 1);
+                // Update remaining favorite indices
+                const updatedFavorites = favorites.map(fav => fav > id ? fav - 1 : fav);
+                localStorage.setItem('favoriteConversations', JSON.stringify(updatedFavorites));
             }
+            // Conversation deleted (alert removed for production)
+            loadConversations(); // Reload the list
         }
 
         function goBackToChat() {
@@ -728,14 +720,12 @@
         }
 
         function signOut() {
-            if (confirm('Are you sure you want to sign out?')) {
-                // Clear any stored user data
-                localStorage.removeItem('userToken');
-                sessionStorage.clear();
-                
-                // Redirect to sign out endpoint or login page
-                window.location.href = '/logout';
-            }
+            // Sign out (confirmation removed for production)
+            // Clear any stored user data
+            localStorage.removeItem('userToken');
+            sessionStorage.clear();
+            // Redirect to sign out endpoint or login page
+            window.location.href = '/logout';
         }
 
         // Theme toggle function

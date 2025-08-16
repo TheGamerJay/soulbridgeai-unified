@@ -506,10 +506,6 @@
             }
         }
     </style>
-    
-    <!-- Google AdSense -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3869471953521437"
-         crossorigin="anonymous"></script>
 </head>
 <body>
     <!-- Language Selector (moved below sign-in) -->
@@ -676,10 +672,7 @@
         
         // Global error handler with watchdog reporting
         window.addEventListener('error', function(e) {
-            console.error('JavaScript error:', e.error);
-            console.error('Error message:', e.message);
-            console.error('Error filename:', e.filename);
-            console.error('Error line:', e.lineno);
+            // Error handler (logging removed for production)
             
         });
         

@@ -689,8 +689,8 @@
       // Save session stats
       await saveMeditationSession();
 
-      alert('🎉 Meditation completed! Great work on taking time for yourself.');
-      stopMeditation();
+  // Meditation completed (alert removed for production)
+  stopMeditation();
     }
 
     function stopMeditation() {
@@ -733,11 +733,11 @@
         const result = await response.json();
         
         if (!result.success) {
-          console.error('Failed to save meditation session:', result.error);
+          // Failed to save meditation session (console removed for production)
         }
 
       } catch (error) {
-        console.error('Error saving meditation session:', error);
+  // Error saving meditation session (console removed for production)
       }
     }
 
@@ -757,7 +757,7 @@
         }
 
       } catch (error) {
-        console.error('Error loading meditation stats:', error);
+  // Error loading meditation stats (console removed for production)
       }
     }
   </script>

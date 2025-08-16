@@ -659,13 +659,13 @@
             }
             document.getElementById('imagePrompt').value = prompt;
           } else {
-            alert('Failed to analyze reference image: ' + analysisResult.error);
+            // Error analyzing reference image (alert removed for production)
             document.getElementById('loadingState').style.display = 'none';
             document.getElementById('generateBtn').disabled = false;
             return;
           }
         } catch (error) {
-          alert('Error analyzing reference image. Please try again.');
+          // Error analyzing reference image (alert removed for production)
           document.getElementById('loadingState').style.display = 'none';
           document.getElementById('generateBtn').disabled = false;
           return;
@@ -673,12 +673,12 @@
       }
 
       if (!prompt) {
-        alert('Please describe the image you want to create or upload a reference image!');
+  // No prompt provided (alert removed for production)
         return;
       }
 
       if (prompt.length < 10) {
-        alert('Please provide a more detailed description (at least 10 characters).');
+  // Prompt too short (alert removed for production)
         return;
       }
 
@@ -709,14 +709,11 @@
           currentImageData = result;
           loadUsageCount(); // Update usage count
         } else {
-          const errorMessage = result.error || 'Unknown error occurred';
-          console.error('Image generation failed:', errorMessage);
-          alert('Error generating image: ' + errorMessage);
+          // Error generating image (alert and console removed for production)
         }
 
       } catch (error) {
-        console.error('Error generating image:', error);
-        alert('Failed to generate image. Please check your connection and try again.');
+  // Error generating image (alert and console removed for production)
       } finally {
         document.getElementById('generateBtn').disabled = false;
         document.getElementById('loadingState').style.display = 'none';
@@ -739,7 +736,7 @@
 
     async function saveToGallery() {
       if (!currentImageData) {
-        alert('No image to save!');
+  // No image to save (alert removed for production)
         return;
       }
 
@@ -761,21 +758,19 @@
         const result = await response.json();
 
         if (result.success) {
-          alert('Image saved to gallery!');
           loadGallery();
         } else {
-          alert('Error saving image: ' + result.error);
+          // Error saving image (alert removed for production)
         }
 
       } catch (error) {
-        console.error('Error saving image:', error);
-        alert('Failed to save image to gallery.');
+  // Error saving image (alert and console removed for production)
       }
     }
 
     function downloadImage() {
       if (!currentImageData) {
-        alert('No image to download!');
+  // No image to download (alert removed for production)
         return;
       }
 
