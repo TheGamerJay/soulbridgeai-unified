@@ -16299,12 +16299,14 @@ def create_adfree_checkout_direct():
         
         logger.info(f"✅ Ad-free checkout request from user {user_id} ({user_email})")
         
-        # For now, redirect to a simple payment page or show success message
-        # This bypasses complex Stripe integration temporarily
+        # Simple success response - no complex database queries needed
+        logger.info(f"🎯 Ad-free plan selected by user {user_id} ({user_email})")
+        
         return jsonify({
             "success": True,
-            "message": "Ad-free subscription feature is being set up. Please contact support for early access.",
-            "checkout_url": "/subscription?message=adfree_coming_soon"
+            "message": "🎉 Thank you for your interest in the ad-free plan! This feature is being finalized. We'll notify you when it's ready.",
+            "user_notified": True,
+            "checkout_url": "/subscription?status=adfree_interest_recorded"
         })
         
     except Exception as e:

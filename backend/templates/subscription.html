@@ -914,8 +914,12 @@ async function selectPlanViaAPI(planType, billing) {
       
       const result = await response.json();
       
-      if (result.checkout_url) {
-        window.location.href = result.checkout_url;
+      if (result.success) {
+        // Show success message for ad-free plan interest
+        alert(result.message || 'Thank you for your interest in the ad-free plan!');
+        if (result.checkout_url) {
+          window.location.href = result.checkout_url;
+        }
         return;
       } else {
         alert('Error: ' + (result.error || 'Failed to create ad-free checkout'));
