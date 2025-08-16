@@ -206,7 +206,6 @@ window.updateCompanionAccess = updateCompanionAccess;
 
 // Auto-initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Initializing New Trial System...');
     initializeTrialSystem();
     updateCompanionAccess();
 });

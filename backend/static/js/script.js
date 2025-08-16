@@ -242,12 +242,10 @@ function notifyUser(message) {
 
 function autoMuteUser(messageId) {
   // Auto-mute logic for flagged users
-  console.log(`Auto-muting user for message ${messageId}`);
   // Implementation would connect to backend moderation API
 }
 
 function logEvent(event) {
-  console.log(`Community Event: ${event} at ${new Date().toISOString()}`);
 }
 
 // ==========================
@@ -312,7 +310,6 @@ function renderPersonalityModeSelector() {
   // Add change handler
   select.addEventListener('change', (e) => {
     currentPersonalityMode = e.target.value || null;
-    console.log('Personality mode changed to:', currentPersonalityMode);
   });
 }
 

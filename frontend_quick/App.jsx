@@ -59,7 +59,6 @@ function MainApp() {
             <button
               className="px-6 py-3 rounded-lg bg-gradient-to-r from-gray-700 to-gray-900 text-white font-bold shadow-lg hover:from-gray-600 hover:to-gray-800 transform hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-gray-300 active:scale-95"
               onClick={() => {
-                console.log('Back button clicked, going to step:', step - 1);
                 setStep(step - 1);
               }}
               tabIndex={0}
@@ -87,7 +86,6 @@ function MainApp() {
               type="checkbox"
               checked={darkMode}
               onChange={(e) => {
-                console.log('Theme toggle clicked, dark mode:', !darkMode);
                 setDarkMode(!darkMode);
               }}
               className="form-checkbox h-6 w-6 accent-cyan-600 cursor-pointer transform hover:scale-110 transition-transform duration-200"
@@ -174,7 +172,6 @@ function MainApp() {
                 className="px-8 py-3 rounded-lg bg-gradient-to-r from-blue-600 to-blue-800 text-white font-bold shadow-lg hover:from-blue-500 hover:to-blue-700 transform hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-blue-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                 onClick={(e) => {
                   e.preventDefault();
-                  console.log('Send button clicked for Blayzo, message:', message);
                   handleSend();
                 }}
                 disabled={!message.trim()}
@@ -252,7 +249,6 @@ function MainApp() {
                 className="px-8 py-3 rounded-lg bg-gradient-to-r from-pink-600 to-red-600 text-white font-bold shadow-lg hover:from-pink-500 hover:to-red-500 transform hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-pink-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                 onClick={(e) => {
                   e.preventDefault();
-                  console.log('Send button clicked for Blayzica, message:', message);
                   handleSend();
                 }}
                 disabled={!message.trim()}

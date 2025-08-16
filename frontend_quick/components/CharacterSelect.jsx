@@ -42,7 +42,6 @@ export default function CharacterSelect({ onSelect }) {
   }, []);
 
   const handleCharacterSelect = (companionId) => {
-    console.log(`${companionId} selected`);
     if (onSelect && typeof onSelect === 'function') {
       onSelect(companionId);
     } else {

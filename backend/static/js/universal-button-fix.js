@@ -9,7 +9,6 @@ window.UniversalButtonFix = {
     init: function() {
         if (this.initialized) return;
         
-        console.log('🔧 Initializing Universal Button Fix...');
         
         // Common button functions that should work everywhere
         this.ensureGlobalFunctions();
@@ -17,7 +16,6 @@ window.UniversalButtonFix = {
         this.fixFormSubmissions();
         
         this.initialized = true;
-        console.log('✅ Universal Button Fix initialized');
     },
     
     ensureGlobalFunctions: function() {
@@ -25,15 +23,12 @@ window.UniversalButtonFix = {
         if (typeof window.toggleTheme !== 'function') {
             window.toggleTheme = function() {
                 try {
-                    console.log('🌙 Theme toggle via universal fix');
                     
                     // Toggle body class
                     document.body.classList.toggle('day-mode');
                     const isDayMode = document.body.classList.contains('day-mode');
                     
-                    // Get elements
                     const themeText = document.getElementById('themeText');
-                    const themeIcon = document.getElementById('themeIcon');
                     const themeToggle = document.getElementById('themeToggle');
                     
                     // Update localStorage
@@ -47,7 +42,6 @@ window.UniversalButtonFix = {
                     if (themeToggle) {
                         if (isDayMode) {
                             themeToggle.style.background = 'rgba(255, 193, 7, 0.8)';
-                            themeToggle.style.color = '#000';
                         } else {
                             themeToggle.style.background = 'rgba(34, 211, 238, 0.8)';
                             themeToggle.style.color = '#000';
@@ -64,7 +58,6 @@ window.UniversalButtonFix = {
                                 if (computedStyle.color === 'rgb(34, 211, 238)') {
                                     el.style.color = '#000';
                                 }
-                                if (computedStyle.backgroundColor.includes('0, 0, 0')) {
                                     el.style.backgroundColor = 'rgba(255, 255, 255, 0.9)';
                                 }
                             } else {
@@ -78,7 +71,6 @@ window.UniversalButtonFix = {
                         }
                     });
                     
-                    console.log(`✅ Theme switched to: ${isDayMode ? 'Day' : 'Night'} mode`);
                 } catch (error) {
                     console.error('❌ Universal toggleTheme error:', error);
                 }
@@ -96,14 +88,9 @@ window.UniversalButtonFix = {
                     if (!passwordField) {
                         console.error('❌ Password field not found:', fieldId);
                         return;
-                    }
-                    
-                    // Find toggle button more reliably - FIXED for login page
                     let toggleBtn = null;
                     
                     // Get the exact button that was clicked (if called from button handler)
-                    const clickedButton = window.event?.target || window.event?.currentTarget;
-                    if (clickedButton && clickedButton.classList.contains('password-toggle')) {
                         toggleBtn = clickedButton;
                         console.log('🎯 Using clicked button directly:', toggleBtn.id);
                     } else {
@@ -175,92 +162,73 @@ window.UniversalButtonFix = {
         
         // Language functions (common in auth pages)
         if (typeof window.toggleLanguageMenu !== 'function') {
-            window.toggleLanguageMenu = function() {
-                try {
-                    console.log('🌐 Language menu toggle via universal fix');
-                    const menu = document.getElementById('languageMenu');
-                    if (menu) {
-                        menu.style.display = menu.style.display === 'none' || !menu.style.display ? 'block' : 'none';
+            if (typeof window.togglePassword !== 'function') {
+                window.togglePassword = function(fieldId) {
+                    try {
+                        const passwordField = document.getElementById(fieldId);
+                        if (!passwordField) {
+                            console.error('❌ Password field not found:', fieldId);
+                            return;
+                        }
+                        let toggleBtn = null;
+                        // Get the exact button that was clicked (if called from button handler)
+                        const clickedButton = window.event?.target || window.event?.currentTarget;
+                        if (clickedButton && clickedButton.classList.contains('password-toggle')) {
+                            toggleBtn = clickedButton;
+                        } else {
+                            // First try specific IDs based on field
+                            if (fieldId === 'password') {
+                                toggleBtn = document.getElementById('loginToggleBtn') || 
+                                           document.getElementById('registerToggleBtn') ||
+                                           document.getElementById('toggleBtn');
+                            } else if (fieldId === 'confirm_password') {
+                                toggleBtn = document.getElementById('confirmToggleBtn');
+                            }
+                            // Fallback: find button in same container
+                            if (!toggleBtn) {
+                                const container = passwordField.closest('.password-container') || passwordField.parentElement;
+                                toggleBtn = container?.querySelector('.password-toggle');
+                            }
+                        }
+                        // Toggle password visibility
+                        const isCurrentlyPassword = passwordField.type === 'password';
+                        const newType = isCurrentlyPassword ? 'text' : 'password';
+                        const newIcon = isCurrentlyPassword ? '🙈' : '👁️';
+                        const newLabel = isCurrentlyPassword ? 'Hide password' : 'Show password';
+                        // Update field type
+                        passwordField.type = newType;
+                        // Update button appearance - ENHANCED for login page reliability
+                        if (toggleBtn) {
+                            // Multiple update methods to ensure it works on login page
+                            toggleBtn.textContent = newIcon;
+                            toggleBtn.innerHTML = newIcon;
+                            toggleBtn.innerText = newIcon;
+                            toggleBtn.setAttribute('aria-label', newLabel);
+                            // Force DOM update with multiple techniques for login page
+                            toggleBtn.style.visibility = 'hidden';
+                            toggleBtn.offsetHeight; // Force reflow
+                            toggleBtn.style.visibility = 'visible';
+                            // Force repaint of parent container for login page
+                            const parent = toggleBtn.parentElement;
+                            if (parent) {
+                                parent.style.transform = 'translateZ(0)';
+                                parent.offsetHeight; // Force reflow
+                                parent.style.transform = '';
+                            }
+                        }
+                        // Trigger visual update events
+                        passwordField.dispatchEvent(new Event('input', { bubbles: true }));
+                    } catch (error) {
+                        console.error('❌ Universal togglePassword error:', error);
                     }
-                } catch (error) {
-                    console.error('❌ Universal toggleLanguageMenu error:', error);
-                }
-            };
-        }
-        
-        if (typeof window.changeLanguage !== 'function') {
-            window.changeLanguage = function(lang) {
-                try {
-                    console.log('🌐 Language change via universal fix:', lang);
-                    localStorage.setItem('selectedLanguage', lang);
-                    location.reload();
-                } catch (error) {
-                    console.error('❌ Universal changeLanguage error:', error);
-                }
-            };
-        }
-        
-        // Navigation functions (from chat page)
-        if (typeof window.toggleNavigationAssistant !== 'function') {
-            window.toggleNavigationAssistant = function() {
-                try {
-                    console.log('🔍 Navigation assistant via universal fix');
-                    const modal = document.getElementById('navAssistantModal');
-                    if (!modal) return;
-                    
-                    if (modal.style.display === 'none' || modal.style.display === '') {
-                        modal.style.display = 'flex';
-                        const questionInput = document.getElementById('navQuestion');
-                        if (questionInput) questionInput.focus();
-                    } else {
-                        modal.style.display = 'none';
-                        const navResponse = document.getElementById('navResponse');
-                        if (navResponse) navResponse.style.display = 'none';
-                    }
-                } catch (error) {
-                    console.error('❌ Universal toggleNavigationAssistant error:', error);
-                }
-            };
-        }
-        
-        if (typeof window.openUserProfile !== 'function') {
-            window.openUserProfile = function() {
-                try {
-                    console.log('👤 Profile navigation via universal fix');
-                    window.location.href = '/profile';
-                } catch (error) {
-                    console.error('❌ Universal openUserProfile error:', error);
-                }
-            };
-        }
-        
-        if (typeof window.openCommunityDashboard !== 'function') {
-            window.openCommunityDashboard = function() {
-                try {
-                    console.log('🌟 Community navigation via universal fix');
-                    window.location.href = '/community-dashboard';
-                } catch (error) {
-                    console.error('❌ Universal openCommunityDashboard error:', error);
-                }
-            };
-        }
-        
-        // Admin functions for admin panel
-        if (typeof window.adminLogin !== 'function') {
-            window.adminLogin = function() {
-                try {
-                    console.log('🔐 Admin login via universal fix');
-                    // Add admin login logic here
-                } catch (error) {
-                    console.error('❌ Universal adminLogin error:', error);
-                }
+                };
+            }
             };
         }
         
         if (typeof window.searchUser !== 'function') {
             window.searchUser = function() {
                 try {
-                    console.log('🔍 Search user via universal fix');
                     // Add search user logic here
                 } catch (error) {
                     console.error('❌ Universal searchUser error:', error);
@@ -290,22 +258,18 @@ window.UniversalButtonFix = {
             'themeToggle': () => window.toggleTheme(),
             'languageSelector': () => window.toggleLanguageMenu(),
             'loginToggleBtn': (e) => {
-                console.log('👁️ Login password toggle clicked via Universal Button Fix');
                 window.event = e; // Pass event context
                 window.togglePassword('password');
             },
             'registerToggleBtn': (e) => {
-                console.log('👁️ Register password toggle clicked via Universal Button Fix');
                 window.event = e; // Pass event context
                 window.togglePassword('password');
             },
             'toggleBtn': (e) => {
-                console.log('👁️ Password toggle clicked via Universal Button Fix');
                 window.event = e; // Pass event context
                 window.togglePassword('password');
             },
             'confirmToggleBtn': (e) => {
-                console.log('👁️ Confirm password toggle clicked via Universal Button Fix');
                 window.event = e; // Pass event context
                 window.togglePassword('confirm_password');
             },
@@ -318,14 +282,12 @@ window.UniversalButtonFix = {
             if (button && !button.hasAttribute('data-universal-fixed')) {
                 button.setAttribute('data-universal-fixed', 'true');
                 button.addEventListener('click', function(e) {
-                    console.log(`🔧 Universal fix handling: ${buttonId}`);
                     try {
                         buttonMappings[buttonId](e);
                     } catch (error) {
                         console.error(`❌ Universal fix error for ${buttonId}:`, error);
                     }
                 });
-                console.log(`✅ Added universal listener to: ${buttonId}`);
             }
         });
         
@@ -340,7 +302,6 @@ window.UniversalButtonFix = {
                     if (langMatch) {
                         const lang = langMatch[1];
                         option.addEventListener('click', function(e) {
-                            console.log(`🌐 Language change via universal fix: ${lang}`);
                             window.changeLanguage(lang);
                         });
                     }
@@ -348,7 +309,6 @@ window.UniversalButtonFix = {
             }
         });
         
-        console.log(`✅ Universal Button Fix setup complete`);
     },
     
     fixFormSubmissions: function() {
@@ -358,7 +318,6 @@ window.UniversalButtonFix = {
             if (!form.hasAttribute('data-backup-submit')) {
                 form.setAttribute('data-backup-submit', 'true');
                 form.addEventListener('submit', function(e) {
-                    console.log('📝 Form submission via universal fix');
                     // Let the form submit naturally unless there are validation errors
                 });
             }

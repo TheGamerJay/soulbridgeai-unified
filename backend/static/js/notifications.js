@@ -9,21 +9,18 @@ class NotificationManager {
 
     async init() {
         if (!this.isSupported) {
-            console.log('Push notifications not supported');
             return;
         }
 
         try {
             // Register service worker
             this.swRegistration = await navigator.serviceWorker.register('/static/sw.js');
-            console.log('Service Worker registered successfully');
 
             // Check if already subscribed
             const subscription = await this.swRegistration.pushManager.getSubscription();
             this.isSubscribed = !(subscription === null);
             
             if (this.isSubscribed) {
-                console.log('User is already subscribed to push notifications');
             }
 
             // Add notification request UI
@@ -112,14 +109,12 @@ class NotificationManager {
             const permission = await Notification.requestPermission();
             
             if (permission === 'granted') {
-                console.log('Notification permission granted');
                 await this.subscribeUser();
                 this.dismissPrompt();
                 
                 // Show success message
                 this.showMessage('🎉 Notifications enabled! Your companion can now reach out to you.', 'success');
             } else {
-                console.log('Notification permission denied');
                 this.showMessage('📱 You can enable notifications later in your browser settings.', 'info');
                 this.dismissPrompt();
             }
@@ -136,7 +131,6 @@ class NotificationManager {
                 applicationServerKey: this.urlB64ToUint8Array('YOUR_VAPID_PUBLIC_KEY') // You'll need to generate VAPID keys
             });
 
-            console.log('User is subscribed:', subscription);
 
             // Send subscription to server
             await this.sendSubscriptionToServer(subscription);
@@ -176,7 +170,6 @@ class NotificationManager {
             const data = await response.json();
             
             if (data.success) {
-                console.log('Subscription sent to server successfully');
             } else {
                 console.error('Failed to send subscription to server:', data.error);
             }
@@ -237,7 +230,6 @@ class NotificationManager {
                 })
             });
 
-            console.log('Retention notifications scheduled');
         } catch (error) {
             console.error('Error scheduling retention notifications:', error);
         }

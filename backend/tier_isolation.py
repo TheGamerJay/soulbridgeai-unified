@@ -294,12 +294,25 @@ def get_current_user_tier() -> str:
     if trial_active:
         return 'max'
     
-    # Check each tier session to see which one is active
+    # DEBUG: Log all tier sessions to see contamination
+    active_tiers = []
     for tier_name in ['free', 'growth', 'max']:
         tier_session = session.get(f'tier_{tier_name}', {})
         if tier_session and tier_session.get('user_id'):
+            active_tiers.append(tier_name)
+    
+    if len(active_tiers) > 1:
+        logger.warning(f"🚨 TIER CONTAMINATION: Multiple active tiers detected: {active_tiers}")
+    
+    # Check each tier session to see which one is active
+    # IMPORTANT: Check in reverse order (max -> growth -> free) so highest tier wins
+    for tier_name in ['max', 'growth', 'free']:
+        tier_session = session.get(f'tier_{tier_name}', {})
+        if tier_session and tier_session.get('user_id'):
+            logger.info(f"🎯 TIER DETECTED: {tier_name} (active_tiers: {active_tiers})")
             return tier_name
     
+    logger.info(f"🎯 TIER DETECTED: free (default, active_tiers: {active_tiers})")
     return 'free'  # Default to free if no tier is active
 
 def get_current_tier_system() -> TierSystem:

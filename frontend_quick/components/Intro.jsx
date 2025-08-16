@@ -4,7 +4,6 @@ const logo = '/logo.jpg';
 export default function Intro({ onNext }) {
   const handleStartClick = (e) => {
     e.preventDefault();
-    console.log('Start button clicked');
     if (onNext && typeof onNext === 'function') {
       onNext();
     } else {

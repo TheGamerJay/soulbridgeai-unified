@@ -26,7 +26,6 @@ export default function AdminLogin() {
       // First try Firebase login
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       setMessage("Firebase Login Successful - Redirecting...");
-      console.log("Firebase login:", userCredential.user);
       
       // Store session and redirect
       sessionStorage.setItem('soulbridge_admin', JSON.stringify({
@@ -41,12 +40,10 @@ export default function AdminLogin() {
       }, 1000);
 
     } catch (error) {
-      console.log("Firebase login failed, trying dev credentials...", error);
       
       // Fallback to static dev login
       if (email === devEmail && password === devPassword) {
         setMessage("Dev Login Successful - Redirecting...");
-        console.log("Dev login successful");
         
         // Store dev session and redirect
         sessionStorage.setItem('soulbridge_admin', JSON.stringify({
