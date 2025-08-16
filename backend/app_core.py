@@ -22,7 +22,7 @@ except Exception:
 
 # ---------- App/DB ----------
 app = Flask(__name__)
-app.secret_key = os.getenv('SECRET_KEY', 'change_me')
+app.secret_key = os.getenv('SECRET_KEY') or os.urandom(32)
 
 # Use existing database configuration if available
 DATABASE_URL = os.getenv('DATABASE_URL')
@@ -606,4 +606,4 @@ def register_music_routes(main_app):
         )
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080, debug=True)
+    app.run(host='0.0.0.0', port=8080, debug=False)
