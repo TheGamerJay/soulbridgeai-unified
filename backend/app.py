@@ -1763,8 +1763,15 @@ def auth_login():
             raw_plan = result.get('plan_type', 'free')
             raw_user_plan = result.get('user_plan', 'free')
             plan_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
-            user_plan = plan_mapping.get(raw_plan, raw_plan)
+            
+            # Use the more specific plan value - prefer user_plan over plan_type if different
+            actual_plan = raw_user_plan if raw_user_plan != 'free' else raw_plan
+            user_plan = plan_mapping.get(actual_plan, actual_plan)
             session['display_name'] = result.get('display_name', 'User')
+            
+            # DEBUG: Log what plan is being retrieved from database
+            logger.info(f"🔍 LOGIN PLAN DEBUG: raw_plan={raw_plan}, raw_user_plan={raw_user_plan}, actual_plan={actual_plan}, final_user_plan={user_plan}")
+            logger.info(f"🔍 LOGIN RESULT DEBUG: {result}")
             # Auto-migrate legacy plans in database
             needs_migration = False
             if raw_plan in plan_mapping or raw_user_plan in plan_mapping:
@@ -8600,8 +8607,14 @@ def fix_tier_isolation():
                 conn.close()
                 
                 if result:
-                    db_user_plan = result[0] or result[1] or 'free'
+                    raw_user_plan = result[0] or 'free'
+                    raw_plan_type = result[1] or 'free'
+                    # Use the more specific plan value - prefer user_plan over plan_type if different
+                    actual_plan = raw_user_plan if raw_user_plan != 'free' else raw_plan_type
+                    plan_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
+                    db_user_plan = plan_mapping.get(actual_plan, actual_plan)
                     trial_active = bool(result[2]) if result[2] is not None else False
+                    logger.info(f"🔧 TIER FIX DB LOOKUP: raw_user_plan={raw_user_plan}, raw_plan_type={raw_plan_type}, actual_plan={actual_plan}, final_plan={db_user_plan}")
                 else:
                     db_user_plan = 'free'
                     trial_active = False
