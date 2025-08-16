@@ -4,11 +4,25 @@ FROM python:3.13-slim
 # Set working directory
 WORKDIR /app
 
-# Install minimal system dependencies
+# Install system dependencies including audio/media packages
 RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
     curl \
+    pkg-config \
+    libffi-dev \
+    libssl-dev \
+    libasound2-dev \
+    libportaudio2 \
+    libportaudiocpp0 \
+    portaudio19-dev \
+    python3-dev \
+    ffmpeg \
+    libavcodec-dev \
+    libavformat-dev \
+    libavutil-dev \
+    libswscale-dev \
+    libswresample-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements and install Python dependencies
