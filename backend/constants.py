@@ -142,7 +142,7 @@ AI_IMAGE_LIMITS = {
     "max": 999999
 }
 
-# Legacy plan migration mapping
+# Legacy plan migration mapping (for backward compatibility only; do not use for new features)
 LEGACY_PLAN_MAPPING = {
     'foundation': 'free',
     'premium': 'growth', 

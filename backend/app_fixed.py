@@ -1917,10 +1917,9 @@ def auth_register():
 def profile():
     """Profile route"""
     try:
-        # TEMPORARY BYPASS: Skip auth check for Stripe testing
-        # TODO: Re-enable this after confirming Stripe functionality
-        # if not is_logged_in():
-        #     return redirect("/login")
+    # Stripe testing: auth check temporarily bypassed. Restore when Stripe is confirmed working.
+    # if not is_logged_in():
+    #     return redirect("/login")
         
         # Ensure session is set up for profile page
         if not session.get('user_email'):
@@ -1943,10 +1942,9 @@ def profile():
 def subscription():
     """Subscription route"""
     try:
-        # TEMPORARY BYPASS: Skip auth check for Stripe testing
-        # TODO: Re-enable this after confirming Stripe functionality
-        # if not is_logged_in():
-        #     return redirect("/login")
+    # Stripe testing: auth check temporarily bypassed. Restore when Stripe is confirmed working.
+    # if not is_logged_in():
+    #     return redirect("/login")
         
         # Ensure session is set up for subscription page
         if not session.get('user_email'):
@@ -1969,10 +1967,9 @@ def subscription():
 def community_dashboard():
     """Community dashboard route"""
     try:
-        # TEMPORARY BYPASS: Skip auth check for Stripe testing
-        # TODO: Re-enable this after confirming Stripe functionality
-        # if not is_logged_in():
-        #     return redirect("/login")
+    # Stripe testing: auth check temporarily bypassed. Restore when Stripe is confirmed working.
+    # if not is_logged_in():
+    #     return redirect("/login")
         return render_template("community_dashboard.html")
     except Exception as e:
         logger.error(f"Community dashboard error: {e}")
@@ -1982,10 +1979,9 @@ def community_dashboard():
 def referrals():
     """Referrals route"""
     try:
-        # TEMPORARY BYPASS: Skip auth check for Stripe testing
-        # TODO: Re-enable this after confirming Stripe functionality
-        # if not is_logged_in():
-        #     return redirect("/login")
+    # Stripe testing: auth check temporarily bypassed. Restore when Stripe is confirmed working.
+    # if not is_logged_in():
+    #     return redirect("/login")
         return render_template("referrals.html")
     except Exception as e:
         logger.error(f"Referrals template error: {e}")
@@ -2610,8 +2606,7 @@ def payment_page():
 def create_checkout_session():
     """Create Stripe checkout session for plan subscription
     
-    TEMPORARY: Authentication check disabled for Stripe testing
-    TODO: Re-enable authentication after confirming Stripe works
+    Stripe testing: authentication check temporarily disabled. Restore authentication when Stripe is confirmed working.
     """
     try:
         logger.info(f"🎯 Checkout session request received")

@@ -260,7 +260,7 @@ class BusinessIntelligenceManager:
             subscription_tiers = {
                 "plus": 9.99,
                 "galaxy": 19.99,
-                "premium": 9.99  # Legacy tier
+                "premium": 9.99  # (legacy tier, kept for backward compatibility)
             }
             
             total_revenue = 0
@@ -668,12 +668,10 @@ class BusinessIntelligenceManager:
     def _prioritize_recommendations(self, insights: List[PredictiveInsight]) -> List[str]:
         """Prioritize recommendations based on confidence and impact"""
         all_actions = []
-        
         for insight in insights:
             if insight.confidence > 0.7:
                 all_actions.extend(insight.recommended_actions[:2])  # Top 2 actions from high-confidence insights
-        
-        # Remove duplicates and return top recommendations
+        # Deduplicate and return top recommendations
         return list(dict.fromkeys(all_actions))[:10]
 
 
