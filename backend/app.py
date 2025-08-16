@@ -8052,17 +8052,20 @@ def check_fortune_limit():
     if not user_id:
         return jsonify({"success": False, "error": "Not logged in"})
     
-    # TIER ISOLATION: Use tier-specific limits instead of cached session values
+    # Use tier isolation system instead of direct session manipulation
     current_tier = get_current_user_tier()
     tier_system = get_current_tier_system()
     tier_data = tier_system.get_session_data()
     
-    user_plan = session.get("user_plan", "free")  # Original plan for display
-    trial_active = session.get("trial_active", False)
+    # Get original user plan and trial status from tier data
+    user_plan = tier_data.get('user_plan', 'free')
+    trial_active = session.get('trial_active', False)
     effective_plan = get_effective_plan(user_plan, trial_active)
     
-    # Get tier-specific limit
-    daily_limit = tier_system.get_feature_limit("fortune")
+    # ROADMAP COMPLIANCE: Use user_plan for limits, trial_active only affects ACCESS not LIMITS
+    # Import unified tier system function directly to avoid confusion
+    from unified_tier_system import get_feature_limit as unified_get_feature_limit
+    daily_limit = unified_get_feature_limit(user_plan, "fortune", False)  # trial_active=False for limits calculation
     usage_today = get_fortune_usage()
 
     return jsonify({
@@ -8080,17 +8083,20 @@ def check_horoscope_limit():
     if not user_id:
         return jsonify({"success": False, "error": "Not logged in"})
 
-    # TIER ISOLATION: Use tier-specific limits instead of cached session values
+    # Use tier isolation system instead of direct session manipulation
     current_tier = get_current_user_tier()
     tier_system = get_current_tier_system()
     tier_data = tier_system.get_session_data()
     
-    user_plan = session.get("user_plan", "free")  # Original plan for display
-    trial_active = session.get("trial_active", False)
+    # Get original user plan and trial status from tier data
+    user_plan = tier_data.get('user_plan', 'free')
+    trial_active = session.get('trial_active', False)
     effective_plan = get_effective_plan(user_plan, trial_active)
     
-    # Get tier-specific limit
-    daily_limit = tier_system.get_feature_limit("horoscope")
+    # ROADMAP COMPLIANCE: Use user_plan for limits, trial_active only affects ACCESS not LIMITS
+    # Import unified tier system function directly to avoid confusion
+    from unified_tier_system import get_feature_limit as unified_get_feature_limit
+    daily_limit = unified_get_feature_limit(user_plan, "horoscope", False)  # trial_active=False for limits calculation
     usage_today = get_horoscope_usage()
 
     return jsonify({
