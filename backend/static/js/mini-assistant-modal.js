@@ -47,9 +47,7 @@
       statusDiv.textContent = 'Checking status...';
       try {
         const res = await fetch('/api/mini-assistant-status');
-        console.log('Mini Assistant Status Response:', res.status, res.statusText);
         const data = await res.json();
-        console.log('Mini Assistant Status Data:', data);
         if (data.success) {
           statusDiv.textContent = data.claude_available ? '🧠 Claude Ready' : '🟢 Ready';
           statusDiv.style.color = data.claude_available ? '#00d4aa' : '#00d4aa';
@@ -57,8 +55,7 @@
           statusDiv.textContent = '❌ Offline';
           statusDiv.style.color = '#e74c3c';
         }
-      } catch (error) {
-        console.error('Mini Assistant Status Error:', error);
+      } catch {
         statusDiv.textContent = '❌ Could not check status: fetch failed';
         statusDiv.style.color = '#e74c3c';
       }
@@ -70,55 +67,25 @@
       const prompt = document.getElementById('miniAssistantPrompt').value.trim();
       const file = document.getElementById('miniAssistantFile').value.trim();
       const responseDiv = document.getElementById('miniAssistantResponse');
-      const sendButton = document.getElementById('miniAssistantSend');
-      
       if (!prompt) {
         responseDiv.textContent = 'Please enter a prompt.';
         return;
       }
-      
-      // Disable button and show loading
-      sendButton.disabled = true;
-      sendButton.textContent = 'Processing...';
-      responseDiv.textContent = '🧠 Thinking... (This may take 30-60 seconds if using fallback AI)';
-      
+      responseDiv.textContent = 'Thinking...';
       try {
-        // Add timeout to prevent hanging
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minutes timeout
-        
         const res = await fetch('/api/mini-assistant', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: prompt, file }),
-          signal: controller.signal
+          body: JSON.stringify({ message: prompt, file })
         });
-        
-        clearTimeout(timeoutId);
-        
-        if (!res.ok) {
-          throw new Error(`Server error: ${res.status} ${res.statusText}`);
-        }
-        
         const data = await res.json();
         if (data.success) {
           responseDiv.textContent = data.response;
-          // Clear the input after successful response
-          document.getElementById('miniAssistantPrompt').value = '';
         } else {
           responseDiv.textContent = '❌ ' + (data.error || 'Assistant error');
         }
-      } catch (error) {
-        if (error.name === 'AbortError') {
-          responseDiv.textContent = '❌ Request timed out after 2 minutes. Try a shorter prompt or check your connection.';
-        } else {
-          responseDiv.textContent = '❌ Could not connect to backend: ' + error.message;
-        }
-        console.error('Mini Assistant Error:', error);
-      } finally {
-        // Re-enable button
-        sendButton.disabled = false;
-        sendButton.textContent = 'Send to Assistant';
+      } catch {
+        responseDiv.textContent = '❌ Could not connect to backend.';
       }
     };
 })();
