@@ -1056,6 +1056,14 @@ def get_user_plan():
     # Return the original user_plan stored in tier data, or fallback to tier name
     return tier_data.get('user_plan', current_tier)
 
+def get_user_plan_safe():
+    """Get user plan safely with fallback to 'free' if tier data is empty"""
+    try:
+        plan = get_user_plan()
+        return plan if plan else 'free'
+    except Exception:
+        return 'free'
+
 def parse_request_data():
     """Parse request data from both JSON and form data"""
     if request.is_json:
@@ -1966,7 +1974,7 @@ def api_me():
     return jsonify({
         "user_id": session["user_id"],
         "email": session.get("user_email"),
-        "plan": session.get("user_plan"),
+        "plan": get_user_plan_safe(),
         "access": {
             "free":   bool(session.get("access_free")),
             "growth": bool(session.get("access_growth")),
@@ -7969,45 +7977,32 @@ def check_decoder_limit():
     if not user_id:
         return jsonify({"success": False, "error": "Not logged in"})
     
-    # Debug: Log full session contents
-    logger.info(f"🔍 DECODER API SESSION DEBUG: user_id={user_id}")
-    logger.info(f"🔍 Full session contents: {dict(session)}")
-    
-    # Always calculate effective_plan fresh instead of reading cached values
-    user_plan = session.get("user_plan", "free") 
-    trial_active = session.get("trial_active", False)
-    
-    # Fallback: If session values are missing, force update them
-    if user_plan is None or trial_active is None:
-        logger.warning(f"⚠️ MISSING SESSION VALUES - forcing update")
-        try:
-            trial_check = is_trial_active(user_id)
-            session['trial_active'] = trial_check
-            
-            real_plan = session.get('user_plan') or get_user_plan() or 'free'
-            plan_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
-            mapped_plan = plan_mapping.get(real_plan, real_plan or 'free')
-            
-            session['user_plan'] = mapped_plan
-            
-            # Update local variables
-            user_plan = session['user_plan']
-            trial_active = session['trial_active']
-        except Exception as e:
-            logger.error(f"❌ Failed to update session: {e}")
-            user_plan = "free"
-            trial_active = False
-    
-    # TIER ISOLATION: Use tier-specific limits instead of old approach
+    # Use tier isolation system instead of direct session manipulation
     current_tier = get_current_user_tier()
     tier_system = get_current_tier_system()
+    tier_data = tier_system.get_session_data()
+    
+    # Get original user plan and trial status from tier data
+    user_plan = tier_data.get('user_plan', 'free')
+    trial_active = session.get('trial_active', False)
+    
+    logger.info(f"🔒 DECODER API: user_id={user_id}, tier={current_tier}, user_plan={user_plan}, trial_active={trial_active}")
+    
+    # Handle cases where tier data might be empty (user needs to re-login)
+    if not tier_data or not tier_data.get('user_id'):
+        logger.warning(f"⚠️ EMPTY TIER DATA - user may need to re-login")
+        # Fallback to free tier with basic limits
+        user_plan = "free"
+        trial_active = False
     
     # Calculate effective_plan fresh each time
     effective_plan = get_effective_plan(user_plan, trial_active)
     
     # ROADMAP COMPLIANCE: Use user_plan for limits, trial_active only affects ACCESS not LIMITS
     # Growth/Max users get their tier limits, Free users (including trial) get free limits
-    daily_limit = get_feature_limit(user_plan, "decoder", False)  # trial_active=False for limits calculation
+    # Import unified tier system function directly to avoid confusion with app.py wrapper
+    from unified_tier_system import get_feature_limit as unified_get_feature_limit
+    daily_limit = unified_get_feature_limit(user_plan, "decoder", False)  # trial_active=False for limits calculation
     
     logger.info(f"🔒 TIER ISOLATION: user_plan={user_plan}, tier={current_tier}, effective_plan={effective_plan}, trial_active={trial_active}, limit={daily_limit}")
     # Use database tracking instead of session tracking
@@ -8098,11 +8093,9 @@ def get_user_plan_api():
             return jsonify({"plan": "free", "trial_active": False, "ad_free": False})
         
         user_id = session.get('user_id')
-        user_plan = session.get('user_plan', 'free')
         
-        # Map old plan names to new consistent naming
-        plan_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
-        user_plan = plan_mapping.get(user_plan, user_plan)
+        # Use tier isolation system instead of direct session access
+        user_plan = get_user_plan_safe()
         
         # Use session values set by @app.before_request 
         trial_active = session.get('trial_active', False)
