@@ -502,8 +502,21 @@ def upload_song():
     if not file or not title:
         return 'Missing file or title', 400
     
-    # Save uploaded file temporarily
-    with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(file.filename)[1]) as tmp:
+    # SECURITY: Validate file type and size
+    allowed_audio_extensions = {'.wav', '.mp3', '.flac', '.m4a', '.ogg'}
+    file_ext = os.path.splitext(file.filename)[1].lower() if file.filename else ''
+    if file_ext not in allowed_audio_extensions:
+        return 'Invalid audio file type. Allowed: WAV, MP3, FLAC, M4A, OGG', 400
+    
+    # Check file size (max 50MB for audio)
+    file.seek(0, 2)
+    size = file.tell()
+    file.seek(0)
+    if size > 50 * 1024 * 1024:
+        return 'File too large (max 50MB)', 400
+    
+    # Save uploaded file temporarily with safe extension
+    with tempfile.NamedTemporaryFile(delete=False, suffix=file_ext) as tmp:
         file.save(tmp.name)
         
         try:

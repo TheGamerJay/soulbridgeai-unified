@@ -5088,6 +5088,19 @@ def transcribe_voice():
             
         audio_file = request.files['audio']
         
+        # SECURITY: Validate audio file type and size even for mock implementation
+        allowed_audio_extensions = {'.wav', '.mp3', '.flac', '.m4a', '.ogg', '.webm'}
+        file_ext = os.path.splitext(audio_file.filename)[1].lower() if audio_file.filename else ''
+        if file_ext not in allowed_audio_extensions:
+            return jsonify({"success": False, "error": "Invalid audio file type"}), 400
+        
+        # Check file size (max 25MB)
+        audio_file.seek(0, 2)
+        size = audio_file.tell()
+        audio_file.seek(0)
+        if size > 25 * 1024 * 1024:
+            return jsonify({"success": False, "error": "Audio file too large (max 25MB)"}), 400
+        
         # In a real implementation, you'd use speech-to-text service
         # For now, return mock transcription
         mock_transcription = "Hello, how are you today?"

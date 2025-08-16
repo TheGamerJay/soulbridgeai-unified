@@ -3886,11 +3886,23 @@ def voice_chat_process():
         if not audio_file or audio_file.filename == '':
             return jsonify({"success": False, "error": "No audio file selected"}), 400
         
-        logger.info(f"🎤 Processing voice for character: {character}")
-        logger.info(f"🔊 Audio file size: {len(audio_file.read())} bytes")
-        audio_file.seek(0)  # Reset file pointer
+        # SECURITY: Validate audio file type and size
+        allowed_audio_extensions = {'.wav', '.mp3', '.flac', '.m4a', '.ogg', '.webm'}
+        file_ext = os.path.splitext(audio_file.filename)[1].lower() if audio_file.filename else ''
+        if file_ext not in allowed_audio_extensions:
+            return jsonify({"success": False, "error": "Invalid audio file type"}), 400
         
-        # Save audio to temporary file
+        # Check file size (max 25MB for voice)
+        audio_file.seek(0, 2)
+        size = audio_file.tell()
+        audio_file.seek(0)
+        if size > 25 * 1024 * 1024:
+            return jsonify({"success": False, "error": "Audio file too large (max 25MB)"}), 400
+        
+        logger.info(f"🎤 Processing voice for character: {character}")
+        logger.info(f"🔊 Audio file size: {size} bytes")
+        
+        # Save audio to temporary file with validated extension
         import tempfile
         with tempfile.NamedTemporaryFile(delete=False, suffix='.wav') as temp_file:
             audio_path = temp_file.name
@@ -10855,6 +10867,19 @@ def voice_journaling_transcribe():
             return jsonify({"success": False, "error": "No audio file provided"}), 400
         
         audio_file = request.files['audio']
+        
+        # SECURITY: Validate audio file type and size
+        allowed_audio_extensions = {'.wav', '.mp3', '.flac', '.m4a', '.ogg', '.webm'}
+        file_ext = os.path.splitext(audio_file.filename)[1].lower() if audio_file.filename else ''
+        if file_ext not in allowed_audio_extensions:
+            return jsonify({"success": False, "error": "Invalid audio file type"}), 400
+        
+        # Check file size (max 25MB for voice journaling)
+        audio_file.seek(0, 2)
+        size = audio_file.tell()
+        audio_file.seek(0)
+        if size > 25 * 1024 * 1024:
+            return jsonify({"success": False, "error": "Audio file too large (max 25MB)"}), 400
         
         # Check and deduct credits before processing
         user_id = session.get('user_id')
