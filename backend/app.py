@@ -2214,11 +2214,19 @@ def start_trial():
 
     logger.info(f"Trial started for user {user_id}")
 
+    logger.info(f"✅ TRIAL SUCCESS: user_id={user_id}, trial_active={session.get('trial_active')}, expires_at={expires}")
+    
     return jsonify({
         "success": True, 
-        "message": "🔥 5-Hour Trial Activated! Growth + Max companions unlocked!",
+        "message": "🎉 5-hour trial activated! All premium features unlocked.",
         "expires_at": expires.isoformat(),
-        "effective_plan": 'max'
+        "effective_plan": 'max',
+        "trial_active": session.get('trial_active'),
+        "debug": {
+            "session_trial_active": session.get('trial_active'),
+            "session_trial_started": session.get('trial_started_at'),
+            "session_trial_expires": session.get('trial_expires_at')
+        }
     })
 
 # REMOVED: Duplicate debug_session_info function - using the more comprehensive one at /debug/session-info

@@ -1237,3 +1237,12 @@ an active HTTP request. Consult the documentation on testing for
 information about how to avoid this problem.
 [2025-08-16 19:36:46] 🔧 HEALTH_CHECK: System running for 16.8 hours
 [2025-08-16 19:38:31] 🔧 HEALTH_CHECK: System running for 3.9 hours
+[2025-08-16 19:38:40] 🔧 HEALTH_CHECK: System running for 4.4 hours
+[2025-08-16T19:40:24.353077] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-16 19:41:46] 🔧 HEALTH_CHECK: System running for 16.9 hours
+[2025-08-16 19:43:31] 🔧 HEALTH_CHECK: System running for 4.0 hours
+[2025-08-16 19:43:40] 🔧 HEALTH_CHECK: System running for 4.5 hours
