@@ -636,7 +636,13 @@ def ensure_session_persistence():
         # Set a default user session for testing
         if "user_id" not in session:
             session["user_id"] = "demo_user"
-            session["user_plan"] = "free"
+            # Initialize demo user with tier isolation system
+            demo_user_data = {
+                'user_id': 'demo_user',
+                'user_email': 'demo@soulbridgeai.com',
+                'user_plan': 'free'
+            }
+            tier_manager.initialize_user_for_tier(demo_user_data, 'free')
         return
     
     # For every other route, require a user_id
@@ -6308,7 +6314,14 @@ def select_plan():
         
         logger.info(f"Plan normalization: '{raw_plan}' → '{normalized_plan}'")
         
-        session["user_plan"] = normalized_plan
+        # Use tier isolation system instead of direct session manipulation
+        user_data = {
+            'user_id': session.get('user_id'),
+            'user_email': session.get('user_email'),
+            'user_plan': normalized_plan
+        }
+        tier_manager.initialize_user_for_tier(user_data, normalized_plan)
+        
         session["plan_selected_at"] = time.time()
         session["first_time_user"] = False
         # Session expires when browser closes
@@ -8530,22 +8543,30 @@ def debug_session_info():
         "fresh_trial_check": fresh_trial_check,
         "database_trial_data": database_trial_data,
         "session_trial_active": session.get('trial_active'),
-        "session_user_plan": session.get('user_plan'),
+        "session_user_plan": get_user_plan_safe(),
         "session_effective_plan": session.get('effective_plan'),
-        "decoder_limit": get_feature_limit(session.get('user_plan', 'free'), 'decoder'),
-        "fortune_limit": get_feature_limit(session.get('user_plan', 'free'), 'fortune'),
-        "horoscope_limit": get_feature_limit(session.get('user_plan', 'free'), 'horoscope')
+        "decoder_limit": get_feature_limit(get_user_plan_safe(), 'decoder'),
+        "fortune_limit": get_feature_limit(get_user_plan_safe(), 'fortune'),
+        "horoscope_limit": get_feature_limit(get_user_plan_safe(), 'horoscope')
     })
 
 @app.route("/debug/state", methods=["GET"])
 def debug_state():
     """Debug endpoint to see current tier isolation state"""
+    current_tier = get_current_user_tier()
+    tier_system = get_current_tier_system()
+    tier_data = tier_system.get_session_data()
+    
     return jsonify({
-        "user_plan": session.get("user_plan"),
+        "user_plan": get_user_plan_safe(),
+        "current_tier": current_tier,
+        "tier_data_exists": bool(tier_data and tier_data.get('user_id')),
+        "tier_data": tier_data,
         "trial_active": session.get("trial_active"),
         "effective_plan": session.get("effective_plan"),
         "user_id": session.get("user_id"),
-        "is_logged_in": bool(session.get("user_id"))
+        "is_logged_in": bool(session.get("user_id")),
+        "all_session_keys": list(session.keys())
     })
 
 @app.route("/debug/test-signup", methods=["GET"])
@@ -10118,14 +10139,19 @@ def api_chat():
         # Check decoder usage limits if this is a decoder request
         if context == 'decoder_mode':
             logger.info(f"🔍 DECODER MODE DETECTED: context='{context}'")
-            logger.info(f"🔍 SESSION USER_ID: {session.get('user_id')}")
-            logger.info(f"🔍 SESSION USER_PLAN: {session.get('user_plan')}")
-            # Use effective_plan from session (set by @app.before_request)
-            effective_plan = session.get('effective_plan', 'free')
-            user_plan = session.get('user_plan', 'free')
-            trial_active = session.get('trial_active', False)
             user_id = session.get('user_id')
-            daily_limit = get_feature_limit(user_plan, 'decoder')
+            logger.info(f"🔍 SESSION USER_ID: {user_id}")
+            
+            # Use tier isolation system instead of direct session access
+            user_plan = get_user_plan_safe()
+            trial_active = session.get('trial_active', False)
+            effective_plan = get_effective_plan(user_plan, trial_active)
+            
+            logger.info(f"🔍 TIER ISOLATION: user_plan={user_plan}, effective_plan={effective_plan}, trial_active={trial_active}")
+            
+            # Import unified tier system function directly
+            from unified_tier_system import get_feature_limit as unified_get_feature_limit
+            daily_limit = unified_get_feature_limit(user_plan, 'decoder', False)
             
             # Check decoder usage limits using database tracking
             from unified_tier_system import get_feature_usage_today
