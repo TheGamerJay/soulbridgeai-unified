@@ -219,17 +219,36 @@ def get_trial_trainer_time(user_id):
     """
     Get trainer time credits for free users during 5hr trial
     Returns 60 credits for Mini Studio access during trial period
+    SECURITY: Validates trial status against database, not session
     """
     try:
-        trial_active = session.get("trial_active", False)
-        plan = session.get("user_plan", "free")
-        
-        if plan == "free" and trial_active:
-            # Free users get 60 trainer time during trial
-            return 60
-        else:
-            # Not applicable for other cases
+        database_url = os.environ.get('DATABASE_URL')
+        if not database_url:
             return 0
+            
+        conn = psycopg2.connect(database_url)
+        cur = conn.cursor()
+        
+        # Check actual trial status from database, not session
+        cur.execute("""
+            SELECT user_plan, trial_active, trial_started_at 
+            FROM users WHERE id = %s
+        """, (user_id,))
+        result = cur.fetchone()
+        conn.close()
+        
+        if not result:
+            return 0
+            
+        user_plan, trial_active, trial_started_at = result
+        
+        # Verify trial is actually active and not expired
+        if user_plan == "free" and trial_active and trial_started_at:
+            from trial_utils import is_trial_active
+            if is_trial_active(trial_started_at):
+                return 60
+        
+        return 0
             
     except Exception as e:
         logger.error(f"Error getting trial trainer time: {e}")
@@ -250,14 +269,11 @@ def get_user_credits(user_id):
         # Ensure schema exists first
         ensure_database_schema()
         
-        # For trial users, give them 60 trainer time
-        trial_active = session.get("trial_active", False)
-        plan = session.get("user_plan", "free")
-        if plan == "free" and trial_active:
-            trial_credits = get_trial_trainer_time(user_id)
-            if trial_credits > 0:
-                logger.info(f"🎯 TRIAL CREDITS: User {user_id} gets {trial_credits} trainer time during trial")
-                return trial_credits
+        # For trial users, give them 60 trainer time (validates against database)
+        trial_credits = get_trial_trainer_time(user_id)
+        if trial_credits > 0:
+            logger.info(f"🎯 TRIAL CREDITS: User {user_id} gets {trial_credits} trainer time during trial")
+            return trial_credits
             
         conn = psycopg2.connect(database_url)
         cur = conn.cursor()
@@ -327,7 +343,7 @@ def get_user_credits(user_id):
 # DEDUCT CREDITS WHEN USING PREMIUM FEATURE  
 def deduct_credits(user_id, amount):
     """
-    Deduct credits for premium feature usage
+    Deduct credits for premium feature usage with atomic transaction safety
     Prioritizes purchased credits first, then plan credits
     Returns True if successful, False if insufficient credits
     """
@@ -338,10 +354,16 @@ def deduct_credits(user_id, amount):
             
         conn = psycopg2.connect(database_url)
         cur = conn.cursor()
-        cur.execute("SELECT credits, purchased_credits FROM users WHERE id = %s", (user_id,))
+        
+        # Start atomic transaction
+        cur.execute("BEGIN")
+        
+        # Lock the user row to prevent race conditions
+        cur.execute("SELECT credits, purchased_credits FROM users WHERE id = %s FOR UPDATE", (user_id,))
         row = cur.fetchone()
         
         if not row:
+            cur.execute("ROLLBACK")
             conn.close()
             return False
 
@@ -362,15 +384,23 @@ def deduct_credits(user_id, amount):
                 cur.execute("UPDATE users SET purchased_credits = 0, credits = %s WHERE id = %s", (new_plan_credits, user_id))
                 logger.info(f"💳 MIXED CREDITS USED: User {user_id} spent {purchased_credits} purchased + {remaining_to_deduct} plan credits")
             
-            conn.commit()
+            # Commit the atomic transaction
+            cur.execute("COMMIT")
             conn.close()
             return True
-
-        conn.close()
-        logger.warning(f"💳 INSUFFICIENT CREDITS: User {user_id} has {total_credits} total, needs {amount}")
-        return False
+        else:
+            # Not enough credits - rollback transaction
+            cur.execute("ROLLBACK")
+            conn.close()
+            logger.warning(f"💳 INSUFFICIENT CREDITS: User {user_id} has {total_credits} total, needs {amount}")
+            return False
         
     except Exception as e:
+        # Ensure rollback on any error
+        try:
+            cur.execute("ROLLBACK")
+        except:
+            pass
         logger.error(f"Error deducting credits: {e}")
         return False
 

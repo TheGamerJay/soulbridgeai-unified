@@ -5732,24 +5732,21 @@ def stripe_webhook():
         # Set Stripe API key
         stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
         
-        # Verify webhook signature if endpoint secret is set
+        # Verify webhook signature - REQUIRED for production security
         endpoint_secret = os.environ.get('STRIPE_WEBHOOK_SECRET')
-        if endpoint_secret:
-            try:
-                event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
-                logger.info("✅ Webhook signature verified")
-            except ValueError:
-                logger.error("❌ Invalid Stripe webhook payload")
-                return "Invalid payload", 400
-            except stripe.error.SignatureVerificationError:
-                logger.error("❌ Invalid Stripe webhook signature")
-                return "Invalid signature", 400
-        else:
-            # For development - parse without signature verification
-            logger.info("⚠️ Webhook signature verification SKIPPED (no STRIPE_WEBHOOK_SECRET)")
-            event = stripe.Event.construct_from(
-                json.loads(payload), stripe.api_key
-            )
+        if not endpoint_secret:
+            logger.error("❌ CRITICAL: STRIPE_WEBHOOK_SECRET not configured - webhook rejected for security")
+            return "Webhook secret not configured", 500
+            
+        try:
+            event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
+            logger.info("✅ Webhook signature verified")
+        except ValueError:
+            logger.error("❌ Invalid Stripe webhook payload")
+            return "Invalid payload", 400
+        except stripe.error.SignatureVerificationError:
+            logger.error("❌ Invalid Stripe webhook signature")
+            return "Invalid signature", 400
         
         logger.info(f"✅ Stripe webhook received - Event type: {event['type']}")
         logger.info(f"📋 Webhook payload keys: {list(event.get('data', {}).get('object', {}).keys())}")
