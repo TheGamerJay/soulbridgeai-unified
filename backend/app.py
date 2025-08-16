@@ -637,16 +637,18 @@ def increment_rate_limit_session():
 @app.before_request
 def ensure_session_persistence():
     # IMPORTANT: Check open paths FIRST before authentication checks
-    open_paths = {"/api/login", "/api/logout", "/login", "/auth/login", "/auth/login-test", "/auth/register", "/auth/forgot-password", "/", "/mini-studio", "/mini_studio_health"}
+    open_paths = {"/api/login", "/api/logout", "/login", "/auth/login", "/auth/register", "/auth/forgot-password", "/", "/mini-studio", "/mini_studio_health"}
     
-    # Debug logging
+    # Debug logging for auth paths
     if "/auth" in request.path:
-        print(f"DEBUG MIDDLEWARE: path={request.path}, in_open_paths={request.path in open_paths}")
+        print(f"DEBUG MIDDLEWARE: path={request.path}")
+        print(f"DEBUG MIDDLEWARE: in_open_paths={request.path in open_paths}")
+        print(f"DEBUG MIDDLEWARE: open_paths={open_paths}")
     
     # Allow static files and open paths without authentication
     if request.path.startswith("/static/") or request.path in open_paths:
         if "/auth" in request.path:
-            print(f"DEBUG MIDDLEWARE: Allowing {request.path}")
+            print(f"DEBUG MIDDLEWARE: Allowing {request.path} and returning early")
         return
     
     # If auth system is not available, don't enforce authentication
@@ -1561,7 +1563,7 @@ def debug_test_user():
         import traceback
         return {"error": str(e), "traceback": traceback.format_exc()}
 
-@app.route("/auth/login-test", methods=["GET", "POST"])
+@app.route("/auth/login", methods=["GET", "POST"])
 def auth_login():
     """Clean, simple login authentication"""
     print(f"[DEBUG] auth_login called! Method: {request.method}")
