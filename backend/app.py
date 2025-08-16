@@ -1511,7 +1511,7 @@ def debug_test_user():
         exists = auth.user_exists('dagamerjay13@gmail.com')
         
         # Test authentication
-        result = auth.authenticate('dagamerjay13@gmail.com', 'Yariel13')
+        # Test authentication removed for security
         
         return {
             "env_vars": env_info,
@@ -8832,8 +8832,8 @@ def debug_create_user():
         auth = SimpleAuth(db)
         
         # Create aceelnene@gmail.com account
-        email = "aceelnene@gmail.com"
-        password = "Yariel13"  # Your actual password
+        email = os.environ.get('ADMIN_EMAIL', 'admin@soulbridgeai.com')
+        password = os.environ.get('ADMIN_PASSWORD', os.urandom(32).hex())
         display_name = "GamerJay"
         
         # Check if user already exists
@@ -8888,8 +8888,8 @@ def debug_reset_password():
         
         import bcrypt
         
-        email = "aceelnene@gmail.com"
-        new_password = "Yariel13"  # Your actual password
+        email = os.environ.get('ADMIN_EMAIL', 'admin@soulbridgeai.com')
+        new_password = os.environ.get('ADMIN_PASSWORD')
         
         # Use the same salt/method as test account to ensure compatibility
         password_hash = bcrypt.hashpw(new_password.encode("utf-8"), bcrypt.gensalt(rounds=12)).decode("utf-8")
@@ -9002,8 +9002,8 @@ def debug_test_login():
         
         import bcrypt
         
-        email = "aceelnene@gmail.com"
-        test_password = "Yariel13"
+        email = os.environ.get('ADMIN_EMAIL', 'admin@soulbridgeai.com')
+        test_password = os.environ.get('ADMIN_PASSWORD')
         
         conn = temp_db.get_connection()
         cursor = conn.cursor()
@@ -9065,7 +9065,7 @@ def debug_delete_users():
         cursor = conn.cursor()
         
         # Delete the old accounts
-        emails_to_delete = ['aceelnene@gmail.com', 'dagamerjay13@gmail.com']
+        emails_to_delete = []  # No hardcoded emails for security
         
         placeholder = "%s" if hasattr(db, 'postgres_url') and db.postgres_url else "?"
         
@@ -9111,7 +9111,7 @@ def debug_raw_sql():
         users = cursor.fetchall()
         
         # Also try to delete the specific problematic users
-        cursor.execute("DELETE FROM users WHERE email IN ('aceelnene@gmail.com', 'dagamerjay13@gmail.com', 'mynewaccount@gmail.com')")
+        # No hardcoded user deletion for security - use admin tools instead
         deleted_count = cursor.rowcount
         
         conn.commit()
@@ -9145,7 +9145,7 @@ def clean_users():
         count_before = cursor.fetchone()[0]
         
         # Delete problematic users
-        cursor.execute("DELETE FROM users WHERE email IN ('aceelnene@gmail.com', 'dagamerjay13@gmail.com', 'mynewaccount@gmail.com')")
+        # No hardcoded user deletion for security - use admin tools instead
         deleted_count = cursor.rowcount
         
         # Get count after

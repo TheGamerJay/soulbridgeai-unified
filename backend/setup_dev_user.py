@@ -16,9 +16,10 @@ def setup_dev_user():
     db.init_database()
     
     # User details
-    email = "aceelnene@gmail.com"
-    password = "Yariel13"  # Your actual password
-    display_name = "Aceelnene"
+    import os
+    email = os.environ.get('DEV_ADMIN_EMAIL', 'dev-admin@localhost')
+    password = os.environ.get('DEV_ADMIN_PASSWORD', 'dev-password-change-me')
+    display_name = os.environ.get('DEV_ADMIN_NAME', 'DevAdmin')
     
     try:
         conn = db.get_connection()

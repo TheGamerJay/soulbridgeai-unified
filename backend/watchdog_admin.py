@@ -51,7 +51,7 @@ def admin_login():
         password = request.form.get('password')
         
         # Simple admin authentication (enhance as needed)
-        if username == 'GamerJay' and password == os.environ.get('ADMIN_PASSWORD', 'Yariel13'):
+        if username == os.environ.get('ADMIN_USERNAME', 'admin') and password == os.environ.get('ADMIN_PASSWORD'):
             session['admin_authenticated'] = True
             session['admin_username'] = username
             session['admin_login_time'] = datetime.now().isoformat()
@@ -1042,7 +1042,7 @@ def get_maintenance_tasks():
 if __name__ == '__main__':
     print("WatchDog Admin System Starting...")
     print("Admin Dashboard: http://localhost:5001/admin")
-    print("Default credentials: GamerJay / Yariel13")
+    print("Configure ADMIN_USERNAME and ADMIN_PASSWORD environment variables")
     
     watchdog.run(
         host='0.0.0.0',

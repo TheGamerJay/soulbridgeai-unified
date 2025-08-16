@@ -70,7 +70,11 @@ def create_production_user():
             return True
         
         # Create password hash
-        password_hash = bcrypt.hashpw("Yariel13".encode('utf-8'), bcrypt.gensalt(rounds=12)).decode('utf-8')
+        prod_password = os.environ.get('PROD_ADMIN_PASSWORD')
+        if not prod_password:
+            print("ERROR: PROD_ADMIN_PASSWORD environment variable must be set")
+            return False
+        password_hash = bcrypt.hashpw(prod_password.encode('utf-8'), bcrypt.gensalt(rounds=12)).decode('utf-8')
         
         # Insert user (handle both with and without plan_type column)
         has_plan_type = 'plan_type' in [col[0] for col in columns]
