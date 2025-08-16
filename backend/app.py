@@ -2134,7 +2134,11 @@ def accept_terms():
 @app.route('/api/start-trial', methods=['POST'])
 def start_trial():
     """Start 5-hour trial for user"""
+    logger.info(f"🎯 TRIAL START: Request received from user session: {list(session.keys())}")
+    logger.info(f"🎯 TRIAL START: user_id={session.get('user_id')}, trial_used={session.get('trial_used_permanently')}")
+    
     if not session.get('user_id'):
+        logger.warning("🚫 TRIAL START: No user_id in session")
         return jsonify({"success": False, "error": "Login required"}), 401
 
     db = get_database()
@@ -13849,13 +13853,17 @@ TIERS_TEMPLATE = r"""
 <script>
   // Override old startTrial with new backend-driven version
   window.startTrial = async function() {
+    console.log('🎯 Trial button clicked!');
     try {
+      console.log('🎯 Making fetch request to /api/start-trial');
       const response = await fetch('/api/start-trial', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       });
       
+      console.log('🎯 Response status:', response.status);
       const data = await response.json();
+      console.log('🎯 Response data:', data);
       
       if (data.success) {
         alert('🎉 5-hour trial activated! All premium features unlocked.');
