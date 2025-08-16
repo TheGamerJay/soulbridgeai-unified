@@ -1304,6 +1304,20 @@
                         const expireMs = data.expires_at_ms;
                         const now = Date.now();
                         const remaining = Math.max(0, expireMs - now);
+                        
+                        if (remaining <= 0) {
+                            // Trial expired - hide banner immediately and refresh
+                            console.log('🔒 Trial expired - hiding banner and refreshing');
+                            const banner = document.getElementById('trial-banner');
+                            if (banner) banner.style.display = 'none';
+                            
+                            // Auto refresh to update companion access
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 500);
+                            return;
+                        }
+                        
                         const hours = Math.floor(remaining / (1000 * 60 * 60));
                         const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
                         const seconds = Math.floor((remaining % (1000 * 60)) / 1000);

@@ -1441,6 +1441,11 @@ What specific area would you like help with? I know every feature of SoulBridge 
                     });
                     
                     console.log('🔒 INTRO: ALL timer elements permanently removed - trial expired');
+                    
+                    // Auto refresh to update companion access
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
                 }
 
 
