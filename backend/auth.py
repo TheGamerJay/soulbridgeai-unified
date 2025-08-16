@@ -141,7 +141,6 @@ class Database:
             # Clean up conflicting schema if needed
             if self.use_postgres:
                 self._cleanup_conflicting_schema(cursor)
-                
         except Exception as e:
             logger.error(f"Database connection failed: {e}")
             logger.error(f"Error type: {type(e).__name__}")

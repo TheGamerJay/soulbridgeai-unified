@@ -1,0 +1,4 @@
+ollama-windows-amd64.exe
+railway.ollama.json
+Dockerfile.ollama
+scripts/start-ollama.sh
