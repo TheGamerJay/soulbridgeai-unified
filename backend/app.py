@@ -16303,16 +16303,17 @@ def create_adfree_checkout_direct():
         
         logger.info(f"✅ Ad-free checkout request from user {user_id} ({user_email})")
         
-        # Check if Stripe is available and configured
+        # Check if Stripe is available and configured (same pattern as working endpoints)
         try:
             import stripe
             stripe_available = True
         except ImportError:
             stripe_available = False
             
-        logger.info(f"🔍 Stripe check - stripe_available: {stripe_available}, STRIPE_SECRET_KEY set: {bool(STRIPE_SECRET_KEY)}")
+        stripe_secret_key = os.environ.get("STRIPE_SECRET_KEY")
+        logger.info(f"🔍 Stripe check - stripe_available: {stripe_available}, stripe_secret_key set: {bool(stripe_secret_key)}")
         
-        if not stripe_available or not STRIPE_SECRET_KEY:
+        if not stripe_available or not stripe_secret_key:
             logger.warning("🚫 Stripe not available for ad-free checkout")
             return jsonify({
                 "success": False,
@@ -16321,7 +16322,7 @@ def create_adfree_checkout_direct():
             }), 503
         
         # Create or get Stripe customer
-        stripe.api_key = STRIPE_SECRET_KEY
+        stripe.api_key = stripe_secret_key
         
         try:
             # Check if user already has a Stripe customer ID
@@ -16359,11 +16360,19 @@ def create_adfree_checkout_direct():
             
             conn.close()
             
-            # Create checkout session for ad-free plan
+            # Create checkout session for ad-free plan (using same pattern as working endpoints)
             checkout_session = stripe.checkout.Session.create(
                 mode="subscription",
                 customer=customer_id,
-                line_items=[{"price": PRICE_ADFREE, "quantity": 1}],
+                line_items=[{
+                    "price_data": {
+                        "currency": "usd",
+                        "recurring": {"interval": "month"},
+                        "product_data": {"name": "Ad-Free Plan"},
+                        "unit_amount": 500  # $5.00/month in cents
+                    },
+                    "quantity": 1
+                }],
                 success_url="https://soulbridgeai.com/account?billing=success",
                 cancel_url="https://soulbridgeai.com/subscription?billing=cancel",
                 allow_promotion_codes=True,
@@ -16382,6 +16391,8 @@ def create_adfree_checkout_direct():
             logger.error(f"❌ Stripe error creating ad-free checkout: {stripe_error}")
             logger.error(f"❌ Stripe error type: {type(stripe_error)}")
             logger.error(f"❌ PRICE_ADFREE: {PRICE_ADFREE}")
+            logger.error(f"❌ stripe_secret_key set: {bool(stripe_secret_key)}")
+            logger.error(f"❌ Full error details: {stripe_error}")
             return jsonify({
                 "success": False,
                 "error": "Payment processing temporarily unavailable. Please try again later.",
