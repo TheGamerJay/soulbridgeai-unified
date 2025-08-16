@@ -44,9 +44,17 @@ def get_user_by_email(email: str) -> Optional[Dict[str, Any]]:
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute('''
+        
+        # Use correct placeholder based on database type
+        database_url = os.getenv('DATABASE_URL')
+        if database_url and database_url.startswith('postgresql'):
+            placeholder = "%s"
+        else:
+            placeholder = "?"
+            
+        cursor.execute(f'''
             SELECT id, email, stripe_customer_id, stripe_subscription_id, ad_free, plan_type
-            FROM users WHERE email = ?
+            FROM users WHERE email = {placeholder}
         ''', (email,))
         result = cursor.fetchone()
         conn.close()
@@ -70,9 +78,17 @@ def get_user_by_id(user_id: int) -> Optional[Dict[str, Any]]:
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute('''
+        
+        # Use correct placeholder based on database type
+        database_url = os.getenv('DATABASE_URL')
+        if database_url and database_url.startswith('postgresql'):
+            placeholder = "%s"
+        else:
+            placeholder = "?"
+            
+        cursor.execute(f'''
             SELECT id, email, stripe_customer_id, stripe_subscription_id, ad_free, plan_type
-            FROM users WHERE id = ?
+            FROM users WHERE id = {placeholder}
         ''', (user_id,))
         result = cursor.fetchone()
         conn.close()
@@ -149,14 +165,37 @@ def get_or_create_stripe_customer(user: Dict[str, Any]) -> Optional[str]:
 
 def get_current_user() -> Optional[Dict[str, Any]]:
     """Get current logged-in user"""
-    # Use the correct session keys from our auth system
-    if not session.get('user_authenticated'):
+    # Debug: Log all session keys to understand what's available
+    logger.info(f"🔍 BILLING DEBUG: Session keys: {list(session.keys())}")
+    logger.info(f"🔍 BILLING DEBUG: user_authenticated={session.get('user_authenticated')}")
+    logger.info(f"🔍 BILLING DEBUG: user_email={session.get('user_email')}")
+    logger.info(f"🔍 BILLING DEBUG: user_id={session.get('user_id')}")
+    
+    # Try multiple possible session key combinations
+    is_authenticated = (
+        session.get('user_authenticated') or 
+        session.get('logged_in') or
+        session.get('user_id')
+    )
+    
+    if not is_authenticated:
+        logger.warning("🚫 BILLING: User not authenticated")
         return None
         
-    email = session.get('user_email')
-    if not email:
+    email = session.get('user_email') or session.get('email')
+    user_id = session.get('user_id')
+    
+    if not email and not user_id:
+        logger.warning("🚫 BILLING: No email or user_id in session")
         return None
-        
+    
+    # If we have user_id, try to get user by ID first (more reliable)
+    if user_id:
+        logger.info(f"🔍 BILLING: Getting user by ID: {user_id}")
+        return get_user_by_id(user_id)
+    
+    # Fallback to email lookup
+    logger.info(f"🔍 BILLING: Getting user by email: {email}")
     return get_user_by_email(email)
 
 @bp_billing.route("/checkout-session/adfree", methods=["POST"])
