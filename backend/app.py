@@ -201,17 +201,17 @@ if auth_available and auth_bp:
     app.register_blueprint(auth_bp)
 
 #
-    print("✅ Auth system registered successfully")
+    print("Auth system registered successfully")
 else:
-    print("⚠️ Auth system disabled - continuing without authentication")
+    print("WARNING: Auth system disabled - continuing without authentication")
 
 # Register companion API blueprint
 try:
     from routes.api_companion import bp as companion_bp
     app.register_blueprint(companion_bp)
-    print("✅ Companion API registered successfully")
+    print("Companion API registered successfully")
 except ImportError as e:
-    print(f"⚠️ Companion API not available: {e}")
+    print(f"WARNING: Companion API not available: {e}")
 
 # ============================================
 # BULLETPROOF TIER ISOLATION SYSTEM
