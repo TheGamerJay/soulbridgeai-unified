@@ -98,7 +98,10 @@
       "Bash(del \"C:\\Users\\jaaye\\OneDrive\\Desktop\\soulbridgeai-unified\\backend\\routes\\api_companion_free.py\")",
       "Bash(del:*)",
       "Bash(DATABASE_URL=\"postgresql://postgres:sDCOyvWZKSxyJvnJBZNSJemzZKbbSjIT@postgres-wj-8.railway.internal:5432/railway\" python admin_trial_reset.py 104)",
-      "Bash(move:*)"
+      "Bash(move:*)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:pypi.org)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"

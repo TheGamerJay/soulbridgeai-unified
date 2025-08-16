@@ -38,6 +38,6 @@ pydub==0.25.1
 parselmouth==0.4.3
 
 # Music generation (local MusicGen small model)
-torch==2.2.2
-torchaudio==2.2.2
-audiocraft==1.2.0
+torch==2.1.0+cpu
+torchaudio==2.1.0+cpu
+audiocraft==1.3.0

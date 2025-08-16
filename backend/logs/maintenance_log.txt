@@ -1216,3 +1216,10 @@ information about how to avoid this problem.
 [2025-08-16 15:16:34] 🔧 MONITOR_START: Background monitoring thread started
 [2025-08-16 15:16:46] 🔧 HEALTH_CHECK: System running for 12.5 hours
 [2025-08-16 15:18:39] 🔧 HEALTH_CHECK: System running for 0.1 hours
+[2025-08-16T15:20:23.374550] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-16 15:21:34] 🔧 HEALTH_CHECK: System running for 0.1 hours
+[2025-08-16 15:21:46] 🔧 HEALTH_CHECK: System running for 12.6 hours
