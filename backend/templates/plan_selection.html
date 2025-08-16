@@ -215,8 +215,13 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    // All plans now go to payment (no free plan selection)
-                    window.location.href = data.redirect_url || `/payment?plan=${planType}`;
+                    // Handle ad-free plan redirect to Stripe checkout
+                    if (data.redirect) {
+                        window.location.href = data.redirect;
+                    } else {
+                        // Other plans go to payment page
+                        window.location.href = data.redirect_url || `/payment?plan=${planType}`;
+                    }
                 } else {
                     alert(data.error || 'Failed to select plan');
                 }

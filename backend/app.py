@@ -35,6 +35,16 @@ except ImportError as e:
     auth_available = False
     auth_bp = None
 
+# Import billing blueprint for ad-free subscriptions
+try:
+    from stripe_billing import bp_billing
+    billing_available = True
+    print("✅ Stripe billing system loaded")
+except ImportError as e:
+    print(f"Warning: Stripe billing not available: {e}")
+    bp_billing = None
+    billing_available = False
+
 # Local imports
 try:
     from premium_free_ai_service import get_premium_free_ai_service
@@ -211,11 +221,16 @@ else:
 # Register auth blueprint
 if auth_available and auth_bp:
     app.register_blueprint(auth_bp)
-
-#
     print("Auth system registered successfully")
 else:
     print("WARNING: Auth system disabled - continuing without authentication")
+
+# Register billing blueprint
+if billing_available and bp_billing:
+    app.register_blueprint(bp_billing)
+    print("Stripe billing system registered successfully")
+else:
+    print("WARNING: Stripe billing disabled - ad-free subscriptions unavailable")
 
 # Register companion API blueprint
 try:
@@ -5909,6 +5924,14 @@ def select_plan():
             
         raw_plan = data.get("plan_type", "").lower()
         billing = data.get("billing", "monthly")
+        
+        # ✅ Handle ad-free plan separately (goes to Stripe checkout)
+        if raw_plan == 'ad_free':
+            logger.info(f"Redirecting to ad-free Stripe checkout for user {session.get('user_id')}")
+            return jsonify({
+                "success": True, 
+                "redirect": "/api/billing/checkout-session/adfree"
+            })
         
         # ✅ Bulletproof plan normalization - ONLY accept Growth/Max for manual selection
         # Free tier is assigned automatically during signup, not selectable
