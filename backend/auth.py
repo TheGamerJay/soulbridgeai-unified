@@ -24,7 +24,8 @@ try:
 except ImportError:
     POSTGRES_AVAILABLE = False
 
-os.system("cls" if os.name == "nt" else "clear")
+# Removed terminal clear for container compatibility
+# os.system("cls" if os.name == "nt" else "clear")
 
 logging.basicConfig(
     level=logging.INFO,
