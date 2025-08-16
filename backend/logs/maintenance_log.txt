@@ -1221,3 +1221,10 @@ information about how to avoid this problem.
 [2025-08-16 19:26:46] 🔧 HEALTH_CHECK: System running for 16.7 hours
 [2025-08-16 19:28:31] 🔧 HEALTH_CHECK: System running for 3.8 hours
 [2025-08-16 19:28:40] 🔧 HEALTH_CHECK: System running for 4.3 hours
+[2025-08-16T19:30:24.321456] 🔧 SECURITY_SCAN_COMPLETE: Scanned system - 5 findings
+[2025-08-16T19:30:24.323393] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-16 19:31:46] 🔧 HEALTH_CHECK: System running for 16.8 hours

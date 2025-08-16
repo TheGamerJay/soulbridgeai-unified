@@ -16328,18 +16328,27 @@ def create_adfree_checkout_direct():
         stripe.api_key = stripe_secret_key
         
         try:
-            # Check if user already has a Stripe customer ID
-            conn = get_db_connection()
-            cursor = conn.cursor()
-            
-            # Try to get stripe_customer_id, handle column not existing
-            try:
-                cursor.execute("SELECT stripe_customer_id FROM users WHERE id = ?", (user_id,))
-                result = cursor.fetchone()
-                customer_id = result[0] if result and result[0] else None
-            except Exception as db_error:
-                logger.warning(f"Database column issue (stripe_customer_id): {db_error}")
+            # Check if user already has a Stripe customer ID (using same pattern as working endpoints)
+            db_instance = get_database()
+            if not db_instance:
+                logger.warning("Database not available for customer lookup")
                 customer_id = None
+            else:
+                conn = db_instance.get_connection()
+                cursor = conn.cursor()
+                
+                # Try to get stripe_customer_id, handle column not existing
+                try:
+                    placeholder = "%s" if hasattr(db_instance, 'postgres_url') and db_instance.postgres_url else "?"
+                    cursor.execute(f"SELECT stripe_customer_id FROM users WHERE id = {placeholder}", (user_id,))
+                    result = cursor.fetchone()
+                    customer_id = result[0] if result and result[0] else None
+                    logger.info(f"🔍 Found existing customer_id: {customer_id}")
+                except Exception as db_error:
+                    logger.warning(f"Database column issue (stripe_customer_id): {db_error}")
+                    customer_id = None
+                
+                conn.close()
             
             if not customer_id:
                 # Create new Stripe customer
@@ -16348,20 +16357,24 @@ def create_adfree_checkout_direct():
                     metadata={"app_user_id": str(user_id)}
                 )
                 customer_id = customer.id
+                logger.info(f"✅ Created new Stripe customer {customer_id} for user {user_id}")
                 
-                # Save customer ID to database (if column exists)
-                try:
-                    cursor.execute(
-                        "UPDATE users SET stripe_customer_id = ? WHERE id = ?",
-                        (customer_id, user_id)
-                    )
-                    conn.commit()
-                    logger.info(f"✅ Created Stripe customer {customer_id} for user {user_id}")
-                except Exception as update_error:
-                    logger.warning(f"Could not save stripe_customer_id to database: {update_error}")
-                    # Continue anyway - customer was created in Stripe
-            
-            conn.close()
+                # Save customer ID to database (if column exists and database available)
+                if db_instance:
+                    try:
+                        conn = db_instance.get_connection()
+                        cursor = conn.cursor()
+                        placeholder = "%s" if hasattr(db_instance, 'postgres_url') and db_instance.postgres_url else "?"
+                        cursor.execute(
+                            f"UPDATE users SET stripe_customer_id = {placeholder} WHERE id = {placeholder}",
+                            (customer_id, user_id)
+                        )
+                        conn.commit()
+                        conn.close()
+                        logger.info(f"✅ Saved customer {customer_id} to database for user {user_id}")
+                    except Exception as update_error:
+                        logger.warning(f"Could not save stripe_customer_id to database: {update_error}")
+                        # Continue anyway - customer was created in Stripe
             
             # Create checkout session for ad-free plan (using same pattern as working endpoints)
             checkout_session = stripe.checkout.Session.create(
