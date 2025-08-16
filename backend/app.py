@@ -16304,7 +16304,15 @@ def create_adfree_checkout_direct():
         logger.info(f"✅ Ad-free checkout request from user {user_id} ({user_email})")
         
         # Check if Stripe is available and configured
-        if not stripe_available:
+        try:
+            import stripe
+            stripe_available = True
+        except ImportError:
+            stripe_available = False
+            
+        logger.info(f"🔍 Stripe check - stripe_available: {stripe_available}, STRIPE_SECRET_KEY set: {bool(STRIPE_SECRET_KEY)}")
+        
+        if not stripe_available or not STRIPE_SECRET_KEY:
             logger.warning("🚫 Stripe not available for ad-free checkout")
             return jsonify({
                 "success": True,
@@ -16313,7 +16321,6 @@ def create_adfree_checkout_direct():
             })
         
         # Create or get Stripe customer
-        import stripe
         stripe.api_key = STRIPE_SECRET_KEY
         
         try:
@@ -16373,6 +16380,8 @@ def create_adfree_checkout_direct():
             
         except Exception as stripe_error:
             logger.error(f"❌ Stripe error creating ad-free checkout: {stripe_error}")
+            logger.error(f"❌ Stripe error type: {type(stripe_error)}")
+            logger.error(f"❌ PRICE_ADFREE: {PRICE_ADFREE}")
             return jsonify({
                 "success": True,
                 "message": "🎉 Thank you for your interest in the ad-free plan! This feature is being finalized. We'll notify you when it's ready.",
@@ -16381,6 +16390,9 @@ def create_adfree_checkout_direct():
         
     except Exception as e:
         logger.error(f"❌ Ad-free checkout error: {e}")
+        logger.error(f"❌ Error type: {type(e)}")
+        import traceback
+        logger.error(f"❌ Traceback: {traceback.format_exc()}")
         return jsonify({"error": "Checkout temporarily unavailable"}), 500
 
 # APPLICATION STARTUP
