@@ -1971,10 +1971,19 @@ def api_me():
     """Minimal session check API"""
     if not current_user_id():
         return ("Unauthorized", 401)
+    
+    # Debug: Check tier isolation data
+    current_tier = get_current_user_tier()
+    tier_system = get_current_tier_system()
+    tier_data = tier_system.get_session_data()
+    
     return jsonify({
         "user_id": session["user_id"],
         "email": session.get("user_email"),
         "plan": get_user_plan_safe(),
+        "current_tier": current_tier,
+        "tier_data_exists": bool(tier_data and tier_data.get('user_id')),
+        "session_keys": list(session.keys()),
         "access": {
             "free":   bool(session.get("access_free")),
             "growth": bool(session.get("access_growth")),
