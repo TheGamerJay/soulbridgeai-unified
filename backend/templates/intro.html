@@ -695,12 +695,11 @@
     
     <script src="{{ url_for('static', filename='js/login-fixed.js') }}"></script>
     <script>
-        // Session persistence check - logout if no sessionStorage (browser was closed)
-        if (!sessionStorage.getItem('loggedIn')) {
-            fetch('/auth/logout').then(() => {
-                window.location.href = '/login';
-            });
-        }
+        // Set session flag for logged-in users (fresh login or page reload)
+        sessionStorage.setItem('loggedIn', 'true');
+        
+        // Remove old aggressive session check that was causing auto-logout issues
+        // Server-side session management handles authentication properly
         
         // AGGRESSIVE intro page styling enforcement
         function forceIntroStyling() {

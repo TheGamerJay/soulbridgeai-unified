@@ -932,8 +932,8 @@
         //     console.log('❌ Local togglePassword disabled - Universal Button Fix handling');
         // }
         
-        // Remove "loggedIn" flag from sessionStorage on tab close
-    sessionStorage.removeItem('loggedIn');
+        // Clear "loggedIn" flag on login page load (user either logged out or needs to login)
+        sessionStorage.removeItem('loggedIn');
     // Cleaned up: Removed all debug logs for a silent login page
         
         // Wait for all scripts to load, then initialize
