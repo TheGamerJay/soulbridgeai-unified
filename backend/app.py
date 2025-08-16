@@ -193,8 +193,16 @@ app.secret_key = secret_key
 app.config['SESSION_COOKIE_SECURE'] = True  # Only send cookie over HTTPS
 app.config['SESSION_COOKIE_SAMESITE'] = 'None'  # Allow cross-site cookies (for custom domains)
 app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevent JS access to session cookie
-# Set domain for your site (uncomment and set if needed)
-app.config['SESSION_COOKIE_DOMAIN'] = '.soulbridgeai.com'
+
+# Set domain conditionally based on environment
+import os
+if 'railway.app' in os.environ.get('RAILWAY_STATIC_URL', ''):
+    # Railway deployment - don't set domain to allow cookies on railway.app
+    print("🚂 RAILWAY: Session cookies configured for Railway deployment")
+else:
+    # Production domain
+    app.config['SESSION_COOKIE_DOMAIN'] = '.soulbridgeai.com'
+    print("🌐 PRODUCTION: Session cookies configured for soulbridgeai.com domain")
 
 # Register auth blueprint
 if auth_available and auth_bp:
