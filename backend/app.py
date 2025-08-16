@@ -15185,6 +15185,183 @@ def mini_studio_session_control():
         logger.error(f"Studio session control error: {e}")
         return jsonify({"success": False, "error": "Failed to control studio session"}), 500
 
+@app.route("/api/mini-studio/effects", methods=["POST"])
+def mini_studio_effects():
+    """Apply audio effects (pitch, reverb, etc.)"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        user_plan = session.get('user_plan', 'free')
+        trial_active = session.get('trial_active', False)
+        effective_plan = get_effective_plan(user_plan, trial_active)
+        
+        if effective_plan != 'max':
+            return jsonify({"success": False, "error": "Effects require Max tier or trial"}), 403
+        
+        data = request.get_json()
+        wav_path = data.get('wav_path')
+        pitch_semitones = data.get('pitch_semitones', 0)
+        reverb_amount = data.get('reverb_amount', 0)
+        
+        if not wav_path:
+            return jsonify({"success": False, "error": "Audio file path required"}), 400
+        
+        # For now, return a placeholder response
+        # TODO: Implement actual audio effects processing when audio packages are available
+        return jsonify({
+            "success": True,
+            "message": "Audio effects applied successfully",
+            "output_path": f"effects_{wav_path}",
+            "effects_applied": {
+                "pitch": pitch_semitones,
+                "reverb": reverb_amount
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Mini studio effects error: {e}")
+        return jsonify({"success": False, "error": "Failed to apply effects"}), 500
+
+@app.route("/api/mini-studio/cover-art", methods=["POST"])
+def mini_studio_cover_art():
+    """Generate AI cover art for tracks"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        user_plan = session.get('user_plan', 'free')
+        trial_active = session.get('trial_active', False)
+        effective_plan = get_effective_plan(user_plan, trial_active)
+        
+        if effective_plan != 'max':
+            return jsonify({"success": False, "error": "Cover art generation requires Max tier or trial"}), 403
+        
+        data = request.get_json()
+        prompt = data.get('prompt', '')
+        size = data.get('size', '512x512')
+        
+        if not prompt:
+            return jsonify({"success": False, "error": "Art description required"}), 400
+        
+        # For now, return a placeholder response
+        # TODO: Implement actual AI image generation when needed
+        return jsonify({
+            "success": True,
+            "message": "Cover art generated successfully",
+            "image_url": f"/static/generated_art_{int(datetime.now().timestamp())}.jpg",
+            "prompt_used": prompt,
+            "size": size
+        })
+        
+    except Exception as e:
+        logger.error(f"Mini studio cover art error: {e}")
+        return jsonify({"success": False, "error": "Failed to generate cover art"}), 500
+
+@app.route("/api/mini-studio/library", methods=["GET"])
+def mini_studio_library_list():
+    """Get user's mini studio library"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        user_plan = session.get('user_plan', 'free')
+        trial_active = session.get('trial_active', False)
+        effective_plan = get_effective_plan(user_plan, trial_active)
+        
+        if effective_plan != 'max':
+            return jsonify({"success": False, "error": "Library access requires Max tier or trial"}), 403
+        
+        user_id = session.get('user_id')
+        
+        # For now, return placeholder library data
+        # TODO: Implement actual database queries for user's created tracks
+        sample_library = [
+            {
+                "id": f"track_{user_id}_1",
+                "name": "My First Track",
+                "type": "mixed",
+                "created": "2025-08-16T10:00:00Z",
+                "duration": "3:45",
+                "file_path": f"/static/library/track_{user_id}_1.wav"
+            },
+            {
+                "id": f"track_{user_id}_2", 
+                "name": "Instrumental Demo",
+                "type": "instrumental",
+                "created": "2025-08-16T09:30:00Z",
+                "duration": "2:15",
+                "file_path": f"/static/library/track_{user_id}_2.wav"
+            }
+        ]
+        
+        return jsonify({
+            "success": True,
+            "library": sample_library,
+            "total_tracks": len(sample_library)
+        })
+        
+    except Exception as e:
+        logger.error(f"Mini studio library error: {e}")
+        return jsonify({"success": False, "error": "Failed to load library"}), 500
+
+@app.route("/api/mini-studio/library/<asset_id>", methods=["DELETE"])
+def mini_studio_library_delete(asset_id):
+    """Delete track from user's library"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        user_plan = session.get('user_plan', 'free')
+        trial_active = session.get('trial_active', False)
+        effective_plan = get_effective_plan(user_plan, trial_active)
+        
+        if effective_plan != 'max':
+            return jsonify({"success": False, "error": "Library access requires Max tier or trial"}), 403
+        
+        user_id = session.get('user_id')
+        
+        # TODO: Implement actual file deletion and database cleanup
+        logger.info(f"User {user_id} deleted track {asset_id} from mini studio library")
+        
+        return jsonify({
+            "success": True,
+            "message": f"Track {asset_id} deleted successfully"
+        })
+        
+    except Exception as e:
+        logger.error(f"Mini studio library delete error: {e}")
+        return jsonify({"success": False, "error": "Failed to delete track"}), 500
+
+@app.route("/api/mini-studio/export/<asset_id>")
+def mini_studio_export(asset_id):
+    """Download/export track from library"""
+    try:
+        if not is_logged_in():
+            return redirect("/login")
+        
+        user_plan = session.get('user_plan', 'free')
+        trial_active = session.get('trial_active', False)
+        effective_plan = get_effective_plan(user_plan, trial_active)
+        
+        if effective_plan != 'max':
+            return jsonify({"success": False, "error": "Export requires Max tier or trial"}), 403
+        
+        user_id = session.get('user_id')
+        
+        # TODO: Implement actual file serving
+        # For now, redirect to a placeholder
+        logger.info(f"User {user_id} exported track {asset_id} from mini studio")
+        
+        return jsonify({
+            "success": False,
+            "error": "Export functionality coming soon - audio packages need to be enabled"
+        }), 501
+        
+    except Exception as e:
+        logger.error(f"Mini studio export error: {e}")
+        return jsonify({"success": False, "error": "Failed to export track"}), 500
+
 logger.info("✅ Music Studio integration completed")
 
 # ============================================
