@@ -2103,6 +2103,33 @@ def user_info():
         logger.error(f"Error getting user info: {e}")
         return jsonify({"success": False, "error": "Failed to get user information"}), 500
 
+@app.route("/api/subscription-status")
+def get_subscription_status():
+    """Get detailed subscription status including grace period info"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({"success": False, "error": "User ID required"}), 401
+        
+        # Get subscription status with grace period info
+        from subscription_manager import get_grace_period_info, check_subscription_status
+        
+        subscription_status = check_subscription_status(user_id)
+        grace_info = get_grace_period_info(user_id)
+        
+        return jsonify({
+            "success": True,
+            "subscription": subscription_status,
+            "grace_period": grace_info
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting subscription status: {e}")
+        return jsonify({"success": False, "error": "Internal server error"}), 500
+
 # Trial status should return both ISO8601 *with 'Z'* and epoch ms.
 @app.route('/api/trial-status')
 def trial_status():
@@ -2303,12 +2330,21 @@ def accept_terms():
 
 @app.route('/api/start-trial', methods=['POST'])
 def start_trial():
-    """Start 5-hour trial for ALL users (one-time only to unlock premium features)"""
+    """Start 5-hour trial for FREE users only (one-time only to unlock premium features)"""
     logger.info(f"🎯 TRIAL REQUEST: user_id={session.get('user_id')}, session_keys={list(session.keys())}")
     
     if not session.get('user_id'):
         logger.error("🚨 TRIAL ERROR: No user_id in session")
         return jsonify({"success": False, "error": "Login required"}), 401
+
+    # ROADMAP: Trial is only for FREE users (Growth/Max don't need it)
+    user_plan = session.get('user_plan', 'free')
+    if user_plan != 'free':
+        return jsonify({
+            "success": False, 
+            "error": f"Trial is only available for free users. You already have {user_plan.title()} tier benefits!",
+            "redirect": "/tiers"
+        }), 403
 
     # Check if trial already used permanently
     if session.get('trial_used_permanently'):

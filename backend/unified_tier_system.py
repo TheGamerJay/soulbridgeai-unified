@@ -124,9 +124,21 @@ def get_user_timezone(user_id):
 def check_active_subscription(user_id, plan):
     """
     Check if user has an active subscription for the given plan
-    Returns True if user has active subscription, False if cancelled/expired
+    Returns True if user has active subscription OR is in grace period, False if cancelled/expired
     """
     try:
+        # Use new subscription manager for grace period support
+        from subscription_manager import check_subscription_status
+        
+        status = check_subscription_status(user_id)
+        
+        # User has active subscription or is in grace period for this plan
+        if status.get("active") and status.get("plan") == plan:
+            grace_period = status.get("grace_period", False)
+            logger.info(f"🔍 SUBSCRIPTION CHECK: User {user_id} plan {plan} - Active: True, Grace: {grace_period}")
+            return True
+        
+        # Fallback to old subscription table check if new system fails
         database_url = os.environ.get('DATABASE_URL')
         if not database_url:
             return False
@@ -145,10 +157,10 @@ def check_active_subscription(user_id, plan):
         conn.close()
         
         if result:
-            status, plan_type = result
+            status_val, plan_type = result
             # Active subscription means status is 'active' and plan matches
-            is_active = (status == 'active' and plan_type == plan)
-            logger.info(f"🔍 SUBSCRIPTION CHECK: User {user_id} plan {plan} - Status: {status}, Active: {is_active}")
+            is_active = (status_val == 'active' and plan_type == plan)
+            logger.info(f"🔍 SUBSCRIPTION CHECK (FALLBACK): User {user_id} plan {plan} - Status: {status_val}, Active: {is_active}")
             return is_active
         else:
             # No subscription record found - likely free user or trial
