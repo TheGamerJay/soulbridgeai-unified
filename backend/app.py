@@ -668,7 +668,7 @@ def increment_rate_limit_session():
 @app.before_request
 def ensure_session_persistence():
     # IMPORTANT: Check open paths FIRST before authentication checks
-    open_paths = {"/api/login", "/api/logout", "/login", "/auth/login", "/auth/register", "/auth/forgot-password", "/", "/mini-studio", "/mini_studio_health"}
+    open_paths = {"/api/login", "/api/logout", "/login", "/auth/login", "/auth/register", "/auth/forgot-password", "/", "/mini-studio", "/mini_studio_health", "/api/stripe-debug"}
     
     # Debug logging for auth paths
     if "/auth" in request.path:
