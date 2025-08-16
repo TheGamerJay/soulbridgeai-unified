@@ -68,11 +68,23 @@ class Database:
         
         # Fallback to provided URLs (Railway provides DATABASE_URL automatically)
         if not self.postgres_url:
-            self.postgres_url = os.environ.get('DATABASE_URL') or os.environ.get('POSTGRES_URL')
-            if self.postgres_url:
-                logger.info(f"Using Railway DATABASE_URL: {self.postgres_url[:50]}...")
+            database_url = os.environ.get('DATABASE_URL') or os.environ.get('POSTGRES_URL')
+            if database_url:
+                # Check if it's actually a PostgreSQL URL vs SQLite
+                if database_url.startswith(('postgresql://', 'postgres://')):
+                    self.postgres_url = database_url
+                    logger.info(f"Using Railway DATABASE_URL: {self.postgres_url[:50]}...")
+                elif database_url.startswith('sqlite:'):
+                    # Extract SQLite path from URL
+                    sqlite_path = database_url.replace('sqlite:///', '').replace('sqlite://', '')
+                    logger.info(f"SQLite URL detected: {database_url}")
+                    # Force SQLite mode and set path
+                    self.postgres_url = None
+                    self.db_path = sqlite_path
+                else:
+                    logger.warning(f"Unknown database URL format: {database_url[:50]}...")
         
-        self.use_postgres = bool(self.postgres_url and POSTGRES_AVAILABLE)
+        self.use_postgres = bool(self.postgres_url and POSTGRES_AVAILABLE and self.postgres_url.startswith(('postgresql://', 'postgres://')))
         
         if self.use_postgres:
             logger.info(f"Using PostgreSQL database: {self.postgres_url[:30]}...")
