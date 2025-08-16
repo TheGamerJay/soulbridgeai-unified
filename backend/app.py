@@ -246,6 +246,10 @@ except ImportError as e:
 
 #
 
+# Stripe Configuration
+STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY')
+PRICE_ADFREE = os.environ.get('STRIPE_PRICE_ADFREE', 'price_1234567890')  # Ad-free plan price ID
+
 # Configuration constants imported from constants.py
 
 # ---------- Companions (bulletproof data) ----------
@@ -16299,15 +16303,81 @@ def create_adfree_checkout_direct():
         
         logger.info(f"✅ Ad-free checkout request from user {user_id} ({user_email})")
         
-        # Simple success response - no complex database queries needed
-        logger.info(f"🎯 Ad-free plan selected by user {user_id} ({user_email})")
+        # Check if Stripe is available and configured
+        if not stripe_available:
+            logger.warning("🚫 Stripe not available for ad-free checkout")
+            return jsonify({
+                "success": True,
+                "message": "🎉 Thank you for your interest in the ad-free plan! This feature is being finalized. We'll notify you when it's ready.",
+                "user_notified": True
+            })
         
-        return jsonify({
-            "success": True,
-            "message": "🎉 Thank you for your interest in the ad-free plan! This feature is being finalized. We'll notify you when it's ready.",
-            "user_notified": True,
-            "checkout_url": "/subscription?status=adfree_interest_recorded"
-        })
+        # Create or get Stripe customer
+        import stripe
+        stripe.api_key = STRIPE_SECRET_KEY
+        
+        try:
+            # Check if user already has a Stripe customer ID
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            
+            # Try to get stripe_customer_id, handle column not existing
+            try:
+                cursor.execute("SELECT stripe_customer_id FROM users WHERE id = ?", (user_id,))
+                result = cursor.fetchone()
+                customer_id = result[0] if result and result[0] else None
+            except Exception as db_error:
+                logger.warning(f"Database column issue (stripe_customer_id): {db_error}")
+                customer_id = None
+            
+            if not customer_id:
+                # Create new Stripe customer
+                customer = stripe.Customer.create(
+                    email=user_email,
+                    metadata={"app_user_id": str(user_id)}
+                )
+                customer_id = customer.id
+                
+                # Save customer ID to database (if column exists)
+                try:
+                    cursor.execute(
+                        "UPDATE users SET stripe_customer_id = ? WHERE id = ?",
+                        (customer_id, user_id)
+                    )
+                    conn.commit()
+                    logger.info(f"✅ Created Stripe customer {customer_id} for user {user_id}")
+                except Exception as update_error:
+                    logger.warning(f"Could not save stripe_customer_id to database: {update_error}")
+                    # Continue anyway - customer was created in Stripe
+            
+            conn.close()
+            
+            # Create checkout session for ad-free plan
+            checkout_session = stripe.checkout.Session.create(
+                mode="subscription",
+                customer=customer_id,
+                line_items=[{"price": PRICE_ADFREE, "quantity": 1}],
+                success_url="https://soulbridgeai.com/account?billing=success",
+                cancel_url="https://soulbridgeai.com/subscription?billing=cancel",
+                allow_promotion_codes=True,
+                subscription_data={"metadata": {"app_user_id": str(user_id)}},
+                metadata={"plan": "ad_free", "app_user_id": str(user_id)}
+            )
+            
+            logger.info(f"✅ Created ad-free checkout session {checkout_session.id} for user {user_id}")
+            
+            return jsonify({
+                "success": True,
+                "checkout_url": checkout_session.url
+            })
+            
+        except Exception as stripe_error:
+            logger.error(f"❌ Stripe error creating ad-free checkout: {stripe_error}")
+            return jsonify({
+                "success": True,
+                "message": "🎉 Thank you for your interest in the ad-free plan! This feature is being finalized. We'll notify you when it's ready.",
+                "user_notified": True
+            })
         
     except Exception as e:
         logger.error(f"❌ Ad-free checkout error: {e}")
