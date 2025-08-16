@@ -8570,6 +8570,31 @@ def debug_state():
     tier_system = get_current_tier_system()
     tier_data = tier_system.get_session_data()
     
+    # Check database data for current user
+    db_data = None
+    try:
+        user_id = session.get('user_id')
+        user_email = session.get('user_email', session.get('email'))
+        if user_id and user_email:
+            db_instance = get_database()
+            if db_instance:
+                conn = db_instance.get_connection()
+                cursor = conn.cursor()
+                if db_instance.use_postgres:
+                    cursor.execute("SELECT user_plan, plan_type, trial_active FROM users WHERE id = %s OR email = %s", (user_id, user_email))
+                else:
+                    cursor.execute("SELECT user_plan, plan_type, trial_active FROM users WHERE id = ? OR email = ?", (user_id, user_email))
+                result = cursor.fetchone()
+                conn.close()
+                if result:
+                    db_data = {
+                        "user_plan": result[0],
+                        "plan_type": result[1], 
+                        "trial_active": result[2]
+                    }
+    except Exception as e:
+        db_data = {"error": str(e)}
+    
     return jsonify({
         "user_plan": get_user_plan_safe(),
         "current_tier": current_tier,
@@ -8579,6 +8604,7 @@ def debug_state():
         "effective_plan": session.get("effective_plan"),
         "user_id": session.get("user_id"),
         "is_logged_in": bool(session.get("user_id")),
+        "database_data": db_data,
         "all_session_keys": list(session.keys())
     })
 
