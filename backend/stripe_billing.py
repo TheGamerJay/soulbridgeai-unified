@@ -149,10 +149,11 @@ def get_or_create_stripe_customer(user: Dict[str, Any]) -> Optional[str]:
 
 def get_current_user() -> Optional[Dict[str, Any]]:
     """Get current logged-in user"""
-    if not session.get('logged_in'):
+    # Use the correct session keys from our auth system
+    if not session.get('user_authenticated'):
         return None
         
-    email = session.get('email')
+    email = session.get('user_email')
     if not email:
         return None
         
