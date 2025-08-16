@@ -8569,6 +8569,81 @@ def debug_state():
         "all_session_keys": list(session.keys())
     })
 
+@app.route("/api/fix-tier-isolation", methods=["POST"])
+def fix_tier_isolation():
+    """Force re-initialize tier isolation for current user without logout"""
+    try:
+        if not session.get('user_id'):
+            return jsonify({"success": False, "error": "Not logged in"})
+        
+        # Get user info from database to properly initialize tiers
+        user_id = session.get('user_id')
+        user_email = session.get('user_email', session.get('email'))
+        
+        # Try to get user plan from database
+        try:
+            db_instance = get_database()
+            if db_instance:
+                conn = db_instance.get_connection()
+                cursor = conn.cursor()
+                if db_instance.use_postgres:
+                    cursor.execute("SELECT user_plan, plan_type, trial_active FROM users WHERE id = %s OR email = %s", (user_id, user_email))
+                else:
+                    cursor.execute("SELECT user_plan, plan_type, trial_active FROM users WHERE id = ? OR email = ?", (user_id, user_email))
+                result = cursor.fetchone()
+                conn.close()
+                
+                if result:
+                    db_user_plan = result[0] or result[1] or 'free'
+                    trial_active = bool(result[2]) if result[2] is not None else False
+                else:
+                    db_user_plan = 'free'
+                    trial_active = False
+            else:
+                db_user_plan = 'free'
+                trial_active = False
+        except Exception as db_error:
+            logger.warning(f"Database lookup failed in tier fix: {db_error}")
+            db_user_plan = 'free'
+            trial_active = False
+        
+        # Update session trial status
+        session['trial_active'] = trial_active
+        
+        # Determine tier for initialization
+        effective_tier = tier_manager.get_user_tier(db_user_plan, trial_active)
+        
+        # Re-initialize user with proper tier
+        user_data = {
+            'user_id': user_id,
+            'user_email': user_email,
+            'user_plan': db_user_plan,
+            'trial_active': trial_active
+        }
+        tier_manager.initialize_user_for_tier(user_data, effective_tier)
+        
+        # Clear any old contaminated session keys
+        old_keys = ['user_plan', 'effective_plan']
+        for key in old_keys:
+            if key in session:
+                del session[key]
+        
+        session.modified = True
+        
+        logger.info(f"🔧 TIER FIX: Re-initialized user {user_email} as {effective_tier} tier (plan: {db_user_plan}, trial: {trial_active})")
+        
+        return jsonify({
+            "success": True, 
+            "message": "Tier isolation fixed - refresh the page",
+            "user_plan": db_user_plan,
+            "tier": effective_tier,
+            "trial_active": trial_active
+        })
+        
+    except Exception as e:
+        logger.error(f"Failed to fix tier isolation: {e}")
+        return jsonify({"success": False, "error": str(e)})
+
 @app.route("/debug/test-signup", methods=["GET"])
 def debug_test_signup():
     """Test signup process step by step"""
