@@ -733,6 +733,7 @@ class AIContentFilter:
                 else:
                     # For non-crisis content, assume current decisions are mostly correct
                     # No action needed for non-crisis content
+                    pass
             
             # Calculate optimal thresholds based on performance
             current_threshold = 0.6  # Current medium threshold

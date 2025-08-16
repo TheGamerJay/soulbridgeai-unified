@@ -735,14 +735,43 @@ class BasicSurveillanceSystem:
         self.last_health_check = datetime.now()
         
     def write_to_log_file(self, log_file, entry):
-        """Write entry to log file with error handling"""
+        """Write entry to log file with error handling and rotation"""
         try:
+            # Check if file exists and its size
+            if os.path.exists(log_file):
+                file_size = os.path.getsize(log_file)
+                # Rotate log if it exceeds 100KB (prevent crashes from large files)
+                if file_size > 100 * 1024:  # 100KB limit
+                    self.rotate_log_file(log_file)
+            
             with open(log_file, "a", encoding="utf-8") as f:
                 f.write(entry + "\n")
         except Exception as e:
             # Use basic logging for surveillance system errors
             import logging
             logging.error(f"Failed to write to log {log_file}: {e}")
+    
+    def rotate_log_file(self, filename):
+        """Rotate log file to prevent excessive size"""
+        try:
+            # Keep only the last 1000 lines
+            with open(filename, "r", encoding="utf-8") as f:
+                lines = f.readlines()
+            
+            # Write back only the last 1000 lines
+            with open(filename, "w", encoding="utf-8") as f:
+                if len(lines) > 1000:
+                    f.write(f"[LOG ROTATED - Previous {len(lines) - 1000} entries archived]\n")
+                    f.writelines(lines[-1000:])
+                else:
+                    f.writelines(lines)
+            
+            import logging
+            logging.info(f"Log file {filename} rotated - kept last 1000 entries")
+        except Exception as e:
+            import logging
+            logging.error(f"Failed to rotate log file {filename}: {e}")
+    
     def log_maintenance(self, action, details):
         """Log maintenance action in human-readable format"""
         try:

@@ -7466,12 +7466,38 @@ class AutoMaintenanceSystem:
         self.send_discord_alert(f"🍯 Honeypot triggered: {path} by {ip_address}")
     
     def write_to_log_file(self, filename, message):
-        """Write message to log file with error handling"""
+        """Write message to log file with error handling and rotation"""
         try:
+            # Check if file exists and its size
+            if os.path.exists(filename):
+                file_size = os.path.getsize(filename)
+                # Rotate log if it exceeds 100KB (prevent crashes from large files)
+                if file_size > 100 * 1024:  # 100KB limit
+                    self.rotate_log_file(filename)
+            
             with open(filename, "a", encoding="utf-8") as f:
                 f.write(f"{message}\n")
         except Exception as e:
             logger.error(f"Failed to write to log file {filename}: {e}")
+    
+    def rotate_log_file(self, filename):
+        """Rotate log file to prevent excessive size"""
+        try:
+            # Keep only the last 1000 lines
+            with open(filename, "r", encoding="utf-8") as f:
+                lines = f.readlines()
+            
+            # Write back only the last 1000 lines
+            with open(filename, "w", encoding="utf-8") as f:
+                if len(lines) > 1000:
+                    f.write(f"[LOG ROTATED - Previous {len(lines) - 1000} entries archived]\n")
+                    f.writelines(lines[-1000:])
+                else:
+                    f.writelines(lines)
+            
+            logger.info(f"Log file {filename} rotated - kept last 1000 entries")
+        except Exception as e:
+            logger.error(f"Failed to rotate log file {filename}: {e}")
     
     def send_discord_alert(self, message):
         """Send alert to Discord webhook if configured"""

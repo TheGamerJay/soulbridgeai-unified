@@ -7,7 +7,7 @@ import logging
 from typing import Dict, Any, Optional
 from openai_clients import get_openai_client
 from local_clients import get_local_client, get_hybrid_local_client  
-from limits import bump_and_check, get_usage
+from quota_limits import bump_and_check, get_usage
 from studio.cache import get_cached_response, cache_response
 from billing.openai_budget import check_budget_safe, get_budget_status, get_budget_window_info
 from billing.auto_quota import get_quota_for_plan, auto_quota_tokens
