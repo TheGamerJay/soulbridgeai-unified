@@ -29,15 +29,15 @@ werkzeug>=2.3.7
 numpy>=1.24.0
 scikit-learn>=1.3.0
 watchdog>=3.0.0
-# Audio processing (local, fast effects)
-numpy==1.26.4
-scipy==1.11.4
-librosa==0.10.1
-soundfile==0.12.1
-pydub==0.25.1
-parselmouth==0.4.3
+# Audio processing (local, fast effects) - TEMPORARILY DISABLED FOR BUILD
+# numpy==1.26.4
+# scipy==1.11.4
+# librosa==0.10.1
+# soundfile==0.12.1
+# pydub==0.25.1
+# parselmouth==0.4.3
 
-# Music generation (local MusicGen small model)
-torch==2.1.0+cpu
-torchaudio==2.1.0+cpu
-audiocraft==1.3.0
+# Music generation (local MusicGen small model) - TEMPORARILY DISABLED FOR BUILD
+# torch==2.1.0
+# torchaudio==2.1.0
+# audiocraft==1.3.0

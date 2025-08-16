@@ -35,8 +35,9 @@ def get_musicgen_model():
             logger.info("✅ MusicGen model loaded successfully")
             
         except ImportError as e:
-            logger.error(f"❌ AudioCraft not available: {e}")
-            raise ImportError("AudioCraft library required for music generation")
+            logger.warning(f"⚠️ AudioCraft not available (audio processing disabled): {e}")
+            _model_instance = None  # Mark as unavailable
+            return None
         except Exception as e:
             logger.error(f"❌ Failed to load MusicGen model: {e}")
             raise
@@ -60,6 +61,8 @@ class LocalMusicGen:
         """Ensure the model is loaded (lazy loading)"""
         if self.model is None:
             self.model = get_musicgen_model()
+            if self.model is None:
+                raise ImportError("AudioCraft not available - music generation disabled")
     
     def generate_instrumental(self, 
                             prompt: str, 

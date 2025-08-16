@@ -27,11 +27,8 @@ ENV PIP_NO_CACHE_DIR=1 \
 # Copy requirements and install Python dependencies
 COPY backend/requirements.txt .
 
-# Install torch first with CPU index (avoids resolver conflicts)
-RUN pip install --upgrade pip \
- && pip install --extra-index-url https://download.pytorch.org/whl/cpu \
-      torch==2.1.0+cpu torchaudio==2.1.0+cpu \
- && pip install -r requirements.txt
+# Install dependencies (audio processing temporarily disabled)
+RUN pip install --upgrade pip && pip install -r requirements.txt
 
 # Copy backend application
 COPY backend/ .
