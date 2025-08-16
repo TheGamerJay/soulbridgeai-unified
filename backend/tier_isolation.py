@@ -22,7 +22,17 @@ class TierSystem:
         return session.get(self.session_key, {})
     
     def set_session_data(self, data: Dict[str, Any]):
-        """Set tier-specific session data"""
+        """
+        Set tier-specific session data.
+        Only the TierManager should ever call this method directly.
+        If you see this being called elsewhere, it is a bug.
+        """
+        # Safety assertion: only allow from TierManager context
+        import inspect
+        stack = inspect.stack()
+        allowed_callers = ["initialize_user_for_tier", "initialize_trial_user", "clear_session_data"]
+        if not any(frame.function in allowed_callers for frame in stack[:5]):
+            raise RuntimeError("Tier session keys must only be set by TierManager methods!")
         session[self.session_key] = data
         session.modified = True
     
@@ -153,7 +163,8 @@ class MaxTier(TierSystem):
             'horoscope',
             'all_companions',
             'voice_chat',
-            'priority_support'
+            'priority_support',
+            'mini_studio'  # Added for Max tier UI button
         ]
         self.limits = {
             'decoder': 999999,

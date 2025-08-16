@@ -5,9 +5,12 @@ Combines working initialization with all essential routes
 Voice chat processing enabled
 """
 
-# DISABLED: eventlet monkey patching can interfere with blocking HTTP requests
-# import eventlet
-# eventlet.monkey_patch()
+# CRITICAL: eventlet monkey patching MUST be first for Gunicorn compatibility
+import eventlet
+eventlet.monkey_patch()
+
+#
+#
 
 # Standard library imports
 import os
@@ -21,6 +24,8 @@ from datetime import datetime, timezone, timedelta
 # Flask imports
 from flask import Flask, jsonify, render_template, render_template_string, request, session, redirect, url_for, flash, make_response
 
+#
+
 # Auth system imports
 try:
     from routes.auth import bp as auth_bp
@@ -33,10 +38,12 @@ except ImportError as e:
 # Local imports
 try:
     from premium_free_ai_service import get_premium_free_ai_service
+
+#
 except ImportError:
     try:
         from simple_ai_service import get_premium_free_ai_service
-        print("[OK] Using Simple AI Service (no ML dependencies)")
+        print("✅ Using Simple AI Service (no ML dependencies)")
     except ImportError:
         # Final fallback
         def get_premium_free_ai_service():
@@ -50,7 +57,7 @@ except ImportError:
                         "enhancement_level": "fallback"
                     }
             return FallbackAI()
-        print("[WARNING] Using minimal fallback AI")
+        print("⚠️ Using minimal fallback AI")
 from trial_utils import is_trial_active as calculate_trial_active, get_trial_time_remaining
 from tier_isolation import tier_manager, get_current_user_tier, get_current_tier_system
 from unified_tier_system import (
@@ -67,6 +74,8 @@ logger = logging.getLogger(__name__)
 # PRODUCTION SECURITY: Disable debug endpoints in production
 from functools import wraps
 DEBUG_ENABLED = os.environ.get('DEBUG_MODE', 'false').lower() == 'true'
+
+#
 DEV_MODE = os.environ.get('ENVIRONMENT', 'production').lower() in ['development', 'dev']
 ALLOW_DEBUG = DEBUG_ENABLED or DEV_MODE
 
@@ -91,6 +100,8 @@ def require_debug_mode():
 # ENHANCED ADMIN AUTHENTICATION SYSTEM
 def require_admin_auth():
     """Strong admin authentication decorator with time-limited sessions"""
+
+#
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
@@ -156,6 +167,8 @@ def record_admin_login_attempt(ip_address):
 # Load environment variables from .env file
 try:
     from dotenv import load_dotenv
+
+#
     load_dotenv()
     logger.info("Environment variables loaded from .env file")
 except ImportError:
@@ -168,79 +181,51 @@ app = Flask(__name__)
 # Security: Use strong secret key or generate one
 secret_key = os.environ.get("SECRET_KEY")
 if not secret_key:
+
+#
     import secrets
     secret_key = secrets.token_hex(32)
     logger.warning("Generated temporary secret key - set SECRET_KEY environment variable for production")
 app.secret_key = secret_key
 
 # --- SESSION COOKIE SETTINGS FOR PRODUCTION ---
-# Adapt cookie settings based on environment
-is_production = os.environ.get('RAILWAY_ENVIRONMENT') or os.environ.get('PRODUCTION')
-if is_production:
-    # Production settings
-    app.config['SESSION_COOKIE_SECURE'] = True  # Only send cookie over HTTPS
-    app.config['SESSION_COOKIE_SAMESITE'] = 'None'  # Allow cross-site cookies (for custom domains)
-    app.config['SESSION_COOKIE_DOMAIN'] = '.soulbridgeai.com'
-else:
-    # Development settings - allow HTTP and localhost
-    app.config['SESSION_COOKIE_SECURE'] = False  # Allow HTTP for local development
-    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # Less restrictive for local development
-    app.config['SESSION_COOKIE_DOMAIN'] = None  # No domain restriction for localhost
-
-app.config['SESSION_COOKIE_HTTPONLY'] = True  # Always prevent JS access to session cookie
+# Always set these for production deployments!
+app.config['SESSION_COOKIE_SECURE'] = True  # Only send cookie over HTTPS
+app.config['SESSION_COOKIE_SAMESITE'] = 'None'  # Allow cross-site cookies (for custom domains)
+app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevent JS access to session cookie
+# Set domain for your site (uncomment and set if needed)
+app.config['SESSION_COOKIE_DOMAIN'] = '.soulbridgeai.com'
 
 # Register auth blueprint
 if auth_available and auth_bp:
     app.register_blueprint(auth_bp)
-    print("[OK] Auth system registered successfully")
+
+#
+    print("✅ Auth system registered successfully")
 else:
-    print("[WARNING] Auth system disabled - continuing without authentication")
+    print("⚠️ Auth system disabled - continuing without authentication")
 
 # Register companion API blueprint
 try:
     from routes.api_companion import bp as companion_bp
     app.register_blueprint(companion_bp)
-    print("[OK] Companion API registered successfully")
+    print("✅ Companion API registered successfully")
 except ImportError as e:
-    print(f"[WARNING] Companion API not available: {e}")
-
-# Register LLM Health Check blueprint
-try:
-    from routes.api_llm_health import bp as llm_health_bp
-    app.register_blueprint(llm_health_bp)
-    print("[OK] LLM health check endpoints registered")
-except ImportError as e:
-    print(f"[WARNING] Could not register LLM health endpoints: {e}")
-
-
-# Register Database Fix API blueprint
-try:
-    from routes.api_database_fix import bp as database_fix_bp
-    app.register_blueprint(database_fix_bp)
-    print("[OK] Database Fix API registered successfully")
-except ImportError as e:
-    print(f"[WARNING] Database Fix API not available: {e}")
-
-# Register Ollama Admin API blueprint
-# Ollama admin removed - not being used
-
-# Register Stripe Billing blueprint
-try:
-    from stripe_billing import bp_billing
-    app.register_blueprint(bp_billing)
-    print("[OK] Stripe Billing API registered successfully")
-except ImportError as e:
-    print(f"[WARNING] Stripe Billing API not available: {e}")
+    print(f"⚠️ Companion API not available: {e}")
 
 # ============================================
 # BULLETPROOF TIER ISOLATION SYSTEM
 # ============================================
+
+#
 
 # Configuration constants imported from constants.py
 
 # ---------- Companions (bulletproof data) ----------
 COMPANIONS_NEW = [
     # Free row
+
+#
     {"id":"blayzo_free","name":"Blayzo Free","tier":"free","image_url":"/static/logos/Blayzo.png"},
     {"id":"blayzica_free","name":"Blayzica Free","tier":"free","image_url":"/static/logos/Blayzica.png"},
     {"id":"companion_gamerjay","name":"GamerJay Free","tier":"free","image_url":"/static/logos/GamerJay_Free_companion.png"},
@@ -274,27 +259,35 @@ COMPANIONS_NEW = [
 # ---------- Bulletproof Helper Functions ----------
 def get_user_id_new():
     """Get stable user ID from session"""
+
+#
     return session.get("user_id", "demo_user")
 
 def get_effective_plan_new(user_plan: str, trial_active: bool) -> str:
-    """Trial unlocks COMPANIONS for access, but limits remain on real plan"""
-    # TRIAL DESIGN: Free users with trial can access Growth/Max companions
-    if trial_active and user_plan == 'free':
-        return "max"  # For companion access only, not limits
+    """Trial unlocks FEATURES/COMPANIONS for visibility, but limits remain on real plan"""
+    # Always use 'max' for all access checks if trial is active
+
+#
+    if trial_active:
+        return "max"
     return user_plan
 
 def get_access_matrix_new(user_plan: str, trial_active: bool):
     """Get feature access matrix - TRIAL DOES NOT CHANGE ACCESS"""
-    # NEW: Only growth/max users can have trials. Free users should never get trial benefits.
-    plan = "max" if (trial_active and user_plan in ['growth', 'max']) else user_plan
+    # During trial, use max tier for access
+
+#
+    plan = "max" if trial_active else user_plan
     base = FEATURE_ACCESS.get(plan, FEATURE_ACCESS["free"]).copy()
     return base
 
 def companion_unlock_state_new(user_plan: str, trial_active: bool, referrals: int):
     """Determine which companions are unlocked - TRIAL DOES NOT CHANGE ACCESS"""
-    # NEW: Only growth/max users can have trials. Free users should never get trial benefits.
-    # If trial is active AND user is on growth/max plan, unlock all non-referral companions
-    if trial_active and user_plan in ['growth', 'max']:
+    # During trial, unlock all companions (growth + max)
+
+#
+    # If trial is active, unlock all non-referral companions (free, growth, max)
+    if trial_active:
         unlocked_tiers = set(["free", "growth", "max"])
     else:
         unlocked_tiers = set(["free"])
@@ -310,11 +303,11 @@ def companion_unlock_state_new(user_plan: str, trial_active: bool, referrals: in
     if referrals >= REFERRAL_THRESHOLDS["blayzo_skin"]: referral_unlocks.append("blayzo_skin")
     return unlocked_tiers, set(referral_unlocks)
 
-# Removed duplicate get_feature_limit() - using comprehensive version at line 6450
-
 def require_max_for_mini_studio_new():
     """Hard gate Mini Studio; use unified system for trial support"""
     trial_active = session.get('trial_active', False)
+
+#
     user_plan = session.get('user_plan', 'free')
     effective_plan = get_effective_plan(user_plan, trial_active)
     return effective_plan == 'max'
@@ -326,11 +319,13 @@ def require_max_for_mini_studio_new():
 # Debug mode setting
 DEBUG_MODE = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true' or os.environ.get('DEBUG', 'False').lower() == 'true'
 
-# Simple session configuration - FIXED: Remove shared session domain that was causing user contamination
-# app.config['SESSION_COOKIE_DOMAIN'] = '.soulbridgeai.com' if os.environ.get('RAILWAY_ENVIRONMENT') else None  # DISABLED: This was causing session sharing between users!
+#
+
 
 # Rate limit tracking for mini helper activation
 RATE_LIMIT_FLAG_FILE_PATH = os.path.join(os.path.dirname(__file__), RATE_LIMIT_FLAG_FILE)
+
+#
 
 def set_rate_limit_flag(is_limited):
     """Set rate limit flag to control mini helper activation"""
@@ -349,6 +344,8 @@ def set_rate_limit_flag(is_limited):
 def get_rate_limit_status():
     """Get current rate limit status"""
     try:
+
+#
         if os.path.exists(RATE_LIMIT_FLAG_FILE_PATH):
             with open(RATE_LIMIT_FLAG_FILE_PATH, 'r') as f:
                 status = json.load(f)
@@ -361,6 +358,8 @@ def get_rate_limit_status():
 def should_use_mini_helper():
     """Check if mini helper should be automatically activated"""
     status = get_rate_limit_status()
+
+#
     return status.get('rate_limited', False)
 
 # Conversation Memory System for Mini Helper
@@ -370,6 +369,8 @@ PROJECT_STATE_FILE_PATH = os.path.join(os.path.dirname(__file__), PROJECT_STATE_
 def save_conversation_context(user_message, response, file_path="", action_type="chat"):
     """Save conversation context for Mini Helper continuity"""
     try:
+
+#
         # Load existing memory
         memory = load_conversation_memory()
         
@@ -400,6 +401,8 @@ def save_conversation_context(user_message, response, file_path="", action_type=
 def load_conversation_memory():
     """Load conversation memory for Mini Helper"""
     try:
+
+#
         if os.path.exists(CONVERSATION_MEMORY_FILE_PATH):
             with open(CONVERSATION_MEMORY_FILE_PATH, 'r') as f:
                 memory = json.load(f)
@@ -418,6 +421,8 @@ def load_conversation_memory():
 def save_project_state(task_completed, files_modified, current_focus):
     """Save project state for continuity"""
     try:
+
+#
         state = {
             'last_updated': datetime.now().isoformat(),
             'completed_tasks': task_completed,
@@ -449,6 +454,8 @@ def save_project_state(task_completed, files_modified, current_focus):
 def load_project_state():
     """Load current project state"""
     try:
+
+#
         if os.path.exists(PROJECT_STATE_FILE):
             with open(PROJECT_STATE_FILE, 'r') as f:
                 return json.load(f)
@@ -465,6 +472,8 @@ def load_project_state():
 def perform_basic_file_search(search_term):
     """Perform basic file search similar to grep/find tools"""
     try:
+
+#
         backend_dir = os.path.dirname(__file__)
         results = []
         
@@ -512,6 +521,8 @@ def perform_basic_file_search(search_term):
 def perform_basic_file_analysis(file_path):
     """Perform basic file analysis similar to reading and analyzing files"""
     try:
+
+#
         if not os.path.exists(file_path):
             return f"File not found: {file_path}"
         
@@ -565,6 +576,8 @@ def perform_basic_file_analysis(file_path):
 def get_conversation_summary():
     """Get enhanced conversation summary with intelligent context for Mini Helper"""
     memory = load_conversation_memory()
+
+#
     recent_conversations = memory['conversations'][-10:]  # Last 10 conversations
     
     if not recent_conversations:
@@ -609,6 +622,8 @@ def get_conversation_summary():
 def increment_rate_limit_session():
     """Track when Mini Helper is used due to rate limits"""
     try:
+
+#
         state = load_project_state()
         state['rate_limit_sessions'] = state.get('rate_limit_sessions', 0) + 1
         state['last_rate_limit'] = datetime.now().isoformat()
@@ -622,7 +637,9 @@ def increment_rate_limit_session():
 @app.before_request
 def ensure_session_persistence():
     # Allow auth + static + home + mini-studio page itself (so it can show the UI)
-    open_paths = {"/api/login", "/api/logout", "/login", "/auth/login", "/", "/mini-studio", "/mini_studio_health", "/api/mini-assistant-status", "/terms-acceptance", "/api/accept-terms", "/intro", "/debug/test-chat", "/debug/simple-chat", "/debug/supervisor-logs", "/test-direct", "/api/database/fix-schema", "/api/companion/free", "/healthz", "/fix-schema", "/debug-logs"}
+
+#
+    open_paths = {"/api/login", "/api/logout", "/login", "/", "/mini-studio", "/mini_studio_health"}
     if request.path.startswith("/static/") or request.path in open_paths:
         return
     
@@ -631,13 +648,7 @@ def ensure_session_persistence():
         # Set a default user session for testing
         if "user_id" not in session:
             session["user_id"] = "demo_user"
-            # Initialize demo user with tier isolation system
-            demo_user_data = {
-                'user_id': 'demo_user',
-                'user_email': 'demo@soulbridgeai.com',
-                'user_plan': 'free'
-            }
-            tier_manager.initialize_user_for_tier(demo_user_data, 'free')
+            session["user_plan"] = "free"
         return
     
     # For every other route, require a user_id
@@ -649,21 +660,13 @@ def ensure_session_persistence():
     
     # PERMANENT FIX: Make sessions persistent for all authenticated users
     # Sessions should only expire when browser closes or explicit logout
-    # If user has user_id, they are authenticated and should have persistent sessions
-    if session.get('user_id') or session.get('user_authenticated') or session.get('user_email') or session.get('email'):
+    if session.get('user_authenticated') or session.get('user_email') or session.get('email'):
         session.permanent = True
         # Set reasonable session lifetime
         app.permanent_session_lifetime = timedelta(hours=SESSION_LIFETIME_HOURS)
     else:
         # Only make non-authenticated sessions temporary
         session.permanent = False
-
-# Removed disabled reset_session_if_cookie_missing() function - was causing session clearing
-
-# Removed disabled load_user_context_disabled() function - was not being used
-
-# Removed disabled update_trial_status() function - was causing session contamination
-
 # Prevent caching to force fresh login checks
 @app.after_request
 def prevent_caching(response):
@@ -671,23 +674,6 @@ def prevent_caching(response):
     response.headers["Pragma"] = "no-cache"
     response.headers["Expires"] = "0"
     return response
-
-# Helper function to check if user is ad-free
-def is_user_ad_free():
-    """Check if current user has ad-free subscription"""
-    if not session.get('logged_in') or not session.get('user_id'):
-        return False
-        
-    try:
-        from stripe_billing import get_current_user
-        user = get_current_user()
-        return user.get('ad_free', False) if user else False
-    except Exception as e:
-        logger.error(f"Error checking ad-free status: {e}")
-        return False
-
-# REMOVED: clear_invalid_trial_for_free_users() function was incorrectly clearing trials for free users
-# Free users ARE ALLOWED to use 5-hour trials - that's the whole point of the trial system
 
 # Global variables for services
 services = {
@@ -730,24 +716,8 @@ def check_trial_active_from_db(user_id):
 def mini_assistant_status():
     """Public status endpoint for Mini Assistant modal (no authentication required)"""
     try:
-        import os
-        claude_api_key = os.getenv('CLAUDE_API_KEY')
-        claude_available = bool(claude_api_key)
-        
-        # Test if anthropic module is available
-        try:
-            import anthropic
-            anthropic_available = True
-        except ImportError:
-            anthropic_available = False
-            claude_available = False
-        
-        return jsonify({
-            "success": True,
-            "claude_available": claude_available and anthropic_available,
-            "online": True,
-            "status": "ok"
-        })
+        # Optionally, you can add more diagnostics here
+        return jsonify({"online": True, "status": "ok"})
     except Exception as e:
         logger.error(f"Mini Assistant status error: {e}")
         return jsonify({"online": False, "status": "error", "error": str(e)}), 500
@@ -773,16 +743,14 @@ class BasicSurveillanceSystem:
             # Use basic logging for surveillance system errors
             import logging
             logging.error(f"Failed to write to log {log_file}: {e}")
-    pass
     def log_maintenance(self, action, details):
         """Log maintenance action in human-readable format"""
         try:
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             
             # Translate technical actions to human-readable messages
-            human_readable = self.translate_maintenance_action(action, details)
-            
-            entry = f"[{timestamp}] 🔧 {human_readable}"
+            human_readable = self.translate_maintenance_action(action, details)            
+            entry = f"[{timestamp}] 🔧 {human_readable}"        
             self.maintenance_log.append(entry)
             # Keep only last 1000 entries in memory
             if len(self.maintenance_log) > 1000:
@@ -828,9 +796,8 @@ class BasicSurveillanceSystem:
             severity_str = str(severity).upper() if severity is not None else "UNKNOWN"
             
             # Translate technical threat details to human-readable messages
-            human_threat = self.translate_threat_details(details_str, severity_str)
-            
-            entry = f"[{timestamp}] 🚨 SECURITY ALERT ({severity_str}): {human_threat} (Source: {ip_str})"
+            human_threat = self.translate_threat_details(details_str, severity_str)            
+            entry = f"[{timestamp}] 🚨 SECURITY ALERT ({severity_str}): {human_threat} (Source: {ip_str})"        
             self.security_threats.append({
                 'timestamp': datetime.now(),
                 'ip': ip_str,
@@ -984,8 +951,8 @@ def is_logged_in():
         has_email = bool(session.get('user_email') or session.get('email'))
         has_user_id = bool(session.get('user_id'))
         
-        # Reduce logging spam - only log once per session or on failures
-        auth_already_logged = session.get('auth_logged_this_session')
+        # DEBUG: Log authentication check details
+        logger.info(f"🔍 AUTH CHECK: has_email={has_email}, has_user_id={has_user_id}, session_keys={list(session.keys())}")
         
         # If they have either email or user_id, they're logged in
         if has_email or has_user_id:
@@ -998,10 +965,7 @@ def is_logged_in():
                 session.modified = True
                 logger.info("🔒 SESSION: Made session permanent to prevent login kicks")
             
-            # Only log once per session to reduce spam
-            if not auth_already_logged:
-                logger.info(f"✅ AUTH CHECK: User logged in (email={has_email}, user_id={has_user_id})")
-                session['auth_logged_this_session'] = True
+            logger.info("✅ AUTH CHECK: User is logged in")
             return True
         
         logger.warning("❌ AUTH CHECK: User is NOT logged in - no email or user_id found")
@@ -1048,22 +1012,8 @@ def requires_terms_acceptance():
     return None  # No redirect needed
 
 def get_user_plan():
-    """Get user's selected plan from tier isolation system"""
-    # Get current tier and extract the original user plan
-    current_tier = get_current_user_tier()
-    tier_system = get_current_tier_system()
-    tier_data = tier_system.get_session_data()
-    
-    # Return the original user_plan stored in tier data, or fallback to tier name
-    return tier_data.get('user_plan', current_tier)
-
-def get_user_plan_safe():
-    """Get user plan safely with fallback to 'free' if tier data is empty"""
-    try:
-        plan = get_user_plan()
-        return plan if plan else 'free'
-    except Exception:
-        return 'free'
+    """Get user's selected plan"""
+    return session.get("user_plan", "free")
 
 def parse_request_data():
     """Parse request data from both JSON and form data"""
@@ -1089,7 +1039,7 @@ def setup_user_session(email, user_id=None, is_admin=False, dev_mode=False):
     session["session_version"] = "2025-07-28-banking-security"  # Required for auth
     session["user_email"] = email
     session["login_timestamp"] = datetime.now().isoformat()
-    # user_plan will be set from database lookup later in the function
+    session["user_plan"] = "free"
     if user_id:
         session["user_id"] = user_id
     if is_admin:
@@ -1104,6 +1054,25 @@ def setup_user_session(email, user_id=None, is_admin=False, dev_mode=False):
     # Load terms acceptance status
     if user_id:
         load_terms_acceptance_status(user_id)
+    
+    # TIER ISOLATION: Initialize user for proper tier based on their plan and trial status
+    if user_id:
+        from tier_isolation import tier_manager
+        user_plan = session.get('user_plan', 'free')
+        trial_active = session.get('trial_active', False)
+        
+        # Determine tier
+        target_tier = tier_manager.get_user_tier(user_plan, trial_active)
+        
+        # Initialize user for the correct tier (this clears all tier sessions first)
+        user_data = {
+            'user_id': user_id,
+            'user_email': email,
+            'user_plan': user_plan,
+            'trial_active': trial_active
+        }
+        tier_manager.initialize_user_for_tier(user_data, target_tier)
+        logger.info(f"🔒 TIER ISOLATION: User {email} initialized for {target_tier} tier (plan: {user_plan}, trial: {trial_active})")
 
 def restore_companion_data(user_id):
     """Restore companion data from persistence file"""
@@ -1474,159 +1443,6 @@ def health():
             "timestamp": datetime.now(timezone.utc).isoformat()
         }), 500
 
-@app.route("/healthz")
-def healthz():
-    """Health endpoint with Ollama status check"""
-    import requests
-    import os
-    
-    base = os.getenv("OLLAMA_BASE", "http://127.0.0.1:11434")
-    try:
-        r = requests.get(f"{base}/api/tags", timeout=3)
-        return ("ok", 200) if r.ok else ("degraded", 503)
-    except Exception:
-        return ("degraded", 503)
-
-@app.route("/test-direct")
-def test_direct():
-    """Ultra simple test endpoint"""
-    try:
-        from ollama_client import chat
-        messages = [{"role": "user", "content": "hi"}]  # Simplest possible message
-        result = chat(messages)
-        return f"SUCCESS: {result}"
-    except Exception as e:
-        import traceback
-        return f"ERROR: {str(e)}\nTRACE: {traceback.format_exc()}", 500
-
-@app.route("/debug/supervisor-logs")
-def debug_supervisor_logs():
-    """Check what's actually happening in supervisor"""
-    try:
-        import subprocess
-        import os
-        
-        logs = {}
-        
-        # Check if log files exist and read them (focus on preload for warmup verification)
-        log_files = ["/tmp/preload.log", "/tmp/ollama.log", "/tmp/web.log", "/tmp/supervisord.log"]
-        
-        for log_file in log_files:
-            if os.path.exists(log_file):
-                try:
-                    with open(log_file, 'r') as f:
-                        content = f.read()
-                        # Show more for preload log to see full warmup sequence
-                        if 'preload' in log_file:
-                            logs[log_file] = content[-4000:]  # More content for preload
-                        else:
-                            logs[log_file] = content[-2000:]  # Last 2000 chars for others
-                except:
-                    logs[log_file] = "Error reading file"
-            else:
-                logs[log_file] = "File not found"
-        
-        # Also check if Ollama process is actually running
-        try:
-            ps_result = subprocess.check_output(['ps', 'aux'], universal_newlines=True)
-            logs['processes'] = ps_result
-        except:
-            logs['processes'] = "Error getting processes"
-            
-        return f"<pre>{logs}</pre>"
-    except Exception as e:
-        return f"ERROR: {str(e)}", 500
-
-@app.route("/debug/test-chat")
-def debug_test_chat():
-    """Simple test endpoint to try Ollama chat without authentication"""
-    try:
-        from ollama_client import generate_companion_response
-        result = generate_companion_response("What is 2+2?", "Blayzo")
-        return jsonify(result)
-    except Exception as e:
-        import traceback
-        return jsonify({
-            "error": str(e), 
-            "success": False, 
-            "traceback": traceback.format_exc()
-        }), 500
-
-@app.route("/debug/simple-chat", methods=["POST"])
-def debug_simple_chat():
-    """Test the exact same flow as the main chat API"""
-    try:
-        data = request.get_json() or {}
-        message = data.get("message", "test")
-        
-        # Same logic as api_chat for free users
-        from ollama_client import generate_companion_response, is_available
-        
-        if is_available():
-            result = generate_companion_response(message, "Blayzo", "")
-            if result.get("success", False):
-                return jsonify({"success": True, "response": result["response"], "debug": "ollama_success"})
-            else:
-                return jsonify({"success": False, "error": f"Ollama failed: {result.get('error')}", "debug": "ollama_failed"})
-        else:
-            return jsonify({"success": False, "error": "Ollama not available", "debug": "ollama_unavailable"})
-            
-    except Exception as e:
-        import traceback
-        return jsonify({
-            "success": False, 
-            "error": str(e), 
-            "traceback": traceback.format_exc(),
-            "debug": "exception"
-        }), 500
-
-@app.route("/debug/ollama")
-def debug_ollama():
-    """Debug endpoint to check Ollama connection"""
-    import os, requests
-    
-    # Use same logic as ollama_client.py
-    def _default_base():
-        return "http://localhost:11434"
-    
-    base = (
-        os.getenv("DEBUG_OLLAMA_BASE")
-        or os.getenv("LLM_BASE")
-        or os.getenv("OLLAMA_BASE") 
-        or os.getenv("OLLAMA_URL")
-        or _default_base()
-    )
-    model = os.getenv("FREE_MODEL", "tinyllama")
-
-    out = {"llm_base": base, "model": model}
-
-    # /api/tags
-    try:
-        r = requests.get(f"{base}/api/tags", timeout=8)
-        out["tags_status"] = r.status_code
-        out["tags_response"] = r.json() if r.ok else r.text
-    except Exception as e:
-        out["tags_error"] = str(e)
-
-    # minimal /api/chat test (no streaming)
-    try:
-        r = requests.post(
-            f"{base}/api/chat",
-            json={
-                "model": model,
-                "messages": [{"role": "user", "content": "ping"}],
-                "stream": False,
-                "options": {"num_predict": 8},
-            },
-            timeout=300,
-        )
-        out["chat_status"] = r.status_code
-        out["chat_response"] = r.json() if r.ok else r.text
-    except Exception as e:
-        out["chat_error"] = str(e)
-
-    return jsonify(out)
-
 @app.route("/", methods=["GET", "POST"])
 def home():
     """Home route - redirect based on authentication status"""
@@ -1758,15 +1574,8 @@ def auth_login():
             raw_plan = result.get('plan_type', 'free')
             raw_user_plan = result.get('user_plan', 'free')
             plan_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
-            
-            # Use the more specific plan value - prefer user_plan over plan_type if different
-            actual_plan = raw_user_plan if raw_user_plan != 'free' else raw_plan
-            user_plan = plan_mapping.get(actual_plan, actual_plan)
+            session['user_plan'] = plan_mapping.get(raw_plan, raw_plan)
             session['display_name'] = result.get('display_name', 'User')
-            
-            # DEBUG: Log what plan is being retrieved from database
-            logger.info(f"🔍 LOGIN PLAN DEBUG: raw_plan={raw_plan}, raw_user_plan={raw_user_plan}, actual_plan={actual_plan}, final_user_plan={user_plan}")
-            logger.info(f"🔍 LOGIN RESULT DEBUG: {result}")
             # Auto-migrate legacy plans in database
             needs_migration = False
             if raw_plan in plan_mapping or raw_user_plan in plan_mapping:
@@ -1835,22 +1644,9 @@ def auth_login():
                         logger.info(f"ℹ️ No trial data found for user {email}")
             except Exception as trial_error:
                 logger.warning(f"Failed to restore trial status on login: {trial_error}")
-            # TIER ISOLATION SYSTEM - Use tier_manager instead of direct session manipulation
-            trial_active = session.get('trial_active', False)
-            
-            # Determine the user's tier based on plan and trial status
-            effective_tier = tier_manager.get_user_tier(user_plan, trial_active)
-            
-            # Initialize user for the correct tier using tier isolation system
-            user_data = {
-                'user_id': result["user_id"],
-                'user_email': email,
-                'user_plan': user_plan,  # Store original plan for limits
-                'trial_active': trial_active
-            }
-            tier_manager.initialize_user_for_tier(user_data, effective_tier)
-            
             # ISOLATED TIER ACCESS FLAGS - Prevents cross-contamination
+            user_plan = session.get('user_plan', 'free')
+            trial_active = session.get('trial_active', False)
             # Define isolated access flags for each tier using effective_plan
             effective_plan = get_effective_plan(user_plan, trial_active)
             session['access_free'] = True  # Everyone gets free features
@@ -1859,7 +1655,7 @@ def auth_login():
             session['access_trial'] = trial_active
             session.modified = True  # Ensure session changes are saved
             logger.info(f"[LOGIN] Session marked as modified. Session: {dict(session)}")
-            logger.info(f"[LOGIN] Login successful: {email} (plan: {user_plan}, trial: {trial_active}, tier: {effective_tier})")
+            logger.info(f"[LOGIN] Login successful: {email} (plan: {session['user_plan']}, trial: {trial_active})")
             logger.info(f"[LOGIN] Access flags: free={session['access_free']}, growth={session['access_growth']}, max={session['access_max']}, trial={session['access_trial']}")
             # Handle both form submissions and AJAX requests
             # Check if user needs to accept terms
@@ -1949,65 +1745,6 @@ def session_refresh():
     except Exception as e:
         logger.error(f"Error refreshing session: {e}")
         return jsonify({"success": False, "error": "Failed to refresh session"}), 500
-
-def current_user_id():
-    """Get current user ID from session"""
-    return session.get("user_id")
-
-def is_unlocked(slug: str) -> bool:
-    """Check if companion is unlocked based on session flags"""
-    s = session
-    if slug.endswith("_free"):
-        return True
-    # Growth / Max unlock during trial should be true in session
-    if slug.endswith("_growth"):
-        return bool(s.get("access_growth"))
-    if slug.endswith("_max"):
-        return bool(s.get("access_max"))
-    # Generic companions (e.g., companion_violet)
-    return bool(s.get("access_growth") or s.get("access_max"))
-
-@app.before_request
-def guard_chat_requires_login():
-    """Guard chat routes - return status codes, not redirects"""
-    if request.path.startswith("/chat/"):
-        if not current_user_id():
-            return ("Unauthorized", 401)
-
-@app.get("/api/session/me")
-def api_me():
-    """Minimal session check API"""
-    if not current_user_id():
-        return ("Unauthorized", 401)
-    
-    # Debug: Check tier isolation data
-    current_tier = get_current_user_tier()
-    tier_system = get_current_tier_system()
-    tier_data = tier_system.get_session_data()
-    
-    return jsonify({
-        "user_id": session["user_id"],
-        "email": session.get("user_email"),
-        "plan": get_user_plan_safe(),
-        "current_tier": current_tier,
-        "tier_data_exists": bool(tier_data and tier_data.get('user_id')),
-        "session_keys": list(session.keys()),
-        "access": {
-            "free":   bool(session.get("access_free")),
-            "growth": bool(session.get("access_growth")),
-            "max":    bool(session.get("access_max")),
-            "trial":  bool(session.get("access_trial")),
-        }
-    })
-
-@app.get("/api/companions/<slug>/access")
-def api_companion_access(slug):
-    """Check companion access without external dependencies"""
-    if not current_user_id():
-        return ("Unauthorized", 401)
-    if not is_unlocked(slug):
-        return ("Forbidden", 403)
-    return jsonify({"allowed": True})
 
 @app.route("/api/user-status", methods=["GET"])
 def user_status():
@@ -2147,33 +1884,6 @@ def user_info():
         logger.error(f"Error getting user info: {e}")
         return jsonify({"success": False, "error": "Failed to get user information"}), 500
 
-@app.route("/api/subscription-status")
-def get_subscription_status():
-    """Get detailed subscription status including grace period info"""
-    try:
-        if not is_logged_in():
-            return jsonify({"success": False, "error": "Authentication required"}), 401
-        
-        user_id = session.get('user_id')
-        if not user_id:
-            return jsonify({"success": False, "error": "User ID required"}), 401
-        
-        # Get subscription status with grace period info
-        from subscription_manager import get_grace_period_info, check_subscription_status
-        
-        subscription_status = check_subscription_status(user_id)
-        grace_info = get_grace_period_info(user_id)
-        
-        return jsonify({
-            "success": True,
-            "subscription": subscription_status,
-            "grace_period": grace_info
-        })
-        
-    except Exception as e:
-        logger.error(f"Error getting subscription status: {e}")
-        return jsonify({"success": False, "error": "Internal server error"}), 500
-
 # Trial status should return both ISO8601 *with 'Z'* and epoch ms.
 @app.route('/api/trial-status')
 def trial_status():
@@ -2247,36 +1957,6 @@ def trial_status():
                     if active:
                         expires_at_iso = expires_at.isoformat().replace("+00:00", "Z")
                         expires_at_ms = int(expires_at.timestamp() * 1000)
-                    else:
-                        # Trial has expired - mark as used permanently in database and session
-                        user_id = session.get('user_id')
-                        if user_id:
-                            try:
-                                database_url = os.environ.get('DATABASE_URL')
-                                if database_url:
-                                    import psycopg2
-                                    conn = psycopg2.connect(database_url)
-                                    cursor = conn.cursor()
-                                    cursor.execute("UPDATE users SET trial_active = 0, trial_used_permanently = 1 WHERE id = %s", (user_id,))
-                                    conn.commit()
-                                    conn.close()
-                                    logger.info(f"🔒 TRIAL EXPIRED: Marked trial as used permanently for user {user_id}")
-                                    
-                                    # Update session to reflect expiration
-                                    session['trial_active'] = False
-                                    session['trial_used_permanently'] = True
-                                    
-                                    # CRITICAL: Reset access flags when trial expires
-                                    user_plan = session.get('user_plan', 'free')
-                                    effective_plan = get_effective_plan(user_plan, False)  # trial_active = False
-                                    
-                                    session['access_trial'] = False
-                                    session['access_growth'] = effective_plan in ['growth', 'max']
-                                    session['access_max'] = effective_plan == 'max'
-                                    
-                                    session.modified = True
-                            except Exception as e:
-                                logger.error(f"Error marking expired trial as used: {e}")
                 except Exception as e2:
                     logger.error(f"Error calculating trial expiry: {e2}")
                     active = False
@@ -2284,8 +1964,7 @@ def trial_status():
             "logged_in": True,
             "active": active,
             "expires_at": expires_at_iso,
-            "expires_at_ms": expires_at_ms,
-            "trial_used_permanently": session.get('trial_used_permanently', False)
+            "expires_at_ms": expires_at_ms
         }), 200
     except Exception as e:
         logger.error(f"Error getting trial status (permanent fallback): {e}")
@@ -2358,7 +2037,6 @@ def accept_terms():
             except Exception as fallback_error:
                 logger.error(f"Even fallback update failed: {fallback_error}")
                 # If database update fails completely, still accept in session
-                pass
         
         conn.commit()
         conn.close()
@@ -2383,121 +2061,93 @@ def accept_terms():
 
 @app.route('/api/start-trial', methods=['POST'])
 def start_trial():
-    """Start 5-hour trial for FREE users only (one-time only to unlock premium features)"""
-    logger.info(f"🎯 TRIAL REQUEST: user_id={session.get('user_id')}, session_keys={list(session.keys())}")
-    
+    """Start 5-hour trial for user"""
     if not session.get('user_id'):
-        logger.error("🚨 TRIAL ERROR: No user_id in session")
         return jsonify({"success": False, "error": "Login required"}), 401
 
-    # ROADMAP: Trial is only for FREE users (Growth/Max don't need it)
-    user_plan = session.get('user_plan', 'free')
-    if user_plan != 'free':
-        return jsonify({
-            "success": False, 
-            "error": f"Trial is only available for free users. You already have {user_plan.title()} tier benefits!",
-            "redirect": "/tiers"
-        }), 403
+    db = get_database()
+    if not db:
+        return jsonify({"success": False, "error": "Database unavailable"}), 500
 
-    # Check if trial already used permanently
-    if session.get('trial_used_permanently'):
-        return jsonify({
-            "success": False, 
-            "error": "You have already used your one-time 5-hour trial. Upgrade to get permanent access to premium features!",
-            "redirect": "/plan-selection"
-        }), 403
+    conn = db.get_connection()
+    cursor = conn.cursor()
 
-    # Check if trial is currently active
-    if session.get('trial_active'):
-        return jsonify({
-            "success": False, 
-            "error": "Trial is already active!"
-        }), 400
+    user_id = session['user_id']
+    if db.use_postgres:
+        cursor.execute("SELECT trial_started_at, trial_used_permanently FROM users WHERE id = %s", (user_id,))
+    else:
+        cursor.execute("SELECT trial_started_at, trial_used_permanently FROM users WHERE id = ?", (user_id,))
 
+    row = cursor.fetchone()
+    if not row:
+        conn.close()
+        return jsonify({"success": False, "error": "User not found"}), 404
+
+    trial_started_at, trial_used = row
+    
+    # Allow restarting trial - removed "Trial already active" check for better user experience
+    
+    # Check if trial was already used
+    if trial_used:
+        conn.close()
+        return jsonify({"success": False, "error": "Trial already used"}), 400
+
+    # ALWAYS reset trial time to correct 5-hour duration
+    now = datetime.utcnow()
+    expires = now + timedelta(hours=TRIAL_DURATION_HOURS)
+    
+    # DEBUG: Log exact trial duration calculation
+    logger.info(f"🕒 TRIAL START DEBUG: TRIAL_DURATION_HOURS={TRIAL_DURATION_HOURS}")
+    logger.info(f"🕒 TRIAL START DEBUG: now={now}, expires={expires}")
+    logger.info(f"🕒 TRIAL START DEBUG: duration_seconds={(expires-now).total_seconds()}")
+
+    # Update database
     try:
-        database_url = os.environ.get('DATABASE_URL')
-        if not database_url:
-            return jsonify({"success": False, "error": "Database configuration unavailable"}), 500
-
-        import psycopg2
-        conn = psycopg2.connect(database_url)
-        cursor = conn.cursor()
-
-        user_id = session['user_id']
-        cursor.execute("SELECT trial_started_at, trial_used_permanently, trial_active FROM users WHERE id = %s", (user_id,))
-
-        row = cursor.fetchone()
-        if not row:
-            conn.close()
-            return jsonify({"success": False, "error": "User not found"}), 404
-
-        trial_started_at, trial_used, trial_active = row
+        if db.use_postgres:
+            cursor.execute("UPDATE users SET trial_started_at = %s, trial_expires_at = %s, trial_used_permanently = FALSE WHERE id = %s", (now, expires, user_id))
+        else:
+            cursor.execute("UPDATE users SET trial_started_at = ?, trial_expires_at = ?, trial_used_permanently = FALSE WHERE id = ?", (now.isoformat(), expires.isoformat(), user_id))
         
-        # Check if trial was already used permanently
-        if trial_used:
-            conn.close()
-            logger.warning(f"🚨 BLOCKED: User {user_id} tried to start trial but already used permanently")
-            return jsonify({"success": False, "error": "You have already used your one-time 5-hour trial"}), 400
-        
-        # Check if trial is currently active (shouldn't happen due to session check, but double-check)
-        if trial_active:
-            conn.close()
-            logger.warning(f"🚨 BLOCKED: User {user_id} tried to start trial but already active in database")
-            return jsonify({"success": False, "error": "Trial is already active"}), 400
-
-        # Start 5-hour trial
-        from datetime import datetime, timedelta
-        now = datetime.utcnow()
-        expires = now + timedelta(hours=5)
-        
-        logger.info(f"🎯 STARTING TRIAL: User {user_id} trial expires at {expires}")
-
-        # Update database - CRITICAL: Set trial_active = 1 (INTEGER) so it persists across sessions
-        cursor.execute("UPDATE users SET trial_started_at = %s, trial_expires_at = %s, trial_active = 1 WHERE id = %s", (now, expires, user_id))
         conn.commit()
         conn.close()
-
-        # Update session - CRITICAL: Set trial_active to True, don't mark as used permanently yet
-        session['trial_active'] = True
-        session['trial_started_at'] = now.isoformat()
-        session['trial_expires_at'] = expires.isoformat() + 'Z'
-        session['trial_used_permanently'] = False  # Only set to True when trial expires
-        session['trial_warning_sent'] = False
-        
-        # CRITICAL: Update access flags for companion unlocking during trial
-        user_plan = session.get('user_plan', 'free')
-        trial_active = True  # We just activated it
-        effective_plan = get_effective_plan(user_plan, trial_active)
-        
-        session['access_free'] = True  # Always have free access
-        session['access_trial'] = trial_active
-        session['access_growth'] = effective_plan in ['growth', 'max'] or trial_active
-        session['access_max'] = effective_plan == 'max' or trial_active
-        
-        session.modified = True
-
-        logger.info(f"🎯 Trial started for user {user_id} - expires at {expires}")
-        logger.info(f"🔑 Access flags updated: growth={session['access_growth']}, max={session['access_max']}, trial={session['access_trial']}")
-
-        return jsonify({
-            "success": True,
-            "message": "🔥 5-Hour Trial Activated! Growth + Max features unlocked + 60 trainer time!",
-            "expires_at": expires.isoformat(),
-            "effective_plan": 'max'
-        })
-        
     except Exception as e:
-        if 'conn' in locals():
-            conn.close()
-        logger.error(f"🚨 TRIAL ERROR: {type(e).__name__}: {str(e)}")
-        
-        # Provide more specific error messages
-        if "does not exist" in str(e):
-            return jsonify({"success": False, "error": f"Database schema error: {str(e)}"}), 500
-        elif "connect" in str(e).lower():
-            return jsonify({"success": False, "error": "Database connection failed"}), 500
-        else:
-            return jsonify({"success": False, "error": f"Trial error: {str(e)}"}), 500
+        conn.close()
+        logger.error(f"Database error starting trial: {e}")
+        return jsonify({"success": False, "error": "Database error"}), 500
+
+    # Update session - CRITICAL: Set trial_active to True, don't mark as used permanently yet
+    session['trial_active'] = True
+    session['trial_started_at'] = now.isoformat()
+    session['trial_expires_at'] = expires.isoformat() + 'Z'
+    session['trial_used_permanently'] = False  # Only set to True when trial expires
+    # Don't cache effective_plan - get_effective_plan() will return 'max' when trial_active=True
+    session['trial_warning_sent'] = False
+
+    # TIER ISOLATION: Re-initialize user for max tier when trial starts
+    from tier_isolation import tier_manager
+    user_plan = session.get('user_plan', 'free')
+    trial_active = True  # Trial is now active
+    
+    user_data = {
+        'user_id': user_id,
+        'user_email': session.get('user_email'),
+        'user_plan': user_plan,
+        'trial_active': trial_active
+    }
+    
+    # Get max tier for trial access
+    target_tier = tier_manager.get_user_tier(user_plan, trial_active)  # Should return 'max'
+    tier_manager.initialize_user_for_tier(user_data, target_tier)
+    logger.info(f"✨ TRIAL MODE: User re-initialized for {target_tier} tier access with {user_plan} limits")
+
+    logger.info(f"Trial started for user {user_id}")
+
+    return jsonify({
+        "success": True, 
+        "message": "🔥 5-Hour Trial Activated! Growth + Max companions unlocked!",
+        "expires_at": expires.isoformat(),
+        "effective_plan": 'max'
+    })
 
 # REMOVED: Duplicate debug_session_info function - using the more comprehensive one at /debug/session-info
 
@@ -2535,6 +2185,22 @@ def reset_to_free():
         return jsonify({"success": False, "error": "Authentication required"}), 401
     
     session['user_plan'] = 'free'
+    
+    # TIER ISOLATION: Re-initialize user for free tier
+    from tier_isolation import tier_manager
+    user_id = session.get('user_id')
+    trial_active = session.get('trial_active', False)
+    
+    if user_id:
+        user_data = {
+            'user_id': user_id,
+            'user_email': session.get('user_email'),
+            'user_plan': 'free',
+            'trial_active': trial_active
+        }
+        target_tier = tier_manager.get_user_tier('free', trial_active)
+        tier_manager.initialize_user_for_tier(user_data, target_tier)
+        logger.info(f"🔒 DEBUG RESET: User re-initialized for {target_tier} tier (free plan)")
     
     return jsonify({
         "success": True,
@@ -2610,6 +2276,22 @@ def upgrade_to_growth():
     
     session['user_plan'] = 'growth'  # Growth plan in backend
     
+    # TIER ISOLATION: Re-initialize user for growth tier
+    from tier_isolation import tier_manager
+    user_id = session.get('user_id')
+    trial_active = session.get('trial_active', False)
+    
+    if user_id:
+        user_data = {
+            'user_id': user_id,
+            'user_email': session.get('user_email'),
+            'user_plan': 'growth',
+            'trial_active': trial_active
+        }
+        target_tier = tier_manager.get_user_tier('growth', trial_active)
+        tier_manager.initialize_user_for_tier(user_data, target_tier)
+        logger.info(f"🔒 DEBUG UPGRADE: User re-initialized for {target_tier} tier (growth plan)")
+    
     return jsonify({
         "success": True,
         "message": "User upgraded to Growth plan",
@@ -2624,6 +2306,22 @@ def upgrade_to_max():
         return jsonify({"success": False, "error": "Authentication required"}), 401
     
     session['user_plan'] = 'max'  # Max plan in backend
+    
+    # TIER ISOLATION: Re-initialize user for max tier
+    from tier_isolation import tier_manager
+    user_id = session.get('user_id')
+    trial_active = session.get('trial_active', False)
+    
+    if user_id:
+        user_data = {
+            'user_id': user_id,
+            'user_email': session.get('user_email'),
+            'user_plan': 'max',
+            'trial_active': trial_active
+        }
+        target_tier = tier_manager.get_user_tier('max', trial_active)
+        tier_manager.initialize_user_for_tier(user_data, target_tier)
+        logger.info(f"🔒 DEBUG UPGRADE: User re-initialized for {target_tier} tier (max plan)")
     
     return jsonify({
         "success": True,
@@ -2845,7 +2543,8 @@ def admin_init_database():
             cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS terms_version TEXT DEFAULT 'v1.0'")
             cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS terms_language TEXT DEFAULT 'en'")
         except:
-            pass  # Columns might already exist
+            # Columns might already exist
+            pass
         
         # Create companions table
         cursor.execute("""
@@ -3105,6 +2804,7 @@ def auth_register():
                         "redirect": "/terms-acceptance"
                     })
         except:
+            # Registration fallback failed
             pass
             
         return jsonify({"success": False, "error": "Registration failed. Please try again."}), 500
@@ -3158,11 +2858,7 @@ def intro():
         logger.info(f"✅ INTRO: trial_active={trial_active}, effective_plan={effective_plan}, access_growth={session['access_growth']}, access_max={session['access_max']}")
         logger.info(f"Access flags: free={session['access_free']}, growth={session['access_growth']}, max={session['access_max']}, trial={session['access_trial']}")
         
-        # Trial system allows free users to have 5-hour trials - no need to clear
-        
-        return render_template("intro.html", 
-                                ad_free=is_user_ad_free(),
-                                user_plan=user_plan)
+        return render_template("intro.html")
     except Exception as e:
         logger.error(f"❌ INTRO ERROR: {e}")
         import traceback
@@ -3224,12 +2920,8 @@ def companion_selection():
     # DEBUG: Log template variables to identify flash cause
     logger.info(f"🎨 TEMPLATE DEBUG: referral_count={referral_count}, trial_active={trial_active}, user_plan={user_plan}")
     
-    # Return proper companion selector with all necessary variables
-    return render_template("companion_selector.html", 
-                         user_plan=user_plan,
-                         trial_active=trial_active,
-                         referral_count=referral_count,
-                         session=session)
+    # Use ultra-minimal template to eliminate ALL potential flash sources
+    return render_template("companion_minimal.html")
 
 # ---- CLEAN NETFLIX-STYLE TIERS PAGE ----
 @app.route("/tiers")
@@ -3306,109 +2998,17 @@ def tiers_page():
                                 growth_list=growth_companions,
                                 max_list=max_companions,
                                 referral_milestones=referral_milestones,
-                                referral_count=referral_count,
-                                cache_bust="20250815_2240")
-
-@app.route("/test-companions")
-def test_companions():
-    """Test page for companion clicking with fresh JavaScript"""
-    if not is_logged_in():
-        return redirect("/login")
-    
-    user_plan = session.get('user_plan', 'free')
-    trial_active = session.get('trial_active', False)
-    
-    return f"""<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Test Companions</title>
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    <style>
-        body {{ background: #111; color: #fff; font-family: Arial; padding: 20px; }}
-        .companion {{ background: #333; padding: 15px; margin: 10px; border-radius: 8px; cursor: pointer; }}
-        .companion:hover {{ background: #555; }}
-    </style>
-</head>
-<body>
-    <h1>Test Companion Clicking</h1>
-    <p>User Plan: {user_plan}</p>
-    <p>Trial Active: {trial_active}</p>
-    
-    <div class="companion" onclick="testOpenChat('blayzo_free')">Blayzo Free (Should work)</div>
-    <div class="companion" onclick="testOpenChat('blayzo_premium')">Blayzo Premium (TEST)</div>
-    <div class="companion" onclick="testOpenChat('companion_crimson')">Companion Crimson (TEST)</div>
-    
-    <script>
-        console.log('🔧 TEST PAGE: Script loaded fresh - no cache');
-        console.log('👤 User plan: {user_plan}');
-        console.log('🔍 Trial active: {trial_active}');
-        
-        function testOpenChat(slug) {{
-            console.log('🔧 testOpenChat called with:', slug);
-            
-            const userPlan = '{user_plan}';
-            const trialActive = {str(trial_active).lower()};
-            
-            // Define tier requirements
-            const companionTiers = {{
-                'blayzo_free': ['free'],
-                'blayzo_premium': ['growth', 'max'],
-                'companion_crimson': ['max']
-            }};
-            
-            const requiredTiers = companionTiers[slug] || ['free'];
-            console.log('🔍 Required tiers:', requiredTiers);
-            
-            // Check access
-            if (requiredTiers.includes(userPlan)) {{
-                console.log('✅ Access granted via subscription');
-                navigateToChat(slug);
-            }} else if (trialActive) {{
-                console.log('✅ Access granted via active trial');
-                navigateToChat(slug);
-            }} else {{
-                console.log('❌ No access');
-                alert('Need ' + requiredTiers.join(' or ') + ' plan or active trial!');
-            }}
-        }}
-        
-        function navigateToChat(slug) {{
-            console.log('🚀 Navigating to chat with:', slug);
-            window.location.href = '/chat?companion=' + encodeURIComponent(slug);
-        }}
-    </script>
-</body>
-</html>"""
-
-@app.get("/chat/<slug>")
-def chat_with_slug(slug):
-    """Chat route with companion slug - bulletproof access control"""
-    if not current_user_id():
-        return ("Unauthorized", 401)
-    if not is_unlocked(slug):
-        return ("Forbidden", 403)
-    
-    # Check if user has accepted terms
-    terms_check = requires_terms_acceptance()
-    if terms_check:
-        return terms_check
-    
-    # Set companion in session for the chat template
-    session['selected_companion'] = slug
-    
-    # Redirect to the main chat page which will pick up the selected companion
-    return redirect("/chat")
+                                referral_count=referral_count)
 
 @app.route("/chat")
 def chat():
-    """Main chat page with bulletproof tier system"""
+    """Chat page with bulletproof tier system"""
     if not is_logged_in():
-        # Return 401 instead of redirect to prevent refresh loops
-        return jsonify({"error": "Authentication required", "redirect": "/login"}), 401
-    
+        companion = request.args.get('companion')
+        if companion:
+            return redirect(f"/login?return_to=chat&companion={companion}")
+        return redirect("/login?return_to=chat")
+        
     # Check if user has accepted terms
     terms_check = requires_terms_acceptance()
     if terms_check:
@@ -3620,16 +3220,13 @@ def chat():
     if "gamerjay" in companion_name.lower():
         logger.info(f"🔍 GAMERJAY DEBUG: Original companion_id={request.args.get('companion')}, Final companion_name={companion_name}, Avatar path={companion_info['avatar']}")
     
-    # Trial system allows free users to have 5-hour trials - no need to clear
-    
     return render_template("chat.html",
         companion=companion_name,
         companion_display_name=companion_info['name'],
         companion_avatar=companion_info['avatar'],
         user_plan=user_plan,
         trial_active=trial_active, 
-        effective_plan=effective_plan,
-        ad_free=is_user_ad_free()
+        effective_plan=effective_plan
     )
 
 # REMOVED: api_companions_old_disabled function - was a disabled/deprecated companions API endpoint
@@ -3846,7 +3443,8 @@ def profile():
             session['email'] = 'user@soulbridgeai.com'
         if not session.get('display_name') and not session.get('user_name'):
             session['display_name'] = 'SoulBridge User'
-        # NOTE: DO NOT set session['user_plan'] here - this breaks tier isolation system
+        if not session.get('user_plan'):
+            session['user_plan'] = 'free'
         
         # Update last activity
         session['last_activity'] = datetime.now().isoformat()
@@ -3872,6 +3470,7 @@ def profile():
                                 cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_image TEXT")
                                 cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_image_data TEXT")
                         except:
+                            # Columns might already exist
                             pass
                         
                         cursor.execute(f"SELECT profile_image, profile_picture_url, profile_image_data FROM users WHERE id = {placeholder}", (user_id,))
@@ -3960,10 +3559,7 @@ def decoder():
         # Get user's plan and decoder usage
         user_id = session.get('user_id')
         user_plan = session.get('user_plan', 'free')
-        
-        # Use database tracking instead of session tracking
-        from unified_tier_system import get_feature_usage_today
-        decoder_usage = get_feature_usage_today(user_id, "decoder")
+        decoder_usage = get_decoder_usage()
         
         # Use session values set by @app.before_request (more efficient)
         effective_plan = session.get('effective_plan', 'free')
@@ -3978,14 +3574,10 @@ def decoder():
         logger.info(f"🔍 DECODER DEBUG: daily_limit = {daily_limit}")
         logger.info(f"🔍 DECODER DEBUG: decoder_usage = {decoder_usage}")
         
-        # Check if user has ad-free subscription
-        ad_free = is_user_ad_free()
-        
         return render_template("decoder.html", 
                              user_plan=effective_plan,  # Show effective access tier
                              daily_limit=daily_limit,   # But use subscription limits
-                             current_usage=decoder_usage,
-                             ad_free=ad_free)
+                             current_usage=decoder_usage)
     except Exception as e:
         logger.error(f"Decoder template error: {e}")
         return jsonify({"error": "Decoder temporarily unavailable"}), 500
@@ -4000,17 +3592,14 @@ def fortune():
         # Get user's plan and fortune usage
         user_id = session.get('user_id')
         user_plan = session.get('user_plan', 'free')
-        
-        # Use database tracking instead of session tracking
-        from unified_tier_system import get_feature_usage_today
-        fortune_usage = get_feature_usage_today(user_id, "fortune")
+        fortune_usage = get_fortune_usage()
         
         # Use session values set by @app.before_request (more efficient)
         effective_plan = session.get('effective_plan', 'free')
         trial_active = session.get('trial_active', False)
         
-        # TRIAL DESIGN: Use user_plan for limits (trial doesn't change limits)
-        daily_limit = get_feature_limit(user_plan, 'fortune')  # Limits based on actual plan
+        # FIXED: Use user_plan for limits, effective_plan for feature access
+        daily_limit = get_feature_limit(user_plan, 'fortune')  # Limits based on subscription
         
         # DEBUG: Log fortune access info
         logger.info(f"🔮 FORTUNE DEBUG: user_plan = {user_plan}")
@@ -4018,14 +3607,10 @@ def fortune():
         logger.info(f"🔮 FORTUNE DEBUG: daily_limit = {daily_limit}")
         logger.info(f"🔮 FORTUNE DEBUG: fortune_usage = {fortune_usage}")
         
-        # Check if user has ad-free subscription
-        ad_free = is_user_ad_free()
-        
         return render_template("fortune.html", 
                              user_plan=effective_plan,  # Show effective access tier
                              daily_limit=daily_limit,   # But use subscription limits
-                             current_usage=fortune_usage,
-                             ad_free=ad_free)
+                             current_usage=fortune_usage)
     except Exception as e:
         logger.error(f"Fortune template error: {e}")
         return jsonify({"error": "Fortune teller temporarily unavailable"}), 500
@@ -4040,17 +3625,14 @@ def horoscope():
         # Get user's plan and horoscope usage
         user_id = session.get('user_id')
         user_plan = session.get('user_plan', 'free')
-        
-        # Use database tracking instead of session tracking
-        from unified_tier_system import get_feature_usage_today
-        horoscope_usage = get_feature_usage_today(user_id, "horoscope")
+        horoscope_usage = get_horoscope_usage()
         
         # Use session values set by @app.before_request (more efficient)
         effective_plan = session.get('effective_plan', 'free')
         trial_active = session.get('trial_active', False)
         
-        # TRIAL DESIGN: Use user_plan for limits (trial doesn't change limits)
-        daily_limit = get_feature_limit(user_plan, 'horoscope')  # Limits based on actual plan
+        # FIXED: Use user_plan for limits, effective_plan for feature access
+        daily_limit = get_feature_limit(user_plan, 'horoscope')  # Limits based on subscription
         
         # DEBUG: Log horoscope access info
         logger.info(f"⭐ HOROSCOPE DEBUG: user_plan = {user_plan}")
@@ -4058,14 +3640,10 @@ def horoscope():
         logger.info(f"⭐ HOROSCOPE DEBUG: daily_limit = {daily_limit}")
         logger.info(f"⭐ HOROSCOPE DEBUG: horoscope_usage = {horoscope_usage}")
         
-        # Check if user has ad-free subscription
-        ad_free = is_user_ad_free()
-        
         return render_template("horoscope.html", 
                              user_plan=effective_plan,
                              daily_limit=daily_limit,
-                             current_usage=horoscope_usage,
-                             ad_free=ad_free)
+                             current_usage=horoscope_usage)
     except Exception as e:
         logger.error(f"Horoscope template error: {e}")
         return jsonify({"error": "Horoscope temporarily unavailable"}), 500
@@ -4096,38 +3674,6 @@ def help_page():
                 <li>Access your profile and settings from the top menu</li>
             </ul>
             <a href="/" style="color: #22d3ee;">← Back to Chat</a>
-        </body></html>
-        """
-
-@app.route("/about")
-def about_page():
-    """About us page"""
-    try:
-        return render_template("about.html")
-    except Exception as e:
-        logger.error(f"About page error: {e}")
-        return """
-        <html><head><title>About Us - SoulBridge AI</title></head>
-        <body style="font-family: Arial; padding: 20px; background: #0f172a; color: #e2e8f0;">
-            <h1 style="color: #22d3ee;">About SoulBridge AI</h1>
-            <p>SoulBridge AI is your personal AI companion for emotional support and meaningful conversations.</p>
-            <a href="/" style="color: #22d3ee;">← Back to Home</a>
-        </body></html>
-        """
-
-@app.route("/contact")
-def contact_page():
-    """Contact us page"""
-    try:
-        return render_template("contact.html")
-    except Exception as e:
-        logger.error(f"Contact page error: {e}")
-        return """
-        <html><head><title>Contact Us - SoulBridge AI</title></head>
-        <body style="font-family: Arial; padding: 20px; background: #0f172a; color: #e2e8f0;">
-            <h1 style="color: #22d3ee;">Contact Us</h1>
-            <p>Email us at support@soulbridgeai.com for help with your account or questions.</p>
-            <a href="/" style="color: #22d3ee;">← Back to Home</a>
         </body></html>
         """
 
@@ -6299,10 +5845,9 @@ def select_plan():
         raw_plan = data.get("plan_type", "").lower()
         billing = data.get("billing", "monthly")
         
-        # ✅ Bulletproof plan normalization - Accept Ad-Free/Growth/Max for manual selection
+        # ✅ Bulletproof plan normalization - ONLY accept Growth/Max for manual selection
         # Free tier is assigned automatically during signup, not selectable
         plan_map = {
-            'ad_free': 'ad_free',
             'growth': 'growth',
             'premium': 'growth',
             'max': 'max',
@@ -6316,14 +5861,7 @@ def select_plan():
         
         logger.info(f"Plan normalization: '{raw_plan}' → '{normalized_plan}'")
         
-        # Use tier isolation system instead of direct session manipulation
-        user_data = {
-            'user_id': session.get('user_id'),
-            'user_email': session.get('user_email'),
-            'user_plan': normalized_plan
-        }
-        tier_manager.initialize_user_for_tier(user_data, normalized_plan)
-        
+        session["user_plan"] = normalized_plan
         session["plan_selected_at"] = time.time()
         session["first_time_user"] = False
         # Session expires when browser closes
@@ -6445,20 +5983,18 @@ def payment_page():
         if plan not in VALID_PLANS or plan == "foundation":
             return redirect("/subscription")
             
-        plan_names = {"ad_free": "Ad-Free", "growth": "Growth", "max": "Max"}
+        plan_names = {"growth": "Growth", "max": "Max"}
         plan_display = plan_names.get(plan, plan.title())
         
         # Prices in cents - Updated for accurate yearly pricing
         plan_prices = {
             "monthly": {
-                "ad_free": 500,    # $5.00/month
-                "premium": 1299,   # $12.99/month
-                "enterprise": 1999 # $19.99/month
+                "premium": 1299,  # $12.99/month
+                "enterprise": 1999  # $19.99/month
             },
             "yearly": {
-                "ad_free": 5000,   # $50/year (17% savings from $60)
                 "premium": 11700,  # $117/year (25% savings from $155.88)
-                "enterprise": 18000 # $180/year (25% savings from $239.88)
+                "enterprise": 18000  # $180/year (25% savings from $239.88)
             }
         }
         
@@ -6491,8 +6027,8 @@ def create_checkout_session():
         plan_type = data.get("plan_type")
         billing = data.get("billing", "monthly")
         
-        # Accept both old and new plan names for payment including ad_free
-        valid_plans = ["ad_free", "premium", "enterprise", "growth", "max"]
+        # Accept both old and new plan names for payment
+        valid_plans = ["premium", "enterprise", "growth", "max"]
         if plan_type not in valid_plans:
             return jsonify({"success": False, "error": "Invalid plan type"}), 400
         
@@ -6520,18 +6056,15 @@ def create_checkout_session():
         
         # Plan details (use normalized plan names)
         plan_names = {
-            "ad_free": "Ad-Free Plan",
             "premium": "Growth Plan", "growth": "Growth Plan",
             "enterprise": "Max Plan", "max": "Max Plan"
         }
         plan_prices = {
             "monthly": {
-                "ad_free": 500,     # $5.00/month
                 "premium": 1299, "growth": 1299,  # $12.99/month
                 "enterprise": 1999, "max": 1999  # $19.99/month
             },
             "yearly": {
-                "ad_free": 5000,    # $50/year (17% savings)
                 "premium": 11700, "growth": 11700,  # $117/year (25% savings)
                 "enterprise": 18000, "max": 18000  # $180/year (25% savings)
             }
@@ -7511,10 +7044,11 @@ def get_effective_plan(user_plan: str, trial_active: bool) -> str:
         logger.warning(f"⚠️ Unknown plan '{user_plan}' defaulting to 'free'")
         user_plan = 'free'
     
-    # TRIAL DESIGN: Trial unlocks ACCESS but keeps original LIMITS
-    # Free users with trial can access Growth/Max companions but keep free tier limits
-    # This lets them "taste" the companions without false hope about limits
-    return user_plan  # Always return actual plan - trial only affects companion access
+    # TRIAL DOES NOT CHANGE ACCESS LEVEL
+    # Trial is just a time-limited experience of whatever plan the user already has
+    # Free users with trial active = still free tier (just time-limited)
+    # No feature upgrades during trial - trial is purely a time constraint
+    return user_plan  # Always return the user's actual plan tier
 
 def get_feature_limit_v2(effective_plan: str, feature: str) -> int:
     """
@@ -8000,37 +7534,47 @@ def check_decoder_limit():
     if not user_id:
         return jsonify({"success": False, "error": "Not logged in"})
     
-    # Use tier isolation system instead of direct session manipulation
+    # Debug: Log full session contents
+    logger.info(f"🔍 DECODER API SESSION DEBUG: user_id={user_id}")
+    logger.info(f"🔍 Full session contents: {dict(session)}")
+    
+    # Always calculate effective_plan fresh instead of reading cached values
+    user_plan = session.get("user_plan", "free") 
+    trial_active = session.get("trial_active", False)
+    
+    # Fallback: If session values are missing, force update them
+    if user_plan is None or trial_active is None:
+        logger.warning(f"⚠️ MISSING SESSION VALUES - forcing update")
+        try:
+            trial_check = is_trial_active(user_id)
+            session['trial_active'] = trial_check
+            
+            real_plan = session.get('user_plan') or get_user_plan() or 'free'
+            plan_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
+            mapped_plan = plan_mapping.get(real_plan, real_plan or 'free')
+            
+            session['user_plan'] = mapped_plan
+            
+            # Update local variables
+            user_plan = session['user_plan']
+            trial_active = session['trial_active']
+        except Exception as e:
+            logger.error(f"❌ Failed to update session: {e}")
+            user_plan = "free"
+            trial_active = False
+    
+    # TIER ISOLATION: Use tier-specific limits instead of old approach
     current_tier = get_current_user_tier()
     tier_system = get_current_tier_system()
-    tier_data = tier_system.get_session_data()
-    
-    # Get original user plan and trial status from tier data
-    user_plan = tier_data.get('user_plan', 'free')
-    trial_active = session.get('trial_active', False)
-    
-    logger.info(f"🔒 DECODER API: user_id={user_id}, tier={current_tier}, user_plan={user_plan}, trial_active={trial_active}")
-    
-    # Handle cases where tier data might be empty (user needs to re-login)
-    if not tier_data or not tier_data.get('user_id'):
-        logger.warning(f"⚠️ EMPTY TIER DATA - user may need to re-login")
-        # Fallback to free tier with basic limits
-        user_plan = "free"
-        trial_active = False
     
     # Calculate effective_plan fresh each time
     effective_plan = get_effective_plan(user_plan, trial_active)
     
-    # ROADMAP COMPLIANCE: Use user_plan for limits, trial_active only affects ACCESS not LIMITS
-    # Growth/Max users get their tier limits, Free users (including trial) get free limits
-    # Import unified tier system function directly to avoid confusion with app.py wrapper
-    from unified_tier_system import get_feature_limit as unified_get_feature_limit
-    daily_limit = unified_get_feature_limit(user_plan, "decoder", False)  # trial_active=False for limits calculation
+    # Get tier-specific limit
+    daily_limit = tier_system.get_feature_limit("decoder")
     
     logger.info(f"🔒 TIER ISOLATION: user_plan={user_plan}, tier={current_tier}, effective_plan={effective_plan}, trial_active={trial_active}, limit={daily_limit}")
-    # Use database tracking instead of session tracking
-    from unified_tier_system import get_feature_usage_today
-    usage_today = get_feature_usage_today(user_id, "decoder")
+    usage_today = get_decoder_usage()
     
     # Check if trial should be active by calling is_trial_active directly
     direct_trial_check = is_trial_active(user_id)
@@ -8054,20 +7598,17 @@ def check_fortune_limit():
     if not user_id:
         return jsonify({"success": False, "error": "Not logged in"})
     
-    # Use tier isolation system instead of direct session manipulation
+    # TIER ISOLATION: Use tier-specific limits instead of cached session values
     current_tier = get_current_user_tier()
     tier_system = get_current_tier_system()
     tier_data = tier_system.get_session_data()
     
-    # Get original user plan and trial status from tier data
-    user_plan = tier_data.get('user_plan', 'free')
-    trial_active = session.get('trial_active', False)
+    user_plan = session.get("user_plan", "free")  # Original plan for display
+    trial_active = session.get("trial_active", False)
     effective_plan = get_effective_plan(user_plan, trial_active)
     
-    # ROADMAP COMPLIANCE: Use user_plan for limits, trial_active only affects ACCESS not LIMITS
-    # Import unified tier system function directly to avoid confusion
-    from unified_tier_system import get_feature_limit as unified_get_feature_limit
-    daily_limit = unified_get_feature_limit(user_plan, "fortune", False)  # trial_active=False for limits calculation
+    # Get tier-specific limit
+    daily_limit = tier_system.get_feature_limit("fortune")
     usage_today = get_fortune_usage()
 
     return jsonify({
@@ -8085,20 +7626,17 @@ def check_horoscope_limit():
     if not user_id:
         return jsonify({"success": False, "error": "Not logged in"})
 
-    # Use tier isolation system instead of direct session manipulation
+    # TIER ISOLATION: Use tier-specific limits instead of cached session values
     current_tier = get_current_user_tier()
     tier_system = get_current_tier_system()
     tier_data = tier_system.get_session_data()
     
-    # Get original user plan and trial status from tier data
-    user_plan = tier_data.get('user_plan', 'free')
-    trial_active = session.get('trial_active', False)
+    user_plan = session.get("user_plan", "free")  # Original plan for display
+    trial_active = session.get("trial_active", False)
     effective_plan = get_effective_plan(user_plan, trial_active)
     
-    # ROADMAP COMPLIANCE: Use user_plan for limits, trial_active only affects ACCESS not LIMITS
-    # Import unified tier system function directly to avoid confusion
-    from unified_tier_system import get_feature_limit as unified_get_feature_limit
-    daily_limit = unified_get_feature_limit(user_plan, "horoscope", False)  # trial_active=False for limits calculation
+    # Get tier-specific limit
+    daily_limit = tier_system.get_feature_limit("horoscope")
     usage_today = get_horoscope_usage()
 
     return jsonify({
@@ -8116,26 +7654,24 @@ def check_horoscope_limit():
 
 @app.route("/api/user-plan")
 def get_user_plan_api():
-    """Get user plan, trial status, and ad-free status for frontend API"""
+    """Get user plan and trial status for frontend API"""
     try:
         if not is_logged_in():
-            return jsonify({"plan": "free", "trial_active": False, "ad_free": False})
+            return jsonify({"plan": "free", "trial_active": False})
         
         user_id = session.get('user_id')
+        user_plan = session.get('user_plan', 'free')
         
-        # Use tier isolation system instead of direct session access
-        user_plan = get_user_plan_safe()
+        # Map old plan names to new consistent naming
+        plan_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
+        user_plan = plan_mapping.get(user_plan, user_plan)
         
         # Use session values set by @app.before_request 
         trial_active = session.get('trial_active', False)
         
-        # Get ad-free status
-        ad_free = is_user_ad_free()
-        
         return jsonify({
             "success": True,
             "plan": user_plan,
-            "ad_free": ad_free,
             "trial_active": trial_active
         })
         
@@ -8165,12 +7701,12 @@ def api_plan_new():
         effective_plan = get_effective_plan_new(user_plan, trial_active)
         access = get_access_matrix_new(user_plan, trial_active)
         
-        # TRIAL DESIGN: Use user_plan for limits (trial doesn't change limits)
-        # Trial unlocks companion access but keeps original plan limits
+        # FIXED: Use actual user_plan for limits, not effective_plan
+        # Trial gives access to features but keeps original plan limits
         limits = {
-            "decoder": get_feature_limit(user_plan, "decoder", False),
-            "fortune": get_feature_limit(user_plan, "fortune", False),
-            "horoscope": get_feature_limit(user_plan, "horoscope", False),
+            "decoder": get_feature_limit(user_plan, "decoder"),
+            "fortune": get_feature_limit(user_plan, "fortune"),
+            "horoscope": get_feature_limit(user_plan, "horoscope"),
         }
         
         return jsonify({
@@ -8266,25 +7802,10 @@ def api_companions():
 
 @app.route("/start-trial", methods=["POST"])
 def start_trial_bulletproof():
-    """Bulletproof trial start - for ALL users (one-time only)"""
+    """Bulletproof trial start - only visibility changes"""
     try:
         if not is_logged_in():
             return jsonify({"ok": False, "error": "Authentication required"}), 401
-        
-        # Check if trial already used permanently
-        if session.get('trial_used_permanently'):
-            return jsonify({
-                "ok": False, 
-                "error": "You have already used your one-time 5-hour trial. Upgrade to get permanent access to premium features!",
-                "redirect": "/plan-selection"
-            }), 403
-
-        # Check if trial is currently active
-        if session.get('trial_active'):
-            return jsonify({
-                "ok": False, 
-                "error": "Trial is already active!"
-            }), 400
         
         if session.get("trial_used_permanently"):
             return jsonify({"ok": False, "error": "Trial already used"}), 400
@@ -8354,9 +7875,27 @@ def poll_trial_bulletproof():
                 session["trial_active"] = False
                 session["trial_used_permanently"] = True
                 
+                # TIER ISOLATION: Re-initialize user back to their original tier when trial expires
+                from tier_isolation import tier_manager
+                user_id = session.get('user_id')
+                user_plan = session.get('user_plan', 'free')
+                trial_active = False  # Trial has expired
+                
+                if user_id:
+                    user_data = {
+                        'user_id': user_id,
+                        'user_email': session.get('user_email'),
+                        'user_plan': user_plan,
+                        'trial_active': trial_active
+                    }
+                    
+                    # Get original tier (no more max access)
+                    target_tier = tier_manager.get_user_tier(user_plan, trial_active)
+                    tier_manager.initialize_user_for_tier(user_data, target_tier)
+                    logger.info(f"🔒 TRIAL EXPIRED: User re-initialized for {target_tier} tier (back to {user_plan} plan)")
+                
                 # Update database
                 try:
-                    user_id = session.get('user_id')
                     if user_id:
                         db_instance = get_database()
                         if db_instance:
@@ -8383,7 +7922,38 @@ def poll_trial_bulletproof():
 # BULLETPROOF MINI STUDIO GATE
 # ============================================
 
-# Removed duplicate mini-studio route - using the cleaner implementation below
+@app.route("/mini-studio")
+def mini_studio_bulletproof():
+    """Hard-gated Mini Studio - Max tier only"""
+    try:
+        if not is_logged_in():
+            return redirect("/login?return_to=mini-studio")
+        
+        # Hard gate: Only Max users can access
+        if not require_max_for_mini_studio_new():
+            flash("Mini Studio is exclusive to Max tier subscribers", "error")
+            return redirect("/tiers?upgrade=max")
+        
+        # Get user data for display
+        user_email = session.get('user_email', 'Unknown')
+        user_plan = session.get('user_plan', 'free')
+        trial_active = session.get('trial_active', False)
+        user_id = session.get('user_id')
+        
+        # Get current credits
+        from unified_tier_system import get_user_credits
+        current_credits = get_user_credits(user_id) if user_id else 0
+        
+        # Render Mini Studio page with user data
+        return render_template("mini_studio.html", 
+                             user_email=user_email,
+                             user_plan=user_plan,
+                             trial_active=trial_active,
+                             current_credits=current_credits)
+    
+    except Exception as e:
+        logger.error(f"Mini Studio access error: {e}")
+        return redirect("/tiers")
 
 # ============================================
 # END BULLETPROOF API ENDPOINTS  
@@ -8551,138 +8121,23 @@ def debug_session_info():
         "fresh_trial_check": fresh_trial_check,
         "database_trial_data": database_trial_data,
         "session_trial_active": session.get('trial_active'),
-        "session_user_plan": get_user_plan_safe(),
+        "session_user_plan": session.get('user_plan'),
         "session_effective_plan": session.get('effective_plan'),
-        "decoder_limit": get_feature_limit(get_user_plan_safe(), 'decoder'),
-        "fortune_limit": get_feature_limit(get_user_plan_safe(), 'fortune'),
-        "horoscope_limit": get_feature_limit(get_user_plan_safe(), 'horoscope')
+        "decoder_limit": get_feature_limit(session.get('user_plan', 'free'), 'decoder'),
+        "fortune_limit": get_feature_limit(session.get('user_plan', 'free'), 'fortune'),
+        "horoscope_limit": get_feature_limit(session.get('user_plan', 'free'), 'horoscope')
     })
 
 @app.route("/debug/state", methods=["GET"])
 def debug_state():
     """Debug endpoint to see current tier isolation state"""
-    current_tier = get_current_user_tier()
-    tier_system = get_current_tier_system()
-    tier_data = tier_system.get_session_data()
-    
-    # Check database data for current user
-    db_data = None
-    try:
-        user_id = session.get('user_id')
-        user_email = session.get('user_email', session.get('email'))
-        if user_id and user_email:
-            db_instance = get_database()
-            if db_instance:
-                conn = db_instance.get_connection()
-                cursor = conn.cursor()
-                if db_instance.use_postgres:
-                    cursor.execute("SELECT user_plan, plan_type, trial_active FROM users WHERE id = %s OR email = %s", (user_id, user_email))
-                else:
-                    cursor.execute("SELECT user_plan, plan_type, trial_active FROM users WHERE id = ? OR email = ?", (user_id, user_email))
-                result = cursor.fetchone()
-                conn.close()
-                if result:
-                    db_data = {
-                        "user_plan": result[0],
-                        "plan_type": result[1], 
-                        "trial_active": result[2]
-                    }
-    except Exception as e:
-        db_data = {"error": str(e)}
-    
     return jsonify({
-        "user_plan": get_user_plan_safe(),
-        "current_tier": current_tier,
-        "tier_data_exists": bool(tier_data and tier_data.get('user_id')),
-        "tier_data": tier_data,
+        "user_plan": session.get("user_plan"),
         "trial_active": session.get("trial_active"),
         "effective_plan": session.get("effective_plan"),
         "user_id": session.get("user_id"),
-        "is_logged_in": bool(session.get("user_id")),
-        "database_data": db_data,
-        "all_session_keys": list(session.keys())
+        "is_logged_in": bool(session.get("user_id"))
     })
-
-@app.route("/api/fix-tier-isolation", methods=["POST"])
-def fix_tier_isolation():
-    """Force re-initialize tier isolation for current user without logout"""
-    try:
-        if not session.get('user_id'):
-            return jsonify({"success": False, "error": "Not logged in"})
-        
-        # Get user info from database to properly initialize tiers
-        user_id = session.get('user_id')
-        user_email = session.get('user_email', session.get('email'))
-        
-        # Try to get user plan from database
-        try:
-            db_instance = get_database()
-            if db_instance:
-                conn = db_instance.get_connection()
-                cursor = conn.cursor()
-                if db_instance.use_postgres:
-                    cursor.execute("SELECT user_plan, plan_type, trial_active FROM users WHERE id = %s OR email = %s", (user_id, user_email))
-                else:
-                    cursor.execute("SELECT user_plan, plan_type, trial_active FROM users WHERE id = ? OR email = ?", (user_id, user_email))
-                result = cursor.fetchone()
-                conn.close()
-                
-                if result:
-                    raw_user_plan = result[0] or 'free'
-                    raw_plan_type = result[1] or 'free'
-                    # Use the more specific plan value - prefer user_plan over plan_type if different
-                    actual_plan = raw_user_plan if raw_user_plan != 'free' else raw_plan_type
-                    plan_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
-                    db_user_plan = plan_mapping.get(actual_plan, actual_plan)
-                    trial_active = bool(result[2]) if result[2] is not None else False
-                    logger.info(f"🔧 TIER FIX DB LOOKUP: raw_user_plan={raw_user_plan}, raw_plan_type={raw_plan_type}, actual_plan={actual_plan}, final_plan={db_user_plan}")
-                else:
-                    db_user_plan = 'free'
-                    trial_active = False
-            else:
-                db_user_plan = 'free'
-                trial_active = False
-        except Exception as db_error:
-            logger.warning(f"Database lookup failed in tier fix: {db_error}")
-            db_user_plan = 'free'
-            trial_active = False
-        
-        # Update session trial status
-        session['trial_active'] = trial_active
-        
-        # Determine tier for initialization
-        effective_tier = tier_manager.get_user_tier(db_user_plan, trial_active)
-        
-        # Re-initialize user with proper tier
-        user_data = {
-            'user_id': user_id,
-            'user_email': user_email,
-            'user_plan': db_user_plan,
-            'trial_active': trial_active
-        }
-        tier_manager.initialize_user_for_tier(user_data, effective_tier)
-        
-        # Clear any old contaminated session keys
-        old_keys = ['user_plan', 'effective_plan']
-        for key in old_keys:
-            if key in session:
-                del session[key]
-        
-        session.modified = True
-        
-        logger.info(f"🔧 TIER FIX: Re-initialized user {user_email} as {effective_tier} tier (plan: {db_user_plan}, trial: {trial_active})")
-        
-        return jsonify({
-            "success": True, 
-            "message": "Tier isolation fixed - refresh the page",
-            "user_plan": db_user_plan,
-            "tier": effective_tier,
-            "trial_active": trial_active
-        })
-        
-    except Exception as e:
-        logger.error(f"Failed to fix tier isolation: {e}")
-        return jsonify({"success": False, "error": str(e)})
 
 @app.route("/debug/test-signup", methods=["GET"])
 def debug_test_signup():
@@ -10224,55 +9679,38 @@ def _get_openai_response(message: str, character: str, model: str, max_tokens: i
 def api_chat():
     """Chat API endpoint"""
     try:
-        # Allow free users to access local Ollama without full authentication
-        logged_in = is_logged_in()
-        
+        if not is_logged_in():
+            return jsonify({"success": False, "response": "Authentication required"}), 401
+            
         data = request.get_json()
         if not data:
             return jsonify({"success": False, "response": "Invalid request data"}), 400
             
-        if not logged_in:
-            # For unauthenticated users, allow basic Ollama access (free tier)
-            if data and data.get("message"):
-                logger.info("Processing request for unauthenticated user via local Ollama")
-                # Set as free user for the rest of the function
-                session['effective_plan'] = 'free'
-            else:
-                return jsonify({"success": False, "response": "Authentication required"}), 401
-            
-        # OpenAI check moved below - free users use Ollama, not OpenAI
+        if not services["openai"]:
+            logger.warning("OpenAI service not available - providing fallback response")
+            # Provide a fallback response instead of failing
+            character = data.get("character", "Blayzo")
+            fallback_response = f"Hello! I'm {character}, your AI companion. I'm currently running in offline mode, but I'm here to help! How can I assist you today?"
+            return jsonify({"success": True, "response": fallback_response})
             
         message = data.get("message", "").strip()
         character = data.get("character", "Blayzo")
         context = data.get("context", "")
-        
-        logger.info(f"🔍 API CHAT DEBUG: context='{context}', character='{character}', message_length={len(message)}")
         
         if not message or len(message) > 1000:
             return jsonify({"success": False, "response": "Message is required and must be under 1000 characters"}), 400
         
         # Check decoder usage limits if this is a decoder request
         if context == 'decoder_mode':
-            logger.info(f"🔍 DECODER MODE DETECTED: context='{context}'")
-            user_id = session.get('user_id')
-            logger.info(f"🔍 SESSION USER_ID: {user_id}")
-            
-            # Use tier isolation system instead of direct session access
-            user_plan = get_user_plan_safe()
+            # Use effective_plan from session (set by @app.before_request)
+            effective_plan = session.get('effective_plan', 'free')
+            user_plan = session.get('user_plan', 'free')
             trial_active = session.get('trial_active', False)
-            effective_plan = get_effective_plan(user_plan, trial_active)
+            user_id = session.get('user_id')
+            daily_limit = get_feature_limit(user_plan, 'decoder')
             
-            logger.info(f"🔍 TIER ISOLATION: user_plan={user_plan}, effective_plan={effective_plan}, trial_active={trial_active}")
-            
-            # Import unified tier system function directly
-            from unified_tier_system import get_feature_limit as unified_get_feature_limit
-            daily_limit = unified_get_feature_limit(user_plan, 'decoder', False)
-            
-            # Check decoder usage limits using database tracking
-            from unified_tier_system import get_feature_usage_today
-            current_usage = get_feature_usage_today(user_id, "decoder")
-            
-            logger.info(f"🔍 USAGE CHECK: current_usage={current_usage}, daily_limit={daily_limit}")
+            # Check decoder usage limits
+            current_usage = get_decoder_usage()
             
             # Check if user has exceeded limit
             if daily_limit < 999999 and current_usage >= daily_limit:
@@ -10285,21 +9723,8 @@ def api_chat():
                     "upgrade_required": True
                 }), 429
             
-            logger.info(f"🔍 PROCEEDING TO INCREMENT: user passed limit check")
-            
-            # Increment usage for decoder requests using database tracking
-            from unified_tier_system import increment_feature_usage
-            logger.info(f"🔢 INCREMENTING decoder usage for user {user_id}")
-            success = increment_feature_usage(user_id, "decoder")
-            logger.info(f"🔢 Increment result: {success}")
-        
-        # Increment usage for fortune and horoscope requests using database tracking
-        if context in ['fortune_reading']:
-            from unified_tier_system import increment_feature_usage
-            increment_feature_usage(user_id, "fortune")
-        elif context in ['daily_horoscope', 'love_compatibility', 'yearly_horoscope']:
-            from unified_tier_system import increment_feature_usage
-            increment_feature_usage(user_id, "horoscope")
+            # Increment usage for decoder requests
+            increment_decoder_usage()
         
         # Sanitize character input
         if character not in VALID_CHARACTERS:
@@ -10310,51 +9735,30 @@ def api_chat():
         
         # Tier-specific AI model and parameters
         if user_tier == 'max':  # Max Plan - Premium OpenAI
-            if not services["openai"]:
-                logger.warning("OpenAI service not available for premium user")
-                fallback_response = f"Hello! I'm {character}, your AI companion. Our premium service is temporarily unavailable, but I'm here to help! How can I assist you today?"
-                return jsonify({"success": True, "response": fallback_response})
             ai_response = _get_openai_response(
                 message, character, "gpt-4", 300, 0.8,
                 f"You are {character}, an advanced AI companion from SoulBridge AI Max Plan. You have enhanced emotional intelligence, deeper insights, and provide more thoughtful, nuanced responses. You can engage in complex discussions and offer premium-level guidance."
             )
         elif user_tier == 'growth':  # Growth Plan - Standard OpenAI
-            if not services["openai"]:
-                logger.warning("OpenAI service not available for premium user")
-                fallback_response = f"Hello! I'm {character}, your AI companion. Our premium service is temporarily unavailable, but I'm here to help! How can I assist you today?"
-                return jsonify({"success": True, "response": fallback_response})
             ai_response = _get_openai_response(
                 message, character, "gpt-3.5-turbo", 200, 0.75,
                 f"You are {character}, an enhanced AI companion from SoulBridge AI Growth Plan. You provide more detailed responses and have access to advanced conversation features. You're helpful, insightful, and offer quality guidance."
             )
-        else:  # Foundation (Free) - OpenAI with budget limits
-            logger.info(f"Using OpenAI for free user: {character}")
+        else:  # Foundation (Free) - Premium Local AI
+            logger.info(f"Using premium free AI for user: {character}")
             try:
-                from openai_clients import get_openai_client
+                premium_ai = get_premium_free_ai_service()
+                user_id = session.get('user_id', 'anonymous')
+                premium_response = premium_ai.generate_response(message, character, context, user_id)
+                ai_response = premium_response["response"]
                 
-                openai_client = get_openai_client()
-                if openai_client.is_available():
-                    logger.info("OpenAI available for free user")
-                    openai_response = openai_client.generate_companion_response(
-                        message, character, context, user_plan="free"
-                    )
+                logger.info(f"Premium free AI response generated in {premium_response.get('response_time', 0):.2f}s")
+                logger.info(f"Emotions detected: {premium_response.get('emotions_detected', [])}")
+                logger.info(f"Enhancement level: {premium_response.get('enhancement_level', 'none')}")
                     
-                    if openai_response.get("success", False):
-                        ai_response = openai_response["response"]
-                        logger.info(f"OpenAI response generated for free user")
-                    else:
-                        logger.warning(f"OpenAI failed: {openai_response.get('reason', 'Unknown error')}")
-                        # Fallback to template for free users when OpenAI fails
-                        ai_response = f"Hello! I'm {character}, your AI companion. Our service is experiencing high demand, but I'm here to help! How can I assist you today?"
-                        logger.info("Used template fallback for free user")
-                else:
-                    logger.info("OpenAI not available for free user, using template response")
-                    ai_response = f"Hello! I'm {character}, your AI companion. Our service is experiencing high demand, but I'm here to help! How can I assist you today?"
-                    
-            except Exception as openai_error:
-                logger.error(f"OpenAI error for free user: {openai_error}")
-                ai_response = f"Hello! I'm {character}, your AI companion. Our service is experiencing high demand, but I'm here to help! How can I assist you today?"
-                logger.info("Used template fallback due to OpenAI error")
+            except Exception as premium_error:
+                logger.error(f"Premium free AI error: {premium_error}")
+                ai_response = f"Hello! I'm {character}, your caring AI companion from SoulBridge AI. I'm here to listen and support you through whatever you're experiencing. What would you like to talk about today?"
         
         return jsonify({
             "success": True, 
@@ -10364,14 +9768,8 @@ def api_chat():
         })
         
     except Exception as e:
-        import traceback
         logger.error(f"Chat API error: {e}")
-        logger.error(f"Traceback: {traceback.format_exc()}")
-        return jsonify({
-            "success": False, 
-            "response": f"DEBUG ERROR: {str(e)}", 
-            "traceback": traceback.format_exc()
-        }), 500
+        return jsonify({"success": False, "response": "Sorry, I encountered an error."}), 500
 
 @app.route("/api/creative-writing", methods=["POST"])
 def api_creative_writing():
@@ -12403,7 +11801,7 @@ def get_user_tier_status():
                 'voice_chat': False,
                 'advanced_ai': False,
                 'priority_support': False,
-                'unlimited_messages': True,  # Free users have unlimited chat (with ads)
+                'unlimited_messages': False,
                 'custom_themes': False,
                 'premium_animations': False,
                 'max_companions': 'free_only'
@@ -12824,14 +12222,9 @@ def emergency_login_page():
 
 # Removed disabled debug route: refresh_max_tier - security risk
 
-# COMPANION API ENDPOINTS
-# ========================================
+## COMPANION API ENDPOINTS
 
-# REMOVED: get_companions_old function - was an old companions API endpoint
-
-
-# MINI ASSISTANT - ADMIN HELPER
-# ========================================
+## MINI ASSISTANT - ADMIN HELPER
 
 @app.route("/mini-assistant")
 def mini_assistant():
@@ -12957,30 +12350,9 @@ RECENT ACHIEVEMENTS:
                         save_conversation_context(user_message, base_response, file_path, "mixtral_fallback")
                     except Exception as e2:
                         logs.append(f"⚠️ Mixtral failed: {e2}. Using enhanced mini helper...")
-                        try:
-                            base_response = generate_enhanced_mini_helper_response(user_message, file_path, project_context)
-                            logs.append("🤖 Enhanced Mini Helper used as final fallback.")
-                        except Exception as e3:
-                            logs.append(f"⚠️ Enhanced Mini Helper failed: {e3}. Using basic fallback...")
-                            base_response = f"""🤖 **Mini Assistant (Emergency Mode)**
-
-I apologize - I'm experiencing technical difficulties with all AI services:
-- ❌ Claude API: {e}
-- ❌ Mixtral: {e2}  
-- ❌ Mini Helper: {e3}
-
-**Your request:** {user_message}
-
-**Basic assistance available:**
-I can still provide general guidance for your SoulBridge AI project. Based on your recent work:
-
-1. **Login Issues**: Check middleware open_paths and session cookie settings
-2. **Mini Assistant**: Verify API keys and error handling
-3. **Tier Isolation**: Ensure feature visibility matches user plans
-
-Would you like me to provide specific suggestions for any of these areas?
-"""
-                        save_conversation_context(user_message, base_response, file_path, "emergency_fallback")
+                        base_response = generate_enhanced_mini_helper_response(user_message, file_path, project_context)
+                        logs.append("🤖 Enhanced Mini Helper used as final fallback.")
+                        save_conversation_context(user_message, base_response, file_path, "final_fallback")
         
         # Handle file editing with comprehensive logging
         if file_path and is_safe_file_path_ultimate(file_path):
@@ -13081,7 +12453,44 @@ def api_mini_assistant_history():
             "error": "Failed to load conversation history"
         }), 500
 
-# Removed duplicate /api/mini-assistant-status endpoint - using the public one above
+@app.route("/api/mini-assistant-status", methods=["GET"])
+def api_mini_assistant_status():
+    """Check Mini Assistant capabilities"""
+    try:
+        import os
+        claude_api_key = os.getenv('CLAUDE_API_KEY')
+        claude_available = bool(claude_api_key)
+        
+        # Test if anthropic module is available
+        try:
+            import anthropic
+            anthropic_available = True
+        except ImportError:
+            anthropic_available = False
+            claude_available = False
+        
+        # Get rate limit status
+        rate_limit_status = get_rate_limit_status()
+        
+        return jsonify({
+            "success": True,
+            "claude_available": claude_available and anthropic_available,
+            "anthropic_module": anthropic_available,
+            "api_key_configured": bool(claude_api_key),
+            "rate_limited": rate_limit_status.get('rate_limited', False),
+            "auto_helper_active": rate_limit_status.get('auto_helper_active', False),
+            "timestamp": rate_limit_status.get('timestamp', 'Unknown'),
+            "backend_status": "Online",
+            "claude_status": "Available" if claude_available and anthropic_available and not rate_limit_status.get('rate_limited', False) else "Rate Limited" if rate_limit_status.get('rate_limited', False) else "Unavailable"
+        })
+        
+    except Exception as e:
+        logger.error(f"Mini Assistant status check error: {e}")
+        return jsonify({
+            "success": False,
+            "claude_available": False,
+            "error": str(e)
+        }), 500
 
 @app.route("/api/mini-assistant/push", methods=["POST"])
 def api_mini_assistant_push():
@@ -13356,6 +12765,7 @@ INSTRUCTIONS:
                     set_rate_limit_flag(True)
                     error_msg += " - Rate limit detected, Mini Helper activated"
             except:
+                # Registration fallback failed
                 pass
         raise Exception(error_msg)
     
@@ -13774,7 +13184,7 @@ def {feature_name.replace(' ', '_').lower()}():
     {feature_name} functionality - added by Mini Helper
     TODO: Implement {feature_name} logic
     \"\"\"
-    pass
+                            # Columns might already exist
     # TODO: Add your {feature_name} implementation here
 """
         return file_content + new_function
@@ -14033,9 +13443,6 @@ TIERS_TEMPLATE = r"""
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
   <meta charset="UTF-8"/>
   <title>Plans & Companions — SoulBridge AI</title>
   <style>
@@ -14181,71 +13588,12 @@ TIERS_TEMPLATE = r"""
 </div>
 
 <script>
-  console.log('🔧 TIERS JS: Script loaded successfully - v{{ cache_bust }}');
-  
-  /* Bulletproof openChat — no refresh, clear UX */
-  async function openChat(slug) {
-    console.log('🔧 BULLETPROOF openChat called with:', slug);
-    
-    try {
-      // Preflight: confirm session (prevents 302 loop feeling like a refresh)
-      const me = await fetch("/api/session/me", { credentials: "include" });
-      if (me.status === 401) {
-        window.location.assign("/login?next=" + encodeURIComponent(`/chat/${slug}`));
-        return;
-      }
-      // Check access (works even if you're on trial)
-      const can = await fetch(`/api/companions/${encodeURIComponent(slug)}/access`,
-                              { credentials: "include" });
-      if (can.status === 403) {
-        alert("This companion is locked for your current tier/trial.");
-        return;
-      }
-      if (!can.ok) {
-        alert("Couldn't verify access. Try again.");
-        return;
-      }
-      // Navigate. No preventDefault, no redirect loops.
-      console.log('🚀 Access verified, navigating to chat');
-      window.location.assign(`/chat/${encodeURIComponent(slug)}`);
-    } catch (e) {
-      console.error(e);
-      alert("Unexpected error opening chat.");
-    }
-  }
-  
-  function navigateToChat(slug) {
-    console.log('🔧 About to navigate to chat with companion:', slug);
+  function openChat(slug){ 
+    // Performance optimization: use requestAnimationFrame to prevent blocking
     requestAnimationFrame(() => {
-      const url = '/chat?companion=' + encodeURIComponent(slug);
-      console.log('🔧 Navigating to URL:', url);
-      window.location.href = url;
+      window.location.href = '/chat?companion=' + encodeURIComponent(slug);
     });
   }
-  
-  /* Attach handler safely (ignores forms & overlay issues) */
-  document.addEventListener("DOMContentLoaded", () => {
-    console.log('🔧 DOM loaded - setting up bulletproof handlers');
-    
-    document.querySelectorAll(".companion-card, .card").forEach(el => {
-      // Make sure this is not a submitting button
-      if (el.tagName === "BUTTON" && !el.getAttribute("type")) {
-        el.setAttribute("type", "button");
-      }
-      // Normalize: if inline onclick exists, keep it; otherwise wire here
-      if (!el.getAttribute("onclick")) {
-        const slug = el.dataset.slug || el.dataset.companion;
-        if (slug) {
-          el.addEventListener("click", () => openChat(slug));
-        }
-      }
-      // Defensive: if a parent <a href="#"> exists, disable its default behavior
-      const parentLink = el.closest('a[href="#"]');
-      if (parentLink) parentLink.addEventListener("click", (e) => e.preventDefault());
-    });
-    
-    console.log('🔧 Bulletproof companion handlers installed');
-  });
   
   // Countdown timer for trial (optimized for performance)
   let timerCache = null;
@@ -15322,15 +14670,6 @@ def mini_studio():
 </html>
     ''', credits=credits)
 
-@app.route("/mini_studio_health")
-def mini_studio_health():
-    """Health check endpoint for Mini Studio"""
-    try:
-        return jsonify({"status": "online", "service": "mini_studio"})
-    except Exception as e:
-        logger.error(f"Mini Studio health check error: {e}")
-        return jsonify({"status": "error", "error": str(e)}), 500
-
 # Mini Studio API Endpoints
 @app.route("/api/mini-studio/vocal-recording", methods=["POST"])
 def mini_studio_vocal_recording():
@@ -16244,115 +15583,6 @@ def add_trainer_credits(user_id, amount=350):
     except Exception as e:
         logger.error(f"Error adding purchased credits: {e}")
         return False
-
-@app.route('/debug-logs')
-def debug_logs_endpoint():
-    """Show recent debug logs for troubleshooting"""
-    try:
-        import logging
-        import io
-        
-        # Get recent logs from the logger
-        log_contents = []
-        
-        # Try to get logs from the current logger
-        for handler in logging.getLogger().handlers:
-            if hasattr(handler, 'stream') and hasattr(handler.stream, 'getvalue'):
-                log_contents.append(handler.stream.getvalue())
-        
-        # If no logs found, show system info instead
-        if not log_contents:
-            log_contents = ["No recent logs available. Logger may not be capturing to memory."]
-            
-        return jsonify({
-            "success": True,
-            "logs": log_contents,
-            "message": "Recent debug logs (refresh page and try decoder, then check this endpoint again)"
-        })
-        
-    except Exception as e:
-        return jsonify({
-            "success": False,
-            "error": str(e),
-            "message": "Could not retrieve debug logs"
-        })
-
-@app.route('/fix-schema')
-def fix_database_schema_endpoint():
-    """Manual database schema fix endpoint"""
-    try:
-        from unified_tier_system import ensure_database_schema
-        
-        logger.info("🔧 Manual database schema fix triggered")
-        success = ensure_database_schema()
-        
-        if success:
-            return jsonify({
-                "success": True,
-                "message": "✅ Database schema updated successfully",
-                "details": "Added missing columns: timezone, credits, last_credit_reset, purchased_credits and feature_usage table"
-            })
-        else:
-            return jsonify({
-                "success": False,
-                "message": "❌ Database schema update failed",
-                "error": "Check server logs for details"
-            }), 500
-            
-    except Exception as e:
-        logger.error(f"Manual schema fix error: {e}")
-        return jsonify({
-            "success": False,
-            "message": "❌ Database schema update failed",
-            "error": str(e)
-        }), 500
-
-@app.route('/api/update-timezone', methods=['POST'])
-def update_user_timezone():
-    """Update user's timezone for personalized daily resets"""
-    try:
-        if not is_logged_in():
-            return jsonify({"success": False, "error": "Not logged in"}), 401
-            
-        data = request.get_json()
-        timezone = data.get('timezone', '').strip()
-        
-        # Validate timezone
-        valid_timezones = [
-            'America/New_York', 'America/Chicago', 'America/Denver', 'America/Los_Angeles',
-            'America/Toronto', 'America/Vancouver', 'Europe/London', 'Europe/Paris',
-            'Europe/Berlin', 'Asia/Tokyo', 'Asia/Shanghai', 'Australia/Sydney',
-            'America/Mexico_City', 'America/Sao_Paulo', 'Asia/Mumbai', 'Africa/Cairo'
-        ]
-        
-        if not timezone or timezone not in valid_timezones:
-            return jsonify({"success": False, "error": "Invalid timezone"}), 400
-            
-        user_id = session.get('user_id')
-        database_url = os.environ.get('DATABASE_URL')
-        
-        if not database_url:
-            return jsonify({"success": False, "error": "Database unavailable"}), 500
-            
-        conn = psycopg2.connect(database_url)
-        cur = conn.cursor()
-        
-        # Update user's timezone
-        cur.execute("UPDATE users SET timezone = %s WHERE id = %s", (timezone, user_id))
-        conn.commit()
-        conn.close()
-        
-        logger.info(f"🌍 User {user_id} timezone updated to {timezone}")
-        
-        return jsonify({
-            "success": True, 
-            "message": f"Timezone updated to {timezone}",
-            "timezone": timezone
-        })
-        
-    except Exception as e:
-        logger.error(f"Error updating user timezone: {e}")
-        return jsonify({"success": False, "error": "Failed to update timezone"}), 500
 
 # APPLICATION STARTUP
 # ========================================
