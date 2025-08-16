@@ -11,7 +11,8 @@ def main():
         from dotenv import load_dotenv
         load_dotenv()
     except ImportError:
-        pass
+        # dotenv not installed, skip loading .env
+        ...
     
     database_url = os.environ.get('DATABASE_URL')
     if not database_url:

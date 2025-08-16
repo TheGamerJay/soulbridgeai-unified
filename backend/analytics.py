@@ -39,7 +39,8 @@ class AnalyticsManager:
                         if created_date >= start_date:
                             new_users += 1
                     except:
-                        pass
+                            # Ignore users with invalid created_at
+                            ...
 
             # Get conversation metrics
             conversation_metrics = self._get_conversation_metrics(days)

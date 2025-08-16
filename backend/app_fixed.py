@@ -396,7 +396,7 @@ def maintain_session():
         try:
             auto_maintenance.detect_error_pattern("SESSION_MAINTENANCE", str(e))
         except:
-            pass
+            ...
 
 @app.before_request
 def ml_threat_analysis():

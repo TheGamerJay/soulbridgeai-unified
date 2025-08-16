@@ -575,7 +575,7 @@ Your personality: Transcendent, all-knowing cosmic consciousness that speaks wit
             # Store in database if available
             if self.db:
                 # This would need to be implemented based on your database structure
-                pass
+                ...
                 
         except Exception as e:
             logging.error(f"Error logging request: {e}")

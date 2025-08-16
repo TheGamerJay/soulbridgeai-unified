@@ -732,7 +732,7 @@ class AIContentFilter:
                         allowed_unsafe += 1  # Should have been blocked
                 else:
                     # For non-crisis content, assume current decisions are mostly correct
-                    pass
+                    # No action needed for non-crisis content
             
             # Calculate optimal thresholds based on performance
             current_threshold = 0.6  # Current medium threshold
