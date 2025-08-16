@@ -67,6 +67,7 @@ class FreeTier(TierSystem):
         tier_session = {
             'user_id': user_data.get('user_id'),
             'user_email': user_data.get('user_email'),
+            'user_plan': user_data.get('user_plan', 'free'),  # Store original plan for limits
             'tier': 'free',
             'features': self.features,
             'limits': self.limits,
@@ -124,6 +125,7 @@ class GrowthTier(TierSystem):
         tier_session = {
             'user_id': user_data.get('user_id'),
             'user_email': user_data.get('user_email'),
+            'user_plan': user_data.get('user_plan', 'growth'),  # Store original plan for limits
             'tier': 'growth',
             'features': self.features,
             'limits': self.limits,
@@ -187,6 +189,7 @@ class MaxTier(TierSystem):
         tier_session = {
             'user_id': user_data.get('user_id'),
             'user_email': user_data.get('user_email'),
+            'user_plan': user_data.get('user_plan', 'max'),  # Store original plan for limits
             'tier': 'max',
             'features': self.features,
             'limits': self.limits,
@@ -233,11 +236,49 @@ class TierManager:
                 if other_tier != tier_name:
                     self.tiers[other_tier].clear_session_data()
             
-            # Initialize the correct tier
-            self.tiers[tier_name].initialize_user_session(user_data)
+            # Special handling for trial users - they get access to max tier companions
+            # but keep their original plan limits to avoid false hope
+            if user_data.get('trial_active', False):
+                self.initialize_trial_user(user_data, tier_name)
+            else:
+                # Initialize the correct tier normally
+                self.tiers[tier_name].initialize_user_session(user_data)
+            
             logger.info(f"🔒 TIER ISOLATION: User initialized for {tier_name.upper()} tier only")
         else:
             logger.error(f"❌ Unknown tier: {tier_name}")
+    
+    def initialize_trial_user(self, user_data: Dict[str, Any], access_tier: str):
+        """Initialize trial user with max tier access but original plan limits"""
+        original_plan = user_data.get('user_plan', 'free')
+        
+        # Get the limits from the user's original tier
+        original_tier_system = self.tiers[original_plan]
+        
+        # Get the companions from the max tier
+        max_tier_system = self.tiers['max']
+        
+        # Create hybrid session: Max companions + Original limits
+        tier_session = {
+            'user_id': user_data.get('user_id'),
+            'user_email': user_data.get('user_email'),
+            'user_plan': original_plan,  # Store original plan for limits
+            'tier': access_tier,  # Max tier for access
+            'features': max_tier_system.features,  # Max tier features
+            'limits': original_tier_system.limits,  # Original tier limits (IMPORTANT!)
+            'companions': max_tier_system.limits['companions'],  # Max tier companions
+            'usage': {
+                'decoder': 0,
+                'fortune': 0,
+                'horoscope': 0
+            },
+            'selected_companion': 'companion_crimson',  # Default max companion
+            'trial_mode': True  # Flag to indicate this is a trial session
+        }
+        
+        # Use the access tier's session key
+        self.tiers[access_tier].set_session_data(tier_session)
+        logger.info(f"✨ TRIAL MODE: User {user_data.get('user_email')} gets {access_tier.upper()} access with {original_plan.upper()} limits")
     
     def get_tier_system(self, tier_name: str) -> TierSystem:
         """Get the tier system for a specific tier"""

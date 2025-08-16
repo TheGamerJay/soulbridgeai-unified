@@ -1047,8 +1047,14 @@ def requires_terms_acceptance():
     return None  # No redirect needed
 
 def get_user_plan():
-    """Get user's selected plan"""
-    return session.get("user_plan", "free")
+    """Get user's selected plan from tier isolation system"""
+    # Get current tier and extract the original user plan
+    current_tier = get_current_user_tier()
+    tier_system = get_current_tier_system()
+    tier_data = tier_system.get_session_data()
+    
+    # Return the original user_plan stored in tier data, or fallback to tier name
+    return tier_data.get('user_plan', current_tier)
 
 def parse_request_data():
     """Parse request data from both JSON and form data"""
@@ -1074,7 +1080,7 @@ def setup_user_session(email, user_id=None, is_admin=False, dev_mode=False):
     session["session_version"] = "2025-07-28-banking-security"  # Required for auth
     session["user_email"] = email
     session["login_timestamp"] = datetime.now().isoformat()
-    session["user_plan"] = "free"
+    # user_plan will be set from database lookup later in the function
     if user_id:
         session["user_id"] = user_id
     if is_admin:
@@ -1743,7 +1749,7 @@ def auth_login():
             raw_plan = result.get('plan_type', 'free')
             raw_user_plan = result.get('user_plan', 'free')
             plan_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
-            session['user_plan'] = plan_mapping.get(raw_plan, raw_plan)
+            user_plan = plan_mapping.get(raw_plan, raw_plan)
             session['display_name'] = result.get('display_name', 'User')
             # Auto-migrate legacy plans in database
             needs_migration = False
@@ -1813,9 +1819,22 @@ def auth_login():
                         logger.info(f"ℹ️ No trial data found for user {email}")
             except Exception as trial_error:
                 logger.warning(f"Failed to restore trial status on login: {trial_error}")
-            # ISOLATED TIER ACCESS FLAGS - Prevents cross-contamination
-            user_plan = session.get('user_plan', 'free')
+            # TIER ISOLATION SYSTEM - Use tier_manager instead of direct session manipulation
             trial_active = session.get('trial_active', False)
+            
+            # Determine the user's tier based on plan and trial status
+            effective_tier = tier_manager.get_user_tier(user_plan, trial_active)
+            
+            # Initialize user for the correct tier using tier isolation system
+            user_data = {
+                'user_id': result["user_id"],
+                'user_email': email,
+                'user_plan': user_plan,  # Store original plan for limits
+                'trial_active': trial_active
+            }
+            tier_manager.initialize_user_for_tier(user_data, effective_tier)
+            
+            # ISOLATED TIER ACCESS FLAGS - Prevents cross-contamination
             # Define isolated access flags for each tier using effective_plan
             effective_plan = get_effective_plan(user_plan, trial_active)
             session['access_free'] = True  # Everyone gets free features
@@ -1824,7 +1843,7 @@ def auth_login():
             session['access_trial'] = trial_active
             session.modified = True  # Ensure session changes are saved
             logger.info(f"[LOGIN] Session marked as modified. Session: {dict(session)}")
-            logger.info(f"[LOGIN] Login successful: {email} (plan: {session['user_plan']}, trial: {trial_active})")
+            logger.info(f"[LOGIN] Login successful: {email} (plan: {user_plan}, trial: {trial_active}, tier: {effective_tier})")
             logger.info(f"[LOGIN] Access flags: free={session['access_free']}, growth={session['access_growth']}, max={session['access_max']}, trial={session['access_trial']}")
             # Handle both form submissions and AJAX requests
             # Check if user needs to accept terms
@@ -7986,9 +8005,9 @@ def check_decoder_limit():
     # Calculate effective_plan fresh each time
     effective_plan = get_effective_plan(user_plan, trial_active)
     
-    # ROADMAP COMPLIANCE: Always use actual user_plan for limits, never effective_plan
-    # Trial unlocks ACCESS but keeps original LIMITS
-    daily_limit = get_feature_limit(user_plan, "decoder", False)  # Always pass False for trial_active in limits
+    # ROADMAP COMPLIANCE: Use user_plan for limits, trial_active only affects ACCESS not LIMITS
+    # Growth/Max users get their tier limits, Free users (including trial) get free limits
+    daily_limit = get_feature_limit(user_plan, "decoder", False)  # trial_active=False for limits calculation
     
     logger.info(f"🔒 TIER ISOLATION: user_plan={user_plan}, tier={current_tier}, effective_plan={effective_plan}, trial_active={trial_active}, limit={daily_limit}")
     # Use database tracking instead of session tracking
@@ -8127,9 +8146,9 @@ def api_plan_new():
         # TRIAL DESIGN: Use user_plan for limits (trial doesn't change limits)
         # Trial unlocks companion access but keeps original plan limits
         limits = {
-            "decoder": get_feature_limit(user_plan, "decoder"),
-            "fortune": get_feature_limit(user_plan, "fortune"),
-            "horoscope": get_feature_limit(user_plan, "horoscope"),
+            "decoder": get_feature_limit(user_plan, "decoder", False),
+            "fortune": get_feature_limit(user_plan, "fortune", False),
+            "horoscope": get_feature_limit(user_plan, "horoscope", False),
         }
         
         return jsonify({
