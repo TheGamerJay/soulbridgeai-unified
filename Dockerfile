@@ -27,10 +27,10 @@ ENV FLASK_ENV=production
 ENV PYTHONPATH=/app
 
 # Expose Flask port
-EXPOSE 5000
+EXPOSE 8080
 
-# Make start script executable and use it directly
+# Make start script executable
 RUN chmod +x start.sh
 
-# Start Flask app directly (no supervisor needed)
-CMD ["./start.sh"]
+# Use gunicorn directly for more reliability
+CMD ["gunicorn", "app_fixed:app", "-b", "0.0.0.0:8080", "--worker-class", "gthread", "--threads", "4", "--workers", "2", "--timeout", "300"]
