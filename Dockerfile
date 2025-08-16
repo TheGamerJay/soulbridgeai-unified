@@ -1,5 +1,5 @@
-# Use Python 3.11 slim image for SoulBridge AI
-FROM python:3.11-slim
+# Use Python 3.13 slim image for SoulBridge AI
+FROM python:3.13-slim
 
 # Set working directory
 WORKDIR /app
