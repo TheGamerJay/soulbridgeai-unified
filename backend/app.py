@@ -16288,6 +16288,9 @@ def add_trainer_credits(user_id, amount=350):
 @app.route("/api/billing/checkout-session/adfree", methods=["POST"])
 def create_adfree_checkout_direct():
     """Create ad-free subscription checkout - direct implementation"""
+    logger.info(f"🎯 AD-FREE CHECKOUT START: Request received from {request.remote_addr}")
+    logger.info(f"🎯 AD-FREE CHECKOUT: Session keys: {list(session.keys())}")
+    
     try:
         # Check authentication
         if not is_logged_in():
