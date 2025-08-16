@@ -778,7 +778,7 @@
                     }
                 } else {
                     // Instant processing mode  
-                    const result = await apiCall('/api/vocals', {
+                    const result = await apiCall('/api/mini-studio/vocal-recording', {
                         lyrics: lyrics,
                         voice: voice,
                         bpm: bpm
@@ -815,7 +815,7 @@
             
             setLoading(button, true);
             
-            const result = await apiCall('/api/lyrics', {
+            const result = await apiCall('/api/mini-studio/lyrics', {
                 theme: theme,
                 mood: mood,
                 lang: lang,
@@ -850,7 +850,7 @@
             
             setLoading(button, true);
             
-            const result = await apiCall('/api/midi', {
+            const result = await apiCall('/api/mini-studio/instrumental', {
                 chords: chords,
                 bpm: bpm,
                 bars: bars,
@@ -883,7 +883,7 @@
             
             setLoading(button, true);
             
-            const result = await apiCall('/api/effects', {
+            const result = await apiCall('/api/mini-studio/effects', {
                 wav_path: fileSelect.value,
                 pitch_semitones: pitch,
                 reverb_amount: reverb
@@ -916,7 +916,7 @@
             
             setLoading(button, true);
             
-            const result = await apiCall('/api/mix', {
+            const result = await apiCall('/api/mini-studio/mixing', {
                 vocals_wav: vocals,
                 bgm_wav: bgm,
                 vocal_db: vocalLevel,
@@ -948,7 +948,7 @@
             
             setLoading(button, true);
             
-            const result = await apiCall('/api/cover-art', {
+            const result = await apiCall('/api/mini-studio/cover-art', {
                 prompt: prompt,
                 size: size
             });
@@ -984,7 +984,7 @@
         // Refresh Library
         async function refreshLibrary() {
             try {
-                const response = await fetch('/api/library');
+                const response = await fetch('/api/mini-studio/library');
                 const result = await response.json();
                 
                 if (result.success) {
@@ -1050,7 +1050,7 @@
         
         // Download Asset
         function downloadAsset(assetId) {
-            window.open(`/api/export/${assetId}`, '_blank');
+            window.open(`/api/mini-studio/export/${assetId}`, '_blank');
         }
         
         // Delete Asset
@@ -1060,7 +1060,7 @@
             }
             
             try {
-                const response = await fetch(`/api/library/${assetId}`, {
+                const response = await fetch(`/api/mini-studio/library/${assetId}`, {
                     method: 'DELETE'
                 });
                 const result = await response.json();
@@ -1078,7 +1078,7 @@
         // Populate File Selectors
         async function populateFileSelectors() {
             try {
-                const response = await fetch('/api/library');
+                const response = await fetch('/api/mini-studio/library');
                 const result = await response.json();
                 
                 if (result.success) {

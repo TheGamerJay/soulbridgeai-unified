@@ -3,12 +3,20 @@
 # Professional audio mastering tools
 # ============================================
 import os
-import numpy as np
-import soundfile as sf
-import pyloudnorm as pyln
-from scipy.signal import butter, filtfilt
-from pydub import AudioSegment
 import logging
+
+# Try to import audio packages with fallbacks
+try:
+    import numpy as np
+    import soundfile as sf
+    import pyloudnorm as pyln
+    from scipy.signal import butter, filtfilt
+    from pydub import AudioSegment
+    AUDIO_PACKAGES_AVAILABLE = True
+except ImportError:
+    AUDIO_PACKAGES_AVAILABLE = False
+    np = None
+    sf = None
 
 from config import PATHS
 from .utils import new_id
