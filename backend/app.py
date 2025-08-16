@@ -16315,10 +16315,10 @@ def create_adfree_checkout_direct():
         if not stripe_available or not STRIPE_SECRET_KEY:
             logger.warning("🚫 Stripe not available for ad-free checkout")
             return jsonify({
-                "success": True,
-                "message": "🎉 Thank you for your interest in the ad-free plan! This feature is being finalized. We'll notify you when it's ready.",
-                "user_notified": True
-            })
+                "success": False,
+                "error": "Payment processing is being configured. Please try again later.",
+                "debug": "Stripe not configured for ad-free subscriptions"
+            }), 503
         
         # Create or get Stripe customer
         stripe.api_key = STRIPE_SECRET_KEY
@@ -16383,10 +16383,10 @@ def create_adfree_checkout_direct():
             logger.error(f"❌ Stripe error type: {type(stripe_error)}")
             logger.error(f"❌ PRICE_ADFREE: {PRICE_ADFREE}")
             return jsonify({
-                "success": True,
-                "message": "🎉 Thank you for your interest in the ad-free plan! This feature is being finalized. We'll notify you when it's ready.",
-                "user_notified": True
-            })
+                "success": False,
+                "error": "Payment processing temporarily unavailable. Please try again later.",
+                "debug": f"Stripe error: {str(stripe_error)}"
+            }), 503
         
     except Exception as e:
         logger.error(f"❌ Ad-free checkout error: {e}")
