@@ -14808,69 +14808,76 @@ def mini_studio_instrumental():
         if credits <= 0:
             return jsonify({"success": False, "error": "No studio time remaining"}), 403
         
-        # Generate instrumental based on parameters
-        if services["openai"]:
-            try:
-                response = openai.ChatCompletion.create(
-                    model="gpt-3.5-turbo",
-                    messages=[
-                        {
-                            "role": "system", 
-                            "content": f"You are a professional music producer. Create a detailed {genre} instrumental arrangement at {tempo} BPM with a {mood} mood. Provide: 1) Chord progression, 2) Drum pattern, 3) Bass line, 4) Melody suggestions, 5) Arrangement structure. Be specific with musical notation and timing."
-                        },
-                        {
-                            "role": "user", 
-                            "content": f"Create a {genre} instrumental track that's {mood} with {tempo} BPM. Include all instrumental elements and arrangement details."
-                        }
-                    ],
-                    max_tokens=800,
-                    temperature=0.8
+        # Import local music generation
+        from musicgen_service import LocalMusicGen, is_music_generation_available
+        
+        if not is_music_generation_available():
+            return jsonify({"success": False, "error": "Music generation libraries not available"}), 503
+        
+        try:
+            generator = LocalMusicGen()
+            
+            # Get additional parameters
+            description = data.get('description', f'{mood} {genre} beat')
+            duration = min(int(data.get('duration', 20)), 30)  # Max 30s for small model
+            
+            # Generate instrumental using MusicGen
+            result = generator.generate_with_style(
+                base_prompt=description,
+                style=genre,
+                mood=mood,
+                duration_s=duration,
+                output_dir="static/uploads"
+            )
+            
+            if result['success']:
+                # Deduct credit for successful generation
+                deduct_credits(user_id, 1)
+                
+                # Add to unified library
+                from unified_library import UnifiedLibraryManager
+                from app_core import Song, db
+                
+                library_manager = UnifiedLibraryManager(db, Song)
+                track_id = library_manager.add_track(
+                    user_id=user_id,
+                    title=f"{mood.title()} {genre.title()} - {description[:20]}",
+                    file_path=result['file_path'],
+                    source_type='mini_studio',
+                    track_type='instrumental',
+                    metadata={
+                        'genre': genre,
+                        'mood': mood,
+                        'tempo': tempo,
+                        'description': description,
+                        'duration_seconds': result['duration_seconds'],
+                        'model': result['model'],
+                        'prompt_used': result['prompt_used'],
+                        'generation_time': datetime.now().isoformat()
+                    }
                 )
-                
-                instrumental_content = response.choices[0].message.content
-                
-                # Simulate track creation
-                track_info = {
-                    "title": f"{mood.title()} {genre.title()} Beat",
-                    "tempo": tempo,
-                    "genre": genre,
-                    "mood": mood,
-                    "arrangement": instrumental_content,
-                    "tracks": ["drums", "bass", "melody", "harmony"],
-                    "duration": "2:30",
-                    "key": "C major"
-                }
                 
                 return jsonify({
                     "success": True,
-                    "message": "Instrumental track created successfully",
-                    "track": track_info,
+                    "message": "Instrumental track generated successfully",
+                    "track": {
+                        "id": track_id,
+                        "title": f"{mood.title()} {genre.title()} Beat",
+                        "file_path": result['file_path'],
+                        "duration_seconds": result['duration_seconds'],
+                        "genre": genre,
+                        "mood": mood,
+                        "tempo": tempo,
+                        "prompt_used": result['prompt_used']
+                    },
                     "credits_remaining": credits - 1
                 })
+            else:
+                return jsonify({"success": False, "error": result.get('error', 'Generation failed')}), 500
                 
-            except Exception as e:
-                logger.error(f"OpenAI instrumental error: {e}")
-                # Fallback instrumental
-                pass
-        
-        # Fallback instrumental creation
-        fallback_track = {
-            "title": f"{mood.title()} {genre.title()} Beat",
-            "tempo": tempo,
-            "genre": genre,
-            "mood": mood,
-            "arrangement": f"Basic {genre} arrangement:\n- Kick drum on 1 and 3\n- Snare on 2 and 4\n- Hi-hats on 8th notes\n- Bass line following root progression\n- Simple melody in {mood} style",
-            "tracks": ["drums", "bass", "melody"],
-            "duration": "2:00",
-            "key": "C major"
-        }
-        
-        return jsonify({
-            "success": True,
-            "message": "Basic instrumental track created",
-            "track": fallback_track,
-            "credits_remaining": credits
-        })
+        except Exception as generation_error:
+            logger.error(f"Music generation error: {generation_error}")
+            return jsonify({"success": False, "error": f"Generation failed: {str(generation_error)}"}), 500
         
     except Exception as e:
         logger.error(f"Instrumental creation error: {e}")
@@ -15023,8 +15030,12 @@ def mini_studio_mixing():
         
         data = request.get_json()
         user_id = session.get('user_id')
-        track_type = data.get('track_type', 'full_mix')
-        genre = data.get('genre', 'pop')
+        
+        # Get track paths for mixing
+        vocal_path = data.get('vocals_wav')
+        instrumental_path = data.get('bgm_wav') 
+        vocal_gain_db = data.get('vocal_db', 0.0)
+        instrumental_gain_db = data.get('bgm_db', -3.0)
         
         # Check credits
         from unified_tier_system import get_user_credits, deduct_credits
@@ -15038,64 +15049,87 @@ def mini_studio_mixing():
         if credits <= 0:
             return jsonify({"success": False, "error": "No studio time remaining"}), 403
         
-        # Create mixing console settings
-        mixing_settings = {
-            "eq_settings": {
-                "low": {"frequency": "80Hz", "gain": "+2dB"},
-                "mid": {"frequency": "1kHz", "gain": "0dB"},
-                "high": {"frequency": "8kHz", "gain": "+1dB"}
-            },
-            "compression": {
-                "threshold": "-12dB",
-                "ratio": "4:1",
-                "attack": "10ms",
-                "release": "100ms"
-            },
-            "reverb": {
-                "type": "Hall",
-                "decay": "2.5s",
-                "wet_level": "15%"
-            },
-            "stereo_imaging": {
-                "width": "120%",
-                "bass_mono": "enabled"
-            },
-            "mastering": {
-                "limiter_ceiling": "-0.3dB",
-                "loudness": "-14 LUFS",
-                "dynamics": "medium"
-            }
-        }
+        # Validate input files
+        if not vocal_path or not instrumental_path:
+            return jsonify({"success": False, "error": "Both vocal and instrumental tracks required"}), 400
         
-        # Genre-specific adjustments
-        if genre == "hip-hop":
-            mixing_settings["eq_settings"]["low"]["gain"] = "+4dB"
-            mixing_settings["compression"]["ratio"] = "6:1"
-        elif genre == "rock":
-            mixing_settings["eq_settings"]["high"]["gain"] = "+3dB"
-            mixing_settings["compression"]["attack"] = "5ms"
-        elif genre == "electronic":
-            mixing_settings["stereo_imaging"]["width"] = "150%"
-            mixing_settings["reverb"]["type"] = "Plate"
+        # Import audio mixing
+        from audio_effects import mix_tracks, is_audio_processing_available
         
-        mixer_response = {
-            "console_loaded": True,
-            "track_channels": ["vocals", "drums", "bass", "guitars", "synths", "fx"],
-            "mixing_settings": mixing_settings,
-            "available_effects": [
-                "EQ", "Compressor", "Reverb", "Delay", "Chorus", 
-                "Distortion", "Limiter", "Gate", "De-esser", "Exciter"
-            ],
-            "automation": "enabled",
-            "real_time_analysis": "enabled"
-        }
+        if not is_audio_processing_available():
+            return jsonify({"success": False, "error": "Audio processing libraries not available"}), 503
         
-        return jsonify({
-            "success": True,
-            "message": f"Mixing console loaded for {genre} production",
-            "mixer": mixer_response,
-            "credits_remaining": credits - 1
-        })
+        try:
+            import os
+            from pathlib import Path
+            
+            # Construct full paths
+            vocal_full_path = os.path.join("static/uploads", vocal_path) if not vocal_path.startswith("/") else vocal_path
+            instrumental_full_path = os.path.join("static/uploads", instrumental_path) if not instrumental_path.startswith("/") else instrumental_path
+            
+            # Check if files exist
+            if not os.path.exists(vocal_full_path):
+                return jsonify({"success": False, "error": "Vocal track not found"}), 404
+            if not os.path.exists(instrumental_full_path):
+                return jsonify({"success": False, "error": "Instrumental track not found"}), 404
+            
+            # Create output filename
+            timestamp = int(datetime.now().timestamp())
+            output_filename = f"mixed_{user_id}_{timestamp}.wav"
+            output_path = os.path.join("static/uploads", output_filename)
+            
+            # Mix the tracks
+            result = mix_tracks(
+                vocal_path=vocal_full_path,
+                instrumental_path=instrumental_full_path,
+                output_path=output_path,
+                vocal_gain_db=vocal_gain_db,
+                instrumental_gain_db=instrumental_gain_db
+            )
+            
+            if result['success']:
+                # Deduct credit for successful mixing
+                deduct_credits(user_id, 1)
+                
+                # Add to unified library
+                from unified_library import UnifiedLibraryManager
+                from app_core import Song, db
+                
+                library_manager = UnifiedLibraryManager(db, Song)
+                track_id = library_manager.add_track(
+                    user_id=user_id,
+                    title=f"Mixed Track - {Path(vocal_path).stem} + {Path(instrumental_path).stem}",
+                    file_path=output_path,
+                    source_type='mini_studio',
+                    track_type='mixed',
+                    metadata={
+                        'vocal_track': vocal_path,
+                        'instrumental_track': instrumental_path,
+                        'vocal_gain_db': vocal_gain_db,
+                        'instrumental_gain_db': instrumental_gain_db,
+                        'duration_ms': result.get('duration_ms', 0),
+                        'mixing_time': datetime.now().isoformat()
+                    }
+                )
+                
+                return jsonify({
+                    "success": True,
+                    "message": "Tracks mixed successfully",
+                    "mixed_track": {
+                        "id": track_id,
+                        "file_path": output_filename,
+                        "duration_ms": result.get('duration_ms', 0),
+                        "vocal_gain_db": vocal_gain_db,
+                        "instrumental_gain_db": instrumental_gain_db
+                    },
+                    "credits_remaining": credits - 1
+                })
+            else:
+                return jsonify({"success": False, "error": result.get('error', 'Mixing failed')}), 500
+                
+        except Exception as mixing_error:
+            logger.error(f"Audio mixing error: {mixing_error}")
+            return jsonify({"success": False, "error": f"Mixing failed: {str(mixing_error)}"}), 500
         
     except Exception as e:
         logger.error(f"Mixing console error: {e}")
@@ -15207,17 +15241,76 @@ def mini_studio_effects():
         if not wav_path:
             return jsonify({"success": False, "error": "Audio file path required"}), 400
         
-        # For now, return a placeholder response
-        # TODO: Implement actual audio effects processing when audio packages are available
-        return jsonify({
-            "success": True,
-            "message": "Audio effects applied successfully",
-            "output_path": f"effects_{wav_path}",
-            "effects_applied": {
-                "pitch": pitch_semitones,
-                "reverb": reverb_amount
-            }
-        })
+        # Import audio effects processor
+        from audio_effects import AudioEffectsProcessor, is_audio_processing_available
+        
+        if not is_audio_processing_available():
+            return jsonify({"success": False, "error": "Audio processing libraries not available"}), 503
+        
+        try:
+            processor = AudioEffectsProcessor()
+            user_id = session.get('user_id')
+            
+            # Create output filename
+            import os
+            from pathlib import Path
+            input_path = os.path.join("static/uploads", wav_path) if not wav_path.startswith("/") else wav_path
+            
+            if not os.path.exists(input_path):
+                return jsonify({"success": False, "error": "Input file not found"}), 404
+            
+            timestamp = int(datetime.now().timestamp())
+            output_filename = f"effects_{user_id}_{timestamp}.wav"
+            output_path = os.path.join("static/uploads", output_filename)
+            
+            # Build effects configuration
+            effects_config = {}
+            
+            if abs(pitch_semitones) > 0.1:
+                effects_config['pitch_shift'] = pitch_semitones
+            
+            if abs(reverb_amount) > 0.1:
+                effects_config['reverb'] = {
+                    'decay': min(max(reverb_amount / 100.0, 0.0), 1.0),
+                    'delay_ms': 80
+                }
+            
+            # Apply effects
+            result = processor.apply_effects_chain(input_path, output_path, effects_config)
+            
+            if result['success']:
+                # Add to unified library
+                from unified_library import UnifiedLibraryManager
+                from app_core import Song, db
+                
+                library_manager = UnifiedLibraryManager(db, Song)
+                track_id = library_manager.add_track(
+                    user_id=user_id,
+                    title=f"Effects - {Path(wav_path).stem}",
+                    file_path=output_path,
+                    source_type='mini_studio',
+                    track_type='effects',
+                    metadata={
+                        'original_file': wav_path,
+                        'effects_applied': result['effects_applied'],
+                        'processing_time': datetime.now().isoformat()
+                    }
+                )
+                
+                return jsonify({
+                    "success": True,
+                    "message": "Audio effects applied successfully",
+                    "output_path": output_filename,
+                    "track_id": track_id,
+                    "effects_applied": result['effects_applied'],
+                    "duration_seconds": result.get('duration_seconds', 0)
+                })
+            else:
+                return jsonify({"success": False, "error": result.get('error', 'Effects processing failed')}), 500
+                
+        except Exception as processing_error:
+            logger.error(f"Effects processing error: {processing_error}")
+            return jsonify({"success": False, "error": f"Processing failed: {str(processing_error)}"}), 500
         
     except Exception as e:
         logger.error(f"Mini studio effects error: {e}")
@@ -15244,15 +15337,66 @@ def mini_studio_cover_art():
         if not prompt:
             return jsonify({"success": False, "error": "Art description required"}), 400
         
-        # For now, return a placeholder response
-        # TODO: Implement actual AI image generation when needed
-        return jsonify({
-            "success": True,
-            "message": "Cover art generated successfully",
-            "image_url": f"/static/generated_art_{int(datetime.now().timestamp())}.jpg",
-            "prompt_used": prompt,
-            "size": size
-        })
+        # Import cover art generator
+        from cover_art_service import CoverArtGenerator, is_cover_art_available
+        
+        if not is_cover_art_available():
+            return jsonify({"success": False, "error": "OpenAI API key required for cover art generation"}), 503
+        
+        try:
+            generator = CoverArtGenerator()
+            user_id = session.get('user_id')
+            
+            # Get style from data or default to 'modern'
+            style = data.get('style', 'modern')
+            
+            # Generate cover art
+            result = generator.generate_cover_art(
+                prompt=prompt,
+                style=style,
+                size=size,
+                output_dir="static/uploads"
+            )
+            
+            if result['success']:
+                # Add to unified library as cover art
+                from unified_library import UnifiedLibraryManager
+                from app_core import Song, db
+                
+                library_manager = UnifiedLibraryManager(db, Song)
+                track_id = library_manager.add_track(
+                    user_id=user_id,
+                    title=f"Cover Art - {prompt[:30]}...",
+                    file_path=result['file_path'],
+                    source_type='mini_studio',
+                    track_type='cover_art',
+                    metadata={
+                        'original_prompt': prompt,
+                        'enhanced_prompt': result['prompt_used'],
+                        'style': style,
+                        'size': size,
+                        'generation_time': datetime.now().isoformat(),
+                        'model': result.get('model', 'dall-e-3')
+                    }
+                )
+                
+                return jsonify({
+                    "success": True,
+                    "message": "Cover art generated successfully",
+                    "image_url": f"/{result['file_path']}",
+                    "file_path": result['file_path'],
+                    "track_id": track_id,
+                    "prompt_used": result['prompt_used'],
+                    "original_prompt": prompt,
+                    "style": style,
+                    "size": size
+                })
+            else:
+                return jsonify({"success": False, "error": result.get('error', 'Cover art generation failed')}), 500
+                
+        except Exception as generation_error:
+            logger.error(f"Cover art generation error: {generation_error}")
+            return jsonify({"success": False, "error": f"Generation failed: {str(generation_error)}"}), 500
         
     except Exception as e:
         logger.error(f"Mini studio cover art error: {e}")

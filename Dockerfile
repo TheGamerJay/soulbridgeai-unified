@@ -4,30 +4,34 @@ FROM python:3.13-slim
 # Set working directory
 WORKDIR /app
 
-# Install system dependencies including audio/media packages
-RUN apt-get update && apt-get install -y \
+# Install system dependencies for audio processing
+RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     g++ \
     curl \
     pkg-config \
     libffi-dev \
     libssl-dev \
-    libasound2-dev \
-    libportaudio2 \
-    libportaudiocpp0 \
+    ffmpeg \
+    libsndfile1 \
     portaudio19-dev \
     python3-dev \
-    ffmpeg \
-    libavcodec-dev \
-    libavformat-dev \
-    libavutil-dev \
-    libswscale-dev \
-    libswresample-dev \
     && rm -rf /var/lib/apt/lists/*
+
+# Environment variables for predictable builds
+ENV PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
 # Copy requirements and install Python dependencies
 COPY backend/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+
+# Install torch first with CPU index (avoids resolver conflicts)
+RUN pip install --upgrade pip \
+ && pip install --extra-index-url https://download.pytorch.org/whl/cpu \
+      torch==2.2.2 torchaudio==2.2.2 \
+ && pip install -r requirements.txt
 
 # Copy backend application
 COPY backend/ .
