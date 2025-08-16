@@ -225,12 +225,12 @@ if auth_available and auth_bp:
 else:
     print("WARNING: Auth system disabled - continuing without authentication")
 
-# Register billing blueprint
-if billing_available and bp_billing:
-    app.register_blueprint(bp_billing)
-    print("Stripe billing system registered successfully")
-else:
-    print("WARNING: Stripe billing disabled - ad-free subscriptions unavailable")
+# Billing blueprint temporarily disabled (using direct implementation instead)
+# if billing_available and bp_billing:
+#     app.register_blueprint(bp_billing)
+#     print("Stripe billing system registered successfully")
+# else:
+print("INFO: Using direct ad-free implementation (billing blueprint disabled)")
 
 # Register companion API blueprint
 try:
