@@ -33,4 +33,4 @@ EXPOSE 8080
 RUN chmod +x start.sh
 
 # Use Python directly for simplicity
-CMD ["python", "app_fixed.py"]
+CMD ["python", "app.py"]
