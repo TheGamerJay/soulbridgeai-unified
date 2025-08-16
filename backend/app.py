@@ -16391,7 +16391,7 @@ def create_adfree_checkout_direct():
                 }],
                 success_url="https://soulbridgeai.com/account?billing=success",
                 cancel_url="https://soulbridgeai.com/subscription?billing=cancel",
-                allow_promotion_codes=True,
+                allow_promotion_codes=False,
                 subscription_data={"metadata": {"app_user_id": str(user_id)}},
                 metadata={"plan": "ad_free", "app_user_id": str(user_id)}
             )
