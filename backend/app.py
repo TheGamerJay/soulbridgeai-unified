@@ -13866,8 +13866,12 @@ TIERS_TEMPLATE = r"""
       console.log('🎯 Response data:', data);
       
       if (data.success) {
+        console.log('✅ Trial activated successfully!');
+        // Use setTimeout to ensure alert shows before refresh
         alert('🎉 5-hour trial activated! All premium features unlocked.');
-        window.location.reload(); // Refresh to update UI
+        setTimeout(() => {
+          window.location.reload(); // Refresh to update UI
+        }, 500);
       } else {
         alert(data.error || 'Failed to start trial');
       }
