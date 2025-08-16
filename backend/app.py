@@ -196,9 +196,13 @@ app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevent JS access to session coo
 
 # Set domain conditionally based on environment
 import os
-if 'railway.app' in os.environ.get('RAILWAY_STATIC_URL', ''):
+railway_env = os.environ.get('RAILWAY_ENVIRONMENT_NAME', '')
+railway_public = os.environ.get('RAILWAY_PUBLIC_DOMAIN', '')
+print(f"🔍 ENVIRONMENT DEBUG: RAILWAY_ENVIRONMENT_NAME={railway_env}, RAILWAY_PUBLIC_DOMAIN={railway_public}")
+
+if railway_env or 'railway.app' in railway_public:
     # Railway deployment - don't set domain to allow cookies on railway.app
-    print("🚂 RAILWAY: Session cookies configured for Railway deployment")
+    print("🚂 RAILWAY: Session cookies configured for Railway deployment (no domain restriction)")
 else:
     # Production domain
     app.config['SESSION_COOKIE_DOMAIN'] = '.soulbridgeai.com'
