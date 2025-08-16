@@ -7986,8 +7986,9 @@ def check_decoder_limit():
     # Calculate effective_plan fresh each time
     effective_plan = get_effective_plan(user_plan, trial_active)
     
-    # Get tier-specific limit
-    daily_limit = tier_system.get_feature_limit("decoder")
+    # ROADMAP COMPLIANCE: Always use actual user_plan for limits, never effective_plan
+    # Trial unlocks ACCESS but keeps original LIMITS
+    daily_limit = get_feature_limit(user_plan, "decoder", False)  # Always pass False for trial_active in limits
     
     logger.info(f"🔒 TIER ISOLATION: user_plan={user_plan}, tier={current_tier}, effective_plan={effective_plan}, trial_active={trial_active}, limit={daily_limit}")
     # Use database tracking instead of session tracking
