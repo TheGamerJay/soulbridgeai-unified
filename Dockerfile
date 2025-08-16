@@ -32,5 +32,5 @@ EXPOSE 8080
 # Make start script executable
 RUN chmod +x start.sh
 
-# Use gunicorn directly for more reliability
-CMD ["gunicorn", "app_fixed:app", "-b", "0.0.0.0:8080", "--worker-class", "gthread", "--threads", "4", "--workers", "2", "--timeout", "300"]
+# Use Python directly for simplicity
+CMD ["python", "app_fixed.py"]
