@@ -357,7 +357,7 @@ class SecurityManager:
             totp = pyotp.TOTP(secret_key)
             if totp.verify(code, valid_window=1):  # Allow 1 window tolerance
                 # Update last used
-            cursor.execute("""
+                cursor.execute("""
                     UPDATE user_2fa SET last_used = CURRENT_TIMESTAMP 
                     WHERE user_id = %s
                 """, (user_id,))

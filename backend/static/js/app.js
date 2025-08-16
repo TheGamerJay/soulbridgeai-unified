@@ -117,7 +117,10 @@ async function sendMessage() {
     // Add user message
     const userDiv = document.createElement('div');
     userDiv.className = 'message user-message';
-    userDiv.innerHTML = `<strong>You:</strong> ${message}`;
+    const userLabel = document.createElement('strong');
+    userLabel.textContent = 'You: ';
+    userDiv.appendChild(userLabel);
+    userDiv.appendChild(document.createTextNode(message));
     messagesContainer.appendChild(userDiv);
     
     // Clear input and disable button
@@ -139,10 +142,14 @@ async function sendMessage() {
         const aiDiv = document.createElement('div');
         aiDiv.className = 'message ai-message';
         
+        const aiLabel = document.createElement('strong');
+        aiLabel.textContent = 'SoulBridge AI: ';
+        aiDiv.appendChild(aiLabel);
+        
         if (data.success) {
-            aiDiv.innerHTML = `<strong>SoulBridge AI:</strong> ${data.response}`;
+            aiDiv.appendChild(document.createTextNode(data.response));
         } else {
-            aiDiv.innerHTML = `<strong>SoulBridge AI:</strong> Sorry, I encountered an error.`;
+            aiDiv.appendChild(document.createTextNode('Sorry, I encountered an error.'));
         }
         
         messagesContainer.appendChild(aiDiv);
