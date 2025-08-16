@@ -15260,7 +15260,7 @@ def mini_studio_cover_art():
 
 @app.route("/api/mini-studio/library", methods=["GET"])
 def mini_studio_library_list():
-    """Get user's mini studio library"""
+    """Get user's unified library (both music and mini studio tracks)"""
     try:
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
@@ -15274,31 +15274,29 @@ def mini_studio_library_list():
         
         user_id = session.get('user_id')
         
-        # For now, return placeholder library data
-        # TODO: Implement actual database queries for user's created tracks
-        sample_library = [
-            {
-                "id": f"track_{user_id}_1",
-                "name": "My First Track",
-                "type": "mixed",
-                "created": "2025-08-16T10:00:00Z",
-                "duration": "3:45",
-                "file_path": f"/static/library/track_{user_id}_1.wav"
-            },
-            {
-                "id": f"track_{user_id}_2", 
-                "name": "Instrumental Demo",
-                "type": "instrumental",
-                "created": "2025-08-16T09:30:00Z",
-                "duration": "2:15",
-                "file_path": f"/static/library/track_{user_id}_2.wav"
-            }
-        ]
+        # Import unified library manager
+        from unified_library import UnifiedLibraryManager
+        from app_core import Song, db
+        
+        library_manager = UnifiedLibraryManager(db, Song)
+        
+        # Get all tracks (both music and mini studio)
+        all_tracks = library_manager.get_user_library(user_id)
+        music_tracks = library_manager.get_user_library(user_id, source_type='music')
+        studio_tracks = library_manager.get_user_library(user_id, source_type='mini_studio')
+        favorites = library_manager.get_user_library(user_id, favorites_only=True)
+        stats = library_manager.get_library_stats(user_id)
         
         return jsonify({
             "success": True,
-            "library": sample_library,
-            "total_tracks": len(sample_library)
+            "library": {
+                "all_tracks": all_tracks,
+                "music_tracks": music_tracks,
+                "studio_tracks": studio_tracks,
+                "favorites": favorites
+            },
+            "stats": stats,
+            "total_tracks": len(all_tracks)
         })
         
     except Exception as e:
@@ -15307,7 +15305,7 @@ def mini_studio_library_list():
 
 @app.route("/api/mini-studio/library/<asset_id>", methods=["DELETE"])
 def mini_studio_library_delete(asset_id):
-    """Delete track from user's library"""
+    """Delete track from user's unified library"""
     try:
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
@@ -15321,13 +15319,26 @@ def mini_studio_library_delete(asset_id):
         
         user_id = session.get('user_id')
         
-        # TODO: Implement actual file deletion and database cleanup
-        logger.info(f"User {user_id} deleted track {asset_id} from mini studio library")
+        # Import unified library manager
+        from unified_library import UnifiedLibraryManager
+        from app_core import Song, db
         
-        return jsonify({
-            "success": True,
-            "message": f"Track {asset_id} deleted successfully"
-        })
+        library_manager = UnifiedLibraryManager(db, Song)
+        
+        # Convert asset_id to integer
+        try:
+            track_id = int(asset_id)
+        except ValueError:
+            return jsonify({"success": False, "error": "Invalid track ID"}), 400
+        
+        # Delete track
+        if library_manager.delete_track(track_id, user_id):
+            return jsonify({
+                "success": True,
+                "message": f"Track {asset_id} deleted successfully"
+            })
+        else:
+            return jsonify({"success": False, "error": "Track not found or access denied"}), 404
         
     except Exception as e:
         logger.error(f"Mini studio library delete error: {e}")
@@ -15362,6 +15373,266 @@ def mini_studio_export(asset_id):
         logger.error(f"Mini studio export error: {e}")
         return jsonify({"success": False, "error": "Failed to export track"}), 500
 
+# ============================================
+# UNIFIED SMART LIBRARY API ENDPOINTS
+# ============================================
+
+@app.route("/api/library", methods=["GET"])
+def smart_library_get():
+    """Get user's unified smart library with advanced filtering"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        user_id = session.get('user_id')
+        
+        # Get query parameters for filtering
+        source_type = request.args.get('source')  # 'music', 'mini_studio', or None for all
+        track_type = request.args.get('type')     # 'generated', 'vocals', etc.
+        favorites_only = request.args.get('favorites') == 'true'
+        limit = request.args.get('limit', type=int)
+        
+        from unified_library import UnifiedLibraryManager
+        from app_core import Song, db
+        
+        library_manager = UnifiedLibraryManager(db, Song)
+        
+        # Get filtered tracks
+        tracks = library_manager.get_user_library(
+            user_id=user_id,
+            source_type=source_type,
+            track_type=track_type,
+            favorites_only=favorites_only
+        )
+        
+        # Apply limit if specified
+        if limit and limit > 0:
+            tracks = tracks[:limit]
+        
+        # Get stats
+        stats = library_manager.get_library_stats(user_id)
+        
+        return jsonify({
+            "success": True,
+            "tracks": tracks,
+            "stats": stats,
+            "filters_applied": {
+                "source_type": source_type,
+                "track_type": track_type,
+                "favorites_only": favorites_only,
+                "limit": limit
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Smart library get error: {e}")
+        return jsonify({"success": False, "error": "Failed to load library"}), 500
+
+@app.route("/api/library/<int:track_id>", methods=["GET"])
+def smart_library_get_track(track_id):
+    """Get specific track details"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        user_id = session.get('user_id')
+        
+        from unified_library import UnifiedLibraryManager
+        from app_core import Song, db
+        
+        library_manager = UnifiedLibraryManager(db, Song)
+        track = library_manager.get_track(track_id, user_id)
+        
+        if not track:
+            return jsonify({"success": False, "error": "Track not found"}), 404
+        
+        return jsonify({
+            "success": True,
+            "track": track
+        })
+        
+    except Exception as e:
+        logger.error(f"Smart library get track error: {e}")
+        return jsonify({"success": False, "error": "Failed to get track"}), 500
+
+@app.route("/api/library/<int:track_id>", methods=["PUT"])
+def smart_library_update_track(track_id):
+    """Update track details (title, tags, favorite status, etc.)"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        user_id = session.get('user_id')
+        data = request.get_json()
+        
+        from unified_library import UnifiedLibraryManager
+        from app_core import Song, db
+        
+        library_manager = UnifiedLibraryManager(db, Song)
+        
+        if library_manager.update_track(track_id, user_id, data):
+            return jsonify({
+                "success": True,
+                "message": "Track updated successfully"
+            })
+        else:
+            return jsonify({"success": False, "error": "Track not found or access denied"}), 404
+        
+    except Exception as e:
+        logger.error(f"Smart library update track error: {e}")
+        return jsonify({"success": False, "error": "Failed to update track"}), 500
+
+@app.route("/api/library/<int:track_id>", methods=["DELETE"])
+def smart_library_delete_track(track_id):
+    """Delete track from library"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        user_id = session.get('user_id')
+        
+        from unified_library import UnifiedLibraryManager
+        from app_core import Song, db
+        
+        library_manager = UnifiedLibraryManager(db, Song)
+        
+        if library_manager.delete_track(track_id, user_id):
+            return jsonify({
+                "success": True,
+                "message": "Track deleted successfully"
+            })
+        else:
+            return jsonify({"success": False, "error": "Track not found or access denied"}), 404
+        
+    except Exception as e:
+        logger.error(f"Smart library delete track error: {e}")
+        return jsonify({"success": False, "error": "Failed to delete track"}), 500
+
+@app.route("/api/library/<int:track_id>/favorite", methods=["POST"])
+def smart_library_toggle_favorite(track_id):
+    """Toggle favorite status for a track"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        user_id = session.get('user_id')
+        
+        from unified_library import UnifiedLibraryManager
+        from app_core import Song, db
+        
+        library_manager = UnifiedLibraryManager(db, Song)
+        
+        if library_manager.toggle_favorite(track_id, user_id):
+            return jsonify({
+                "success": True,
+                "message": "Favorite status updated"
+            })
+        else:
+            return jsonify({"success": False, "error": "Track not found or access denied"}), 404
+        
+    except Exception as e:
+        logger.error(f"Smart library toggle favorite error: {e}")
+        return jsonify({"success": False, "error": "Failed to update favorite status"}), 500
+
+@app.route("/api/library/<int:track_id>/play", methods=["POST"])
+def smart_library_record_play(track_id):
+    """Record a play/listen event for analytics"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        user_id = session.get('user_id')
+        
+        from unified_library import UnifiedLibraryManager
+        from app_core import Song, db
+        
+        library_manager = UnifiedLibraryManager(db, Song)
+        
+        if library_manager.record_play(track_id, user_id):
+            return jsonify({
+                "success": True,
+                "message": "Play recorded"
+            })
+        else:
+            return jsonify({"success": False, "error": "Track not found"}), 404
+        
+    except Exception as e:
+        logger.error(f"Smart library record play error: {e}")
+        return jsonify({"success": False, "error": "Failed to record play"}), 500
+
+@app.route("/api/library/stats", methods=["GET"])
+def smart_library_stats():
+    """Get detailed library statistics"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        user_id = session.get('user_id')
+        
+        from unified_library import UnifiedLibraryManager
+        from app_core import Song, db
+        
+        library_manager = UnifiedLibraryManager(db, Song)
+        stats = library_manager.get_library_stats(user_id)
+        
+        return jsonify({
+            "success": True,
+            "stats": stats
+        })
+        
+    except Exception as e:
+        logger.error(f"Smart library stats error: {e}")
+        return jsonify({"success": False, "error": "Failed to get library stats"}), 500
+
+@app.route("/api/library/add", methods=["POST"])
+def smart_library_add_track():
+    """Add a new track to the library (for API integrations)"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+        user_id = session.get('user_id')
+        data = request.get_json()
+        
+        title = data.get('title', 'Untitled Track')
+        file_path = data.get('file_path')
+        source_type = data.get('source_type', 'music')
+        track_type = data.get('track_type', 'generated')
+        tags = data.get('tags', '')
+        metadata = data.get('metadata', {})
+        
+        if not file_path:
+            return jsonify({"success": False, "error": "File path required"}), 400
+        
+        from unified_library import UnifiedLibraryManager
+        from app_core import Song, db
+        
+        library_manager = UnifiedLibraryManager(db, Song)
+        
+        track_id = library_manager.add_track(
+            user_id=user_id,
+            title=title,
+            file_path=file_path,
+            source_type=source_type,
+            track_type=track_type,
+            tags=tags,
+            metadata=metadata
+        )
+        
+        if track_id:
+            return jsonify({
+                "success": True,
+                "track_id": track_id,
+                "message": "Track added to library successfully"
+            })
+        else:
+            return jsonify({"success": False, "error": "Failed to add track to library"}), 500
+        
+    except Exception as e:
+        logger.error(f"Smart library add track error: {e}")
+        return jsonify({"success": False, "error": "Failed to add track"}), 500
+
+logger.info("✅ Unified Smart Library system completed")
 logger.info("✅ Music Studio integration completed")
 
 # ============================================
