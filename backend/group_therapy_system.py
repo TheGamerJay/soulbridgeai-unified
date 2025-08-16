@@ -286,7 +286,7 @@ class GroupTherapySystem:
         # Check approval requirements
         if session.requires_approval and user_data.get("role") == "participant":
             # In a real implementation, this would queue for approval
-            pass
+            ...
         
         # Add participant
         participant_data = {
