@@ -426,6 +426,9 @@
         <p id="max-plan-message" style="display:none; color: #22d3ee; font-weight: 600;">
             🎉 Max users have unlimited decoder access!
         </p>
+        <button id="fix-limits-button" style="display:none; margin-top: 10px; padding: 8px 16px; background: #22d3ee; color: #000; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9rem;" onclick="fixTierLimits()">
+            🔧 Fix Tier Limits
+        </button>
     </div>
 
     <div class="decoder-interface">
@@ -589,6 +592,14 @@ async function refreshDecoderLimits() {
         // Update usage display
         document.getElementById("usage-count").textContent = usage;
         document.getElementById("usage-limit").textContent = displayLimit;
+
+        // Show fix button if limits are undefined/null
+        const fixButton = document.getElementById('fix-limits-button');
+        if (daily_limit === null || daily_limit === undefined || displayLimit === "null" || displayLimit === "undefined") {
+            fixButton.style.display = 'block';
+        } else {
+            fixButton.style.display = 'none';
+        }
 
         // Update usage bar
         const usageFill = document.getElementById('usage-fill');
@@ -857,6 +868,46 @@ function loadDecoderAdSenseAd(containerId) {
         }
     } catch (error) {
         console.warn('⚠️ Failed to load decoder ad placeholder:', error);
+    }
+}
+
+// Fix tier limits function
+async function fixTierLimits() {
+    const fixButton = document.getElementById('fix-limits-button');
+    const originalText = fixButton.textContent;
+    
+    try {
+        fixButton.textContent = '🔄 Fixing...';
+        fixButton.disabled = true;
+        
+        const response = await fetch('/api/fix-tier-isolation', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            fixButton.textContent = '✅ Fixed!';
+            alert('Tier limits fixed! Refreshing page...');
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            fixButton.textContent = '❌ Failed';
+            alert('Fix failed: ' + result.error);
+            setTimeout(() => {
+                fixButton.textContent = originalText;
+                fixButton.disabled = false;
+            }, 2000);
+        }
+    } catch (error) {
+        fixButton.textContent = '❌ Error';
+        alert('Fix failed: ' + error.message);
+        setTimeout(() => {
+            fixButton.textContent = originalText;
+            fixButton.disabled = false;
+        }, 2000);
     }
 }
 
