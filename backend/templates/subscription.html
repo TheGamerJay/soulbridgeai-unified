@@ -307,6 +307,25 @@
 
   <!-- Plans Grid -->
   <div class="plans-grid">
+    <!-- Ad-Free Plan (For Free Users) -->
+    <div class="plan-card" onclick="selectPlan('ad_free')" style="border: 2px solid #22d3ee;">
+      <div class="plan-icon">🚫</div>
+      <div class="plan-name">Ad-Free</div>
+      <div class="plan-price">$5.00</div>
+      <div class="plan-period">/month</div>
+      
+      <ul class="plan-features">
+        <li><span class="feature-icon">✅</span> All Free Plan features</li>
+        <li><span class="feature-icon">✨</span> <strong>No advertisements</strong></li>
+        <li><span class="feature-icon">✅</span> Uninterrupted conversations</li>
+        <li><span class="feature-icon">✅</span> Same daily feature limits as free</li>
+        <li><span class="feature-icon">💙</span> Support SoulBridge AI development</li>
+        <li><span class="feature-icon">🎯</span> Perfect for casual users</li>
+      </ul>
+      
+      <button class="select-btn" style="background: linear-gradient(135deg, #22d3ee, #0891b2);">Choose Ad-Free</button>
+    </div>
+    
     <!-- Growth Plan (Recommended) -->
     <div class="plan-card recommended" onclick="selectPlan('premium')">
       <div class="badge">Most Popular</div>
@@ -877,7 +896,28 @@ async function selectPlanViaAPI(planType, billing) {
       return;
     }
 
-    // Create Stripe checkout session directly
+    // Handle ad-free plan separately
+    if (planType === 'ad_free') {
+      const response = await fetch('/api/billing/checkout-session/adfree', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
+      });
+      
+      const result = await response.json();
+      
+      if (result.checkout_url) {
+        window.location.href = result.checkout_url;
+        return;
+      } else {
+        alert('Error: ' + (result.error || 'Failed to create ad-free checkout'));
+        return;
+      }
+    }
+
+    // Create Stripe checkout session for other plans
     const response = await fetch('/api/create-checkout-session', {
       method: 'POST',
       headers: {
