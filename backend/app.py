@@ -3838,8 +3838,7 @@ def profile():
             session['email'] = 'user@soulbridgeai.com'
         if not session.get('display_name') and not session.get('user_name'):
             session['display_name'] = 'SoulBridge User'
-        if not session.get('user_plan'):
-            session['user_plan'] = 'free'
+        # NOTE: DO NOT set session['user_plan'] here - this breaks tier isolation system
         
         # Update last activity
         session['last_activity'] = datetime.now().isoformat()
