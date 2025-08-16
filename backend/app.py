@@ -2221,6 +2221,15 @@ def trial_status():
                                     # Update session to reflect expiration
                                     session['trial_active'] = False
                                     session['trial_used_permanently'] = True
+                                    
+                                    # CRITICAL: Reset access flags when trial expires
+                                    user_plan = session.get('user_plan', 'free')
+                                    effective_plan = get_effective_plan(user_plan, False)  # trial_active = False
+                                    
+                                    session['access_trial'] = False
+                                    session['access_growth'] = effective_plan in ['growth', 'max']
+                                    session['access_max'] = effective_plan == 'max'
+                                    
                                     session.modified = True
                             except Exception as e:
                                 logger.error(f"Error marking expired trial as used: {e}")
@@ -2371,19 +2380,26 @@ def start_trial():
         cursor = conn.cursor()
 
         user_id = session['user_id']
-        cursor.execute("SELECT trial_started_at, trial_used_permanently FROM users WHERE id = %s", (user_id,))
+        cursor.execute("SELECT trial_started_at, trial_used_permanently, trial_active FROM users WHERE id = %s", (user_id,))
 
         row = cursor.fetchone()
         if not row:
             conn.close()
             return jsonify({"success": False, "error": "User not found"}), 404
 
-        trial_started_at, trial_used = row
+        trial_started_at, trial_used, trial_active = row
         
-        # Check if trial was already used
+        # Check if trial was already used permanently
         if trial_used:
             conn.close()
+            logger.warning(f"🚨 BLOCKED: User {user_id} tried to start trial but already used permanently")
             return jsonify({"success": False, "error": "You have already used your one-time 5-hour trial"}), 400
+        
+        # Check if trial is currently active (shouldn't happen due to session check, but double-check)
+        if trial_active:
+            conn.close()
+            logger.warning(f"🚨 BLOCKED: User {user_id} tried to start trial but already active in database")
+            return jsonify({"success": False, "error": "Trial is already active"}), 400
 
         # Start 5-hour trial
         from datetime import datetime, timedelta
@@ -2403,9 +2419,21 @@ def start_trial():
         session['trial_expires_at'] = expires.isoformat() + 'Z'
         session['trial_used_permanently'] = False  # Only set to True when trial expires
         session['trial_warning_sent'] = False
+        
+        # CRITICAL: Update access flags for companion unlocking during trial
+        user_plan = session.get('user_plan', 'free')
+        trial_active = True  # We just activated it
+        effective_plan = get_effective_plan(user_plan, trial_active)
+        
+        session['access_free'] = True  # Always have free access
+        session['access_trial'] = trial_active
+        session['access_growth'] = effective_plan in ['growth', 'max'] or trial_active
+        session['access_max'] = effective_plan == 'max' or trial_active
+        
         session.modified = True
 
         logger.info(f"🎯 Trial started for user {user_id} - expires at {expires}")
+        logger.info(f"🔑 Access flags updated: growth={session['access_growth']}, max={session['access_max']}, trial={session['access_trial']}")
 
         return jsonify({
             "success": True,
