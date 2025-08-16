@@ -16277,6 +16277,40 @@ def add_trainer_credits(user_id, amount=350):
         logger.error(f"Error adding purchased credits: {e}")
         return False
 
+# ========================================
+# AD-FREE SUBSCRIPTION ENDPOINT (DIRECT)
+# ========================================
+
+@app.route("/api/billing/checkout-session/adfree", methods=["POST"])
+def create_adfree_checkout_direct():
+    """Create ad-free subscription checkout - direct implementation"""
+    try:
+        # Check authentication
+        if not is_logged_in():
+            logger.warning("🚫 Ad-free checkout: User not authenticated")
+            return jsonify({"error": "Authentication required"}), 401
+        
+        user_id = session.get('user_id')
+        user_email = session.get('user_email')
+        
+        if not user_id or not user_email:
+            logger.warning(f"🚫 Ad-free checkout: Missing user data - ID: {user_id}, Email: {user_email}")
+            return jsonify({"error": "User session invalid"}), 401
+        
+        logger.info(f"✅ Ad-free checkout request from user {user_id} ({user_email})")
+        
+        # For now, redirect to a simple payment page or show success message
+        # This bypasses complex Stripe integration temporarily
+        return jsonify({
+            "success": True,
+            "message": "Ad-free subscription feature is being set up. Please contact support for early access.",
+            "checkout_url": "/subscription?message=adfree_coming_soon"
+        })
+        
+    except Exception as e:
+        logger.error(f"❌ Ad-free checkout error: {e}")
+        return jsonify({"error": "Checkout temporarily unavailable"}), 500
+
 # APPLICATION STARTUP
 # ========================================
 
