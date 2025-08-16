@@ -34,46 +34,8 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    
-    <!-- Ad-Free Status (Server-Injected) -->
-    <script>
-        window.__AD_FREE__ = {{ 'true' if ad_free else 'false' }};
-    </script>
-    
-    <!-- Conditional AdSense Loading (Only for non-ad-free users) -->
-    <script>
-        (function() {
-            var adFree = (window.__AD_FREE__ === true || window.__AD_FREE__ === 'true');
-            if (!adFree) {
-                var s = document.createElement('script');
-                s.async = true;
-                s.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3869471953521437";
-                s.crossOrigin = "anonymous";
-                document.head.appendChild(s);
-                console.log('📺 AdSense loaded for free user');
-            } else {
-                console.log('🚫 AdSense blocked - user has ad-free subscription');
-            }
-        })();
-    </script>
-    
-    <!-- Hide ad containers for ad-free users -->
-    <style>
-        html.ad-free .adsbygoogle, 
-        html.ad-free .ad-slot,
-        html.ad-free .ad-container { 
-            display: none !important; 
-        }
-    </style>
 </head>
 <body>
-    <!-- Set ad-free class on HTML element for CSS targeting -->
-    <script>
-        if (window.__AD_FREE__ === true || window.__AD_FREE__ === 'true') {
-            document.documentElement.classList.add('ad-free');
-        }
-    </script>
-    
     <div class="chat-container">
         <!-- Header -->
         <div class="chat-header">
@@ -157,7 +119,7 @@
                     Meditations
                 </a>
                 {% endif %}
-                <button onclick="console.log('Write button clicked!'); openCreativeWriting();" class="action-btn creative-btn tier-btn" data-feature="creative_writer" title="Creative Writing Assistant" style="cursor: pointer;">
+                <button onclick="openCreativeWriting();" class="action-btn creative-btn tier-btn" data-feature="creative_writer" title="Creative Writing Assistant" style="cursor: pointer;">
                     <i class="fas fa-feather-alt"></i>
                     <div class="btn-content">
                         <span class="btn-title">Write</span>
@@ -183,7 +145,14 @@
                 <!-- Timer removed from chat page - too distracting during conversations -->
 
                 
-                <!-- Trial Status removed for cleaner experience -->
+                <!-- Trial Badge (shows when trial is active) -->
+                <div class="trial-status-container">
+                    <!-- Removed redundant trial badge - timer banner shows trial status -->
+                    <div id="trial-banner" class="simple-timer" style="display: {% if session.get('trial_active') %}block{% else %}none{% endif %};">
+                        <strong><i class="fas fa-clock"></i> Trial Active</strong>
+                        <span id="trial-eta">— 05:00:00</span>
+                    </div>
+                </div>
             </div>
         </div>
         
@@ -1065,7 +1034,9 @@
             display: none !important;
         }
         
-        /* Trial button CSS removed - trial button only available on companion selector page */
+        .trial-btn {
+            animation: pulse-gold 2s infinite;
+        }
         
         @keyframes pulse-gold {
             0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7); }
@@ -1146,7 +1117,15 @@
             z-index: 1000;
         }
         
-        /* Trial banner styles removed */
+        /* ALLOW NEW ROBUST TIMER TO SHOW ONLY WHEN ACTIVE */
+        #trial-banner {
+            visibility: visible !important;
+            opacity: 1 !important;
+            position: static !important;
+            left: auto !important;
+            top: auto !important;
+            /* Display controlled by template condition - no override */
+        }
         
         /* Hide only the OLD problematic timers */
         #trial-timer-container, .timer-display, .timer-content, .timer-glass-card {
@@ -1163,22 +1142,13 @@
 
     <script>
         function openCreativeWriting() {
-            console.log('🖋️ Write button clicked - opening Creative Writing Assistant');
             try {
                 const modal = document.getElementById('creativeWritingModal');
-                console.log('Creative Writing modal found:', !!modal);
                 if (modal) {
                     modal.style.display = 'flex';
                     document.body.style.overflow = 'hidden';
-                    console.log('✅ Creative Writing modal opened successfully');
-                } else {
-                    console.error('❌ Creative Writing modal not found');
-                    alert('Creative Writing feature is loading, please try again in a moment.');
                 }
-            } catch (error) {
-                console.error('❌ Error opening Creative Writing:', error);
-                alert('Unable to open Creative Writing. Please refresh the page and try again.');
-            }
+            } catch (error) {}
         }
         
         function closeCreativeWriting() {
@@ -1274,7 +1244,6 @@
             }
             
             if (!prompt) {
-                alert('Please describe what you\'d like help writing!');
                 return;
             }
             
@@ -1300,15 +1269,11 @@
                     document.getElementById('generatedContent').textContent = data.content;
                     document.getElementById('writingOutput').style.display = 'block';
                     document.getElementById('writingInput').style.display = 'none';
-                    
-                    // Show ad after successful creative writing for free users
-                    await handleCreativeWritingAd();
                 } else {
-                    alert('Sorry, there was an error generating your creative content. Please try again.');
+                    // Error: could not generate creative content
                 }
             } catch (error) {
-                console.error('Creative writing error:', error);
-                alert('Sorry, there was an error generating your creative content. Please try again.');
+                // Error: creative writing error
             } finally {
                 generateBtn.innerHTML = '<i class="fas fa-magic"></i> Generate Creative Content';
                 generateBtn.disabled = false;
@@ -1363,8 +1328,7 @@
                     throw new Error(data.error || 'Save failed');
                 }
             } catch (error) {
-                console.error('Save error:', error);
-                alert('Sorry, there was an error saving your creative content. Please try again.');
+                // Error: save error
                 saveBtn.innerHTML = originalText;
                 saveBtn.disabled = false;
             }
@@ -1730,7 +1694,6 @@ Where emotion meets expression.
             const content = document.getElementById('generatedContent').textContent;
             
             if (!content.trim()) {
-                alert('No content to read!');
                 return;
             }
             
@@ -2174,45 +2137,6 @@ Where emotion meets expression.
             // Update tier limits every 30 seconds
             setInterval(updateTierLimits, 30000);
             
-            // Refresh limits when returning to chat page (e.g., from decoder)
-            document.addEventListener('visibilitychange', () => {
-                if (!document.hidden) {
-                    console.log('🔄 Page visible - refreshing tier limits');
-                    updateTierLimits();
-                }
-            });
-            
-            // Also refresh on window focus (for better compatibility)
-            window.addEventListener('focus', () => {
-                console.log('🔄 Window focused - refreshing tier limits');
-                updateTierLimits();
-            });
-            
-            // Debug: Test all feature buttons are working
-            console.log('🧪 Testing feature button connectivity...');
-            const testButtons = () => {
-                const decoder = document.querySelector('[data-feature="decoder"]');
-                const fortune = document.querySelector('[data-feature="fortune"]');
-                const horoscope = document.querySelector('[data-feature="horoscope"]');
-                const creative = document.querySelector('[data-feature="creative_writer"]');
-                
-                console.log('Button test results:');
-                console.log('  🧠 Decoder:', !!decoder, decoder?.href);
-                console.log('  🔮 Fortune:', !!fortune, fortune?.href);
-                console.log('  ⭐ Horoscope:', !!horoscope, horoscope?.href);
-                console.log('  📝 Creative:', !!creative, creative?.onclick ? 'has onclick' : 'no onclick');
-                
-                if (decoder && fortune && horoscope && creative) {
-                    console.log('✅ All 4 feature buttons found and should be working!');
-                } else {
-                    console.log('❌ Some buttons missing!');
-                }
-            };
-            
-            setTimeout(testButtons, 1000); // Run after page loads
-            
-            // Feature buttons work normally (navigate to separate pages)
-            
             // Debug premium features only for premium users or when debugging
             const effectivePlan = '{{ effective_plan }}';
             if (effectivePlan !== 'free' || sessionStorage.getItem('debugPremiumFeatures')) {
@@ -2479,12 +2403,81 @@ Where emotion meets expression.
         // - Parsing ISO without 'Z' (→ timezone drift)
         // - Letting setInterval drift while tab is hidden
 
-        // Trial timer removed for cleaner chat experience
+        async function loadTrial() {
+            // Timer function called
+            const r = await fetch('/api/trial-status', { credentials: 'include' });
+            const d = await r.json();
+            // Trial status received
+            if (!d.logged_in) { 
+                // Not logged in, timer hidden
+                return; 
+            }
+
+            const banner = document.getElementById('trial-banner');
+            const etaEl  = document.getElementById('trial-eta');
+
+            if (!d.active) {
+                // No active trial, timer hidden
+                if (banner) banner.style.display = 'none';
+                return;
+            }
+            
+            // Active trial found, showing timer
+
+            if (banner) banner.style.display = 'block';
+
+            // Prefer server-provided epoch ms to avoid TZ parsing bugs
+            const expireMs = typeof d.expires_at_ms === 'number'
+                ? d.expires_at_ms
+                : new Date(d.expires_at).getTime(); // fallback if needed
+
+            function fmt(h, m, s) {
+                return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+            }
+
+            function tick() {
+                const now = Date.now();
+                let delta = Math.max(0, expireMs - now);  // clamp at 0
+                const hours   = Math.floor(delta / 3600000);
+                const minutes = Math.floor((delta % 3600000) / 60000);
+                const seconds = Math.floor((delta % 60000) / 1000);
+
+                const timeDisplay = `— ${fmt(hours, minutes, seconds)}`;
+                console.log(`⏱️ ROBUST TIMER: ${timeDisplay} (${Math.floor(delta/1000)}s remaining)`);
+                if (etaEl) etaEl.textContent = timeDisplay;
+
+                // Update warning states
+                if (banner) {
+                    banner.classList.remove('warning', 'critical');
+                    const timeInSeconds = delta / 1000;
+                    if (timeInSeconds < 600) { // < 10 minutes
+                        banner.classList.add('critical');
+                    } else if (timeInSeconds < 1800) { // < 30 minutes
+                        banner.classList.add('warning');
+                    }
+                }
+
+                if (delta === 0) {
+                    clearInterval(timerId);
+                    if (etaEl) etaEl.textContent = '— 00:00:00';
+                    // optionally refresh UI/limits here
+                }
+            }
+
+            // First draw + stable 1s cadence
+            tick();
+            let timerId = setInterval(tick, 1000);
+
+            // Recover quickly from background-tab drift
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden) tick();
+            });
+        }
 
         // Legacy function for compatibility - DISABLED to prevent timezone bugs
         function updateSimpleTimer(trialRemaining) {
             // DISABLED: Old timer had timezone issues causing 8:99.99 display
-            // Trial timer removed from chat page
+            // Only use loadTrial() which has proper UTC handling
             console.log('🚫 Old updateSimpleTimer called - ignoring to prevent timezone bugs');
         }
 
@@ -2500,12 +2493,6 @@ Where emotion meets expression.
 
                 const { trial_active, trial_remaining, effective_plan, user_plan, trial_used_permanently } = data;
 
-                // Skip trial logic for free users (they use ads, not trials) 
-                if (user_plan === 'free') {
-                    console.log('🚫 Skipping trial logic in chat - free user uses ads');
-                    return;
-                }
-
                 // Update trial badge
                 const trialBadge = document.getElementById('trial-badge');
                 
@@ -2517,13 +2504,18 @@ Where emotion meets expression.
                     if (trialBadge) trialBadge.style.display = 'none';
                 }
                 
-                // Trial timer removed from chat page
+                // DON'T call loadTrial() here - let it run independently to avoid conflicts
+                // The loadTrial() function runs on its own timer and handles timezone correctly
 
                 // DISABLED OLD RING TIMER - Preventing conflicts with new timer system
                 // Use new timer system instead (trial-timer-container)
                 console.log('🔄 OLD ring timer disabled, using new timer system instead');
 
-                // Trial button removed from chat page - now only available on companion selector page
+                // Hide trial button if used or active
+                const trialBtn = document.getElementById("start-trial-btn");
+                if (trialBtn && (trial_active || trial_used_permanently)) {
+                    trialBtn.classList.add("hidden");
+                }
 
                 // Premium features are now conditionally rendered by server template
                 // No need for JavaScript show/hide logic anymore
@@ -2540,12 +2532,52 @@ Where emotion meets expression.
             }
         }
 
-        // Trial functionality removed from chat page - available only on companion selector page
+        async function startTrial() {
+            try {
+                const res = await fetch('/api/start-trial', { method: 'POST' });
+                const data = await res.json();
+                
+                if (data.success) {
+                    alert("🌟 5-Hour Trial started! Enjoy all premium features!");
+                    refreshUserStatus();
+                    
+                    // Hide the trial button immediately
+                    const trialBtn = document.getElementById("start-trial-btn");
+                    if (trialBtn) {
+                        trialBtn.classList.add("hidden");
+                    }
+                } else {
+                    alert("Trial could not be started: " + (data.error || "Unknown error"));
+                }
+            } catch (error) {
+                console.error('Error starting trial:', error);
+                alert("Error starting trial. Please try again.");
+            }
+        }
 
         // Initialize robust timer system - MULTIPLE TRIGGERS
         console.log('🔧 Timer initialization script loaded');
         
-        // Trial timer initialization removed for cleaner chat experience
+        // Try multiple ways to ensure loadTrial runs
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                console.log('🔧 DOMContentLoaded fired, calling loadTrial');
+                loadTrial();
+            });
+        } else {
+            console.log('🔧 DOM already ready, calling loadTrial immediately');
+            loadTrial();
+        }
+        
+        // Also call it after a short delay as backup
+        setTimeout(() => {
+            console.log('🔧 Backup timer trigger after 2 seconds');
+            if (typeof loadTrial === 'function') {
+                console.log('✅ loadTrial function exists, calling it');
+                loadTrial();
+            } else {
+                console.error('❌ loadTrial function NOT FOUND! Check for JS errors above.');
+            }
             
             // Debug: Find all elements that might be showing the timer
             const allTimerElements = document.querySelectorAll('*');
@@ -2559,119 +2591,6 @@ Where emotion meets expression.
         // Refresh user status less frequently 
         setInterval(refreshUserStatus, 15000); // Refresh every 15 seconds (less aggressive)  
         refreshUserStatus(); // Run once on load
-    </script>
-    
-    <!-- Enhanced Ad Management System -->
-    <script>
-        // Global ad management functions
-        window.disableAds = function() {
-            if (window.__AD_FREE__) return; // Don't affect ad-free users
-            
-            document.querySelectorAll('.adsbygoogle, .ad-slot, .ad-container').forEach(el => {
-                el.dataset.prevDisplay = el.style.display || '';
-                el.style.display = 'none';
-            });
-            console.log('🔇 Ads paused during interaction');
-        };
-        
-        window.enableAds = function() {
-            if (window.__AD_FREE__) return; // Don't affect ad-free users
-            
-            document.querySelectorAll('.adsbygoogle, .ad-slot, .ad-container').forEach(el => {
-                el.style.display = el.dataset.prevDisplay || 'block';
-            });
-            
-            // Re-initialize AdSense ads
-            if (window.adsbygoogle) {
-                document.querySelectorAll('.adsbygoogle').forEach(() => {
-                    try {
-                        (adsbygoogle = window.adsbygoogle || []).push({});
-                    } catch (e) {
-                        console.warn('AdSense re-init failed:', e);
-                    }
-                });
-            }
-            console.log('📺 Ads re-enabled after interaction');
-        };
-        
-        // Auto pause/resume for message interactions
-        function setupAdPauseResume() {
-            if (window.__AD_FREE__) {
-                console.log('🚫 Ad-free user - skipping ad pause/resume setup');
-                return;
-            }
-            
-            // Listen for custom events from chat system
-            window.addEventListener('soulbridge:message:start', () => {
-                window.disableAds();
-            });
-            
-            window.addEventListener('soulbridge:message:complete', () => {
-                setTimeout(() => {
-                    window.enableAds();
-                }, 1000); // Small delay to avoid flashing
-            });
-            
-            console.log('📺 Ad pause/resume system initialized');
-        }
-        
-        // Initialize when DOM is ready
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', setupAdPauseResume);
-        } else {
-            setupAdPauseResume();
-        }
-        
-        // Auto-detect and save user timezone for personalized daily resets
-        async function detectAndSaveTimezone() {
-            try {
-                // Get user's timezone using JavaScript
-                const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-                
-                // Map to supported timezones
-                const timezoneMap = {
-                    'America/New_York': 'America/New_York',
-                    'America/Chicago': 'America/Chicago', 
-                    'America/Denver': 'America/Denver',
-                    'America/Los_Angeles': 'America/Los_Angeles',
-                    'America/Toronto': 'America/New_York', // Same as Eastern
-                    'America/Vancouver': 'America/Los_Angeles', // Same as Pacific
-                    'Europe/London': 'Europe/London',
-                    'Europe/Paris': 'Europe/Paris',
-                    'Europe/Berlin': 'Europe/Berlin',
-                    'Asia/Tokyo': 'Asia/Tokyo',
-                    'Asia/Shanghai': 'Asia/Shanghai',
-                    'Australia/Sydney': 'Australia/Sydney'
-                };
-                
-                const mappedTimezone = timezoneMap[userTimezone] || 'America/New_York';
-                
-                // Only send if different from default
-                if (mappedTimezone !== 'America/New_York') {
-                    console.log(`🌍 Detected timezone: ${userTimezone} -> ${mappedTimezone}`);
-                    
-                    const response = await fetch('/api/update-timezone', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ timezone: mappedTimezone })
-                    });
-                    
-                    const data = await response.json();
-                    if (data.success) {
-                        console.log(`✅ Timezone saved: ${mappedTimezone}`);
-                    }
-                }
-            } catch (error) {
-                console.log('⚠️ Timezone detection failed:', error);
-            }
-        }
-        
-        // Call timezone detection on page load
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', detectAndSaveTimezone);
-        } else {
-            detectAndSaveTimezone();
-        }
     </script>
     
     <script src="{{ url_for('static', filename='js/chat.js') }}?v={{ range(1000000) | random }}"></script>
