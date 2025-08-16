@@ -228,14 +228,15 @@ class TierManager:
         
         return tier_mapping.get(user_plan, 'free')
     
+    def clear_all_tier_sessions(self):
+        """Clear all tier session keys from the session (strong isolation)"""
+        for tier in self.tiers:
+            self.tiers[tier].clear_session_data()
+
     def initialize_user_for_tier(self, user_data: Dict[str, Any], tier_name: str):
-        """Initialize user session for specific tier"""
+        """Initialize user session for specific tier, enforcing strong isolation"""
+        self.clear_all_tier_sessions()
         if tier_name in self.tiers:
-            # Clear all other tier sessions to prevent contamination
-            for other_tier in self.tiers:
-                if other_tier != tier_name:
-                    self.tiers[other_tier].clear_session_data()
-            
             # Special handling for trial users - they get access to max tier companions
             # but keep their original plan limits to avoid false hope
             if user_data.get('trial_active', False):
@@ -243,7 +244,6 @@ class TierManager:
             else:
                 # Initialize the correct tier normally
                 self.tiers[tier_name].initialize_user_session(user_data)
-            
             logger.info(f"🔒 TIER ISOLATION: User initialized for {tier_name.upper()} tier only")
         else:
             logger.error(f"❌ Unknown tier: {tier_name}")

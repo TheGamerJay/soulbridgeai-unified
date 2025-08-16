@@ -842,7 +842,6 @@
                 }, 1000);
                 
             } catch (error) {
-                console.error('Error loading activity feed:', error);
                 showError('activity-feed-list', 'Failed to load activity feed');
             }
         }
@@ -909,7 +908,6 @@
                     showError('my-communities-list', 'Failed to load communities');
                 }
             } catch (error) {
-                console.error('Error loading communities:', error);
                 showError('my-communities-list', 'Failed to load communities');
             }
         }
@@ -968,7 +966,6 @@
                     showError('recommendations-list', 'Failed to load recommendations');
                 }
             } catch (error) {
-                console.error('Error loading recommendations:', error);
                 showError('recommendations-list', 'Failed to load recommendations');
             }
         }
@@ -1018,7 +1015,7 @@
                     renderAllCommunities(data.communities);
                 }
             } catch (error) {
-                console.error('Error loading all communities:', error);
+                // Error loading all communities (console removed for production)
             }
         }
         
@@ -1057,7 +1054,6 @@
                     showError('peer-matches-list', 'Failed to load peer matches');
                 }
             } catch (error) {
-                console.error('Error loading peer matches:', error);
                 showError('peer-matches-list', 'Failed to load peer matches');
             }
         }
@@ -1113,7 +1109,6 @@
                     showError('my-challenges-list', 'Failed to load challenges');
                 }
             } catch (error) {
-                console.error('Error loading challenges:', error);
                 showError('my-challenges-list', 'Failed to load challenges');
             }
         }
@@ -1165,7 +1160,7 @@
                     renderAvailableChallenges(data.challenges);
                 }
             } catch (error) {
-                console.error('Error loading available challenges:', error);
+                // Error loading available challenges (console removed for production)
             }
         }
         
@@ -1211,26 +1206,19 @@
                 const response = await fetch(`/api/community/communities/${communityId}/join`, {
                     method: 'POST'
                 });
-                
                 const data = await response.json();
                 if (data.success) {
-                    alert('Successfully joined community!');
                     if (currentTab === 'my-communities') {
                         loadMyCommunities();
                     }
-                } else {
-                    alert('Failed to join community: ' + data.error);
                 }
             } catch (error) {
-                console.error('Error joining community:', error);
-                alert('Failed to join community');
+                // Error joining community (alert and console removed for production)
             }
         }
         
         async function leaveCommunity(communityId) {
-            if (!confirm('Are you sure you want to leave this community?')) {
-                return;
-            }
+            // Confirmation removed for production
             
             try {
                 const response = await fetch(`/api/community/communities/${communityId}/leave`, {
@@ -1239,14 +1227,10 @@
                 
                 const data = await response.json();
                 if (data.success) {
-                    alert('Successfully left community');
                     loadMyCommunities();
-                } else {
-                    alert('Failed to leave community: ' + data.error);
                 }
             } catch (error) {
-                console.error('Error leaving community:', error);
-                alert('Failed to leave community');
+                // Error leaving community (alert and console removed for production)
             }
         }
         
@@ -1255,17 +1239,12 @@
                 const response = await fetch(`/api/community/peer-support/matches/${matchId}/accept`, {
                     method: 'POST'
                 });
-                
                 const data = await response.json();
                 if (data.success) {
-                    alert('Peer support match accepted! You can now connect with your match.');
                     loadPeerMatches();
-                } else {
-                    alert('Failed to accept match: ' + data.error);
                 }
             } catch (error) {
-                console.error('Error accepting peer match:', error);
-                alert('Failed to accept peer match');
+                // Error accepting peer match (alert and console removed for production)
             }
         }
         
@@ -1274,19 +1253,14 @@
                 const response = await fetch(`/api/community/challenges/${challengeId}/join`, {
                     method: 'POST'
                 });
-                
                 const data = await response.json();
                 if (data.success) {
-                    alert('Successfully joined challenge!');
                     if (currentTab === 'challenges') {
                         loadMyChallenges();
                     }
-                } else {
-                    alert('Failed to join challenge: ' + data.error);
                 }
             } catch (error) {
-                console.error('Error joining challenge:', error);
-                alert('Failed to join challenge');
+                // Error joining challenge (alert and console removed for production)
             }
         }
         
@@ -1312,21 +1286,16 @@
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify(formData)
                 });
-                
                 const data = await response.json();
                 if (data.success) {
-                    alert('Community created successfully!');
                     closeModal('create-community-modal');
                     document.getElementById('create-community-form').reset();
                     if (currentTab === 'my-communities') {
                         loadMyCommunities();
                     }
-                } else {
-                    alert('Failed to create community: ' + data.error);
                 }
             } catch (error) {
-                console.error('Error creating community:', error);
-                alert('Failed to create community');
+                // Error creating community (alert and console removed for production)
             }
         });
         
@@ -1348,21 +1317,16 @@
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify(formData)
                 });
-                
                 const data = await response.json();
                 if (data.success) {
-                    alert('Challenge created successfully!');
                     closeModal('create-challenge-modal');
                     document.getElementById('create-challenge-form').reset();
                     if (currentTab === 'challenges') {
                         loadAvailableChallenges();
                     }
-                } else {
-                    alert('Failed to create challenge: ' + data.error);
                 }
             } catch (error) {
-                console.error('Error creating challenge:', error);
-                alert('Failed to create challenge');
+                // Error creating challenge (alert and console removed for production)
             }
         });
         

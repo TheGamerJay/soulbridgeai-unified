@@ -178,10 +178,8 @@
 
     <script>
         function selectCompanion(companionId) {
-            if (confirm(`Select ${companionId.replace('_', ' ')} as your companion?`)) {
-                // Redirect to chat with selected companion
-                window.location.href = `/chat?companion=${companionId}`;
-            }
+            // Redirect to chat with selected companion (confirmation removed for production)
+            window.location.href = `/chat?companion=${companionId}`;
         }
     </script>
 </body>
