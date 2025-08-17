@@ -2180,9 +2180,9 @@ def start_trial():
     # Update database
     try:
         if db.use_postgres:
-            cursor.execute("UPDATE users SET trial_started_at = %s, trial_expires_at = %s, trial_used_permanently = FALSE WHERE id = %s", (now, expires, user_id))
+            cursor.execute("UPDATE users SET trial_started_at = %s, trial_expires_at = %s, trial_active = TRUE, trial_used_permanently = FALSE WHERE id = %s", (now, expires, user_id))
         else:
-            cursor.execute("UPDATE users SET trial_started_at = ?, trial_expires_at = ?, trial_used_permanently = FALSE WHERE id = ?", (now.isoformat(), expires.isoformat(), user_id))
+            cursor.execute("UPDATE users SET trial_started_at = ?, trial_expires_at = ?, trial_active = TRUE, trial_used_permanently = FALSE WHERE id = ?", (now.isoformat(), expires.isoformat(), user_id))
         
         conn.commit()
         conn.close()
