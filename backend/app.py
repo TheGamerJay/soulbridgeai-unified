@@ -2192,12 +2192,12 @@ def start_trial():
             # Add trial columns if they don't exist
             cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS trial_started_at TIMESTAMP")
             cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS trial_expires_at TIMESTAMP") 
-            cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS trial_active BOOLEAN DEFAULT FALSE")
-            cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS trial_used_permanently BOOLEAN DEFAULT FALSE")
+            cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS trial_active INTEGER DEFAULT 0")
+            cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS trial_used_permanently INTEGER DEFAULT 0")
             conn.commit()
             
-            # Now update with trial data
-            cursor.execute("UPDATE users SET trial_started_at = %s, trial_expires_at = %s, trial_active = TRUE, trial_used_permanently = FALSE WHERE id = %s", (now, expires, user_id))
+            # Now update with trial data - use 1/0 for PostgreSQL INTEGER columns
+            cursor.execute("UPDATE users SET trial_started_at = %s, trial_expires_at = %s, trial_active = 1, trial_used_permanently = 0 WHERE id = %s", (now, expires, user_id))
         else:
             logger.info(f"🔍 TRIAL: Ensuring SQLite trial columns exist")
             # Add trial columns if they don't exist
@@ -2338,7 +2338,7 @@ def reset_trial_state():
             if db_instance.use_postgres:
                 cursor.execute("""
                     UPDATE users 
-                    SET trial_active = FALSE, 
+                    SET trial_active = 0, 
                         trial_started_at = NULL,
                         trial_used_permanently = FALSE,
                         trial_warning_sent = 0
@@ -2347,7 +2347,7 @@ def reset_trial_state():
             else:
                 cursor.execute("""
                     UPDATE users 
-                    SET trial_active = FALSE, 
+                    SET trial_active = 0, 
                         trial_started_at = NULL,
                         trial_used_permanently = FALSE,
                         trial_warning_sent = 0
@@ -7960,7 +7960,7 @@ def start_trial_bulletproof():
                     
                     # Update users table
                     if db_instance.use_postgres:
-                        cursor.execute("UPDATE users SET trial_started_at = %s, trial_expires_at = %s, trial_active = TRUE, trial_used_permanently = FALSE WHERE id = %s", (now, expires, user_id))
+                        cursor.execute("UPDATE users SET trial_started_at = %s, trial_expires_at = %s, trial_active = 1, trial_used_permanently = 0 WHERE id = %s", (now, expires, user_id))
                         
                         # Create MaxTrial record with 60 credits
                         cursor.execute("""
@@ -7971,7 +7971,7 @@ def start_trial_bulletproof():
                         # Grant 60 credits to user
                         cursor.execute("UPDATE users SET trainer_credits = COALESCE(trainer_credits, 0) + 60 WHERE id = %s", (user_id,))
                     else:
-                        cursor.execute("UPDATE users SET trial_started_at = ?, trial_expires_at = ?, trial_active = TRUE, trial_used_permanently = 0 WHERE id = ?", (now.isoformat(), expires.isoformat(), user_id))
+                        cursor.execute("UPDATE users SET trial_started_at = ?, trial_expires_at = ?, trial_active = 1, trial_used_permanently = 0 WHERE id = ?", (now.isoformat(), expires.isoformat(), user_id))
                         
                         # Create MaxTrial record with 60 credits
                         cursor.execute("""
@@ -8034,9 +8034,9 @@ def poll_trial_bulletproof():
                             conn = db_instance.get_connection()
                             cursor = conn.cursor()
                             if db_instance.use_postgres:
-                                cursor.execute("UPDATE users SET trial_active = FALSE, trial_used_permanently = TRUE WHERE id = %s", (user_id,))
+                                cursor.execute("UPDATE users SET trial_active = 0, trial_used_permanently = 1 WHERE id = %s", (user_id,))
                             else:
-                                cursor.execute("UPDATE users SET trial_active = FALSE, trial_used_permanently = TRUE WHERE id = ?", (user_id,))
+                                cursor.execute("UPDATE users SET trial_active = 0, trial_used_permanently = 1 WHERE id = ?", (user_id,))
                             conn.commit()
                             conn.close()
                 except Exception as e:
