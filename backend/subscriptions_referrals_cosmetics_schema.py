@@ -193,7 +193,7 @@ def insert_default_cosmetics(db_connection):
             'rarity': 'rare',
             'unlock_method': 'referral',
             'unlock_requirement': '{"referral_threshold": 2}',
-            'image_url': '/static/cosmetics/blayzike.png'
+            'image_url': '/static/logos/Blayzike_Referral.png'
         },
         {
             'name': 'blazelian',
@@ -203,7 +203,7 @@ def insert_default_cosmetics(db_connection):
             'rarity': 'epic',
             'unlock_method': 'referral',
             'unlock_requirement': '{"referral_threshold": 5}',
-            'image_url': '/static/cosmetics/blazelian.png'
+            'image_url': '/static/logos/Blazelian.png'
         },
         {
             'name': 'claude',
@@ -213,7 +213,7 @@ def insert_default_cosmetics(db_connection):
             'rarity': 'legendary',
             'unlock_method': 'referral',
             'unlock_requirement': '{"referral_threshold": 8}',
-            'image_url': '/static/cosmetics/claude.png'
+            'image_url': '/static/logos/Claude_Referral.png'
         },
         {
             'name': 'blayzo',
@@ -223,7 +223,7 @@ def insert_default_cosmetics(db_connection):
             'rarity': 'legendary',
             'unlock_method': 'referral',
             'unlock_requirement': '{"referral_threshold": 10}',
-            'image_url': '/static/cosmetics/blayzo.png'
+            'image_url': '/static/logos/Blayzo_Referral.png'
         }
     ]
     

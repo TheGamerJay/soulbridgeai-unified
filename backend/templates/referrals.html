@@ -688,9 +688,9 @@
                     </div>
                     <div class="timeline-content ${contentClass}">
                         <div class="reward-info">
-                            <img src="/static/cosmetics/${reward.cosmetic.toLowerCase()}.png" 
+                            <img src="/static/logos/${reward.cosmetic}_Referral.png" 
                                  alt="${reward.cosmetic}" class="reward-icon"
-                                 onerror="this.src='/static/logos/IntroLogo.png'">
+                                 onerror="this.src='/static/logos/${reward.cosmetic}.png'; this.onerror=function(){this.src='/static/logos/IntroLogo.png';}"
                             <div class="reward-details">
                                 <h3>${reward.cosmetic}</h3>
                                 <p class="reward-description">${reward.threshold} verified referrals</p>
@@ -742,9 +742,9 @@
                 card.className = `cosmetic-card ${isUnlocked ? 'unlocked' : ''}`;
 
                 card.innerHTML = `
-                    <img src="/static/cosmetics/${cosmetic.name.toLowerCase()}.png" 
+                    <img src="/static/logos/${cosmetic.name}_Referral.png" 
                          alt="${cosmetic.name}" class="cosmetic-image"
-                         onerror="this.src='/static/logos/IntroLogo.png'">
+                         onerror="this.src='/static/logos/${cosmetic.name}.png'; this.onerror=function(){this.src='/static/logos/IntroLogo.png';}"
                     <div class="cosmetic-name">${cosmetic.name}</div>
                     <div class="cosmetic-threshold">
                         ${isUnlocked ? '✓ Unlocked' : `${cosmetic.threshold} referrals`}
