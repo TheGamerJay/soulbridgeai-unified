@@ -2185,14 +2185,26 @@ def start_trial():
     logger.info(f"🕒 TRIAL START DEBUG: now={now}, expires={expires}")
     logger.info(f"🕒 TRIAL START DEBUG: duration_seconds={(expires-now).total_seconds()}")
 
-    # Update database
+    # Update database - try with trial_active first, fallback without it
     try:
         if db.use_postgres:
             logger.info(f"🔍 TRIAL DB: Executing PostgreSQL update for user {user_id}")
-            cursor.execute("UPDATE users SET trial_started_at = %s, trial_expires_at = %s, trial_active = TRUE, trial_used_permanently = FALSE WHERE id = %s", (now, expires, user_id))
+            try:
+                # Try with trial_active column first
+                cursor.execute("UPDATE users SET trial_started_at = %s, trial_expires_at = %s, trial_active = TRUE, trial_used_permanently = FALSE WHERE id = %s", (now, expires, user_id))
+            except Exception as trial_active_error:
+                logger.warning(f"⚠️ trial_active column not found, trying without it: {trial_active_error}")
+                # Fallback without trial_active column
+                cursor.execute("UPDATE users SET trial_started_at = %s, trial_expires_at = %s, trial_used_permanently = FALSE WHERE id = %s", (now, expires, user_id))
         else:
             logger.info(f"🔍 TRIAL DB: Executing SQLite update for user {user_id}")
-            cursor.execute("UPDATE users SET trial_started_at = ?, trial_expires_at = ?, trial_active = TRUE, trial_used_permanently = FALSE WHERE id = ?", (now.isoformat(), expires.isoformat(), user_id))
+            try:
+                # Try with trial_active column first
+                cursor.execute("UPDATE users SET trial_started_at = ?, trial_expires_at = ?, trial_active = TRUE, trial_used_permanently = FALSE WHERE id = ?", (now.isoformat(), expires.isoformat(), user_id))
+            except Exception as trial_active_error:
+                logger.warning(f"⚠️ trial_active column not found, trying without it: {trial_active_error}")
+                # Fallback without trial_active column
+                cursor.execute("UPDATE users SET trial_started_at = ?, trial_expires_at = ?, trial_used_permanently = FALSE WHERE id = ?", (now.isoformat(), expires.isoformat(), user_id))
         
         conn.commit()
         conn.close()

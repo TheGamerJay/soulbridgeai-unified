@@ -1295,3 +1295,9 @@ information about how to avoid this problem.
 [2025-08-16 20:11:46] 🔧 HEALTH_CHECK: System running for 17.4 hours
 [2025-08-16 20:13:31] 🔧 HEALTH_CHECK: System running for 4.5 hours
 [2025-08-16 20:13:40] 🔧 HEALTH_CHECK: System running for 5.0 hours
+[2025-08-16T20:15:24.448148] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-16 20:16:46] 🔧 HEALTH_CHECK: System running for 17.5 hours
