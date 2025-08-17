@@ -46,14 +46,10 @@ except ImportError as e:
     billing_available = False
 
 # Import new trial endpoint blueprint
-try:
-    from trial_endpoint import bp_trial
-    trial_available = True
-    print("✅ New trial endpoint system loaded")
-except ImportError as e:
-    print(f"Warning: New trial endpoint not available: {e}")
-    bp_trial = None
-    trial_available = False
+# Trial system is now integrated directly in app.py
+trial_available = True
+bp_trial = None
+print("✅ Trial endpoint system integrated in app.py")
 
 # Local imports
 try:
@@ -287,12 +283,8 @@ try:
 except ImportError as e:
     print(f"WARNING: Companion API not available: {e}")
 
-# Register new trial endpoint blueprint
-if trial_available and bp_trial:
-    app.register_blueprint(bp_trial)
-    print("New trial endpoint system registered successfully")
-else:
-    print("INFO: Using legacy trial implementation")
+# Trial endpoints are now integrated directly in app.py
+print("Trial system ready")
 
 # ============================================
 # BULLETPROOF TIER ISOLATION SYSTEM

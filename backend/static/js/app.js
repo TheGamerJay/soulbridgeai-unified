@@ -85,11 +85,11 @@ function checkTrialStatus() {
 
 function legacyStartTrial() {
     // LEGACY: This is the old implementation, kept for compatibility
-    console.log('⚠️ LEGACY startTrial() called - trial logic moved to new_trial_system.js');
+    console.log('⚠️ LEGACY startTrial() called - trial logic moved to tiers.js');
     showToast('Trial system has been updated. Please use the new trial buttons.', 'warning');
 }
 
-// Only assign to window.startTrial if it doesn't already exist (preserve new implementation)
+// Only assign to window.startTrial if it doesn't already exist (preserve tiers.js implementation)
 if (typeof window.startTrial === 'undefined') {
     window.startTrial = legacyStartTrial;
 }
@@ -188,7 +188,7 @@ async function logout() {
 // Make functions global
 window.sendMessage = sendMessage;
 window.logout = logout;
-// window.startTrial is handled by new_trial_system.js - don't override it
+// window.startTrial is handled by tiers.js - don't override it
 window.checkTrialStatus = checkTrialStatus;
 window.initializeMessageLimit = initializeMessageLimit;
 window.updateMessageCount = updateMessageCount;
