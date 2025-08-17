@@ -223,6 +223,11 @@
             border-color: #f59e0b;
         }
 
+        .timeline-content.nyxara {
+            background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
+            border-color: #7c3aed;
+        }
+
         .timeline-content.claude {
             background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
             border-color: #3b82f6;
@@ -412,6 +417,17 @@
             background: linear-gradient(135deg, #fde68a 0%, #fcd34d 100%);
             border-color: #d97706;
             box-shadow: 0 8px 25px rgba(245, 158, 11, 0.3);
+        }
+
+        .cosmetic-card.nyxara {
+            background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
+            border-color: #7c3aed;
+        }
+
+        .cosmetic-card.nyxara.unlocked {
+            background: linear-gradient(135deg, #e9d5ff 0%, #ddd6fe 100%);
+            border-color: #6d28d9;
+            box-shadow: 0 8px 25px rgba(124, 58, 237, 0.3);
         }
 
         .cosmetic-card.claude {
@@ -735,7 +751,8 @@
             // Referral thresholds (matches backend)
             const thresholds = [
                 { threshold: 2, cosmetic: 'Blayzike', rarity: 'rare' },
-                { threshold: 5, cosmetic: 'Blazelian', rarity: 'epic' },
+                { threshold: 4, cosmetic: 'Blazelian', rarity: 'epic' },
+                { threshold: 6, cosmetic: 'Nyxara', rarity: 'epic' },
                 { threshold: 8, cosmetic: 'Claude', rarity: 'legendary' },
                 { threshold: 10, cosmetic: 'Blayzo', rarity: 'legendary' }
             ];
@@ -799,7 +816,8 @@
             // All possible cosmetics
             const allCosmetics = [
                 { threshold: 2, name: 'Blayzike', rarity: 'rare' },
-                { threshold: 5, name: 'Blazelian', rarity: 'epic' },
+                { threshold: 4, name: 'Blazelian', rarity: 'epic' },
+                { threshold: 6, name: 'Nyxara', rarity: 'epic' },
                 { threshold: 8, name: 'Claude', rarity: 'legendary' },
                 { threshold: 10, name: 'Blayzo', rarity: 'legendary' }
             ];

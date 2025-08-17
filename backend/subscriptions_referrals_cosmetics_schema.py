@@ -198,12 +198,22 @@ def insert_default_cosmetics(db_connection):
         {
             'name': 'blazelian',
             'display_name': 'Blazelian',
-            'description': 'Unlock this mystical companion by referring 5 friends to SoulBridge AI',
+            'description': 'Unlock this mystical companion by referring 4 friends to SoulBridge AI',
             'type': 'companion',
             'rarity': 'epic',
             'unlock_method': 'referral',
-            'unlock_requirement': '{"referral_threshold": 5}',
+            'unlock_requirement': '{"referral_threshold": 4}',
             'image_url': '/static/logos/Blazelian.png'
+        },
+        {
+            'name': 'nyxara',
+            'display_name': 'Nyxara',
+            'description': 'Unlock this enigmatic companion by referring 6 friends to SoulBridge AI',
+            'type': 'companion',
+            'rarity': 'epic',
+            'unlock_method': 'referral',
+            'unlock_requirement': '{"referral_threshold": 6}',
+            'image_url': '/static/logos/Nyxara.png'
         },
         {
             'name': 'claude',
