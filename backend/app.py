@@ -13911,7 +13911,8 @@ TIERS_TEMPLATE = r"""
       const data = await response.json();
       console.log('🎯 Response data:', data);
       
-      if (data.success) {
+      // STRICT success gate - check both response.ok AND data.ok AND trial_active
+      if (response.ok && data.ok === true && data.trial_active === true) {
         console.log('✅ Trial activated successfully!');
         // Use setTimeout to ensure alert shows before refresh
         alert('🎉 5-hour trial activated! All premium features unlocked.');
@@ -13919,7 +13920,9 @@ TIERS_TEMPLATE = r"""
           window.location.reload(); // Refresh to update UI
         }, 500);
       } else {
-        alert(data.error || 'Failed to start trial');
+        // Only show error on actual failure
+        const msg = (data && data.error) ? data.error : `HTTP ${response.status}`;
+        alert(`Failed to start trial: ${msg}`);
       }
     } catch (error) {
       console.error('Error starting trial:', error);
