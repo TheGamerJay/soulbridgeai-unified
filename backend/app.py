@@ -74,7 +74,7 @@ except ImportError:
                     }
             return FallbackAI()
         print("⚠️ Using minimal fallback AI")
-from trial_utils import is_trial_active as calculate_trial_active, get_trial_time_remaining
+# trial_utils functions are now integrated directly in app.py
 from tier_isolation import tier_manager, get_current_user_tier, get_current_tier_system
 from unified_tier_system import (
     get_effective_plan, get_feature_limit, get_user_credits, 
