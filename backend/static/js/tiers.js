@@ -35,6 +35,12 @@
 
       console.log('🎯 Response status:', res.status);
       console.log('🎯 Response data:', data);
+      console.log('🎯 Success check:', {
+        'res.ok': res.ok,
+        'data.ok': data.ok,
+        'data.trial_active': data.trial_active,
+        'all_success': res.ok && data.ok === true && data.trial_active === true
+      });
 
       if (res.ok && data.ok === true && data.trial_active === true) {
         // ✅ persist state for client UI and countdown
@@ -65,8 +71,14 @@
         return;
       }
 
-      // ❌ backend said no
+      // ❌ backend said no  
       const msg = (data && data.error) ? data.error : `HTTP ${res.status}`;
+      console.error('❌ Trial activation failed:', {
+        status: res.status,
+        ok: res.ok,
+        data: data,
+        error_msg: msg
+      });
       throw new Error(msg);
 
     } catch (err) {
@@ -78,12 +90,8 @@
       const errorMsg = `Failed to start trial: ${err.message || err}`;
       console.error(errorMsg);
       
-      // Show user-friendly alert only for non-navigation errors
-      if (!err.message?.includes('Navigation') && !err.message?.includes('redirect')) {
-        setTimeout(() => {
-          alert(`Trial activation failed. Please try again or contact support if the issue persists.\n\nError: ${err.message || 'Unknown error'}`);
-        }, 100);
-      }
+      // Always show error alert to debug the issue
+      alert(`Trial activation failed!\n\nError: ${err.message || 'Unknown error'}\n\nCheck console for details.`);
     }
   }
 
@@ -149,16 +157,7 @@
   // Initialize trial UI on page load
   checkTrialStateAndUpdateUI();
 
-  // Optional: verify server session after load (helps confirm SSR sync)
-  (async function debugSessionOnce() {
-    try {
-      const res = await fetch('/api/debug-session', { credentials: 'include' });
-      if (res.ok) {
-        const s = await res.json();
-        console.log('[debug-session]', s);
-      }
-    } catch {}
-  })();
+  // Debug session endpoint removed (not available in production)
 
   // Make globally available 
   window.startTrial = startTrial;
