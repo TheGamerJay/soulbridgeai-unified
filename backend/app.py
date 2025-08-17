@@ -16520,6 +16520,22 @@ if __name__ == "__main__":
     logger.info("🚀 Initializing services...")
     initialize_services()
     
+    # Enforce database schema invariants for trial columns
+    try:
+        from db_invariants import enforce_trial_schema
+        import psycopg2
+        DATABASE_URL = os.getenv("DATABASE_URL")
+        if DATABASE_URL and (DATABASE_URL.startswith("postgres://") or DATABASE_URL.startswith("postgresql://")):
+            logger.info("🔧 Enforcing trial schema invariants...")
+            conn = psycopg2.connect(DATABASE_URL)
+            enforce_trial_schema(conn)
+            conn.close()
+            logger.info("✅ Trial schema invariants enforced successfully")
+        else:
+            logger.info("ℹ️ SQLite detected - schema invariants not needed")
+    except Exception as schema_error:
+        logger.warning(f"⚠️ Schema invariant enforcement failed (continuing anyway): {schema_error}")
+    
     # Start the server
     logger.info("🌟 Starting Flask server...")
     
