@@ -3171,6 +3171,7 @@ def chat():
                         logger.info(f"❌ TRIAL SYNC: Trial marked as used - deactivating")
                     else:
                         # No trial data in DB - preserve session state
+                        trial_is_active = current_trial_active  # ACTUALLY preserve it
                         logger.info(f"ℹ️ TRIAL SYNC: No trial data in DB - preserving session state: {current_trial_active}")
                     
                     # Update session only if we have reliable data
