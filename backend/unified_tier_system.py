@@ -244,9 +244,21 @@ def get_trial_trainer_time(user_id):
         
         # Verify trial is actually active and not expired
         if user_plan == "free" and trial_active and trial_started_at:
-            from trial_utils import is_trial_active
-            if is_trial_active(trial_started_at):
-                return 60
+            # Simple inline trial check (avoiding circular imports)
+            from datetime import datetime, timezone
+            try:
+                if isinstance(trial_started_at, str):
+                    started = datetime.fromisoformat(trial_started_at.replace('Z', '+00:00'))
+                else:
+                    started = trial_started_at
+                
+                # Check if trial is still within 5-hour window
+                elapsed = datetime.now(timezone.utc) - started
+                if elapsed.total_seconds() < 5 * 3600:  # 5 hours
+                    return 60
+            except Exception as e:
+                logger.error(f"Error checking trial time: {e}")
+                pass
         
         return 0
             
