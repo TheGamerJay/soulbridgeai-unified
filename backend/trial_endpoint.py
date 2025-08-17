@@ -221,16 +221,16 @@ def _reset_trial_row(conn, flavor: str, user_id: int):
     """Optional helper to reset a user's trial entirely. Defensive against schema drift."""
     if flavor == "postgres":
         # Detect actual column types for defensive reset
-        types = _get_column_types(conn)
-        active_is_bool = (types.get("trial_active") == "boolean")
-        used_is_bool = (types.get("trial_used_permanently") == "boolean")
+        types = _get_column_types(conn)  # expects {col: data_type}
+        active_is_bool  = (types.get("trial_active") == "boolean")
+        used_is_bool    = (types.get("trial_used_permanently") == "boolean")
         warning_is_bool = (types.get("trial_warning_sent") == "boolean")
-        
+
         # Use appropriate values based on actual column types
-        active_val = False if active_is_bool else 0
-        used_val = False if used_is_bool else 0
-        warning_val = False if warning_is_bool else 0
-        
+        active_val  = (False if active_is_bool  else 0)
+        used_val    = (False if used_is_bool    else 0)
+        warning_val = (False if warning_is_bool else 0)
+
         sql = """
         UPDATE users
         SET
@@ -243,20 +243,22 @@ def _reset_trial_row(conn, flavor: str, user_id: int):
         """
         with conn.cursor() as cur:
             cur.execute(sql, (active_val, warning_val, used_val, user_id))
+
     else:
+        # SQLite: store booleans as 0/1 and timestamps as NULL
         sql = """
         UPDATE users
         SET
-          trial_active = 0,
+          trial_active = ?,
           trial_started_at = NULL,
           trial_expires_at = NULL,
-          trial_warning_sent = 0,
-          trial_used_permanently = 0
+          trial_warning_sent = ?,
+          trial_used_permanently = ?
         WHERE id = ?
         """
         cur = conn.cursor()
         cur.execute("BEGIN")
-        cur.execute(sql, (user_id,))
+        cur.execute(sql, (0, 0, 0, user_id))
         cur.execute("COMMIT")
 
 def _init_session_trial_flags(now_utc: datetime, expires_utc: datetime, user_plan: str):
