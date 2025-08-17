@@ -291,6 +291,14 @@ try:
 except ImportError as e:
     print(f"WARNING: Companion API not available: {e}")
 
+# Register community system blueprint
+try:
+    from community_system import register_community_system
+    register_community_system(app)
+    print("Anonymous Community System registered successfully")
+except ImportError as e:
+    print(f"WARNING: Community system not available: {e}")
+
 # Register subscription management blueprint
 try:
     from subscription_management import register_subscription_management
@@ -3805,6 +3813,18 @@ def referrals_page():
     except Exception as e:
         logger.error(f"Referrals template error: {e}")
         return jsonify({"error": "Referrals page temporarily unavailable"}), 200
+
+@app.route("/community")
+def anonymous_community():
+    """Anonymous Community - privacy-first sharing with companion avatars"""
+    try:
+        if not is_logged_in():
+            return redirect("/login")
+        
+        return render_template("anonymous_community.html")
+    except Exception as e:
+        logger.error(f"Community page error: {e}")
+        return redirect("/")
 
 @app.route("/community-dashboard")
 def community_dashboard():

@@ -101,7 +101,10 @@
       "Bash(move:*)",
       "WebSearch",
       "WebFetch(domain:github.com)",
-      "WebFetch(domain:pypi.org)"
+      "WebFetch(domain:pypi.org)",
+      "Bash(set PYTHONIOENCODING=utf-8)",
+      "Bash(set ENVIRONMENT=development)",
+      "Bash(set DEBUG_MODE=true)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"

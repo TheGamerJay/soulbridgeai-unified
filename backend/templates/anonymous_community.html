@@ -1,0 +1,1493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anonymous Community - SoulBridge AI</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <meta name="theme-color" content="#00ffff">
+    
+    <style>
+        /* Anonymous Community Styling - Matching SoulBridge AI Theme */
+        html, body {
+            background: #000000 !important;
+            color: #e2e8f0 !important;
+            font-family: system-ui, -apple-system, sans-serif !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            line-height: 1.6;
+        }
+
+        /* Stunning cyan animated background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 15% 25%, rgba(0, 255, 255, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 85% 75%, rgba(0, 255, 255, 0.06) 0%, transparent 45%),
+                radial-gradient(circle at 45% 85%, rgba(0, 255, 255, 0.04) 0%, transparent 35%);
+            pointer-events: none;
+            z-index: -1;
+            animation: breathe 4s ease-in-out infinite alternate;
+        }
+
+        @keyframes breathe {
+            0% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: linear-gradient(135deg, #00ffff 0%, #0891b2 100%);
+            color: #000000;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 255, 255, 0.3);
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .back-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 255, 255, 0.4);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #00ffff;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 4px 20px rgba(0, 255, 255, 0.6);
+        }
+
+        .header p {
+            color: rgba(0, 255, 255, 0.8);
+            font-size: 1.1rem;
+        }
+
+        .post-composer {
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 30px rgba(0, 255, 255, 0.1);
+        }
+
+        .composer-avatar {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .avatar-container {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00ffff 0%, #22d3ee 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #000000;
+            box-shadow: 0 4px 15px rgba(0, 255, 255, 0.3);
+        }
+
+        .composer-info h3 {
+            color: #00ffff;
+            margin: 0;
+            font-size: 1.1rem;
+        }
+
+        .composer-info p {
+            color: rgba(0, 255, 255, 0.7);
+            margin: 5px 0 0 0;
+            font-size: 0.9rem;
+        }
+
+        .post-textarea {
+            width: 100%;
+            min-height: 120px;
+            background: rgba(0, 255, 255, 0.05);
+            border: 2px solid rgba(0, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 15px;
+            color: #e2e8f0;
+            font-family: inherit;
+            font-size: 1rem;
+            resize: vertical;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+        }
+
+        .post-textarea:focus {
+            outline: none;
+            border-color: rgba(0, 255, 255, 0.5);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+        }
+
+        .post-textarea::placeholder {
+            color: rgba(0, 255, 255, 0.5);
+        }
+
+        .composer-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .category-select {
+            background: rgba(0, 255, 255, 0.1);
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: #00ffff;
+            font-size: 0.9rem;
+        }
+
+        .char-counter {
+            color: rgba(0, 255, 255, 0.6);
+            font-size: 0.85rem;
+        }
+
+        .char-counter.warning {
+            color: #ff6b6b;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00ffff 0%, #22d3ee 100%);
+            color: #000000;
+            box-shadow: 0 4px 15px rgba(0, 255, 255, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 255, 255, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .feed-container {
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            border-radius: 20px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 30px rgba(0, 255, 255, 0.1);
+        }
+
+        .feed-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .feed-title {
+            color: #00ffff;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .feed-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-select {
+            background: rgba(0, 255, 255, 0.1);
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: #00ffff;
+            font-size: 0.85rem;
+        }
+
+        .post {
+            background: rgba(0, 255, 255, 0.05);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .post:hover {
+            border-color: rgba(0, 255, 255, 0.4);
+            box-shadow: 0 4px 20px rgba(0, 255, 255, 0.1);
+        }
+
+        .post-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .post-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00ffff 0%, #22d3ee 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            font-weight: bold;
+            color: #000000;
+        }
+
+        .post-meta {
+            flex: 1;
+        }
+
+        .post-author {
+            color: #00ffff;
+            font-weight: 600;
+            margin: 0;
+            font-size: 0.95rem;
+        }
+
+        .post-time {
+            color: rgba(0, 255, 255, 0.6);
+            font-size: 0.8rem;
+            margin: 2px 0 0 0;
+        }
+
+        .post-category {
+            background: rgba(0, 255, 255, 0.2);
+            color: #00ffff;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .post-content {
+            color: #e2e8f0;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            font-size: 1rem;
+        }
+
+        .post-reactions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .reaction-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .reaction-btn {
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 20px;
+            padding: 6px 12px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: rgba(0, 255, 255, 0.8);
+        }
+
+        .reaction-btn:hover {
+            background: rgba(0, 255, 255, 0.2);
+            border-color: rgba(0, 255, 255, 0.5);
+            transform: scale(1.05);
+        }
+
+        .reaction-btn.active {
+            background: rgba(0, 255, 255, 0.3);
+            border-color: #00ffff;
+            color: #00ffff;
+        }
+
+        .post-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            background: none;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            color: rgba(0, 255, 255, 0.7);
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn:hover {
+            border-color: rgba(0, 255, 255, 0.6);
+            color: #00ffff;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: rgba(0, 255, 255, 0.6);
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: rgba(0, 255, 255, 0.8);
+        }
+
+        .loading-spinner {
+            font-size: 2rem;
+            animation: spin 2s linear infinite;
+            margin-bottom: 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: rgba(255, 107, 107, 0.2);
+            border: 2px solid rgba(255, 107, 107, 0.5);
+            color: #ff6b6b;
+            padding: 15px;
+            border-radius: 12px;
+            margin: 15px 0;
+            text-align: center;
+        }
+
+        .success-message {
+            background: rgba(34, 211, 238, 0.2);
+            border: 2px solid rgba(34, 211, 238, 0.5);
+            color: #22d3ee;
+            padding: 15px;
+            border-radius: 12px;
+            margin: 15px 0;
+            text-align: center;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: rgba(0, 0, 0, 0.95);
+            border: 2px solid rgba(0, 255, 255, 0.4);
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 60px rgba(0, 255, 255, 0.2);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            color: #00ffff;
+            font-size: 1.3rem;
+            margin: 0;
+        }
+
+        .close {
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: rgba(0, 255, 255, 0.7);
+            transition: color 0.3s ease;
+        }
+
+        .close:hover {
+            color: #00ffff;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            color: #00ffff;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .form-control {
+            width: 100%;
+            background: rgba(0, 255, 255, 0.05);
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            color: #e2e8f0;
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: rgba(0, 255, 255, 0.6);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
+        }
+
+        .avatar-change-btn {
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 6px;
+            padding: 4px 8px;
+            color: #00ffff;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 4px;
+        }
+
+        .avatar-change-btn:hover {
+            background: rgba(0, 255, 255, 0.2);
+            border-color: rgba(0, 255, 255, 0.5);
+        }
+
+        .companion-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .companion-card {
+            background: rgba(0, 255, 255, 0.05);
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .companion-card:hover {
+            background: rgba(0, 255, 255, 0.1);
+            border-color: rgba(0, 255, 255, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .companion-card.selected {
+            background: rgba(0, 255, 255, 0.2);
+            border-color: #00ffff;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+        }
+
+        .companion-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(0, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            font-size: 24px;
+        }
+
+        .companion-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .companion-name {
+            color: #e2e8f0;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .companion-rarity {
+            color: #a0aec0;
+            font-size: 0.8rem;
+            text-transform: capitalize;
+        }
+
+        .companion-rarity.common { color: #9ca3af; }
+        .companion-rarity.rare { color: #3b82f6; }
+        .companion-rarity.epic { color: #8b5cf6; }
+        .companion-rarity.legendary { color: #f59e0b; }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .composer-bottom {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .feed-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .post-reactions {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Back Button -->
+    <a href="/" class="back-button">← Back to Home</a>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🌸 Anonymous Community</h1>
+            <p>Share your thoughts anonymously with companion avatars • Connect through authentic expression</p>
+        </div>
+
+        <!-- Post Composer -->
+        <div class="post-composer">
+            <div class="composer-avatar">
+                <div class="avatar-container" id="composer-avatar">
+                    👤
+                </div>
+                <div class="composer-info">
+                    <h3>Anonymous</h3>
+                    <p>Posting with your <span id="companion-name">companion</span></p>
+                    <button class="avatar-change-btn" onclick="openCompanionSelector()" title="Change companion avatar">Change Avatar</button>
+                </div>
+            </div>
+            
+            <textarea id="post-text" class="post-textarea" placeholder="Share something meaningful... express yourself freely and anonymously." maxlength="700"></textarea>
+            
+            <div class="composer-bottom">
+                <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+                    <select id="post-category" class="category-select">
+                        <option value="gratitude">🙏 Gratitude</option>
+                        <option value="peace">🕊️ Peace</option>
+                        <option value="growth">🌱 Growth</option>
+                        <option value="healing">💚 Healing</option>
+                        <option value="dreams">✨ Dreams</option>
+                        <option value="mood">🌙 Mood</option>
+                        <option value="stress_relief">🌿 Stress Relief</option>
+                    </select>
+                    <div class="char-counter">
+                        <span id="char-count">0</span>/700
+                    </div>
+                </div>
+                <button id="post-submit" class="btn btn-primary" disabled>Share Anonymously</button>
+            </div>
+        </div>
+
+        <!-- Community Feed -->
+        <div class="feed-container">
+            <div class="feed-header">
+                <h2 class="feed-title">Community Feed</h2>
+                <div class="feed-controls">
+                    <select id="feed-category" class="filter-select">
+                        <option value="all">All Categories</option>
+                        <option value="gratitude">🙏 Gratitude</option>
+                        <option value="peace">🕊️ Peace</option>
+                        <option value="growth">🌱 Growth</option>
+                        <option value="healing">💚 Healing</option>
+                        <option value="dreams">✨ Dreams</option>
+                        <option value="mood">🌙 Mood</option>
+                        <option value="stress_relief">🌿 Stress Relief</option>
+                    </select>
+                    <select id="feed-sort" class="filter-select">
+                        <option value="new">✨ Newest</option>
+                        <option value="top_week">🔥 Top this week</option>
+                        <option value="top_month">⭐ Top this month</option>
+                    </select>
+                    <button class="btn" style="background: rgba(0, 255, 255, 0.1); color: #00ffff; border: 1px solid rgba(0, 255, 255, 0.3);" onclick="refreshFeed()">🔄</button>
+                </div>
+            </div>
+            
+            <div id="feed-content">
+                <div id="feed-loading" class="loading">
+                    <div class="loading-spinner">🌸</div>
+                    <p>Loading community posts...</p>
+                </div>
+                <div id="feed-posts"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Companion Selector Modal -->
+    <div id="companion-modal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Choose Your Companion Avatar</h3>
+                <span class="close" onclick="closeModal('companion-modal')">&times;</span>
+            </div>
+            <div id="companion-loading" class="loading" style="text-align: center; padding: 20px;">
+                <div class="loading-spinner">🌸</div>
+                <p>Loading companions...</p>
+            </div>
+            <div id="companion-list" class="companion-grid" style="display: none;"></div>
+            <div style="margin-top: 20px; text-align: right;">
+                <button class="btn" onclick="closeModal('companion-modal')" style="margin-right: 10px; background: rgba(255, 255, 255, 0.1);">Cancel</button>
+                <button id="save-companion" class="btn btn-primary" onclick="saveCompanionChoice()" disabled>Save Selection</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Modal -->
+    <div id="report-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Report Post</h3>
+                <span class="close" onclick="closeModal('report-modal')">&times;</span>
+            </div>
+            <form id="report-form">
+                <div class="form-group">
+                    <label class="form-label">Reason for reporting:</label>
+                    <select id="report-reason" class="form-control" required>
+                        <option value="">Select a reason...</option>
+                        <option value="spam">Spam or repetitive content</option>
+                        <option value="harassment">Harassment or bullying</option>
+                        <option value="self_harm_risk">Self-harm risk or suicidal content</option>
+                        <option value="hate_or_violence">Hate speech or violence</option>
+                        <option value="graphic_content">Graphic or disturbing content</option>
+                        <option value="pii_privacy">Privacy violation or personal information</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Additional details (optional):</label>
+                    <textarea id="report-notes" class="form-control" rows="3" placeholder="Please provide more context if needed..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Submit Report</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Mute Modal -->
+    <div id="mute-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Mute Content</h3>
+                <span class="close" onclick="closeModal('mute-modal')">&times;</span>
+            </div>
+            <form id="mute-form">
+                <div class="form-group">
+                    <label class="form-label">What would you like to mute?</label>
+                    <select id="mute-type" class="form-control" required>
+                        <option value="">Select mute type...</option>
+                        <option value="author">This anonymous author</option>
+                        <option value="companion">All posts with this companion</option>
+                        <option value="category">All posts in this category</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Duration:</label>
+                    <select id="mute-duration" class="form-control">
+                        <option value="7">7 days</option>
+                        <option value="30">30 days</option>
+                        <option value="90">90 days</option>
+                        <option value="0">Permanent</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Mute Content</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Global Variables - API Configuration
+        const API_BASE = '/community';
+        const REACTIONS = ['❤️', '✨', '🌿', '🔥', '🙏', '⭐', '👏', '🫶'];
+        
+        let currentUser = null;
+        let currentPosts = [];
+        let currentPostToReport = null;
+        let currentPostToMute = null;
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeComposer();
+            loadFeed();
+            setupEventListeners();
+        });
+
+        // Initialize post composer
+        function initializeComposer() {
+            const textArea = document.getElementById('post-text');
+            const submitBtn = document.getElementById('post-submit');
+            const charCount = document.getElementById('char-count');
+
+            // Character counter
+            textArea.addEventListener('input', function() {
+                const length = this.value.length;
+                charCount.textContent = length;
+                
+                if (length > 650) {
+                    charCount.parentElement.classList.add('warning');
+                } else {
+                    charCount.parentElement.classList.remove('warning');
+                }
+                
+                submitBtn.disabled = length === 0 || length > 700;
+            });
+
+            // Submit post
+            submitBtn.addEventListener('click', function() {
+                if (!submitBtn.disabled) {
+                    createPost();
+                }
+            });
+
+            // Load user's companion info
+            loadUserCompanion();
+        }
+
+        // Load user's companion information
+        async function loadUserCompanion() {
+            try {
+                const response = await fetch(`${API_BASE}/avatar`);
+                const data = await response.json();
+                
+                if (data.success && data.companion) {
+                    const companion = data.companion;
+                    document.getElementById('companion-name').textContent = companion.name;
+                    
+                    // Use actual companion image or fallback to emoji
+                    const avatarElement = document.getElementById('composer-avatar');
+                    if (companion.avatar_url) {
+                        avatarElement.innerHTML = `<img src="${companion.avatar_url}" alt="${companion.name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" onerror="this.style.display='none'; this.parentElement.textContent='🌟';">`;
+                    } else {
+                        avatarElement.textContent = getCompanionEmoji(companion.companion_id);
+                    }
+                    
+                    // Store current companion for posting
+                    currentUser = { companion: companion };
+                } else {
+                    // Fallback to default
+                    document.getElementById('companion-name').textContent = 'Soul';
+                    document.getElementById('composer-avatar').textContent = '🌟';
+                }
+            } catch (error) {
+                console.warn('Could not load companion info:', error);
+                // Fallback to default
+                document.getElementById('companion-name').textContent = 'Soul';
+                document.getElementById('composer-avatar').textContent = '🌟';
+            }
+        }
+
+        // Create a new post
+        async function createPost() {
+            const textContent = document.getElementById('post-text').value.trim();
+            const category = document.getElementById('post-category').value;
+            
+            if (!textContent) return;
+
+            const submitBtn = document.getElementById('post-submit');
+            const originalText = submitBtn.textContent;
+            
+            try {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Sharing...';
+                
+                const response = await fetch(`${API_BASE}/posts`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        text: textContent,
+                        category: category,
+                        hashtags: []
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showMessage('Post shared successfully! 🌸', 'success');
+                    document.getElementById('post-text').value = '';
+                    document.getElementById('char-count').textContent = '0';
+                    loadFeed(); // Refresh feed
+                } else {
+                    throw new Error(data.error || 'Failed to create post');
+                }
+                
+            } catch (error) {
+                console.error('Error creating post:', error);
+                showMessage(error.message || 'Failed to share post. Please try again.', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
+        }
+
+        // Load community feed
+        async function loadFeed() {
+            const category = document.getElementById('feed-category').value;
+            const sort = document.getElementById('feed-sort').value;
+            
+            try {
+                showLoading(true);
+                
+                const params = new URLSearchParams({
+                    category: category,
+                    sort: sort,
+                    limit: '20'
+                });
+                
+                const response = await fetch(`${API_BASE}/posts?${params}`);
+                const data = await response.json();
+                
+                if (data.success || data.posts) {
+                    currentPosts = data.posts || [];
+                    renderPosts(currentPosts);
+                } else {
+                    throw new Error('Failed to load posts');
+                }
+                
+            } catch (error) {
+                console.error('Error loading feed:', error);
+                showMessage('Failed to load community feed. Please refresh the page.', 'error');
+                document.getElementById('feed-posts').innerHTML = '<div class="error-message">Failed to load posts. Please try again.</div>';
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Render posts in the feed
+        function renderPosts(posts) {
+            const container = document.getElementById('feed-posts');
+            
+            if (!posts || posts.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🌸</div>
+                        <h3>No posts yet</h3>
+                        <p>Be the first to share something beautiful in this category!</p>
+                        <button class="btn btn-primary" onclick="document.getElementById('post-text').focus()">Share Your Thoughts</button>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = posts.map(post => renderPost(post)).join('');
+        }
+
+        // Render individual post
+        function renderPost(post) {
+            const reactions = post.reactions || {};
+            const totalReactions = post.total_reactions || 0;
+            
+            return `
+                <div class="post" data-post-id="${post.id}">
+                    <div class="post-header">
+                        <div class="post-avatar">${getCompanionEmoji(post.companion_id)}</div>
+                        <div class="post-meta">
+                            <h4 class="post-author">Anonymous</h4>
+                            <p class="post-time">${post.time_ago || formatTimeAgo(post.created_at)}</p>
+                        </div>
+                        <div class="post-category">${getCategoryLabel(post.category)}</div>
+                    </div>
+                    
+                    <div class="post-content">
+                        ${escapeHtml(post.text)}
+                    </div>
+                    
+                    <div class="post-reactions">
+                        <div class="reaction-buttons">
+                            ${REACTIONS.map(emoji => {
+                                const count = reactions[emoji] || 0;
+                                const isActive = false; // Would check if current user reacted
+                                return `
+                                    <button class="reaction-btn ${isActive ? 'active' : ''}" 
+                                            onclick="toggleReaction(${post.id}, '${emoji}')"
+                                            data-reaction="${emoji}">
+                                        ${emoji} ${count > 0 ? count : ''}
+                                    </button>
+                                `;
+                            }).join('')}
+                        </div>
+                        
+                        <div class="post-actions">
+                            <button class="action-btn" onclick="reportPost(${post.id})">
+                                Report
+                            </button>
+                            <button class="action-btn" onclick="muteContent(${post.id}, '${post.author_hash}', '${post.category}', ${post.companion_id})">
+                                Mute
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Toggle reaction on a post
+        async function toggleReaction(postId, emoji) {
+            try {
+                const response = await fetch(`${API_BASE}/posts/${postId}/react`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ emoji: emoji })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Update the reaction button
+                    const post = document.querySelector(`[data-post-id="${postId}"]`);
+                    const reactionBtn = post.querySelector(`[data-reaction="${emoji}"]`);
+                    
+                    if (data.action === 'removed') {
+                        reactionBtn.classList.remove('active');
+                        reactionBtn.innerHTML = `${emoji}`;
+                    } else {
+                        // Remove active class from other reactions
+                        post.querySelectorAll('.reaction-btn').forEach(btn => btn.classList.remove('active'));
+                        reactionBtn.classList.add('active');
+                    }
+                    
+                    // Update all reaction counts
+                    Object.entries(data.reaction_counts).forEach(([emo, count]) => {
+                        const btn = post.querySelector(`[data-reaction="${emo}"]`);
+                        if (btn) {
+                            btn.innerHTML = count > 0 ? `${emo} ${count}` : emo;
+                        }
+                    });
+                } else {
+                    throw new Error(data.error || 'Failed to react');
+                }
+                
+            } catch (error) {
+                console.error('Error reacting to post:', error);
+                showMessage('Failed to react to post. Please try again.', 'error');
+            }
+        }
+
+        // Report a post
+        function reportPost(postId) {
+            currentPostToReport = postId;
+            document.getElementById('report-modal').style.display = 'block';
+        }
+
+        // Mute content
+        function muteContent(postId, authorHash, category, companionId) {
+            currentPostToMute = {
+                postId: postId,
+                authorHash: authorHash,
+                category: category,
+                companionId: companionId
+            };
+            document.getElementById('mute-modal').style.display = 'block';
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Feed filters
+            document.getElementById('feed-category').addEventListener('change', loadFeed);
+            document.getElementById('feed-sort').addEventListener('change', loadFeed);
+            
+            // Report form
+            document.getElementById('report-form').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const reason = document.getElementById('report-reason').value;
+                const notes = document.getElementById('report-notes').value;
+                
+                if (!reason || !currentPostToReport) return;
+                
+                try {
+                    const response = await fetch(`${API_BASE}/posts/${currentPostToReport}/report`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            reason: reason,
+                            notes: notes
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        showMessage('Report submitted successfully. Thank you for helping keep our community safe.', 'success');
+                        closeModal('report-modal');
+                        document.getElementById('report-form').reset();
+                    } else {
+                        throw new Error(data.error || 'Failed to submit report');
+                    }
+                    
+                } catch (error) {
+                    console.error('Error reporting post:', error);
+                    showMessage(error.message || 'Failed to submit report. Please try again.', 'error');
+                }
+            });
+            
+            // Mute form
+            document.getElementById('mute-form').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const muteType = document.getElementById('mute-type').value;
+                const duration = parseInt(document.getElementById('mute-duration').value);
+                
+                if (!muteType || !currentPostToMute) return;
+                
+                let target;
+                if (muteType === 'author') {
+                    target = currentPostToMute.authorHash;
+                } else if (muteType === 'companion') {
+                    target = currentPostToMute.companionId.toString();
+                } else if (muteType === 'category') {
+                    target = currentPostToMute.category;
+                }
+                
+                try {
+                    const response = await fetch(`${API_BASE}/mute`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            type: muteType,
+                            target: target,
+                            duration_days: duration,
+                            reason: 'User preference'
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        showMessage(`${muteType.charAt(0).toUpperCase() + muteType.slice(1)} muted successfully.`, 'success');
+                        closeModal('mute-modal');
+                        document.getElementById('mute-form').reset();
+                        loadFeed(); // Refresh to hide muted content
+                    } else {
+                        throw new Error(data.error || 'Failed to mute content');
+                    }
+                    
+                } catch (error) {
+                    console.error('Error muting content:', error);
+                    showMessage(error.message || 'Failed to mute content. Please try again.', 'error');
+                }
+            });
+        }
+
+        // Utility Functions
+        function refreshFeed() {
+            loadFeed();
+        }
+
+        function showLoading(show) {
+            document.getElementById('feed-loading').style.display = show ? 'block' : 'none';
+        }
+
+        function showMessage(message, type) {
+            const existingMessage = document.querySelector('.success-message, .error-message');
+            if (existingMessage) {
+                existingMessage.remove();
+            }
+            
+            const messageEl = document.createElement('div');
+            messageEl.className = type === 'success' ? 'success-message' : 'error-message';
+            messageEl.textContent = message;
+            
+            document.querySelector('.container').insertBefore(messageEl, document.querySelector('.post-composer'));
+            
+            setTimeout(() => {
+                messageEl.remove();
+            }, 5000);
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+            currentPostToReport = null;
+            currentPostToMute = null;
+        }
+
+        function getCompanionEmoji(companionId) {
+            const companions = {
+                1: '👤',
+                2: '🌟',
+                3: '✨',
+                4: '🌸',
+                5: '🦋'
+            };
+            return companions[companionId] || '👤';
+        }
+
+        function getCategoryLabel(category) {
+            const labels = {
+                'gratitude': '🙏 Gratitude',
+                'peace': '🕊️ Peace',
+                'growth': '🌱 Growth',
+                'healing': '💚 Healing',
+                'dreams': '✨ Dreams',
+                'mood': '🌙 Mood',
+                'stress_relief': '🌿 Stress Relief'
+            };
+            return labels[category] || category;
+        }
+
+        function formatTimeAgo(dateString) {
+            const now = new Date();
+            const date = new Date(dateString);
+            const diffInSeconds = Math.floor((now - date) / 1000);
+            
+            if (diffInSeconds < 60) return 'just now';
+            if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+            if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+            return `${Math.floor(diffInSeconds / 86400)}d ago`;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Companion Selection Functions
+        let availableCompanions = [];
+        let selectedCompanion = null;
+
+        async function openCompanionSelector() {
+            try {
+                document.getElementById('companion-modal').style.display = 'block';
+                document.getElementById('companion-loading').style.display = 'block';
+                document.getElementById('companion-list').style.display = 'none';
+                
+                const response = await fetch(`${API_BASE}/companions`);
+                const data = await response.json();
+                
+                if (data.success && data.companions) {
+                    availableCompanions = data.companions;
+                    renderCompanionList();
+                } else {
+                    throw new Error('Failed to load companions');
+                }
+                
+            } catch (error) {
+                console.error('Error loading companions:', error);
+                showMessage('Failed to load companions. Please try again.', 'error');
+                closeModal('companion-modal');
+            }
+        }
+
+        function renderCompanionList() {
+            document.getElementById('companion-loading').style.display = 'none';
+            document.getElementById('companion-list').style.display = 'grid';
+            
+            const listContainer = document.getElementById('companion-list');
+            listContainer.innerHTML = '';
+            
+            // Get current companion from UI
+            const currentCompanionName = document.getElementById('companion-name').textContent;
+            
+            availableCompanions.forEach(companion => {
+                const companionCard = document.createElement('div');
+                companionCard.className = 'companion-card';
+                
+                // Check if this is the currently selected companion
+                if (companion.display_name === currentCompanionName || companion.name === currentCompanionName) {
+                    companionCard.classList.add('selected');
+                    selectedCompanion = companion;
+                }
+                
+                companionCard.innerHTML = `
+                    <div class="companion-avatar">
+                        ${companion.avatar_url 
+                            ? `<img src="${companion.avatar_url}" alt="${companion.display_name}" onerror="this.style.display='none'; this.parentElement.textContent='${getCompanionEmoji(companion.id)}';">` 
+                            : getCompanionEmoji(companion.id)
+                        }
+                    </div>
+                    <div class="companion-name">${companion.display_name || companion.name}</div>
+                    <div class="companion-rarity ${companion.rarity || 'common'}">${companion.rarity || 'Common'}</div>
+                `;
+                
+                companionCard.addEventListener('click', () => selectCompanion(companion, companionCard));
+                listContainer.appendChild(companionCard);
+            });
+        }
+
+        function selectCompanion(companion, cardElement) {
+            // Remove previous selection
+            document.querySelectorAll('.companion-card.selected').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Select new companion
+            cardElement.classList.add('selected');
+            selectedCompanion = companion;
+            
+            // Enable save button
+            document.getElementById('save-companion').disabled = false;
+        }
+
+        async function saveCompanionChoice() {
+            if (!selectedCompanion) return;
+            
+            // First check for cooldown and show confirmation
+            try {
+                const cooldownResponse = await fetch(`${API_BASE}/avatar/check`);
+                const cooldownData = await cooldownResponse.json();
+                
+                if (cooldownData.success && !cooldownData.can_change) {
+                    // User is on cooldown - show bypass options
+                    showCooldownDialog(cooldownData);
+                    return;
+                }
+                
+                // No cooldown - show confirmation dialog
+                showConfirmationDialog();
+                
+            } catch (error) {
+                console.error('Error checking cooldown:', error);
+                // Proceed with confirmation if cooldown check fails
+                showConfirmationDialog();
+            }
+        }
+
+        function showConfirmationDialog() {
+            const companionName = selectedCompanion.display_name || selectedCompanion.name;
+            const confirmed = confirm(`Are you sure you want to set ${companionName} as your community avatar?\\n\\nNote: You'll need to wait before changing again (cooldown varies by tier).`);
+            
+            if (confirmed) {
+                performAvatarChange('normal');
+            }
+        }
+
+        function showCooldownDialog(cooldownData) {
+            const remaining = cooldownData.cooldown_remaining;
+            const hours = Math.floor(remaining / 3600);
+            const minutes = Math.floor((remaining % 3600) / 60);
+            const companionName = selectedCompanion.display_name || selectedCompanion.name;
+            
+            let message = `You can change your avatar again in ${hours}h ${minutes}m.\\n\\n`;
+            message += `Do you want to change to ${companionName} anyway?\\n\\n`;
+            
+            if (cooldownData.user_tier === 'free') {
+                message += '• Watch an ad to bypass cooldown (6h cooldown after)\\n';
+                message += '• Wait for cooldown to expire (no additional cooldown)';
+                
+                const choice = confirm(message + '\\n\\nClick OK to watch an ad, Cancel to wait.');
+                
+                if (choice) {
+                    // Simulate ad watching (in real app, integrate with Google AdSense)
+                    showAdDialog();
+                }
+            } else {
+                message += '• Use premium bypass (1h cooldown after)\\n';
+                message += '• Wait for cooldown to expire (no additional cooldown)';
+                
+                const choice = confirm(message + '\\n\\nClick OK to use premium bypass, Cancel to wait.');
+                
+                if (choice) {
+                    performAvatarChange('premium_skip');
+                }
+            }
+        }
+
+        function showAdDialog() {
+            // Simulate ad watching interface
+            const adModal = document.createElement('div');
+            adModal.className = 'modal';
+            adModal.style.display = 'block';
+            adModal.innerHTML = `
+                <div class="modal-content" style="text-align: center; max-width: 400px;">
+                    <h3 style="color: #00ffff; margin-bottom: 20px;">Watch Ad to Change Avatar</h3>
+                    <div style="background: rgba(255, 255, 255, 0.1); padding: 20px; border-radius: 8px; margin: 20px 0;">
+                        <p>🎥 Advertisement</p>
+                        <div style="width: 100%; height: 150px; background: linear-gradient(45deg, #667eea 0%, #764ba2 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px;">
+                            AD PLACEHOLDER
+                        </div>
+                        <div id="ad-timer" style="margin-top: 10px; color: #00ffff;">Ad will finish in 5 seconds...</div>
+                    </div>
+                    <button id="ad-close" class="btn" disabled style="background: rgba(255, 255, 255, 0.1);">Please wait...</button>
+                </div>
+            `;
+            
+            document.body.appendChild(adModal);
+            
+            // Simulate 5-second ad
+            let countdown = 5;
+            const timer = setInterval(() => {
+                countdown--;
+                const timerEl = document.getElementById('ad-timer');
+                if (timerEl) {
+                    if (countdown > 0) {
+                        timerEl.textContent = `Ad will finish in ${countdown} seconds...`;
+                    } else {
+                        timerEl.textContent = 'Ad completed! You can now close.';
+                        const closeBtn = document.getElementById('ad-close');
+                        closeBtn.disabled = false;
+                        closeBtn.textContent = 'Close Ad';
+                        closeBtn.className = 'btn btn-primary';
+                        closeBtn.onclick = () => {
+                            document.body.removeChild(adModal);
+                            performAvatarChange('ad_bypass');
+                        };
+                        clearInterval(timer);
+                    }
+                }
+            }, 1000);
+        }
+
+        async function performAvatarChange(changeType) {
+            if (!selectedCompanion) return;
+            
+            try {
+                const saveBtn = document.getElementById('save-companion');
+                const originalText = saveBtn.textContent;
+                saveBtn.disabled = true;
+                saveBtn.textContent = 'Saving...';
+                
+                const response = await fetch(`${API_BASE}/avatar`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        companion_id: selectedCompanion.id,
+                        name: selectedCompanion.name || selectedCompanion.display_name,
+                        rarity: selectedCompanion.rarity || 'common',
+                        avatar_url: selectedCompanion.avatar_url,
+                        change_type: changeType
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Update UI
+                    document.getElementById('companion-name').textContent = selectedCompanion.display_name || selectedCompanion.name;
+                    
+                    const avatarElement = document.getElementById('composer-avatar');
+                    if (selectedCompanion.avatar_url) {
+                        avatarElement.innerHTML = `<img src="${selectedCompanion.avatar_url}" alt="${selectedCompanion.display_name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" onerror="this.style.display='none'; this.parentElement.textContent='${getCompanionEmoji(selectedCompanion.id)}';">`;;
+                    } else {
+                        avatarElement.textContent = getCompanionEmoji(selectedCompanion.id);
+                    }
+                    
+                    // Update current user companion for posting
+                    currentUser = { companion: selectedCompanion };
+                    
+                    let message = `Companion avatar changed to ${selectedCompanion.display_name || selectedCompanion.name}!`;
+                    if (changeType === 'ad_bypass') {
+                        message += ' (6h cooldown applied)';
+                    } else if (changeType === 'premium_skip') {
+                        message += ' (1h cooldown applied)';
+                    }
+                    
+                    showMessage(message, 'success');
+                    closeModal('companion-modal');
+                } else if (response.status === 429) {
+                    // Handle cooldown error
+                    showMessage(data.message || 'Avatar change on cooldown', 'error');
+                } else {
+                    throw new Error(data.error || 'Failed to save companion choice');
+                }
+                
+            } catch (error) {
+                console.error('Error saving companion:', error);
+                showMessage('Failed to save companion choice. Please try again.', 'error');
+            } finally {
+                const saveBtn = document.getElementById('save-companion');
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = 'Save Selection';
+                }
+            }
+        }
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+    </script>
+</body>
+</html>

@@ -608,7 +608,7 @@
                onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 8px 30px rgba(255, 0, 0, 0.5)'">
                 🌟 Choose Your AI Companion
             </a>
-            <a href="/community-dashboard" 
+            <a href="/community" 
                style="background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%); 
                       border: 2px solid rgba(0, 255, 255, 0.3); border-radius: 15px; padding: 18px 35px; 
                       color: #00ffff; font-weight: 600; font-size: 1.1rem;
@@ -959,7 +959,7 @@
                 } else if (q.includes('profile') || q.includes('account')) {
                     return "🏠 From here: Click '👤 Profile' button above to access your account settings, profile image, display name, subscription details, and more!";
                 } else if (q.includes('community') || q.includes('communities')) {
-                    return "🌍 From here: Click '🌍 Community' button above to join wellness communities, participate in challenges, find peer support, and track your community activity!";
+                    return "🌍 From here: Click '🌍 Community' button above to join our anonymous community! Share thoughts with companion avatars, react with emojis, and connect authentically while staying completely anonymous!";
                 } else if (q.includes('companion') || q.includes('character') || q.includes('ai')) {
                     return "🌟 From here: Click '🌟 Choose Your AI Companion' button above to select from Blayzo, Violet, Crimson, Blayzica, Blayzia, and more! Each has unique personalities and specialties.";
                 } else if (q.includes('chat') || q.includes('talk') || q.includes('conversation')) {
@@ -981,7 +981,7 @@
             }
             
             if (q.includes('community') || q.includes('join') || q.includes('wellness')) {
-                return "🏘️ Communities: Visit Community Dashboard to join wellness groups like Mindfulness, Fitness, Anxiety Support, and more! You can also create your own communities and participate in challenges.";
+                return "🌸 Anonymous Community: Visit our community to share thoughts anonymously with companion avatars! Express yourself freely in categories like Gratitude, Peace, Growth, Healing, Dreams, and more. Complete privacy with emoji reactions!";
             }
             
             if (q.includes('companion') || q.includes('personality') || q.includes('blayzo') || q.includes('violet')) {
@@ -1015,7 +1015,7 @@
             // Page-specific contextual help
             if (currentPage === '/' || currentPage.includes('intro')) {
                 if (q.includes('start') || q.includes('begin') || q.includes('first')) {
-                    return "🚀 Getting Started: Welcome! First, click '🌟 Choose Your AI Companion' to select your perfect conversation partner. Then visit '🌍 Community' to join wellness groups, and '👤 Profile' to customize your account!";
+                    return "🚀 Getting Started: Welcome! First, click '🌟 Choose Your AI Companion' to select your perfect conversation partner. Then visit '🌍 Community' to share anonymously with companion avatars, and '👤 Profile' to customize your account!";
                 }
             }
             

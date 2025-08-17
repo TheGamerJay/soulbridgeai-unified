@@ -1,623 +1,4 @@
-[LOG ROTATED - Previous 549 entries archived]
-[2025-08-16 17:33:31] 🔧 HEALTH_CHECK: System running for 1.8 hours
-[2025-08-16 17:33:40] 🔧 HEALTH_CHECK: System running for 2.3 hours
-[2025-08-16T17:35:23.924382] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 17:36:46] 🔧 HEALTH_CHECK: System running for 14.8 hours
-[2025-08-16 17:38:31] 🔧 HEALTH_CHECK: System running for 1.9 hours
-[2025-08-16 17:38:40] 🔧 HEALTH_CHECK: System running for 2.4 hours
-[2025-08-16T17:40:23.935052] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 17:41:46] 🔧 HEALTH_CHECK: System running for 14.9 hours
-[2025-08-16 17:43:31] 🔧 HEALTH_CHECK: System running for 2.0 hours
-[2025-08-16 17:43:40] 🔧 HEALTH_CHECK: System running for 2.5 hours
-[2025-08-16T17:45:23.955811] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 17:46:46] 🔧 HEALTH_CHECK: System running for 15.0 hours
-[2025-08-16 17:48:31] 🔧 HEALTH_CHECK: System running for 2.1 hours
-[2025-08-16 17:48:40] 🔧 HEALTH_CHECK: System running for 2.6 hours
-[2025-08-16T17:50:24.002230] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 17:51:46] 🔧 HEALTH_CHECK: System running for 15.1 hours
-[2025-08-16 17:53:31] 🔧 HEALTH_CHECK: System running for 2.2 hours
-[2025-08-16 17:53:40] 🔧 HEALTH_CHECK: System running for 2.7 hours
-[2025-08-16T17:55:24.042599] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 17:56:46] 🔧 HEALTH_CHECK: System running for 15.2 hours
-[2025-08-16 17:58:31] 🔧 HEALTH_CHECK: System running for 2.3 hours
-[2025-08-16 17:58:40] 🔧 HEALTH_CHECK: System running for 2.8 hours
-[2025-08-16T18:00:24.069157] 🔧 SECURITY_SCAN_COMPLETE: Scanned system - 5 findings
-[2025-08-16T18:00:24.077992] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 18:01:46] 🔧 HEALTH_CHECK: System running for 15.3 hours
-[2025-08-16 18:03:31] 🔧 HEALTH_CHECK: System running for 2.3 hours
-[2025-08-16 18:03:40] 🔧 HEALTH_CHECK: System running for 2.8 hours
-[2025-08-16T18:05:24.099040] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 18:06:46] 🔧 HEALTH_CHECK: System running for 15.3 hours
-[2025-08-16 18:08:31] 🔧 HEALTH_CHECK: System running for 2.4 hours
-[2025-08-16 18:08:40] 🔧 HEALTH_CHECK: System running for 2.9 hours
-[2025-08-16T18:10:24.119014] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 18:11:46] 🔧 HEALTH_CHECK: System running for 15.4 hours
-[2025-08-16 18:13:31] 🔧 HEALTH_CHECK: System running for 2.5 hours
-[2025-08-16 18:13:40] 🔧 HEALTH_CHECK: System running for 3.0 hours
-[2025-08-16T18:15:24.132100] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 18:16:46] 🔧 HEALTH_CHECK: System running for 15.5 hours
-[2025-08-16 18:18:31] 🔧 HEALTH_CHECK: System running for 2.6 hours
-[2025-08-16 18:18:40] 🔧 HEALTH_CHECK: System running for 3.1 hours
-[2025-08-16T18:20:24.141483] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 18:21:46] 🔧 HEALTH_CHECK: System running for 15.6 hours
-[2025-08-16 18:23:31] 🔧 HEALTH_CHECK: System running for 2.7 hours
-[2025-08-16 18:23:40] 🔧 HEALTH_CHECK: System running for 3.2 hours
-[2025-08-16T18:25:24.167354] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 18:26:46] 🔧 HEALTH_CHECK: System running for 15.7 hours
-[2025-08-16 18:28:31] 🔧 HEALTH_CHECK: System running for 2.8 hours
-[2025-08-16 18:28:40] 🔧 HEALTH_CHECK: System running for 3.3 hours
-[2025-08-16T18:30:24.167948] 🔧 SECURITY_SCAN_COMPLETE: Scanned system - 5 findings
-[2025-08-16T18:30:24.175723] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 18:31:46] 🔧 HEALTH_CHECK: System running for 15.8 hours
-[2025-08-16 18:33:31] 🔧 HEALTH_CHECK: System running for 2.8 hours
-[2025-08-16 18:33:40] 🔧 HEALTH_CHECK: System running for 3.3 hours
-[2025-08-16T18:35:24.179343] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 18:36:46] 🔧 HEALTH_CHECK: System running for 15.8 hours
-[2025-08-16 18:38:31] 🔧 HEALTH_CHECK: System running for 2.9 hours
-[2025-08-16 18:38:40] 🔧 HEALTH_CHECK: System running for 3.4 hours
-[2025-08-16T18:40:24.200205] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 18:41:46] 🔧 HEALTH_CHECK: System running for 15.9 hours
-[2025-08-16 18:43:31] 🔧 HEALTH_CHECK: System running for 3.0 hours
-[2025-08-16 18:43:40] 🔧 HEALTH_CHECK: System running for 3.5 hours
-[2025-08-16T18:45:24.202688] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 18:46:46] 🔧 HEALTH_CHECK: System running for 16.0 hours
-[2025-08-16 18:48:31] 🔧 HEALTH_CHECK: System running for 3.1 hours
-[2025-08-16 18:48:40] 🔧 HEALTH_CHECK: System running for 3.6 hours
-[2025-08-16T18:50:24.225895] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 18:51:46] 🔧 HEALTH_CHECK: System running for 16.1 hours
-[2025-08-16 18:53:31] 🔧 HEALTH_CHECK: System running for 3.2 hours
-[2025-08-16 18:53:40] 🔧 HEALTH_CHECK: System running for 3.7 hours
-[2025-08-16T18:55:24.238367] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 18:56:46] 🔧 HEALTH_CHECK: System running for 16.2 hours
-[2025-08-16 18:58:31] 🔧 HEALTH_CHECK: System running for 3.3 hours
-[2025-08-16 18:58:40] 🔧 HEALTH_CHECK: System running for 3.8 hours
-[2025-08-16T19:00:24.240941] 🔧 SECURITY_SCAN_COMPLETE: Scanned system - 5 findings
-[2025-08-16T19:00:24.242898] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 19:01:46] 🔧 HEALTH_CHECK: System running for 16.3 hours
-[2025-08-16 19:03:31] 🔧 HEALTH_CHECK: System running for 3.3 hours
-[2025-08-16 19:03:40] 🔧 HEALTH_CHECK: System running for 3.8 hours
-[2025-08-16T19:05:24.252665] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 19:06:46] 🔧 HEALTH_CHECK: System running for 16.3 hours
-[2025-08-16 19:08:31] 🔧 HEALTH_CHECK: System running for 3.4 hours
-[2025-08-16 19:08:40] 🔧 HEALTH_CHECK: System running for 3.9 hours
-[2025-08-16T19:10:24.275785] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 19:11:46] 🔧 HEALTH_CHECK: System running for 16.4 hours
-[2025-08-16 19:13:31] 🔧 HEALTH_CHECK: System running for 3.5 hours
-[2025-08-16 19:13:40] 🔧 HEALTH_CHECK: System running for 4.0 hours
-[2025-08-16T19:15:24.281662] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 19:16:46] 🔧 HEALTH_CHECK: System running for 16.5 hours
-[2025-08-16 19:18:31] 🔧 HEALTH_CHECK: System running for 3.6 hours
-[2025-08-16 19:18:40] 🔧 HEALTH_CHECK: System running for 4.1 hours
-[2025-08-16T19:20:24.295183] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 19:21:46] 🔧 HEALTH_CHECK: System running for 16.6 hours
-[2025-08-16 19:23:31] 🔧 HEALTH_CHECK: System running for 3.7 hours
-[2025-08-16 19:23:40] 🔧 HEALTH_CHECK: System running for 4.2 hours
-[2025-08-16T19:25:24.300637] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 19:26:46] 🔧 HEALTH_CHECK: System running for 16.7 hours
-[2025-08-16 19:28:31] 🔧 HEALTH_CHECK: System running for 3.8 hours
-[2025-08-16 19:28:40] 🔧 HEALTH_CHECK: System running for 4.3 hours
-[2025-08-16T19:30:24.321456] 🔧 SECURITY_SCAN_COMPLETE: Scanned system - 5 findings
-[2025-08-16T19:30:24.323393] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 19:31:46] 🔧 HEALTH_CHECK: System running for 16.8 hours
-[2025-08-16 19:33:31] 🔧 HEALTH_CHECK: System running for 3.8 hours
-[2025-08-16 19:33:40] 🔧 HEALTH_CHECK: System running for 4.3 hours
-[2025-08-16T19:35:24.324019] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 19:36:46] 🔧 HEALTH_CHECK: System running for 16.8 hours
-[2025-08-16 19:38:31] 🔧 HEALTH_CHECK: System running for 3.9 hours
-[2025-08-16 19:38:40] 🔧 HEALTH_CHECK: System running for 4.4 hours
-[2025-08-16T19:40:24.353077] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 19:41:46] 🔧 HEALTH_CHECK: System running for 16.9 hours
-[2025-08-16 19:43:31] 🔧 HEALTH_CHECK: System running for 4.0 hours
-[2025-08-16 19:43:40] 🔧 HEALTH_CHECK: System running for 4.5 hours
-[2025-08-16T19:45:24.362418] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 19:46:46] 🔧 HEALTH_CHECK: System running for 17.0 hours
-[2025-08-16 19:48:31] 🔧 HEALTH_CHECK: System running for 4.1 hours
-[2025-08-16 19:48:40] 🔧 HEALTH_CHECK: System running for 4.6 hours
-[2025-08-16T19:50:24.364545] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 19:51:46] 🔧 HEALTH_CHECK: System running for 17.1 hours
-[2025-08-16 19:53:31] 🔧 HEALTH_CHECK: System running for 4.2 hours
-[2025-08-16 19:53:40] 🔧 HEALTH_CHECK: System running for 4.7 hours
-[2025-08-16T19:55:24.401212] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 19:56:46] 🔧 HEALTH_CHECK: System running for 17.2 hours
-[2025-08-16 19:58:31] 🔧 HEALTH_CHECK: System running for 4.3 hours
-[2025-08-16 19:58:40] 🔧 HEALTH_CHECK: System running for 4.8 hours
-[2025-08-16T20:00:24.399300] 🔧 SECURITY_SCAN_COMPLETE: Scanned system - 5 findings
-[2025-08-16T20:00:24.404822] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 20:01:46] 🔧 HEALTH_CHECK: System running for 17.3 hours
-[2025-08-16 20:03:31] 🔧 HEALTH_CHECK: System running for 4.3 hours
-[2025-08-16 20:03:40] 🔧 HEALTH_CHECK: System running for 4.8 hours
-[2025-08-16T20:05:24.412089] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 20:06:46] 🔧 HEALTH_CHECK: System running for 17.3 hours
-[2025-08-16 20:08:31] 🔧 HEALTH_CHECK: System running for 4.4 hours
-[2025-08-16 20:08:40] 🔧 HEALTH_CHECK: System running for 4.9 hours
-[2025-08-16T20:10:24.422289] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 20:11:46] 🔧 HEALTH_CHECK: System running for 17.4 hours
-[2025-08-16 20:13:31] 🔧 HEALTH_CHECK: System running for 4.5 hours
-[2025-08-16 20:13:40] 🔧 HEALTH_CHECK: System running for 5.0 hours
-[2025-08-16T20:15:24.448148] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 20:16:46] 🔧 HEALTH_CHECK: System running for 17.5 hours
-[2025-08-16 20:18:31] 🔧 HEALTH_CHECK: System running for 4.6 hours
-[2025-08-16 20:18:40] 🔧 HEALTH_CHECK: System running for 5.1 hours
-[2025-08-16T20:20:24.475791] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 20:21:46] 🔧 HEALTH_CHECK: System running for 17.6 hours
-[2025-08-16 20:23:31] 🔧 HEALTH_CHECK: System running for 4.7 hours
-[2025-08-16 20:23:40] 🔧 HEALTH_CHECK: System running for 5.2 hours
-[2025-08-16T20:25:24.489228] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 20:26:46] 🔧 HEALTH_CHECK: System running for 17.7 hours
-[2025-08-16 20:28:31] 🔧 HEALTH_CHECK: System running for 4.8 hours
-[2025-08-16 20:28:40] 🔧 HEALTH_CHECK: System running for 5.3 hours
-[2025-08-16T20:30:24.488313] 🔧 SECURITY_SCAN_COMPLETE: Scanned system - 5 findings
-[2025-08-16T20:30:24.492195] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 20:31:46] 🔧 HEALTH_CHECK: System running for 17.8 hours
-[2025-08-16 20:33:31] 🔧 HEALTH_CHECK: System running for 4.8 hours
-[2025-08-16 20:33:40] 🔧 HEALTH_CHECK: System running for 5.3 hours
-[2025-08-16T20:35:24.512771] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 20:36:46] 🔧 HEALTH_CHECK: System running for 17.8 hours
-[2025-08-16 20:38:31] 🔧 HEALTH_CHECK: System running for 4.9 hours
-[2025-08-16 20:38:40] 🔧 HEALTH_CHECK: System running for 5.4 hours
-[2025-08-16T20:40:24.534826] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 20:41:46] 🔧 HEALTH_CHECK: System running for 17.9 hours
-[2025-08-16 20:43:31] 🔧 HEALTH_CHECK: System running for 5.0 hours
-[2025-08-16 20:43:40] 🔧 HEALTH_CHECK: System running for 5.5 hours
-[2025-08-16T20:45:24.556408] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 20:46:46] 🔧 HEALTH_CHECK: System running for 18.0 hours
-[2025-08-16 20:46:46] 🔧 CLEANUP: Performing periodic cleanup
-[2025-08-16 20:48:31] 🔧 HEALTH_CHECK: System running for 5.1 hours
-[2025-08-16 20:48:40] 🔧 HEALTH_CHECK: System running for 5.6 hours
-[2025-08-16T20:50:24.579697] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 20:51:46] 🔧 HEALTH_CHECK: System running for 18.1 hours
-[2025-08-16 20:53:31] 🔧 HEALTH_CHECK: System running for 5.2 hours
-[2025-08-16 20:53:40] 🔧 HEALTH_CHECK: System running for 5.7 hours
-[2025-08-16T20:55:24.589784] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 20:56:46] 🔧 HEALTH_CHECK: System running for 18.2 hours
-[2025-08-16 20:58:31] 🔧 HEALTH_CHECK: System running for 5.3 hours
-[2025-08-16 20:58:40] 🔧 HEALTH_CHECK: System running for 5.8 hours
-[2025-08-16T21:00:24.608548] 🔧 SECURITY_SCAN_COMPLETE: Scanned system - 5 findings
-[2025-08-16T21:00:24.611769] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 21:01:46] 🔧 HEALTH_CHECK: System running for 18.3 hours
-[2025-08-16 21:03:31] 🔧 HEALTH_CHECK: System running for 5.3 hours
-[2025-08-16 21:03:40] 🔧 HEALTH_CHECK: System running for 5.8 hours
-[2025-08-16T21:05:24.632903] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 21:06:46] 🔧 HEALTH_CHECK: System running for 18.3 hours
-[2025-08-16 21:08:31] 🔧 HEALTH_CHECK: System running for 5.4 hours
-[2025-08-16 21:08:40] 🔧 HEALTH_CHECK: System running for 5.9 hours
-[2025-08-16T21:10:24.643580] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 21:11:46] 🔧 HEALTH_CHECK: System running for 18.4 hours
-[2025-08-16 21:13:31] 🔧 HEALTH_CHECK: System running for 5.5 hours
-[2025-08-16 21:13:40] 🔧 HEALTH_CHECK: System running for 6.0 hours
-[2025-08-16 21:13:40] 🔧 CLEANUP: Performing periodic cleanup
-[2025-08-16T21:15:24.656994] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 21:16:46] 🔧 HEALTH_CHECK: System running for 18.5 hours
-[2025-08-16 21:18:31] 🔧 HEALTH_CHECK: System running for 5.6 hours
-[2025-08-16 21:18:40] 🔧 HEALTH_CHECK: System running for 6.1 hours
-[2025-08-16T21:20:24.673432] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 21:21:46] 🔧 HEALTH_CHECK: System running for 18.6 hours
-[2025-08-16 21:23:31] 🔧 HEALTH_CHECK: System running for 5.7 hours
-[2025-08-16 21:23:40] 🔧 HEALTH_CHECK: System running for 6.2 hours
-[2025-08-16T21:25:24.699330] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 21:26:46] 🔧 HEALTH_CHECK: System running for 18.7 hours
-[2025-08-16 21:28:31] 🔧 HEALTH_CHECK: System running for 5.8 hours
-[2025-08-16 21:28:40] 🔧 HEALTH_CHECK: System running for 6.3 hours
-[2025-08-16T21:30:24.710060] 🔧 SECURITY_SCAN_COMPLETE: Scanned system - 5 findings
-[2025-08-16T21:30:24.712598] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 21:31:46] 🔧 HEALTH_CHECK: System running for 18.8 hours
-[2025-08-16 21:33:31] 🔧 HEALTH_CHECK: System running for 5.8 hours
-[2025-08-16 21:33:40] 🔧 HEALTH_CHECK: System running for 6.3 hours
-[2025-08-16T21:35:24.732905] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 21:36:46] 🔧 HEALTH_CHECK: System running for 18.8 hours
-[2025-08-16 21:38:31] 🔧 HEALTH_CHECK: System running for 5.9 hours
-[2025-08-16 21:38:40] 🔧 HEALTH_CHECK: System running for 6.4 hours
-[2025-08-16T21:40:24.751205] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 21:41:46] 🔧 HEALTH_CHECK: System running for 18.9 hours
-[2025-08-16 21:43:31] 🔧 HEALTH_CHECK: System running for 6.0 hours
-[2025-08-16 21:43:31] 🔧 CLEANUP: Performing periodic cleanup
-[2025-08-16 21:43:40] 🔧 HEALTH_CHECK: System running for 6.5 hours
-[2025-08-16T21:45:24.764770] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 21:46:46] 🔧 HEALTH_CHECK: System running for 19.0 hours
-[2025-08-16 21:48:31] 🔧 HEALTH_CHECK: System running for 6.1 hours
-[2025-08-16 21:48:40] 🔧 HEALTH_CHECK: System running for 6.6 hours
-[2025-08-16T21:50:24.786601] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 21:51:46] 🔧 HEALTH_CHECK: System running for 19.1 hours
-[2025-08-16 21:53:31] 🔧 HEALTH_CHECK: System running for 6.2 hours
-[2025-08-16 21:53:40] 🔧 HEALTH_CHECK: System running for 6.7 hours
-[2025-08-16T21:55:24.809775] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 21:56:46] 🔧 HEALTH_CHECK: System running for 19.2 hours
-[2025-08-16 21:58:31] 🔧 HEALTH_CHECK: System running for 6.3 hours
-[2025-08-16 21:58:40] 🔧 HEALTH_CHECK: System running for 6.8 hours
-[2025-08-16T22:00:24.833496] 🔧 SECURITY_SCAN_COMPLETE: Scanned system - 5 findings
-[2025-08-16T22:00:24.836499] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 22:01:46] 🔧 HEALTH_CHECK: System running for 19.3 hours
-[2025-08-16 22:03:31] 🔧 HEALTH_CHECK: System running for 6.3 hours
-[2025-08-16 22:03:40] 🔧 HEALTH_CHECK: System running for 6.8 hours
-[2025-08-16T22:05:24.856655] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 22:06:46] 🔧 HEALTH_CHECK: System running for 19.3 hours
-[2025-08-16 22:08:31] 🔧 HEALTH_CHECK: System running for 6.4 hours
-[2025-08-16 22:08:40] 🔧 HEALTH_CHECK: System running for 6.9 hours
-[2025-08-16T22:10:24.877094] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 22:11:47] 🔧 HEALTH_CHECK: System running for 19.4 hours
-[2025-08-16 22:13:31] 🔧 HEALTH_CHECK: System running for 6.5 hours
-[2025-08-16 22:13:40] 🔧 HEALTH_CHECK: System running for 7.0 hours
-[2025-08-16T22:15:24.894585] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 22:16:47] 🔧 HEALTH_CHECK: System running for 19.5 hours
-[2025-08-16 22:18:31] 🔧 HEALTH_CHECK: System running for 6.6 hours
-[2025-08-16 22:18:40] 🔧 HEALTH_CHECK: System running for 7.1 hours
-[2025-08-16T22:20:24.917194] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 22:21:47] 🔧 HEALTH_CHECK: System running for 19.6 hours
-[2025-08-16 22:23:31] 🔧 HEALTH_CHECK: System running for 6.7 hours
-[2025-08-16 22:23:40] 🔧 HEALTH_CHECK: System running for 7.2 hours
-[2025-08-16T22:25:24.923650] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 22:26:47] 🔧 HEALTH_CHECK: System running for 19.7 hours
-[2025-08-16 22:28:31] 🔧 HEALTH_CHECK: System running for 6.8 hours
-[2025-08-16 22:28:40] 🔧 HEALTH_CHECK: System running for 7.3 hours
-[2025-08-16T22:30:24.954318] 🔧 SECURITY_SCAN_COMPLETE: Scanned system - 5 findings
-[2025-08-16T22:30:24.957326] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 22:31:47] 🔧 HEALTH_CHECK: System running for 19.8 hours
-[2025-08-16 22:33:31] 🔧 HEALTH_CHECK: System running for 6.8 hours
-[2025-08-16 22:33:40] 🔧 HEALTH_CHECK: System running for 7.3 hours
-[2025-08-16T22:35:24.979488] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 22:36:47] 🔧 HEALTH_CHECK: System running for 19.8 hours
-[2025-08-16 22:38:31] 🔧 HEALTH_CHECK: System running for 6.9 hours
-[2025-08-16 22:38:40] 🔧 HEALTH_CHECK: System running for 7.4 hours
-[2025-08-16T22:40:25.015023] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 22:41:47] 🔧 HEALTH_CHECK: System running for 19.9 hours
-[2025-08-16 22:43:31] 🔧 HEALTH_CHECK: System running for 7.0 hours
-[2025-08-16 22:43:40] 🔧 HEALTH_CHECK: System running for 7.5 hours
-[2025-08-16T22:45:25.024744] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 22:46:47] 🔧 HEALTH_CHECK: System running for 20.0 hours
-[2025-08-16 22:48:31] 🔧 HEALTH_CHECK: System running for 7.1 hours
-[2025-08-16 22:48:40] 🔧 HEALTH_CHECK: System running for 7.6 hours
-[2025-08-16T22:50:25.040115] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 22:51:47] 🔧 HEALTH_CHECK: System running for 20.1 hours
-[2025-08-16 22:53:31] 🔧 HEALTH_CHECK: System running for 7.2 hours
-[2025-08-16 22:53:40] 🔧 HEALTH_CHECK: System running for 7.7 hours
-[2025-08-16T22:55:25.046012] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 22:56:47] 🔧 HEALTH_CHECK: System running for 20.2 hours
-[2025-08-16 22:58:31] 🔧 HEALTH_CHECK: System running for 7.3 hours
-[2025-08-16 22:58:40] 🔧 HEALTH_CHECK: System running for 7.8 hours
-[2025-08-16T23:00:25.053227] 🔧 SECURITY_SCAN_COMPLETE: Scanned system - 5 findings
-[2025-08-16T23:00:25.058234] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 23:01:47] 🔧 HEALTH_CHECK: System running for 20.3 hours
-[2025-08-16 23:03:31] 🔧 HEALTH_CHECK: System running for 7.3 hours
-[2025-08-16 23:03:40] 🔧 HEALTH_CHECK: System running for 7.8 hours
-[2025-08-16T23:05:25.072575] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 23:06:47] 🔧 HEALTH_CHECK: System running for 20.3 hours
-[2025-08-16 23:08:31] 🔧 HEALTH_CHECK: System running for 7.4 hours
-[2025-08-16 23:08:40] 🔧 HEALTH_CHECK: System running for 7.9 hours
-[2025-08-16T23:10:25.090999] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 23:11:47] 🔧 HEALTH_CHECK: System running for 20.4 hours
-[2025-08-16 23:13:31] 🔧 HEALTH_CHECK: System running for 7.5 hours
-[2025-08-16 23:13:40] 🔧 HEALTH_CHECK: System running for 8.0 hours
-[2025-08-16T23:15:25.105757] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 23:16:47] 🔧 HEALTH_CHECK: System running for 20.5 hours
-[2025-08-16 23:18:31] 🔧 HEALTH_CHECK: System running for 7.6 hours
-[2025-08-16 23:18:40] 🔧 HEALTH_CHECK: System running for 8.1 hours
-[2025-08-16T23:20:25.124593] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 23:21:47] 🔧 HEALTH_CHECK: System running for 20.6 hours
-[2025-08-16 23:23:31] 🔧 HEALTH_CHECK: System running for 7.7 hours
-[2025-08-16 23:23:40] 🔧 HEALTH_CHECK: System running for 8.2 hours
-[2025-08-16T23:25:25.145172] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 23:26:47] 🔧 HEALTH_CHECK: System running for 20.7 hours
-[2025-08-16 23:28:31] 🔧 HEALTH_CHECK: System running for 7.8 hours
-[2025-08-16 23:28:40] 🔧 HEALTH_CHECK: System running for 8.3 hours
-[2025-08-16T23:30:25.150767] 🔧 SECURITY_SCAN_COMPLETE: Scanned system - 5 findings
-[2025-08-16T23:30:25.156698] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 23:31:47] 🔧 HEALTH_CHECK: System running for 20.8 hours
-[2025-08-16 23:33:31] 🔧 HEALTH_CHECK: System running for 7.8 hours
-[2025-08-16 23:33:40] 🔧 HEALTH_CHECK: System running for 8.3 hours
-[2025-08-16T23:35:25.160855] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 23:36:47] 🔧 HEALTH_CHECK: System running for 20.8 hours
-[2025-08-16 23:38:31] 🔧 HEALTH_CHECK: System running for 7.9 hours
-[2025-08-16 23:38:40] 🔧 HEALTH_CHECK: System running for 8.4 hours
-[2025-08-16T23:40:25.177738] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 23:41:47] 🔧 HEALTH_CHECK: System running for 20.9 hours
-[2025-08-16 23:43:31] 🔧 HEALTH_CHECK: System running for 8.0 hours
-[2025-08-16 23:43:40] 🔧 HEALTH_CHECK: System running for 8.5 hours
-[2025-08-16T23:45:25.202015] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
-This typically means that you attempted to use functionality that needed
-an active HTTP request. Consult the documentation on testing for
-information about how to avoid this problem.
-[2025-08-16 23:46:47] 🔧 HEALTH_CHECK: System running for 21.0 hours
-[2025-08-16 23:48:31] 🔧 HEALTH_CHECK: System running for 8.1 hours
-[2025-08-16 23:48:40] 🔧 HEALTH_CHECK: System running for 8.6 hours
-[2025-08-16T23:50:25.218536] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
-
+[LOG ROTATED - Previous 620 entries archived]
 This typically means that you attempted to use functionality that needed
 an active HTTP request. Consult the documentation on testing for
 information about how to avoid this problem.
@@ -1030,3 +411,894 @@ information about how to avoid this problem.
 [2025-08-17 03:38:32] 🔧 HEALTH_CHECK: System running for 11.9 hours
 [2025-08-17 03:38:41] 🔧 HEALTH_CHECK: System running for 12.4 hours
 [2025-08-17 03:38:44] 🔧 HEALTH_CHECK: System running for 1.8 hours
+[2025-08-17T03:40:26.061646] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 03:41:47] 🔧 HEALTH_CHECK: System running for 24.9 hours
+[2025-08-17 03:43:32] 🔧 HEALTH_CHECK: System running for 12.0 hours
+[2025-08-17 03:43:32] 🔧 CLEANUP: Performing periodic cleanup
+[2025-08-17 03:43:41] 🔧 HEALTH_CHECK: System running for 12.5 hours
+[2025-08-17 03:43:44] 🔧 HEALTH_CHECK: System running for 1.8 hours
+[2025-08-17 03:45:17] 🔧 🚀 Auto-Maintenance System - Background monitoring started
+[2025-08-17 03:45:17] 🔧 HEALTH_CHECK: System running for 0.0 hours
+[2025-08-17 03:45:17] 🔧 MONITOR_START: Background monitoring thread started
+[2025-08-17T03:45:26.079450] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 03:46:47] 🔧 HEALTH_CHECK: System running for 25.0 hours
+[2025-08-17 03:48:14] 🔧 🚀 Auto-Maintenance System - Background monitoring started
+[2025-08-17 03:48:14] 🔧 HEALTH_CHECK: System running for 0.0 hours
+[2025-08-17 03:48:14] 🔧 MONITOR_START: Background monitoring thread started
+[2025-08-17 03:48:32] 🔧 HEALTH_CHECK: System running for 12.1 hours
+[2025-08-17 03:48:41] 🔧 HEALTH_CHECK: System running for 12.6 hours
+[2025-08-17T03:50:26.099009] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 03:51:18] 🔧 🚀 Auto-Maintenance System - Background monitoring started
+[2025-08-17 03:51:18] 🔧 HEALTH_CHECK: System running for 0.0 hours
+[2025-08-17 03:51:18] 🔧 MONITOR_START: Background monitoring thread started
+[2025-08-17 03:51:47] 🔧 HEALTH_CHECK: System running for 25.1 hours
+[2025-08-17 03:52:08] 🔧 🚀 Auto-Maintenance System - Background monitoring started
+[2025-08-17 03:52:08] 🔧 HEALTH_CHECK: System running for 0.0 hours
+[2025-08-17 03:52:08] 🔧 MONITOR_START: Background monitoring thread started
+[2025-08-17 03:53:32] 🔧 HEALTH_CHECK: System running for 12.2 hours
+[2025-08-17 03:53:41] 🔧 HEALTH_CHECK: System running for 12.7 hours
+[2025-08-17T03:55:26.102888] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 03:56:47] 🔧 HEALTH_CHECK: System running for 25.2 hours
+[2025-08-17 03:57:08] 🔧 HEALTH_CHECK: System running for 0.1 hours
+[2025-08-17 03:58:32] 🔧 HEALTH_CHECK: System running for 12.3 hours
+[2025-08-17 03:58:41] 🔧 HEALTH_CHECK: System running for 12.8 hours
+[2025-08-17T04:00:26.127370] 🔧 SECURITY_SCAN_COMPLETE: Scanned system - 5 findings
+[2025-08-17T04:00:26.134937] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 04:01:47] 🔧 HEALTH_CHECK: System running for 25.3 hours
+[2025-08-17 04:02:08] 🔧 HEALTH_CHECK: System running for 0.2 hours
+[2025-08-17 04:03:32] 🔧 HEALTH_CHECK: System running for 12.3 hours
+[2025-08-17 04:03:41] 🔧 HEALTH_CHECK: System running for 12.8 hours
+[2025-08-17T04:05:26.147334] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 04:06:47] 🔧 HEALTH_CHECK: System running for 25.3 hours
+[2025-08-17 04:07:08] 🔧 HEALTH_CHECK: System running for 0.3 hours
+[2025-08-17 04:08:32] 🔧 HEALTH_CHECK: System running for 12.4 hours
+[2025-08-17 04:08:41] 🔧 HEALTH_CHECK: System running for 12.9 hours
+[2025-08-17T04:10:26.165770] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 04:11:47] 🔧 HEALTH_CHECK: System running for 25.4 hours
+[2025-08-17 04:12:08] 🔧 HEALTH_CHECK: System running for 0.3 hours
+[2025-08-17 04:13:32] 🔧 HEALTH_CHECK: System running for 12.5 hours
+[2025-08-17 04:13:41] 🔧 HEALTH_CHECK: System running for 13.0 hours
+[2025-08-17T04:15:26.193378] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 04:16:47] 🔧 HEALTH_CHECK: System running for 25.5 hours
+[2025-08-17 04:17:08] 🔧 HEALTH_CHECK: System running for 0.4 hours
+[2025-08-17 04:18:32] 🔧 HEALTH_CHECK: System running for 12.6 hours
+[2025-08-17 04:18:41] 🔧 HEALTH_CHECK: System running for 13.1 hours
+[2025-08-17T04:20:26.221532] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 04:21:47] 🔧 HEALTH_CHECK: System running for 25.6 hours
+[2025-08-17 04:22:08] 🔧 HEALTH_CHECK: System running for 0.5 hours
+[2025-08-17 04:23:32] 🔧 HEALTH_CHECK: System running for 12.7 hours
+[2025-08-17 04:23:41] 🔧 HEALTH_CHECK: System running for 13.2 hours
+[2025-08-17T04:25:26.241741] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 04:26:47] 🔧 HEALTH_CHECK: System running for 25.7 hours
+[2025-08-17 04:27:08] 🔧 HEALTH_CHECK: System running for 0.6 hours
+[2025-08-17 04:28:32] 🔧 HEALTH_CHECK: System running for 12.8 hours
+[2025-08-17 04:28:41] 🔧 HEALTH_CHECK: System running for 13.3 hours
+[2025-08-17T04:30:26.250545] 🔧 SECURITY_SCAN_COMPLETE: Scanned system - 5 findings
+[2025-08-17T04:30:26.252757] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 04:31:47] 🔧 HEALTH_CHECK: System running for 25.8 hours
+[2025-08-17 04:32:08] 🔧 HEALTH_CHECK: System running for 0.7 hours
+[2025-08-17 04:33:32] 🔧 HEALTH_CHECK: System running for 12.8 hours
+[2025-08-17 04:33:41] 🔧 HEALTH_CHECK: System running for 13.3 hours
+[2025-08-17T04:35:26.279272] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 04:36:47] 🔧 HEALTH_CHECK: System running for 25.8 hours
+[2025-08-17 04:37:08] 🔧 HEALTH_CHECK: System running for 0.8 hours
+[2025-08-17 04:38:32] 🔧 HEALTH_CHECK: System running for 12.9 hours
+[2025-08-17 04:38:41] 🔧 HEALTH_CHECK: System running for 13.4 hours
+[2025-08-17T04:40:26.279643] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 04:41:47] 🔧 HEALTH_CHECK: System running for 25.9 hours
+[2025-08-17 04:42:08] 🔧 HEALTH_CHECK: System running for 0.8 hours
+[2025-08-17 04:43:32] 🔧 HEALTH_CHECK: System running for 13.0 hours
+[2025-08-17 04:43:41] 🔧 HEALTH_CHECK: System running for 13.5 hours
+[2025-08-17T04:45:26.301798] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 04:46:47] 🔧 HEALTH_CHECK: System running for 26.0 hours
+[2025-08-17 04:47:08] 🔧 HEALTH_CHECK: System running for 0.9 hours
+[2025-08-17 04:48:32] 🔧 HEALTH_CHECK: System running for 13.1 hours
+[2025-08-17 04:48:41] 🔧 HEALTH_CHECK: System running for 13.6 hours
+[2025-08-17T04:50:26.326308] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 04:51:47] 🔧 HEALTH_CHECK: System running for 26.1 hours
+[2025-08-17 04:52:08] 🔧 HEALTH_CHECK: System running for 1.0 hours
+[2025-08-17 04:53:32] 🔧 HEALTH_CHECK: System running for 13.2 hours
+[2025-08-17 04:53:41] 🔧 HEALTH_CHECK: System running for 13.7 hours
+[2025-08-17T04:55:26.354129] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 04:56:47] 🔧 HEALTH_CHECK: System running for 26.2 hours
+[2025-08-17 04:57:08] 🔧 HEALTH_CHECK: System running for 1.1 hours
+[2025-08-17 04:58:32] 🔧 HEALTH_CHECK: System running for 13.3 hours
+[2025-08-17 04:58:41] 🔧 HEALTH_CHECK: System running for 13.8 hours
+[2025-08-17T05:00:26.366635] 🔧 SECURITY_SCAN_COMPLETE: Scanned system - 5 findings
+[2025-08-17T05:00:26.371694] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 05:01:47] 🔧 HEALTH_CHECK: System running for 26.3 hours
+[2025-08-17 05:02:08] 🔧 HEALTH_CHECK: System running for 1.2 hours
+[2025-08-17 05:03:32] 🔧 HEALTH_CHECK: System running for 13.3 hours
+[2025-08-17 05:03:41] 🔧 HEALTH_CHECK: System running for 13.8 hours
+[2025-08-17T05:05:26.388884] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 05:06:47] 🔧 HEALTH_CHECK: System running for 26.3 hours
+[2025-08-17 05:07:08] 🔧 HEALTH_CHECK: System running for 1.3 hours
+[2025-08-17 05:08:32] 🔧 HEALTH_CHECK: System running for 13.4 hours
+[2025-08-17 05:08:41] 🔧 HEALTH_CHECK: System running for 13.9 hours
+[2025-08-17T05:10:26.412526] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 05:11:47] 🔧 HEALTH_CHECK: System running for 26.4 hours
+[2025-08-17 05:12:08] 🔧 HEALTH_CHECK: System running for 1.3 hours
+[2025-08-17 05:13:32] 🔧 HEALTH_CHECK: System running for 13.5 hours
+[2025-08-17 05:13:41] 🔧 HEALTH_CHECK: System running for 14.0 hours
+[2025-08-17T05:15:26.419333] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 05:16:47] 🔧 HEALTH_CHECK: System running for 26.5 hours
+[2025-08-17 05:17:08] 🔧 HEALTH_CHECK: System running for 1.4 hours
+[2025-08-17 05:18:32] 🔧 HEALTH_CHECK: System running for 13.6 hours
+[2025-08-17 05:18:41] 🔧 HEALTH_CHECK: System running for 14.1 hours
+[2025-08-17T05:20:26.433111] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 05:21:47] 🔧 HEALTH_CHECK: System running for 26.6 hours
+[2025-08-17 05:22:08] 🔧 HEALTH_CHECK: System running for 1.5 hours
+[2025-08-17 05:23:32] 🔧 HEALTH_CHECK: System running for 13.7 hours
+[2025-08-17 05:23:41] 🔧 HEALTH_CHECK: System running for 14.2 hours
+[2025-08-17T05:25:26.458669] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 05:26:47] 🔧 HEALTH_CHECK: System running for 26.7 hours
+[2025-08-17 05:27:08] 🔧 HEALTH_CHECK: System running for 1.6 hours
+[2025-08-17 05:28:32] 🔧 HEALTH_CHECK: System running for 13.8 hours
+[2025-08-17 05:28:41] 🔧 HEALTH_CHECK: System running for 14.3 hours
+[2025-08-17T05:30:26.528344] 🔧 SECURITY_SCAN_COMPLETE: Scanned system - 5 findings
+[2025-08-17T05:30:26.570757] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 05:31:48] 🔧 HEALTH_CHECK: System running for 26.8 hours
+[2025-08-17 05:32:08] 🔧 HEALTH_CHECK: System running for 1.7 hours
+[2025-08-17 05:33:32] 🔧 HEALTH_CHECK: System running for 13.8 hours
+[2025-08-17 05:33:41] 🔧 HEALTH_CHECK: System running for 14.3 hours
+[2025-08-17T05:35:26.572218] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 05:36:48] 🔧 HEALTH_CHECK: System running for 26.8 hours
+[2025-08-17 05:37:08] 🔧 HEALTH_CHECK: System running for 1.8 hours
+[2025-08-17 05:38:32] 🔧 HEALTH_CHECK: System running for 13.9 hours
+[2025-08-17 05:38:41] 🔧 HEALTH_CHECK: System running for 14.4 hours
+[2025-08-17T05:40:26.581036] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 05:41:48] 🔧 HEALTH_CHECK: System running for 26.9 hours
+[2025-08-17 05:42:08] 🔧 HEALTH_CHECK: System running for 1.8 hours
+[2025-08-17 05:43:32] 🔧 HEALTH_CHECK: System running for 14.0 hours
+[2025-08-17 05:43:41] 🔧 HEALTH_CHECK: System running for 14.5 hours
+[2025-08-17T05:45:26.599585] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 05:46:48] 🔧 HEALTH_CHECK: System running for 27.0 hours
+[2025-08-17 05:47:08] 🔧 HEALTH_CHECK: System running for 1.9 hours
+[2025-08-17 05:48:32] 🔧 HEALTH_CHECK: System running for 14.1 hours
+[2025-08-17 05:48:41] 🔧 HEALTH_CHECK: System running for 14.6 hours
+[2025-08-17T05:50:26.614646] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 05:51:48] 🔧 HEALTH_CHECK: System running for 27.1 hours
+[2025-08-17 05:52:08] 🔧 HEALTH_CHECK: System running for 2.0 hours
+[2025-08-17 05:53:32] 🔧 HEALTH_CHECK: System running for 14.2 hours
+[2025-08-17 05:53:41] 🔧 HEALTH_CHECK: System running for 14.7 hours
+[2025-08-17T05:55:26.639498] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 05:56:48] 🔧 HEALTH_CHECK: System running for 27.2 hours
+[2025-08-17 05:57:08] 🔧 HEALTH_CHECK: System running for 2.1 hours
+[2025-08-17 05:58:32] 🔧 HEALTH_CHECK: System running for 14.3 hours
+[2025-08-17 05:58:41] 🔧 HEALTH_CHECK: System running for 14.8 hours
+[2025-08-17T06:00:26.665550] 🔧 SECURITY_SCAN_COMPLETE: Scanned system - 5 findings
+[2025-08-17T06:00:26.671547] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 06:01:48] 🔧 HEALTH_CHECK: System running for 27.3 hours
+[2025-08-17 06:02:08] 🔧 HEALTH_CHECK: System running for 2.2 hours
+[2025-08-17 06:03:32] 🔧 HEALTH_CHECK: System running for 14.3 hours
+[2025-08-17 06:03:41] 🔧 HEALTH_CHECK: System running for 14.8 hours
+[2025-08-17T06:05:26.703227] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 06:06:48] 🔧 HEALTH_CHECK: System running for 27.3 hours
+[2025-08-17 06:07:08] 🔧 HEALTH_CHECK: System running for 2.3 hours
+[2025-08-17 06:08:32] 🔧 HEALTH_CHECK: System running for 14.4 hours
+[2025-08-17 06:08:41] 🔧 HEALTH_CHECK: System running for 14.9 hours
+[2025-08-17T06:10:26.724920] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 06:11:48] 🔧 HEALTH_CHECK: System running for 27.4 hours
+[2025-08-17 06:12:08] 🔧 HEALTH_CHECK: System running for 2.3 hours
+[2025-08-17 06:13:32] 🔧 HEALTH_CHECK: System running for 14.5 hours
+[2025-08-17 06:13:41] 🔧 HEALTH_CHECK: System running for 15.0 hours
+[2025-08-17T06:15:26.742990] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 06:16:48] 🔧 HEALTH_CHECK: System running for 27.5 hours
+[2025-08-17 06:17:08] 🔧 HEALTH_CHECK: System running for 2.4 hours
+[2025-08-17 06:18:32] 🔧 HEALTH_CHECK: System running for 14.6 hours
+[2025-08-17 06:18:41] 🔧 HEALTH_CHECK: System running for 15.1 hours
+[2025-08-17T06:20:26.763894] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 06:21:48] 🔧 HEALTH_CHECK: System running for 27.6 hours
+[2025-08-17 06:22:08] 🔧 HEALTH_CHECK: System running for 2.5 hours
+[2025-08-17 06:23:32] 🔧 HEALTH_CHECK: System running for 14.7 hours
+[2025-08-17 06:23:41] 🔧 HEALTH_CHECK: System running for 15.2 hours
+[2025-08-17T06:25:26.769548] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 06:26:48] 🔧 HEALTH_CHECK: System running for 27.7 hours
+[2025-08-17 06:27:08] 🔧 HEALTH_CHECK: System running for 2.6 hours
+[2025-08-17 06:28:32] 🔧 HEALTH_CHECK: System running for 14.8 hours
+[2025-08-17 06:28:41] 🔧 HEALTH_CHECK: System running for 15.3 hours
+[2025-08-17T06:30:26.782015] 🔧 SECURITY_SCAN_COMPLETE: Scanned system - 5 findings
+[2025-08-17T06:30:26.786899] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 06:31:48] 🔧 HEALTH_CHECK: System running for 27.8 hours
+[2025-08-17 06:32:08] 🔧 HEALTH_CHECK: System running for 2.7 hours
+[2025-08-17 06:33:32] 🔧 HEALTH_CHECK: System running for 14.8 hours
+[2025-08-17 06:33:41] 🔧 HEALTH_CHECK: System running for 15.3 hours
+[2025-08-17T06:35:26.808667] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 06:36:48] 🔧 HEALTH_CHECK: System running for 27.8 hours
+[2025-08-17 06:37:08] 🔧 HEALTH_CHECK: System running for 2.8 hours
+[2025-08-17 06:38:32] 🔧 HEALTH_CHECK: System running for 14.9 hours
+[2025-08-17 06:38:41] 🔧 HEALTH_CHECK: System running for 15.4 hours
+[2025-08-17T06:40:26.826358] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 06:41:48] 🔧 HEALTH_CHECK: System running for 27.9 hours
+[2025-08-17 06:42:08] 🔧 HEALTH_CHECK: System running for 2.8 hours
+[2025-08-17 06:43:32] 🔧 HEALTH_CHECK: System running for 15.0 hours
+[2025-08-17 06:43:41] 🔧 HEALTH_CHECK: System running for 15.5 hours
+[2025-08-17T06:45:26.844330] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 06:46:48] 🔧 HEALTH_CHECK: System running for 28.0 hours
+[2025-08-17 06:47:08] 🔧 HEALTH_CHECK: System running for 2.9 hours
+[2025-08-17 06:48:32] 🔧 HEALTH_CHECK: System running for 15.1 hours
+[2025-08-17 06:48:41] 🔧 HEALTH_CHECK: System running for 15.6 hours
+[2025-08-17T06:50:26.925588] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 06:51:48] 🔧 HEALTH_CHECK: System running for 28.1 hours
+[2025-08-17 06:52:08] 🔧 HEALTH_CHECK: System running for 3.0 hours
+[2025-08-17 06:53:32] 🔧 HEALTH_CHECK: System running for 15.2 hours
+[2025-08-17 06:53:41] 🔧 HEALTH_CHECK: System running for 15.7 hours
+[2025-08-17T06:55:26.949013] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 06:56:48] 🔧 HEALTH_CHECK: System running for 28.2 hours
+[2025-08-17 06:57:08] 🔧 HEALTH_CHECK: System running for 3.1 hours
+[2025-08-17 06:58:32] 🔧 HEALTH_CHECK: System running for 15.3 hours
+[2025-08-17 06:58:41] 🔧 HEALTH_CHECK: System running for 15.8 hours
+[2025-08-17T07:00:26.963703] 🔧 SECURITY_SCAN_COMPLETE: Scanned system - 5 findings
+[2025-08-17T07:00:26.967066] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 07:01:48] 🔧 HEALTH_CHECK: System running for 28.3 hours
+[2025-08-17 07:02:08] 🔧 HEALTH_CHECK: System running for 3.2 hours
+[2025-08-17 07:03:32] 🔧 HEALTH_CHECK: System running for 15.3 hours
+[2025-08-17 07:03:41] 🔧 HEALTH_CHECK: System running for 15.8 hours
+[2025-08-17T07:05:26.986845] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 07:06:48] 🔧 HEALTH_CHECK: System running for 28.3 hours
+[2025-08-17 07:07:08] 🔧 HEALTH_CHECK: System running for 3.3 hours
+[2025-08-17 07:08:32] 🔧 HEALTH_CHECK: System running for 15.4 hours
+[2025-08-17 07:08:41] 🔧 HEALTH_CHECK: System running for 15.9 hours
+[2025-08-17T07:10:27.003043] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 07:11:48] 🔧 HEALTH_CHECK: System running for 28.4 hours
+[2025-08-17 07:12:08] 🔧 HEALTH_CHECK: System running for 3.3 hours
+[2025-08-17 07:13:32] 🔧 HEALTH_CHECK: System running for 15.5 hours
+[2025-08-17 07:13:41] 🔧 HEALTH_CHECK: System running for 16.0 hours
+[2025-08-17T07:15:27.016452] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 07:16:48] 🔧 HEALTH_CHECK: System running for 28.5 hours
+[2025-08-17 07:17:08] 🔧 HEALTH_CHECK: System running for 3.4 hours
+[2025-08-17 07:18:32] 🔧 HEALTH_CHECK: System running for 15.6 hours
+[2025-08-17 07:18:41] 🔧 HEALTH_CHECK: System running for 16.1 hours
+[2025-08-17T07:20:27.036146] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 07:21:48] 🔧 HEALTH_CHECK: System running for 28.6 hours
+[2025-08-17 07:22:08] 🔧 HEALTH_CHECK: System running for 3.5 hours
+[2025-08-17 07:23:32] 🔧 HEALTH_CHECK: System running for 15.7 hours
+[2025-08-17 07:23:41] 🔧 HEALTH_CHECK: System running for 16.2 hours
+[2025-08-17T07:25:27.054575] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 07:26:48] 🔧 HEALTH_CHECK: System running for 28.7 hours
+[2025-08-17 07:27:08] 🔧 HEALTH_CHECK: System running for 3.6 hours
+[2025-08-17 07:28:32] 🔧 HEALTH_CHECK: System running for 15.8 hours
+[2025-08-17 07:28:41] 🔧 HEALTH_CHECK: System running for 16.3 hours
+[2025-08-17T07:30:28.507746] 🔧 DAILY_CLEANUP: Cleared 0 old error patterns
+[2025-08-17T07:30:28.513480] 🔧 SECURITY_SCAN_COMPLETE: Scanned system - 5 findings
+[2025-08-17T07:30:28.517869] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 07:31:48] 🔧 HEALTH_CHECK: System running for 28.8 hours
+[2025-08-17 07:32:08] 🔧 HEALTH_CHECK: System running for 3.7 hours
+[2025-08-17 07:33:32] 🔧 HEALTH_CHECK: System running for 15.8 hours
+[2025-08-17 07:33:41] 🔧 HEALTH_CHECK: System running for 16.3 hours
+[2025-08-17T07:35:28.532909] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 07:36:48] 🔧 HEALTH_CHECK: System running for 28.8 hours
+[2025-08-17 07:37:08] 🔧 HEALTH_CHECK: System running for 3.8 hours
+[2025-08-17 07:38:32] 🔧 HEALTH_CHECK: System running for 15.9 hours
+[2025-08-17 07:38:41] 🔧 HEALTH_CHECK: System running for 16.4 hours
+[2025-08-17T07:40:28.553433] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 07:41:48] 🔧 HEALTH_CHECK: System running for 28.9 hours
+[2025-08-17 07:42:08] 🔧 HEALTH_CHECK: System running for 3.8 hours
+[2025-08-17 07:43:32] 🔧 HEALTH_CHECK: System running for 16.0 hours
+[2025-08-17 07:43:41] 🔧 HEALTH_CHECK: System running for 16.5 hours
+[2025-08-17T07:45:28.573409] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 07:46:48] 🔧 HEALTH_CHECK: System running for 29.0 hours
+[2025-08-17 07:47:08] 🔧 HEALTH_CHECK: System running for 3.9 hours
+[2025-08-17 07:48:32] 🔧 HEALTH_CHECK: System running for 16.1 hours
+[2025-08-17 07:48:41] 🔧 HEALTH_CHECK: System running for 16.6 hours
+[2025-08-17T07:50:28.588889] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 07:51:48] 🔧 HEALTH_CHECK: System running for 29.1 hours
+[2025-08-17 07:52:08] 🔧 HEALTH_CHECK: System running for 4.0 hours
+[2025-08-17 07:53:32] 🔧 HEALTH_CHECK: System running for 16.2 hours
+[2025-08-17 07:53:41] 🔧 HEALTH_CHECK: System running for 16.7 hours
+[2025-08-17T07:55:28.606829] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 07:56:48] 🔧 HEALTH_CHECK: System running for 29.2 hours
+[2025-08-17 07:57:08] 🔧 HEALTH_CHECK: System running for 4.1 hours
+[2025-08-17 07:58:32] 🔧 HEALTH_CHECK: System running for 16.3 hours
+[2025-08-17 07:58:41] 🔧 HEALTH_CHECK: System running for 16.8 hours
+[2025-08-17T08:00:28.619139] 🔧 SECURITY_SCAN_COMPLETE: Scanned system - 5 findings
+[2025-08-17T08:00:28.625452] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 08:01:48] 🔧 HEALTH_CHECK: System running for 29.3 hours
+[2025-08-17 08:02:08] 🔧 HEALTH_CHECK: System running for 4.2 hours
+[2025-08-17 08:03:32] 🔧 HEALTH_CHECK: System running for 16.3 hours
+[2025-08-17 08:03:42] 🔧 HEALTH_CHECK: System running for 16.8 hours
+[2025-08-17T08:05:28.643219] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 08:06:48] 🔧 HEALTH_CHECK: System running for 29.3 hours
+[2025-08-17 08:07:08] 🔧 HEALTH_CHECK: System running for 4.3 hours
+[2025-08-17 08:08:32] 🔧 HEALTH_CHECK: System running for 16.4 hours
+[2025-08-17 08:08:42] 🔧 HEALTH_CHECK: System running for 16.9 hours
+[2025-08-17T08:10:28.654867] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 08:11:48] 🔧 HEALTH_CHECK: System running for 29.4 hours
+[2025-08-17 08:12:08] 🔧 HEALTH_CHECK: System running for 4.3 hours
+[2025-08-17 08:13:32] 🔧 HEALTH_CHECK: System running for 16.5 hours
+[2025-08-17 08:13:42] 🔧 HEALTH_CHECK: System running for 17.0 hours
+[2025-08-17T08:15:28.673377] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 08:16:48] 🔧 HEALTH_CHECK: System running for 29.5 hours
+[2025-08-17 08:17:08] 🔧 HEALTH_CHECK: System running for 4.4 hours
+[2025-08-17 08:18:32] 🔧 HEALTH_CHECK: System running for 16.6 hours
+[2025-08-17 08:18:42] 🔧 HEALTH_CHECK: System running for 17.1 hours
+[2025-08-17T08:20:28.702019] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 08:21:48] 🔧 HEALTH_CHECK: System running for 29.6 hours
+[2025-08-17 08:22:08] 🔧 HEALTH_CHECK: System running for 4.5 hours
+[2025-08-17 08:23:32] 🔧 HEALTH_CHECK: System running for 16.7 hours
+[2025-08-17 08:23:42] 🔧 HEALTH_CHECK: System running for 17.2 hours
+[2025-08-17T08:25:28.718702] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 08:26:48] 🔧 HEALTH_CHECK: System running for 29.7 hours
+[2025-08-17 08:27:08] 🔧 HEALTH_CHECK: System running for 4.6 hours
+[2025-08-17 08:28:32] 🔧 HEALTH_CHECK: System running for 16.8 hours
+[2025-08-17 08:28:42] 🔧 HEALTH_CHECK: System running for 17.3 hours
+[2025-08-17T08:30:28.734990] 🔧 SECURITY_SCAN_COMPLETE: Scanned system - 5 findings
+[2025-08-17T08:30:28.744036] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 08:31:48] 🔧 HEALTH_CHECK: System running for 29.8 hours
+[2025-08-17 08:32:08] 🔧 HEALTH_CHECK: System running for 4.7 hours
+[2025-08-17 08:33:33] 🔧 HEALTH_CHECK: System running for 16.8 hours
+[2025-08-17 08:33:42] 🔧 HEALTH_CHECK: System running for 17.3 hours
+[2025-08-17T08:35:28.771487] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 08:36:48] 🔧 HEALTH_CHECK: System running for 29.8 hours
+[2025-08-17 08:37:08] 🔧 HEALTH_CHECK: System running for 4.8 hours
+[2025-08-17 08:38:33] 🔧 HEALTH_CHECK: System running for 16.9 hours
+[2025-08-17 08:38:42] 🔧 HEALTH_CHECK: System running for 17.4 hours
+[2025-08-17T08:40:28.781243] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 08:41:48] 🔧 HEALTH_CHECK: System running for 29.9 hours
+[2025-08-17 08:42:08] 🔧 HEALTH_CHECK: System running for 4.8 hours
+[2025-08-17 08:43:33] 🔧 HEALTH_CHECK: System running for 17.0 hours
+[2025-08-17 08:43:42] 🔧 HEALTH_CHECK: System running for 17.5 hours
+[2025-08-17T08:45:28.809572] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 08:46:48] 🔧 HEALTH_CHECK: System running for 30.0 hours
+[2025-08-17 08:46:48] 🔧 CLEANUP: Performing periodic cleanup
+[2025-08-17 08:47:08] 🔧 HEALTH_CHECK: System running for 4.9 hours
+[2025-08-17 08:48:33] 🔧 HEALTH_CHECK: System running for 17.1 hours
+[2025-08-17 08:48:42] 🔧 HEALTH_CHECK: System running for 17.6 hours
+[2025-08-17T08:50:28.812758] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 08:51:48] 🔧 HEALTH_CHECK: System running for 30.1 hours
+[2025-08-17 08:52:08] 🔧 HEALTH_CHECK: System running for 5.0 hours
+[2025-08-17 08:53:33] 🔧 HEALTH_CHECK: System running for 17.2 hours
+[2025-08-17 08:53:42] 🔧 HEALTH_CHECK: System running for 17.7 hours
+[2025-08-17T08:55:28.821871] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 08:56:48] 🔧 HEALTH_CHECK: System running for 30.2 hours
+[2025-08-17 08:57:08] 🔧 HEALTH_CHECK: System running for 5.1 hours
+[2025-08-17 08:58:33] 🔧 HEALTH_CHECK: System running for 17.3 hours
+[2025-08-17 08:58:42] 🔧 HEALTH_CHECK: System running for 17.8 hours
+[2025-08-17T09:00:28.845899] 🔧 SECURITY_SCAN_COMPLETE: Scanned system - 5 findings
+[2025-08-17T09:00:28.855341] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 09:01:48] 🔧 HEALTH_CHECK: System running for 30.3 hours
+[2025-08-17 09:02:08] 🔧 HEALTH_CHECK: System running for 5.2 hours
+[2025-08-17 09:03:33] 🔧 HEALTH_CHECK: System running for 17.3 hours
+[2025-08-17 09:03:42] 🔧 HEALTH_CHECK: System running for 17.8 hours
+[2025-08-17T09:05:28.863709] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 09:06:48] 🔧 HEALTH_CHECK: System running for 30.3 hours
+[2025-08-17 09:07:08] 🔧 HEALTH_CHECK: System running for 5.3 hours
+[2025-08-17 09:08:33] 🔧 HEALTH_CHECK: System running for 17.4 hours
+[2025-08-17 09:08:42] 🔧 HEALTH_CHECK: System running for 17.9 hours
+[2025-08-17T09:10:28.877074] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 09:11:48] 🔧 HEALTH_CHECK: System running for 30.4 hours
+[2025-08-17 09:12:08] 🔧 HEALTH_CHECK: System running for 5.3 hours
+[2025-08-17 09:13:33] 🔧 HEALTH_CHECK: System running for 17.5 hours
+[2025-08-17 09:13:42] 🔧 HEALTH_CHECK: System running for 18.0 hours
+[2025-08-17 09:13:42] 🔧 CLEANUP: Performing periodic cleanup
+[2025-08-17T09:15:28.883605] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 09:16:48] 🔧 HEALTH_CHECK: System running for 30.5 hours
+[2025-08-17 09:17:08] 🔧 HEALTH_CHECK: System running for 5.4 hours
+[2025-08-17 09:18:33] 🔧 HEALTH_CHECK: System running for 17.6 hours
+[2025-08-17 09:18:42] 🔧 HEALTH_CHECK: System running for 18.1 hours
+[2025-08-17T09:20:28.898169] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 09:21:48] 🔧 HEALTH_CHECK: System running for 30.6 hours
+[2025-08-17 09:22:08] 🔧 HEALTH_CHECK: System running for 5.5 hours
+[2025-08-17 09:23:33] 🔧 HEALTH_CHECK: System running for 17.7 hours
+[2025-08-17 09:23:42] 🔧 HEALTH_CHECK: System running for 18.2 hours
+[2025-08-17T09:25:28.916234] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 09:26:48] 🔧 HEALTH_CHECK: System running for 30.7 hours
+[2025-08-17 09:27:08] 🔧 HEALTH_CHECK: System running for 5.6 hours
+[2025-08-17 09:28:33] 🔧 HEALTH_CHECK: System running for 17.8 hours
+[2025-08-17 09:28:42] 🔧 HEALTH_CHECK: System running for 18.3 hours
+[2025-08-17T09:30:28.924153] 🔧 SECURITY_SCAN_COMPLETE: Scanned system - 5 findings
+[2025-08-17T09:30:28.932328] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 09:31:48] 🔧 HEALTH_CHECK: System running for 30.8 hours
+[2025-08-17 09:32:08] 🔧 HEALTH_CHECK: System running for 5.7 hours
+[2025-08-17 09:33:33] 🔧 HEALTH_CHECK: System running for 17.8 hours
+[2025-08-17 09:33:42] 🔧 HEALTH_CHECK: System running for 18.3 hours
+[2025-08-17T09:35:28.950637] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 09:36:48] 🔧 HEALTH_CHECK: System running for 30.8 hours
+[2025-08-17 09:37:08] 🔧 HEALTH_CHECK: System running for 5.8 hours
+[2025-08-17 09:38:33] 🔧 HEALTH_CHECK: System running for 17.9 hours
+[2025-08-17 09:38:42] 🔧 HEALTH_CHECK: System running for 18.4 hours
+[2025-08-17T09:40:28.975724] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 09:41:48] 🔧 HEALTH_CHECK: System running for 30.9 hours
+[2025-08-17 09:42:09] 🔧 HEALTH_CHECK: System running for 5.8 hours
+[2025-08-17 09:43:33] 🔧 HEALTH_CHECK: System running for 18.0 hours
+[2025-08-17 09:43:33] 🔧 CLEANUP: Performing periodic cleanup
+[2025-08-17 09:43:42] 🔧 HEALTH_CHECK: System running for 18.5 hours
+[2025-08-17T09:45:28.993885] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 09:46:48] 🔧 HEALTH_CHECK: System running for 31.0 hours
+[2025-08-17 09:47:09] 🔧 HEALTH_CHECK: System running for 5.9 hours
+[2025-08-17 09:48:33] 🔧 HEALTH_CHECK: System running for 18.1 hours
+[2025-08-17 09:48:42] 🔧 HEALTH_CHECK: System running for 18.6 hours
+[2025-08-17T09:50:29.006404] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 09:51:48] 🔧 HEALTH_CHECK: System running for 31.1 hours
+[2025-08-17 09:52:09] 🔧 HEALTH_CHECK: System running for 6.0 hours
+[2025-08-17 09:52:09] 🔧 CLEANUP: Performing periodic cleanup
+[2025-08-17 09:53:33] 🔧 HEALTH_CHECK: System running for 18.2 hours
+[2025-08-17 09:53:42] 🔧 HEALTH_CHECK: System running for 18.7 hours
+[2025-08-17T09:55:29.016286] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 09:56:48] 🔧 HEALTH_CHECK: System running for 31.2 hours
+[2025-08-17 09:57:09] 🔧 HEALTH_CHECK: System running for 6.1 hours
+[2025-08-17 09:58:33] 🔧 HEALTH_CHECK: System running for 18.3 hours
+[2025-08-17 09:58:42] 🔧 HEALTH_CHECK: System running for 18.8 hours
+[2025-08-17T10:00:29.027022] 🔧 SECURITY_SCAN_COMPLETE: Scanned system - 5 findings
+[2025-08-17T10:00:29.032021] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 10:01:48] 🔧 HEALTH_CHECK: System running for 31.3 hours
+[2025-08-17 10:02:09] 🔧 HEALTH_CHECK: System running for 6.2 hours
+[2025-08-17 10:03:33] 🔧 HEALTH_CHECK: System running for 18.3 hours
+[2025-08-17 10:03:42] 🔧 HEALTH_CHECK: System running for 18.8 hours
+[2025-08-17T10:05:29.058984] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 10:06:48] 🔧 HEALTH_CHECK: System running for 31.3 hours
+[2025-08-17 10:07:09] 🔧 HEALTH_CHECK: System running for 6.3 hours
+[2025-08-17 10:08:33] 🔧 HEALTH_CHECK: System running for 18.4 hours
+[2025-08-17 10:08:42] 🔧 HEALTH_CHECK: System running for 18.9 hours
+[2025-08-17T10:10:29.088893] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 10:11:48] 🔧 HEALTH_CHECK: System running for 31.4 hours
+[2025-08-17 10:12:09] 🔧 HEALTH_CHECK: System running for 6.3 hours
+[2025-08-17 10:13:33] 🔧 HEALTH_CHECK: System running for 18.5 hours
+[2025-08-17 10:13:42] 🔧 HEALTH_CHECK: System running for 19.0 hours
+[2025-08-17T10:15:29.103302] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 10:16:48] 🔧 HEALTH_CHECK: System running for 31.5 hours
+[2025-08-17 10:17:09] 🔧 HEALTH_CHECK: System running for 6.4 hours
+[2025-08-17 10:18:33] 🔧 HEALTH_CHECK: System running for 18.6 hours
+[2025-08-17 10:18:42] 🔧 HEALTH_CHECK: System running for 19.1 hours
+[2025-08-17T10:20:29.113353] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 10:21:48] 🔧 HEALTH_CHECK: System running for 31.6 hours
+[2025-08-17 10:22:09] 🔧 HEALTH_CHECK: System running for 6.5 hours
+[2025-08-17 10:23:33] 🔧 HEALTH_CHECK: System running for 18.7 hours
+[2025-08-17 10:23:42] 🔧 HEALTH_CHECK: System running for 19.2 hours
+[2025-08-17T10:25:29.123116] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 10:26:48] 🔧 HEALTH_CHECK: System running for 31.7 hours
+[2025-08-17 10:27:09] 🔧 HEALTH_CHECK: System running for 6.6 hours
+[2025-08-17 10:28:33] 🔧 HEALTH_CHECK: System running for 18.8 hours
+[2025-08-17 10:28:42] 🔧 HEALTH_CHECK: System running for 19.3 hours
+[2025-08-17T10:30:29.128469] 🔧 SECURITY_SCAN_COMPLETE: Scanned system - 5 findings
+[2025-08-17T10:30:29.136136] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 10:31:48] 🔧 HEALTH_CHECK: System running for 31.8 hours
+[2025-08-17 10:32:09] 🔧 HEALTH_CHECK: System running for 6.7 hours
+[2025-08-17 10:33:33] 🔧 HEALTH_CHECK: System running for 18.8 hours
+[2025-08-17 10:33:42] 🔧 HEALTH_CHECK: System running for 19.3 hours
+[2025-08-17T10:35:29.135562] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 10:36:48] 🔧 HEALTH_CHECK: System running for 31.8 hours
+[2025-08-17 10:37:09] 🔧 HEALTH_CHECK: System running for 6.8 hours
+[2025-08-17 10:38:33] 🔧 HEALTH_CHECK: System running for 18.9 hours
+[2025-08-17 10:38:42] 🔧 HEALTH_CHECK: System running for 19.4 hours
+[2025-08-17T10:40:29.161665] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 10:41:48] 🔧 HEALTH_CHECK: System running for 31.9 hours
+[2025-08-17 10:42:09] 🔧 HEALTH_CHECK: System running for 6.8 hours
+[2025-08-17 10:43:33] 🔧 HEALTH_CHECK: System running for 19.0 hours
+[2025-08-17 10:43:42] 🔧 HEALTH_CHECK: System running for 19.5 hours
+[2025-08-17T10:45:29.159223] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 10:46:48] 🔧 HEALTH_CHECK: System running for 32.0 hours
+[2025-08-17 10:47:09] 🔧 HEALTH_CHECK: System running for 6.9 hours
+[2025-08-17 10:48:33] 🔧 HEALTH_CHECK: System running for 19.1 hours
+[2025-08-17 10:48:42] 🔧 HEALTH_CHECK: System running for 19.6 hours
+[2025-08-17T10:50:29.166709] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 10:51:48] 🔧 HEALTH_CHECK: System running for 32.1 hours
+[2025-08-17 10:52:09] 🔧 HEALTH_CHECK: System running for 7.0 hours
+[2025-08-17 10:53:33] 🔧 HEALTH_CHECK: System running for 19.2 hours
+[2025-08-17 10:53:42] 🔧 HEALTH_CHECK: System running for 19.7 hours
+[2025-08-17T10:55:29.185995] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 10:56:48] 🔧 HEALTH_CHECK: System running for 32.2 hours
+[2025-08-17 10:57:09] 🔧 HEALTH_CHECK: System running for 7.1 hours
+[2025-08-17 10:58:33] 🔧 HEALTH_CHECK: System running for 19.3 hours
+[2025-08-17 10:58:42] 🔧 HEALTH_CHECK: System running for 19.8 hours
+[2025-08-17T11:00:29.213483] 🔧 SECURITY_SCAN_COMPLETE: Scanned system - 5 findings
+[2025-08-17T11:00:29.218621] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 11:01:48] 🔧 HEALTH_CHECK: System running for 32.3 hours
+[2025-08-17 11:02:09] 🔧 HEALTH_CHECK: System running for 7.2 hours
+[2025-08-17 11:03:33] 🔧 HEALTH_CHECK: System running for 19.3 hours
+[2025-08-17 11:03:42] 🔧 HEALTH_CHECK: System running for 19.8 hours
+[2025-08-17T11:05:29.236743] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 11:06:48] 🔧 HEALTH_CHECK: System running for 32.3 hours
+[2025-08-17 11:07:09] 🔧 HEALTH_CHECK: System running for 7.3 hours
+[2025-08-17 11:08:33] 🔧 HEALTH_CHECK: System running for 19.4 hours
+[2025-08-17 11:08:42] 🔧 HEALTH_CHECK: System running for 19.9 hours
+[2025-08-17T11:10:29.254067] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 11:11:48] 🔧 HEALTH_CHECK: System running for 32.4 hours
+[2025-08-17 11:12:09] 🔧 HEALTH_CHECK: System running for 7.3 hours
+[2025-08-17 11:13:33] 🔧 HEALTH_CHECK: System running for 19.5 hours
+[2025-08-17 11:13:42] 🔧 HEALTH_CHECK: System running for 20.0 hours
+[2025-08-17T11:15:29.274860] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 11:16:48] 🔧 HEALTH_CHECK: System running for 32.5 hours
+[2025-08-17 11:17:09] 🔧 HEALTH_CHECK: System running for 7.4 hours
+[2025-08-17 11:18:33] 🔧 HEALTH_CHECK: System running for 19.6 hours
+[2025-08-17 11:18:42] 🔧 HEALTH_CHECK: System running for 20.1 hours
+[2025-08-17T11:20:29.287307] 🔧 WATCHDOG_CHECK_ERROR: Working outside of request context.
+
+This typically means that you attempted to use functionality that needed
+an active HTTP request. Consult the documentation on testing for
+information about how to avoid this problem.
+[2025-08-17 11:21:48] 🔧 HEALTH_CHECK: System running for 32.6 hours
+[2025-08-17 11:22:09] 🔧 HEALTH_CHECK: System running for 7.5 hours
+[2025-08-17 11:23:33] 🔧 HEALTH_CHECK: System running for 19.7 hours
+[2025-08-17 11:23:42] 🔧 HEALTH_CHECK: System running for 20.2 hours
+[2025-08-17T11:25:29.298749] 🔧 FILE_CHANGE_DETECTED: File requirements.txt modified
+[2025-08-17T11:25:29.303332] 🔧 FILE_CHANGE_DETECTED: File chat.html modified
+[2025-08-17 11:26:48] 🔧 HEALTH_CHECK: System running for 32.7 hours
+[2025-08-17 11:27:09] 🔧 HEALTH_CHECK: System running for 7.6 hours
+[2025-08-17 11:28:33] 🔧 HEALTH_CHECK: System running for 19.8 hours
+[2025-08-17 11:28:42] 🔧 HEALTH_CHECK: System running for 20.3 hours
+[2025-08-17T11:30:29.312320] 🔧 SECURITY_SCAN_COMPLETE: Scanned system - 5 findings
+[2025-08-17 11:31:48] 🔧 HEALTH_CHECK: System running for 32.8 hours
+[2025-08-17 11:32:09] 🔧 HEALTH_CHECK: System running for 7.7 hours
+[2025-08-17 11:33:33] 🔧 HEALTH_CHECK: System running for 19.8 hours
+[2025-08-17 11:33:42] 🔧 HEALTH_CHECK: System running for 20.3 hours
+[2025-08-17 11:36:48] 🔧 HEALTH_CHECK: System running for 32.8 hours
+[2025-08-17 11:37:09] 🔧 HEALTH_CHECK: System running for 7.8 hours
+[2025-08-17 11:38:33] 🔧 HEALTH_CHECK: System running for 19.9 hours
+[2025-08-17 11:38:42] 🔧 HEALTH_CHECK: System running for 20.4 hours
+[2025-08-17 11:41:48] 🔧 HEALTH_CHECK: System running for 32.9 hours
+[2025-08-17 11:42:09] 🔧 HEALTH_CHECK: System running for 7.8 hours
+[2025-08-17 11:43:33] 🔧 HEALTH_CHECK: System running for 20.0 hours
+[2025-08-17 11:43:42] 🔧 HEALTH_CHECK: System running for 20.5 hours
+[2025-08-17 11:46:48] 🔧 HEALTH_CHECK: System running for 33.0 hours
+[2025-08-17 11:47:09] 🔧 HEALTH_CHECK: System running for 7.9 hours
+[2025-08-17 11:48:33] 🔧 HEALTH_CHECK: System running for 20.1 hours
+[2025-08-17 11:48:42] 🔧 HEALTH_CHECK: System running for 20.6 hours

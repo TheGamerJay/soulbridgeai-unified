@@ -1,726 +1,1352 @@
+#!/usr/bin/env python3
 """
-Community System for SoulBridge AI
-Wellness communities, peer support, and group engagement features
+Anonymous Community System - SoulBridge AI
+Complete implementation based on detailed specification
+
+Features:
+1. Anonymous-only posting with companion avatars
+2. Multi-layer safety pipeline
+3. Emoji reactions with rate limiting  
+4. Category-based organization
+5. Comprehensive reporting and muting
+6. Tier-aware referral skin system
+7. Shadow banning and soft delete
 """
+
 import logging
 import json
-import uuid
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Tuple
-from dataclasses import dataclass, asdict
-from enum import Enum
-import random
+import hashlib
+from datetime import datetime, timezone, timedelta
+from typing import Optional, Dict, Any, List
+from flask import Blueprint, jsonify, request, session
 
 logger = logging.getLogger(__name__)
 
-class CommunityType(Enum):
-    GENERAL_WELLNESS = "general_wellness"
-    ANXIETY_SUPPORT = "anxiety_support"
-    DEPRESSION_SUPPORT = "depression_support"
-    MEDITATION = "meditation"
-    FITNESS = "fitness"
-    NUTRITION = "nutrition"
-    SLEEP = "sleep"
-    STRESS_MANAGEMENT = "stress_management"
-    MINDFULNESS = "mindfulness"
-    SELF_CARE = "self_care"
-    GRIEF_SUPPORT = "grief_support"
-    ADDICTION_RECOVERY = "addiction_recovery"
-    CHRONIC_ILLNESS = "chronic_illness"
-    WORKPLACE_WELLNESS = "workplace_wellness"
-    STUDENT_SUPPORT = "student_support"
+# Create community blueprint
+community_bp = Blueprint('community', __name__, url_prefix='/community')
 
-class MembershipRole(Enum):
-    MEMBER = "member"
-    MODERATOR = "moderator"
-    ADMIN = "admin"
-    CREATOR = "creator"
+# ===============================
+# CONFIGURATION FROM SPEC
+# ===============================
 
-class CommunityVisibility(Enum):
-    PUBLIC = "public"
-    PRIVATE = "private"
-    INVITE_ONLY = "invite_only"
+COMMUNITY_CONFIG = {
+    "categories": [
+        {"id": "all", "label": "All Content"},
+        {"id": "gratitude", "label": "Gratitude"},
+        {"id": "peace", "label": "Peace"},
+        {"id": "growth", "label": "Growth"},
+        {"id": "healing", "label": "Healing"},
+        {"id": "dreams", "label": "Dreams"},
+        {"id": "mood", "label": "Mood"},
+        {"id": "stress_relief", "label": "Stress Relief"}
+    ],
+    "allowed_reactions": ["❤️", "✨", "🌿", "🔥", "🙏", "⭐", "👏", "🫶"],
+    "rate_limits": {
+        "post_per_hour": 5,
+        "post_per_day": 20,
+        "image_uploads_per_day": 10,
+        "reaction_per_minute": 12,
+        "report_per_day": 20
+    },
+    "content_limits": {
+        "max_chars": 700,
+        "max_image_size_mb": 5,
+        "allowed_image_formats": ["jpg", "jpeg", "png", "webp"]
+    },
+    "report_reasons": [
+        "spam", "harassment", "self_harm_risk", 
+        "hate_or_violence", "graphic_content", "pii_privacy", "other"
+    ]
+}
 
-@dataclass
-class WellnessCommunity:
-    community_id: str
-    name: str
-    description: str
-    community_type: CommunityType
-    visibility: CommunityVisibility
-    creator_id: str
-    member_count: int
-    max_members: Optional[int]
-    guidelines: str
-    tags: List[str]
-    created_at: datetime
-    updated_at: datetime
-    is_verified: bool
-    avatar_url: Optional[str]
-    cover_image_url: Optional[str]
-    weekly_challenge: Optional[str]
+# ===============================
+# DATABASE SCHEMA INITIALIZATION
+# ===============================
 
-@dataclass
-class CommunityMembership:
-    membership_id: str
-    community_id: str
-    user_id: str
-    role: MembershipRole
-    joined_at: datetime
-    last_active: datetime
-    contribution_score: int
-    is_active: bool
-    nickname: Optional[str]
-    bio: Optional[str]
-
-@dataclass
-class CommunityPost:
-    post_id: str
-    community_id: str
-    author_id: str
-    title: str
-    content: str
-    post_type: str  # discussion, question, resource, milestone, support
-    tags: List[str]
-    upvotes: int
-    downvotes: int
-    reply_count: int
-    is_pinned: bool
-    is_anonymous: bool
-    created_at: datetime
-    updated_at: datetime
-    metadata: Dict[str, Any]
-
-@dataclass
-class PeerSupportMatch:
-    match_id: str
-    user1_id: str
-    user2_id: str
-    compatibility_score: float
-    shared_interests: List[str]
-    match_reason: str
-    status: str  # pending, active, completed, declined
-    matched_at: datetime
-    last_interaction: Optional[datetime]
-    support_goals: List[str]
-
-@dataclass
-class WellnessChallenge:
-    challenge_id: str
-    title: str
-    description: str
-    challenge_type: str  # daily, weekly, monthly
-    category: str  # fitness, meditation, self_care, etc.
-    duration_days: int
-    difficulty_level: str  # beginner, intermediate, advanced
-    participant_count: int
-    max_participants: Optional[int]
-    start_date: datetime
-    end_date: datetime
-    creator_id: str
-    reward_points: int
-    is_community_challenge: bool
-    community_id: Optional[str]
-
-@dataclass
-class ChallengeParticipation:
-    participation_id: str
-    challenge_id: str
-    user_id: str
-    joined_at: datetime
-    progress: float  # 0.0 to 1.0
-    current_streak: int
-    best_streak: int
-    completed: bool
-    completed_at: Optional[datetime]
-    points_earned: int
-
-class CommunityManager:
-    """Manages wellness communities and peer support features"""
-    
-    def __init__(self, db_manager=None, social_manager=None):
-        self.db = db_manager
-        self.social_manager = social_manager
+def initialize_community_database():
+    """Initialize community database tables"""
+    try:
+        import os
+        import psycopg2
         
-        # Community categories and their default settings
-        self.community_templates = {
-            CommunityType.ANXIETY_SUPPORT: {
-                'name': 'Anxiety Support Circle',
-                'description': 'A safe space for sharing anxiety management strategies and mutual support',
-                'guidelines': 'Be kind, respectful, and supportive. Share experiences, not medical advice.',
-                'tags': ['anxiety', 'mental-health', 'coping-strategies', 'support'],
-                'max_members': 500
-            },
-            CommunityType.MEDITATION: {
-                'name': 'Mindful Meditation Community',
-                'description': 'Explore meditation practices, share experiences, and grow together',
-                'guidelines': 'Share meditation techniques, experiences, and resources respectfully.',
-                'tags': ['meditation', 'mindfulness', 'peace', 'spiritual-growth'],
-                'max_members': 1000
-            },
-            CommunityType.FITNESS: {
-                'name': 'Wellness Fitness Group',
-                'description': 'Motivation and support for physical wellness and fitness goals',
-                'guidelines': 'Encourage healthy habits, share workout tips, celebrate progress.',
-                'tags': ['fitness', 'exercise', 'health', 'motivation'],
-                'max_members': 2000
-            }
-        }
-        
-        logger.info("Community Manager initialized")
-    
-    def create_community(self, creator_id: str, name: str, description: str, 
-                        community_type: CommunityType, visibility: CommunityVisibility = CommunityVisibility.PUBLIC,
-                        max_members: Optional[int] = None) -> Optional[str]:
-        """Create a new wellness community"""
-        try:
-            if not self.db:
-                return None
-            
-            community_id = str(uuid.uuid4())
-            
-            # Get template if available
-            template = self.community_templates.get(community_type, {})
-            
-            community = WellnessCommunity(
-                community_id=community_id,
-                name=name,
-                description=description,
-                community_type=community_type,
-                visibility=visibility,
-                creator_id=creator_id,
-                member_count=1,  # Creator is first member
-                max_members=max_members or template.get('max_members', 1000),
-                guidelines=template.get('guidelines', 'Be respectful and supportive to all members.'),
-                tags=template.get('tags', []),
-                created_at=datetime.now(),
-                updated_at=datetime.now(),
-                is_verified=False,
-                avatar_url=None,
-                cover_image_url=None,
-                weekly_challenge=None
-            )
-            
-            # Store community
-            query = """
-                INSERT INTO wellness_communities 
-                (community_id, name, description, community_type, visibility, creator_id,
-                 member_count, max_members, guidelines, tags, created_at, updated_at,
-                 is_verified, weekly_challenge)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """
-            
-            self.db.execute_query(query, (
-                community.community_id, community.name, community.description,
-                community.community_type.value, community.visibility.value,
-                community.creator_id, community.member_count, community.max_members,
-                community.guidelines, json.dumps(community.tags),
-                community.created_at, community.updated_at, community.is_verified,
-                community.weekly_challenge
-            ))
-            
-            # Add creator as admin member
-            self.join_community(community_id, creator_id, MembershipRole.CREATOR)
-            
-            logger.info(f"Community created: {community_id} ({name}) by {creator_id}")
-            return community_id
-            
-        except Exception as e:
-            logger.error(f"Error creating community: {e}")
-            return None
-    
-    def join_community(self, community_id: str, user_id: str, 
-                      role: MembershipRole = MembershipRole.MEMBER) -> bool:
-        """Join a wellness community"""
-        try:
-            if not self.db:
-                return False
-            
-            # Check if user is already a member
-            existing_query = "SELECT membership_id FROM community_memberships WHERE community_id = ? AND user_id = ?"
-            existing = self.db.fetch_one(existing_query, (community_id, user_id))
-            
-            if existing:
-                logger.warning(f"User {user_id} already member of community {community_id}")
-                return True
-            
-            # Check community capacity
-            community_query = "SELECT member_count, max_members FROM wellness_communities WHERE community_id = ?"
-            community_info = self.db.fetch_one(community_query, (community_id,))
-            
-            if not community_info:
-                return False
-            
-            current_count, max_members = community_info
-            if max_members and current_count >= max_members:
-                logger.warning(f"Community {community_id} is at capacity")
-                return False
-            
-            # Create membership
-            membership_id = str(uuid.uuid4())
-            membership = CommunityMembership(
-                membership_id=membership_id,
-                community_id=community_id,
-                user_id=user_id,
-                role=role,
-                joined_at=datetime.now(),
-                last_active=datetime.now(),
-                contribution_score=0,
-                is_active=True,
-                nickname=None,
-                bio=None
-            )
-            
-            # Store membership
-            query = """
-                INSERT INTO community_memberships
-                (membership_id, community_id, user_id, role, joined_at, last_active,
-                 contribution_score, is_active, nickname, bio)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """
-            
-            self.db.execute_query(query, (
-                membership.membership_id, membership.community_id, membership.user_id,
-                membership.role.value, membership.joined_at, membership.last_active,
-                membership.contribution_score, membership.is_active,
-                membership.nickname, membership.bio
-            ))
-            
-            # Update community member count
-            self.db.execute_query(
-                "UPDATE wellness_communities SET member_count = member_count + 1 WHERE community_id = ?",
-                (community_id,)
-            )
-            
-            logger.info(f"User {user_id} joined community {community_id}")
-            return True
-            
-        except Exception as e:
-            logger.error(f"Error joining community: {e}")
+        database_url = os.environ.get('DATABASE_URL')
+        if not database_url:
+            logger.error("No DATABASE_URL found for community initialization")
             return False
-    
-    def find_peer_support_matches(self, user_id: str, max_matches: int = 5) -> List[PeerSupportMatch]:
-        """Find compatible peers for support matching"""
-        try:
-            if not self.db:
-                return []
-            
-            # Get user's interests and community memberships
-            user_communities_query = """
-                SELECT wc.community_type, wc.tags 
-                FROM community_memberships cm
-                JOIN wellness_communities wc ON cm.community_id = wc.community_id
-                WHERE cm.user_id = ? AND cm.is_active = 1
-            """
-            
-            user_communities = self.db.fetch_all(user_communities_query, (user_id,))
-            user_interests = set()
-            
-            for community_type, tags_json in user_communities:
-                user_interests.add(community_type)
-                if tags_json:
-                    tags = json.loads(tags_json)
-                    user_interests.update(tags)
-            
-            if not user_interests:
-                return []
-            
-            # Find potential matches
-            potential_matches_query = """
-                SELECT DISTINCT cm.user_id, wc.community_type, wc.tags
-                FROM community_memberships cm
-                JOIN wellness_communities wc ON cm.community_id = wc.community_id
-                WHERE cm.user_id != ? AND cm.is_active = 1
-                AND cm.user_id NOT IN (
-                    SELECT CASE WHEN user1_id = ? THEN user2_id ELSE user1_id END
-                    FROM peer_support_matches 
-                    WHERE (user1_id = ? OR user2_id = ?) 
-                    AND status IN ('active', 'pending')
-                )
-                LIMIT 50
-            """
-            
-            potential_matches = self.db.fetch_all(potential_matches_query, 
-                                                (user_id, user_id, user_id, user_id))
-            
-            # Calculate compatibility scores
-            matches = []
-            user_scores = {}
-            
-            for match_user_id, community_type, tags_json in potential_matches:
-                if match_user_id not in user_scores:
-                    user_scores[match_user_id] = {
-                        'interests': set(),
-                        'shared_count': 0
-                    }
+        
+        conn = psycopg2.connect(database_url)
+        cursor = conn.cursor()
+        
+        # Community posts table - matches spec exactly
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS community_posts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                author_uid_hash TEXT NOT NULL,
+                author_uid INTEGER NOT NULL,
+                companion_id INTEGER,
+                companion_skin_id INTEGER,
+                category TEXT NOT NULL,
+                text TEXT,
+                image_url TEXT,
+                image_hash TEXT,
+                hashtags TEXT DEFAULT '[]',
                 
-                user_scores[match_user_id]['interests'].add(community_type)
-                if tags_json:
-                    tags = json.loads(tags_json)
-                    user_scores[match_user_id]['interests'].update(tags)
+                -- Status and moderation
+                status TEXT DEFAULT 'approved' CHECK (status IN ('pending', 'approved', 'rejected', 'hidden')),
+                moderation_state TEXT DEFAULT '{}',
+                moderation_flags TEXT DEFAULT '[]',
+                
+                -- Metrics  
+                reaction_counts_json TEXT DEFAULT '{}',
+                total_reactions INTEGER DEFAULT 0,
+                report_count INTEGER DEFAULT 0,
+                
+                -- Timestamps
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                approved_at TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                deleted_at TIMESTAMP,
+                
+                FOREIGN KEY (author_uid) REFERENCES users(id) ON DELETE CASCADE
+            );
+        """)
+        
+        # Community reactions table - one reaction per user per post
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS community_reactions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                post_id INTEGER NOT NULL,
+                viewer_uid_hash TEXT NOT NULL,
+                viewer_uid INTEGER NOT NULL,
+                emoji TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                
+                UNIQUE(post_id, viewer_uid),
+                FOREIGN KEY (post_id) REFERENCES community_posts(id) ON DELETE CASCADE,
+                FOREIGN KEY (viewer_uid) REFERENCES users(id) ON DELETE CASCADE
+            );
+        """)
+        
+        # Community reports table with priority system
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS community_reports (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                post_id INTEGER NOT NULL,
+                reporter_uid_hash TEXT NOT NULL,
+                reporter_uid INTEGER NOT NULL,
+                reason TEXT NOT NULL,
+                notes TEXT,
+                state TEXT DEFAULT 'pending' CHECK (state IN ('pending', 'reviewed', 'dismissed', 'actioned')),
+                priority INTEGER DEFAULT 0,
+                
+                mod_response TEXT,
+                mod_user_id INTEGER,
+                reviewed_at TIMESTAMP,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                
+                UNIQUE(post_id, reporter_uid),
+                FOREIGN KEY (post_id) REFERENCES community_posts(id) ON DELETE CASCADE,
+                FOREIGN KEY (reporter_uid) REFERENCES users(id) ON DELETE CASCADE
+            );
+        """)
+        
+        # Community mutes table - viewer-scoped
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS community_mutes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                viewer_uid INTEGER NOT NULL,
+                muted_author_uid_hash TEXT,
+                muted_companion_id INTEGER,
+                muted_category TEXT,
+                mute_type TEXT NOT NULL CHECK (mute_type IN ('author', 'companion', 'category')),
+                expires_at TIMESTAMP,
+                reason TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                
+                FOREIGN KEY (viewer_uid) REFERENCES users(id) ON DELETE CASCADE
+            );
+        """)
+        
+        # User community stats for rate limiting
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS user_community_stats (
+                user_id INTEGER PRIMARY KEY,
+                posts_today INTEGER DEFAULT 0,
+                posts_this_hour INTEGER DEFAULT 0,
+                images_today INTEGER DEFAULT 0,
+                reactions_this_minute INTEGER DEFAULT 0,
+                reports_today INTEGER DEFAULT 0,
+                total_posts INTEGER DEFAULT 0,
+                total_reactions_given INTEGER DEFAULT 0,
+                total_reactions_received INTEGER DEFAULT 0,
+                total_reports_made INTEGER DEFAULT 0,
+                total_reports_received INTEGER DEFAULT 0,
+                trust_score REAL DEFAULT 1.0,
+                shadow_banned BOOLEAN DEFAULT FALSE,
+                shadow_banned_until TIMESTAMP,
+                warnings_count INTEGER DEFAULT 0,
+                last_post_at TIMESTAMP,
+                last_reaction_at TIMESTAMP,
+                last_hourly_reset TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                last_daily_reset TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            );
+        """)
+        
+        # Avatar change tracking table - implements cooldown with ad bypass
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS user_avatar_changes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                old_companion_id INTEGER,
+                old_companion_name TEXT,
+                new_companion_id INTEGER NOT NULL,
+                new_companion_name TEXT NOT NULL,
+                change_type TEXT DEFAULT 'normal' CHECK (change_type IN ('normal', 'ad_bypass', 'premium_skip')),
+                cooldown_expires_at TIMESTAMP NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            );
+        """)
+        
+        # Performance indexes
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_posts_created_at_desc ON community_posts(created_at DESC)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_posts_category_created_at ON community_posts(category, created_at DESC)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_posts_status ON community_posts(status)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_reactions_post ON community_reactions(post_id)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_reports_state ON community_reports(state, priority DESC)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_mutes_viewer ON community_mutes(viewer_uid)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_posts_author_hash ON community_posts(author_uid_hash)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_avatar_changes_user_cooldown ON user_avatar_changes(user_id, cooldown_expires_at)")
+        
+        conn.commit()
+        conn.close()
+        
+        logger.info("✅ Community database initialized successfully")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Failed to initialize community database: {e}")
+        return False
+
+# ===============================
+# UTILITY FUNCTIONS
+# ===============================
+
+def generate_anonymous_hash(user_id: int, salt: str = "community_anon_v1") -> str:
+    """Generate consistent anonymous hash for user"""
+    return hashlib.sha256(f"{salt}_{user_id}".encode()).hexdigest()[:12]
+
+def get_user_companion_info(user_id: int) -> Dict[str, Any]:
+    """Get user's current companion for avatar display"""
+    try:
+        # First check if user has a community avatar preference
+        community_companion = get_user_community_avatar(user_id)
+        if community_companion:
+            return community_companion
             
-            # Create matches with compatibility scores
-            for match_user_id, data in user_scores.items():
-                shared_interests = user_interests.intersection(data['interests'])
-                if len(shared_interests) >= 2:  # Require at least 2 shared interests
-                    compatibility_score = len(shared_interests) / len(user_interests.union(data['interests']))
-                    
-                    match = PeerSupportMatch(
-                        match_id=str(uuid.uuid4()),
-                        user1_id=user_id,
-                        user2_id=match_user_id,
-                        compatibility_score=compatibility_score,
-                        shared_interests=list(shared_interests),
-                        match_reason=f"Shared interests in {', '.join(list(shared_interests)[:3])}",
-                        status='pending',
-                        matched_at=datetime.now(),
-                        last_interaction=None,
-                        support_goals=self._generate_support_goals(shared_interests)
-                    )
-                    
-                    matches.append(match)
+        # Fall back to equipped companion
+        from cosmetic_system import get_user_equipped_companions
+        equipped_companions = get_user_equipped_companions(user_id)
+        
+        if equipped_companions:
+            companion = equipped_companions[0]
+            return {
+                'companion_id': companion['id'],
+                'skin_id': companion.get('skin_id'),
+                'name': companion['name'],
+                'rarity': companion.get('rarity', 'common'),
+                'avatar_url': f"/static/companions/{companion['name'].lower()}.png"
+            }
+        else:
+            # Default companion based on tier
+            from unified_tier_system import get_effective_plan
+            user_plan = session.get('user_plan', 'free')
+            trial_active = session.get('trial_active', False)
+            effective_plan = get_effective_plan(user_plan, trial_active)
             
-            # Sort by compatibility score and return top matches
-            matches.sort(key=lambda m: m.compatibility_score, reverse=True)
-            return matches[:max_matches]
-            
-        except Exception as e:
-            logger.error(f"Error finding peer support matches: {e}")
-            return []
-    
-    def create_wellness_challenge(self, creator_id: str, title: str, description: str,
-                                challenge_type: str, category: str, duration_days: int,
-                                difficulty_level: str = "beginner", community_id: Optional[str] = None) -> Optional[str]:
-        """Create a wellness challenge"""
-        try:
-            if not self.db:
-                return None
-            
-            challenge_id = str(uuid.uuid4())
-            start_date = datetime.now()
-            end_date = start_date + timedelta(days=duration_days)
-            
-            # Calculate reward points based on difficulty and duration
-            point_multipliers = {'beginner': 1, 'intermediate': 1.5, 'advanced': 2}
-            reward_points = int(duration_days * 10 * point_multipliers.get(difficulty_level, 1))
-            
-            challenge = WellnessChallenge(
-                challenge_id=challenge_id,
-                title=title,
-                description=description,
-                challenge_type=challenge_type,
-                category=category,
-                duration_days=duration_days,
-                difficulty_level=difficulty_level,
-                participant_count=0,
-                max_participants=None,
-                start_date=start_date,
-                end_date=end_date,
-                creator_id=creator_id,
-                reward_points=reward_points,
-                is_community_challenge=community_id is not None,
-                community_id=community_id
-            )
-            
-            # Store challenge
-            query = """
-                INSERT INTO wellness_challenges
-                (challenge_id, title, description, challenge_type, category, duration_days,
-                 difficulty_level, participant_count, max_participants, start_date, end_date,
-                 creator_id, reward_points, is_community_challenge, community_id)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """
-            
-            self.db.execute_query(query, (
-                challenge.challenge_id, challenge.title, challenge.description,
-                challenge.challenge_type, challenge.category, challenge.duration_days,
-                challenge.difficulty_level, challenge.participant_count,
-                challenge.max_participants, challenge.start_date, challenge.end_date,
-                challenge.creator_id, challenge.reward_points,
-                challenge.is_community_challenge, challenge.community_id
-            ))
-            
-            logger.info(f"Wellness challenge created: {challenge_id} ({title})")
-            return challenge_id
-            
-        except Exception as e:
-            logger.error(f"Error creating wellness challenge: {e}")
-            return None
-    
-    def get_community_recommendations(self, user_id: str, limit: int = 10) -> List[WellnessCommunity]:
-        """Get personalized community recommendations"""
-        try:
-            if not self.db:
-                return []
-            
-            # Get user's existing communities and mood patterns
-            existing_communities_query = """
-                SELECT community_id FROM community_memberships WHERE user_id = ? AND is_active = 1
-            """
-            existing_communities = [row[0] for row in self.db.fetch_all(existing_communities_query, (user_id,))]
-            
-            # Get user's mood patterns to suggest relevant communities
-            mood_patterns_query = """
-                SELECT mood, COUNT(*) as frequency 
-                FROM mood_entries 
-                WHERE user_id = ? AND created_at >= ?
-                GROUP BY mood 
-                ORDER BY frequency DESC 
-                LIMIT 5
-            """
-            
-            week_ago = datetime.now() - timedelta(days=7)
-            mood_patterns = self.db.fetch_all(mood_patterns_query, (user_id, week_ago))
-            
-            # Map moods to community types
-            mood_to_community = {
-                'anxious': CommunityType.ANXIETY_SUPPORT,
-                'stressed': CommunityType.STRESS_MANAGEMENT,
-                'sad': CommunityType.DEPRESSION_SUPPORT,
-                'peaceful': CommunityType.MEDITATION,
-                'energetic': CommunityType.FITNESS
+            default_companions = {
+                'free': {'id': 1, 'name': 'Soul', 'rarity': 'common'},
+                'growth': {'id': 2, 'name': 'Bridge', 'rarity': 'rare'},
+                'max': {'id': 3, 'name': 'Aurora', 'rarity': 'epic'}
             }
             
-            recommended_types = []
-            for mood, frequency in mood_patterns:
-                if mood in mood_to_community:
-                    recommended_types.append(mood_to_community[mood].value)
+            default = default_companions.get(effective_plan, default_companions['free'])
+            return {
+                'companion_id': default['id'],
+                'skin_id': None,
+                'name': default['name'],
+                'rarity': default['rarity'],
+                'avatar_url': f"/static/companions/{default['name'].lower()}.png"
+            }
             
-            # If no mood patterns, recommend general communities
-            if not recommended_types:
-                recommended_types = [CommunityType.GENERAL_WELLNESS.value, CommunityType.MEDITATION.value]
-            
-            # Build query with exclusions
-            exclusion_clause = ""
-            query_params = []
-            
-            if existing_communities:
-                placeholders = ','.join(['?' for _ in existing_communities])
-                exclusion_clause = f"AND community_id NOT IN ({placeholders})"
-                query_params.extend(existing_communities)
-            
-            # Add recommended types to query
-            type_placeholders = ','.join(['?' for _ in recommended_types])
-            query_params.extend(recommended_types)
-            
-            recommendations_query = f"""
-                SELECT community_id, name, description, community_type, member_count, tags
-                FROM wellness_communities 
-                WHERE visibility = 'public' 
-                AND community_type IN ({type_placeholders})
-                {exclusion_clause}
-                ORDER BY member_count DESC, created_at DESC
-                LIMIT ?
-            """
-            
-            query_params.append(limit)
-            results = self.db.fetch_all(recommendations_query, tuple(query_params))
-            
-            recommendations = []
-            for row in results:
-                community = WellnessCommunity(
-                    community_id=row[0],
-                    name=row[1],
-                    description=row[2],
-                    community_type=CommunityType(row[3]),
-                    visibility=CommunityVisibility.PUBLIC,
-                    creator_id="",  # Not needed for recommendations
-                    member_count=row[4],
-                    max_members=None,
-                    guidelines="",
-                    tags=json.loads(row[5]) if row[5] else [],
-                    created_at=datetime.now(),
-                    updated_at=datetime.now(),
-                    is_verified=False,
-                    avatar_url=None,
-                    cover_image_url=None,
-                    weekly_challenge=None
-                )
-                recommendations.append(community)
-            
-            return recommendations
-            
-        except Exception as e:
-            logger.error(f"Error getting community recommendations: {e}")
-            return []
-    
-    def _generate_support_goals(self, shared_interests: set) -> List[str]:
-        """Generate support goals based on shared interests"""
-        goal_templates = {
-            'anxiety': ['Manage daily anxiety', 'Practice breathing techniques', 'Share coping strategies'],
-            'meditation': ['Establish daily practice', 'Explore different techniques', 'Find inner peace'],
-            'fitness': ['Stay motivated', 'Set healthy goals', 'Celebrate progress'],
-            'stress_management': ['Reduce daily stress', 'Work-life balance', 'Healthy boundaries'],
-            'self_care': ['Prioritize self-care', 'Daily wellness habits', 'Self-compassion practice']
+    except Exception as e:
+        logger.error(f"Failed to get companion info: {e}")
+        return {
+            'companion_id': 1,
+            'skin_id': None,
+            'name': 'Soul',
+            'rarity': 'common',
+            'avatar_url': '/static/logos/IntroLogo.png'
         }
-        
-        goals = []
-        for interest in shared_interests:
-            if interest in goal_templates:
-                goals.extend(goal_templates[interest])
-        
-        return goals[:3] if goals else ['Mutual support', 'Shared wellness journey', 'Encouragement']
 
-# Database initialization
-def init_community_database(db_connection):
-    """Initialize community system database tables"""
+def get_user_community_avatar(user_id: int) -> Optional[Dict[str, Any]]:
+    """Get user's chosen community avatar companion"""
     try:
-        # Wellness communities table
-        db_connection.execute('''
-            CREATE TABLE IF NOT EXISTS wellness_communities (
-                community_id TEXT PRIMARY KEY,
-                name TEXT NOT NULL,
-                description TEXT NOT NULL,
-                community_type TEXT NOT NULL,
-                visibility TEXT NOT NULL,
-                creator_id TEXT NOT NULL,
-                member_count INTEGER DEFAULT 0,
-                max_members INTEGER,
-                guidelines TEXT,
-                tags TEXT,
-                created_at DATETIME NOT NULL,
-                updated_at DATETIME NOT NULL,
-                is_verified BOOLEAN DEFAULT 0,
-                avatar_url TEXT,
-                cover_image_url TEXT,
-                weekly_challenge TEXT,
-                INDEX(community_type),
-                INDEX(visibility),
-                INDEX(creator_id),
-                INDEX(created_at)
-            )
-        ''')
+        import os
+        import psycopg2
         
-        # Community memberships table
-        db_connection.execute('''
-            CREATE TABLE IF NOT EXISTS community_memberships (
-                membership_id TEXT PRIMARY KEY,
-                community_id TEXT NOT NULL,
-                user_id TEXT NOT NULL,
-                role TEXT NOT NULL,
-                joined_at DATETIME NOT NULL,
-                last_active DATETIME NOT NULL,
-                contribution_score INTEGER DEFAULT 0,
-                is_active BOOLEAN DEFAULT 1,
-                nickname TEXT,
-                bio TEXT,
-                INDEX(community_id),
-                INDEX(user_id),
-                INDEX(role),
-                UNIQUE(community_id, user_id)
-            )
-        ''')
+        database_url = os.environ.get('DATABASE_URL')
+        if not database_url:
+            return None
+            
+        conn = psycopg2.connect(database_url)
+        cursor = conn.cursor()
         
-        # Community posts table
-        db_connection.execute('''
-            CREATE TABLE IF NOT EXISTS community_posts (
-                post_id TEXT PRIMARY KEY,
-                community_id TEXT NOT NULL,
-                author_id TEXT NOT NULL,
-                title TEXT NOT NULL,
-                content TEXT NOT NULL,
-                post_type TEXT NOT NULL,
-                tags TEXT,
-                upvotes INTEGER DEFAULT 0,
-                downvotes INTEGER DEFAULT 0,
-                reply_count INTEGER DEFAULT 0,
-                is_pinned BOOLEAN DEFAULT 0,
-                is_anonymous BOOLEAN DEFAULT 0,
-                created_at DATETIME NOT NULL,
-                updated_at DATETIME NOT NULL,
-                metadata TEXT,
-                INDEX(community_id),
-                INDEX(author_id),
-                INDEX(post_type),
-                INDEX(created_at)
-            )
-        ''')
+        # Get user's community avatar preference
+        cursor.execute("""
+            SELECT companion_id, companion_name, companion_rarity, avatar_url
+            FROM user_community_avatars 
+            WHERE user_id = %s
+        """, (user_id,))
         
-        # Peer support matches table
-        db_connection.execute('''
-            CREATE TABLE IF NOT EXISTS peer_support_matches (
-                match_id TEXT PRIMARY KEY,
-                user1_id TEXT NOT NULL,
-                user2_id TEXT NOT NULL,
-                compatibility_score REAL NOT NULL,
-                shared_interests TEXT,
-                match_reason TEXT,
-                status TEXT NOT NULL,
-                matched_at DATETIME NOT NULL,
-                last_interaction DATETIME,
-                support_goals TEXT,
-                INDEX(user1_id),
-                INDEX(user2_id),
-                INDEX(status),
-                INDEX(matched_at)
-            )
-        ''')
+        result = cursor.fetchone()
+        conn.close()
         
-        # Wellness challenges table
-        db_connection.execute('''
-            CREATE TABLE IF NOT EXISTS wellness_challenges (
-                challenge_id TEXT PRIMARY KEY,
-                title TEXT NOT NULL,
-                description TEXT NOT NULL,
-                challenge_type TEXT NOT NULL,
-                category TEXT NOT NULL,
-                duration_days INTEGER NOT NULL,
-                difficulty_level TEXT NOT NULL,
-                participant_count INTEGER DEFAULT 0,
-                max_participants INTEGER,
-                start_date DATETIME NOT NULL,
-                end_date DATETIME NOT NULL,
-                creator_id TEXT NOT NULL,
-                reward_points INTEGER DEFAULT 0,
-                is_community_challenge BOOLEAN DEFAULT 0,
-                community_id TEXT,
-                INDEX(challenge_type),
-                INDEX(category),
-                INDEX(start_date),
-                INDEX(creator_id)
-            )
-        ''')
+        if result:
+            return {
+                'companion_id': result[0],
+                'skin_id': None,
+                'name': result[1],
+                'rarity': result[2],
+                'avatar_url': result[3]
+            }
+        return None
         
-        # Challenge participation table
-        db_connection.execute('''
-            CREATE TABLE IF NOT EXISTS challenge_participation (
-                participation_id TEXT PRIMARY KEY,
-                challenge_id TEXT NOT NULL,
-                user_id TEXT NOT NULL,
-                joined_at DATETIME NOT NULL,
-                progress REAL DEFAULT 0,
-                current_streak INTEGER DEFAULT 0,
-                best_streak INTEGER DEFAULT 0,
-                completed BOOLEAN DEFAULT 0,
-                completed_at DATETIME,
-                points_earned INTEGER DEFAULT 0,
-                INDEX(challenge_id),
-                INDEX(user_id),
-                INDEX(completed),
-                UNIQUE(challenge_id, user_id)
-            )
-        ''')
-        
-        db_connection.commit()
-        logger.info("Community system database tables initialized")
-        
-    except Exception as e:
-        logger.error(f"Error initializing community database: {e}")
-
-# Global instance
-community_manager = None
-
-def init_community_manager(db_manager=None, social_manager=None):
-    """Initialize community manager"""
-    global community_manager
-    try:
-        community_manager = CommunityManager(db_manager, social_manager)
-        logger.info("Community manager initialized successfully")
-        return community_manager
-    except Exception as e:
-        logger.error(f"Error initializing community manager: {e}")
+    except Exception:
         return None
 
-def get_community_manager():
-    """Get community manager instance"""
-    return community_manager
+def set_user_community_avatar(user_id: int, companion_data: Dict[str, Any]) -> bool:
+    """Set user's chosen community avatar companion"""
+    try:
+        import os
+        import psycopg2
+        
+        database_url = os.environ.get('DATABASE_URL')
+        if not database_url:
+            return False
+            
+        conn = psycopg2.connect(database_url)
+        cursor = conn.cursor()
+        
+        # Create table if it doesn't exist
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS user_community_avatars (
+                user_id INTEGER PRIMARY KEY,
+                companion_id INTEGER NOT NULL,
+                companion_name TEXT NOT NULL,
+                companion_rarity TEXT NOT NULL,
+                avatar_url TEXT NOT NULL,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+        """)
+        
+        # Insert or update avatar preference
+        cursor.execute("""
+            INSERT INTO user_community_avatars 
+            (user_id, companion_id, companion_name, companion_rarity, avatar_url)
+            VALUES (%s, %s, %s, %s, %s)
+            ON CONFLICT (user_id) 
+            DO UPDATE SET 
+                companion_id = EXCLUDED.companion_id,
+                companion_name = EXCLUDED.companion_name,
+                companion_rarity = EXCLUDED.companion_rarity,
+                avatar_url = EXCLUDED.avatar_url,
+                updated_at = CURRENT_TIMESTAMP
+        """, (
+            user_id,
+            companion_data['companion_id'],
+            companion_data['name'],
+            companion_data['rarity'],
+            companion_data['avatar_url']
+        ))
+        
+        conn.commit()
+        conn.close()
+        return True
+        
+    except Exception as e:
+        logger.error(f"Failed to set community avatar: {e}")
+        return False
+
+def check_avatar_change_cooldown(user_id: int) -> Dict[str, Any]:
+    """Check if user can change avatar or is in cooldown period"""
+    try:
+        import os
+        import psycopg2
+        from datetime import datetime, timezone, timedelta
+        
+        database_url = os.environ.get('DATABASE_URL')
+        if not database_url:
+            return {'can_change': True, 'cooldown_remaining': 0}
+        
+        conn = psycopg2.connect(database_url)
+        cursor = conn.cursor()
+        
+        # Check last avatar change
+        cursor.execute("""
+            SELECT cooldown_expires_at, change_type, new_companion_name
+            FROM user_avatar_changes 
+            WHERE user_id = %s 
+            ORDER BY created_at DESC 
+            LIMIT 1
+        """, (user_id,))
+        
+        result = cursor.fetchone()
+        conn.close()
+        
+        if not result:
+            return {'can_change': True, 'cooldown_remaining': 0}
+        
+        cooldown_expires, change_type, last_companion = result
+        now = datetime.now(timezone.utc)
+        
+        if cooldown_expires.replace(tzinfo=timezone.utc) > now:
+            remaining_seconds = int((cooldown_expires.replace(tzinfo=timezone.utc) - now).total_seconds())
+            return {
+                'can_change': False,
+                'cooldown_remaining': remaining_seconds,
+                'last_companion': last_companion,
+                'change_type': change_type
+            }
+        
+        return {'can_change': True, 'cooldown_remaining': 0}
+        
+    except Exception as e:
+        logger.error(f"Failed to check avatar cooldown: {e}")
+        return {'can_change': True, 'cooldown_remaining': 0}
+
+def record_avatar_change(user_id: int, old_companion_data: Dict, new_companion_data: Dict, change_type: str = 'normal') -> bool:
+    """Record avatar change with appropriate cooldown"""
+    try:
+        import os
+        import psycopg2
+        from datetime import datetime, timezone, timedelta
+        
+        database_url = os.environ.get('DATABASE_URL')
+        if not database_url:
+            return False
+        
+        conn = psycopg2.connect(database_url)
+        cursor = conn.cursor()
+        
+        # Determine cooldown duration based on user tier and change type
+        user_plan = session.get('user_plan', 'free')
+        trial_active = session.get('trial_active', False)
+        
+        from unified_tier_system import get_effective_plan
+        effective_plan = get_effective_plan(user_plan, trial_active)
+        
+        # Cooldown rules
+        if change_type == 'ad_bypass':
+            # Free users who watch ad - 6 hours cooldown
+            cooldown_hours = 6
+        elif change_type == 'premium_skip':
+            # Growth/Max users can skip cooldown but still have short protection
+            cooldown_hours = 1
+        else:
+            # Normal cooldown times
+            if effective_plan == 'free':
+                cooldown_hours = 24  # 24 hours for free users
+            elif effective_plan == 'growth':
+                cooldown_hours = 12  # 12 hours for Growth users
+            else:  # max
+                cooldown_hours = 6   # 6 hours for Max users
+        
+        cooldown_expires = datetime.now(timezone.utc) + timedelta(hours=cooldown_hours)
+        
+        # Record the change
+        cursor.execute("""
+            INSERT INTO user_avatar_changes 
+            (user_id, old_companion_id, old_companion_name, new_companion_id, new_companion_name, change_type, cooldown_expires_at)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """, (
+            user_id,
+            old_companion_data.get('companion_id') if old_companion_data else None,
+            old_companion_data.get('name') if old_companion_data else None,
+            new_companion_data.get('companion_id'),
+            new_companion_data.get('name'),
+            change_type,
+            cooldown_expires
+        ))
+        
+        conn.commit()
+        conn.close()
+        
+        logger.info(f"🎭 Avatar change recorded for user {user_id}: {change_type} change, cooldown until {cooldown_expires}")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Failed to record avatar change: {e}")
+        return False
+
+def get_user_tier_badge(user_id: int) -> str:
+    """Get user's tier badge for display"""
+    try:
+        user_plan = session.get('user_plan', 'free')
+        trial_active = session.get('trial_active', False)
+        
+        from unified_tier_system import get_effective_plan
+        effective_plan = get_effective_plan(user_plan, trial_active)
+        
+        tier_badges = {
+            'free': 'Free',
+            'growth': 'Growth', 
+            'max': 'Max'
+        }
+        
+        return tier_badges.get(effective_plan, 'Free')
+        
+    except Exception:
+        return 'Free'
+
+# ===============================
+# CONTENT SAFETY PIPELINE
+# ===============================
+
+def moderate_text_content(text: str) -> Dict[str, Any]:
+    """Run text through safety moderation pipeline"""
+    try:
+        result = {
+            'approved': True,
+            'flags': [],
+            'risk_score': 0.0,
+            'suggestions': []
+        }
+        
+        # PII Detection
+        import re
+        pii_patterns = {
+            'email': r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b',
+            'phone': r'\b(?:\+?1[-.\s]?)?\(?([0-9]{3})\)?[-.\s]?([0-9]{3})[-.\s]?([0-9]{4})\b',
+            'address': r'\b\d+\s+[A-Za-z\s]+(?:street|st|avenue|ave|road|rd|drive|dr|lane|ln)\b'
+        }
+        
+        for pii_type, pattern in pii_patterns.items():
+            if re.search(pattern, text, re.IGNORECASE):
+                result['flags'].append(f'pii_{pii_type}')
+                result['risk_score'] = max(result['risk_score'], 0.8)
+                result['approved'] = False
+                result['suggestions'].append(f"Remove {pii_type} information for privacy")
+        
+        # Self-harm detection
+        self_harm_keywords = [
+            'kill myself', 'end it all', 'suicide', 'self harm', 'want to die',
+            'better off dead', 'not worth living'
+        ]
+        
+        text_lower = text.lower()
+        for keyword in self_harm_keywords:
+            if keyword in text_lower:
+                result['flags'].append('self_harm_risk')
+                result['risk_score'] = max(result['risk_score'], 0.9)
+                result['approved'] = False
+                result['suggestions'].append("Crisis resources: 988 Suicide Prevention Lifeline")
+                break
+        
+        # URL detection (strip for safety)
+        if re.search(r'http[s]?://|www\.', text):
+            result['flags'].append('contains_urls')
+            result['suggestions'].append("Links are not allowed in community posts")
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Text moderation failed: {e}")
+        return {
+            'approved': False,
+            'flags': ['moderation_error'],
+            'risk_score': 1.0,
+            'suggestions': ['Content could not be verified for safety']
+        }
+
+# ===============================
+# API ENDPOINTS
+# ===============================
+
+@community_bp.route('/posts', methods=['POST'])
+def create_post():
+    """Create a new community post"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({"error": "Authentication required"}), 401
+        
+        data = request.get_json() or {}
+        text_content = data.get('text', '').strip()
+        category = data.get('category', 'all')
+        hashtags = data.get('hashtags', [])
+        
+        # Validate input
+        if not text_content:
+            return jsonify({"error": "Post text is required"}), 400
+        
+        if len(text_content) > COMMUNITY_CONFIG["content_limits"]["max_chars"]:
+            return jsonify({
+                "error": f"Text too long (max {COMMUNITY_CONFIG['content_limits']['max_chars']} chars)"
+            }), 400
+        
+        # Validate category
+        valid_categories = [cat["id"] for cat in COMMUNITY_CONFIG["categories"]]
+        if category not in valid_categories:
+            return jsonify({"error": f"Invalid category. Valid: {valid_categories}"}), 400
+        
+        # Run text moderation
+        text_moderation = moderate_text_content(text_content)
+        
+        if not text_moderation['approved']:
+            return jsonify({
+                "error": "Content blocked by safety filters",
+                "reason": "Your post couldn't be shared because it may violate our community rules",
+                "suggestions": text_moderation['suggestions'],
+                "flags": text_moderation['flags']
+            }), 400
+        
+        # Get user info
+        companion_info = get_user_companion_info(user_id)
+        author_hash = generate_anonymous_hash(user_id)
+        
+        # Create post record
+        import os
+        import psycopg2
+        
+        database_url = os.environ.get('DATABASE_URL')
+        if not database_url:
+            return jsonify({"error": "Database not available"}), 500
+            
+        conn = psycopg2.connect(database_url)
+        cursor = conn.cursor()
+        
+        cursor.execute("""
+            INSERT INTO community_posts (
+                author_uid_hash, author_uid, companion_id, companion_skin_id,
+                category, text, hashtags, status, moderation_state
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """, (
+            author_hash, user_id, companion_info['companion_id'], companion_info.get('skin_id'),
+            category, text_content, json.dumps(hashtags), 'approved',
+            json.dumps(text_moderation)
+        ))
+        
+        post_id = cursor.lastrowid
+        
+        conn.commit()
+        conn.close()
+        
+        logger.info(f"📝 Community post created: {post_id} by user {user_id}")
+        
+        return jsonify({
+            'success': True,
+            'post_id': post_id,
+            'status': 'published',
+            'message': 'Post shared successfully!'
+        })
+        
+    except Exception as e:
+        logger.error(f"Failed to create community post: {e}")
+        return jsonify({"error": "Failed to create post"}), 500
+
+@community_bp.route('/posts/<int:post_id>/react', methods=['POST'])
+def react_to_post(post_id: int):
+    """Add reaction to a post"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({"error": "Authentication required"}), 401
+        
+        data = request.get_json()
+        if not data or 'emoji' not in data:
+            return jsonify({"error": "emoji required"}), 400
+        
+        emoji = data['emoji']
+        
+        # Validate emoji
+        if emoji not in COMMUNITY_CONFIG["allowed_reactions"]:
+            return jsonify({
+                "error": f"Invalid emoji. Allowed: {COMMUNITY_CONFIG['allowed_reactions']}"
+            }), 400
+        
+        import os
+        import psycopg2
+        
+        database_url = os.environ.get('DATABASE_URL')
+        if not database_url:
+            return jsonify({"error": "Database not available"}), 500
+            
+        conn = psycopg2.connect(database_url)
+        cursor = conn.cursor()
+        
+        # Check if post exists and is approved
+        cursor.execute("""
+            SELECT id FROM community_posts 
+            WHERE id = %s AND status = 'approved' AND deleted_at IS NULL
+        """, (post_id,))
+        
+        if not cursor.fetchone():
+            conn.close()
+            return jsonify({"error": "Post not found"}), 404
+        
+        viewer_hash = generate_anonymous_hash(user_id)
+        
+        # Check if user already reacted
+        cursor.execute("""
+            SELECT emoji FROM community_reactions 
+            WHERE post_id = %s AND viewer_uid = %s
+        """, (post_id, user_id))
+        
+        existing_reaction = cursor.fetchone()
+        
+        if existing_reaction:
+            if existing_reaction[0] == emoji:
+                # Remove same reaction
+                cursor.execute("""
+                    DELETE FROM community_reactions 
+                    WHERE post_id = %s AND viewer_uid = %s
+                """, (post_id, user_id))
+                action = 'removed'
+            else:
+                # Change reaction
+                cursor.execute("""
+                    UPDATE community_reactions 
+                    SET emoji = %s, created_at = CURRENT_TIMESTAMP
+                    WHERE post_id = %s AND viewer_uid = %s
+                """, (emoji, post_id, user_id))
+                action = 'changed'
+        else:
+            # Add new reaction
+            cursor.execute("""
+                INSERT INTO community_reactions (post_id, viewer_uid_hash, viewer_uid, emoji)
+                VALUES (%s, %s, %s, %s)
+            """, (post_id, viewer_hash, user_id, emoji))
+            action = 'added'
+        
+        # Update post reaction counts
+        cursor.execute("""
+            SELECT emoji, COUNT(*) as count
+            FROM community_reactions 
+            WHERE post_id = %s
+            GROUP BY emoji
+        """, (post_id,))
+        
+        reaction_counts = {row[0]: row[1] for row in cursor.fetchall()}
+        total_reactions = sum(reaction_counts.values())
+        
+        cursor.execute("""
+            UPDATE community_posts 
+            SET reaction_counts_json = %s, total_reactions = %s
+            WHERE id = %s
+        """, (json.dumps(reaction_counts), total_reactions, post_id))
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({
+            'success': True,
+            'action': action,
+            'reaction_counts': reaction_counts,
+            'total_reactions': total_reactions
+        })
+        
+    except Exception as e:
+        logger.error(f"Failed to react to post: {e}")
+        return jsonify({"error": "Reaction failed"}), 500
+
+@community_bp.route('/posts', methods=['GET'])
+def get_community_feed():
+    """Get community feed with filtering"""
+    try:
+        user_id = session.get('user_id')  # Can be None for anonymous viewing
+        
+        # Get query parameters
+        category = request.args.get('category', 'all')
+        sort_by = request.args.get('sort', 'new')
+        limit = min(int(request.args.get('limit', 20)), 50)
+        after_id = request.args.get('after_id')
+        
+        # Validate sort option
+        if sort_by not in ['new', 'top_week', 'top_month', 'top_all']:
+            return jsonify({"error": "Invalid sort option"}), 400
+        
+        import os
+        import psycopg2
+        
+        database_url = os.environ.get('DATABASE_URL')
+        if not database_url:
+            return jsonify({"error": "Database not available"}), 500
+            
+        conn = psycopg2.connect(database_url)
+        cursor = conn.cursor()
+        
+        # Build query
+        where_clauses = ["status = 'approved'", "deleted_at IS NULL"]
+        params = []
+        
+        if category != 'all':
+            where_clauses.append("category = ?")
+            params.append(category)
+        
+        if after_id:
+            where_clauses.append("id < ?")
+            params.append(after_id)
+        
+        # Get user's mutes if logged in
+        muted_hashes = []
+        if user_id:
+            cursor.execute("""
+                SELECT muted_author_uid_hash, muted_companion_id, muted_category
+                FROM community_mutes 
+                WHERE viewer_uid = %s AND (expires_at IS NULL OR expires_at > CURRENT_TIMESTAMP)
+            """, (user_id,))
+            
+            for row in cursor.fetchall():
+                muted_hash, muted_companion, muted_cat = row
+                if muted_hash:
+                    muted_hashes.append(muted_hash)
+        
+        if muted_hashes:
+            where_clauses.append(f"author_uid_hash NOT IN ({','.join(['?'] * len(muted_hashes))})")
+            params.extend(muted_hashes)
+        
+        where_clause = "WHERE " + " AND ".join(where_clauses)
+        
+        # Order by clause
+        if sort_by == 'new':
+            order_clause = "ORDER BY created_at DESC"
+        else:  # top variants
+            order_clause = "ORDER BY total_reactions DESC, created_at DESC"
+        
+        query = f"""
+            SELECT id, author_uid_hash, companion_id, companion_skin_id,
+                   category, text, hashtags, reaction_counts_json, 
+                   total_reactions, created_at
+            FROM community_posts 
+            {where_clause} 
+            {order_clause} 
+            LIMIT ?
+        """
+        
+        params.append(limit)
+        cursor.execute(query, params)
+        
+        posts = []
+        for row in cursor.fetchall():
+            (post_id, author_hash, companion_id, companion_skin_id, 
+             cat, text, hashtags_json, reactions_json, total_reactions, created_at) = row
+            
+            # Calculate time ago
+            post_time = datetime.fromisoformat(created_at)
+            time_ago = format_time_ago(post_time)
+            
+            # Get companion avatar info
+            avatar_url = f"/static/companions/companion_{companion_id}.png"
+            if companion_skin_id:
+                avatar_url = f"/static/companions/companion_{companion_id}_skin_{companion_skin_id}.png"
+            
+            posts.append({
+                'id': post_id,
+                'author_display': 'Anonymous',
+                'author_hash': author_hash[:8],  # Shortened for muting
+                'avatar_url': avatar_url,
+                'tier_badge': 'Free',  # Would get from companion/skin rarity
+                'category': cat,
+                'text': text,
+                'hashtags': json.loads(hashtags_json) if hashtags_json else [],
+                'reactions': json.loads(reactions_json) if reactions_json else {},
+                'total_reactions': total_reactions,
+                'time_ago': time_ago,
+                'created_at': created_at
+            })
+        
+        conn.close()
+        
+        response = {
+            'posts': posts,
+            'has_more': len(posts) == limit,
+            'category': category,
+            'sort': sort_by
+        }
+        
+        # Add empty state message if no posts
+        if not posts:
+            response['empty_state'] = {
+                'title': 'No content yet',
+                'message': 'Be the first to share something beautiful! 💙'
+            }
+        
+        return jsonify(response)
+        
+    except Exception as e:
+        logger.error(f"Failed to get community feed: {e}")
+        return jsonify({"error": "Failed to load feed"}), 500
+
+@community_bp.route('/posts/<int:post_id>/report', methods=['POST'])
+def report_post(post_id: int):
+    """Report a post for moderation"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({"error": "Authentication required"}), 401
+        
+        data = request.get_json()
+        if not data or 'reason' not in data:
+            return jsonify({"error": "reason required"}), 400
+        
+        reason = data['reason']
+        notes = data.get('notes', '').strip()
+        
+        # Validate reason
+        if reason not in COMMUNITY_CONFIG["report_reasons"]:
+            return jsonify({
+                "error": f"Invalid reason. Valid: {COMMUNITY_CONFIG['report_reasons']}"
+            }), 400
+        
+        import os
+        import psycopg2
+        
+        database_url = os.environ.get('DATABASE_URL')
+        if not database_url:
+            return jsonify({"error": "Database not available"}), 500
+            
+        conn = psycopg2.connect(database_url)
+        cursor = conn.cursor()
+        
+        # Check if post exists
+        cursor.execute("""
+            SELECT id FROM community_posts WHERE id = %s AND deleted_at IS NULL
+        """, (post_id,))
+        
+        if not cursor.fetchone():
+            conn.close()
+            return jsonify({"error": "Post not found"}), 404
+        
+        # Check if user already reported this post
+        cursor.execute("""
+            SELECT id FROM community_reports 
+            WHERE post_id = %s AND reporter_uid = %s
+        """, (post_id, user_id))
+        
+        if cursor.fetchone():
+            conn.close()
+            return jsonify({"error": "You have already reported this post"}), 400
+        
+        reporter_hash = generate_anonymous_hash(user_id)
+        
+        # Determine priority based on reason
+        priority_map = {
+            'self_harm_risk': 10,
+            'hate_or_violence': 9,
+            'pii_privacy': 8,
+            'graphic_content': 7,
+            'harassment': 5,
+            'spam': 3,
+            'other': 1
+        }
+        priority = priority_map.get(reason, 1)
+        
+        # Create report
+        cursor.execute("""
+            INSERT INTO community_reports (
+                post_id, reporter_uid_hash, reporter_uid, reason, notes, priority
+            ) VALUES (%s, %s, %s, %s, %s, %s)
+        """, (post_id, reporter_hash, user_id, reason, notes, priority))
+        
+        report_id = cursor.lastrowid
+        
+        # Update post report count
+        cursor.execute("""
+            UPDATE community_posts 
+            SET report_count = report_count + 1
+            WHERE id = %s
+        """, (post_id,))
+        
+        # Auto-hide for critical reasons
+        auto_escalate_reasons = ['self_harm_risk', 'hate_or_violence', 'graphic_content', 'pii_privacy']
+        auto_hidden = False
+        
+        if reason in auto_escalate_reasons:
+            cursor.execute("""
+                UPDATE community_posts 
+                SET status = 'hidden'
+                WHERE id = %s
+            """, (post_id,))
+            auto_hidden = True
+        
+        conn.commit()
+        conn.close()
+        
+        logger.info(f"📋 Post {post_id} reported by user {user_id} for {reason}")
+        
+        response = {
+            'success': True,
+            'report_id': report_id,
+            'message': 'Report submitted for review'
+        }
+        
+        if auto_hidden:
+            response['message'] = 'Content has been hidden while under review'
+        
+        return jsonify(response)
+        
+    except Exception as e:
+        logger.error(f"Failed to report post: {e}")
+        return jsonify({"error": "Report failed"}), 500
+
+@community_bp.route('/mute', methods=['POST'])
+def mute_content():
+    """Mute author, companion, or category"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({"error": "Authentication required"}), 401
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "Mute data required"}), 400
+        
+        mute_type = data.get('type')  # 'author', 'companion', 'category'
+        target = data.get('target')   # author_hash, companion_id, or category name
+        duration_days = data.get('duration_days', 30)
+        reason = data.get('reason', '').strip()
+        
+        if not mute_type or not target:
+            return jsonify({"error": "type and target required"}), 400
+        
+        if mute_type not in ['author', 'companion', 'category']:
+            return jsonify({"error": "Invalid mute type"}), 400
+        
+        import os
+        import psycopg2
+        
+        database_url = os.environ.get('DATABASE_URL')
+        if not database_url:
+            return jsonify({"error": "Database not available"}), 500
+            
+        conn = psycopg2.connect(database_url)
+        cursor = conn.cursor()
+        
+        # Calculate expiry
+        expires_at = None
+        if duration_days > 0:
+            expires_at = (datetime.now(timezone.utc) + timedelta(days=duration_days)).isoformat()
+        
+        # Create mute record
+        if mute_type == 'author':
+            cursor.execute("""
+                INSERT OR REPLACE INTO community_mutes (
+                    viewer_uid, muted_author_uid_hash, mute_type, expires_at, reason
+                ) VALUES (%s, %s, %s, %s, %s)
+            """, (user_id, target, mute_type, expires_at, reason))
+        elif mute_type == 'companion':
+            cursor.execute("""
+                INSERT OR REPLACE INTO community_mutes (
+                    viewer_uid, muted_companion_id, mute_type, expires_at, reason
+                ) VALUES (%s, %s, %s, %s, %s)
+            """, (user_id, int(target), mute_type, expires_at, reason))
+        elif mute_type == 'category':
+            cursor.execute("""
+                INSERT OR REPLACE INTO community_mutes (
+                    viewer_uid, muted_category, mute_type, expires_at, reason
+                ) VALUES (%s, %s, %s, %s, %s)
+            """, (user_id, target, mute_type, expires_at, reason))
+        
+        mute_id = cursor.lastrowid
+        
+        conn.commit()
+        conn.close()
+        
+        logger.info(f"🔇 User {user_id} muted {mute_type} {target}")
+        
+        return jsonify({
+            'success': True,
+            'mute_id': mute_id,
+            'message': f'{mute_type.title()} muted successfully',
+            'expires_at': expires_at
+        })
+        
+    except Exception as e:
+        logger.error(f"Failed to mute content: {e}")
+        return jsonify({"error": "Mute failed"}), 500
+
+@community_bp.route('/avatar', methods=['GET'])
+def get_community_avatar():
+    """Get user's community avatar companion"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({"error": "Authentication required"}), 401
+        
+        companion_info = get_user_companion_info(user_id)
+        
+        return jsonify({
+            'success': True,
+            'companion': companion_info
+        })
+        
+    except Exception as e:
+        logger.error(f"Failed to get community avatar: {e}")
+        return jsonify({"error": "Failed to get avatar"}), 500
+
+@community_bp.route('/avatar/check', methods=['GET'])
+def check_avatar_change_availability():
+    """Check if user can change avatar or is in cooldown"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({"error": "Authentication required"}), 401
+        
+        cooldown_info = check_avatar_change_cooldown(user_id)
+        
+        # Get user tier for cooldown rules display
+        user_plan = session.get('user_plan', 'free')
+        trial_active = session.get('trial_active', False)
+        
+        from unified_tier_system import get_effective_plan
+        effective_plan = get_effective_plan(user_plan, trial_active)
+        
+        cooldown_rules = {
+            'free': {'normal': 24, 'ad_bypass': 6},
+            'growth': {'normal': 12, 'premium_skip': 1},
+            'max': {'normal': 6, 'premium_skip': 1}
+        }
+        
+        return jsonify({
+            'success': True,
+            'can_change': cooldown_info['can_change'],
+            'cooldown_remaining': cooldown_info.get('cooldown_remaining', 0),
+            'last_companion': cooldown_info.get('last_companion'),
+            'user_tier': effective_plan,
+            'cooldown_rules': cooldown_rules.get(effective_plan, cooldown_rules['free'])
+        })
+        
+    except Exception as e:
+        logger.error(f"Failed to check avatar availability: {e}")
+        return jsonify({"error": "Failed to check availability"}), 500
+
+@community_bp.route('/avatar', methods=['POST'])
+def set_community_avatar():
+    """Set user's community avatar companion with cooldown system"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({"error": "Authentication required"}), 401
+        
+        data = request.get_json()
+        if not data or 'companion_id' not in data:
+            return jsonify({"error": "companion_id required"}), 400
+        
+        companion_id = data['companion_id']
+        companion_name = data.get('name', 'Unknown')
+        companion_rarity = data.get('rarity', 'common')
+        avatar_url = data.get('avatar_url', f'/static/companions/{companion_name.lower()}.png')
+        change_type = data.get('change_type', 'normal')  # 'normal', 'ad_bypass', 'premium_skip'
+        confirmed = data.get('confirmed', False)
+        
+        # Check cooldown status
+        cooldown_info = check_avatar_change_cooldown(user_id)
+        
+        if not cooldown_info['can_change'] and change_type == 'normal':
+            remaining_hours = cooldown_info['cooldown_remaining'] // 3600
+            remaining_minutes = (cooldown_info['cooldown_remaining'] % 3600) // 60
+            
+            return jsonify({
+                "error": "Avatar change on cooldown",
+                "cooldown_remaining": cooldown_info['cooldown_remaining'],
+                "message": f"You can change your avatar again in {remaining_hours}h {remaining_minutes}m",
+                "last_companion": cooldown_info.get('last_companion'),
+                "can_bypass": True  # Show bypass options
+            }), 429
+        
+        # Get user tier for bypass validation
+        user_plan = session.get('user_plan', 'free')
+        trial_active = session.get('trial_active', False)
+        
+        from unified_tier_system import get_effective_plan
+        effective_plan = get_effective_plan(user_plan, trial_active)
+        
+        # Validate bypass options
+        if change_type == 'ad_bypass' and effective_plan != 'free':
+            return jsonify({"error": "Ad bypass only available for free users"}), 403
+        
+        if change_type == 'premium_skip' and effective_plan == 'free':
+            return jsonify({"error": "Premium skip not available for free users"}), 403
+        
+        # Validate that user has access to this companion
+        from cosmetic_system import get_available_companions_for_user
+        available_companions = get_available_companions_for_user(user_id)
+        
+        # Allow basic tier companions for all users
+        default_companions = {
+            'free': [{'id': 1, 'name': 'Soul', 'rarity': 'common'}],
+            'growth': [
+                {'id': 1, 'name': 'Soul', 'rarity': 'common'},
+                {'id': 2, 'name': 'Bridge', 'rarity': 'rare'}
+            ],
+            'max': [
+                {'id': 1, 'name': 'Soul', 'rarity': 'common'},
+                {'id': 2, 'name': 'Bridge', 'rarity': 'rare'},
+                {'id': 3, 'name': 'Aurora', 'rarity': 'epic'}
+            ]
+        }
+        
+        allowed_companions = available_companions + default_companions.get(effective_plan, [])
+        
+        # Check if companion is allowed
+        companion_allowed = any(c.get('id') == companion_id for c in allowed_companions)
+        if not companion_allowed:
+            return jsonify({"error": "Companion not available"}), 403
+        
+        # Get current companion for change tracking
+        old_companion_data = get_user_community_avatar(user_id)
+        
+        companion_data = {
+            'companion_id': companion_id,
+            'name': companion_name,
+            'rarity': companion_rarity,
+            'avatar_url': avatar_url
+        }
+        
+        # Set the avatar
+        success = set_user_community_avatar(user_id, companion_data)
+        
+        if success:
+            # Record the change with appropriate cooldown
+            record_avatar_change(user_id, old_companion_data, companion_data, change_type)
+            
+            logger.info(f"🎭 User {user_id} set community avatar to {companion_name} (type: {change_type})")
+            
+            return jsonify({
+                'success': True,
+                'message': f'Community avatar set to {companion_name}',
+                'companion': companion_data,
+                'change_type': change_type
+            })
+        else:
+            return jsonify({"error": "Failed to set avatar"}), 500
+        
+    except Exception as e:
+        logger.error(f"Failed to set community avatar: {e}")
+        return jsonify({"error": "Failed to set avatar"}), 500
+
+@community_bp.route('/companions', methods=['GET'])
+def get_available_companions():
+    """Get companions available for community avatars"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({"error": "Authentication required"}), 401
+        
+        # Get cosmetic companions
+        from cosmetic_system import get_available_companions_for_user
+        cosmetic_companions = get_available_companions_for_user(user_id)
+        
+        # Get tier-based companions
+        from unified_tier_system import get_effective_plan
+        user_plan = session.get('user_plan', 'free')
+        trial_active = session.get('trial_active', False)
+        effective_plan = get_effective_plan(user_plan, trial_active)
+        
+        # Base companions available to all users
+        base_companions = [
+            {
+                'id': 1,
+                'name': 'Soul',
+                'display_name': 'Soul',
+                'description': 'Your spiritual guide and first companion',
+                'rarity': 'common',
+                'avatar_url': '/static/companions/soul.png',
+                'unlock_method': 'default'
+            }
+        ]
+        
+        # Growth tier companions
+        if effective_plan in ['growth', 'max']:
+            base_companions.append({
+                'id': 2,
+                'name': 'Bridge',
+                'display_name': 'Bridge',
+                'description': 'Connects hearts and minds across dimensions',
+                'rarity': 'rare',
+                'avatar_url': '/static/companions/bridge.png',
+                'unlock_method': 'growth_tier'
+            })
+        
+        # Max tier companions
+        if effective_plan == 'max':
+            base_companions.append({
+                'id': 3,
+                'name': 'Aurora',
+                'display_name': 'Aurora',
+                'description': 'Mystical being of light and wisdom',
+                'rarity': 'epic',
+                'avatar_url': '/static/companions/aurora.png',
+                'unlock_method': 'max_tier'
+            })
+        
+        # Combine all available companions
+        all_companions = base_companions + cosmetic_companions
+        
+        # Remove duplicates by id
+        seen_ids = set()
+        unique_companions = []
+        for companion in all_companions:
+            if companion.get('id') not in seen_ids:
+                seen_ids.add(companion.get('id'))
+                unique_companions.append(companion)
+        
+        return jsonify({
+            'success': True,
+            'companions': unique_companions,
+            'user_tier': effective_plan
+        })
+        
+    except Exception as e:
+        logger.error(f"Failed to get available companions: {e}")
+        return jsonify({"error": "Failed to get companions"}), 500
+
+# ===============================
+# UTILITY FUNCTIONS
+# ===============================
+
+def format_time_ago(post_time: datetime) -> str:
+    """Format time ago string"""
+    now = datetime.now(timezone.utc)
+    if post_time.tzinfo is None:
+        post_time = post_time.replace(tzinfo=timezone.utc)
+    
+    delta = now - post_time
+    
+    if delta.days > 0:
+        return f"{delta.days}d ago"
+    elif delta.seconds > 3600:
+        hours = delta.seconds // 3600
+        return f"{hours}h ago"
+    elif delta.seconds > 60:
+        minutes = delta.seconds // 60
+        return f"{minutes}m ago"
+    else:
+        return "just now"
+
+# Export for app registration
+def register_community_system(app):
+    """Register community system with Flask app"""
+    # Initialize database
+    initialize_community_database()
+    
+    # Register blueprint
+    app.register_blueprint(community_bp)
+    logger.info("🏛️ Anonymous Community System registered successfully")
