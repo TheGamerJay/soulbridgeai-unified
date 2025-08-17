@@ -7,6 +7,15 @@
     if (statusEl) statusEl.textContent = msg || ''; 
   }
 
+  // Bind click defensively (prevents form submit or parent click handlers)
+  if (btn) {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      startTrial();
+    }, { passive: false });
+  }
+
   async function startTrial() {
     try {
       btn?.setAttribute('disabled', 'true');
@@ -21,34 +30,28 @@
       let data = {};
       const ct = res.headers.get('content-type') || '';
       if (ct.includes('application/json')) {
-        try {
-          data = await res.json();
-        } catch (parseErr) {
-          console.error('JSON parse error:', parseErr);
-        }
+        try { data = await res.json(); } catch {}
       }
 
       console.log('🎯 Response status:', res.status);
       console.log('🎯 Response data:', data);
 
       if (res.ok && data.ok === true && data.trial_active === true) {
-        // ✅ success: persist and update UI
+        // ✅ persist state for client UI and countdown
         localStorage.setItem('trial_active', '1');
         localStorage.setItem('trial_started_at', data.trial_started_at || new Date().toISOString());
         localStorage.setItem('trial_expires_at', data.trial_expires_at);
         localStorage.setItem('trial_plan_limits_from', data.plan_limits_from || 'free');
 
-        setStatus('Trial started!');
+        // UI: hide button immediately; add trial CSS flags
         btn?.classList.add('hidden');
         document.body.classList.add('trial-active', 'max-access');
+        setStatus('🎉 5-hour trial activated!');
 
-        // Show success message
-        alert('🎉 5-hour trial activated! All premium features unlocked.');
-
-        // If other parts depend on server-side session, refresh once:
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000);
+        // One-time SSR refresh to pull server-side gated content (cache-busted)
+        // Use a flag to avoid reload loops
+        localStorage.setItem('trial_refreshed_once', '1');
+        location.replace('/tiers?trial=1&ts=' + Date.now());
         return;
       }
 
@@ -58,26 +61,20 @@
 
     } catch (err) {
       console.error('startTrial failed:', err);
-      setStatus('Failed to start trial');     // ← only here on real failure
+      setStatus('Failed to start trial');
       btn?.removeAttribute('disabled');
-      
-      // Show error message
-      alert(`Failed to start trial: ${err.message || err}`);
+      // Show error message (removed alert to avoid interfering with navigation)
+      console.error(`Failed to start trial: ${err.message || err}`);
     }
   }
 
-  // Prevent duplicate bindings
-  if (btn) {
-    btn.removeEventListener?.('click', startTrial);
-    btn.addEventListener('click', startTrial, { once: false });
-  }
-
-  // On load: if trial already active, hide button & show status
+  // Init: if trial already active, lock UI instantly and start countdown
   (function initTrialUI() {
     const active = localStorage.getItem('trial_active') === '1';
-    if (active) {
-      btn?.classList.add('hidden');
+    const expires = localStorage.getItem('trial_expires_at');
+    if (active && expires) {
       document.body.classList.add('trial-active', 'max-access');
+      btn?.classList.add('hidden');
       setStatus('Trial active');
       
       // Unlock Growth/Max companions
@@ -85,7 +82,27 @@
         el.classList.remove('locked');
         el.setAttribute('aria-disabled', 'false');
       });
+      
+      // Start/attach circular countdown if present
+      if (window.initTrialCountdown) {
+        window.initTrialCountdown({
+          containerId: 'trialTimerMount',
+          expiresAtIso: expires,
+          startedAtIso: localStorage.getItem('trial_started_at')
+        });
+      }
     }
+  })();
+
+  // Optional: verify server session after load (helps confirm SSR sync)
+  (async function debugSessionOnce() {
+    try {
+      const res = await fetch('/api/debug-session', { credentials: 'include' });
+      if (res.ok) {
+        const s = await res.json();
+        console.log('[debug-session]', s);
+      }
+    } catch {}
   })();
 
   // Make globally available 

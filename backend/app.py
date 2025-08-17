@@ -7829,6 +7829,16 @@ def get_user_plan_api():
         logger.error(f"Get user plan error: {e}")
         return jsonify({"plan": "free", "trial_active": False})
 
+@app.route("/api/debug-session", methods=['GET'])
+def debug_session():
+    """Debug endpoint to verify trial session state"""
+    if not is_logged_in():
+        return jsonify({"error": "Not authenticated"}), 401
+        
+    keys = ("trial_active","trial_started_at","trial_expires_at",
+            "access_trial","access_growth","access_max","user_plan")
+    return jsonify({k: session.get(k) for k in keys}), 200
+
 # ============================================
 # BULLETPROOF API ENDPOINTS
 # ============================================
