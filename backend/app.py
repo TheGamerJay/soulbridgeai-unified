@@ -3760,6 +3760,17 @@ def subscription():
         logger.error(f"Subscription template error: {e}")
         return jsonify({"error": "Subscription page temporarily unavailable"}), 200
 
+@app.route("/credits")
+def credit_store():
+    """Credit Store page for Growth and Max users"""
+    try:
+        if not is_logged_in():
+            return redirect("/login?return_to=credits")
+        return render_template("credit_store.html")
+    except Exception as e:
+        logger.error(f"Credit store template error: {e}")
+        return jsonify({"error": "Credit store temporarily unavailable"}), 200
+
 @app.route("/community-dashboard")
 def community_dashboard():
     """Wellness Gallery route (replaces old community dashboard)"""
