@@ -114,32 +114,97 @@ async function initializeTrialSystem() {
     });
 }
 
-// Start trial function
-async function startTrial() {
-    try {
-        const response = await fetch('/api/start-trial', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            // Trial started successfully
-            showToast('🎉 5-hour trial activated! All premium features unlocked.', 'success');
-            
-            // Refresh the page to update UI
-            window.location.reload();
-        } else {
-            showToast(data.error || 'Failed to start trial', 'error');
-        }
-    } catch (error) {
-        console.error('Error starting trial:', error);
-        showToast('Error starting trial. Please try again.', 'error');
+// Start trial function - Fixed to handle new backend response format
+window.startTrial = async function startTrial() {
+  const btn = document.querySelector('#startTrialBtn');
+  const toast = (msg, type = 'info') => showToast(msg, type); // Use existing toast system
+
+  // simple loading state
+  btn?.setAttribute('disabled', 'disabled');
+  btn?.classList.add('opacity-60', 'pointer-events-none');
+
+  try {
+    console.log('🎯 Trial button clicked!');
+    const res = await fetch('/api/start-trial', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      cache: 'no-store',
+    });
+
+    console.log('🎯 Response status:', res.status);
+
+    // Attempt to parse JSON either way (200 or not)
+    let data = null;
+    try { data = await res.json(); } catch { data = null; }
+
+    console.log('🎯 Response data:', data);
+
+    // STRICT success gate - check both res.ok AND data.ok AND trial_active
+    if (!res.ok || !data || data.ok !== true || data.trial_active !== true) {
+      const msg = (data && data.error) ? data.error : `HTTP ${res.status}`;
+      throw new Error(msg);
     }
-}
+
+    // ✅ Success — persist + update UI
+    const expiresIso = data.trial_expires_at; // e.g. "2025-08-17T07:38:19.451832+00:00"
+    const startedIso = data.trial_started_at;
+    const planFrom  = data.plan_limits_from || 'free';
+
+    // Persist for other pages / refresh
+    localStorage.setItem('trial_active', 'true');
+    localStorage.setItem('trial_expires_at', expiresIso);
+    localStorage.setItem('trial_started_at', startedIso || new Date().toISOString());
+    localStorage.setItem('trial_plan_limits_from', planFrom);
+
+    // Flip UI gates (example IDs/classes—match to your DOM)
+    document.body.classList.add('trial-active', 'max-access');
+    document.querySelectorAll('[data-lock="growth"],[data-lock="max"]').forEach(el => {
+      el.classList.remove('locked');
+      el.setAttribute('aria-disabled', 'false');
+    });
+
+    // Hide the start button forever for this user
+    document.querySelectorAll('#startTrialContainer, #startTrialBtn').forEach(el => el?.classList.add('hidden'));
+
+    // Kick off your countdown (expects an ISO string)
+    if (typeof window.renderTrialCountdown === 'function') {
+      window.renderTrialCountdown(expiresIso);
+    } else {
+      // Fallback inline countdown
+      const el = document.getElementById('trialCountdown');
+      if (el) {
+        const target = Date.parse(expiresIso);
+        const tick = () => {
+          const ms = target - Date.now();
+          if (ms <= 0) { el.textContent = 'Expired'; clearInterval(t); return; }
+          const h = Math.floor(ms / 3_600_000);
+          const m = Math.floor((ms % 3_600_000) / 60_000);
+          const s = Math.floor((ms % 60_000) / 1000);
+          el.textContent = `${h}h ${m}m ${s}s`;
+        };
+        tick();
+        const t = setInterval(tick, 1000);
+      }
+    }
+
+    toast('✅ Trial started — Growth & Max companions unlocked (limits stay on your plan).', 'success');
+
+    // Update companion access and UI
+    await updateCompanionAccess();
+    await initializeTrialSystem();
+
+  } catch (err) {
+    console.error('❌ Failed to start trial:', err);
+    // SHOW error ONLY on failure
+    const msg = String(err && err.message || err || 'Unknown error');
+    toast(`Failed to start trial: ${msg}`, 'error');
+  } finally {
+    // Always clear loading state
+    btn?.removeAttribute('disabled');
+    btn?.classList.remove('opacity-60', 'pointer-events-none');
+  }
+};
 
 // Check if companion is unlocked for user
 function isCompanionUnlocked(companionTier, userPlan, trialActive) {
@@ -200,7 +265,7 @@ window.refreshTrialUI = refreshTrialUI;
 window.updateLimits = updateLimits;
 window.fetchUserPlanStatus = fetchUserPlanStatus;
 window.initializeTrialSystem = initializeTrialSystem;
-window.startTrial = startTrial;
+// window.startTrial is already assigned above in the function definition
 window.isCompanionUnlocked = isCompanionUnlocked;
 window.updateCompanionAccess = updateCompanionAccess;
 
