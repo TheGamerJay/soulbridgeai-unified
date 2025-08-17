@@ -268,6 +268,14 @@ if auth_available and auth_bp:
 else:
     print("WARNING: Auth system disabled - continuing without authentication")
 
+# Register v1 API blueprint
+try:
+    from v1_api import register_v1_api
+    register_v1_api(app)
+    print("V1 API endpoints registered successfully")
+except ImportError as e:
+    print(f"V1 API not available: {e}")
+
 # Billing blueprint temporarily disabled (using direct implementation instead)
 # if billing_available and bp_billing:
 #     app.register_blueprint(bp_billing)
@@ -738,11 +746,13 @@ def ensure_session_persistence():
     
     # For every other route, require a user_id
     if "user_id" not in session:
-        if "/auth" in request.path:
-            print(f"DEBUG MIDDLEWARE: {request.path} has no user_id, redirecting to login")
+        if "/auth" in request.path or "/v1/" in request.path:
+            print(f"DEBUG MIDDLEWARE: {request.path} has no user_id, checking if API")
         # For APIs, return JSON 401; for pages, redirect to login
-        if request.path.startswith("/api/"):
+        if request.path.startswith("/api/") or request.path.startswith("/v1/"):
+            print(f"DEBUG MIDDLEWARE: Returning 401 JSON for API path: {request.path}")
             return {"ok": False, "error": "Unauthorized"}, 401
+        print(f"DEBUG MIDDLEWARE: Redirecting to login for non-API path: {request.path}")
         return redirect("/login")
     
     # PERMANENT FIX: Make sessions persistent for all authenticated users
