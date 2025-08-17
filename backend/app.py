@@ -2188,15 +2188,20 @@ def start_trial():
     # Update database
     try:
         if db.use_postgres:
+            logger.info(f"🔍 TRIAL DB: Executing PostgreSQL update for user {user_id}")
             cursor.execute("UPDATE users SET trial_started_at = %s, trial_expires_at = %s, trial_active = TRUE, trial_used_permanently = FALSE WHERE id = %s", (now, expires, user_id))
         else:
+            logger.info(f"🔍 TRIAL DB: Executing SQLite update for user {user_id}")
             cursor.execute("UPDATE users SET trial_started_at = ?, trial_expires_at = ?, trial_active = TRUE, trial_used_permanently = FALSE WHERE id = ?", (now.isoformat(), expires.isoformat(), user_id))
         
         conn.commit()
         conn.close()
+        logger.info(f"✅ TRIAL DB: Database update successful for user {user_id}")
     except Exception as e:
         conn.close()
-        logger.error(f"Database error starting trial: {e}")
+        logger.error(f"❌ TRIAL DB ERROR: {e}")
+        logger.error(f"❌ TRIAL DB ERROR TYPE: {type(e)}")
+        logger.error(f"❌ TRIAL DB ERROR ARGS: {e.args}")
         return jsonify({"success": False, "error": "Database error"}), 500
 
     # Update session - CRITICAL: Set trial_active to True, don't mark as used permanently yet
