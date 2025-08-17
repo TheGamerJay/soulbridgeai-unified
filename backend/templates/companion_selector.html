@@ -1209,18 +1209,36 @@
                 return;
             }
             
-            // If no subscription access, check trial status via API
+            // Check entitlements via consolidated v1 API (fallback to old API if v1 fails)
             try {
-                // Checking trial status via API
-                const response = await fetch('/api/trial-status', { credentials: 'include' });
-                const data = await response.json();
-                // Trial status
+                let hasAccess = false;
                 
-                if (data.active) {
-                    // Access granted via active trial
+                // Try v1 entitlements endpoint first
+                try {
+                    const response = await fetch('/v1/entitlements', { credentials: 'include' });
+                    if (response.ok) {
+                        const entitlements = await response.json();
+                        // Check if user has access to required tier companions
+                        const userPlan = entitlements.plan;
+                        const trialActive = entitlements.status === 'trial';
+                        hasAccess = requiredTiers.some(tier => 
+                            userPlan === tier || 
+                            (trialActive && ['growth', 'max'].includes(tier))
+                        );
+                    }
+                } catch (v1Error) {
+                    console.warn('V1 entitlements failed, falling back to legacy API:', v1Error);
+                    // Fallback to legacy trial-status API
+                    const response = await fetch('/api/trial-status', { credentials: 'include' });
+                    const data = await response.json();
+                    hasAccess = data.active;
+                }
+                
+                if (hasAccess) {
+                    // Access granted via subscription or trial
                     selectCompanion(companionId);
                 } else {
-                    // No access - trial not active
+                    // No access
                     const tierText = requiredTiers.join(' or ');
                 }
             } catch (error) {
@@ -1268,8 +1286,25 @@
         // Trial status monitoring - check for expired trials
         async function loadTrialStatus() {
             try {
-                const response = await fetch('/api/trial-status', { credentials: 'include' });
-                const data = await response.json();
+                // Try v1 entitlements endpoint first
+                let data = null;
+                try {
+                    const response = await fetch('/v1/entitlements', { credentials: 'include' });
+                    if (response.ok) {
+                        const entitlements = await response.json();
+                        // Convert v1 format to legacy format for compatibility
+                        data = {
+                            logged_in: true,
+                            active: entitlements.status === 'trial',
+                            expires_at: entitlements.period_end
+                        };
+                    }
+                } catch (v1Error) {
+                    console.warn('V1 entitlements failed, falling back to legacy API:', v1Error);
+                    // Fallback to legacy API
+                    const response = await fetch('/api/trial-status', { credentials: 'include' });
+                    data = await response.json();
+                }
                 
                 if (!data.logged_in) {
                     return; // Not logged in

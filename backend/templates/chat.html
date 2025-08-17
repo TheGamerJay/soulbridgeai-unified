@@ -2133,8 +2133,26 @@ Where emotion meets expression.
         // Update tier limits display in real-time
         async function updateTierLimits() {
             try {
-                const response = await fetch('/api/tier-limits');
-                const data = await response.json();
+                // Try v1 entitlements endpoint first
+                let data = null;
+                try {
+                    const response = await fetch('/v1/entitlements', { credentials: 'include' });
+                    if (response.ok) {
+                        const entitlements = await response.json();
+                        // Convert v1 format to legacy tier-limits format
+                        data = {
+                            success: true,
+                            limits: entitlements.daily_limits,
+                            plan: entitlements.plan,
+                            trial_active: entitlements.status === 'trial'
+                        };
+                    }
+                } catch (v1Error) {
+                    console.warn('V1 entitlements failed, falling back to legacy API:', v1Error);
+                    // Fallback to legacy API
+                    const response = await fetch('/api/tier-limits');
+                    data = await response.json();
+                }
                 
                 if (!data.success) {
                     return;
@@ -2374,9 +2392,25 @@ Where emotion meets expression.
         // - Letting setInterval drift while tab is hidden
 
         async function loadTrial() {
-            // Timer function called
-            const r = await fetch('/api/trial-status', { credentials: 'include' });
-            const d = await r.json();
+            // Try v1 entitlements endpoint first
+            let d = null;
+            try {
+                const r = await fetch('/v1/entitlements', { credentials: 'include' });
+                if (r.ok) {
+                    const entitlements = await r.json();
+                    // Convert v1 format to legacy format
+                    d = {
+                        logged_in: true,
+                        active: entitlements.status === 'trial',
+                        expires_at: entitlements.period_end
+                    };
+                }
+            } catch (v1Error) {
+                console.warn('V1 entitlements failed, falling back to legacy API:', v1Error);
+                // Fallback to legacy API
+                const r = await fetch('/api/trial-status', { credentials: 'include' });
+                d = await r.json();
+            }
             // Trial status received
             if (!d.logged_in) { 
                 // Not logged in, timer hidden
