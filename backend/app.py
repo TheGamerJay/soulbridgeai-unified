@@ -291,6 +291,30 @@ try:
 except ImportError as e:
     print(f"WARNING: Companion API not available: {e}")
 
+# Register subscription management blueprint
+try:
+    from subscription_management import register_subscription_management
+    register_subscription_management(app)
+    print("Subscription management registered successfully")
+except ImportError as e:
+    print(f"WARNING: Subscription management not available: {e}")
+
+# Register referral system blueprint
+try:
+    from referral_system import register_referral_system
+    register_referral_system(app)
+    print("Referral system registered successfully")
+except ImportError as e:
+    print(f"WARNING: Referral system not available: {e}")
+
+# Register cosmetic system blueprint
+try:
+    from cosmetic_system import register_cosmetic_system
+    register_cosmetic_system(app)
+    print("Cosmetic system registered successfully")
+except ImportError as e:
+    print(f"WARNING: Cosmetic system not available: {e}")
+
 # Trial endpoints are now integrated directly in app.py
 print("Trial system ready")
 
@@ -3770,6 +3794,17 @@ def credit_store():
     except Exception as e:
         logger.error(f"Credit store template error: {e}")
         return jsonify({"error": "Credit store temporarily unavailable"}), 200
+
+@app.route("/referrals")
+def referrals_page():
+    """Referrals page for earning cosmetic companions"""
+    try:
+        if not is_logged_in():
+            return redirect("/login?return_to=referrals")
+        return render_template("referrals.html")
+    except Exception as e:
+        logger.error(f"Referrals template error: {e}")
+        return jsonify({"error": "Referrals page temporarily unavailable"}), 200
 
 @app.route("/community-dashboard")
 def community_dashboard():
@@ -16651,6 +16686,17 @@ if __name__ == "__main__":
             logger.info("ℹ️ SQLite detected - schema invariants not needed")
     except Exception as schema_error:
         logger.warning(f"⚠️ Schema invariant enforcement failed (continuing anyway): {schema_error}")
+    
+    # Initialize subscriptions, referrals, and cosmetics database schema
+    try:
+        from subscriptions_referrals_cosmetics_schema import initialize_subscriptions_referrals_cosmetics_schema
+        logger.info("🔧 Initializing subscriptions + referrals + cosmetics schema...")
+        if initialize_subscriptions_referrals_cosmetics_schema():
+            logger.info("✅ Subscriptions + referrals + cosmetics schema initialized successfully")
+        else:
+            logger.warning("⚠️ Schema initialization failed but continuing...")
+    except Exception as schema_error:
+        logger.warning(f"⚠️ Subscriptions schema initialization failed (continuing anyway): {schema_error}")
     
     # Register debug endpoints safely (only in non-production)
     try:

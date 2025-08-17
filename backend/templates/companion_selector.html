@@ -1355,6 +1355,149 @@
             }
         }
 
+        // Load and display cosmetic companions
+        async function loadCosmeticCompanions() {
+            try {
+                const response = await fetch('/cosmetics/me', { credentials: 'include' });
+                if (!response.ok) return;
+                
+                const data = await response.json();
+                const unlockedCosmetics = data.unlocked_cosmetics || [];
+                const equippedCosmetics = data.equipped_cosmetics || {};
+                
+                // Filter for companion type cosmetics
+                const cosmeticCompanions = unlockedCosmetics.filter(c => c.type === 'companion');
+                
+                if (cosmeticCompanions.length > 0) {
+                    updateReferralCompanionDisplay(cosmeticCompanions, equippedCosmetics);
+                }
+                
+            } catch (error) {
+                console.error('Failed to load cosmetic companions:', error);
+            }
+        }
+
+        // Update the referral companion display with actual unlocked companions
+        function updateReferralCompanionDisplay(cosmeticCompanions, equippedCosmetics) {
+            const companionGrid = document.querySelector('.netflix-companion-grid');
+            if (!companionGrid) return;
+
+            // Clear existing companion cards and add dynamic ones
+            const existingCards = companionGrid.querySelectorAll('.netflix-card[data-cosmetic]');
+            existingCards.forEach(card => card.remove());
+
+            // Add unlocked cosmetic companions
+            cosmeticCompanions.forEach(companion => {
+                const isEquipped = equippedCosmetics.companion && 
+                                 equippedCosmetics.companion.id === companion.id;
+                
+                const card = createCosmeticCompanionCard(companion, isEquipped);
+                companionGrid.appendChild(card);
+            });
+        }
+
+        // Create a cosmetic companion card
+        function createCosmeticCompanionCard(companion, isEquipped) {
+            const card = document.createElement('div');
+            card.className = 'netflix-card unlocked';
+            card.setAttribute('data-cosmetic', companion.id);
+            card.onclick = () => selectCosmeticCompanion(companion.id, companion.name);
+
+            const rarityColor = {
+                'rare': '#8b5cf6',
+                'epic': '#f59e0b', 
+                'legendary': '#ef4444'
+            }[companion.rarity] || '#6b7280';
+
+            card.innerHTML = `
+                <div class="netflix-poster">
+                    <img src="${companion.image_url || '/static/logos/IntroLogo.png'}" 
+                         alt="${companion.display_name}" 
+                         onerror="this.src='/static/logos/IntroLogo.png'">
+                    <div class="netflix-overlay">
+                        <div class="unlock-status unlocked">✅ UNLOCKED</div>
+                        ${isEquipped ? '<div class="unlock-requirement" style="color: #22c55e;">Currently Equipped</div>' : ''}
+                    </div>
+                </div>
+                <div class="netflix-info">
+                    <h3>${companion.display_name}</h3>
+                    <p class="unlock-tier">Unlocked via ${companion.unlock_source}</p>
+                    <div class="netflix-badges">
+                        <span class="badge exclusive" style="background: ${rarityColor};">${companion.rarity.toUpperCase()}</span>
+                        <span class="badge referral">COSMETIC</span>
+                        ${isEquipped ? '<span class="badge" style="background: #22c55e;">EQUIPPED</span>' : ''}
+                    </div>
+                </div>
+            `;
+
+            return card;
+        }
+
+        // Select a cosmetic companion
+        function selectCosmeticCompanion(companionId, companionName) {
+            // Check if user wants to equip this cosmetic companion
+            if (confirm(`Equip ${companionName} as your cosmetic companion?`)) {
+                equipCosmeticCompanion(companionId);
+            } else {
+                // Still allow chatting with the companion
+                selectCompanion(companionName.toLowerCase());
+            }
+        }
+
+        // Equip a cosmetic companion
+        async function equipCosmeticCompanion(companionId) {
+            try {
+                const response = await fetch('/cosmetics/equip', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ cosmetic_id: companionId })
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    // Show success message
+                    showCompanionMessage(`✅ ${result.cosmetic.display_name} equipped successfully!`, 'success');
+                    // Reload cosmetic companions to update equipped status
+                    loadCosmeticCompanions();
+                } else {
+                    showCompanionMessage(`❌ ${result.error}`, 'error');
+                }
+                
+            } catch (error) {
+                console.error('Failed to equip cosmetic companion:', error);
+                showCompanionMessage('❌ Failed to equip companion', 'error');
+            }
+        }
+
+        // Show companion message
+        function showCompanionMessage(message, type = 'info') {
+            const messageDiv = document.createElement('div');
+            messageDiv.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 16px 20px;
+                border-radius: 8px;
+                font-weight: 600;
+                z-index: 1000;
+                max-width: 300px;
+                ${type === 'success' ? 'background: #10b981; color: white;' : ''}
+                ${type === 'error' ? 'background: #ef4444; color: white;' : ''}
+                ${type === 'info' ? 'background: #3b82f6; color: white;' : ''}
+            `;
+            messageDiv.textContent = message;
+            
+            document.body.appendChild(messageDiv);
+            
+            setTimeout(() => {
+                if (messageDiv.parentNode) {
+                    messageDiv.parentNode.removeChild(messageDiv);
+                }
+            }, 4000);
+        }
+
         // Initialize trial status checking
         document.addEventListener('DOMContentLoaded', function() {
       // Add event listeners to all companion cards with data attributes
@@ -1376,6 +1519,9 @@
                     });
                 }
             });
+            
+            // Load cosmetic companions
+            loadCosmeticCompanions();
             
             // Check trial status on page load
             loadTrialStatus();

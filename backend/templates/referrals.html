@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SoulBridge AI - Refer Friends & Unlock Exclusive Access</title>
+    <title>🎁 Referral Rewards - SoulBridge AI</title>
     <style>
         * {
             margin: 0;
@@ -12,389 +12,421 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #000000 0%, #0f172a 50%, #1e293b 100%);
-            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            padding: 20px;
+            color: #333;
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
+            padding: 20px;
         }
 
-        .header {
+        /* Header Section */
+        .referral-header {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
             text-align: center;
-            margin-bottom: 3rem;
         }
 
-        .header h1 {
-            font-size: 3rem;
-            background: linear-gradient(45deg, #22d3ee, #9333ea, #22d3ee);
-            background-size: 200% 200%;
-            background-clip: text;
+        .referral-title {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 8px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            animation: gradient 3s ease infinite;
-            margin-bottom: 1rem;
         }
 
-        @keyframes gradient {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+        .referral-subtitle {
+            color: #666;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
         }
 
-        .subtitle {
-            font-size: 1.3rem;
-            color: #94a3b8;
-            margin-bottom: 0.5rem;
-        }
-
-        .exclusive-banner {
-            background: linear-gradient(135deg, #9333ea, #7c3aed);
-            padding: 1rem 2rem;
-            border-radius: 12px;
-            margin: 2rem auto;
-            max-width: 600px;
-            text-align: center;
-            border: 2px solid #a855f7;
-            box-shadow: 0 0 30px rgba(147, 51, 234, 0.5);
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { box-shadow: 0 0 30px rgba(147, 51, 234, 0.5); }
-            50% { box-shadow: 0 0 50px rgba(147, 51, 234, 0.8); }
-            100% { box-shadow: 0 0 30px rgba(147, 51, 234, 0.5); }
-        }
-
-        .exclusive-banner h2 {
-            font-size: 1.5rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .main-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2rem;
-            margin-bottom: 3rem;
-        }
-
-        .card {
-            background: rgba(15, 23, 42, 0.8);
-            border: 1px solid rgba(34, 211, 238, 0.3);
+        /* Progress Section */
+        .progress-section {
+            background: white;
             border-radius: 16px;
-            padding: 2rem;
-            backdrop-filter: blur(10px);
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
         }
 
-        .card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(34, 211, 238, 0.1), transparent);
-            transition: left 0.5s ease;
-        }
-
-        .card:hover::before {
-            left: 100%;
-        }
-
-        .card:hover {
-            border-color: #22d3ee;
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(34, 211, 238, 0.3);
-        }
-
-        .galaxy-card {
-            border-color: #9333ea;
-            background: linear-gradient(135deg, rgba(147, 51, 234, 0.1), rgba(15, 23, 42, 0.8));
-        }
-
-        .galaxy-card:hover {
-            border-color: #a855f7;
-            box-shadow: 0 10px 30px rgba(147, 51, 234, 0.5);
-        }
-
-        .reward-item {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            padding: 1rem;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 8px;
-            transition: all 0.3s ease;
-        }
-
-        .reward-item:hover {
-            background: rgba(0, 0, 0, 0.5);
-        }
-
-        .reward-icon {
-            font-size: 1.5rem;
-            min-width: 2rem;
-            text-align: center;
-        }
-
-        .reward-info {
-            flex: 1;
-        }
-
-        .card-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 1.5rem;
-        }
-
-        .card-icon {
-            font-size: 2rem;
-            margin-right: 1rem;
-        }
-
-        .card-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-        }
-
-        .progress-container {
-            margin: 2rem 0;
-        }
-
-        .progress-label {
+        .progress-header {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 0.5rem;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .progress-stats {
+            display: flex;
+            gap: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
             font-size: 0.9rem;
-            color: #94a3b8;
+            color: #666;
+        }
+
+        .progress-bar-container {
+            background: #f1f5f9;
+            border-radius: 12px;
+            height: 20px;
+            margin: 20px 0;
+            overflow: hidden;
         }
 
         .progress-bar {
-            width: 100%;
-            height: 12px;
-            background: rgba(0, 0, 0, 0.5);
-            border-radius: 6px;
-            overflow: hidden;
-            border: 1px solid rgba(147, 51, 234, 0.3);
-        }
-
-        .progress-fill {
+            background: linear-gradient(45deg, #667eea, #764ba2);
             height: 100%;
-            background: linear-gradient(90deg, #9333ea, #a855f7);
-            border-radius: 6px;
-            transition: width 0.3s ease;
+            border-radius: 12px;
+            transition: width 0.8s ease;
             position: relative;
         }
 
-        .progress-fill::after {
+        .progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        /* Reward Timeline */
+        .rewards-timeline {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+
+        .timeline-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .timeline {
+            position: relative;
+            padding: 20px 0;
+        }
+
+        .timeline::before {
             content: '';
             position: absolute;
+            left: 50%;
             top: 0;
-            left: 0;
-            right: 0;
             bottom: 0;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-            animation: shimmer 2s infinite;
+            width: 2px;
+            background: #e1e5e9;
+            transform: translateX(-50%);
         }
 
-        @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
+        .timeline-item {
+            position: relative;
+            margin: 30px 0;
+            display: flex;
+            align-items: center;
         }
 
-        .referral-link-container {
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid #22d3ee;
-            border-radius: 8px;
-            padding: 1rem;
-            margin: 1rem 0;
+        .timeline-item:nth-child(odd) {
+            flex-direction: row;
         }
 
-        .referral-link {
-            font-family: monospace;
+        .timeline-item:nth-child(even) {
+            flex-direction: row-reverse;
+        }
+
+        .timeline-marker {
+            position: absolute;
+            left: 50%;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            z-index: 2;
+        }
+
+        .timeline-marker.completed {
+            background: linear-gradient(45deg, #10b981, #059669);
+            color: white;
+        }
+
+        .timeline-marker.current {
+            background: linear-gradient(45deg, #f59e0b, #d97706);
+            color: white;
+            animation: pulse 2s infinite;
+        }
+
+        .timeline-marker.locked {
+            background: #e5e7eb;
+            color: #9ca3af;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .timeline-content {
+            width: 45%;
+            background: white;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .timeline-content.completed {
+            border-color: #10b981;
+            background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%);
+        }
+
+        .timeline-content.current {
+            border-color: #f59e0b;
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+        }
+
+        .reward-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .reward-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .reward-details h3 {
+            font-size: 1.1rem;
+            margin-bottom: 4px;
+        }
+
+        .reward-description {
             font-size: 0.9rem;
-            color: #22d3ee;
-            word-break: break-all;
-            margin-bottom: 1rem;
+            color: #666;
         }
 
-        .btn {
-            background: linear-gradient(135deg, #22d3ee, #0891b2);
-            color: #000;
-            border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 8px;
-            cursor: pointer;
+        .rarity-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
             font-weight: 600;
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+
+        .rarity-rare { background: #8b5cf6; color: white; }
+        .rarity-epic { background: #f59e0b; color: white; }
+        .rarity-legendary { background: #ef4444; color: white; }
+
+        /* Sharing Section */
+        .sharing-section {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+
+        .referral-code-display {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .referral-code {
+            font-size: 2rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+        }
+
+        .referral-url {
             font-size: 0.9rem;
-            transition: all 0.3s ease;
-            margin: 0.25rem;
+            opacity: 0.9;
+            word-break: break-all;
         }
 
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(34, 211, 238, 0.4);
+        .copy-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 12px;
+            font-weight: 600;
         }
 
-        .btn-secondary {
-            background: linear-gradient(135deg, #6b7280, #4b5563);
-            color: #fff;
+        .copy-btn:hover {
+            background: rgba(255,255,255,0.3);
         }
 
-        .btn-galaxy {
-            background: linear-gradient(135deg, #9333ea, #7c3aed);
-            color: #fff;
-        }
-
-        .btn-galaxy:hover {
-            box-shadow: 0 5px 15px rgba(147, 51, 234, 0.4);
-        }
-
-        .social-share {
+        .social-buttons {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 1rem;
-            margin-top: 1rem;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
         }
 
         .social-btn {
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 0.75rem;
+            gap: 8px;
+            padding: 12px 20px;
             border-radius: 8px;
             text-decoration: none;
             font-weight: 600;
-            font-size: 0.8rem;
             transition: all 0.3s ease;
+        }
+
+        .social-btn.twitter {
+            background: #1da1f2;
+            color: white;
+        }
+
+        .social-btn.facebook {
+            background: #4267b2;
+            color: white;
+        }
+
+        .social-btn.whatsapp {
+            background: #25d366;
+            color: white;
+        }
+
+        .social-btn.generic {
+            background: #6b7280;
+            color: white;
         }
 
         .social-btn:hover {
             transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
 
-        .twitter { background: #1da1f2; color: white; }
-        .whatsapp { background: #25d366; color: white; }
-        .email { background: #ea4335; color: white; }
+        /* Unlocked Cosmetics Gallery */
+        .cosmetics-gallery {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
 
-        .rewards-grid {
+        .cosmetics-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-top: 2rem;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
         }
 
-        .reward-item {
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            padding: 1rem;
+        .cosmetic-card {
             text-align: center;
+            padding: 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
             transition: all 0.3s ease;
         }
 
-        .reward-item.unlocked {
-            border-color: #22c55e;
-            background: rgba(34, 197, 94, 0.1);
+        .cosmetic-card.unlocked {
+            border-color: #10b981;
+            background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%);
         }
 
-        .reward-item.next {
-            border-color: #f59e0b;
-            background: rgba(245, 158, 11, 0.1);
-            transform: scale(1.05);
-            box-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
+        .cosmetic-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
         }
 
-        .reward-count {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #22d3ee;
-        }
-
-        .reward-description {
-            font-size: 0.9rem;
-            color: #94a3b8;
-            margin-top: 0.5rem;
-        }
-
-        .galaxy-showcase {
-            background: linear-gradient(135deg, #1e1b4b, #312e81);
-            border: 2px solid #9333ea;
-            border-radius: 16px;
-            padding: 2rem;
-            margin: 2rem 0;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .galaxy-showcase::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(147, 51, 234, 0.1) 0%, transparent 70%);
-            animation: rotate 20s linear infinite;
-        }
-
-        @keyframes rotate {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        .galaxy-content {
-            position: relative;
-            z-index: 1;
-        }
-
-        .galaxy-avatar {
-            width: 120px;
-            height: 120px;
+        .cosmetic-image {
+            width: 80px;
+            height: 80px;
             border-radius: 50%;
-            margin: 0 auto 1rem;
-            background: linear-gradient(45deg, #9333ea, #7c3aed, #6366f1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3rem;
-            box-shadow: 0 0 40px rgba(147, 51, 234, 0.6);
+            object-fit: cover;
+            margin-bottom: 12px;
         }
 
-        .loading {
+        .cosmetic-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .cosmetic-threshold {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        /* Next Steps */
+        .next-steps {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 16px;
+            padding: 24px;
+            margin-top: 24px;
             text-align: center;
-            padding: 3rem;
-            color: #22d3ee;
         }
 
-        @media (max-width: 768px) {
-            .main-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .header h1 {
-                font-size: 2rem;
-            }
-            
-            .social-share {
-                grid-template-columns: 1fr 1fr;
-            }
+        .next-steps h3 {
+            margin-bottom: 16px;
+            color: #495057;
         }
-    </style>
-</head>
-<body>
-    <!-- Back Button -->
-    <div style="position: fixed; top: 20px; left: 20px; z-index: 1000;">
-        <button onclick="window.location.href='/'" style="
-            background: rgba(34, 211, 238, 0.8);
+
+        .steps-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .steps-list li {
+            margin: 8px 0;
+            padding: 8px 16px;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        /* Back Button */
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+        }
+
+        .back-btn {
+            background: rgba(34, 211, 238, 0.9);
             color: #000;
             border: none;
             padding: 12px 20px;
@@ -407,386 +439,371 @@
             gap: 8px;
             transition: all 0.3s ease;
             box-shadow: 0 4px 20px rgba(34, 211, 238, 0.3);
-        " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 25px rgba(34, 211, 238, 0.4)'" 
-           onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 20px rgba(34, 211, 238, 0.3)'">
-            ← Back
+        }
+
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(34, 211, 238, 0.4);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .timeline::before {
+                left: 20px;
+            }
+
+            .timeline-item {
+                flex-direction: row !important;
+                padding-left: 50px;
+            }
+
+            .timeline-marker {
+                left: 20px !important;
+                transform: none !important;
+            }
+
+            .timeline-content {
+                width: 100%;
+            }
+
+            .progress-stats {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .social-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Loading States */
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .spinner {
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Back Button -->
+    <div class="back-button">
+        <button class="back-btn" onclick="window.location.href='/'">
+            ← Back to Chat
         </button>
     </div>
 
     <div class="container">
-        <div class="header">
-            <h1>🚀 Refer Friends & Unlock Exclusive Access</h1>
-            <p class="subtitle">Share SoulBridge AI and earn amazing rewards!</p>
+        <!-- Header Section -->
+        <div class="referral-header">
+            <h1 class="referral-title">🎁 Referral Rewards</h1>
+            <p class="referral-subtitle">Share SoulBridge AI with friends and unlock exclusive companion rewards!</p>
+        </div>
+
+        <!-- Progress Section -->
+        <div class="progress-section">
+            <div class="progress-header">
+                <h2>Your Progress</h2>
+                <div class="progress-stats">
+                    <div class="stat-item">
+                        <div class="stat-number" id="totalReferrals">0</div>
+                        <div class="stat-label">Total Referrals</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="verifiedReferrals">0</div>
+                        <div class="stat-label">Verified</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="pendingReferrals">0</div>
+                        <div class="stat-label">Pending</div>
+                    </div>
+                </div>
+            </div>
             
-            <div class="exclusive-banner">
-                <h2>🌟 Exclusive Referral Rewards</h2>
-                <p>Refer friends and unlock exclusive companions and special skins - available nowhere else!</p>
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progressBar" style="width: 0%">
+                    <span class="progress-text" id="progressText">0% to next reward</span>
+                </div>
+            </div>
+            
+            <div id="nextRewardInfo" style="text-align: center; color: #666;">
+                <!-- Next reward info loaded dynamically -->
             </div>
         </div>
 
-        <div id="loading" class="loading">
-            <div>🔄 Loading your referral dashboard...</div>
-            <div style="margin-top: 2rem;">
-                <button onclick="showSimpleReferralInfo()" style="
-                    background: linear-gradient(135deg, #22d3ee, #0891b2);
-                    color: #000;
-                    border: none;
-                    padding: 1rem 2rem;
-                    border-radius: 8px;
-                    font-weight: bold;
-                    cursor: pointer;
-                    font-size: 1rem;
-                ">Show Simple Referral Info</button>
+        <!-- Rewards Timeline -->
+        <div class="rewards-timeline">
+            <h2 class="timeline-title">🏆 Reward Milestones</h2>
+            <div class="timeline" id="rewardsTimeline">
+                <!-- Timeline items loaded dynamically -->
             </div>
         </div>
 
-        <div id="dashboard" style="display: none;">
-            <div class="main-grid">
-                <!-- Referral Progress Card -->
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-icon">📈</div>
-                        <div class="card-title">Your Progress</div>
-                    </div>
-                    
-                    <div class="progress-container">
-                        <div class="progress-label">
-                            <span>Referrals</span>
-                            <span id="progressText">0 / 5</span>
-                        </div>
-                        <div class="progress-bar">
-                            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
-                        </div>
-                    </div>
-
-                    <div style="text-align: center; margin: 1rem 0;">
-                        <div style="font-size: 2rem; color: #22d3ee; font-weight: bold;" id="referralCount">0</div>
-                        <div style="color: #94a3b8;">Successful Referrals</div>
-                    </div>
-
-                    <div id="nextReward" style="background: rgba(245, 158, 11, 0.1); border: 1px solid #f59e0b; border-radius: 8px; padding: 1rem; margin-top: 1rem;">
-                        <div style="font-weight: 600; color: #f59e0b;">Next Reward:</div>
-                        <div id="nextRewardText" style="color: #94a3b8; font-size: 0.9rem;">Loading...</div>
-                    </div>
-                </div>
-
-                <!-- Referral Rewards Showcase -->
-                <div class="card galaxy-card">
-                    <div class="card-header">
-                        <div class="card-icon">🌟</div>
-                        <div class="card-title" style="color: #9333ea;">Referral Rewards</div>
-                    </div>
-                    
-                    <div class="galaxy-showcase">
-                        <div class="galaxy-content">
-                            <div class="rewards-list">
-                                <div class="reward-item" style="margin-bottom: 1rem;">
-                                    <div class="reward-icon">🌟</div>
-                                    <div class="reward-info">
-                                        <h4 style="color: #8b5cf6; margin-bottom: 0.5rem;">2 Referrals → Blayzike</h4>
-                                        <p style="color: #c4b5fd; font-size: 0.9rem;">Mysterious companion with enigmatic charm</p>
-                                    </div>
-                                </div>
-                                
-                                <div class="reward-item" style="margin-bottom: 1rem;">
-                                    <div class="reward-icon">✨</div>
-                                    <div class="reward-info">
-                                        <h4 style="color: #06b6d4; margin-bottom: 0.5rem;">5 Referrals → Blazelian</h4>
-                                        <p style="color: #c4b5fd; font-size: 0.9rem;">Ethereal companion with celestial wisdom</p>
-                                    </div>
-                                </div>
-                                
-                                <div class="reward-item" style="margin-bottom: 1rem;">
-                                    <div class="reward-icon">🎉</div>
-                                    <div class="reward-info">
-                                        <h4 style="color: #f59e0b; margin-bottom: 0.5rem;">10 Referrals → Blayzo Special Skin</h4>
-                                        <p style="color: #c4b5fd; font-size: 0.9rem;">Exclusive referral skin for Blayzo</p>
-                                    </div>
-                                </div>
-                                
-                                <div class="reward-item" style="margin-bottom: 1rem;">
-                                    <div class="reward-icon">🤖</div>
-                                    <div class="reward-info">
-                                        <h4 style="color: #22d3ee; margin-bottom: 0.5rem;">8 Referrals → Claude</h4>
-                                        <p style="color: #c4b5fd; font-size: 0.9rem;">The Community Code Architect - Ultimate exclusive companion</p>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div id="rewardStatus" style="margin-top: 1rem;">
-                                <div style="color: #f59e0b; font-weight: 600;">🔒 Start Referring!</div>
-                                <div style="color: #94a3b8; font-size: 0.9rem;">Share your link to unlock rewards</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+        <!-- Sharing Section -->
+        <div class="sharing-section">
+            <h2 style="text-align: center; margin-bottom: 20px;">📱 Share Your Referral Code</h2>
+            
+            <div class="referral-code-display">
+                <div class="referral-code" id="referralCode">Loading...</div>
+                <div class="referral-url" id="referralUrl">Loading...</div>
+                <button class="copy-btn" onclick="copyReferralLink()">📋 Copy Link</button>
             </div>
 
-            <!-- Share Your Link Section -->
-            <div class="card" style="margin-bottom: 2rem;">
-                <div class="card-header">
-                    <div class="card-icon">🔗</div>
-                    <div class="card-title">Share Your Referral Link</div>
-                </div>
-
-                <div class="referral-link-container">
-                    <div class="referral-link" id="referralLink">Loading...</div>
-                    <button class="btn" onclick="copyReferralLink()">📋 Copy Link</button>
-                    <button class="btn btn-secondary" onclick="shareReferralLink()">📤 Share</button>
-                </div>
-
-                <div class="social-share">
-                    <a href="#" class="social-btn twitter" onclick="shareToTwitter()">🐦 Twitter</a>
-                    <a href="#" class="social-btn whatsapp" onclick="shareToWhatsApp()">💬 WhatsApp</a>
-                    <a href="#" class="social-btn email" onclick="shareToEmail()">📧 Email</a>
-                </div>
+            <div class="social-buttons">
+                <a href="#" class="social-btn twitter" id="twitterShare" target="_blank">
+                    🐦 Share on Twitter
+                </a>
+                <a href="#" class="social-btn facebook" id="facebookShare" target="_blank">
+                    📘 Share on Facebook
+                </a>
+                <a href="#" class="social-btn whatsapp" id="whatsappShare" target="_blank">
+                    💬 Share on WhatsApp
+                </a>
+                <button class="social-btn generic" onclick="shareGeneric()">
+                    📤 More Options
+                </button>
             </div>
+        </div>
 
-            <!-- All Rewards Section -->
-            <div class="card">
-                <div class="card-header">
-                    <div class="card-icon">🏆</div>
-                    <div class="card-title">Referral Rewards</div>
-                </div>
-
-                <div class="rewards-grid" id="rewardsGrid">
-                    <!-- Rewards will be populated here -->
-                </div>
+        <!-- Unlocked Cosmetics Gallery -->
+        <div class="cosmetics-gallery">
+            <h2 style="text-align: center; margin-bottom: 20px;">🎨 Your Unlocked Companions</h2>
+            <div class="cosmetics-grid" id="cosmeticsGrid">
+                <!-- Cosmetics loaded dynamically -->
             </div>
+        </div>
+
+        <!-- Next Steps -->
+        <div class="next-steps">
+            <h3>🚀 How to Get More Rewards</h3>
+            <ul class="steps-list">
+                <li>Share your referral code with friends and family</li>
+                <li>Help them create an account using your link</li>
+                <li>They need to verify their account (email/phone)</li>
+                <li>Wait 24 hours for verification to complete</li>
+                <li>Unlock amazing exclusive companions!</li>
+            </ul>
         </div>
     </div>
 
     <script>
-        let dashboardData = null;
-        let shareTemplates = null;
+        let referralData = null;
 
-        async function loadReferralDashboard() {
+        // Load referral data on page load
+        async function loadReferralData() {
             try {
-                const userEmail = "{{ session.get('user_email', 'user@example.com') }}";
-                console.log('📡 Loading referral dashboard...');
+                const response = await fetch('/referrals/me', { credentials: 'include' });
+                if (!response.ok) throw new Error('Failed to load referral data');
                 
-                // Set timeout for API calls
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
+                referralData = await response.json();
                 
-                const [dashboardResponse, templatesResponse] = await Promise.all([
-                    fetch(`/api/referrals/dashboard?userEmail=${encodeURIComponent(userEmail)}`, {
-                        signal: controller.signal
-                    }),
-                    fetch(`/api/referrals/share-templates?userEmail=${encodeURIComponent(userEmail)}`, {
-                        signal: controller.signal
-                    })
-                ]);
+                updateProgressDisplay();
+                updateTimelineDisplay();
+                updateSharingLinks();
+                updateCosmeticsGallery();
                 
-                clearTimeout(timeoutId);
-
-                const dashboardResult = await dashboardResponse.json();
-                const templatesResult = await templatesResponse.json();
-
-                if (dashboardResult.success && templatesResult.success) {
-                    dashboardData = dashboardResult;
-                    shareTemplates = templatesResult.templates;
-                    populateDashboard();
-                } else {
-                    throw new Error('Failed to load dashboard data');
-                }
-
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('dashboard').style.display = 'block';
-
             } catch (error) {
-                console.error('Error loading referral dashboard:', error);
-                document.getElementById('loading').innerHTML = '<div style="color: #ef4444;">❌ Failed to load referral dashboard</div>';
+                console.error('Failed to load referral data:', error);
+                showError('Failed to load referral data');
             }
         }
 
-        function populateDashboard() {
-            const data = dashboardData;
-            const stats = data.stats;
-            const exclusive = data.exclusive_companion;
+        function updateProgressDisplay() {
+            if (!referralData) return;
 
-            // Update progress
-            document.getElementById('referralCount').textContent = stats.successful_referrals;
-            document.getElementById('progressText').textContent = `${stats.successful_referrals} / 5`;
-            
-            const progressPercentage = Math.min((stats.successful_referrals / 5) * 100, 100);
-            document.getElementById('progressFill').style.width = progressPercentage + '%';
+            const { stats, progress, next_reward } = referralData;
 
-            // Update referral link
-            document.getElementById('referralLink').textContent = data.referral_link;
+            // Update stats
+            document.getElementById('totalReferrals').textContent = stats.total_referrals;
+            document.getElementById('verifiedReferrals').textContent = stats.verified_referrals;
+            document.getElementById('pendingReferrals').textContent = stats.pending_referrals;
 
-            // Update next reward
-            if (data.next_milestone) {
-                const nextReward = data.next_milestone;
-                document.getElementById('nextRewardText').textContent = 
-                    `${nextReward.remaining} more referrals: ${nextReward.reward.description}`;
+            // Update progress bar
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+            const nextRewardInfo = document.getElementById('nextRewardInfo');
+
+            if (progress.completed_all) {
+                progressBar.style.width = '100%';
+                progressText.textContent = 'All rewards unlocked! 🎉';
+                nextRewardInfo.innerHTML = '<strong>🏆 Congratulations! You\'ve unlocked all referral rewards!</strong>';
             } else {
-                document.getElementById('nextReward').innerHTML = 
-                    '<div style="color: #22c55e; font-weight: 600;">🎉 All rewards unlocked!</div>';
-            }
-
-            // Update reward status based on referral count
-            const rewardStatus = document.getElementById('rewardStatus');
-            const referralCount = stats.successful_referrals;
-            
-            let statusMessage = '';
-            if (referralCount >= 10) {
-                statusMessage = '<div style="color: #22c55e; font-weight: 600;">🎉 All rewards unlocked!</div>';
-            } else if (referralCount >= 8) {
-                statusMessage = '<div style="color: #f59e0b; font-weight: 600;">🔒 2 more referrals for Blayzo Special Skin</div>';
-            } else if (referralCount >= 5) {
-                statusMessage = '<div style="color: #f59e0b; font-weight: 600;">🔒 3 more referrals for Claude</div>';
-            } else if (referralCount >= 2) {
-                statusMessage = '<div style="color: #f59e0b; font-weight: 600;">🔒 3 more referrals for Blazelian</div>';
-            } else {
-                statusMessage = '<div style="color: #f59e0b; font-weight: 600;">🔒 2 referrals needed for Blayzike</div>';
-            }
-            
-            rewardStatus.innerHTML = statusMessage;
-
-            // Populate rewards grid
-            populateRewardsGrid(data.all_rewards, stats.successful_referrals);
-        }
-
-        function populateRewardsGrid(rewards, currentCount) {
-            const grid = document.getElementById('rewardsGrid');
-            grid.innerHTML = '';
-
-            Object.entries(rewards).forEach(([count, reward]) => {
-                const item = document.createElement('div');
-                item.className = 'reward-item';
+                progressBar.style.width = `${progress.progress_percent}%`;
+                progressText.textContent = `${progress.progress_percent}% to next reward`;
                 
-                if (currentCount >= count) {
-                    item.classList.add('unlocked');
-                } else if (count === getNextMilestone(rewards, currentCount)) {
-                    item.classList.add('next');
+                if (next_reward) {
+                    nextRewardInfo.innerHTML = `
+                        <strong>Next Reward:</strong> ${next_reward.cosmetic} 
+                        <br><small>Need ${next_reward.referrals_needed} more verified referrals</small>
+                    `;
                 }
+            }
+        }
 
-                const icon = reward.type === 'exclusive_companion' ? '🌌' : 
-                           reward.type === 'premium_days' ? '💎' : 
-                           reward.type === 'premium_months' ? '👑' : '🎁';
+        function updateTimelineDisplay() {
+            if (!referralData) return;
 
-                item.innerHTML = `
-                    <div class="reward-count">${count} ${icon}</div>
-                    <div class="reward-description">${reward.description}</div>
-                    ${currentCount >= count ? '<div style="color: #22c55e; margin-top: 0.5rem; font-weight: 600;">✅ Unlocked</div>' : ''}
+            const timeline = document.getElementById('rewardsTimeline');
+            const { stats, progress } = referralData;
+            const verifiedCount = stats.verified_referrals;
+
+            // Referral thresholds (matches backend)
+            const thresholds = [
+                { threshold: 2, cosmetic: 'Blayzike', rarity: 'rare' },
+                { threshold: 5, cosmetic: 'Blazelian', rarity: 'epic' },
+                { threshold: 8, cosmetic: 'Claude', rarity: 'legendary' },
+                { threshold: 10, cosmetic: 'Blayzo', rarity: 'legendary' }
+            ];
+
+            timeline.innerHTML = '';
+
+            thresholds.forEach((reward, index) => {
+                const isCompleted = verifiedCount >= reward.threshold;
+                const isCurrent = !isCompleted && (index === 0 || verifiedCount >= thresholds[index - 1].threshold);
+                const isLocked = !isCompleted && !isCurrent;
+
+                const timelineItem = document.createElement('div');
+                timelineItem.className = 'timeline-item';
+
+                const markerClass = isCompleted ? 'completed' : (isCurrent ? 'current' : 'locked');
+                const contentClass = isCompleted ? 'completed' : (isCurrent ? 'current' : '');
+
+                timelineItem.innerHTML = `
+                    <div class="timeline-marker ${markerClass}">
+                        ${isCompleted ? '✓' : reward.threshold}
+                    </div>
+                    <div class="timeline-content ${contentClass}">
+                        <div class="reward-info">
+                            <img src="/static/cosmetics/${reward.cosmetic.toLowerCase()}.png" 
+                                 alt="${reward.cosmetic}" class="reward-icon"
+                                 onerror="this.src='/static/logos/IntroLogo.png'">
+                            <div class="reward-details">
+                                <h3>${reward.cosmetic}</h3>
+                                <p class="reward-description">${reward.threshold} verified referrals</p>
+                                <span class="rarity-badge rarity-${reward.rarity}">${reward.rarity}</span>
+                            </div>
+                        </div>
+                    </div>
                 `;
 
-                grid.appendChild(item);
+                timeline.appendChild(timelineItem);
             });
         }
 
-        function getNextMilestone(rewards, currentCount) {
-            const milestones = Object.keys(rewards).map(Number).sort((a, b) => a - b);
-            return milestones.find(milestone => milestone > currentCount);
+        function updateSharingLinks() {
+            if (!referralData) return;
+
+            const { referral_code, share_url, social_sharing } = referralData;
+
+            document.getElementById('referralCode').textContent = referral_code;
+            document.getElementById('referralUrl').textContent = share_url;
+
+            // Update social sharing links
+            document.getElementById('twitterShare').href = social_sharing.twitter;
+            document.getElementById('facebookShare').href = social_sharing.facebook;
+            document.getElementById('whatsappShare').href = social_sharing.whatsapp;
+        }
+
+        function updateCosmeticsGallery() {
+            if (!referralData) return;
+
+            const cosmeticsGrid = document.getElementById('cosmeticsGrid');
+            const { unlocked_cosmetics, stats } = referralData;
+            const verifiedCount = stats.verified_referrals;
+
+            // All possible cosmetics
+            const allCosmetics = [
+                { threshold: 2, name: 'Blayzike', rarity: 'rare' },
+                { threshold: 5, name: 'Blazelian', rarity: 'epic' },
+                { threshold: 8, name: 'Claude', rarity: 'legendary' },
+                { threshold: 10, name: 'Blayzo', rarity: 'legendary' }
+            ];
+
+            cosmeticsGrid.innerHTML = '';
+
+            allCosmetics.forEach(cosmetic => {
+                const isUnlocked = verifiedCount >= cosmetic.threshold;
+                
+                const card = document.createElement('div');
+                card.className = `cosmetic-card ${isUnlocked ? 'unlocked' : ''}`;
+
+                card.innerHTML = `
+                    <img src="/static/cosmetics/${cosmetic.name.toLowerCase()}.png" 
+                         alt="${cosmetic.name}" class="cosmetic-image"
+                         onerror="this.src='/static/logos/IntroLogo.png'">
+                    <div class="cosmetic-name">${cosmetic.name}</div>
+                    <div class="cosmetic-threshold">
+                        ${isUnlocked ? '✓ Unlocked' : `${cosmetic.threshold} referrals`}
+                    </div>
+                    <span class="rarity-badge rarity-${cosmetic.rarity}">${cosmetic.rarity}</span>
+                `;
+
+                cosmeticsGrid.appendChild(card);
+            });
         }
 
         function copyReferralLink() {
-            const link = document.getElementById('referralLink').textContent;
-            navigator.clipboard.writeText(link).then(() => {
-                showMessage('📋 Referral link copied to clipboard!', 'success');
-            }).catch(() => {
-                showMessage('❌ Failed to copy link', 'error');
+            if (!referralData) return;
+
+            navigator.clipboard.writeText(referralData.share_url).then(() => {
+                // Show success feedback
+                const copyBtn = document.querySelector('.copy-btn');
+                const originalText = copyBtn.innerHTML;
+                copyBtn.innerHTML = '✅ Copied!';
+                copyBtn.style.background = 'rgba(16, 185, 129, 0.3)';
+                
+                setTimeout(() => {
+                    copyBtn.innerHTML = originalText;
+                    copyBtn.style.background = 'rgba(255,255,255,0.2)';
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy link:', err);
+                alert('Failed to copy link');
             });
         }
 
-        function shareReferralLink() {
+        function shareGeneric() {
+            if (!referralData) return;
+
             if (navigator.share) {
                 navigator.share({
                     title: 'Join me on SoulBridge AI!',
-                    text: shareTemplates.generic,
-                    url: dashboardData.referral_link
+                    text: 'Amazing AI companion conversations await you!',
+                    url: referralData.share_url
                 });
             } else {
+                // Fallback to copy
                 copyReferralLink();
             }
         }
 
-        function shareToTwitter() {
-            if (!shareTemplates) {
-                showMessage('Templates not loaded yet, please wait...', 'error');
-                return;
-            }
-            const text = encodeURIComponent(shareTemplates.twitter);
-            window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank');
-        }
-
-        function shareToWhatsApp() {
-            if (!shareTemplates) {
-                showMessage('Templates not loaded yet, please wait...', 'error');
-                return;
-            }
-            const text = encodeURIComponent(shareTemplates.whatsapp);
-            window.open(`https://wa.me/?text=${text}`, '_blank');
-        }
-
-        function shareToEmail() {
-            if (!shareTemplates) {
-                showMessage('Templates not loaded yet, please wait...', 'error');
-                return;
-            }
-            const subject = encodeURIComponent(shareTemplates.email.subject);
-            const body = encodeURIComponent(shareTemplates.email.body);
-            window.open(`mailto:?subject=${subject}&body=${body}`, '_blank');
-        }
-
-        // Galaxy companion function removed - now using general exclusive access
-
-        function showMessage(message, type = 'info') {
-            const messageDiv = document.createElement('div');
-            messageDiv.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                padding: 1rem;
-                border-radius: 8px;
-                max-width: 300px;
-                z-index: 1001;
-                font-size: 0.9rem;
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-                ${type === 'success' ? 'background: rgba(34, 197, 94, 0.9); color: white;' : ''}
-                ${type === 'error' ? 'background: rgba(239, 68, 68, 0.9); color: white;' : ''}
-                ${type === 'info' ? 'background: rgba(34, 211, 238, 0.9); color: #000;' : ''}
+        function showError(message) {
+            const container = document.querySelector('.container');
+            const errorDiv = document.createElement('div');
+            errorDiv.style.cssText = `
+                background: #fee2e2; color: #dc2626; padding: 16px; 
+                border-radius: 8px; margin-bottom: 20px; text-align: center;
             `;
-            messageDiv.textContent = message;
-            
-            document.body.appendChild(messageDiv);
-            
-            setTimeout(() => {
-                if (messageDiv.parentNode) {
-                    messageDiv.parentNode.removeChild(messageDiv);
-                }
-            }, 5000);
+            errorDiv.textContent = message;
+            container.insertBefore(errorDiv, container.firstChild);
         }
 
-        // Simple fallback function
-        function showSimpleReferralInfo() {
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('dashboard').style.display = 'block';
-            
-            // Set simple default values
-            document.getElementById('referralCount').textContent = '0';
-            document.getElementById('progressText').textContent = '0 / 5';
-            document.getElementById('progressFill').style.width = '0%';
-            document.getElementById('referralLink').textContent = window.location.origin + '/register?ref=' + btoa("{{ session.get('user_email', 'user') }}").substring(0, 8);
-            document.getElementById('nextRewardText').textContent = '2 referrals needed for Blayzike companion';
-            
-            // Show simple message
-            showMessage('Referral system temporarily simplified. Share your link to refer friends!', 'info');
-        }
-
-        // Load dashboard on page load, with faster fallback timeout
-        document.addEventListener('DOMContentLoaded', function() {
-            loadReferralDashboard();
-            
-            // Auto-fallback after 5 seconds if still loading (reduced from 10)
-            setTimeout(function() {
-                if (document.getElementById('loading').style.display !== 'none') {
-                    console.log('Referral dashboard loading timeout - showing fallback');
-                    showSimpleReferralInfo();
-                }
-            }, 5000);
-        });
+        // Load data when page loads
+        document.addEventListener('DOMContentLoaded', loadReferralData);
     </script>
 </body>
 </html>
