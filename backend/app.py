@@ -2194,6 +2194,16 @@ def start_trial():
             cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS trial_expires_at TIMESTAMP") 
             cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS trial_active INTEGER DEFAULT 0")
             cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS trial_used_permanently INTEGER DEFAULT 0")
+            
+            # Convert existing BOOLEAN columns to INTEGER if needed
+            try:
+                logger.info(f"🔄 TRIAL: Converting existing BOOLEAN columns to INTEGER")
+                cursor.execute("ALTER TABLE users ALTER COLUMN trial_active TYPE INTEGER USING CASE WHEN trial_active = true THEN 1 ELSE 0 END")
+                cursor.execute("ALTER TABLE users ALTER COLUMN trial_used_permanently TYPE INTEGER USING CASE WHEN trial_used_permanently = true THEN 1 ELSE 0 END")
+                logger.info(f"✅ TRIAL: Successfully converted BOOLEAN columns to INTEGER")
+            except Exception as convert_error:
+                logger.info(f"ℹ️ TRIAL: Column type conversion skipped (likely already INTEGER): {convert_error}")
+            
             conn.commit()
             
             # Now update with trial data - use 1/0 for PostgreSQL INTEGER columns
