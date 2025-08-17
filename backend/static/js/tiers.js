@@ -51,15 +51,15 @@
         // Force session sync before reload to ensure trial state is properly set
         fetch('/api/sync-trial-session', { credentials: 'include' })
           .then(() => {
-            // Reload after session sync
+            // Reload with cache buster after session sync
             setTimeout(() => {
-              window.location.reload();
+              location.replace('/tiers?trial=1&ts=' + Date.now());
             }, 500);
           })
           .catch(() => {
             // Reload anyway if sync fails
             setTimeout(() => {
-              window.location.reload();
+              location.replace('/tiers?trial=1&ts=' + Date.now());
             }, 1000);
           });
         return;

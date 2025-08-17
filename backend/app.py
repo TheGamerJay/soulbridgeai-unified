@@ -762,6 +762,24 @@ def ensure_session_persistence():
     else:
         # Only make non-authenticated sessions temporary
         session.permanent = False
+
+    # CRITICAL: Apply access flags on every request (trial first, then fan out)
+    if session.get('user_id'):  # Only for authenticated users
+        plan = session.get("user_plan", "free")
+        trial = bool(session.get("trial_active"))
+
+        # Base: free is always true
+        access_free = True
+        access_growth = trial or plan.lower() in ("growth", "max")
+        access_max = trial or plan.lower() == "max"
+
+        session["access_trial"] = trial
+        session["access_free"] = access_free
+        session["access_growth"] = access_growth
+        session["access_max"] = access_max
+
+        # Mark modified to guarantee cookie write
+        session.modified = True
 # Prevent caching to force fresh login checks
 @app.after_request
 def prevent_caching(response):
@@ -3159,7 +3177,7 @@ def tiers_page():
         {'need': 10, 'slug': 'blayzo_skin', 'name': 'Blayzo Special Skin'},
     ]
     
-    return render_template_string(TIERS_TEMPLATE, 
+    html = render_template_string(TIERS_TEMPLATE, 
                                 user_plan=user_plan,
                                 trial_active=trial_active,
                                 trial_expires_at=trial_expires_at,
@@ -3169,6 +3187,12 @@ def tiers_page():
                                 max_list=max_companions,
                                 referral_milestones=referral_milestones,
                                 referral_count=referral_count)
+    
+    # Disable caching to prevent stale locked HTML
+    resp = make_response(html, 200)
+    resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    resp.headers["Pragma"] = "no-cache"
+    return resp
 
 @app.route("/chat")
 def chat():
@@ -13752,8 +13776,8 @@ TIERS_TEMPLATE = r"""
       </div>
       <div class="row">
         {% for c in growth_list %}
-          {% set locked = (not trial_active) and (user_plan == 'free') %}
-          <div class="card {{ 'locked' if locked }}" onclick="{{ 'openChat(\"' ~ c.slug ~ '\")' if not locked else 'notifyUpgrade(\"Growth\")' }}" title="{{ c.name }}">
+          {% set locked = not session.access_growth %}
+          <div class="card {{ 'locked' if locked }}" onclick="{{ 'openChat(\"' ~ c.slug ~ '\")' if not locked else 'notifyUpgrade(\"Growth\")' }}" title="{{ c.name }}" data-tier="growth">
             <span class="lock">{{ '✅ Unlocked' if not locked else '🔒 Growth' }}</span>
             <img src="{{ c.image_url or '/static/logos/IntroLogo.png' }}" alt="{{ c.name }}" onerror="this.src='/static/logos/IntroLogo.png'">
             <div class="name">{{ c.name }}</div>
@@ -13773,8 +13797,8 @@ TIERS_TEMPLATE = r"""
       </div>
       <div class="row">
         {% for c in max_list %}
-          {% set locked = (not trial_active) and (user_plan != 'max') %}
-          <div class="card {{ 'locked' if locked }}" onclick="{{ 'openChat(\"' ~ c.slug ~ '\")' if not locked else 'notifyUpgrade(\"Max\")' }}" title="{{ c.name }}">
+          {% set locked = not session.access_max %}
+          <div class="card {{ 'locked' if locked }}" onclick="{{ 'openChat(\"' ~ c.slug ~ '\")' if not locked else 'notifyUpgrade(\"Max\")' }}" title="{{ c.name }}" data-tier="max">
             <span class="lock">{{ '✅ Unlocked' if not locked else '🔒 Max' }}</span>
             <img src="{{ c.image_url or '/static/logos/IntroLogo.png' }}" alt="{{ c.name }}" onerror="this.src='/static/logos/IntroLogo.png'">
             <div class="name">{{ c.name }}</div>
