@@ -115,7 +115,9 @@ async function initializeTrialSystem() {
 }
 
 // Start trial function - Fixed to handle new backend response format
-window.startTrial = async function startTrial() {
+// Only override if tiers.js hasn't already set up startTrial
+if (typeof window.startTrial === 'undefined') {
+  window.startTrial = async function startTrial() {
   const btn = document.querySelector('#startTrialBtn');
   const toast = (msg, type = 'info') => showToast(msg, type); // Use existing toast system
 
@@ -238,6 +240,7 @@ window.startTrial = async function startTrial() {
     btn?.classList.remove('opacity-60', 'pointer-events-none');
   }
 };
+} // End if check for startTrial override
 
 // Check if companion is unlocked for user
 function isCompanionUnlocked(companionTier, userPlan, trialActive) {

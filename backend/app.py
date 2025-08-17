@@ -13977,43 +13977,9 @@ TIERS_TEMPLATE = r"""
   }
 </script>
 
-<!-- Load New Trial System for backend-driven trial logic -->
-<script>
-  // Override old startTrial with new backend-driven version
-  window.startTrial = async function() {
-    console.log('🎯 Trial button clicked!');
-    try {
-      console.log('🎯 Making fetch request to /api/start-trial');
-      const response = await fetch('/api/start-trial', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      });
-      
-      console.log('🎯 Response status:', response.status);
-      const data = await response.json();
-      console.log('🎯 Response data:', data);
-      
-      // STRICT success gate - check both response.ok AND data.ok AND trial_active
-      if (response.ok && data.ok === true && data.trial_active === true) {
-        console.log('✅ Trial activated successfully!');
-        // Use setTimeout to ensure alert shows before refresh
-        alert('🎉 5-hour trial activated! All premium features unlocked.');
-        setTimeout(() => {
-          window.location.reload(); // Refresh to update UI
-        }, 500);
-      } else {
-        // Only show error on actual failure
-        const msg = (data && data.error) ? data.error : `HTTP ${response.status}`;
-        alert(`Failed to start trial: ${msg}`);
-      }
-    } catch (error) {
-      console.error('Error starting trial:', error);
-      alert('Error starting trial. Please try again.');
-    }
-  };
-  
-  console.log('✅ New backend-driven trial system loaded');
-</script>
+<!-- Load proper trial system from external files -->
+<script src="/static/js/tiers.js"></script>
+<script src="/static/js/trial-countdown.js"></script>
 
 </body>
 </html>
