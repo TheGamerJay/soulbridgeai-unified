@@ -2185,36 +2185,12 @@ def start_trial():
     logger.info(f"🕒 TRIAL START DEBUG: now={now}, expires={expires}")
     logger.info(f"🕒 TRIAL START DEBUG: duration_seconds={(expires-now).total_seconds()}")
 
-    # Update database - try with trial_active first, fallback without it
-    try:
-        if db.use_postgres:
-            logger.info(f"🔍 TRIAL DB: Executing PostgreSQL update for user {user_id}")
-            try:
-                # Try with trial_active column first
-                cursor.execute("UPDATE users SET trial_started_at = %s, trial_expires_at = %s, trial_active = TRUE, trial_used_permanently = FALSE WHERE id = %s", (now, expires, user_id))
-            except Exception as trial_active_error:
-                logger.warning(f"⚠️ trial_active column not found, trying without it: {trial_active_error}")
-                # Fallback without trial_active column
-                cursor.execute("UPDATE users SET trial_started_at = %s, trial_expires_at = %s, trial_used_permanently = FALSE WHERE id = %s", (now, expires, user_id))
-        else:
-            logger.info(f"🔍 TRIAL DB: Executing SQLite update for user {user_id}")
-            try:
-                # Try with trial_active column first
-                cursor.execute("UPDATE users SET trial_started_at = ?, trial_expires_at = ?, trial_active = TRUE, trial_used_permanently = FALSE WHERE id = ?", (now.isoformat(), expires.isoformat(), user_id))
-            except Exception as trial_active_error:
-                logger.warning(f"⚠️ trial_active column not found, trying without it: {trial_active_error}")
-                # Fallback without trial_active column
-                cursor.execute("UPDATE users SET trial_started_at = ?, trial_expires_at = ?, trial_used_permanently = FALSE WHERE id = ?", (now.isoformat(), expires.isoformat(), user_id))
-        
-        conn.commit()
-        conn.close()
-        logger.info(f"✅ TRIAL DB: Database update successful for user {user_id}")
-    except Exception as e:
-        conn.close()
-        logger.error(f"❌ TRIAL DB ERROR: {e}")
-        logger.error(f"❌ TRIAL DB ERROR TYPE: {type(e)}")
-        logger.error(f"❌ TRIAL DB ERROR ARGS: {e.args}")
-        return jsonify({"success": False, "error": "Database error"}), 500
+    # Close database connection - skip database update for now
+    conn.close()
+    logger.info(f"🔄 TRIAL: Skipping database update, using session-only trial for user {user_id}")
+    
+    # TODO: Add database update back once schema is fixed
+    # For now, trial state is tracked purely in session
 
     # Update session - CRITICAL: Set trial_active to True, don't mark as used permanently yet
     session['trial_active'] = True
