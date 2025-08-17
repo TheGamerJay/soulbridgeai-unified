@@ -46,22 +46,67 @@ def _db_flavor_and_connect():
     conn.isolation_level = None  # We'll use explicit BEGIN/COMMIT
     return "sqlite", conn
 
+def _get_column_types(conn):
+    """Return a dict of {col_name: data_type} for the users table (Postgres only)."""
+    with conn.cursor() as cur:
+        cur.execute("""
+            SELECT column_name, data_type
+            FROM information_schema.columns
+            WHERE table_name='users'
+              AND column_name IN ('trial_active','trial_used_permanently','trial_warning_sent',
+                                  'trial_started_at','trial_expires_at')
+        """)
+        return {name: dtype for (name, dtype) in cur.fetchall()}
+
 def _ensure_trial_columns(conn, flavor: str):
     """
     Create missing columns with correct types.
-    Postgres: timestamptz + boolean
+    Postgres: timestamptz + boolean (with defensive schema drift handling)
     SQLite:   TEXT ISO8601 timestamps + INTEGER booleans (0/1)
     """
     if flavor == "postgres":
         with conn.cursor() as cur:
+            # Add missing columns first
             cur.execute("""
             ALTER TABLE users
               ADD COLUMN IF NOT EXISTS trial_started_at       timestamptz,
               ADD COLUMN IF NOT EXISTS trial_expires_at       timestamptz,
-              ADD COLUMN IF NOT EXISTS trial_active           boolean NOT NULL DEFAULT FALSE,
-              ADD COLUMN IF NOT EXISTS trial_used_permanently boolean NOT NULL DEFAULT FALSE,
-              ADD COLUMN IF NOT EXISTS trial_warning_sent     boolean NOT NULL DEFAULT FALSE;
+              ADD COLUMN IF NOT EXISTS trial_active           boolean DEFAULT FALSE,
+              ADD COLUMN IF NOT EXISTS trial_used_permanently boolean DEFAULT FALSE,
+              ADD COLUMN IF NOT EXISTS trial_warning_sent     boolean DEFAULT FALSE;
             """)
+        
+        # Defensive: fix schema drift by normalizing types if they're wrong
+        types = _get_column_types(conn)
+        convert_specs = []
+        
+        if types.get("trial_active") != "boolean":
+            logging.info(f"🔄 SCHEMA DRIFT: trial_active is {types.get('trial_active')}, converting to boolean")
+            convert_specs.append("ALTER COLUMN trial_active TYPE boolean USING (trial_active::text IN ('1','t','true','y','yes','on')), ALTER COLUMN trial_active SET DEFAULT FALSE, ALTER COLUMN trial_active SET NOT NULL")
+        
+        if types.get("trial_used_permanently") != "boolean":
+            logging.info(f"🔄 SCHEMA DRIFT: trial_used_permanently is {types.get('trial_used_permanently')}, converting to boolean")
+            convert_specs.append("ALTER COLUMN trial_used_permanently TYPE boolean USING (trial_used_permanently::text IN ('1','t','true','y','yes','on')), ALTER COLUMN trial_used_permanently SET DEFAULT FALSE, ALTER COLUMN trial_used_permanently SET NOT NULL")
+        
+        if types.get("trial_warning_sent") != "boolean":
+            logging.info(f"🔄 SCHEMA DRIFT: trial_warning_sent is {types.get('trial_warning_sent')}, converting to boolean")
+            convert_specs.append("ALTER COLUMN trial_warning_sent TYPE boolean USING (trial_warning_sent::text IN ('1','t','true','y','yes','on')), ALTER COLUMN trial_warning_sent SET DEFAULT FALSE, ALTER COLUMN trial_warning_sent SET NOT NULL")
+        
+        if types.get("trial_started_at") != "timestamp with time zone":
+            logging.info(f"🔄 SCHEMA DRIFT: trial_started_at is {types.get('trial_started_at')}, converting to timestamptz")
+            convert_specs.append("ALTER COLUMN trial_started_at TYPE timestamptz USING (CASE WHEN trial_started_at IS NULL THEN NULL ELSE trial_started_at::timestamptz END)")
+        
+        if types.get("trial_expires_at") != "timestamp with time zone":
+            logging.info(f"🔄 SCHEMA DRIFT: trial_expires_at is {types.get('trial_expires_at')}, converting to timestamptz")
+            convert_specs.append("ALTER COLUMN trial_expires_at TYPE timestamptz USING (CASE WHEN trial_expires_at IS NULL THEN NULL ELSE trial_expires_at::timestamptz END)")
+        
+        if convert_specs:
+            logging.info("🔧 AUTO-FIXING schema drift in trial columns")
+            with conn.cursor() as cur:
+                cur.execute("ALTER TABLE users " + ", ".join(convert_specs) + ";")
+            logging.info("✅ Schema drift auto-fix completed")
+        else:
+            logging.info("✅ Trial schema is correct - no drift detected")
     else:
         # SQLite: check pragma for existing columns
         cur = conn.cursor()
@@ -108,8 +153,14 @@ def _timestamp_params(flavor: str, dt):
 def _update_trial_row(conn, flavor: str, user_id: int, started_dt, expires_dt, active_bool, used_perm_bool):
     """
     Perform the UPDATE with the right placeholders and types.
+    Defensive: handles both INTEGER and BOOLEAN column types on PostgreSQL.
     """
     if flavor == "postgres":
+        # Detect actual column types to decide how to bind values safely
+        types = _get_column_types(conn)
+        active_is_bool = (types.get("trial_active") == "boolean")
+        used_is_bool = (types.get("trial_used_permanently") == "boolean")
+        
         sql = """
         UPDATE users
         SET
@@ -119,16 +170,31 @@ def _update_trial_row(conn, flavor: str, user_id: int, started_dt, expires_dt, a
           trial_used_permanently = %s
         WHERE id = %s
         """
+        
+        # Defensive: If column is integer, write 1/0; if boolean, write True/False
+        if active_is_bool:
+            v_active = active_bool
+        else:
+            logging.info(f"🛡️ DEFENSIVE: trial_active is INTEGER, using {1 if active_bool else 0} instead of {active_bool}")
+            v_active = 1 if active_bool else 0
+            
+        if used_is_bool:
+            v_used = used_perm_bool
+        else:
+            logging.info(f"🛡️ DEFENSIVE: trial_used_permanently is INTEGER, using {1 if used_perm_bool else 0} instead of {used_perm_bool}")
+            v_used = 1 if used_perm_bool else 0
+
         params = (
             _timestamp_params(flavor, started_dt),
             _timestamp_params(flavor, expires_dt),
-            _boolean_params(flavor, active_bool)[0],
-            _boolean_params(flavor, used_perm_bool)[0],
+            v_active,
+            v_used,
             user_id,
         )
         with conn.cursor() as cur:
             cur.execute(sql, params)
     else:
+        # SQLite (unchanged)
         sql = """
         UPDATE users
         SET
@@ -152,20 +218,31 @@ def _update_trial_row(conn, flavor: str, user_id: int, started_dt, expires_dt, a
         cur.execute("COMMIT")
 
 def _reset_trial_row(conn, flavor: str, user_id: int):
-    """Optional helper to reset a user's trial entirely."""
+    """Optional helper to reset a user's trial entirely. Defensive against schema drift."""
     if flavor == "postgres":
+        # Detect actual column types for defensive reset
+        types = _get_column_types(conn)
+        active_is_bool = (types.get("trial_active") == "boolean")
+        used_is_bool = (types.get("trial_used_permanently") == "boolean")
+        warning_is_bool = (types.get("trial_warning_sent") == "boolean")
+        
+        # Use appropriate values based on actual column types
+        active_val = False if active_is_bool else 0
+        used_val = False if used_is_bool else 0
+        warning_val = False if warning_is_bool else 0
+        
         sql = """
         UPDATE users
         SET
-          trial_active = FALSE,
+          trial_active = %s,
           trial_started_at = NULL,
           trial_expires_at = NULL,
-          trial_warning_sent = FALSE,
-          trial_used_permanently = FALSE
+          trial_warning_sent = %s,
+          trial_used_permanently = %s
         WHERE id = %s
         """
         with conn.cursor() as cur:
-            cur.execute(sql, (user_id,))
+            cur.execute(sql, (active_val, warning_val, used_val, user_id))
     else:
         sql = """
         UPDATE users
