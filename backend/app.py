@@ -208,6 +208,43 @@ if not secret_key:
     logger.warning("Generated temporary secret key - set SECRET_KEY environment variable for production")
 app.secret_key = secret_key
 
+# ---- debug endpoints (safe, idempotent) --------------------------------------
+def register_debug_endpoints(app):
+    """Register debug routes once, only in non-production."""
+    is_prod = os.getenv("RAILWAY_ENVIRONMENT_NAME", "").lower() == "production" \
+              or app.config.get("ENV") == "production" \
+              or app.config.get("DEBUG") is False
+
+    if is_prod:
+        logger.warning("🔒 PRODUCTION MODE: Debug endpoints disabled for security")
+        return
+
+    # Avoid duplicate registration
+    existing_endpoints = {rule.endpoint for rule in app.url_map.iter_rules()}
+    if "debug_session_api" in existing_endpoints:
+        logger.info("ℹ️  Debug endpoints already registered; skipping")
+        return
+
+    def _debug_session():
+        if not is_logged_in():
+            return jsonify({"error": "Not authenticated"}), 401
+        keys = (
+            "trial_active", "trial_started_at", "trial_expires_at",
+            "access_trial", "access_growth", "access_max", "user_plan"
+        )
+        return jsonify({k: session.get(k) for k in keys})
+
+    # Use explicit endpoint name to avoid default function-name collision
+    app.add_url_rule(
+        "/api/debug-session",
+        endpoint="debug_session_api",
+        view_func=_debug_session,
+        methods=["GET"]
+    )
+
+    logger.info("✅ Debug endpoints registered")
+# ------------------------------------------------------------------------------
+
 # --- SESSION COOKIE SETTINGS FOR PRODUCTION ---
 # Always set these for production deployments!
 app.config['SESSION_COOKIE_SECURE'] = True  # Only send cookie over HTTPS
@@ -7829,15 +7866,7 @@ def get_user_plan_api():
         logger.error(f"Get user plan error: {e}")
         return jsonify({"plan": "free", "trial_active": False})
 
-@app.route("/api/debug-session", methods=['GET'])
-def debug_session():
-    """Debug endpoint to verify trial session state"""
-    if not is_logged_in():
-        return jsonify({"error": "Not authenticated"}), 401
-        
-    keys = ("trial_active","trial_started_at","trial_expires_at",
-            "access_trial","access_growth","access_max","user_plan")
-    return jsonify({k: session.get(k) for k in keys}), 200
+# Debug endpoint registered safely below - not as decorator to avoid registration conflicts
 
 # ============================================
 # BULLETPROOF API ENDPOINTS
@@ -16548,6 +16577,12 @@ if __name__ == "__main__":
             logger.info("ℹ️ SQLite detected - schema invariants not needed")
     except Exception as schema_error:
         logger.warning(f"⚠️ Schema invariant enforcement failed (continuing anyway): {schema_error}")
+    
+    # Register debug endpoints safely (only in non-production)
+    try:
+        register_debug_endpoints(app)
+    except Exception as debug_error:
+        logger.warning(f"⚠️ Debug endpoint registration failed (continuing anyway): {debug_error}")
     
     # Start the server
     logger.info("🌟 Starting Flask server...")
