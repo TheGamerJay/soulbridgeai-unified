@@ -48,10 +48,20 @@
         document.body.classList.add('trial-active', 'max-access');
         setStatus('🎉 5-hour trial activated!');
 
-        // One-time SSR refresh to pull server-side gated content (cache-busted)
-        // Use a flag to avoid reload loops
-        localStorage.setItem('trial_refreshed_once', '1');
-        location.replace('/tiers?trial=1&ts=' + Date.now());
+        // Force session sync before reload to ensure trial state is properly set
+        fetch('/api/sync-trial-session', { credentials: 'include' })
+          .then(() => {
+            // Reload after session sync
+            setTimeout(() => {
+              window.location.reload();
+            }, 500);
+          })
+          .catch(() => {
+            // Reload anyway if sync fails
+            setTimeout(() => {
+              window.location.reload();
+            }, 1000);
+          });
         return;
       }
 
@@ -63,36 +73,81 @@
       console.error('startTrial failed:', err);
       setStatus('Failed to start trial');
       btn?.removeAttribute('disabled');
-      // Show error message (removed alert to avoid interfering with navigation)
-      console.error(`Failed to start trial: ${err.message || err}`);
+      
+      // Enhanced user feedback with alert for critical errors
+      const errorMsg = `Failed to start trial: ${err.message || err}`;
+      console.error(errorMsg);
+      
+      // Show user-friendly alert only for non-navigation errors
+      if (!err.message?.includes('Navigation') && !err.message?.includes('redirect')) {
+        setTimeout(() => {
+          alert(`Trial activation failed. Please try again or contact support if the issue persists.\n\nError: ${err.message || 'Unknown error'}`);
+        }, 100);
+      }
     }
   }
 
-  // Init: if trial already active, lock UI instantly and start countdown
-  (function initTrialUI() {
-    const active = localStorage.getItem('trial_active') === '1';
-    const expires = localStorage.getItem('trial_expires_at');
-    if (active && expires) {
-      document.body.classList.add('trial-active', 'max-access');
-      btn?.classList.add('hidden');
-      setStatus('Trial active');
-      
-      // Unlock Growth/Max companions
-      document.querySelectorAll('[data-lock="growth"],[data-lock="max"]').forEach(el => {
-        el.classList.remove('locked');
-        el.setAttribute('aria-disabled', 'false');
-      });
-      
-      // Start/attach circular countdown if present
-      if (window.initTrialCountdown) {
-        window.initTrialCountdown({
-          containerId: 'trialTimerMount',
-          expiresAtIso: expires,
-          startedAtIso: localStorage.getItem('trial_started_at')
+  // Check session state on page load and update UI accordingly
+  async function checkTrialStateAndUpdateUI() {
+    try {
+      const res = await fetch('/api/session-lite', { credentials: 'include' });
+      if (res.ok) {
+        const data = await res.json();
+        console.log('🎯 Session state:', data);
+        
+        if (data.ok && data.trial_active) {
+          // Trial is active - hide button and update UI
+          btn?.classList.add('hidden');
+          document.body.classList.add('trial-active', 'max-access');
+          setStatus('Trial active');
+          
+          // Unlock Growth/Max companions
+          document.querySelectorAll('[data-lock="growth"],[data-lock="max"]').forEach(el => {
+            el.classList.remove('locked');
+            el.setAttribute('aria-disabled', 'false');
+          });
+          
+          // Start countdown if we have expiry time
+          const expires = data.trial_expires_at || localStorage.getItem('trial_expires_at');
+          if (expires && window.initTrialCountdown) {
+            window.initTrialCountdown({
+              containerId: 'trialTimerMount',
+              expiresAtIso: expires,
+              startedAtIso: data.trial_started_at || localStorage.getItem('trial_started_at')
+            });
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to check trial state:', err);
+      // Fallback to localStorage check
+      const active = localStorage.getItem('trial_active') === '1';
+      const expires = localStorage.getItem('trial_expires_at');
+      if (active && expires) {
+        document.body.classList.add('trial-active', 'max-access');
+        btn?.classList.add('hidden');
+        setStatus('Trial active');
+        
+        // Unlock Growth/Max companions
+        document.querySelectorAll('[data-lock="growth"],[data-lock="max"]').forEach(el => {
+          el.classList.remove('locked');
+          el.setAttribute('aria-disabled', 'false');
         });
+        
+        // Start/attach circular countdown if present
+        if (window.initTrialCountdown) {
+          window.initTrialCountdown({
+            containerId: 'trialTimerMount',
+            expiresAtIso: expires,
+            startedAtIso: localStorage.getItem('trial_started_at')
+          });
+        }
       }
     }
-  })();
+  }
+
+  // Initialize trial UI on page load
+  checkTrialStateAndUpdateUI();
 
   // Optional: verify server session after load (helps confirm SSR sync)
   (async function debugSessionOnce() {

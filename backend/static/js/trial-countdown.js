@@ -24,12 +24,24 @@
       return; // no active trial
     }
 
+    // Enhanced validation for expiry date parsing
     const expiresAt = new Date(expiresIso);
+    if (isNaN(expiresAt.getTime())) {
+      console.warn('[trial-timer] Invalid expiry date format:', expiresIso);
+      mount.innerHTML = '<div class="trial-timer expired"><div class="label"><div class="title">Trial Status</div><div class="time">Invalid Date</div></div></div>';
+      return;
+    }
+
     const now = Date.now();
     let totalSeconds;
     if (startedIso) {
       const startedAt = new Date(startedIso);
-      totalSeconds = Math.max(1, Math.round((expiresAt - startedAt) / 1000));
+      if (isNaN(startedAt.getTime())) {
+        console.warn('[trial-timer] Invalid start date format, using default duration:', startedIso);
+        totalSeconds = DEFAULT_SECONDS;
+      } else {
+        totalSeconds = Math.max(1, Math.round((expiresAt - startedAt) / 1000));
+      }
     } else {
       totalSeconds = DEFAULT_SECONDS;
     }
@@ -99,11 +111,29 @@
 
       if (msLeft <= 0) {
         cancelAnimationFrame(rafId);
-        // mark storage + fire event
-        try { localStorage.setItem('trial_active','0'); } catch {}
-        const evt = new CustomEvent('trial:expired', { detail: { when: new Date().toISOString() } });
-        window.dispatchEvent(evt);
-        if (opts.onExpire) opts.onExpire();
+        // mark storage + fire event with enhanced error handling
+        try { 
+          localStorage.setItem('trial_active','0'); 
+          localStorage.removeItem('trial_expires_at');
+          localStorage.removeItem('trial_started_at');
+        } catch (storageError) {
+          console.warn('[trial-timer] localStorage cleanup failed:', storageError);
+        }
+        
+        try {
+          const evt = new CustomEvent('trial:expired', { detail: { when: new Date().toISOString() } });
+          window.dispatchEvent(evt);
+        } catch (eventError) {
+          console.warn('[trial-timer] Event dispatch failed:', eventError);
+        }
+        
+        if (opts.onExpire) {
+          try {
+            opts.onExpire();
+          } catch (callbackError) {
+            console.warn('[trial-timer] onExpire callback failed:', callbackError);
+          }
+        }
         return;
       }
       rafId = requestAnimationFrame(tick);

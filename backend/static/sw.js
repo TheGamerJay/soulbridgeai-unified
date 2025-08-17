@@ -259,6 +259,21 @@ self.addEventListener('message', event => {
                 tag: 'scheduled-notification'
             });
         }, delay);
+    } else if (event.data.type === 'TRIAL_STATE_CHANGED') {
+        // Enhanced cache busting for trial state changes
+        console.log('Service Worker: Trial state changed, refreshing critical caches');
+        event.waitUntil(
+            refreshTrialRelatedResources().then(() => {
+                if (event.ports && event.ports[0]) {
+                    event.ports[0].postMessage({ success: true });
+                }
+            }).catch(err => {
+                console.warn('Service Worker: Failed to refresh trial caches:', err);
+                if (event.ports && event.ports[0]) {
+                    event.ports[0].postMessage({ success: false, error: err.message });
+                }
+            })
+        );
     }
 });
 
@@ -290,4 +305,41 @@ function refreshCriticalResources() {
                 .catch(err => console.log('Failed to refresh:', url, err));
         })
     );
+}
+
+// Enhanced cache refresh specifically for trial-related resources
+function refreshTrialRelatedResources() {
+    const trialResources = [
+        '/tiers',
+        '/static/js/tiers.js',
+        '/static/js/trial-countdown.js', 
+        '/static/css/trial-countdown.css',
+        '/static/js/new_trial_system.js'
+    ];
+    
+    return Promise.all(
+        trialResources.map(url => {
+            return fetch(url, { 
+                cache: 'reload',
+                headers: { 'Cache-Control': 'no-cache' }
+            })
+                .then(response => {
+                    if (response.ok) {
+                        return caches.open(CACHE_NAME).then(cache => {
+                            console.log('Service Worker: Refreshed trial resource:', url);
+                            return cache.put(url, response);
+                        });
+                    } else {
+                        console.warn('Service Worker: Failed to fetch trial resource:', url, response.status);
+                    }
+                })
+                .catch(err => {
+                    console.warn('Service Worker: Error refreshing trial resource:', url, err);
+                    // Don't fail the entire operation for one resource
+                    return Promise.resolve();
+                });
+        })
+    ).then(() => {
+        console.log('Service Worker: Trial cache refresh completed');
+    });
 }

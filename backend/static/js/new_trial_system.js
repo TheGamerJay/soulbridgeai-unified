@@ -151,11 +151,16 @@ window.startTrial = async function startTrial() {
     const startedIso = data.trial_started_at;
     const planFrom  = data.plan_limits_from || 'free';
 
-    // Persist for other pages / refresh
-    localStorage.setItem('trial_active', 'true');
-    localStorage.setItem('trial_expires_at', expiresIso);
-    localStorage.setItem('trial_started_at', startedIso || new Date().toISOString());
-    localStorage.setItem('trial_plan_limits_from', planFrom);
+    // Enhanced localStorage persistence with error handling
+    try {
+      localStorage.setItem('trial_active', 'true');
+      localStorage.setItem('trial_expires_at', expiresIso);
+      localStorage.setItem('trial_started_at', startedIso || new Date().toISOString());
+      localStorage.setItem('trial_plan_limits_from', planFrom);
+    } catch (storageError) {
+      console.warn('Failed to persist trial state to localStorage:', storageError);
+      // Continue anyway - trial is still active on backend
+    }
 
     // Flip UI gates (example IDs/classes—match to your DOM)
     document.body.classList.add('trial-active', 'max-access');
@@ -171,20 +176,35 @@ window.startTrial = async function startTrial() {
     if (typeof window.renderTrialCountdown === 'function') {
       window.renderTrialCountdown(expiresIso);
     } else {
-      // Fallback inline countdown
+      // Enhanced fallback inline countdown with validation
       const el = document.getElementById('trialCountdown');
       if (el) {
         const target = Date.parse(expiresIso);
-        const tick = () => {
-          const ms = target - Date.now();
-          if (ms <= 0) { el.textContent = 'Expired'; clearInterval(t); return; }
-          const h = Math.floor(ms / 3_600_000);
-          const m = Math.floor((ms % 3_600_000) / 60_000);
-          const s = Math.floor((ms % 60_000) / 1000);
-          el.textContent = `${h}h ${m}m ${s}s`;
-        };
-        tick();
-        const t = setInterval(tick, 1000);
+        if (isNaN(target)) {
+          console.warn('Invalid expiry date for countdown:', expiresIso);
+          el.textContent = 'Invalid Date';
+        } else {
+          const tick = () => {
+            const ms = target - Date.now();
+            if (ms <= 0) { 
+              el.textContent = 'Expired'; 
+              clearInterval(t); 
+              // Clean up localStorage on expiry
+              try {
+                localStorage.setItem('trial_active', 'false');
+                localStorage.removeItem('trial_expires_at');
+                localStorage.removeItem('trial_started_at');
+              } catch {}
+              return; 
+            }
+            const h = Math.floor(ms / 3_600_000);
+            const m = Math.floor((ms % 3_600_000) / 60_000);
+            const s = Math.floor((ms % 60_000) / 1000);
+            el.textContent = `${h}h ${m}m ${s}s`;
+          };
+          tick();
+          const t = setInterval(tick, 1000);
+        }
       }
     }
 
@@ -196,9 +216,22 @@ window.startTrial = async function startTrial() {
 
   } catch (err) {
     console.error('❌ Failed to start trial:', err);
-    // SHOW error ONLY on failure
+    
+    // Enhanced error feedback with user-friendly messaging
     const msg = String(err && err.message || err || 'Unknown error');
     toast(`Failed to start trial: ${msg}`, 'error');
+    
+    // Show detailed error for debugging in console
+    if (err.stack) {
+      console.error('Full error stack:', err.stack);
+    }
+    
+    // Additional user guidance for common errors
+    if (msg.includes('already used') || msg.includes('permanently')) {
+      setTimeout(() => {
+        toast('Trial can only be used once per account. Consider upgrading to a subscription plan.', 'info');
+      }, 2000);
+    }
   } finally {
     // Always clear loading state
     btn?.removeAttribute('disabled');

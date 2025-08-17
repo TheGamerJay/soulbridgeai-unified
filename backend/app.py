@@ -2303,11 +2303,15 @@ def start_trial():
     logger.info(f"✅ TRIAL SUCCESS: user_id={user_id}, trial_active={session.get('trial_active')}, expires_at={expires}")
     
     return jsonify({
+        "ok": True,  # Frontend expects data.ok === true
         "success": True, 
         "message": "🎉 5-hour trial activated! All premium features unlocked.",
+        "trial_active": session.get('trial_active'),
+        "trial_started_at": session.get('trial_started_at'),
+        "trial_expires_at": session.get('trial_expires_at'),
         "expires_at": expires.isoformat(),
         "effective_plan": 'max',
-        "trial_active": session.get('trial_active'),
+        "plan_limits_from": user_plan,
         "debug": {
             "session_trial_active": session.get('trial_active'),
             "session_trial_started": session.get('trial_started_at'),
@@ -8265,6 +8269,21 @@ def debug_session_state():
         "access_growth": effective_plan in ["growth", "max"] or trial_active,
         "access_max": effective_plan == "max" or trial_active
     })
+
+@app.route("/api/session-lite")
+def session_lite():
+    """Lightweight session endpoint for frontend trial state checking"""
+    return jsonify({
+        "ok": True,
+        "trial_active": bool(session.get("trial_active")),
+        "trial_started_at": session.get("trial_started_at"),
+        "trial_expires_at": session.get("trial_expires_at"),
+        "access_free": bool(session.get("access_free", True)),
+        "access_growth": bool(session.get("access_growth", False)),
+        "access_max": bool(session.get("access_max", False)),
+        "user_plan": session.get("user_plan", "free"),
+        "effective_plan": session.get("effective_plan", "free")
+    }), 200
 
 @app.route("/debug/session-info")
 @require_debug_mode()
