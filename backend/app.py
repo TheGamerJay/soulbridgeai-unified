@@ -2149,6 +2149,14 @@ def start_trial():
     cursor = conn.cursor()
 
     user_id = session['user_id']
+    user_plan = session.get('user_plan', 'free')
+    
+    # Check if user already has a paid subscription - they don't need trial
+    if user_plan in ['growth', 'max']:
+        conn.close()
+        logger.info(f"🚫 TRIAL BLOCKED: User {user_id} already has {user_plan} subscription")
+        return jsonify({"success": False, "error": f"Trial not needed - you already have {user_plan.title()} access!"}), 400
+    
     if db.use_postgres:
         cursor.execute("SELECT trial_started_at, trial_used_permanently FROM users WHERE id = %s", (user_id,))
     else:
