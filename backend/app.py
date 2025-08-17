@@ -39,7 +39,7 @@ except ImportError as e:
 try:
     from stripe_billing import bp_billing
     billing_available = True
-    print("✅ Stripe billing system loaded")
+    print("Stripe billing system loaded")
 except ImportError as e:
     print(f"Warning: Stripe billing not available: {e}")
     bp_billing = None
@@ -49,7 +49,7 @@ except ImportError as e:
 # Trial system is now integrated directly in app.py
 trial_available = True
 bp_trial = None
-print("✅ Trial endpoint system integrated in app.py")
+print("Trial endpoint system integrated in app.py")
 
 # Local imports
 try:
@@ -59,7 +59,7 @@ try:
 except ImportError:
     try:
         from simple_ai_service import get_premium_free_ai_service
-        print("✅ Using Simple AI Service (no ML dependencies)")
+        print("Using Simple AI Service (no ML dependencies)")
     except ImportError:
         # Final fallback
         def get_premium_free_ai_service():
@@ -73,7 +73,7 @@ except ImportError:
                         "enhancement_level": "fallback"
                     }
             return FallbackAI()
-        print("⚠️ Using minimal fallback AI")
+        print("WARNING: Using minimal fallback AI")
 # trial_utils functions are now integrated directly in app.py
 from tier_isolation import tier_manager, get_current_user_tier, get_current_tier_system
 from unified_tier_system import (
@@ -251,15 +251,15 @@ app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevent JS access to session coo
 import os
 railway_env = os.environ.get('RAILWAY_ENVIRONMENT_NAME', '')
 railway_public = os.environ.get('RAILWAY_PUBLIC_DOMAIN', '')
-print(f"🔍 ENVIRONMENT DEBUG: RAILWAY_ENVIRONMENT_NAME={railway_env}, RAILWAY_PUBLIC_DOMAIN={railway_public}")
+print(f"ENVIRONMENT DEBUG: RAILWAY_ENVIRONMENT_NAME={railway_env}, RAILWAY_PUBLIC_DOMAIN={railway_public}")
 
 if railway_env or 'railway.app' in railway_public:
     # Railway deployment - don't set domain to allow cookies on railway.app
-    print("🚂 RAILWAY: Session cookies configured for Railway deployment (no domain restriction)")
+    print("RAILWAY: Session cookies configured for Railway deployment (no domain restriction)")
 else:
     # Production domain
     app.config['SESSION_COOKIE_DOMAIN'] = '.soulbridgeai.com'
-    print("🌐 PRODUCTION: Session cookies configured for soulbridgeai.com domain")
+    print("PRODUCTION: Session cookies configured for soulbridgeai.com domain")
 
 # Register auth blueprint
 if auth_available and auth_bp:
@@ -714,7 +714,7 @@ def increment_rate_limit_session():
 @app.before_request
 def ensure_session_persistence():
     # IMPORTANT: Check open paths FIRST before authentication checks
-    open_paths = {"/api/login", "/api/logout", "/login", "/auth/login", "/auth/register", "/auth/forgot-password", "/", "/mini-studio", "/mini_studio_health", "/api/stripe-debug"}
+    open_paths = {"/api/login", "/api/logout", "/login", "/auth/login", "/auth/register", "/auth/forgot-password", "/", "/mini-studio", "/mini_studio_health", "/api/stripe-debug", "/api/admin/reset-trial"}
     
     # Debug logging for auth paths
     if "/auth" in request.path:
@@ -722,8 +722,8 @@ def ensure_session_persistence():
         print(f"DEBUG MIDDLEWARE: in_open_paths={request.path in open_paths}")
         print(f"DEBUG MIDDLEWARE: open_paths={open_paths}")
     
-    # Allow static files and open paths without authentication
-    if request.path.startswith("/static/") or request.path in open_paths:
+    # Allow static files, open paths, and admin endpoints without authentication
+    if request.path.startswith("/static/") or request.path in open_paths or request.path.startswith("/api/admin/reset-trial"):
         if "/auth" in request.path:
             print(f"DEBUG MIDDLEWARE: Allowing {request.path} and returning early")
         return
@@ -2238,7 +2238,13 @@ def start_trial():
     # Check if trial was already used
     if trial_used:
         conn.close()
-        return jsonify({"success": False, "error": "Trial already used"}), 400
+        logger.info(f"🚫 TRIAL BLOCKED: User {user_id} already used trial permanently")
+        return jsonify({
+            "ok": False,
+            "success": False, 
+            "error": "Trial already used",
+            "trial_active": False
+        }), 400
 
     # ALWAYS reset trial time to correct 5-hour duration
     now = datetime.utcnow()
@@ -2330,6 +2336,52 @@ def start_trial():
     })
 
 # REMOVED: Duplicate debug_session_info function - using the more comprehensive one at /debug/session-info
+
+@app.route("/api/admin/reset-trial/<int:user_id>", methods=["POST"])
+def reset_trial_for_testing(user_id):
+    """Reset trial for specified user (testing only)"""
+    try:
+        db_instance = get_database()
+        if not db_instance:
+            return jsonify({"error": "Database not available"}), 500
+            
+        conn = db_instance.get_connection()
+        cursor = conn.cursor()
+        
+        # Reset trial for user 104
+        if db_instance.use_postgres:
+            cursor.execute("""
+                UPDATE users SET 
+                trial_active = FALSE,
+                trial_used_permanently = FALSE,
+                trial_started_at = NULL,
+                trial_expires_at = NULL,
+                trial_warning_sent = FALSE
+                WHERE id = %s
+            """, (user_id,))
+        else:
+            cursor.execute("""
+                UPDATE users SET 
+                trial_active = 0,
+                trial_used_permanently = 0,
+                trial_started_at = NULL,
+                trial_expires_at = NULL,
+                trial_warning_sent = 0
+                WHERE id = ?
+            """, (user_id,))
+            
+        conn.commit()
+        conn.close()
+        
+        return jsonify({
+            "ok": True,
+            "message": f"Trial reset for user {user_id}",
+            "user_id": user_id
+        })
+        
+    except Exception as e:
+        logger.error(f"Error resetting trial: {e}")
+        return jsonify({"error": str(e)}), 500
 
 @app.route("/api/debug/force-session-reset")
 @require_debug_mode()
