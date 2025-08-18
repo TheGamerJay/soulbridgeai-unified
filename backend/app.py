@@ -3137,10 +3137,9 @@ def auth_register():
 
 @app.route("/plan-selection")
 def plan_selection():
-    """Plan selection page for new users"""
-    if not is_logged_in():
-        return redirect("/login")
-    return render_template("plan_selection.html")
+    """Redirect to unified subscription page"""
+    logger.info(f"🔀 REDIRECT: /plan-selection -> /subscription")
+    return redirect("/subscription")
 
 @app.route("/intro")
 def intro():
