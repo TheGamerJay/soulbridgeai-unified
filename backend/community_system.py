@@ -109,12 +109,32 @@ def initialize_community_database():
             );
         """)
         
-        # Add missing columns if they don't exist (migration for existing tables)
+        # Comprehensive migration - Add ALL missing columns from schema
+        migration_columns = [
+            ("author_uid_hash", "TEXT"),
+            ("author_uid", "INTEGER"),
+            ("companion_id", "INTEGER"),
+            ("companion_skin_id", "INTEGER"), 
+            ("category", "TEXT NOT NULL DEFAULT 'general'"),
+            ("text", "TEXT"),
+            ("image_url", "TEXT"),
+            ("image_hash", "TEXT"),
+            ("hashtags", "TEXT DEFAULT '[]'"),
+            ("status", "TEXT DEFAULT 'approved'"),
+            ("moderation_state", "TEXT DEFAULT '{}'"),
+            ("moderation_flags", "TEXT DEFAULT '[]'"),
+            ("reaction_counts_json", "TEXT DEFAULT '{}'"),
+            ("total_reactions", "INTEGER DEFAULT 0"),
+            ("report_count", "INTEGER DEFAULT 0"),
+            ("created_at", "TIMESTAMP DEFAULT CURRENT_TIMESTAMP"),
+            ("approved_at", "TIMESTAMP"),
+            ("updated_at", "TIMESTAMP DEFAULT CURRENT_TIMESTAMP"),
+            ("deleted_at", "TIMESTAMP")
+        ]
+        
         try:
-            cursor.execute("ALTER TABLE community_posts ADD COLUMN IF NOT EXISTS category TEXT NOT NULL DEFAULT 'general'")
-            cursor.execute("ALTER TABLE community_posts ADD COLUMN IF NOT EXISTS companion_id INTEGER")
-            cursor.execute("ALTER TABLE community_posts ADD COLUMN IF NOT EXISTS companion_skin_id INTEGER")
-            cursor.execute("ALTER TABLE community_posts ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'approved' CHECK (status IN ('pending', 'approved', 'rejected', 'hidden'))")
+            for column_name, column_definition in migration_columns:
+                cursor.execute(f"ALTER TABLE community_posts ADD COLUMN IF NOT EXISTS {column_name} {column_definition}")
         except Exception as migration_error:
             logger.warning(f"Migration warning (non-critical): {migration_error}")
         
