@@ -505,11 +505,44 @@
     <script>
         async function selectPlan(planType) {
             try {
-                // Determine billing period based on individual tier selection
-                let billingPeriod = 'monthly';
+                // Handle ad-free plan directly through billing endpoint
                 if (planType === 'ad_free') {
-                    billingPeriod = tierPricing['ad-free'];
-                } else if (planType === 'premium') {
+                    const billingPeriod = tierPricing['ad-free'];
+                    
+                    const response = await fetch('/api/billing/checkout-session/adfree', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        credentials: 'include',
+                        body: JSON.stringify({ 
+                            billing_period: billingPeriod
+                        })
+                    });
+                    
+                    const data = await response.text();
+                    
+                    // Check if response contains Stripe checkout URL
+                    if (data.includes('https://checkout.stripe.com/')) {
+                        // Extract the checkout URL from the response
+                        const urlMatch = data.match(/https:\/\/checkout\.stripe\.com\/[^"'\s]+/);
+                        if (urlMatch) {
+                            window.location.href = urlMatch[0];
+                        } else {
+                            alert('Error: Could not process ad-free subscription. Please try again.');
+                        }
+                    } else if (data.includes('error') || data.includes('failed')) {
+                        alert('Error: Failed to create ad-free subscription session. Please try again.');
+                    } else {
+                        // Fallback: redirect to response page
+                        document.write(data);
+                    }
+                    return;
+                }
+                
+                // Handle other plans through select-plan API
+                let billingPeriod = 'monthly';
+                if (planType === 'premium') {
                     billingPeriod = tierPricing['silver'];
                 } else if (planType === 'enterprise') {
                     billingPeriod = tierPricing['gold'];
@@ -529,13 +562,8 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    // Handle ad-free plan redirect to Stripe checkout
-                    if (data.redirect) {
-                        window.location.href = data.redirect;
-                    } else {
-                        // Other plans go to payment page
-                        window.location.href = data.redirect_url || `/payment?plan=${planType}&period=${billingPeriod}`;
-                    }
+                    // Other plans go to payment page
+                    window.location.href = data.redirect_url || `/payment?plan=${planType}&period=${billingPeriod}`;
                 } else {
                     alert(data.error || 'Failed to select plan');
                 }
