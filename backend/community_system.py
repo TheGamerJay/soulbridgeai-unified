@@ -781,8 +781,27 @@ def get_community_feed():
         if not database_url:
             return jsonify({"error": "Database not available"}), 500
             
-        conn = psycopg2.connect(database_url)
-        cursor = conn.cursor()
+        try:
+            conn = psycopg2.connect(database_url)
+            cursor = conn.cursor()
+            
+            # Check if table exists first
+            cursor.execute("""
+                SELECT EXISTS (
+                    SELECT FROM information_schema.tables 
+                    WHERE table_name = 'community_posts'
+                );
+            """)
+            table_exists = cursor.fetchone()[0]
+            
+            if not table_exists:
+                # Close current connection
+                conn.close()
+                # Initialize database tables
+                initialize_community_database()
+                # Reconnect and proceed
+                conn = psycopg2.connect(database_url)
+                cursor = conn.cursor()
         
         # Build query
         where_clauses = ["status = 'approved'", "deleted_at IS NULL"]
@@ -844,10 +863,16 @@ def get_community_feed():
             post_time = datetime.fromisoformat(created_at)
             time_ago = format_time_ago(post_time)
             
-            # Get companion avatar info
-            avatar_url = f"/static/companions/companion_{companion_id}.png"
-            if companion_skin_id:
-                avatar_url = f"/static/companions/companion_{companion_id}_skin_{companion_skin_id}.png"
+            # Get companion avatar info - use actual companion names
+            companion_names = {
+                1: 'GamerJay Free companion',
+                2: 'Sky a premium companion', 
+                3: 'Crimson',
+                4: 'Violet',
+                7: 'GamerJay premium companion'
+            }
+            companion_name = companion_names.get(companion_id, 'GamerJay Free companion')
+            avatar_url = f"/static/logos/{companion_name}.png"
             
             posts.append({
                 'id': post_id,
@@ -1254,9 +1279,13 @@ def get_available_companions():
         if not user_id:
             return jsonify({"error": "Authentication required"}), 401
         
-        # Get cosmetic companions
-        from cosmetic_system import get_available_companions_for_user
-        cosmetic_companions = get_available_companions_for_user(user_id)
+        # Get cosmetic companions (referral companions)
+        try:
+            from cosmetic_system import get_available_companions_for_user
+            cosmetic_companions = get_available_companions_for_user(user_id)
+        except Exception as e:
+            logger.warning(f"Could not load cosmetic companions: {e}")
+            cosmetic_companions = []
         
         # Get tier-based companions
         from unified_tier_system import get_effective_plan
@@ -1337,7 +1366,15 @@ def get_available_companions():
         return jsonify({
             'success': True,
             'companions': unique_companions,
-            'user_tier': effective_plan
+            'user_tier': effective_plan,
+            'debug': {
+                'user_plan': user_plan,
+                'trial_active': trial_active,
+                'effective_plan': effective_plan,
+                'base_companions_count': len(base_companions),
+                'cosmetic_companions_count': len(cosmetic_companions),
+                'total_companions': len(unique_companions)
+            }
         })
         
     except Exception as e:
