@@ -284,7 +284,7 @@
   <!-- Plans Grid -->
   <div class="plan-grid">
     <!-- Ad-Free Plan (For Free Users) -->
-    <div class="plan-card" onclick="selectPlan('ad_free')">
+    <div class="plan-card">
       <div class="plan-icon">🚫</div>
       <div class="plan-name">Ad-Free</div>
       
@@ -306,11 +306,11 @@
         <li><span class="feature-icon">🎯</span> Perfect for casual users</li>
       </ul>
       
-      <button class="select-btn" style="background: linear-gradient(135deg, #22d3ee, #0891b2);">Choose Ad-Free</button>
+      <button class="select-btn" style="background: linear-gradient(135deg, #22d3ee, #0891b2);" onclick="selectPlan('ad_free')">Choose Ad-Free</button>
     </div>
     
     <!-- Growth Plan (Recommended) -->
-    <div class="plan-card recommended" onclick="selectPlan('premium')">
+    <div class="plan-card recommended">
       <div class="badge">Most Popular</div>
       <div class="plan-icon">🌱</div>
       <div class="plan-name">Growth</div>
@@ -332,11 +332,11 @@
         <li><span class="feature-icon">✅</span> Custom companion training</li>
       </ul>
       
-      <button class="select-btn paid">Choose Growth</button>
+      <button class="select-btn paid" onclick="selectPlan('premium')">Choose Growth</button>
     </div>
 
     <!-- Transformation Plan (Premium) -->
-    <div class="plan-card" onclick="selectPlan('enterprise')">
+    <div class="plan-card">
       <div class="plan-icon">🚀</div>
       <div class="plan-name">Transformation</div>
       
@@ -358,7 +358,7 @@
         <li><span class="feature-icon">✅</span> 1-on-1 onboarding session</li>
       </ul>
       
-      <button class="select-btn premium">Choose Transformation</button>
+      <button class="select-btn premium" onclick="selectPlan('enterprise')">Choose Transformation</button>
     </div>
   </div>
 
@@ -912,8 +912,19 @@ function selectPlan(planType) {
     card.style.borderColor = 'rgba(34, 211, 238, 0.2)';
   });
   
-  // Highlight selected card
-  event.currentTarget.style.borderColor = '#22d3ee';
+  // Highlight selected card based on plan type
+  let selectedCard = null;
+  if (planType === 'ad_free') {
+    selectedCard = document.querySelector('.plan-card'); // First card
+  } else if (planType === 'premium') {
+    selectedCard = document.querySelector('.plan-card.recommended'); // Growth card
+  } else if (planType === 'enterprise') {
+    selectedCard = document.querySelectorAll('.plan-card')[2]; // Transformation card
+  }
+  
+  if (selectedCard) {
+    selectedCard.style.borderColor = '#22d3ee';
+  }
   
   // Handle plan selection - call backend API
   selectPlanViaAPI(planType, billingPeriod);
