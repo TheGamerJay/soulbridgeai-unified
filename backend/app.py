@@ -754,7 +754,7 @@ def increment_rate_limit_session():
 @app.before_request
 def ensure_session_persistence():
     # IMPORTANT: Check open paths FIRST before authentication checks
-    open_paths = {"/api/login", "/api/logout", "/login", "/auth/login", "/auth/register", "/auth/forgot-password", "/", "/mini-studio", "/mini_studio_health", "/api/stripe-debug", "/api/admin/reset-trial", "/health"}
+    open_paths = {"/api/login", "/api/logout", "/login", "/auth/login", "/auth/register", "/auth/forgot-password", "/", "/mini-studio", "/mini_studio_health", "/api/stripe-debug", "/api/admin/reset-trial", "/health", "/api/user-status", "/api/check-user-status"}
     
     # Debug logging for auth paths
     if "/auth" in request.path:
@@ -764,8 +764,8 @@ def ensure_session_persistence():
     
     # Allow static files, open paths, and admin endpoints without authentication
     if request.path.startswith("/static/") or request.path in open_paths or request.path.startswith("/api/admin/reset-trial"):
-        if "/auth" in request.path:
-            print(f"DEBUG MIDDLEWARE: Allowing {request.path} and returning early")
+        if "/auth" in request.path or request.path == "/api/user-status":
+            logger.warning(f"🔓 DEBUG MIDDLEWARE: Allowing {request.path} and returning early")
         return
     
     # If auth system is not available, don't enforce authentication
@@ -778,11 +778,10 @@ def ensure_session_persistence():
     
     # For every other route, require a user_id
     if "user_id" not in session:
-        if "/auth" in request.path or "/v1/" in request.path:
-            print(f"DEBUG MIDDLEWARE: {request.path} has no user_id, checking if API")
+        logger.warning(f"🔒 DEBUG MIDDLEWARE: {request.path} has no user_id, checking authentication")
         # For APIs, return JSON 401; for pages, redirect to login
         if request.path.startswith("/api/") or request.path.startswith("/v1/"):
-            print(f"DEBUG MIDDLEWARE: Returning 401 JSON for API path: {request.path}")
+            logger.warning(f"🚫 DEBUG MIDDLEWARE: Returning 401 JSON for API path: {request.path}")
             return {"ok": False, "error": "Unauthorized"}, 401
         print(f"DEBUG MIDDLEWARE: Redirecting to login for non-API path: {request.path}")
         return redirect("/login")
@@ -1950,6 +1949,33 @@ def user_status():
             "logged_in": False,
             "user_plan": "free",
             "trial_active": False
+        })
+
+@app.route("/api/check-user-status", methods=["GET"])
+def check_user_status():
+    """Simple user status check that bypasses authentication middleware"""
+    try:
+        # Simple check without requiring full authentication
+        user_id = session.get('user_id')
+        logged_in = bool(user_id)
+        user_plan = session.get('user_plan', 'free')
+        trial_active = session.get('trial_active', False)
+        
+        return jsonify({
+            "success": True,
+            "logged_in": logged_in,
+            "user_plan": user_plan,
+            "trial_active": trial_active,
+            "plan_type": user_plan  # Add plan_type for compatibility
+        })
+    except Exception as e:
+        logger.error(f"Error in check-user-status: {e}")
+        return jsonify({
+            "success": True,
+            "logged_in": False,
+            "user_plan": "free",
+            "trial_active": False,
+            "plan_type": "free"
         })
 
 @app.route("/api/logout-on-close", methods=["POST"])
