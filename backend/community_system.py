@@ -80,7 +80,7 @@ def initialize_community_database():
         # Community posts table - matches spec exactly
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS community_posts (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id SERIAL PRIMARY KEY,
                 author_uid_hash TEXT NOT NULL,
                 author_uid INTEGER NOT NULL,
                 companion_id INTEGER,
@@ -114,7 +114,7 @@ def initialize_community_database():
         # Community reactions table - one reaction per user per post
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS community_reactions (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id SERIAL PRIMARY KEY,
                 post_id INTEGER NOT NULL,
                 viewer_uid_hash TEXT NOT NULL,
                 viewer_uid INTEGER NOT NULL,
@@ -130,7 +130,7 @@ def initialize_community_database():
         # Community reports table with priority system
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS community_reports (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id SERIAL PRIMARY KEY,
                 post_id INTEGER NOT NULL,
                 reporter_uid_hash TEXT NOT NULL,
                 reporter_uid INTEGER NOT NULL,
@@ -153,7 +153,7 @@ def initialize_community_database():
         # Community mutes table - viewer-scoped
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS community_mutes (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id SERIAL PRIMARY KEY,
                 viewer_uid INTEGER NOT NULL,
                 muted_author_uid_hash TEXT,
                 muted_companion_id INTEGER,
@@ -163,7 +163,10 @@ def initialize_community_database():
                 reason TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 
-                FOREIGN KEY (viewer_uid) REFERENCES users(id) ON DELETE CASCADE
+                FOREIGN KEY (viewer_uid) REFERENCES users(id) ON DELETE CASCADE,
+                UNIQUE (viewer_uid, muted_author_uid_hash),
+                UNIQUE (viewer_uid, muted_companion_id),
+                UNIQUE (viewer_uid, muted_category)
             );
         """)
         
@@ -198,7 +201,7 @@ def initialize_community_database():
         # Avatar change tracking table - implements cooldown with ad bypass
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS user_avatar_changes (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id SERIAL PRIMARY KEY,
                 user_id INTEGER NOT NULL,
                 old_companion_id INTEGER,
                 old_companion_name TEXT,
@@ -797,11 +800,11 @@ def get_community_feed():
         params = []
         
         if category != 'all':
-            where_clauses.append("category = ?")
+            where_clauses.append("category = %s")
             params.append(category)
         
         if after_id:
-            where_clauses.append("id < ?")
+            where_clauses.append("id < %s")
             params.append(after_id)
         
         # Get user's mutes if logged in
@@ -819,7 +822,7 @@ def get_community_feed():
                     muted_hashes.append(muted_hash)
         
         if muted_hashes:
-            where_clauses.append(f"author_uid_hash NOT IN ({','.join(['?'] * len(muted_hashes))})")
+            where_clauses.append(f"author_uid_hash NOT IN ({','.join(['%s'] * len(muted_hashes))})")
             params.extend(muted_hashes)
         
         where_clause = "WHERE " + " AND ".join(where_clauses)
@@ -837,7 +840,7 @@ def get_community_feed():
             FROM community_posts 
             {where_clause} 
             {order_clause} 
-            LIMIT ?
+            LIMIT %s
         """
         
         params.append(limit)
@@ -1047,21 +1050,33 @@ def mute_content():
         # Create mute record
         if mute_type == 'author':
             cursor.execute("""
-                INSERT OR REPLACE INTO community_mutes (
+                INSERT INTO community_mutes (
                     viewer_uid, muted_author_uid_hash, mute_type, expires_at, reason
                 ) VALUES (%s, %s, %s, %s, %s)
+                ON CONFLICT (viewer_uid, muted_author_uid_hash) DO UPDATE SET
+                    mute_type = EXCLUDED.mute_type,
+                    expires_at = EXCLUDED.expires_at,
+                    reason = EXCLUDED.reason
             """, (user_id, target, mute_type, expires_at, reason))
         elif mute_type == 'companion':
             cursor.execute("""
-                INSERT OR REPLACE INTO community_mutes (
+                INSERT INTO community_mutes (
                     viewer_uid, muted_companion_id, mute_type, expires_at, reason
                 ) VALUES (%s, %s, %s, %s, %s)
+                ON CONFLICT (viewer_uid, muted_companion_id) DO UPDATE SET
+                    mute_type = EXCLUDED.mute_type,
+                    expires_at = EXCLUDED.expires_at,
+                    reason = EXCLUDED.reason
             """, (user_id, int(target), mute_type, expires_at, reason))
         elif mute_type == 'category':
             cursor.execute("""
-                INSERT OR REPLACE INTO community_mutes (
+                INSERT INTO community_mutes (
                     viewer_uid, muted_category, mute_type, expires_at, reason
                 ) VALUES (%s, %s, %s, %s, %s)
+                ON CONFLICT (viewer_uid, muted_category) DO UPDATE SET
+                    mute_type = EXCLUDED.mute_type,
+                    expires_at = EXCLUDED.expires_at,
+                    reason = EXCLUDED.reason
             """, (user_id, target, mute_type, expires_at, reason))
         
         mute_id = cursor.lastrowid

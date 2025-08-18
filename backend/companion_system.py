@@ -200,6 +200,23 @@ class CompanionSystem:
                 "popularity_score": 100,
                 "is_recommended": True,
                 "special_features": ["Community insights", "Exclusive content", "Advanced features", "Priority support", "Special voice interactions"]
+            },
+            {
+                "companion_id": "companion_nyxara",
+                "name": "Nyxara",
+                "display_name": "Nyxara - The Mystical Guardian", 
+                "tier": CompanionTier.REFERRAL,
+                "unlock_type": UnlockType.REFERRAL_POINTS,
+                "personality_tags": [PersonalityTag.SPIRITUAL, PersonalityTag.PROTECTIVE, PersonalityTag.WISE],
+                "avatar_image": "/static/logos/Nyxara.png",
+                "short_bio": "Mystical guardian for dedicated community builders",
+                "detailed_bio": "Nyxara is an enigmatic and powerful companion that emerges from the cosmic depths to guide those who have shown exceptional dedication to building our community. With deep mystical wisdom and protective energy, Nyxara offers unique insights and exclusive mystical features.",
+                "voice_id": "nyxara_voice_id",
+                "ai_personality_mode": "mentor",
+                "unlock_requirements": {"referral_points": 6},
+                "popularity_score": 95,
+                "is_recommended": True,
+                "special_features": ["Mystical insights", "Cosmic guidance", "Protective energy", "Exclusive mystical content", "Advanced spiritual features"]
             }
         ]
         

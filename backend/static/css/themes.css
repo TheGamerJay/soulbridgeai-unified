@@ -354,6 +354,15 @@ html body.character-violet #chatInterface #selectedCharacter {
     border: 2px solid #8b5cf6 !important;
 }
 
+html body.character-blayzike #chatInterface .btn,
+html body.character-blayzike #chatInterface .input-field,
+html body.character-blayzike #chatInterface div[style*="background"],
+html body.character-blayzike #chatInterface div[onclick],
+html body.character-blayzike #chatInterface .soulbridge-chat-label,
+html body.character-blayzike #chatInterface #selectedCharacter {
+    border: 2px solid #8b5cf6 !important;
+}
+
 html body.character-blayzion #chatInterface .btn,
 html body.character-blayzion #chatInterface .input-field,
 html body.character-blayzion #chatInterface div[style*="background"],
@@ -397,6 +406,12 @@ html body.character-violet #chatInterface #voiceChatBtn {
     border: 2px solid #8b5cf6 !important;
 }
 
+html body.character-blayzike #chatInterface #voiceChatBtn {
+    background: #ffd700 !important;
+    color: #000 !important;
+    border: 2px solid #8b5cf6 !important;
+}
+
 html body.character-blayzion #chatInterface #voiceChatBtn {
     background: #ffd700 !important;
     color: #000 !important;
@@ -414,9 +429,10 @@ html body[class*="character-"] #chatInterface #voiceChatBtn * {
     color: #000 !important;
 }
 
-/* FORCE WHITE TEXT FOR CRIMSON AND VIOLET AI CHAT */
+/* FORCE WHITE TEXT FOR CRIMSON, VIOLET, AND BLAYZIKE AI CHAT */
 html body.character-crimson #chatInterface *:not(img):not(#chatAvatarImg):not(#chatParticleContainer),
-html body.character-violet #chatInterface *:not(img):not(#chatAvatarImg):not(#chatParticleContainer) {
+html body.character-violet #chatInterface *:not(img):not(#chatAvatarImg):not(#chatParticleContainer),
+html body.character-blayzike #chatInterface *:not(img):not(#chatAvatarImg):not(#chatParticleContainer) {
     color: #fff !important;
     background: #000 !important;
     -webkit-text-fill-color: #fff !important;
@@ -976,6 +992,18 @@ html body div.character-card.character-blayzia {
     padding: 2rem !important;
 }
 
+/* BLAYZIKE - Black background with purple-blue gradient borders */
+html body div.character-card.character-blayzike {
+    background: #000 !important;
+    border: 2px solid transparent !important;
+    background-image: linear-gradient(#000, #000), linear-gradient(135deg, #8b5cf6, #6366f1, #3b82f6) !important;
+    background-origin: border-box !important;
+    background-clip: padding-box, border-box !important;
+    border-radius: 12px !important;
+    padding: 2rem !important;
+    box-shadow: 0 0 30px rgba(139, 92, 246, 0.6) !important;
+}
+
 /* Clean character card styling - consistent appearance */
 .character-card .character-name {
     color: #ffffff !important;
@@ -1022,6 +1050,16 @@ html body div.character-card.character-blayzia {
 .character-card.character-violet .character-description {
     background: transparent !important;
     color: #8b5cf6 !important;
+}
+
+.character-card.character-blayzike .character-name,
+.character-card.character-blayzike .character-description {
+    background: transparent !important;
+    background-image: linear-gradient(135deg, #8b5cf6, #6366f1, #3b82f6) !important;
+    background-clip: text !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    color: #8b5cf6 !important; /* Fallback for non-webkit browsers */
 }
 
 /* ALLOW TEXT GRADIENTS FOR SPECIAL CHARACTERS */
