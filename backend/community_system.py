@@ -1373,13 +1373,19 @@ def set_community_avatar():
 
 @community_bp.route('/companions', methods=['GET'])
 def get_available_companions():
-    """Get companions available for community avatars"""
+    """Get Netflix-style tiered companion display for community avatars"""
     try:
         user_id = session.get('user_id')
         if not user_id:
             return jsonify({"error": "Authentication required"}), 401
         
-        # Get cosmetic companions (referral companions)
+        # Get user tier information
+        from unified_tier_system import get_effective_plan
+        user_plan = session.get('user_plan', 'free')
+        trial_active = session.get('trial_active', False)
+        effective_plan = get_effective_plan(user_plan, trial_active)
+        
+        # Get cosmetic companions (referral companions) - only unlocked ones
         try:
             from cosmetic_system import get_available_companions_for_user
             cosmetic_companions = get_available_companions_for_user(user_id)
@@ -1387,118 +1393,111 @@ def get_available_companions():
             logger.warning(f"Could not load cosmetic companions: {e}")
             cosmetic_companions = []
         
-        # Get tier-based companions
-        from unified_tier_system import get_effective_plan
-        user_plan = session.get('user_plan', 'free')
-        trial_active = session.get('trial_active', False)
-        effective_plan = get_effective_plan(user_plan, trial_active)
-        
-        # Base companions available to all users
-        base_companions = [
-            {
-                'id': 1,
-                'name': 'GamerJay',
-                'display_name': 'GamerJay',
-                'description': 'Your gaming companion and free tier default',
-                'rarity': 'common',
-                'avatar_url': '/static/logos/GamerJay Free companion.png',
-                'unlock_method': 'default'
+        # Netflix-style tier organization
+        companion_tiers = {
+            "free": {
+                "name": "Free Tier",
+                "description": "Basic companions available to all users",
+                "unlocked": True,  # Always unlocked
+                "companions": [
+                    {
+                        'id': 1,
+                        'name': 'GamerJay',
+                        'display_name': 'GamerJay',
+                        'description': 'Your gaming companion and motivational coach',
+                        'rarity': 'common',
+                        'avatar_url': '/static/logos/GamerJay Free companion.png',
+                        'unlocked': True,
+                        'tier': 'free'
+                    }
+                ]
             },
-            # Add additional free tier companions for testing
-            {
-                'id': 100,
-                'name': 'TestCompanion1',
-                'display_name': 'Test Companion 1',
-                'description': 'Testing companion for free tier',
-                'rarity': 'common',
-                'avatar_url': '/static/logos/GamerJay Free companion.png',
-                'unlock_method': 'free_testing'
+            "growth": {
+                "name": "Growth Tier",
+                "description": "Enhanced companions for personal development",
+                "unlocked": effective_plan in ['growth', 'max'],
+                "companions": [
+                    {
+                        'id': 2,
+                        'name': 'Sky',
+                        'display_name': 'Sky',
+                        'description': 'Spiritual guide and mindfulness mentor',
+                        'rarity': 'rare',
+                        'avatar_url': '/static/logos/Sky a premium companion.png',
+                        'unlocked': effective_plan in ['growth', 'max'],
+                        'tier': 'growth'
+                    },
+                    {
+                        'id': 7,
+                        'name': 'GamerJay Premium',
+                        'display_name': 'GamerJay Premium',
+                        'description': 'Enhanced gaming companion with strategic insights',
+                        'rarity': 'rare',
+                        'avatar_url': '/static/logos/GamgerJay premium companion.png',
+                        'unlocked': effective_plan in ['growth', 'max'],
+                        'tier': 'growth'
+                    }
+                ]
             },
-            {
-                'id': 101,
-                'name': 'TestCompanion2', 
-                'display_name': 'Test Companion 2',
-                'description': 'Another testing companion',
-                'rarity': 'common',
-                'avatar_url': '/static/logos/Blayzike.png',
-                'unlock_method': 'free_testing'
+            "max": {
+                "name": "Max Tier",
+                "description": "Elite companions with advanced capabilities",
+                "unlocked": effective_plan == 'max',
+                "companions": [
+                    {
+                        'id': 3,
+                        'name': 'Crimson',
+                        'display_name': 'Crimson',
+                        'description': 'Powerful transformer for deep healing',
+                        'rarity': 'epic',
+                        'avatar_url': '/static/logos/Crimson a Max companion.png',
+                        'unlocked': effective_plan == 'max',
+                        'tier': 'max'
+                    },
+                    {
+                        'id': 4,
+                        'name': 'Violet',
+                        'display_name': 'Violet',
+                        'description': 'Creative soul for artistic expression',
+                        'rarity': 'epic',
+                        'avatar_url': '/static/logos/Violet a Max companion.png',
+                        'unlocked': effective_plan == 'max',
+                        'tier': 'max'
+                    }
+                ]
             }
-        ]
+        }
         
-        # Growth tier companions
-        if effective_plan in ['growth', 'max']:
-            base_companions.extend([
-                {
-                    'id': 2,
-                    'name': 'Sky',
-                    'display_name': 'Sky',
-                    'description': 'Your premium growth companion',
-                    'rarity': 'rare',
-                    'avatar_url': '/static/logos/Sky a premium companion.png',
-                    'unlock_method': 'growth_tier'
-                },
-                {
-                    'id': 7,
-                    'name': 'GamerJay Premium',
-                    'display_name': 'GamerJay Premium',
-                    'description': 'Enhanced gaming companion',
-                    'rarity': 'rare',
-                    'avatar_url': '/static/logos/GamerJay premium companion.png',
-                    'unlock_method': 'growth_tier'
-                }
-            ])
-        
-        # Max tier companions
-        if effective_plan == 'max':
-            base_companions.extend([
-                {
-                    'id': 3,
-                    'name': 'Crimson',
-                    'display_name': 'Crimson',
-                    'description': 'Powerful Max tier companion',
-                    'rarity': 'epic',
-                    'avatar_url': '/static/logos/Crimson.png',
-                    'unlock_method': 'max_tier'
-                },
-                {
-                    'id': 4,
-                    'name': 'Violet',
-                    'display_name': 'Violet',
-                    'description': 'Mystical Max tier companion',
-                    'rarity': 'epic',
-                    'avatar_url': '/static/logos/Violet.png',
-                    'unlock_method': 'max_tier'
-                }
-            ])
-        
-        # Combine all available companions
-        all_companions = base_companions + cosmetic_companions
-        
-        # Remove duplicates by id
-        seen_ids = set()
-        unique_companions = []
-        for companion in all_companions:
-            if companion.get('id') not in seen_ids:
-                seen_ids.add(companion.get('id'))
-                unique_companions.append(companion)
+        # Add referral companions as separate tier ONLY if user has unlocked any
+        if cosmetic_companions:
+            companion_tiers["referral"] = {
+                "name": "Referral Rewards",
+                "description": "Exclusive companions earned through community building",
+                "unlocked": True,
+                "companions": [
+                    {
+                        **companion,
+                        'unlocked': True,
+                        'tier': 'referral'
+                    } for companion in cosmetic_companions
+                ]
+            }
         
         return jsonify({
-            'success': True,
-            'companions': unique_companions,
-            'user_tier': effective_plan,
-            'debug': {
-                'user_plan': user_plan,
-                'trial_active': trial_active,
-                'effective_plan': effective_plan,
-                'base_companions_count': len(base_companions),
-                'cosmetic_companions_count': len(cosmetic_companions),
-                'total_companions': len(unique_companions)
-            }
+            "tiers": companion_tiers,
+            "user_tier": effective_plan,
+            "user_plan": user_plan,
+            "trial_active": trial_active,
+            "current_tier_name": {
+                'free': 'Free',
+                'growth': 'Growth', 
+                'max': 'Max'
+            }.get(effective_plan, 'Free')
         })
         
     except Exception as e:
         logger.error(f"Failed to get available companions: {e}")
-        return jsonify({"error": "Failed to get companions"}), 500
+        return jsonify({"error": "Failed to load companions"}), 500
 
 # ===============================
 # UTILITY FUNCTIONS
