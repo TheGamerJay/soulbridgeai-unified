@@ -114,6 +114,7 @@ def initialize_community_database():
             cursor.execute("ALTER TABLE community_posts ADD COLUMN IF NOT EXISTS category TEXT NOT NULL DEFAULT 'general'")
             cursor.execute("ALTER TABLE community_posts ADD COLUMN IF NOT EXISTS companion_id INTEGER")
             cursor.execute("ALTER TABLE community_posts ADD COLUMN IF NOT EXISTS companion_skin_id INTEGER")
+            cursor.execute("ALTER TABLE community_posts ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'approved' CHECK (status IN ('pending', 'approved', 'rejected', 'hidden'))")
         except Exception as migration_error:
             logger.warning(f"Migration warning (non-critical): {migration_error}")
         
