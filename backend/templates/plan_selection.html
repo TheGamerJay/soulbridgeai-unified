@@ -747,253 +747,249 @@ function togglePricing(type, event) {
   }
 }
 
-        async function selectPlanOld(planType) {
-            try {
-                // Handle ad-free plan directly through billing endpoint
-                if (planType === 'ad_free') {
-                    const billingPeriod = tierPricing['ad-free'];
-                    
-                    const response = await fetch('/api/billing/checkout-session/adfree', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        credentials: 'include',
-                        body: JSON.stringify({ 
-                            billing_period: billingPeriod
-                        })
-                    });
-                    
-                    const data = await response.text();
-                    
-                    // Check if response contains Stripe checkout URL
-                    if (data.includes('https://checkout.stripe.com/')) {
-                        // Extract the checkout URL from the response
-                        const urlMatch = data.match(/https:\/\/checkout\.stripe\.com\/[^"'\s]+/);
-                        if (urlMatch) {
-                            window.location.href = urlMatch[0];
-                        } else {
-                            alert('Error: Could not process ad-free subscription. Please try again.');
-                        }
-                    } else if (data.includes('error') || data.includes('failed')) {
-                        alert('Error: Failed to create ad-free subscription session. Please try again.');
-                    } else {
-                        // Fallback: redirect to response page
-                        document.write(data);
-                    }
-                    return;
-                }
-                
-                // Handle other plans through select-plan API
-                let billingPeriod = 'monthly';
-                if (planType === 'premium') {
-                    billingPeriod = tierPricing['silver'];
-                } else if (planType === 'enterprise') {
-                    billingPeriod = tierPricing['gold'];
-                }
-                
-                const response = await fetch('/api/select-plan', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ 
-                        plan_type: planType,
-                        billing: billingPeriod
-                    })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    // Other plans go to payment page
-                    window.location.href = data.redirect_url || `/payment?plan=${planType}&period=${billingPeriod}`;
-                } else {
-                    alert(data.error || 'Failed to select plan');
-                }
-            } catch (error) {
-                console.error('Plan selection error:', error);
-                alert('Error selecting plan. Please try again.');
-            }
-        }
-        
-        let currentPricing = 'monthly';
-        
-        function togglePricing(period) {
-            console.log('Toggle clicked:', period);
-            currentPricing = period;
-            
-            // Update toggle buttons
-            document.querySelectorAll('.toggle-option').forEach(btn => btn.classList.remove('active'));
-            
-            // Find and activate the clicked button
-            if (period === 'monthly') {
-                document.querySelectorAll('.toggle-option')[0].classList.add('active');
-            } else {
-                document.querySelectorAll('.toggle-option')[1].classList.add('active');
-            }
-            
-            // Update pricing for all tiers
-            if (period === 'monthly') {
-                document.getElementById('ad-free-price').innerHTML = '$5.00';
-                document.getElementById('ad-free-period').innerHTML = '/month';
-                
-                document.getElementById('silver-price').innerHTML = '$12.99';
-                document.getElementById('silver-period').innerHTML = '/month';
-                
-                document.getElementById('gold-price').innerHTML = '$19.99';
-                document.getElementById('gold-period').innerHTML = '/month';
-            } else {
-                // Yearly pricing (25% savings)
-                document.getElementById('ad-free-price').innerHTML = '$45.00';
-                document.getElementById('ad-free-period').innerHTML = '/year';
-                
-                document.getElementById('silver-price').innerHTML = '$117.00';
-                document.getElementById('silver-period').innerHTML = '/year';
-                
-                document.getElementById('gold-price').innerHTML = '$180.00';
-                document.getElementById('gold-period').innerHTML = '/year';
-            }
-        }
-        
-        // Individual tier pricing tracking  
-        let tierPricing = {
-            'ad-free': 'monthly',
-            'growth': 'monthly', 
-            'transformation': 'monthly'
-        };
-        
-        function toggleTierPricing(tier, period, event) {
-            console.log('Individual tier toggle:', tier, period);
-            tierPricing[tier] = period;
-            
-            // Update this tier's toggle buttons
-            const tierCard = event.target.closest('.plan-card');
-            const toggles = tierCard.querySelectorAll('.tier-toggle-option');
-            toggles.forEach(toggle => toggle.classList.remove('active'));
-            event.target.classList.add('active');
-            
-            // Update pricing for this specific tier
-            if (period === 'monthly') {
-                if (tier === 'ad-free') {
-                    document.getElementById('ad-free-price').innerHTML = '$5.00';
-                    document.getElementById('ad-free-period').innerHTML = '/month';
-                } else if (tier === 'growth') {
-                    document.getElementById('premium-price').innerHTML = '$12.99';
-                    document.getElementById('premium-period').innerHTML = '/month';
-                } else if (tier === 'transformation') {
-                    document.getElementById('enterprise-price').innerHTML = '$19.99';
-                    document.getElementById('enterprise-period').innerHTML = '/month';
-                }
-            } else {
-                // Yearly pricing (25% savings)
-                if (tier === 'ad-free') {
-                    document.getElementById('ad-free-price').innerHTML = '$45.00';
-                    document.getElementById('ad-free-period').innerHTML = '/year';
-                } else if (tier === 'growth') {
-                    document.getElementById('premium-price').innerHTML = '$117.00';
-                    document.getElementById('premium-period').innerHTML = '/year';
-                } else if (tier === 'transformation') {
-                    document.getElementById('enterprise-price').innerHTML = '$180.00';
-                    document.getElementById('enterprise-period').innerHTML = '/year';
-                }
-            }
-        }
-        
-        // Check user access and show/hide lock overlay - copied from Plan B
-        async function checkTrainerTimePurchaseAccess() {
-            try {
-                const statusResponse = await fetch('/api/user-status', {
-                    method: 'GET',
-                    credentials: 'include'
-                });
-                const statusData = await statusResponse.json();
-                
-                const section = document.getElementById('credit-purchase-section');
-                const lockOverlay = document.getElementById('trainer-time-lock');
-                
-                // Always show the section
-                section.style.display = 'block';
-                
-                if (statusData.logged_in && (statusData.plan_type === 'max' || statusData.plan_type === 'growth')) {
-                    // Growth/Max plan subscribers: hide lock, enable purchases
-                    lockOverlay.style.display = 'none';
-                    console.log(`✅ ${statusData.plan_type.charAt(0).toUpperCase() + statusData.plan_type.slice(1)} Plan subscriber - trainer time purchases enabled`);
-                } else {
-                    // Non-Growth/Max subscribers: show lock overlay
-                    lockOverlay.style.display = 'flex';
-                    console.log('🔒 Non-Growth/Max subscriber - showing upgrade prompt');
-                }
-            } catch (error) {
-                console.error('Error checking trainer time purchase access:', error);
-                // On error, show lock overlay as fallback
-                document.getElementById('trainer-time-lock').style.display = 'flex';
-            }
-        }
+// Individual tier pricing tracking  
+let tierPricing = {
+    'ad-free': 'monthly',
+    'growth': 'monthly', 
+    'transformation': 'monthly'
+};
 
-        // Trainer time purchase function copied from subscription.html (Plan B)
-        async function purchaseTrainerTime(amount, price) {
-            try {
-                // Check if user is Growth/Max plan subscriber
-                const statusResponse = await fetch('/api/user-status', {
-                    method: 'GET',
-                    credentials: 'include'
-                });
-                const statusData = await statusResponse.json();
-                
-                if (!statusData.logged_in) {
-                    alert('Please log in to purchase trainer time');
-                    window.location.href = '/login?return_to=plan-selection';
-                    return;
-                }
-                
-                if (statusData.plan_type !== 'max' && statusData.plan_type !== 'growth') {
-                    alert('Trainer time purchases are only available for Growth or Max Plan subscribers. Please upgrade first!');
-                    return;
-                }
-                
-                // Show confirmation with rollover warning
-                const confirm = window.confirm(`Purchase ${amount} trainer time for $${price.toFixed(2)}?\n\n⚠️ IMPORTANT: Trainer time will be added instantly but resets at your monthly billing cycle with NO ROLLOVER. Only purchase if you'll use it before your next reset.\n\nContinue with purchase?`);
-                
-                if (!confirm) {
-                    return;
-                }
-                
-                // Create Stripe checkout session for trainer time
-                const response = await fetch('/api/buy-credits', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    credentials: 'include',
-                    body: new URLSearchParams({
-                        'credits': amount,
-                        'price': price.toFixed(2)
-                    })
-                });
-                
-                const data = await response.text();
-                
-                // Check if response contains Stripe checkout URL
-                if (data.includes('https://checkout.stripe.com/')) {
-                    // Extract the checkout URL from the response
-                    const urlMatch = data.match(/https:\/\/checkout\.stripe\.com\/[^"'\s]+/);
-                    if (urlMatch) {
-                        window.location.href = urlMatch[0];
-                    } else {
-                        alert('Error: Could not process trainer time purchase. Please try again.');
-                    }
-                } else if (data.includes('error') || data.includes('failed')) {
-                    alert('Error: Failed to create trainer time purchase session. Please try again.');
-                } else {
-                    // Fallback: redirect to response page
-                    document.write(data);
-                }
-            } catch (error) {
-                console.error('Trainer time purchase error:', error);
-                alert('Failed to process trainer time purchase. Please try again.');
-            }
+function toggleTierPricing(tier, period, event) {
+    console.log('Individual tier toggle:', tier, period);
+    tierPricing[tier] = period;
+    
+    // Update this tier's toggle buttons
+    const tierCard = event.target.closest('.plan-card');
+    const toggles = tierCard.querySelectorAll('.tier-toggle-option');
+    toggles.forEach(toggle => toggle.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    // Update pricing for this specific tier
+    if (period === 'monthly') {
+        if (tier === 'ad-free') {
+            document.getElementById('ad-free-price').innerHTML = '$5.00';
+            document.getElementById('ad-free-period').innerHTML = '/month';
+        } else if (tier === 'growth') {
+            document.getElementById('premium-price').innerHTML = '$12.99';
+            document.getElementById('premium-period').innerHTML = '/month';
+        } else if (tier === 'transformation') {
+            document.getElementById('enterprise-price').innerHTML = '$19.99';
+            document.getElementById('enterprise-period').innerHTML = '/month';
         }
+    } else {
+        // Yearly pricing (25% savings)
+        if (tier === 'ad-free') {
+            document.getElementById('ad-free-price').innerHTML = '$45.00';
+            document.getElementById('ad-free-period').innerHTML = '/year';
+        } else if (tier === 'growth') {
+            document.getElementById('premium-price').innerHTML = '$117.00';
+            document.getElementById('premium-period').innerHTML = '/year';
+        } else if (tier === 'transformation') {
+            document.getElementById('enterprise-price').innerHTML = '$180.00';
+            document.getElementById('enterprise-period').innerHTML = '/year';
+        }
+    }
+}
+
+function selectPlan(planType) {
+  selectedPlan = planType;
+  
+  // Determine billing period based on individual tier selection
+  let billingPeriod = 'monthly';
+  if (planType === 'ad_free') {
+    billingPeriod = tierPricing['ad-free'];
+  } else if (planType === 'premium') {
+    billingPeriod = tierPricing['growth'];
+  } else if (planType === 'enterprise') {
+    billingPeriod = tierPricing['transformation'];
+  }
+  
+  // Remove selection from all cards
+  document.querySelectorAll('.plan-card').forEach(card => {
+    card.style.borderColor = 'rgba(34, 211, 238, 0.2)';
+  });
+  
+  // Highlight selected card based on plan type
+  let selectedCard = null;
+  if (planType === 'ad_free') {
+    selectedCard = document.querySelector('.plan-card'); // First card
+  } else if (planType === 'premium') {
+    selectedCard = document.querySelector('.plan-card.recommended'); // Growth card
+  } else if (planType === 'enterprise') {
+    selectedCard = document.querySelectorAll('.plan-card')[2]; // Transformation card
+  }
+  
+  if (selectedCard) {
+    selectedCard.style.borderColor = '#22d3ee';
+  }
+  
+  // Handle plan selection - call backend API
+  selectPlanViaAPI(planType, billingPeriod);
+}
+
+// Plan selection API function - directly create Stripe checkout
+async function selectPlanViaAPI(planType, billing) {
+  try {
+    // First check if user is logged in
+    const statusResponse = await fetch('/api/user-status', {
+      method: 'GET',
+      credentials: 'include'
+    });
+    const statusData = await statusResponse.json();
+    
+    if (!statusData.logged_in) {
+      alert('Please log in to subscribe to a plan');
+      window.location.href = '/login?return_to=subscription';
+      return;
+    }
+
+    // Handle ad-free plan separately
+    if (planType === 'ad_free') {
+      const response = await fetch('/api/billing/checkout-session/adfree', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({ 
+          billing_period: billing 
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (result.success && result.checkout_url) {
+        // Redirect to Stripe checkout for ad-free plan
+        window.location.href = result.checkout_url;
+        return;
+      } else {
+        alert('Error: ' + (result.error || 'Failed to create ad-free checkout'));
+        return;
+      }
+    }
+
+    // Create Stripe checkout session for other plans
+    const response = await fetch('/api/create-checkout-session', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include',  // ✅ Include session cookies
+      body: JSON.stringify({
+        plan_type: planType,
+        billing: billing
+      })
+    });
+    
+    const result = await response.json();
+    
+    if (result.success && result.checkout_url) {
+      // Redirect to Stripe checkout
+      window.location.href = result.checkout_url;
+    } else {
+      alert('Error: ' + (result.error || 'Payment setup failed'));
+      console.error('Payment setup error:', result);
+    }
+  } catch (error) {
+    console.error('Plan selection error:', error);
+    alert('Failed to start payment process. Please try again.');
+  }
+}
+
+// Check user access and show/hide lock overlay
+async function checkTrainerTimePurchaseAccess() {
+    try {
+        const statusResponse = await fetch('/api/user-status', {
+            method: 'GET',
+            credentials: 'include'
+        });
+        const statusData = await statusResponse.json();
+        
+        const section = document.getElementById('credit-purchase-section');
+        const lockOverlay = document.getElementById('trainer-time-lock');
+        
+        // Always show the section
+        section.style.display = 'block';
+        
+        if (statusData.logged_in && (statusData.plan_type === 'max' || statusData.plan_type === 'growth')) {
+            // Growth/Max plan subscribers: hide lock, enable purchases
+            lockOverlay.style.display = 'none';
+            console.log(`✅ ${statusData.plan_type.charAt(0).toUpperCase() + statusData.plan_type.slice(1)} Plan subscriber - trainer time purchases enabled`);
+        } else {
+            // Non-Growth/Max subscribers: show lock overlay
+            lockOverlay.style.display = 'flex';
+            console.log('🔒 Non-Growth/Max subscriber - showing upgrade prompt');
+        }
+    } catch (error) {
+        console.error('Error checking trainer time purchase access:', error);
+        // On error, show lock overlay as fallback
+        document.getElementById('trainer-time-lock').style.display = 'flex';
+    }
+}
+
+// Trainer time purchase function
+async function purchaseTrainerTime(amount, price) {
+    try {
+        // Check if user is Growth/Max plan subscriber
+        const statusResponse = await fetch('/api/user-status', {
+            method: 'GET',
+            credentials: 'include'
+        });
+        const statusData = await statusResponse.json();
+        
+        if (!statusData.logged_in) {
+            alert('Please log in to purchase trainer time');
+            window.location.href = '/login?return_to=plan-selection';
+            return;
+        }
+        
+        if (statusData.plan_type !== 'max' && statusData.plan_type !== 'growth') {
+            alert('Trainer time purchases are only available for Growth or Max Plan subscribers. Please upgrade first!');
+            return;
+        }
+        
+        // Show confirmation with rollover warning
+        const confirm = window.confirm(`Purchase ${amount} trainer time for $${price.toFixed(2)}?\n\n⚠️ IMPORTANT: Trainer time will be added instantly but resets at your monthly billing cycle with NO ROLLOVER. Only purchase if you'll use it before your next reset.\n\nContinue with purchase?`);
+        
+        if (!confirm) {
+            return;
+        }
+        
+        // Create Stripe checkout session for trainer time
+        const response = await fetch('/api/buy-credits', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            credentials: 'include',
+            body: new URLSearchParams({
+                'credits': amount,
+                'price': price.toFixed(2)
+            })
+        });
+        
+        const data = await response.text();
+        
+        // Check if response contains Stripe checkout URL
+        if (data.includes('https://checkout.stripe.com/')) {
+            // Extract the checkout URL from the response
+            const urlMatch = data.match(/https:\/\/checkout\.stripe\.com\/[^"'\s]+/);
+            if (urlMatch) {
+                window.location.href = urlMatch[0];
+            } else {
+                alert('Error: Could not process trainer time purchase. Please try again.');
+            }
+        } else if (data.includes('error') || data.includes('failed')) {
+            alert('Error: Failed to create trainer time purchase session. Please try again.');
+        } else {
+            // Fallback: redirect to response page
+            document.write(data);
+        }
+    } catch (error) {
+        console.error('Trainer time purchase error:', error);
+        alert('Failed to process trainer time purchase. Please try again.');
+    }
+}
 
 // Initialize with monthly pricing
 document.addEventListener('DOMContentLoaded', function() {
