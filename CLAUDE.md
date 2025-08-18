@@ -1,10 +1,10 @@
 # SoulBridge AI - Claude Code Reference
 
-## Complete SoulBridge AI Tier System
+## Complete SoulBridge AI Tier System (Metal/Gem Naming)
 
-### FREE TIER (Default)
+### 🥉 BRONZE TIER (Default)
 **Status**: Always available, runs with ads
-**Features**: Basic features only
+**Features**: Basic features only  
 - Decoder: 3 daily uses
 - Fortune: 2 daily uses  
 - Horoscope: 3 daily uses
@@ -12,26 +12,26 @@
 - Credits: 0 monthly (no trainer time)
 - Premium features: LOCKED (AI images, voice journaling, etc.)
 - Mini Studio: LOCKED
-- Companion Access: Free tier companions only
+- Companion Access: Bronze tier companions only
 - Ads: YES - displays ads during usage
 
-### 5-HOUR TRIAL (Free Users Only)
-**Purpose**: Let free users taste Growth/Max tiers temporarily
-**Who Can Use**: Only FREE tier users (Growth/Max don't need it)
+### 5-HOUR TRIAL (Bronze Users Only)
+**Purpose**: Let Bronze users taste Silver/Gold tiers temporarily
+**Who Can Use**: Only BRONZE tier users (Silver/Gold don't need it)
 **What Changes When Activated**:
 - ✅ **Gives 60 trainer time credits** - can spend on credit-based features
-- ✅ **Unlocks Growth tier access** - can use Growth companions & features for 5 hours
-- ✅ **Unlocks Max tier access** - can use Max companions & features for 5 hours
-- ✅ **Growth/Max limits stay the same** - their features/limits don't change
-- ❌ **Free tier stays the same** - still 3/2/3 limits, still has ads, still "free" plan
+- ✅ **Unlocks Silver tier access** - can use Silver companions & features for 5 hours
+- ✅ **Unlocks Gold tier access** - can use Gold companions & features for 5 hours
+- ✅ **Silver/Gold limits stay the same** - their features/limits don't change
+- ❌ **Bronze tier stays the same** - still 3/2/3 limits, still has ads, still "bronze" plan
 - ❌ **No extra monthly credits** - only the 60 trial credits
 
 **Trial Behavior**:
 - If you use up 60 credits before 5hrs end → credit features lock, chat/basic features still work
-- After 5hrs → all Growth/Max access locks again, back to free tier only
+- After 5hrs → all Silver/Gold access locks again, back to Bronze tier only
 - One-time only per user
 
-### GROWTH TIER (Subscription)
+### 🥈 SILVER TIER (Subscription)
 **Cost**: $12.99/month or $117/year (25% savings)
 **Features**: Enhanced limits + credit features
 - Decoder: 15 daily uses
@@ -40,13 +40,13 @@
 - Creative Writer: 20 daily uses
 - Credits: 100 monthly trainer time (resets each billing cycle, NO ROLLOVER)
 - Premium features: UNLOCKED (AI images, voice journaling, relationship profiles, meditations)
-- Mini Studio: LOCKED (Max tier exclusive)
-- Companion Access: Free + Growth tier companions
+- Mini Studio: LOCKED (Gold tier exclusive)
+- Companion Access: Bronze + Silver tier companions
 - Ads: REMOVED - no ads for subscribers
 - **Extra Credits**: Can purchase additional trainer time when monthly/yearly allocation runs out
-- **Cancellation**: Keep benefits until billing period ends, then revert to free tier
+- **Cancellation**: Keep benefits until billing period ends, then revert to Bronze tier
 
-### MAX TIER (Subscription) 
+### 🥇 GOLD TIER (Subscription) 
 **Cost**: $19.99/month or $180/year (25% savings)
 **Features**: Unlimited everything + exclusive features
 - Decoder: UNLIMITED daily uses
@@ -55,30 +55,30 @@
 - Creative Writer: UNLIMITED daily uses
 - Credits: 500 monthly trainer time (resets each billing cycle, NO ROLLOVER)
 - Premium features: UNLOCKED (all of them)
-- Mini Studio: UNLOCKED (Max exclusive feature)
-- Companion Access: Free + Growth + Max tier companions  
+- Mini Studio: UNLOCKED (Gold exclusive feature)
+- Companion Access: Bronze + Silver + Gold tier companions  
 - Ads: REMOVED - no ads for subscribers
 - **Extra Credits**: Can purchase additional trainer time when monthly/yearly allocation runs out
-- **Cancellation**: Keep benefits until billing period ends, then revert to free tier
+- **Cancellation**: Keep benefits until billing period ends, then revert to Bronze tier
 
-### AD-FREE UPGRADE (Optional for Free Users)
+### AD-FREE UPGRADE (Optional for Bronze Users)
 **Cost**: $5/month
-**Purpose**: Remove ads from free tier without upgrading features
-- Removes ads from free tier experience
-- Keeps all free tier limits (3/2/3)
+**Purpose**: Remove ads from Bronze tier without upgrading features
+- Removes ads from Bronze tier experience
+- Keeps all Bronze tier limits (3/2/3)
 - No additional features or credits
-- Alternative to full Growth/Max subscription
+- Alternative to full Silver/Gold subscription
 
 ### Key Trial Design Principles:
-1. **Trial is for FREE users only** - Growth/Max don't need to trial their own tiers
+1. **Trial is for BRONZE users only** - Silver/Gold don't need to trial their own tiers
 2. **Trial unlocks ACCESS, not BENEFITS** - can taste tiers but limits stay the same
-3. **No false hope** - Growth/Max keep their actual limits during trial
+3. **No false hope** - Silver/Gold keep their actual limits during trial
 4. **Credit system** - 60 trial credits let users taste credit features
-5. **Time limited** - 5 hours to explore, then back to free tier
+5. **Time limited** - 5 hours to explore, then back to Bronze tier
 6. **One-time only** - prevents abuse
 
 ### Credit Purchase System:
-**Who Can Buy**: Growth and Max tier subscribers only (monthly OR yearly)
+**Who Can Buy**: Silver and Gold tier subscribers only (monthly OR yearly)
 **Purpose**: Get additional trainer time when monthly/yearly allocation runs out
 **Pricing**: TBD (likely $5-10 for 50-100 additional credits)
 **Behavior**: 
@@ -91,18 +91,25 @@
 ### Subscription & Cancellation Policy:
 **Payment**: Pay first - charged immediately upon subscribing (monthly or yearly)
 **Cancellation**: No refunds - you keep access for the full period you paid for
-**Monthly Subs**: Cancel anytime, keep benefits until your month ends, then revert to free tier
-**Yearly Subs**: Cancel anytime, keep benefits until your year ends, then revert to free tier  
+**Monthly Subs**: Cancel anytime, keep benefits until your month ends, then revert to Bronze tier
+**Yearly Subs**: Cancel anytime, keep benefits until your year ends, then revert to Bronze tier  
 **Credit Purchasing**: Blocked once subscription is cancelled (even during remaining paid period)
 **Auto-Renewal**: Subscriptions auto-renew unless cancelled before billing period ends
 
 ### Implementation Notes:
-- `get_effective_plan()` - Returns "max" for free trial users (companion access only)
+- `get_effective_plan()` - Returns "gold" for Bronze trial users (companion access only)
 - `get_feature_limit()` - Always uses actual user_plan (never trial effective_plan)  
-- Trial users can access Growth/Max companions but see their actual tier limits
+- Trial users can access Silver/Gold companions but see their actual tier limits
 - Credit depletion locks credit features but chat/basic features remain available
 - Subscription benefits are permanent until cancelled
-- Credit purchasing requires active Growth/Max subscription verification
+- Credit purchasing requires active Silver/Gold subscription verification
+
+### Tier Mapping (Internal):
+- **bronze** (was: free) - Basic tier with ads
+- **silver** (was: growth) - Enhanced tier, no ads  
+- **gold** (was: max) - Premium tier, unlimited features
+- **platinum** (future) - Ultra premium tier
+- **diamond** (future) - Ultimate tier
 
 ### Commands to remember:
 - `npm run lint` - Check code quality

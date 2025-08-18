@@ -249,7 +249,7 @@
       <h1 class="plan-title">Choose Your SoulBridge Plan</h1>
       <p>Select the perfect plan for your AI companion journey</p>
       <div style="background: rgba(34, 211, 238, 0.1); border: 1px solid #22d3ee; border-radius: 8px; padding: 15px; margin: 20px auto; max-width: 600px; text-align: center;">
-        <strong>Currently Free:</strong> Unlimited chat with ads + daily limits on special features (decoder: 3, fortune: 2, horoscope: 3)
+        <strong>Currently Bronze:</strong> Unlimited chat with ads + daily limits on special features (decoder: 3, fortune: 2, horoscope: 3)
       </div>
     </div>
 
@@ -281,20 +281,20 @@
         <button class="select-btn" style="background: linear-gradient(135deg, #22d3ee, #0891b2);" onclick="selectPlan('ad_free')">Choose Ad-Free</button>
       </div>
       
-      <!-- Growth Plan (Recommended) -->
+      <!-- Silver Plan (Recommended) -->
       <div class="plan-card recommended">
         <div class="badge">Most Popular</div>
-        <div class="plan-icon">🌱</div>
-        <div class="plan-name">Growth</div>
+        <div class="plan-icon">🥈</div>
+        <div class="plan-name">Silver</div>
         
         <!-- Individual Tier Toggle -->
         <div style="display: flex; justify-content: center; margin: 20px auto; background: rgba(15, 23, 42, 0.8); border-radius: 50px; padding: 4px; width: fit-content;">
-          <div class="tier-toggle-option active" onclick="toggleTierPricing('growth', 'monthly', event)" style="padding: 8px 20px; border-radius: 50px; cursor: pointer; transition: all 0.3s ease; font-weight: 600; color: #94a3b8; font-size: 14px;">Monthly</div>
-          <div class="tier-toggle-option" onclick="toggleTierPricing('growth', 'yearly', event)" style="padding: 8px 20px; border-radius: 50px; cursor: pointer; transition: all 0.3s ease; font-weight: 600; color: #94a3b8; font-size: 14px;">Yearly <span style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-left: 4px;">Save 25%</span></div>
+          <div class="tier-toggle-option active" onclick="toggleTierPricing('silver', 'monthly', event)" style="padding: 8px 20px; border-radius: 50px; cursor: pointer; transition: all 0.3s ease; font-weight: 600; color: #94a3b8; font-size: 14px;">Monthly</div>
+          <div class="tier-toggle-option" onclick="toggleTierPricing('silver', 'yearly', event)" style="padding: 8px 20px; border-radius: 50px; cursor: pointer; transition: all 0.3s ease; font-weight: 600; color: #94a3b8; font-size: 14px;">Yearly <span style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-left: 4px;">Save 25%</span></div>
         </div>
         
-        <div class="plan-price" id="growth-price">$12.99</div>
-        <div class="plan-period" id="growth-period">/month</div>
+        <div class="plan-price" id="silver-price">$12.99</div>
+        <div class="plan-period" id="silver-period">/month</div>
         
         <ul class="plan-features">
           <li><span class="feature-icon">✅</span> Premium AI companions</li>
@@ -304,22 +304,22 @@
           <li><span class="feature-icon">✅</span> Custom companion training</li>
         </ul>
         
-        <button class="select-btn paid" onclick="selectPlan('premium')">Choose Growth</button>
+        <button class="select-btn paid" onclick="selectPlan('premium')">Choose Silver</button>
       </div>
 
-      <!-- Transformation Plan (Premium) -->
+      <!-- Gold Plan (Premium) -->
       <div class="plan-card">
-        <div class="plan-icon">🚀</div>
-        <div class="plan-name">Transformation</div>
+        <div class="plan-icon">🥇</div>
+        <div class="plan-name">Gold</div>
         
         <!-- Individual Tier Toggle -->
         <div style="display: flex; justify-content: center; margin: 20px auto; background: rgba(15, 23, 42, 0.8); border-radius: 50px; padding: 4px; width: fit-content;">
-          <div class="tier-toggle-option active" onclick="toggleTierPricing('transformation', 'monthly', event)" style="padding: 8px 20px; border-radius: 50px; cursor: pointer; transition: all 0.3s ease; font-weight: 600; color: #94a3b8; font-size: 14px;">Monthly</div>
-          <div class="tier-toggle-option" onclick="toggleTierPricing('transformation', 'yearly', event)" style="padding: 8px 20px; border-radius: 50px; cursor: pointer; transition: all 0.3s ease; font-weight: 600; color: #94a3b8; font-size: 14px;">Yearly <span style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-left: 4px;">Save 25%</span></div>
+          <div class="tier-toggle-option active" onclick="toggleTierPricing('gold', 'monthly', event)" style="padding: 8px 20px; border-radius: 50px; cursor: pointer; transition: all 0.3s ease; font-weight: 600; color: #94a3b8; font-size: 14px;">Monthly</div>
+          <div class="tier-toggle-option" onclick="toggleTierPricing('gold', 'yearly', event)" style="padding: 8px 20px; border-radius: 50px; cursor: pointer; transition: all 0.3s ease; font-weight: 600; color: #94a3b8; font-size: 14px;">Yearly <span style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-left: 4px;">Save 25%</span></div>
         </div>
         
-        <div class="plan-price" id="transformation-price">$19.99</div>
-        <div class="plan-period" id="transformation-period">/month</div>
+        <div class="plan-price" id="gold-price">$19.99</div>
+        <div class="plan-period" id="gold-period">/month</div>
         
         <ul class="plan-features">
           <li><span class="feature-icon">✅</span> All Growth features</li>
@@ -330,7 +330,7 @@
           <li><span class="feature-icon">✅</span> 1-on-1 onboarding session</li>
         </ul>
         
-        <button class="select-btn premium" onclick="selectPlan('enterprise')">Choose Transformation</button>
+        <button class="select-btn premium" onclick="selectPlan('enterprise')">Choose Gold</button>
       </div>
     </div>
 
@@ -348,7 +348,7 @@
       <div style="font-size: 2rem; margin-bottom: 20px;">💳</div>
       <h3 style="color: #22d3ee; margin-bottom: 20px; font-size: 1.8rem;">Need More Trainer Time?</h3>
       <p style="color: #e2e8f0; line-height: 1.6; margin-bottom: 20px; font-size: 1.1rem;">
-        Growth & Max subscribers get monthly trainer time. Running low? Purchase additional trainer time anytime!
+        Silver & Gold subscribers get monthly trainer time. Running low? Purchase additional trainer time anytime!
       </p>
       
       <!-- Important warning about rollover -->
@@ -453,7 +453,7 @@
       </div>
       
       <p style="color: #94a3b8; font-size: 0.9rem; margin-top: 20px;">
-        Purchased trainer time is added instantly. <strong>Note:</strong> All trainer time (monthly + purchased) resets at your billing cycle with no rollover. Growth and Max Plan subscribers can purchase additional trainer time.
+        Purchased trainer time is added instantly. <strong>Note:</strong> All trainer time (monthly + purchased) resets at your billing cycle with no rollover. Silver and Gold Plan subscribers can purchase additional trainer time.
       </p>
       
       <!-- Lock overlay for non-Growth/Max subscribers -->
@@ -472,9 +472,9 @@
         z-index: 10;
       ">
         <div style="font-size: 3rem; margin-bottom: 20px;">🔒</div>
-        <h3 style="color: #22d3ee; margin-bottom: 15px; font-size: 1.5rem;">Growth or Max Plan Required</h3>
+        <h3 style="color: #22d3ee; margin-bottom: 15px; font-size: 1.5rem;">Silver or Gold Plan Required</h3>
         <p style="color: #e2e8f0; text-align: center; max-width: 400px; margin-bottom: 25px; line-height: 1.5;">
-          Upgrade to Growth or Max Plan to purchase additional trainer time when you run out of your monthly allowance. Remember: trainer time resets monthly with no rollover.
+          Upgrade to Silver or Gold Plan to purchase additional trainer time when you run out of your monthly allowance. Remember: trainer time resets monthly with no rollover.
         </p>
         <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;">
           <button onclick="selectPlan('premium')" style="
@@ -486,7 +486,7 @@
             font-weight: 600;
             cursor: pointer;
             font-size: 1rem;
-          ">Upgrade to Growth</button>
+          ">Upgrade to Silver</button>
           <button onclick="selectPlan('enterprise')" style="
             background: linear-gradient(135deg, #fbbf24, #f59e0b);
             color: #000;
@@ -496,7 +496,7 @@
             font-weight: 600;
             cursor: pointer;
             font-size: 1rem;
-          ">Upgrade to Max</button>
+          ">Upgrade to Gold</button>
         </div>
       </div>
     </div>
@@ -510,9 +510,9 @@
                 if (planType === 'ad_free') {
                     billingPeriod = tierPricing['ad-free'];
                 } else if (planType === 'premium') {
-                    billingPeriod = tierPricing['growth'];
+                    billingPeriod = tierPricing['silver'];
                 } else if (planType === 'enterprise') {
-                    billingPeriod = tierPricing['transformation'];
+                    billingPeriod = tierPricing['gold'];
                 }
                 
                 const response = await fetch('/api/select-plan', {
@@ -584,11 +584,11 @@
             }
         }
         
-        // Individual tier pricing tracking
+        // Individual tier pricing tracking  
         let tierPricing = {
             'ad-free': 'monthly',
-            'growth': 'monthly', 
-            'transformation': 'monthly'
+            'silver': 'monthly', 
+            'gold': 'monthly'
         };
         
         function toggleTierPricing(tier, period, event) {
@@ -606,24 +606,24 @@
                 if (tier === 'ad-free') {
                     document.getElementById('ad-free-price').innerHTML = '$5.00';
                     document.getElementById('ad-free-period').innerHTML = '/month';
-                } else if (tier === 'growth') {
-                    document.getElementById('growth-price').innerHTML = '$12.99';
-                    document.getElementById('growth-period').innerHTML = '/month';
-                } else if (tier === 'transformation') {
-                    document.getElementById('transformation-price').innerHTML = '$19.99';
-                    document.getElementById('transformation-period').innerHTML = '/month';
+                } else if (tier === 'silver') {
+                    document.getElementById('silver-price').innerHTML = '$12.99';
+                    document.getElementById('silver-period').innerHTML = '/month';
+                } else if (tier === 'gold') {
+                    document.getElementById('gold-price').innerHTML = '$19.99';
+                    document.getElementById('gold-period').innerHTML = '/month';
                 }
             } else {
                 // Yearly pricing (25% savings)
                 if (tier === 'ad-free') {
                     document.getElementById('ad-free-price').innerHTML = '$45.00';
                     document.getElementById('ad-free-period').innerHTML = '/year';
-                } else if (tier === 'growth') {
-                    document.getElementById('growth-price').innerHTML = '$117.00';
-                    document.getElementById('growth-period').innerHTML = '/year';
-                } else if (tier === 'transformation') {
-                    document.getElementById('transformation-price').innerHTML = '$180.00';
-                    document.getElementById('transformation-period').innerHTML = '/year';
+                } else if (tier === 'silver') {
+                    document.getElementById('silver-price').innerHTML = '$117.00';
+                    document.getElementById('silver-period').innerHTML = '/year';
+                } else if (tier === 'gold') {
+                    document.getElementById('gold-price').innerHTML = '$180.00';
+                    document.getElementById('gold-period').innerHTML = '/year';
                 }
             }
         }
@@ -643,14 +643,14 @@
                 // Always show the section
                 section.style.display = 'block';
                 
-                if (statusData.logged_in && (statusData.plan_type === 'max' || statusData.plan_type === 'growth')) {
-                    // Growth/Max plan subscribers: hide lock, enable purchases
+                if (statusData.logged_in && (statusData.plan_type === 'gold' || statusData.plan_type === 'silver')) {
+                    // Silver/Gold plan subscribers: hide lock, enable purchases
                     lockOverlay.style.display = 'none';
                     console.log(`✅ ${statusData.plan_type.charAt(0).toUpperCase() + statusData.plan_type.slice(1)} Plan subscriber - trainer time purchases enabled`);
                 } else {
-                    // Non-Growth/Max subscribers: show lock overlay
+                    // Non-Silver/Gold subscribers: show lock overlay
                     lockOverlay.style.display = 'flex';
-                    console.log('🔒 Non-Growth/Max subscriber - showing upgrade prompt');
+                    console.log('🔒 Non-Silver/Gold subscriber - showing upgrade prompt');
                 }
             } catch (error) {
                 console.error('Error checking trainer time purchase access:', error);
@@ -675,8 +675,8 @@
                     return;
                 }
                 
-                if (statusData.plan_type !== 'max' && statusData.plan_type !== 'growth') {
-                    alert('Trainer time purchases are only available for Growth or Max Plan subscribers. Please upgrade first!');
+                if (statusData.plan_type !== 'gold' && statusData.plan_type !== 'silver') {
+                    alert('Trainer time purchases are only available for Silver or Gold Plan subscribers. Please upgrade first!');
                     return;
                 }
                 

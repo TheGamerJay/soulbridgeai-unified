@@ -6206,13 +6206,18 @@ def select_plan():
                 "redirect": "/api/billing/checkout-session/adfree"
             })
         
-        # ✅ Bulletproof plan normalization - ONLY accept Growth/Max for manual selection
-        # Free tier is assigned automatically during signup, not selectable
+        # ✅ New Tier System: Metal/Gem naming for clarity and scalability
+        # Bronze (free) assigned automatically, Silver/Gold selectable
         plan_map = {
-            'growth': 'growth',
-            'premium': 'growth',
-            'max': 'max',
-            'enterprise': 'max'
+            # New tier names (primary)
+            'silver': 'silver',
+            'gold': 'gold',
+            
+            # Legacy compatibility (old names still work)
+            'growth': 'silver',
+            'premium': 'silver', 
+            'max': 'gold',
+            'enterprise': 'gold'
         }
         
         normalized_plan = plan_map.get(raw_plan)
