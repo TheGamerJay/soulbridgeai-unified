@@ -781,131 +781,130 @@ def get_community_feed():
         if not database_url:
             return jsonify({"error": "Database not available"}), 500
             
-        try:
+        conn = psycopg2.connect(database_url)
+        cursor = conn.cursor()
+        
+        # Check if table exists first
+        cursor.execute("""
+            SELECT EXISTS (
+                SELECT FROM information_schema.tables 
+                WHERE table_name = 'community_posts'
+            );
+        """)
+        table_exists = cursor.fetchone()[0]
+        
+        if not table_exists:
+            # Close current connection
+            conn.close()
+            # Initialize database tables
+            initialize_community_database()
+            # Reconnect and proceed
             conn = psycopg2.connect(database_url)
             cursor = conn.cursor()
-            
-            # Check if table exists first
+        
+        # Build query
+        where_clauses = ["status = 'approved'", "deleted_at IS NULL"]
+        params = []
+        
+        if category != 'all':
+            where_clauses.append("category = %s")
+            params.append(category)
+        
+        if after_id:
+            where_clauses.append("id < %s")
+            params.append(after_id)
+        
+        # Get user's mutes if logged in
+        muted_hashes = []
+        if user_id:
             cursor.execute("""
-                SELECT EXISTS (
-                    SELECT FROM information_schema.tables 
-                    WHERE table_name = 'community_posts'
-                );
-            """)
-            table_exists = cursor.fetchone()[0]
+                SELECT muted_author_uid_hash, muted_companion_id, muted_category
+                FROM community_mutes 
+                WHERE viewer_uid = %s AND (expires_at IS NULL OR expires_at > CURRENT_TIMESTAMP)
+            """, (user_id,))
             
-            if not table_exists:
-                # Close current connection
-                conn.close()
-                # Initialize database tables
-                initialize_community_database()
-                # Reconnect and proceed
-                conn = psycopg2.connect(database_url)
-                cursor = conn.cursor()
-            
-            # Build query
-            where_clauses = ["status = 'approved'", "deleted_at IS NULL"]
-            params = []
-            
-            if category != 'all':
-                where_clauses.append("category = %s")
-                params.append(category)
-            
-            if after_id:
-                where_clauses.append("id < %s")
-                params.append(after_id)
-            
-            # Get user's mutes if logged in
-            muted_hashes = []
-            if user_id:
-                cursor.execute("""
-                    SELECT muted_author_uid_hash, muted_companion_id, muted_category
-                    FROM community_mutes 
-                    WHERE viewer_uid = %s AND (expires_at IS NULL OR expires_at > CURRENT_TIMESTAMP)
-                """, (user_id,))
-                
-                for row in cursor.fetchall():
-                    muted_hash, muted_companion, muted_cat = row
-                    if muted_hash:
-                        muted_hashes.append(muted_hash)
-            
-            if muted_hashes:
-                where_clauses.append(f"author_uid_hash NOT IN ({','.join(['%s'] * len(muted_hashes))})")
-                params.extend(muted_hashes)
-            
-            where_clause = "WHERE " + " AND ".join(where_clauses)
-            
-            # Order by clause
-            if sort_by == 'new':
-                order_clause = "ORDER BY created_at DESC"
-            else:  # top variants
-                order_clause = "ORDER BY total_reactions DESC, created_at DESC"
-            
-            query = f"""
-                SELECT id, author_uid_hash, companion_id, companion_skin_id,
-                       category, text, hashtags, reaction_counts_json, 
-                       total_reactions, created_at
-                FROM community_posts 
-                {where_clause} 
-                {order_clause} 
-                LIMIT %s
-            """
-            
-            params.append(limit)
-            cursor.execute(query, params)
-            
-            posts = []
             for row in cursor.fetchall():
-                (post_id, author_hash, companion_id, companion_skin_id, 
-                 cat, text, hashtags_json, reactions_json, total_reactions, created_at) = row
-                
-                # Calculate time ago
-                post_time = datetime.fromisoformat(created_at)
-                time_ago = format_time_ago(post_time)
-                
-                # Get companion avatar info - use actual companion names
-                companion_names = {
-                    1: 'GamerJay Free companion',
-                    2: 'Sky a premium companion', 
-                    3: 'Crimson',
-                    4: 'Violet',
-                    7: 'GamerJay premium companion'
-                }
-                companion_name = companion_names.get(companion_id, 'GamerJay Free companion')
-                avatar_url = f"/static/logos/{companion_name}.png"
-                
-                posts.append({
-                    'id': post_id,
-                    'author_display': 'Anonymous',
-                    'author_hash': author_hash[:8],  # Shortened for muting
-                    'avatar_url': avatar_url,
-                    'tier_badge': 'Free',  # Would get from companion/skin rarity
-                    'category': cat,
-                    'text': text,
-                    'hashtags': json.loads(hashtags_json) if hashtags_json else [],
-                    'reactions': json.loads(reactions_json) if reactions_json else {},
-                    'total_reactions': total_reactions,
-                    'time_ago': time_ago,
-                    'created_at': created_at
-                })
+                muted_hash, muted_companion, muted_cat = row
+                if muted_hash:
+                    muted_hashes.append(muted_hash)
+        
+        if muted_hashes:
+            where_clauses.append(f"author_uid_hash NOT IN ({','.join(['%s'] * len(muted_hashes))})")
+            params.extend(muted_hashes)
+        
+        where_clause = "WHERE " + " AND ".join(where_clauses)
+        
+        # Order by clause
+        if sort_by == 'new':
+            order_clause = "ORDER BY created_at DESC"
+        else:  # top variants
+            order_clause = "ORDER BY total_reactions DESC, created_at DESC"
+        
+        query = f"""
+            SELECT id, author_uid_hash, companion_id, companion_skin_id,
+                   category, text, hashtags, reaction_counts_json, 
+                   total_reactions, created_at
+            FROM community_posts 
+            {where_clause} 
+            {order_clause} 
+            LIMIT %s
+        """
+        
+        params.append(limit)
+        cursor.execute(query, params)
+        
+        posts = []
+        for row in cursor.fetchall():
+            (post_id, author_hash, companion_id, companion_skin_id, 
+             cat, text, hashtags_json, reactions_json, total_reactions, created_at) = row
             
-            conn.close()
+            # Calculate time ago
+            post_time = datetime.fromisoformat(created_at)
+            time_ago = format_time_ago(post_time)
             
-            response = {
-                'posts': posts,
-                'has_more': len(posts) == limit,
-                'category': category,
-                'sort': sort_by
+            # Get companion avatar info - use actual companion names
+            companion_names = {
+                1: 'GamerJay Free companion',
+                2: 'Sky a premium companion', 
+                3: 'Crimson',
+                4: 'Violet',
+                7: 'GamerJay premium companion'
             }
+            companion_name = companion_names.get(companion_id, 'GamerJay Free companion')
+            avatar_url = f"/static/logos/{companion_name}.png"
             
-            # Add empty state message if no posts
-            if not posts:
-                response['empty_state'] = {
-                    'title': 'No content yet',
-                    'message': 'Be the first to share something beautiful! 💙'
-                }
-            
-            return jsonify(response)
+            posts.append({
+                'id': post_id,
+                'author_display': 'Anonymous',
+                'author_hash': author_hash[:8],  # Shortened for muting
+                'avatar_url': avatar_url,
+                'tier_badge': 'Free',  # Would get from companion/skin rarity
+                'category': cat,
+                'text': text,
+                'hashtags': json.loads(hashtags_json) if hashtags_json else [],
+                'reactions': json.loads(reactions_json) if reactions_json else {},
+                'total_reactions': total_reactions,
+                'time_ago': time_ago,
+                'created_at': created_at
+            })
+        
+        conn.close()
+        
+        response = {
+            'posts': posts,
+            'has_more': len(posts) == limit,
+            'category': category,
+            'sort': sort_by
+        }
+        
+        # Add empty state message if no posts
+        if not posts:
+            response['empty_state'] = {
+                'title': 'No content yet',
+                'message': 'Be the first to share something beautiful! 💙'
+            }
+        
+        return jsonify(response)
         
     except Exception as e:
         logger.error(f"Failed to get community feed: {e}")
