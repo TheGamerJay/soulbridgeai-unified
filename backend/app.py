@@ -48,6 +48,17 @@ except ImportError as e:
 # Import new trial endpoint blueprint
 # Trial system is now integrated directly in app.py
 trial_available = True
+
+# Import Bronze/Silver/Gold tier system components
+try:
+    from migrations_bronze_silver_gold import run_bsg_migrations
+    from stripe_checkout import bp_stripe
+    from routes_me import bp_me
+    bsg_available = True
+    print("Bronze/Silver/Gold tier system loaded")
+except ImportError as e:
+    print(f"Warning: Bronze/Silver/Gold tier system not available: {e}")
+    bsg_available = False
 bp_trial = None
 print("Trial endpoint system integrated in app.py")
 
@@ -322,6 +333,22 @@ try:
     print("Cosmetic system registered successfully")
 except ImportError as e:
     print(f"WARNING: Cosmetic system not available: {e}")
+
+# Register Bronze/Silver/Gold tier system blueprints
+if bsg_available:
+    try:
+        app.register_blueprint(bp_stripe)  # /api/stripe/...
+        print("Stripe checkout system registered successfully")
+    except Exception as e:
+        print(f"WARNING: Stripe checkout registration failed: {e}")
+    
+    try:
+        app.register_blueprint(bp_me)      # /api/me
+        print("/api/me endpoint registered successfully")
+    except Exception as e:
+        print(f"WARNING: /api/me registration failed: {e}")
+else:
+    print("WARNING: Bronze/Silver/Gold tier system blueprints not registered")
 
 # Trial endpoints are now integrated directly in app.py
 print("Trial system ready")
@@ -826,7 +853,8 @@ services = {
     "database": None,
     "openai": None, 
     "email": None,
-    "socketio": None
+    "socketio": None,
+    "bsg_migrations_done": False  # Track Bronze/Silver/Gold migrations
 }
 
 # Global service instances and thread safety
@@ -1446,6 +1474,29 @@ def init_socketio():
         services["socketio"] = None
         return False
 
+def ensure_bsg_migrations():
+    """Ensure Bronze/Silver/Gold migrations are run exactly once."""
+    if not bsg_available:
+        return False
+        
+    try:
+        # Check if migrations have already been run
+        if services.get("bsg_migrations_done", False):
+            return True
+            
+        # Run migrations
+        if run_bsg_migrations(get_database):
+            services["bsg_migrations_done"] = True
+            logger.info("✅ BSG migrations completed successfully")
+            return True
+        else:
+            logger.warning("⚠️ BSG migrations failed")
+            return False
+            
+    except Exception as e:
+        logger.warning(f"⚠️ BSG migrations error: {e}")
+        return False
+
 def initialize_services():
     """Initialize all services with graceful fallback"""
     logger.info("🚀 Starting SoulBridge AI service initialization...")
@@ -1470,6 +1521,10 @@ def initialize_services():
     working = sum(results.values())
     total = len(results)
     logger.info(f"📊 Service initialization complete: {working}/{total} services operational")
+    
+    # Run Bronze/Silver/Gold schema migrations if database is available
+    if results.get("Database", False):
+        ensure_bsg_migrations()
     
     # Run periodic plan migration as safety net during startup
     logger.info("🧼 Running periodic plan migration safety check...")
@@ -6899,11 +6954,33 @@ def api_users():
                 display_name = 'SoulBridge User'
                 logger.info("No custom display name found, using default")
             
+            # Get current plan (check new Bronze/Silver/Gold system)
+            try:
+                from db_users import db_get_user_plan, db_get_trial_state
+                from access import get_effective_access
+                
+                current_plan = db_get_user_plan(user_id) if user_id else 'bronze'
+                trial_active, trial_expires_at = db_get_trial_state(user_id) if user_id else (False, None)
+                access = get_effective_access(current_plan, trial_active, trial_expires_at)
+            except Exception as e:
+                logger.warning(f"Failed to get access data for user {user_id}: {e}")
+                # Fallback to legacy plan system
+                current_plan = session.get('user_plan', 'foundation')
+                # Map legacy plans to new tier system
+                plan_mapping = {'foundation': 'bronze', 'premium': 'silver', 'enterprise': 'gold'}
+                current_plan = plan_mapping.get(current_plan, 'bronze')
+                access = {
+                    "plan": current_plan,
+                    "trial_live": False,
+                    "unlocked_tiers": [current_plan],
+                    "limits": {"decoder": 3, "fortune": 2, "horoscope": 3}
+                }
+
             user_data = {
                 "uid": user_id or ('user_' + str(hash(user_email))[:8]),
                 "email": user_email,
                 "displayName": display_name,
-                "plan": session.get('user_plan', 'foundation'),
+                "plan": access["plan"],  # Use access plan (Bronze/Silver/Gold)
                 "addons": session.get('user_addons', []),
                 "profileImage": profile_image,
                 "joinDate": join_date,
@@ -6911,9 +6988,18 @@ def api_users():
                 "isActive": True
             }
             
+            # Add access data for new Bronze/Silver/Gold system
+            access_data = {
+                "trial_live": access.get("trial_live", False),
+                "unlocked_tiers": access.get("unlocked_tiers", [access["plan"]]),
+                "limits": access.get("limits", {}),
+                "trial_credits": access.get("trial_credits", 0)
+            }
+            
             return jsonify({
                 "success": True,
-                "user": user_data
+                "user": user_data,
+                "access": access_data  # New: access permissions for frontend
             })
         
         elif request.method == "POST":
