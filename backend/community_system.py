@@ -1435,6 +1435,7 @@ def select_companion_direct(companion_id):
             21: {'name': 'Blayzo Premium', 'tier': 'growth', 'avatar_url': '/static/logos/Blayzo premium companion.png'},
             22: {'name': 'Blayzica Pro', 'tier': 'growth', 'avatar_url': '/static/logos/Blayzica Pro.png'},
             23: {'name': 'WatchDog Premium', 'tier': 'growth', 'avatar_url': '/static/logos/WatchDog a Premium companion.png'},
+            24: {'name': 'Rozia', 'tier': 'growth', 'avatar_url': '/static/logos/Rozia.png'},
             # Max tier companions
             3: {'name': 'Crimson', 'tier': 'max', 'avatar_url': '/static/logos/Crimson a Max companion.png'},
             4: {'name': 'Violet', 'tier': 'max', 'avatar_url': '/static/logos/Violet.png'},
@@ -1535,7 +1536,8 @@ def companion_selector_page():
                 {'id': 20, 'name': 'Claude Growth', 'avatar_url': '/static/logos/Claude Growth.png'},
                 {'id': 21, 'name': 'Blayzo Premium', 'avatar_url': '/static/logos/Blayzo premium companion.png'},
                 {'id': 22, 'name': 'Blayzica Pro', 'avatar_url': '/static/logos/Blayzica Pro.png'},
-                {'id': 23, 'name': 'WatchDog Premium', 'avatar_url': '/static/logos/WatchDog a Premium companion.png'}
+                {'id': 23, 'name': 'WatchDog Premium', 'avatar_url': '/static/logos/WatchDog a Premium companion.png'},
+                {'id': 24, 'name': 'Rozia', 'avatar_url': '/static/logos/Rozia.png'}
             ],
             'max': [
                 {'id': 3, 'name': 'Crimson', 'avatar_url': '/static/logos/Crimson a Max companion.png'},
