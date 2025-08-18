@@ -246,6 +246,25 @@ def initialize_community_database():
             );
         """)
         
+        # FORCE CREATE user_community_avatars table if missing (migration fix)
+        try:
+            cursor.execute("SELECT 1 FROM user_community_avatars LIMIT 1")
+        except Exception as e:
+            if "does not exist" in str(e):
+                logger.info("🔄 Creating missing user_community_avatars table...")
+                cursor.execute("""
+                    CREATE TABLE user_community_avatars (
+                        user_id INTEGER PRIMARY KEY,
+                        companion_id INTEGER NOT NULL,
+                        companion_name TEXT NOT NULL,
+                        companion_rarity TEXT DEFAULT 'common',
+                        avatar_url TEXT NOT NULL,
+                        selected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    );
+                """)
+                logger.info("✅ user_community_avatars table created successfully")
+        
         # Performance indexes
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_posts_created_at_desc ON community_posts(created_at DESC)")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_posts_category_created_at ON community_posts(category, created_at DESC)")
