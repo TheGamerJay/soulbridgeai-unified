@@ -916,7 +916,35 @@ def get_community_feed():
         
     except Exception as e:
         logger.error(f"Failed to get community feed: {e}")
-        return jsonify({"error": "Failed to load feed"}), 500
+        logger.error(f"Community feed error details: {type(e).__name__}: {str(e)}")
+        import traceback
+        logger.error(f"Community feed traceback: {traceback.format_exc()}")
+        
+        # Check if it's a table/column issue
+        error_str = str(e).lower()
+        if 'does not exist' in error_str or 'column' in error_str:
+            # Try to reinitialize the database
+            try:
+                logger.info("Attempting to reinitialize community database due to schema error...")
+                initialize_community_database()
+                return jsonify({
+                    "error": "Database schema updated. Please refresh the page.",
+                    "retry": True
+                }), 503
+            except Exception as init_error:
+                logger.error(f"Failed to reinitialize community database: {init_error}")
+        
+        return jsonify({"error": "Failed to load feed", "details": str(e)}), 500
+
+@community_bp.route('/debug/init-database', methods=['POST'])
+def debug_init_database():
+    """Debug endpoint to manually initialize community database"""
+    try:
+        initialize_community_database()
+        return jsonify({"success": True, "message": "Community database initialized successfully"})
+    except Exception as e:
+        logger.error(f"Failed to initialize community database: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
 
 @community_bp.route('/posts/<int:post_id>/report', methods=['POST'])
 def report_post(post_id: int):
