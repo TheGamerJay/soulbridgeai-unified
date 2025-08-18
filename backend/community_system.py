@@ -1617,7 +1617,7 @@ def companion_selector_page():
         is_growth_unlocked = effective_plan in ['growth', 'max']
         html += f'''
             <div class="tier {'unlocked' if is_growth_unlocked else 'locked'}">
-                <h3>📈 Growth Tier {'(Unlocked)' if is_growth_unlocked else '(Locked - Requires Growth/Max subscription)'}</h3>
+                <h3>📈 Growth Tier {'(Unlocked)' if is_growth_unlocked else '(Locked - Requires Growth/Max subscription)'}{' | ' if not is_growth_unlocked and effective_plan == 'free' else ''}<a href="#" onclick="trialPrompt()" style="color: #00ffff; text-decoration: none;">{' Try 5-Hour Trial!' if not is_growth_unlocked and effective_plan == 'free' else ''}</a></h3>
                 <div class="companions">
         '''
         
@@ -1635,7 +1635,7 @@ def companion_selector_page():
                         <div class="companion locked">
                             <img src="{companion['avatar_url']}" alt="{companion['name']}">
                             <br>
-                            <a href="#" onclick="alert('Requires Growth tier subscription')">{companion['name']}</a>
+                            <a href="#" onclick="upgradePrompt('growth')">{companion['name']}</a>
                         </div>
                 '''
         
@@ -1666,7 +1666,7 @@ def companion_selector_page():
                         <div class="companion locked">
                             <img src="{companion['avatar_url']}" alt="{companion['name']}">
                             <br>
-                            <a href="#" onclick="alert('Requires Max tier subscription')">{companion['name']}</a>
+                            <a href="#" onclick="upgradePrompt('max')">{companion['name']}</a>
                         </div>
                 '''
         
@@ -1703,7 +1703,7 @@ def companion_selector_page():
                         <div class="companion locked">
                             <img src="{companion['avatar_url']}" alt="{companion['name']}">
                             <br>
-                            <a href="#" onclick="alert('This companion requires {referrals_needed} referrals')">{companion['name']}</a>
+                            <a href="#" onclick="referralPrompt({referrals_needed})">{companion['name']}</a>
                             <br><small style="color: #ff6666;">🔒 {lock_text}</small>
                         </div>
                 '''
@@ -1716,6 +1716,40 @@ def companion_selector_page():
                 Click on any unlocked companion to set it as your community avatar.
                 Free users can access all Free and Referral companions!
             </p>
+            
+            <script>
+                function upgradePrompt(tier) {
+                    let message, upgradeUrl;
+                    
+                    if (tier === 'growth') {
+                        message = 'This companion requires Growth tier subscription. Would you like to upgrade to unlock all Growth companions?';
+                        upgradeUrl = '/pricing';
+                    } else if (tier === 'max') {
+                        message = 'This companion requires Max tier subscription. Would you like to upgrade to unlock all Max companions?';
+                        upgradeUrl = '/pricing';
+                    }
+                    
+                    if (confirm(message)) {
+                        window.location.href = upgradeUrl;
+                    }
+                }
+                
+                function referralPrompt(referralsNeeded) {
+                    let message = `This companion requires ${referralsNeeded} referrals to unlock. Would you like to start referring friends?`;
+                    
+                    if (confirm(message)) {
+                        window.location.href = '/referrals';
+                    }
+                }
+                
+                function trialPrompt() {
+                    let message = 'Want to try Growth and Max tier companions? Start your 5-hour free trial now!';
+                    
+                    if (confirm(message)) {
+                        window.location.href = '/trial';
+                    }
+                }
+            </script>
         </body>
         </html>
         '''
