@@ -1498,13 +1498,117 @@ def select_companion_direct(companion_id):
         success = set_user_community_avatar(user_id, companion_data)
         
         if success:
-            return f"<script>alert('Avatar set to {companion['name']}!'); window.location.href='/community';</script>"
+            # Check if user should see ads (free tier users)
+            if effective_plan == 'free':
+                # Show ad for free users when changing companions
+                return f'''
+                <script>
+                    alert('Avatar set to {companion['name']}!');
+                    // Show ad for free users after companion change
+                    window.location.href = '/community/ad-break?return_to=/community&reason=companion_change';
+                </script>
+                '''
+            else:
+                return f"<script>alert('Avatar set to {companion['name']}!'); window.location.href='/community';</script>"
         else:
             return f"<script>alert('Failed to set avatar'); window.location.href='/community';</script>"
             
     except Exception as e:
         logger.error(f"Failed to select companion: {e}")
         return f"<script>alert('Error: {str(e)}'); window.location.href='/community';</script>"
+
+@community_bp.route('/ad-break', methods=['GET'])
+def ad_break():
+    """Show ad for free users and redirect back"""
+    try:
+        return_to = request.args.get('return_to', '/community')
+        reason = request.args.get('reason', 'general')
+        
+        html = f'''
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>SoulBridge AI - Supporting Free Users</title>
+            <style>
+                body {{ 
+                    background: #000; 
+                    color: #fff; 
+                    font-family: Arial, sans-serif; 
+                    text-align: center; 
+                    padding: 50px; 
+                }}
+                .ad-container {{ 
+                    background: #111; 
+                    border: 2px solid #00ffff; 
+                    border-radius: 10px; 
+                    padding: 30px; 
+                    margin: 20px auto; 
+                    max-width: 600px; 
+                }}
+                .countdown {{ 
+                    font-size: 24px; 
+                    color: #00ffff; 
+                    margin: 20px 0; 
+                }}
+                .ad-message {{ 
+                    font-size: 18px; 
+                    margin: 20px 0; 
+                    line-height: 1.6; 
+                }}
+            </style>
+        </head>
+        <body>
+            <div class="ad-container">
+                <h2>🎭 Thanks for using SoulBridge AI!</h2>
+                <div class="ad-message">
+                    Your avatar has been updated! Ads help keep SoulBridge AI free for everyone.
+                    <br><br>
+                    🚀 <strong>Want ad-free experience?</strong> Upgrade to Growth or Max tier for unlimited companion switching!
+                </div>
+                
+                <!-- Simulated Ad Space -->
+                <div style="background: #333; border: 2px dashed #666; padding: 40px; margin: 20px 0; border-radius: 8px;">
+                    <p style="color: #888; font-size: 16px;">[ Advertisement Space ]</p>
+                    <p style="color: #00ffff;">Support SoulBridge AI by considering our premium tiers!</p>
+                </div>
+                
+                <div class="countdown">
+                    Returning in <span id="timer">5</span> seconds...
+                </div>
+                
+                <button onclick="skipAd()" style="background: #00ffff; color: #000; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
+                    Skip Ad
+                </button>
+            </div>
+            
+            <script>
+                let timeLeft = 5;
+                const timer = document.getElementById('timer');
+                
+                const countdown = setInterval(() => {{
+                    timeLeft--;
+                    timer.textContent = timeLeft;
+                    
+                    if (timeLeft <= 0) {{
+                        clearInterval(countdown);
+                        window.location.href = '{return_to}';
+                    }}
+                }}, 1000);
+                
+                function skipAd() {{
+                    clearInterval(countdown);
+                    window.location.href = '{return_to}';
+                }}
+            </script>
+        </body>
+        </html>
+        '''
+        
+        return html
+        
+    except Exception as e:
+        logger.error(f"Failed to show ad break: {e}")
+        return redirect('/community')
 
 @community_bp.route('/companion-selector', methods=['GET'])
 def companion_selector_page():
