@@ -109,6 +109,14 @@ def initialize_community_database():
             );
         """)
         
+        # Add missing columns if they don't exist (migration for existing tables)
+        try:
+            cursor.execute("ALTER TABLE community_posts ADD COLUMN IF NOT EXISTS category TEXT NOT NULL DEFAULT 'general'")
+            cursor.execute("ALTER TABLE community_posts ADD COLUMN IF NOT EXISTS companion_id INTEGER")
+            cursor.execute("ALTER TABLE community_posts ADD COLUMN IF NOT EXISTS companion_skin_id INTEGER")
+        except Exception as migration_error:
+            logger.warning(f"Migration warning (non-critical): {migration_error}")
+        
         # Community reactions table - one reaction per user per post
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS community_reactions (
