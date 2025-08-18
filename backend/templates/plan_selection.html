@@ -67,7 +67,7 @@
         
         .plan-card.popular {
             border-color: #22d3ee;
-            background: rgba(34, 211, 238, 0.1);
+            background: rgba(0,0,0,0.8);
         }
         
         .plan-badge {
@@ -245,6 +245,59 @@
                 <button class="plan-btn" onclick="selectPlan('enterprise')">Choose Transformation</button>
             </div>
         </div>
+        
+        <!-- Trainer Time Purchase Section -->
+        <div style="
+            max-width: 800px;
+            margin: 60px auto;
+            background: rgba(34, 211, 238, 0.1);
+            border: 2px solid #22d3ee;
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+        ">
+            <div style="font-size: 2rem; margin-bottom: 20px;">💳</div>
+            <h3 style="color: #22d3ee; margin-bottom: 20px; font-size: 1.8rem;">Need More Trainer Time?</h3>
+            <p style="color: #e2e8f0; line-height: 1.6; margin-bottom: 30px; font-size: 1.1rem;">
+                Growth & Max subscribers get monthly trainer time. Running low? Purchase additional trainer time anytime!
+            </p>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; max-width: 600px; margin: 0 auto;">
+                <div style="
+                    background: rgba(0,0,0,0.8);
+                    border: 2px solid #374151;
+                    border-radius: 12px;
+                    padding: 25px 20px;
+                    text-align: center;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                " onmouseover="this.style.borderColor='#22d3ee'; this.style.transform='translateY(-5px)'" onmouseout="this.style.borderColor='#374151'; this.style.transform='translateY(0)'">
+                    <div style="font-size: 2rem; margin-bottom: 15px;">⏰</div>
+                    <div style="font-size: 1.5rem; font-weight: bold; color: #22d3ee; margin-bottom: 8px;">350 Credits</div>
+                    <div style="color: #94a3b8; margin-bottom: 15px;">Extra trainer time</div>
+                    <div style="font-size: 1.3rem; font-weight: bold; color: #e2e8f0;">$4.00</div>
+                </div>
+                
+                <div style="
+                    background: rgba(0,0,0,0.8);
+                    border: 2px solid #374151;
+                    border-radius: 12px;
+                    padding: 25px 20px;
+                    text-align: center;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                " onmouseover="this.style.borderColor='#22d3ee'; this.style.transform='translateY(-5px)'" onmouseout="this.style.borderColor='#374151'; this.style.transform='translateY(0)'">
+                    <div style="font-size: 2rem; margin-bottom: 15px;">🚀</div>
+                    <div style="font-size: 1.5rem; font-weight: bold; color: #22d3ee; margin-bottom: 8px;">700 Credits</div>
+                    <div style="color: #94a3b8; margin-bottom: 15px;">Best value</div>
+                    <div style="font-size: 1.3rem; font-weight: bold; color: #e2e8f0;">$7.00</div>
+                </div>
+            </div>
+            
+            <p style="color: #94a3b8; margin-top: 20px; font-size: 0.9rem;">
+                * Available for Growth & Max subscribers only
+            </p>
+        </div>
     </div>
     
     <script>
@@ -278,9 +331,17 @@
         }
         
         function togglePricing(period) {
+            console.log('Toggle clicked:', period); // Debug log
+            
             // Update toggle buttons
             document.querySelectorAll('.toggle-option').forEach(btn => btn.classList.remove('active'));
-            document.querySelector(`[onclick="togglePricing('${period}')"]`).classList.add('active');
+            
+            // Find and activate the clicked button
+            if (period === 'monthly') {
+                document.querySelectorAll('.toggle-option')[0].classList.add('active');
+            } else {
+                document.querySelectorAll('.toggle-option')[1].classList.add('active');
+            }
             
             // Update pricing
             if (period === 'monthly') {
