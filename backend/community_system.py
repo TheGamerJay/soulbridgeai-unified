@@ -1426,6 +1426,7 @@ def select_companion_direct(companion_id):
             8: {'name': 'Claude', 'tier': 'free', 'avatar_url': '/static/logos/Claude Free.png'},
             9: {'name': 'Blayzia', 'tier': 'free', 'avatar_url': '/static/logos/Blayzia.png'},
             10: {'name': 'Blayzion', 'tier': 'free', 'avatar_url': '/static/logos/Blayzion.png'},
+            13: {'name': 'Sapphire', 'tier': 'free', 'avatar_url': '/static/logos/Sapphire.png'},
             11: {'name': 'Blayzike', 'tier': 'referral', 'avatar_url': '/static/logos/Blayzike.png'},
             12: {'name': 'Blazelian', 'tier': 'referral', 'avatar_url': '/static/logos/Blazelian.png'},
             # Growth tier companions
@@ -1439,6 +1440,7 @@ def select_companion_direct(companion_id):
             3: {'name': 'Crimson', 'tier': 'max', 'avatar_url': '/static/logos/Crimson a Max companion.png'},
             4: {'name': 'Violet', 'tier': 'max', 'avatar_url': '/static/logos/Violet.png'},
             30: {'name': 'Claude Max', 'tier': 'max', 'avatar_url': '/static/logos/Claude Max.png'},
+            31: {'name': 'Royal', 'tier': 'max', 'avatar_url': '/static/logos/Royal a Max companion.png'},
             32: {'name': 'Ven Blayzica', 'tier': 'max', 'avatar_url': '/static/logos/Ven Blayzica a Max companion.png'},
             33: {'name': 'Ven Sky', 'tier': 'max', 'avatar_url': '/static/logos/Ven Sky a Max companion.png'},
             34: {'name': 'WatchDog Max', 'tier': 'max', 'avatar_url': '/static/logos/WatchDog a Max Companion.png'},
@@ -1527,6 +1529,7 @@ def companion_selector_page():
                 {'id': 8, 'name': 'Claude', 'avatar_url': '/static/logos/Claude Free.png'},
                 {'id': 9, 'name': 'Blayzia', 'avatar_url': '/static/logos/Blayzia.png'},
                 {'id': 10, 'name': 'Blayzion', 'avatar_url': '/static/logos/Blayzion.png'},
+                {'id': 13, 'name': 'Sapphire', 'avatar_url': '/static/logos/Sapphire.png'}
             ],
             'growth': [
                 {'id': 2, 'name': 'Sky', 'avatar_url': '/static/logos/Sky a premium companion.png'},
@@ -1540,13 +1543,12 @@ def companion_selector_page():
                 {'id': 3, 'name': 'Crimson', 'avatar_url': '/static/logos/Crimson a Max companion.png'},
                 {'id': 4, 'name': 'Violet', 'avatar_url': '/static/logos/Violet.png'},
                 {'id': 30, 'name': 'Claude Max', 'avatar_url': '/static/logos/Claude Max.png'},
+                {'id': 31, 'name': 'Royal', 'avatar_url': '/static/logos/Royal a Max companion.png'},
                 {'id': 32, 'name': 'Ven Blayzica', 'avatar_url': '/static/logos/Ven Blayzica a Max companion.png'},
                 {'id': 33, 'name': 'Ven Sky', 'avatar_url': '/static/logos/Ven Sky a Max companion.png'},
                 {'id': 34, 'name': 'WatchDog Max', 'avatar_url': '/static/logos/WatchDog a Max Companion.png'}
             ],
             'referral': [
-                {'id': 44, 'name': 'Sapphire', 'avatar_url': '/static/logos/Sapphire.png', 'referrals_needed': 1},
-                {'id': 43, 'name': 'Royal', 'avatar_url': '/static/logos/Royal a Max companion.png', 'referrals_needed': 3},
                 {'id': 11, 'name': 'Blayzike', 'avatar_url': '/static/logos/Blayzike.png', 'referrals_needed': 5},
                 {'id': 42, 'name': 'Nyxara', 'avatar_url': '/static/logos/Nyxara.png', 'referrals_needed': 6},
                 {'id': 12, 'name': 'Blazelian', 'avatar_url': '/static/logos/Blazelian.png', 'referrals_needed': 8},
