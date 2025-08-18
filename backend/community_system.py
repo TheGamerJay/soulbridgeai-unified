@@ -1426,12 +1426,28 @@ def select_companion_direct(companion_id):
             8: {'name': 'Claude', 'tier': 'free', 'avatar_url': '/static/logos/Claude Free.png'},
             9: {'name': 'Blayzia', 'tier': 'free', 'avatar_url': '/static/logos/Blayzia.png'},
             10: {'name': 'Blayzion', 'tier': 'free', 'avatar_url': '/static/logos/Blayzion.png'},
+            11: {'name': 'Blayzike', 'tier': 'free', 'avatar_url': '/static/logos/Blayzike.png'},
+            12: {'name': 'Blazelian', 'tier': 'free', 'avatar_url': '/static/logos/Blazelian.png'},
+            13: {'name': 'Sapphire', 'tier': 'free', 'avatar_url': '/static/logos/Sapphire.png'},
             # Growth tier companions
             2: {'name': 'Sky', 'tier': 'growth', 'avatar_url': '/static/logos/Sky a premium companion.png'},
             7: {'name': 'GamerJay Premium', 'tier': 'growth', 'avatar_url': '/static/logos/GamerJay premium companion.png'},
+            20: {'name': 'Claude Growth', 'tier': 'growth', 'avatar_url': '/static/logos/Claude Growth.png'},
+            21: {'name': 'Blayzo Premium', 'tier': 'growth', 'avatar_url': '/static/logos/Blayzo premium companion.png'},
+            22: {'name': 'Blayzica Pro', 'tier': 'growth', 'avatar_url': '/static/logos/Blayzica Pro.png'},
+            23: {'name': 'WatchDog Premium', 'tier': 'growth', 'avatar_url': '/static/logos/WatchDog a Premium companion.png'},
             # Max tier companions
             3: {'name': 'Crimson', 'tier': 'max', 'avatar_url': '/static/logos/Crimson a Max companion.png'},
             4: {'name': 'Violet', 'tier': 'max', 'avatar_url': '/static/logos/Violet.png'},
+            30: {'name': 'Claude Max', 'tier': 'max', 'avatar_url': '/static/logos/Claude Max.png'},
+            31: {'name': 'Royal', 'tier': 'max', 'avatar_url': '/static/logos/Royal a Max companion.png'},
+            32: {'name': 'Ven Blayzica', 'tier': 'max', 'avatar_url': '/static/logos/Ven Blayzica a Max companion.png'},
+            33: {'name': 'Ven Sky', 'tier': 'max', 'avatar_url': '/static/logos/Ven Sky a Max companion.png'},
+            34: {'name': 'WatchDog Max', 'tier': 'max', 'avatar_url': '/static/logos/WatchDog a Max Companion.png'},
+            # Referral tier companions
+            40: {'name': 'Claude Referral', 'tier': 'referral', 'avatar_url': '/static/logos/Claude Referral.png'},
+            41: {'name': 'Blayzo Referral', 'tier': 'referral', 'avatar_url': '/static/logos/Blayzo Referral.png'},
+            42: {'name': 'Nyxara', 'tier': 'referral', 'avatar_url': '/static/logos/Nyxara.png'},
         }
         
         companion = available_companions.get(companion_id)
@@ -1447,6 +1463,9 @@ def select_companion_direct(companion_id):
         elif companion_tier == 'growth' and effective_plan in ['growth', 'max']:
             user_has_access = True
         elif companion_tier == 'max' and effective_plan == 'max':
+            user_has_access = True
+        elif companion_tier == 'referral':
+            # For now, allow referral companions for all users (you can restrict this later)
             user_has_access = True
         
         if not user_has_access:
@@ -1493,15 +1512,32 @@ def companion_selector_page():
                 {'id': 6, 'name': 'Blayzica', 'avatar_url': '/static/logos/Blayzica.png'},
                 {'id': 8, 'name': 'Claude', 'avatar_url': '/static/logos/Claude Free.png'},
                 {'id': 9, 'name': 'Blayzia', 'avatar_url': '/static/logos/Blayzia.png'},
-                {'id': 10, 'name': 'Blayzion', 'avatar_url': '/static/logos/Blayzion.png'}
+                {'id': 10, 'name': 'Blayzion', 'avatar_url': '/static/logos/Blayzion.png'},
+                {'id': 11, 'name': 'Blayzike', 'avatar_url': '/static/logos/Blayzike.png'},
+                {'id': 12, 'name': 'Blazelian', 'avatar_url': '/static/logos/Blazelian.png'},
+                {'id': 13, 'name': 'Sapphire', 'avatar_url': '/static/logos/Sapphire.png'}
             ],
             'growth': [
                 {'id': 2, 'name': 'Sky', 'avatar_url': '/static/logos/Sky a premium companion.png'},
-                {'id': 7, 'name': 'GamerJay Premium', 'avatar_url': '/static/logos/GamerJay premium companion.png'}
+                {'id': 7, 'name': 'GamerJay Premium', 'avatar_url': '/static/logos/GamerJay premium companion.png'},
+                {'id': 20, 'name': 'Claude Growth', 'avatar_url': '/static/logos/Claude Growth.png'},
+                {'id': 21, 'name': 'Blayzo Premium', 'avatar_url': '/static/logos/Blayzo premium companion.png'},
+                {'id': 22, 'name': 'Blayzica Pro', 'avatar_url': '/static/logos/Blayzica Pro.png'},
+                {'id': 23, 'name': 'WatchDog Premium', 'avatar_url': '/static/logos/WatchDog a Premium companion.png'}
             ],
             'max': [
                 {'id': 3, 'name': 'Crimson', 'avatar_url': '/static/logos/Crimson a Max companion.png'},
-                {'id': 4, 'name': 'Violet', 'avatar_url': '/static/logos/Violet.png'}
+                {'id': 4, 'name': 'Violet', 'avatar_url': '/static/logos/Violet.png'},
+                {'id': 30, 'name': 'Claude Max', 'avatar_url': '/static/logos/Claude Max.png'},
+                {'id': 31, 'name': 'Royal', 'avatar_url': '/static/logos/Royal a Max companion.png'},
+                {'id': 32, 'name': 'Ven Blayzica', 'avatar_url': '/static/logos/Ven Blayzica a Max companion.png'},
+                {'id': 33, 'name': 'Ven Sky', 'avatar_url': '/static/logos/Ven Sky a Max companion.png'},
+                {'id': 34, 'name': 'WatchDog Max', 'avatar_url': '/static/logos/WatchDog a Max Companion.png'}
+            ],
+            'referral': [
+                {'id': 40, 'name': 'Claude Referral', 'avatar_url': '/static/logos/Claude Referral.png'},
+                {'id': 41, 'name': 'Blayzo Referral', 'avatar_url': '/static/logos/Blayzo Referral.png'},
+                {'id': 42, 'name': 'Nyxara', 'avatar_url': '/static/logos/Nyxara.png'}
             ]
         }
         
@@ -1617,10 +1653,31 @@ def companion_selector_page():
         html += '''
                 </div>
             </div>
+        '''
+        
+        # Add Referral tier
+        html += f'''
+            <div class="tier unlocked">
+                <h3>🎁 Referral Rewards (Unlocked for All)</h3>
+                <div class="companions">
+        '''
+        
+        for companion in companions_by_tier['referral']:
+            html += f'''
+                    <div class="companion">
+                        <img src="{companion['avatar_url']}" alt="{companion['name']}">
+                        <br>
+                        <a href="/community/select-companion/{companion['id']}">{companion['name']}</a>
+                    </div>
+            '''
+        
+        html += '''
+                </div>
+            </div>
             
             <p style="margin-top: 40px; color: #666; font-size: 14px;">
                 Click on any unlocked companion to set it as your community avatar.
-                Locked companions require subscription upgrades.
+                Free users can access all Free and Referral companions!
             </p>
         </body>
         </html>
