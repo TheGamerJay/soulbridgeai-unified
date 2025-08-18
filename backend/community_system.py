@@ -1426,8 +1426,8 @@ def select_companion_direct(companion_id):
             8: {'name': 'Claude', 'tier': 'free', 'avatar_url': '/static/logos/Claude Free.png'},
             9: {'name': 'Blayzia', 'tier': 'free', 'avatar_url': '/static/logos/Blayzia.png'},
             10: {'name': 'Blayzion', 'tier': 'free', 'avatar_url': '/static/logos/Blayzion.png'},
-            11: {'name': 'Blayzike', 'tier': 'free', 'avatar_url': '/static/logos/Blayzike.png'},
-            12: {'name': 'Blazelian', 'tier': 'free', 'avatar_url': '/static/logos/Blazelian.png'},
+            11: {'name': 'Blayzike', 'tier': 'referral', 'avatar_url': '/static/logos/Blayzike.png'},
+            12: {'name': 'Blazelian', 'tier': 'referral', 'avatar_url': '/static/logos/Blazelian.png'},
             # Growth tier companions
             2: {'name': 'Sky', 'tier': 'growth', 'avatar_url': '/static/logos/Sky a premium companion.png'},
             7: {'name': 'GamerJay Premium', 'tier': 'growth', 'avatar_url': '/static/logos/GamerJay premium companion.png'},
@@ -1465,8 +1465,22 @@ def select_companion_direct(companion_id):
         elif companion_tier == 'max' and effective_plan == 'max':
             user_has_access = True
         elif companion_tier == 'referral':
-            # For now, allow referral companions for all users (you can restrict this later)
-            user_has_access = True
+            # Check referral unlock requirements
+            referral_requirements = {
+                11: 0,   # Blayzike - needs 5 referrals (moved back to free for now)
+                12: 0,   # Blazelian - needs 8 referrals (moved back to free for now)  
+                40: 10,  # Claude Referral - needs 10 referrals
+                41: 0,   # Blayzo Referral - needs special unlock
+                42: 6,   # Nyxara - needs 6 referrals
+                43: 3,   # Royal - needs 3 referrals
+                44: 1,   # Sapphire - needs 1 referral
+            }
+            
+            required_referrals = referral_requirements.get(companion_id, 999)
+            user_referrals = 0  # TODO: Get actual user referral count
+            
+            # For now, allow access to show them but they should be properly locked
+            user_has_access = True  # Change this when referral system is connected
         
         if not user_has_access:
             return f"<script>alert('This companion requires {companion_tier.title()} tier'); window.location.href='/community';</script>"
@@ -1513,8 +1527,6 @@ def companion_selector_page():
                 {'id': 8, 'name': 'Claude', 'avatar_url': '/static/logos/Claude Free.png'},
                 {'id': 9, 'name': 'Blayzia', 'avatar_url': '/static/logos/Blayzia.png'},
                 {'id': 10, 'name': 'Blayzion', 'avatar_url': '/static/logos/Blayzion.png'},
-                {'id': 11, 'name': 'Blayzike', 'avatar_url': '/static/logos/Blayzike.png'},
-                {'id': 12, 'name': 'Blazelian', 'avatar_url': '/static/logos/Blazelian.png'}
             ],
             'growth': [
                 {'id': 2, 'name': 'Sky', 'avatar_url': '/static/logos/Sky a premium companion.png'},
@@ -1533,11 +1545,13 @@ def companion_selector_page():
                 {'id': 34, 'name': 'WatchDog Max', 'avatar_url': '/static/logos/WatchDog a Max Companion.png'}
             ],
             'referral': [
-                {'id': 40, 'name': 'Claude Referral', 'avatar_url': '/static/logos/Claude Referral.png'},
-                {'id': 41, 'name': 'Blayzo Referral', 'avatar_url': '/static/logos/Blayzo Referral.png'},
-                {'id': 42, 'name': 'Nyxara', 'avatar_url': '/static/logos/Nyxara.png'},
-                {'id': 43, 'name': 'Royal', 'avatar_url': '/static/logos/Royal a Max companion.png'},
-                {'id': 44, 'name': 'Sapphire', 'avatar_url': '/static/logos/Sapphire.png'}
+                {'id': 44, 'name': 'Sapphire', 'avatar_url': '/static/logos/Sapphire.png', 'referrals_needed': 1},
+                {'id': 43, 'name': 'Royal', 'avatar_url': '/static/logos/Royal a Max companion.png', 'referrals_needed': 3},
+                {'id': 11, 'name': 'Blayzike', 'avatar_url': '/static/logos/Blayzike.png', 'referrals_needed': 5},
+                {'id': 42, 'name': 'Nyxara', 'avatar_url': '/static/logos/Nyxara.png', 'referrals_needed': 6},
+                {'id': 12, 'name': 'Blazelian', 'avatar_url': '/static/logos/Blazelian.png', 'referrals_needed': 8},
+                {'id': 40, 'name': 'Claude Referral', 'avatar_url': '/static/logos/Claude Referral.png', 'referrals_needed': 10},
+                {'id': 41, 'name': 'Blayzo Referral', 'avatar_url': '/static/logos/Blayzo Referral.png', 'referrals_needed': 'Special'}
             ]
         }
         
@@ -1658,18 +1672,35 @@ def companion_selector_page():
         # Add Referral tier
         html += f'''
             <div class="tier unlocked">
-                <h3>🎁 Referral Rewards (Unlocked for All)</h3>
+                <h3>🎁 Referral Rewards (Unlock by referring friends)</h3>
                 <div class="companions">
         '''
         
+        user_referrals = 0  # TODO: Get actual user referral count from referral system
+        
         for companion in companions_by_tier['referral']:
-            html += f'''
-                    <div class="companion">
-                        <img src="{companion['avatar_url']}" alt="{companion['name']}">
-                        <br>
-                        <a href="/community/select-companion/{companion['id']}">{companion['name']}</a>
-                    </div>
-            '''
+            referrals_needed = companion.get('referrals_needed', 0)
+            is_unlocked = user_referrals >= referrals_needed if isinstance(referrals_needed, int) else False
+            
+            if is_unlocked:
+                html += f'''
+                        <div class="companion">
+                            <img src="{companion['avatar_url']}" alt="{companion['name']}">
+                            <br>
+                            <a href="/community/select-companion/{companion['id']}">{companion['name']}</a>
+                            <br><small style="color: #00ff00;">✅ Unlocked</small>
+                        </div>
+                '''
+            else:
+                lock_text = f"Needs {referrals_needed} referrals" if isinstance(referrals_needed, int) else "Special unlock"
+                html += f'''
+                        <div class="companion locked">
+                            <img src="{companion['avatar_url']}" alt="{companion['name']}">
+                            <br>
+                            <a href="#" onclick="alert('This companion requires {referrals_needed} referrals')">{companion['name']}</a>
+                            <br><small style="color: #ff6666;">🔒 {lock_text}</small>
+                        </div>
+                '''
         
         html += '''
                 </div>
