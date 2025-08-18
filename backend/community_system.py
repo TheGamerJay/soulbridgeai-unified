@@ -1379,13 +1379,19 @@ def get_available_companions():
         if not user_id:
             return jsonify({"error": "Authentication required"}), 401
         
-        # Get user tier information
-        from unified_tier_system import get_effective_plan
-        user_plan = session.get('user_plan', 'free')
-        trial_active = session.get('trial_active', False)
-        effective_plan = get_effective_plan(user_plan, trial_active)
+        # Get user tier information with error handling
+        try:
+            from unified_tier_system import get_effective_plan
+            user_plan = session.get('user_plan', 'free')
+            trial_active = session.get('trial_active', False)
+            effective_plan = get_effective_plan(user_plan, trial_active)
+        except Exception as e:
+            logger.error(f"Failed to get effective plan: {e}")
+            # Fallback to session data
+            effective_plan = session.get('user_plan', 'free')
         
         # Get cosmetic companions (referral companions) - only unlocked ones
+        cosmetic_companions = []
         try:
             from cosmetic_system import get_available_companions_for_user
             cosmetic_companions = get_available_companions_for_user(user_id)
@@ -1497,7 +1503,9 @@ def get_available_companions():
         
     except Exception as e:
         logger.error(f"Failed to get available companions: {e}")
-        return jsonify({"error": "Failed to load companions"}), 500
+        import traceback
+        logger.error(f"Companions endpoint traceback: {traceback.format_exc()}")
+        return jsonify({"error": f"Failed to load companions: {str(e)}"}), 500
 
 # ===============================
 # UTILITY FUNCTIONS
