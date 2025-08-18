@@ -14128,15 +14128,15 @@ TIERS_TEMPLATE = r"""
           .then(response => response.json())
           .then(data => {
             if (data.logged_in) {
-              window.location.href = '/subscription?plan=' + tier.toLowerCase();
+              window.location.href = '/plan-selection?plan=' + tier.toLowerCase();
             } else {
               // Redirect to login with return path
-              window.location.href = '/login?return_to=subscription&plan=' + tier.toLowerCase();
+              window.location.href = '/login?return_to=plan-selection&plan=' + tier.toLowerCase();
             }
           })
           .catch(() => {
-            // Fallback - try subscription page directly
-            window.location.href = '/subscription?plan=' + tier.toLowerCase();
+            // Fallback - try plan selection page directly
+            window.location.href = '/plan-selection?plan=' + tier.toLowerCase();
           });
       }
     }
