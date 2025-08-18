@@ -3137,9 +3137,9 @@ def auth_register():
 
 @app.route("/plan-selection")
 def plan_selection():
-    """Redirect to unified subscription page"""
-    logger.info(f"🔀 REDIRECT: /plan-selection -> /subscription")
-    return redirect("/subscription")
+    """Permanent redirect to unified subscription page"""
+    logger.info(f"🔀 REDIRECT (301): /plan-selection -> /subscription")
+    return redirect("/subscription", code=301)
 
 @app.route("/intro")
 def intro():
