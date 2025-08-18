@@ -16543,6 +16543,21 @@ def create_adfree_checkout_direct():
         
         logger.info(f"✅ Ad-free checkout request from user {user_id} ({user_email})")
         
+        # Get billing period from request data
+        data = request.get_json() or {}
+        billing_period = data.get('billing_period', 'monthly')
+        logger.info(f"🔍 Ad-free billing period: {billing_period}")
+        
+        # Set price and interval based on billing period
+        if billing_period == 'yearly':
+            price_cents = 4500  # $45.00 yearly (25% savings from $60)
+            interval = 'year'
+        else:
+            price_cents = 500   # $5.00 monthly
+            interval = 'month'
+        
+        logger.info(f"💰 Ad-free pricing: ${price_cents/100} per {interval}")
+        
         # Check if Stripe is available and configured (same pattern as working endpoints)
         try:
             import stripe
@@ -16620,9 +16635,9 @@ def create_adfree_checkout_direct():
                 line_items=[{
                     "price_data": {
                         "currency": "usd",
-                        "recurring": {"interval": "month"},
-                        "product_data": {"name": "Ad-Free Plan"},
-                        "unit_amount": 500  # $5.00/month in cents
+                        "recurring": {"interval": interval},
+                        "product_data": {"name": f"Ad-Free Plan ({billing_period})"},
+                        "unit_amount": price_cents
                     },
                     "quantity": 1
                 }],

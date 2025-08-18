@@ -953,7 +953,10 @@ async function selectPlanViaAPI(planType, billing) {
         headers: {
           'Content-Type': 'application/json'
         },
-        credentials: 'include'
+        credentials: 'include',
+        body: JSON.stringify({ 
+          billing_period: billing 
+        })
       });
       
       const result = await response.json();
