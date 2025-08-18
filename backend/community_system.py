@@ -1423,7 +1423,7 @@ def select_companion_direct(companion_id):
             2: {'name': 'Sky', 'tier': 'growth', 'avatar_url': '/static/logos/Sky a premium companion.png'},
             7: {'name': 'GamerJay Premium', 'tier': 'growth', 'avatar_url': '/static/logos/GamerJay premium companion.png'},
             3: {'name': 'Crimson', 'tier': 'max', 'avatar_url': '/static/logos/Crimson a Max companion.png'},
-            4: {'name': 'Violet', 'tier': 'max', 'avatar_url': '/static/logos/Violet a Max companion.png'},
+            4: {'name': 'Violet', 'tier': 'max', 'avatar_url': '/static/logos/Violet.png'},
         }
         
         companion = available_companions.get(companion_id)
@@ -1488,7 +1488,7 @@ def companion_selector_page():
             ],
             'max': [
                 {'id': 3, 'name': 'Crimson', 'avatar_url': '/static/logos/Crimson a Max companion.png'},
-                {'id': 4, 'name': 'Violet', 'avatar_url': '/static/logos/Violet a Max companion.png'}
+                {'id': 4, 'name': 'Violet', 'avatar_url': '/static/logos/Violet.png'}
             ]
         }
         
