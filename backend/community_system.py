@@ -1407,8 +1407,14 @@ def set_community_avatar():
 def get_available_companions():
     """Get Netflix-style tiered companion display for community avatars"""
     try:
+        # Debug session information
+        logger.info(f"🔍 COMPANIONS ENDPOINT: session_keys={list(session.keys())}")
+        logger.info(f"🔍 COMPANIONS ENDPOINT: user_id={session.get('user_id')}")
+        logger.info(f"🔍 COMPANIONS ENDPOINT: user_email={session.get('user_email')}")
+        
         user_id = session.get('user_id')
         if not user_id:
+            logger.warning(f"❌ COMPANIONS ENDPOINT: No user_id found in session")
             return jsonify({"error": "Authentication required"}), 401
         
         # Get user tier information with error handling
