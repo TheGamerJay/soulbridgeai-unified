@@ -1426,7 +1426,6 @@ def select_companion_direct(companion_id):
             8: {'name': 'Claude', 'tier': 'free', 'avatar_url': '/static/logos/Claude Free.png'},
             9: {'name': 'Blayzia', 'tier': 'free', 'avatar_url': '/static/logos/Blayzia.png'},
             10: {'name': 'Blayzion', 'tier': 'free', 'avatar_url': '/static/logos/Blayzion.png'},
-            13: {'name': 'Sapphire', 'tier': 'free', 'avatar_url': '/static/logos/Sapphire.png'},
             11: {'name': 'Blayzike', 'tier': 'referral', 'avatar_url': '/static/logos/Blayzike.png'},
             12: {'name': 'Blazelian', 'tier': 'referral', 'avatar_url': '/static/logos/Blazelian.png'},
             # Growth tier companions
@@ -1528,8 +1527,7 @@ def companion_selector_page():
                 {'id': 6, 'name': 'Blayzica', 'avatar_url': '/static/logos/Blayzica.png'},
                 {'id': 8, 'name': 'Claude', 'avatar_url': '/static/logos/Claude Free.png'},
                 {'id': 9, 'name': 'Blayzia', 'avatar_url': '/static/logos/Blayzia.png'},
-                {'id': 10, 'name': 'Blayzion', 'avatar_url': '/static/logos/Blayzion.png'},
-                {'id': 13, 'name': 'Sapphire', 'avatar_url': '/static/logos/Sapphire.png'}
+                {'id': 10, 'name': 'Blayzion', 'avatar_url': '/static/logos/Blayzion.png'}
             ],
             'growth': [
                 {'id': 2, 'name': 'Sky', 'avatar_url': '/static/logos/Sky a premium companion.png'},
