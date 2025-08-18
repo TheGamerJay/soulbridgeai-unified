@@ -1419,9 +1419,17 @@ def select_companion_direct(companion_id):
         
         # Define available companions by tier
         available_companions = {
+            # Free tier companions
             1: {'name': 'GamerJay', 'tier': 'free', 'avatar_url': '/static/logos/GamerJay Free companion.png'},
+            5: {'name': 'Blayzo', 'tier': 'free', 'avatar_url': '/static/logos/Blayzo.png'},
+            6: {'name': 'Blayzica', 'tier': 'free', 'avatar_url': '/static/logos/Blayzica.png'},
+            8: {'name': 'Claude', 'tier': 'free', 'avatar_url': '/static/logos/Claude Free.png'},
+            9: {'name': 'Blayzia', 'tier': 'free', 'avatar_url': '/static/logos/Blayzia.png'},
+            10: {'name': 'Blayzion', 'tier': 'free', 'avatar_url': '/static/logos/Blayzion.png'},
+            # Growth tier companions
             2: {'name': 'Sky', 'tier': 'growth', 'avatar_url': '/static/logos/Sky a premium companion.png'},
             7: {'name': 'GamerJay Premium', 'tier': 'growth', 'avatar_url': '/static/logos/GamerJay premium companion.png'},
+            # Max tier companions
             3: {'name': 'Crimson', 'tier': 'max', 'avatar_url': '/static/logos/Crimson a Max companion.png'},
             4: {'name': 'Violet', 'tier': 'max', 'avatar_url': '/static/logos/Violet.png'},
         }
@@ -1480,7 +1488,12 @@ def companion_selector_page():
         # Define companions organized by tier
         companions_by_tier = {
             'free': [
-                {'id': 1, 'name': 'GamerJay', 'avatar_url': '/static/logos/GamerJay Free companion.png'}
+                {'id': 1, 'name': 'GamerJay', 'avatar_url': '/static/logos/GamerJay Free companion.png'},
+                {'id': 5, 'name': 'Blayzo', 'avatar_url': '/static/logos/Blayzo.png'},
+                {'id': 6, 'name': 'Blayzica', 'avatar_url': '/static/logos/Blayzica.png'},
+                {'id': 8, 'name': 'Claude', 'avatar_url': '/static/logos/Claude Free.png'},
+                {'id': 9, 'name': 'Blayzia', 'avatar_url': '/static/logos/Blayzia.png'},
+                {'id': 10, 'name': 'Blayzion', 'avatar_url': '/static/logos/Blayzion.png'}
             ],
             'growth': [
                 {'id': 2, 'name': 'Sky', 'avatar_url': '/static/logos/Sky a premium companion.png'},
