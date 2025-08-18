@@ -105,9 +105,7 @@ def initialize_community_database():
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 approved_at TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                deleted_at TIMESTAMP,
-                
-                FOREIGN KEY (author_uid) REFERENCES users(id) ON DELETE CASCADE
+                deleted_at TIMESTAMP
             );
         """)
         
@@ -121,9 +119,7 @@ def initialize_community_database():
                 emoji TEXT NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 
-                UNIQUE(post_id, viewer_uid),
-                FOREIGN KEY (post_id) REFERENCES community_posts(id) ON DELETE CASCADE,
-                FOREIGN KEY (viewer_uid) REFERENCES users(id) ON DELETE CASCADE
+                UNIQUE(post_id, viewer_uid)
             );
         """)
         
@@ -144,9 +140,7 @@ def initialize_community_database():
                 reviewed_at TIMESTAMP,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 
-                UNIQUE(post_id, reporter_uid),
-                FOREIGN KEY (post_id) REFERENCES community_posts(id) ON DELETE CASCADE,
-                FOREIGN KEY (reporter_uid) REFERENCES users(id) ON DELETE CASCADE
+                UNIQUE(post_id, reporter_uid)
             );
         """)
         
@@ -163,7 +157,6 @@ def initialize_community_database():
                 reason TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 
-                FOREIGN KEY (viewer_uid) REFERENCES users(id) ON DELETE CASCADE,
                 UNIQUE (viewer_uid, muted_author_uid_hash),
                 UNIQUE (viewer_uid, muted_companion_id),
                 UNIQUE (viewer_uid, muted_category)
@@ -192,9 +185,7 @@ def initialize_community_database():
                 last_reaction_at TIMESTAMP,
                 last_hourly_reset TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 last_daily_reset TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                
-                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         """)
         
@@ -209,9 +200,7 @@ def initialize_community_database():
                 new_companion_name TEXT NOT NULL,
                 change_type TEXT DEFAULT 'normal' CHECK (change_type IN ('normal', 'ad_bypass', 'premium_skip')),
                 cooldown_expires_at TIMESTAMP NOT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                
-                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         """)
         
@@ -272,9 +261,9 @@ def get_user_companion_info(user_id: int) -> Dict[str, Any]:
             effective_plan = get_effective_plan(user_plan, trial_active)
             
             default_companions = {
-                'free': {'id': 1, 'name': 'Soul', 'rarity': 'common'},
-                'growth': {'id': 2, 'name': 'Bridge', 'rarity': 'rare'},
-                'max': {'id': 3, 'name': 'Aurora', 'rarity': 'epic'}
+                'free': {'id': 1, 'name': 'GamerJay', 'rarity': 'common'},
+                'growth': {'id': 2, 'name': 'Sky', 'rarity': 'rare'},
+                'max': {'id': 3, 'name': 'Crimson', 'rarity': 'epic'}
             }
             
             default = default_companions.get(effective_plan, default_companions['free'])
@@ -283,7 +272,7 @@ def get_user_companion_info(user_id: int) -> Dict[str, Any]:
                 'skin_id': None,
                 'name': default['name'],
                 'rarity': default['rarity'],
-                'avatar_url': f"/static/companions/{default['name'].lower()}.png"
+                'avatar_url': f"/static/logos/{default['name']} Free companion.png" if default['name'] == 'GamerJay' else f"/static/logos/{default['name']}.png"
             }
             
     except Exception as e:
@@ -1206,15 +1195,15 @@ def set_community_avatar():
         
         # Allow basic tier companions for all users
         default_companions = {
-            'free': [{'id': 1, 'name': 'Soul', 'rarity': 'common'}],
+            'free': [{'id': 1, 'name': 'GamerJay', 'rarity': 'common'}],
             'growth': [
-                {'id': 1, 'name': 'Soul', 'rarity': 'common'},
-                {'id': 2, 'name': 'Bridge', 'rarity': 'rare'}
+                {'id': 1, 'name': 'GamerJay', 'rarity': 'common'},
+                {'id': 2, 'name': 'Sky', 'rarity': 'rare'}
             ],
             'max': [
-                {'id': 1, 'name': 'Soul', 'rarity': 'common'},
-                {'id': 2, 'name': 'Bridge', 'rarity': 'rare'},
-                {'id': 3, 'name': 'Aurora', 'rarity': 'epic'}
+                {'id': 1, 'name': 'GamerJay', 'rarity': 'common'},
+                {'id': 2, 'name': 'Sky', 'rarity': 'rare'},
+                {'id': 3, 'name': 'Crimson', 'rarity': 'epic'}
             ]
         }
         
@@ -1279,38 +1268,60 @@ def get_available_companions():
         base_companions = [
             {
                 'id': 1,
-                'name': 'Soul',
-                'display_name': 'Soul',
-                'description': 'Your spiritual guide and first companion',
+                'name': 'GamerJay',
+                'display_name': 'GamerJay',
+                'description': 'Your gaming companion and free tier default',
                 'rarity': 'common',
-                'avatar_url': '/static/companions/soul.png',
+                'avatar_url': '/static/logos/GamerJay Free companion.png',
                 'unlock_method': 'default'
             }
         ]
         
         # Growth tier companions
         if effective_plan in ['growth', 'max']:
-            base_companions.append({
-                'id': 2,
-                'name': 'Bridge',
-                'display_name': 'Bridge',
-                'description': 'Connects hearts and minds across dimensions',
-                'rarity': 'rare',
-                'avatar_url': '/static/companions/bridge.png',
-                'unlock_method': 'growth_tier'
-            })
+            base_companions.extend([
+                {
+                    'id': 2,
+                    'name': 'Sky',
+                    'display_name': 'Sky',
+                    'description': 'Your premium growth companion',
+                    'rarity': 'rare',
+                    'avatar_url': '/static/logos/Sky a premium companion.png',
+                    'unlock_method': 'growth_tier'
+                },
+                {
+                    'id': 7,
+                    'name': 'GamerJay Premium',
+                    'display_name': 'GamerJay Premium',
+                    'description': 'Enhanced gaming companion',
+                    'rarity': 'rare',
+                    'avatar_url': '/static/logos/GamerJay premium companion.png',
+                    'unlock_method': 'growth_tier'
+                }
+            ])
         
         # Max tier companions
         if effective_plan == 'max':
-            base_companions.append({
-                'id': 3,
-                'name': 'Aurora',
-                'display_name': 'Aurora',
-                'description': 'Mystical being of light and wisdom',
-                'rarity': 'epic',
-                'avatar_url': '/static/companions/aurora.png',
-                'unlock_method': 'max_tier'
-            })
+            base_companions.extend([
+                {
+                    'id': 3,
+                    'name': 'Crimson',
+                    'display_name': 'Crimson',
+                    'description': 'Powerful Max tier companion',
+                    'rarity': 'epic',
+                    'avatar_url': '/static/logos/Crimson.png',
+                    'unlock_method': 'max_tier'
+                },
+                {
+                    'id': 4,
+                    'name': 'Violet',
+                    'display_name': 'Violet',
+                    'description': 'Mystical Max tier companion',
+                    'rarity': 'epic',
+                    'avatar_url': '/static/logos/Violet.png',
+                    'unlock_method': 'max_tier'
+                }
+            ])
         
         # Combine all available companions
         all_companions = base_companions + cosmetic_companions
