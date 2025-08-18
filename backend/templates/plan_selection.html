@@ -522,7 +522,7 @@
                     },
                     body: JSON.stringify({ 
                         plan_type: planType,
-                        billing_period: billingPeriod
+                        billing: billingPeriod
                     })
                 });
                 
@@ -591,7 +591,7 @@
             'transformation': 'monthly'
         };
         
-        function toggleTierPricing(tier, period) {
+        function toggleTierPricing(tier, period, event) {
             console.log('Individual tier toggle:', tier, period);
             tierPricing[tier] = period;
             
