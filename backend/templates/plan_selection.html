@@ -178,6 +178,16 @@
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.05); }
         }
+        
+        /* Individual Tier Toggle Styles */
+        .tier-toggle-option.active {
+            background: linear-gradient(135deg, #22d3ee, #0891b2) !important;
+            color: #000 !important;
+        }
+        
+        .tier-toggle-option:hover {
+            opacity: 0.8;
+        }
     </style>
     
     <!-- Google AdSense -->
@@ -204,6 +214,13 @@
             <!-- Ad-Free Plan -->
             <div class="plan-card">
                 <h3 class="plan-name">Ad-Free</h3>
+                
+                <!-- Individual Tier Toggle -->
+                <div style="display: flex; justify-content: center; margin: 20px auto; background: rgba(15, 23, 42, 0.8); border-radius: 50px; padding: 4px; width: fit-content;">
+                    <div class="tier-toggle-option active" onclick="toggleTierPricing('ad-free', 'monthly')" style="padding: 8px 20px; border-radius: 50px; cursor: pointer; transition: all 0.3s ease; font-weight: 600; color: #94a3b8; font-size: 14px;">Monthly</div>
+                    <div class="tier-toggle-option" onclick="toggleTierPricing('ad-free', 'yearly')" style="padding: 8px 20px; border-radius: 50px; cursor: pointer; transition: all 0.3s ease; font-weight: 600; color: #94a3b8; font-size: 14px;">Yearly <span style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-left: 4px;">Save 25%</span></div>
+                </div>
+                
                 <div class="plan-price" id="ad-free-price">$5.00<span style="font-size: 1rem; color: #94a3b8;" id="ad-free-period">/month</span></div>
                 <ul class="plan-features">
                     <li>Unlimited chat (like free)</li>
@@ -219,6 +236,13 @@
             <div class="plan-card popular">
                 <div class="plan-badge">Most Popular</div>
                 <h3 class="plan-name">Growth</h3>
+                
+                <!-- Individual Tier Toggle -->
+                <div style="display: flex; justify-content: center; margin: 20px auto; background: rgba(15, 23, 42, 0.8); border-radius: 50px; padding: 4px; width: fit-content;">
+                    <div class="tier-toggle-option active" onclick="toggleTierPricing('growth', 'monthly')" style="padding: 8px 20px; border-radius: 50px; cursor: pointer; transition: all 0.3s ease; font-weight: 600; color: #94a3b8; font-size: 14px;">Monthly</div>
+                    <div class="tier-toggle-option" onclick="toggleTierPricing('growth', 'yearly')" style="padding: 8px 20px; border-radius: 50px; cursor: pointer; transition: all 0.3s ease; font-weight: 600; color: #94a3b8; font-size: 14px;">Yearly <span style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-left: 4px;">Save 25%</span></div>
+                </div>
+                
                 <div class="plan-price" id="growth-price">$12.99<span style="font-size: 1rem; color: #94a3b8;" id="growth-period">/month</span></div>
                 <ul class="plan-features">
                     <li>Premium AI companions</li>
@@ -233,6 +257,13 @@
             <!-- Max Plan -->
             <div class="plan-card">
                 <h3 class="plan-name">Transformation</h3>
+                
+                <!-- Individual Tier Toggle -->
+                <div style="display: flex; justify-content: center; margin: 20px auto; background: rgba(15, 23, 42, 0.8); border-radius: 50px; padding: 4px; width: fit-content;">
+                    <div class="tier-toggle-option active" onclick="toggleTierPricing('transformation', 'monthly')" style="padding: 8px 20px; border-radius: 50px; cursor: pointer; transition: all 0.3s ease; font-weight: 600; color: #94a3b8; font-size: 14px;">Monthly</div>
+                    <div class="tier-toggle-option" onclick="toggleTierPricing('transformation', 'yearly')" style="padding: 8px 20px; border-radius: 50px; cursor: pointer; transition: all 0.3s ease; font-weight: 600; color: #94a3b8; font-size: 14px;">Yearly <span style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-left: 4px;">Save 25%</span></div>
+                </div>
+                
                 <div class="plan-price" id="transformation-price">$19.99<span style="font-size: 1rem; color: #94a3b8;" id="transformation-period">/month</span></div>
                 <ul class="plan-features">
                     <li>All Growth features</li>
@@ -303,6 +334,16 @@
     <script>
         async function selectPlan(planType) {
             try {
+                // Determine billing period based on individual tier selection
+                let billingPeriod = 'monthly';
+                if (planType === 'ad_free') {
+                    billingPeriod = tierPricing['ad-free'];
+                } else if (planType === 'premium') {
+                    billingPeriod = tierPricing['growth'];
+                } else if (planType === 'enterprise') {
+                    billingPeriod = tierPricing['transformation'];
+                }
+                
                 const response = await fetch('/api/select-plan', {
                     method: 'POST',
                     headers: {
@@ -310,7 +351,7 @@
                     },
                     body: JSON.stringify({ 
                         plan_type: planType,
-                        billing_period: currentPricing
+                        billing_period: billingPeriod
                     })
                 });
                 
@@ -322,7 +363,7 @@
                         window.location.href = data.redirect;
                     } else {
                         // Other plans go to payment page
-                        window.location.href = data.redirect_url || `/payment?plan=${planType}&period=${currentPricing}`;
+                        window.location.href = data.redirect_url || `/payment?plan=${planType}&period=${billingPeriod}`;
                     }
                 } else {
                     alert(data.error || 'Failed to select plan');
@@ -369,6 +410,50 @@
                 
                 document.getElementById('transformation-price').innerHTML = '$180.00';
                 document.getElementById('transformation-period').innerHTML = '/year';
+            }
+        }
+        
+        // Individual tier pricing tracking
+        let tierPricing = {
+            'ad-free': 'monthly',
+            'growth': 'monthly', 
+            'transformation': 'monthly'
+        };
+        
+        function toggleTierPricing(tier, period) {
+            console.log('Individual tier toggle:', tier, period);
+            tierPricing[tier] = period;
+            
+            // Update this tier's toggle buttons
+            const tierCard = event.target.closest('.plan-card');
+            const toggles = tierCard.querySelectorAll('.tier-toggle-option');
+            toggles.forEach(toggle => toggle.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Update pricing for this specific tier
+            if (period === 'monthly') {
+                if (tier === 'ad-free') {
+                    document.getElementById('ad-free-price').innerHTML = '$5.00';
+                    document.getElementById('ad-free-period').innerHTML = '/month';
+                } else if (tier === 'growth') {
+                    document.getElementById('growth-price').innerHTML = '$12.99';
+                    document.getElementById('growth-period').innerHTML = '/month';
+                } else if (tier === 'transformation') {
+                    document.getElementById('transformation-price').innerHTML = '$19.99';
+                    document.getElementById('transformation-period').innerHTML = '/month';
+                }
+            } else {
+                // Yearly pricing (25% savings)
+                if (tier === 'ad-free') {
+                    document.getElementById('ad-free-price').innerHTML = '$45.00';
+                    document.getElementById('ad-free-period').innerHTML = '/year';
+                } else if (tier === 'growth') {
+                    document.getElementById('growth-price').innerHTML = '$117.00';
+                    document.getElementById('growth-period').innerHTML = '/year';
+                } else if (tier === 'transformation') {
+                    document.getElementById('transformation-price').innerHTML = '$180.00';
+                    document.getElementById('transformation-period').innerHTML = '/year';
+                }
             }
         }
     </script>
