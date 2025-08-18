@@ -217,38 +217,6 @@
       50% { transform: scale(1.05); }
     }
     
-    /* Global Pricing Toggle Styles */
-    .pricing-toggle {
-      display: flex;
-      justify-content: center;
-      margin: 30px auto;
-      background: rgba(15, 23, 42, 0.8);
-      border-radius: 50px;
-      padding: 4px;
-      width: fit-content;
-      gap: 0;
-    }
-    
-    .toggle-option {
-      padding: 12px 30px;
-      border-radius: 50px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      font-weight: 600;
-      color: #94a3b8;
-      font-size: 16px;
-      background: transparent;
-      border: none;
-    }
-    
-    .toggle-option.active {
-      background: linear-gradient(135deg, #22d3ee, #0891b2);
-      color: #000;
-    }
-    
-    .toggle-option:hover {
-      opacity: 0.8;
-    }
     
     /* Individual Tier Toggle Styles */
     .tier-toggle-option.active {
@@ -326,13 +294,6 @@
       </div>
     </div>
 
-  <!-- Pricing Toggle -->
-  <div class="pricing-toggle">
-    <div class="toggle-option active" onclick="togglePricing('monthly', event)">Monthly</div>
-    <div class="toggle-option" onclick="togglePricing('yearly', event)">
-      Yearly
-    </div>
-  </div>
 
     <!-- Plans Grid -->
     <div class="plan-grid">
@@ -677,19 +638,7 @@
 </div>
     
     <script>
-let currentPricing = 'monthly';
 let selectedPlan = null;
-
-const pricing = {
-  monthly: {
-    premium: { price: '$12.99', period: '/month' },
-    enterprise: { price: '$19.99', period: '/month' }
-  },
-  yearly: {
-    premium: { price: '$117', period: '/year', savings: 'Save $39' },
-    enterprise: { price: '$180', period: '/year', savings: 'Save $60' }
-  }
-};
 
 // Show upgrade confirmation modal
 function showUpgradeConfirmation(planType, billing) {
@@ -702,50 +651,6 @@ function showUpgradeConfirmation(planType, billing) {
 
 // Handle modal actions will be merged into main DOMContentLoaded handler
 
-function togglePricing(type, event) {
-  currentPricing = type;
-  
-  // Update toggle buttons
-  document.querySelectorAll('.toggle-option').forEach(btn => {
-    btn.classList.remove('active');
-  });
-  
-  // Only try to set active class if event exists
-  if (event && event.target) {
-    event.target.classList.add('active');
-  } else {
-    // Fallback: set active based on type
-    const monthlyBtn = document.querySelector('.toggle-option');
-    const yearlyBtn = document.querySelectorAll('.toggle-option')[1];
-    if (type === 'monthly' && monthlyBtn) {
-      monthlyBtn.classList.add('active');
-    } else if (type === 'yearly' && yearlyBtn) {
-      yearlyBtn.classList.add('active');
-    }
-  }
-  
-  // Update pricing display
-  const plans = pricing[type];
-  
-  document.getElementById('premium-price').textContent = plans.premium.price;
-  document.getElementById('premium-period').textContent = plans.premium.period;
-  
-  // Update Transformation pricing
-  if (type === 'yearly') {
-    document.getElementById('enterprise-price').innerHTML = plans.enterprise.price + ' <span class="savings">Save 25%</span>';
-  } else {
-    document.getElementById('enterprise-price').textContent = plans.enterprise.price;
-  }
-  document.getElementById('enterprise-period').textContent = plans.enterprise.period;
-  
-  // Show/hide yearly savings banner
-  const yearlyBanner = document.getElementById('yearly-banner');
-  if (type === 'yearly') {
-    yearlyBanner.style.display = 'block';
-  } else {
-    yearlyBanner.style.display = 'none';
-  }
-}
 
 // Individual tier pricing tracking  
 let tierPricing = {
@@ -991,10 +896,8 @@ async function purchaseTrainerTime(amount, price) {
     }
 }
 
-// Initialize with monthly pricing
+// Initialize page
 document.addEventListener('DOMContentLoaded', function() {
-  // Initialize pricing
-  togglePricing('monthly');
   
   // Check if user should see trainer time purchase section
   checkTrainerTimePurchaseAccess();
