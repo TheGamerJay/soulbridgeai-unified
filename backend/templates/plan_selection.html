@@ -308,7 +308,10 @@
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ plan_type: planType })
+                    body: JSON.stringify({ 
+                        plan_type: planType,
+                        billing_period: currentPricing
+                    })
                 });
                 
                 const data = await response.json();
@@ -319,7 +322,7 @@
                         window.location.href = data.redirect;
                     } else {
                         // Other plans go to payment page
-                        window.location.href = data.redirect_url || `/payment?plan=${planType}`;
+                        window.location.href = data.redirect_url || `/payment?plan=${planType}&period=${currentPricing}`;
                     }
                 } else {
                     alert(data.error || 'Failed to select plan');
@@ -330,8 +333,11 @@
             }
         }
         
+        let currentPricing = 'monthly';
+        
         function togglePricing(period) {
-            console.log('Toggle clicked:', period); // Debug log
+            console.log('Toggle clicked:', period);
+            currentPricing = period;
             
             // Update toggle buttons
             document.querySelectorAll('.toggle-option').forEach(btn => btn.classList.remove('active'));
@@ -343,7 +349,7 @@
                 document.querySelectorAll('.toggle-option')[1].classList.add('active');
             }
             
-            // Update pricing
+            // Update pricing for all tiers
             if (period === 'monthly') {
                 document.getElementById('ad-free-price').innerHTML = '$5.00';
                 document.getElementById('ad-free-period').innerHTML = '/month';
