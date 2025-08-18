@@ -700,38 +700,7 @@ function showUpgradeConfirmation(planType, billing) {
   window.pendingUpgrade = { plan: planType, billing: billing };
 }
 
-// Handle modal actions
-document.addEventListener('DOMContentLoaded', function() {
-  // Confirm upgrade button
-  document.getElementById('confirm-upgrade').addEventListener('click', function() {
-    const upgrade = window.pendingUpgrade;
-    if (upgrade) {
-      // Hide modal and proceed to payment
-      document.getElementById('upgrade-confirmation').style.display = 'none';
-      window.location.href = `/payment?plan=${upgrade.plan}&billing=${upgrade.billing}`;
-    }
-  });
-  
-  // Cancel upgrade button
-  document.getElementById('cancel-upgrade').addEventListener('click', function() {
-    document.getElementById('upgrade-confirmation').style.display = 'none';
-    // Reset card selection
-    document.querySelectorAll('.plan-card').forEach(card => {
-      card.style.borderColor = 'rgba(34, 211, 238, 0.2)';
-    });
-  });
-  
-  // Close modal when clicking outside
-  document.getElementById('upgrade-confirmation').addEventListener('click', function(e) {
-    if (e.target === this) {
-      this.style.display = 'none';
-      // Reset card selection
-      document.querySelectorAll('.plan-card').forEach(card => {
-        card.style.borderColor = 'rgba(34, 211, 238, 0.2)';
-      });
-    }
-  });
-});
+// Handle modal actions will be merged into main DOMContentLoaded handler
 
 function togglePricing(type, event) {
   currentPricing = type;
@@ -1028,10 +997,42 @@ function togglePricing(type, event) {
 
 // Initialize with monthly pricing
 document.addEventListener('DOMContentLoaded', function() {
+  // Initialize pricing
   togglePricing('monthly');
   
   // Check if user should see trainer time purchase section
   checkTrainerTimePurchaseAccess();
+  
+  // Handle modal actions
+  // Confirm upgrade button
+  document.getElementById('confirm-upgrade').addEventListener('click', function() {
+    const upgrade = window.pendingUpgrade;
+    if (upgrade) {
+      // Hide modal and proceed to payment
+      document.getElementById('upgrade-confirmation').style.display = 'none';
+      window.location.href = `/payment?plan=${upgrade.plan}&billing=${upgrade.billing}`;
+    }
+  });
+  
+  // Cancel upgrade button
+  document.getElementById('cancel-upgrade').addEventListener('click', function() {
+    document.getElementById('upgrade-confirmation').style.display = 'none';
+    // Reset card selection
+    document.querySelectorAll('.plan-card').forEach(card => {
+      card.style.borderColor = 'rgba(34, 211, 238, 0.2)';
+    });
+  });
+  
+  // Close modal when clicking outside
+  document.getElementById('upgrade-confirmation').addEventListener('click', function(e) {
+    if (e.target === this) {
+      this.style.display = 'none';
+      // Reset card selection
+      document.querySelectorAll('.plan-card').forEach(card => {
+        card.style.borderColor = 'rgba(34, 211, 238, 0.2)';
+      });
+    }
+  });
 });
     </script>
 </body>
