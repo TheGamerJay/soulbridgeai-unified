@@ -1822,21 +1822,7 @@ def companion_selector_page():
             </p>
             
             <script>
-                function upgradePrompt(tier) {
-                    let message, upgradeUrl;
-                    
-                    if (tier === 'growth') {
-                        message = 'This companion requires Growth tier subscription. Would you like to upgrade to unlock all Growth companions?';
-                        upgradeUrl = '/plan-selection';
-                    } else if (tier === 'max') {
-                        message = 'This companion requires Max tier subscription. Would you like to upgrade to unlock all Max companions?';
-                        upgradeUrl = '/plan-selection';
-                    }
-                    
-                    if (confirm(message)) {
-                        window.location.href = upgradeUrl;
-                    }
-                }
+                // Upgrade prompt function moved to anonymous_community.html for better organization
                 
                 function referralPrompt(referralsNeeded) {
                     let message = `This companion requires ${referralsNeeded} referrals to unlock. Would you like to start referring friends?`;

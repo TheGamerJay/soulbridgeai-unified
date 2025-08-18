@@ -1488,6 +1488,23 @@
                 }
             });
         }
+
+        // Upgrade prompt for locked companions - consolidated from community_system.py
+        function upgradePrompt(tier) {
+            let message, upgradeUrl;
+            
+            if (tier === 'growth') {
+                message = 'This companion requires Growth tier subscription. Would you like to upgrade to unlock all Growth companions?';
+                upgradeUrl = '/plan-selection';
+            } else if (tier === 'max') {
+                message = 'This companion requires Max tier subscription. Would you like to upgrade to unlock all Max companions?';
+                upgradeUrl = '/plan-selection';
+            }
+            
+            if (confirm(message)) {
+                window.location.href = upgradeUrl;
+            }
+        }
     </script>
 </body>
     <script src="/static/js/mini-assistant-modal.js"></script>
