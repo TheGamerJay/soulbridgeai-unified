@@ -1739,7 +1739,7 @@ def companion_selector_page():
                         <div class="companion locked">
                             <img src="{companion['avatar_url']}" alt="{companion['name']}">
                             <br>
-                            <a href="#" onclick="upgradePrompt('growth')">{companion['name']}</a>
+                            <a href="#" onclick="upgradePrompt('silver')">{companion['name']}</a>
                         </div>
                 '''
         
@@ -1770,7 +1770,7 @@ def companion_selector_page():
                         <div class="companion locked">
                             <img src="{companion['avatar_url']}" alt="{companion['name']}">
                             <br>
-                            <a href="#" onclick="upgradePrompt('max')">{companion['name']}</a>
+                            <a href="#" onclick="upgradePrompt('gold')">{companion['name']}</a>
                         </div>
                 '''
         
@@ -1822,7 +1822,22 @@ def companion_selector_page():
             </p>
             
             <script>
-                // Upgrade prompt function moved to anonymous_community.html for better organization
+                // Upgrade prompt functions
+                function upgradePrompt(tier) {
+                    let message, upgradeUrl;
+                    
+                    if (tier === 'silver' || tier === 'growth') {
+                        message = 'This companion requires Silver tier subscription. Would you like to upgrade to unlock all Silver companions?';
+                        upgradeUrl = '/plan-selection';
+                    } else if (tier === 'gold' || tier === 'max') {
+                        message = 'This companion requires Gold tier subscription. Would you like to upgrade to unlock all Gold companions?';
+                        upgradeUrl = '/plan-selection';
+                    }
+                    
+                    if (confirm(message)) {
+                        window.location.href = upgradeUrl;
+                    }
+                }
                 
                 function referralPrompt(referralsNeeded) {
                     let message = `This companion requires ${referralsNeeded} referrals to unlock. Would you like to start referring friends?`;
@@ -1833,7 +1848,7 @@ def companion_selector_page():
                 }
                 
                 function trialPrompt() {
-                    let message = 'Want to try Growth and Max tier companions? Start your 5-hour free trial now!';
+                    let message = 'Want to try Silver and Gold tier companions? Start your 5-hour free trial now!';
                     
                     if (confirm(message)) {
                         window.location.href = '/plan-selection';
