@@ -1827,10 +1827,10 @@ def companion_selector_page():
                     
                     if (tier === 'growth') {
                         message = 'This companion requires Growth tier subscription. Would you like to upgrade to unlock all Growth companions?';
-                        upgradeUrl = '/pricing';
+                        upgradeUrl = '/plan-selection';
                     } else if (tier === 'max') {
                         message = 'This companion requires Max tier subscription. Would you like to upgrade to unlock all Max companions?';
-                        upgradeUrl = '/pricing';
+                        upgradeUrl = '/plan-selection';
                     }
                     
                     if (confirm(message)) {
@@ -1850,7 +1850,7 @@ def companion_selector_page():
                     let message = 'Want to try Growth and Max tier companions? Start your 5-hour free trial now!';
                     
                     if (confirm(message)) {
-                        window.location.href = '/trial';
+                        window.location.href = '/plan-selection';
                     }
                 }
             </script>
