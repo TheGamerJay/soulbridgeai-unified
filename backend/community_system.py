@@ -792,7 +792,7 @@ def get_community_feed():
         conn = psycopg2.connect(database_url)
         cursor = conn.cursor()
         
-        # Check if table exists first
+        # Check if table exists and has required columns
         cursor.execute("""
             SELECT EXISTS (
                 SELECT FROM information_schema.tables 
@@ -806,9 +806,39 @@ def get_community_feed():
             conn.close()
             # Initialize database tables
             initialize_community_database()
-            # Reconnect and proceed
-            conn = psycopg2.connect(database_url)
-            cursor = conn.cursor()
+            # Return empty result for now since table was just created
+            return jsonify({
+                'posts': [],
+                'has_more': False,
+                'category': category,
+                'sort': sort_by,
+                'empty_state': {
+                    'title': 'Community is ready!',
+                    'message': 'Database initialized. Start sharing your thoughts! 💫'
+                }
+            })
+        
+        # Check if category column exists (schema validation)
+        cursor.execute("""
+            SELECT column_name FROM information_schema.columns 
+            WHERE table_name = 'community_posts' AND column_name = 'category'
+        """)
+        category_exists = cursor.fetchone()
+        
+        if not category_exists:
+            # Schema is outdated, need to run migration
+            conn.close()
+            initialize_community_database()
+            return jsonify({
+                'posts': [],
+                'has_more': False,
+                'category': category,
+                'sort': sort_by,
+                'empty_state': {
+                    'title': 'Community updated!',
+                    'message': 'Database schema updated. Please refresh to continue! 🔄'
+                }
+            })
         
         # Build query
         where_clauses = ["status = 'approved'", "deleted_at IS NULL"]
@@ -935,6 +965,20 @@ def get_community_feed():
                 logger.error(f"Failed to reinitialize community database: {init_error}")
         
         return jsonify({"error": "Failed to load feed", "details": str(e)}), 500
+
+@community_bp.route('/test', methods=['GET'])
+def test_community():
+    """Simple test endpoint for community system"""
+    return jsonify({
+        "success": True,
+        "message": "Community system is working",
+        "posts": [],
+        "has_more": False,
+        "empty_state": {
+            "title": "Community Test",
+            "message": "This is a test response from the community system! 🎯"
+        }
+    })
 
 @community_bp.route('/debug/init-database', methods=['POST'])
 def debug_init_database():
@@ -1338,6 +1382,25 @@ def get_available_companions():
                 'rarity': 'common',
                 'avatar_url': '/static/logos/GamerJay Free companion.png',
                 'unlock_method': 'default'
+            },
+            # Add additional free tier companions for testing
+            {
+                'id': 100,
+                'name': 'TestCompanion1',
+                'display_name': 'Test Companion 1',
+                'description': 'Testing companion for free tier',
+                'rarity': 'common',
+                'avatar_url': '/static/logos/GamerJay Free companion.png',
+                'unlock_method': 'free_testing'
+            },
+            {
+                'id': 101,
+                'name': 'TestCompanion2', 
+                'display_name': 'Test Companion 2',
+                'description': 'Another testing companion',
+                'rarity': 'common',
+                'avatar_url': '/static/logos/Blayzike.png',
+                'unlock_method': 'free_testing'
             }
         ]
         
