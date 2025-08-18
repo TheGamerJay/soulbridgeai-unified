@@ -1,278 +1,314 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Upgrade Your Plan - SoulBridge AI</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/themes.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
-    <style>
-        .plan-container {
-            min-height: 100vh;
-            background: linear-gradient(135deg, #000000 0%, #0f172a 50%, #1e293b 100%);
-            padding: 40px 20px;
-        }
-        
-        .plan-header {
-            text-align: center;
-            margin-bottom: 50px;
-            color: #e2e8f0;
-        }
-        
-        .plan-title {
-            font-size: 2.5rem;
-            font-weight: bold;
-            margin-bottom: 15px;
-            background: linear-gradient(135deg, #22d3ee, #06b6d4);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        .current-plan-info {
-            background: rgba(34, 211, 238, 0.1);
-            border: 2px solid #22d3ee;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 30px;
-            text-align: center;
-            color: #22d3ee;
-        }
-        
-        .plan-grid {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-        }
-        
-        .plan-card {
-            background: rgba(0,0,0,0.8);
-            border: 2px solid #374151;
-            border-radius: 16px;
-            padding: 40px 30px;
-            text-align: center;
-            transition: all 0.3s ease;
-            position: relative;
-            backdrop-filter: blur(15px);
-        }
-        
-        .plan-card:hover {
-            border-color: #22d3ee;
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(34, 211, 238, 0.2);
-        }
-        
-        .plan-card.popular {
-            border-color: #22d3ee;
-            background: rgba(0,0,0,0.8);
-        }
-        
-        .plan-badge {
-            background: #22d3ee;
-            color: #000;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            font-weight: bold;
-            position: absolute;
-            top: -15px;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-        
-        .plan-name {
-            font-size: 1.8rem;
-            font-weight: bold;
-            margin-bottom: 10px;
-            color: #22d3ee;
-        }
-        
-        .plan-price {
-            font-size: 2.5rem;
-            font-weight: bold;
-            margin-bottom: 20px;
-            color: #e2e8f0;
-        }
-        
-        .plan-features {
-            list-style: none;
-            margin-bottom: 30px;
-            text-align: left;
-        }
-        
-        .plan-features li {
-            margin-bottom: 12px;
-            color: #94a3b8;
-            display: flex;
-            align-items: center;
-        }
-        
-        .plan-features li::before {
-            content: "✓";
-            color: #22d3ee;
-            font-weight: bold;
-            margin-right: 10px;
-        }
-        
-        .plan-btn {
-            background: linear-gradient(135deg, #22d3ee, #06b6d4);
-            color: #000;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 12px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            cursor: pointer;
-            width: 100%;
-            transition: all 0.3s ease;
-        }
-        
-        .plan-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(34, 211, 238, 0.3);
-        }
-        
-        .plan-btn.selected {
-            background: #22d3ee;
-        }
-        
-        /* Pricing Toggle */
-        .pricing-toggle {
-            display: flex;
-            justify-content: center;
-            margin: 40px auto;
-            background: rgba(15, 23, 42, 0.8);
-            border-radius: 50px;
-            padding: 4px;
-            width: fit-content;
-        }
-        
-        .toggle-option {
-            padding: 12px 32px;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: 600;
-            color: #94a3b8;
-        }
-        
-        .toggle-option.active {
-            background: linear-gradient(135deg, #22d3ee, #0891b2);
-            color: #000;
-        }
-        
-        .savings {
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-size: 12px;
-            margin-left: 8px;
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-        
-        /* Individual Tier Toggle Styles */
-        .tier-toggle-option.active {
-            background: linear-gradient(135deg, #22d3ee, #0891b2) !important;
-            color: #000 !important;
-        }
-        
-        .tier-toggle-option:hover {
-            opacity: 0.8;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta name="cache-buster" content="{{ range(10000, 99999) | random }}">
+  <title>SoulBridge AI - Choose Your Plan</title>
+  <script src="https://js.stripe.com/v3/"></script>
+  <style>
+    .plan-container {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #000000 0%, #0f172a 50%, #1e293b 100%);
+        padding: 40px 20px;
+    }
     
-    <!-- Google AdSense -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3869471953521437"
-         crossorigin="anonymous"></script>
+    .plan-header {
+        text-align: center;
+        margin-bottom: 50px;
+        color: #e2e8f0;
+    }
+    
+    .plan-title {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin-bottom: 15px;
+        background: linear-gradient(135deg, #22d3ee, #06b6d4);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .plan-grid {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 30px;
+    }
+    
+    .plan-card {
+        background: rgba(0,0,0,0.9);
+        border: 2px solid #22d3ee;
+        border-radius: 16px;
+        padding: 40px 30px;
+        text-align: center;
+        transition: all 0.3s ease;
+        position: relative;
+        backdrop-filter: blur(15px);
+        color: #ffffff;
+    }
+    
+    .plan-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(34, 211, 238, 0.3);
+    }
+    
+    .plan-card.recommended {
+        border-color: #22d3ee;
+        background: rgba(0,0,0,0.9);
+        color: #ffffff;
+    }
+
+    .badge {
+        background: #22d3ee;
+        color: #000;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: bold;
+        position: absolute;
+        top: -15px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    .plan-icon {
+      font-size: 3rem;
+      margin-bottom: 20px;
+    }
+
+    .plan-name {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 16px;
+    }
+
+    .plan-price {
+      font-size: 2.5rem;
+      font-weight: 800;
+      margin-bottom: 8px;
+      color: #ffffff;
+    }
+
+    .plan-period {
+      color: #ffffff;
+      margin-bottom: 30px;
+    }
+
+    .plan-features {
+        list-style: none;
+        margin-bottom: 30px;
+        text-align: left;
+    }
+    
+    .plan-features li {
+        margin-bottom: 12px;
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid rgba(34, 211, 238, 0.1);
+    }
+
+    .plan-features li:last-child {
+      border-bottom: none;
+    }
+
+    .feature-icon {
+      color: #10b981;
+      margin-right: 8px;
+    }
+
+    .feature-icon.limited {
+      color: #f59e0b;
+    }
+
+    .feature-icon.none {
+      color: #ef4444;
+    }
+
+    .select-btn {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .select-btn.free {
+      background: rgba(34, 211, 238, 0.2);
+      color: #22d3ee;
+      border: 2px solid #22d3ee;
+    }
+
+    .select-btn.paid {
+      background: linear-gradient(135deg, #22d3ee, #0891b2);
+      color: #000;
+    }
+
+    .select-btn.premium {
+      background: linear-gradient(135deg, #fbbf24, #f59e0b);
+      color: #000;
+    }
+
+    .select-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(34, 211, 238, 0.4);
+    }
+
+    .back-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: rgba(34, 211, 238, 0.8);
+      color: #000;
+      padding: 10px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      z-index: 100;
+    }
+
+    .back-btn:hover {
+      background: rgba(34, 211, 238, 1);
+      transform: translateY(-2px);
+    }
+
+    .savings {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      margin-left: 8px;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    
+    /* Individual Tier Toggle Styles */
+    .tier-toggle-option.active {
+      background: linear-gradient(135deg, #22d3ee, #0891b2) !important;
+      color: #000 !important;
+    }
+    
+    .tier-toggle-option:hover {
+      opacity: 0.8;
+    }
+  </style>
+    
+  <!-- Google AdSense -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3869471953521437"
+       crossorigin="anonymous"></script>
 </head>
 <body>
-    <div class="plan-container">
-        <div class="plan-header">
-            <h1 class="plan-title">Choose Your SoulBridge Plan</h1>
-            <p>Select the perfect plan for your AI companion journey</p>
-            <div style="background: rgba(34, 211, 238, 0.1); border: 1px solid #22d3ee; border-radius: 8px; padding: 15px; margin: 20px auto; max-width: 600px; text-align: center;">
-                <strong>Currently Free:</strong> Unlimited chat with ads + daily limits on special features (decoder: 3, fortune: 2, horoscope: 3)
-            </div>
+  <!-- Back Button -->
+  <a href="/community" class="back-btn">← Back to Community</a>
+
+  <div class="plan-container">
+    <div class="plan-header">
+      <h1 class="plan-title">Choose Your SoulBridge Plan</h1>
+      <p>Select the perfect plan for your AI companion journey</p>
+      <div style="background: rgba(34, 211, 238, 0.1); border: 1px solid #22d3ee; border-radius: 8px; padding: 15px; margin: 20px auto; max-width: 600px; text-align: center;">
+        <strong>Currently Free:</strong> Unlimited chat with ads + daily limits on special features (decoder: 3, fortune: 2, horoscope: 3)
+      </div>
+    </div>
+
+    <!-- Plans Grid -->
+    <div class="plan-grid">
+      <!-- Ad-Free Plan (For Free Users) -->
+      <div class="plan-card">
+        <div class="plan-icon">🚫</div>
+        <div class="plan-name">Ad-Free</div>
+        
+        <!-- Individual Tier Toggle -->
+        <div style="display: flex; justify-content: center; margin: 20px auto; background: rgba(15, 23, 42, 0.8); border-radius: 50px; padding: 4px; width: fit-content;">
+          <div class="tier-toggle-option active" onclick="toggleTierPricing('ad-free', 'monthly', event)" style="padding: 8px 20px; border-radius: 50px; cursor: pointer; transition: all 0.3s ease; font-weight: 600; color: #94a3b8; font-size: 14px;">Monthly</div>
+          <div class="tier-toggle-option" onclick="toggleTierPricing('ad-free', 'yearly', event)" style="padding: 8px 20px; border-radius: 50px; cursor: pointer; transition: all 0.3s ease; font-weight: 600; color: #94a3b8; font-size: 14px;">Yearly <span style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-left: 4px;">Save 25%</span></div>
         </div>
         
+        <div class="plan-price" id="ad-free-price">$5.00</div>
+        <div class="plan-period" id="ad-free-period">/month</div>
         
-        <div class="plan-grid">
-            <!-- Ad-Free Plan -->
-            <div class="plan-card">
-                <h3 class="plan-name">Ad-Free</h3>
-                
-                <!-- Individual Tier Toggle -->
-                <div style="display: flex; justify-content: center; margin: 20px auto; background: rgba(15, 23, 42, 0.8); border-radius: 50px; padding: 4px; width: fit-content;">
-                    <div class="tier-toggle-option active" onclick="toggleTierPricing('ad-free', 'monthly')" style="padding: 8px 20px; border-radius: 50px; cursor: pointer; transition: all 0.3s ease; font-weight: 600; color: #94a3b8; font-size: 14px;">Monthly</div>
-                    <div class="tier-toggle-option" onclick="toggleTierPricing('ad-free', 'yearly')" style="padding: 8px 20px; border-radius: 50px; cursor: pointer; transition: all 0.3s ease; font-weight: 600; color: #94a3b8; font-size: 14px;">Yearly <span style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-left: 4px;">Save 25%</span></div>
-                </div>
-                
-                <div class="plan-price" id="ad-free-price">$5.00<span style="font-size: 1rem; color: #94a3b8;" id="ad-free-period">/month</span></div>
-                <ul class="plan-features">
-                    <li>Unlimited chat (like free)</li>
-                    <li>✨ No advertisements</li>
-                    <li>Uninterrupted conversations</li>
-                    <li>Daily feature limits (same as free)</li>
-                    <li>Support SoulBridge AI</li>
-                </ul>
-                <button class="plan-btn" onclick="selectPlan('ad_free')">Choose Ad-Free</button>
-            </div>
-            
-            <!-- Growth Plan -->
-            <div class="plan-card popular">
-                <div class="plan-badge">Most Popular</div>
-                <h3 class="plan-name">Growth</h3>
-                
-                <!-- Individual Tier Toggle -->
-                <div style="display: flex; justify-content: center; margin: 20px auto; background: rgba(15, 23, 42, 0.8); border-radius: 50px; padding: 4px; width: fit-content;">
-                    <div class="tier-toggle-option active" onclick="toggleTierPricing('growth', 'monthly')" style="padding: 8px 20px; border-radius: 50px; cursor: pointer; transition: all 0.3s ease; font-weight: 600; color: #94a3b8; font-size: 14px;">Monthly</div>
-                    <div class="tier-toggle-option" onclick="toggleTierPricing('growth', 'yearly')" style="padding: 8px 20px; border-radius: 50px; cursor: pointer; transition: all 0.3s ease; font-weight: 600; color: #94a3b8; font-size: 14px;">Yearly <span style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-left: 4px;">Save 25%</span></div>
-                </div>
-                
-                <div class="plan-price" id="growth-price">$12.99<span style="font-size: 1rem; color: #94a3b8;" id="growth-period">/month</span></div>
-                <ul class="plan-features">
-                    <li>Premium AI companions</li>
-                    <li>No ads + unlimited chat</li>
-                    <li>Higher daily feature limits</li>
-                    <li>Priority support</li>
-                    <li>Custom companion training</li>
-                </ul>
-                <button class="plan-btn" onclick="selectPlan('premium')">Choose Growth</button>
-            </div>
-            
-            <!-- Max Plan -->
-            <div class="plan-card">
-                <h3 class="plan-name">Transformation</h3>
-                
-                <!-- Individual Tier Toggle -->
-                <div style="display: flex; justify-content: center; margin: 20px auto; background: rgba(15, 23, 42, 0.8); border-radius: 50px; padding: 4px; width: fit-content;">
-                    <div class="tier-toggle-option active" onclick="toggleTierPricing('transformation', 'monthly')" style="padding: 8px 20px; border-radius: 50px; cursor: pointer; transition: all 0.3s ease; font-weight: 600; color: #94a3b8; font-size: 14px;">Monthly</div>
-                    <div class="tier-toggle-option" onclick="toggleTierPricing('transformation', 'yearly')" style="padding: 8px 20px; border-radius: 50px; cursor: pointer; transition: all 0.3s ease; font-weight: 600; color: #94a3b8; font-size: 14px;">Yearly <span style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-left: 4px;">Save 25%</span></div>
-                </div>
-                
-                <div class="plan-price" id="transformation-price">$19.99<span style="font-size: 1rem; color: #94a3b8;" id="transformation-period">/month</span></div>
-                <ul class="plan-features">
-                    <li>All Growth features</li>
-                    <li>Exclusive elite companions</li>
-                    <li>Voice chat capabilities</li>
-                    <li>Advanced analytics</li>
-                    <li>Early access to new features</li>
-                    <li>1-on-1 onboarding session</li>
-                </ul>
-                <button class="plan-btn" onclick="selectPlan('enterprise')">Choose Transformation</button>
-            </div>
+        <ul class="plan-features">
+          <li><span class="feature-icon">✅</span> All Free Plan features</li>
+          <li><span class="feature-icon">✨</span> <strong>No advertisements</strong></li>
+          <li><span class="feature-icon">✅</span> Uninterrupted conversations</li>
+          <li><span class="feature-icon">✅</span> Same daily feature limits as free</li>
+          <li><span class="feature-icon">💙</span> Support SoulBridge AI development</li>
+          <li><span class="feature-icon">🎯</span> Perfect for casual users</li>
+        </ul>
+        
+        <button class="select-btn" style="background: linear-gradient(135deg, #22d3ee, #0891b2);" onclick="selectPlan('ad_free')">Choose Ad-Free</button>
+      </div>
+      
+      <!-- Growth Plan (Recommended) -->
+      <div class="plan-card recommended">
+        <div class="badge">Most Popular</div>
+        <div class="plan-icon">🌱</div>
+        <div class="plan-name">Growth</div>
+        
+        <!-- Individual Tier Toggle -->
+        <div style="display: flex; justify-content: center; margin: 20px auto; background: rgba(15, 23, 42, 0.8); border-radius: 50px; padding: 4px; width: fit-content;">
+          <div class="tier-toggle-option active" onclick="toggleTierPricing('growth', 'monthly', event)" style="padding: 8px 20px; border-radius: 50px; cursor: pointer; transition: all 0.3s ease; font-weight: 600; color: #94a3b8; font-size: 14px;">Monthly</div>
+          <div class="tier-toggle-option" onclick="toggleTierPricing('growth', 'yearly', event)" style="padding: 8px 20px; border-radius: 50px; cursor: pointer; transition: all 0.3s ease; font-weight: 600; color: #94a3b8; font-size: 14px;">Yearly <span style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-left: 4px;">Save 25%</span></div>
         </div>
         
-        <!-- Trainer Time Purchase Section -->
+        <div class="plan-price" id="premium-price">$12.99</div>
+        <div class="plan-period" id="premium-period">/month</div>
+        
+        <ul class="plan-features">
+          <li><span class="feature-icon">✅</span> Premium AI companions</li>
+          <li><span class="feature-icon">✅</span> No ads + unlimited chat</li>
+          <li><span class="feature-icon">✅</span> Higher daily feature limits</li>
+          <li><span class="feature-icon">✅</span> Priority support</li>
+          <li><span class="feature-icon">✅</span> Custom companion training</li>
+        </ul>
+        
+        <button class="select-btn paid" onclick="selectPlan('premium')">Choose Growth</button>
+      </div>
+
+      <!-- Transformation Plan (Premium) -->
+      <div class="plan-card">
+        <div class="plan-icon">🚀</div>
+        <div class="plan-name">Transformation</div>
+        
+        <!-- Individual Tier Toggle -->
+        <div style="display: flex; justify-content: center; margin: 20px auto; background: rgba(15, 23, 42, 0.8); border-radius: 50px; padding: 4px; width: fit-content;">
+          <div class="tier-toggle-option active" onclick="toggleTierPricing('transformation', 'monthly', event)" style="padding: 8px 20px; border-radius: 50px; cursor: pointer; transition: all 0.3s ease; font-weight: 600; color: #94a3b8; font-size: 14px;">Monthly</div>
+          <div class="tier-toggle-option" onclick="toggleTierPricing('transformation', 'yearly', event)" style="padding: 8px 20px; border-radius: 50px; cursor: pointer; transition: all 0.3s ease; font-weight: 600; color: #94a3b8; font-size: 14px;">Yearly <span style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-left: 4px;">Save 25%</span></div>
+        </div>
+        
+        <div class="plan-price" id="enterprise-price">$19.99</div>
+        <div class="plan-period" id="enterprise-period">/month</div>
+        
+        <ul class="plan-features">
+          <li><span class="feature-icon">✅</span> All Growth features</li>
+          <li><span class="feature-icon">✅</span> Exclusive elite companions</li>
+          <li><span class="feature-icon">✅</span> Voice chat capabilities</li>
+          <li><span class="feature-icon">✅</span> Advanced analytics</li>
+          <li><span class="feature-icon">✅</span> Early access to new features</li>
+          <li><span class="feature-icon">✅</span> 1-on-1 onboarding session</li>
+        </ul>
+        
+        <button class="select-btn premium" onclick="selectPlan('enterprise')">Choose Transformation</button>
+      </div>
+    </div>
+
+    <!-- Trainer Time Purchase Section -->
         <div class="plan-card" style="max-width: 800px; margin: 60px auto; background: rgba(0,0,0,0.8); border: 2px solid #22d3ee;">
             <div style="font-size: 2rem; margin-bottom: 20px;">💳</div>
             <h3 class="plan-name" style="margin-bottom: 20px;">Need More Trainer Time?</h3>
@@ -302,7 +338,7 @@
                 * Available for Growth & Max subscribers only
             </p>
         </div>
-    </div>
+  </div>
     
     <script>
         async function selectPlan(planType) {
