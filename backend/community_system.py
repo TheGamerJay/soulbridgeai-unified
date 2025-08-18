@@ -1442,6 +1442,7 @@ def select_companion_direct(companion_id):
             4: {'name': 'Violet', 'tier': 'max', 'avatar_url': '/static/logos/Violet.png'},
             30: {'name': 'Claude Max', 'tier': 'max', 'avatar_url': '/static/logos/Claude Max.png'},
             31: {'name': 'Royal', 'tier': 'max', 'avatar_url': '/static/logos/Royal a Max companion.png'},
+            43: {'name': 'Violet Max', 'tier': 'max', 'avatar_url': '/static/logos/Violet a Max companion.png'},
             32: {'name': 'Ven Blayzica', 'tier': 'max', 'avatar_url': '/static/logos/Ven Blayzica a Max companion.png'},
             33: {'name': 'Ven Sky', 'tier': 'max', 'avatar_url': '/static/logos/Ven Sky a Max companion.png'},
             34: {'name': 'WatchDog Max', 'tier': 'max', 'avatar_url': '/static/logos/WatchDog a Max Companion.png'},
@@ -1449,8 +1450,6 @@ def select_companion_direct(companion_id):
             40: {'name': 'Claude Referral', 'tier': 'referral', 'avatar_url': '/static/logos/Claude Referral.png'},
             41: {'name': 'Blayzo Referral', 'tier': 'referral', 'avatar_url': '/static/logos/Blayzo Referral.png'},
             42: {'name': 'Nyxara', 'tier': 'referral', 'avatar_url': '/static/logos/Nyxara.png'},
-            43: {'name': 'Royal', 'tier': 'referral', 'avatar_url': '/static/logos/Royal a Max companion.png'},
-            44: {'name': 'Sapphire', 'tier': 'referral', 'avatar_url': '/static/logos/Sapphire.png'},
         }
         
         companion = available_companions.get(companion_id)
@@ -1475,8 +1474,6 @@ def select_companion_direct(companion_id):
                 40: 10,  # Claude Referral - needs 10 referrals
                 41: 0,   # Blayzo Referral - needs special unlock
                 42: 6,   # Nyxara - needs 6 referrals
-                43: 3,   # Royal - needs 3 referrals
-                44: 1,   # Sapphire - needs 1 referral
             }
             
             required_referrals = referral_requirements.get(companion_id, 999)
@@ -1548,7 +1545,8 @@ def companion_selector_page():
                 {'id': 31, 'name': 'Royal', 'avatar_url': '/static/logos/Royal a Max companion.png'},
                 {'id': 32, 'name': 'Ven Blayzica', 'avatar_url': '/static/logos/Ven Blayzica a Max companion.png'},
                 {'id': 33, 'name': 'Ven Sky', 'avatar_url': '/static/logos/Ven Sky a Max companion.png'},
-                {'id': 34, 'name': 'WatchDog Max', 'avatar_url': '/static/logos/WatchDog a Max Companion.png'}
+                {'id': 34, 'name': 'WatchDog Max', 'avatar_url': '/static/logos/WatchDog a Max Companion.png'},
+                {'id': 43, 'name': 'Violet Max', 'avatar_url': '/static/logos/Violet a Max companion.png'}
             ],
             'referral': [
                 {'id': 11, 'name': 'Blayzike', 'avatar_url': '/static/logos/Blayzike.png', 'referrals_needed': 5},
