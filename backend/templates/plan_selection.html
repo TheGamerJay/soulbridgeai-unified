@@ -138,6 +138,46 @@
         .plan-btn.selected {
             background: #22d3ee;
         }
+        
+        /* Pricing Toggle */
+        .pricing-toggle {
+            display: flex;
+            justify-content: center;
+            margin: 40px auto;
+            background: rgba(15, 23, 42, 0.8);
+            border-radius: 50px;
+            padding: 4px;
+            width: fit-content;
+        }
+        
+        .toggle-option {
+            padding: 12px 32px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            color: #94a3b8;
+        }
+        
+        .toggle-option.active {
+            background: linear-gradient(135deg, #22d3ee, #0891b2);
+            color: #000;
+        }
+        
+        .savings {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            margin-left: 8px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
     </style>
     
     <!-- Google AdSense -->
@@ -154,11 +194,17 @@
             </div>
         </div>
         
+        <!-- Pricing Toggle -->
+        <div class="pricing-toggle">
+            <div class="toggle-option active" onclick="togglePricing('monthly')">Monthly</div>
+            <div class="toggle-option" onclick="togglePricing('yearly')">Yearly <span class="savings">Save 25%</span></div>
+        </div>
+        
         <div class="plan-grid">
             <!-- Ad-Free Plan -->
             <div class="plan-card">
                 <h3 class="plan-name">Ad-Free</h3>
-                <div class="plan-price">$5.00<span style="font-size: 1rem; color: #94a3b8;">/month</span></div>
+                <div class="plan-price" id="ad-free-price">$5.00<span style="font-size: 1rem; color: #94a3b8;" id="ad-free-period">/month</span></div>
                 <ul class="plan-features">
                     <li>Unlimited chat (like free)</li>
                     <li>✨ No advertisements</li>
@@ -173,7 +219,7 @@
             <div class="plan-card popular">
                 <div class="plan-badge">Most Popular</div>
                 <h3 class="plan-name">Growth</h3>
-                <div class="plan-price">$12.99<span style="font-size: 1rem; color: #94a3b8;">/month</span></div>
+                <div class="plan-price" id="growth-price">$12.99<span style="font-size: 1rem; color: #94a3b8;" id="growth-period">/month</span></div>
                 <ul class="plan-features">
                     <li>Premium AI companions</li>
                     <li>No ads + unlimited chat</li>
@@ -187,7 +233,7 @@
             <!-- Max Plan -->
             <div class="plan-card">
                 <h3 class="plan-name">Transformation</h3>
-                <div class="plan-price">$19.99<span style="font-size: 1rem; color: #94a3b8;">/month</span></div>
+                <div class="plan-price" id="transformation-price">$19.99<span style="font-size: 1rem; color: #94a3b8;" id="transformation-period">/month</span></div>
                 <ul class="plan-features">
                     <li>All Growth features</li>
                     <li>Exclusive elite companions</li>
@@ -228,6 +274,34 @@
             } catch (error) {
                 console.error('Plan selection error:', error);
                 alert('Error selecting plan. Please try again.');
+            }
+        }
+        
+        function togglePricing(period) {
+            // Update toggle buttons
+            document.querySelectorAll('.toggle-option').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`[onclick="togglePricing('${period}')"]`).classList.add('active');
+            
+            // Update pricing
+            if (period === 'monthly') {
+                document.getElementById('ad-free-price').innerHTML = '$5.00';
+                document.getElementById('ad-free-period').innerHTML = '/month';
+                
+                document.getElementById('growth-price').innerHTML = '$12.99';
+                document.getElementById('growth-period').innerHTML = '/month';
+                
+                document.getElementById('transformation-price').innerHTML = '$19.99';
+                document.getElementById('transformation-period').innerHTML = '/month';
+            } else {
+                // Yearly pricing (25% savings)
+                document.getElementById('ad-free-price').innerHTML = '$45.00';
+                document.getElementById('ad-free-period').innerHTML = '/year';
+                
+                document.getElementById('growth-price').innerHTML = '$117.00';
+                document.getElementById('growth-period').innerHTML = '/year';
+                
+                document.getElementById('transformation-price').innerHTML = '$180.00';
+                document.getElementById('transformation-period').innerHTML = '/year';
             }
         }
     </script>
