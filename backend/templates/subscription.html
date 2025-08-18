@@ -259,6 +259,23 @@
       transform: translateY(-5px);
       box-shadow: 0 15px 35px rgba(34, 211, 238, 0.4);
     }
+    
+    .savings-label {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      margin-left: 8px;
+      font-weight: bold;
+      animation: pulse-savings 2s infinite;
+      display: inline-block;
+    }
+    
+    @keyframes pulse-savings {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
   </style>
 </head>
 <body>
@@ -713,12 +730,17 @@ function togglePricing(type, event) {
   // Update pricing display
   const plans = pricing[type];
   
-  document.getElementById('premium-price').textContent = plans.premium.price;
+  // Update Growth pricing
+  if (type === 'yearly') {
+    document.getElementById('premium-price').innerHTML = plans.premium.price + ' <span class="savings-label">Save $39</span>';
+  } else {
+    document.getElementById('premium-price').textContent = plans.premium.price;
+  }
   document.getElementById('premium-period').textContent = plans.premium.period;
   
   // Update Transformation pricing
   if (type === 'yearly') {
-    document.getElementById('enterprise-price').innerHTML = plans.enterprise.price + ' <span class="savings">Save 25%</span>';
+    document.getElementById('enterprise-price').innerHTML = plans.enterprise.price + ' <span class="savings-label">Save $60</span>';
   } else {
     document.getElementById('enterprise-price').textContent = plans.enterprise.price;
   }
@@ -764,15 +786,15 @@ function toggleTierPricing(tier, period, event) {
       document.getElementById('enterprise-period').innerHTML = '/month';
     }
   } else {
-    // Yearly pricing (25% savings)
+    // Yearly pricing with savings labels
     if (tier === 'ad-free') {
-      document.getElementById('ad-free-price').innerHTML = '$45.00';
+      document.getElementById('ad-free-price').innerHTML = '$45.00 <span class="savings-label">Save $15</span>';
       document.getElementById('ad-free-period').innerHTML = '/year';
     } else if (tier === 'growth') {
-      document.getElementById('premium-price').innerHTML = '$117.00';
+      document.getElementById('premium-price').innerHTML = '$117.00 <span class="savings-label">Save $39</span>';
       document.getElementById('premium-period').innerHTML = '/year';
     } else if (tier === 'transformation') {
-      document.getElementById('enterprise-price').innerHTML = '$180.00';
+      document.getElementById('enterprise-price').innerHTML = '$180.00 <span class="savings-label">Save $60</span>';
       document.getElementById('enterprise-period').innerHTML = '/year';
     }
   }
