@@ -218,6 +218,19 @@ def initialize_community_database():
             );
         """)
         
+        # User community avatars table - stores current avatar selection
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS user_community_avatars (
+                user_id INTEGER PRIMARY KEY,
+                companion_id INTEGER NOT NULL,
+                companion_name TEXT NOT NULL,
+                companion_rarity TEXT DEFAULT 'common',
+                avatar_url TEXT NOT NULL,
+                selected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        """)
+        
         # Avatar change tracking table - implements cooldown with ad bypass
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS user_avatar_changes (
