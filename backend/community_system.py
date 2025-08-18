@@ -1403,6 +1403,222 @@ def set_community_avatar():
         logger.error(f"Failed to set community avatar: {e}")
         return jsonify({"error": "Failed to set avatar"}), 500
 
+@community_bp.route('/select-companion/<int:companion_id>', methods=['GET'])
+def select_companion_direct(companion_id):
+    """Direct link to select a companion - bypasses JavaScript issues"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return redirect('/login')
+        
+        # Get user tier information
+        from unified_tier_system import get_effective_plan
+        user_plan = session.get('user_plan', 'free')
+        trial_active = session.get('trial_active', False)
+        effective_plan = get_effective_plan(user_plan, trial_active)
+        
+        # Define available companions by tier
+        available_companions = {
+            1: {'name': 'GamerJay', 'tier': 'free', 'avatar_url': '/static/logos/GamerJay Free companion.png'},
+            2: {'name': 'Sky', 'tier': 'growth', 'avatar_url': '/static/logos/Sky a premium companion.png'},
+            7: {'name': 'GamerJay Premium', 'tier': 'growth', 'avatar_url': '/static/logos/GamgerJay premium companion.png'},
+            3: {'name': 'Crimson', 'tier': 'max', 'avatar_url': '/static/logos/Crimson a Max companion.png'},
+            4: {'name': 'Violet', 'tier': 'max', 'avatar_url': '/static/logos/Violet a Max companion.png'},
+        }
+        
+        companion = available_companions.get(companion_id)
+        if not companion:
+            return f"<script>alert('Companion not found'); window.location.href='/community';</script>"
+        
+        # Check if user has access to this tier
+        companion_tier = companion['tier']
+        user_has_access = False
+        
+        if companion_tier == 'free':
+            user_has_access = True
+        elif companion_tier == 'growth' and effective_plan in ['growth', 'max']:
+            user_has_access = True
+        elif companion_tier == 'max' and effective_plan == 'max':
+            user_has_access = True
+        
+        if not user_has_access:
+            return f"<script>alert('This companion requires {companion_tier.title()} tier'); window.location.href='/community';</script>"
+        
+        # Set the companion
+        companion_data = {
+            'companion_id': companion_id,
+            'name': companion['name'],
+            'rarity': 'common',
+            'avatar_url': companion['avatar_url']
+        }
+        
+        success = set_user_community_avatar(user_id, companion_data)
+        
+        if success:
+            return f"<script>alert('Avatar set to {companion['name']}!'); window.location.href='/community';</script>"
+        else:
+            return f"<script>alert('Failed to set avatar'); window.location.href='/community';</script>"
+            
+    except Exception as e:
+        logger.error(f"Failed to select companion: {e}")
+        return f"<script>alert('Error: {str(e)}'); window.location.href='/community';</script>"
+
+@community_bp.route('/companion-selector', methods=['GET'])
+def companion_selector_page():
+    """Simple HTML page with companion selection links"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return redirect('/login')
+        
+        # Get user tier information
+        from unified_tier_system import get_effective_plan
+        user_plan = session.get('user_plan', 'free')
+        trial_active = session.get('trial_active', False)
+        effective_plan = get_effective_plan(user_plan, trial_active)
+        
+        # Define companions organized by tier
+        companions_by_tier = {
+            'free': [
+                {'id': 1, 'name': 'GamerJay', 'avatar_url': '/static/logos/GamerJay Free companion.png'}
+            ],
+            'growth': [
+                {'id': 2, 'name': 'Sky', 'avatar_url': '/static/logos/Sky a premium companion.png'},
+                {'id': 7, 'name': 'GamerJay Premium', 'avatar_url': '/static/logos/GamgerJay premium companion.png'}
+            ],
+            'max': [
+                {'id': 3, 'name': 'Crimson', 'avatar_url': '/static/logos/Crimson a Max companion.png'},
+                {'id': 4, 'name': 'Violet', 'avatar_url': '/static/logos/Violet a Max companion.png'}
+            ]
+        }
+        
+        # Generate HTML
+        html = f'''
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Select Community Avatar - SoulBridge AI</title>
+            <style>
+                body {{ font-family: Arial, sans-serif; background: #000; color: #fff; padding: 20px; }}
+                .tier {{ margin: 20px 0; padding: 20px; border: 2px solid #333; border-radius: 10px; }}
+                .tier.unlocked {{ border-color: #00ffff; }}
+                .tier.locked {{ border-color: #666; opacity: 0.5; }}
+                .tier h3 {{ color: #00ffff; margin-top: 0; }}
+                .companion {{ display: inline-block; margin: 10px; padding: 15px; background: #222; border-radius: 8px; text-align: center; }}
+                .companion img {{ width: 64px; height: 64px; border-radius: 50%; }}
+                .companion a {{ color: #00ffff; text-decoration: none; font-weight: bold; }}
+                .companion a:hover {{ color: #fff; }}
+                .companion.locked {{ opacity: 0.5; }}
+                .companion.locked a {{ color: #666; cursor: not-allowed; }}
+                .back-btn {{ background: #00ffff; color: #000; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; margin-bottom: 20px; }}
+                .current-tier {{ background: #333; padding: 10px; border-radius: 5px; margin-bottom: 20px; }}
+            </style>
+        </head>
+        <body>
+            <a href="/community" class="back-btn">← Back to Community</a>
+            
+            <h1>🎭 Select Your Community Avatar</h1>
+            
+            <div class="current-tier">
+                <strong>Your Current Tier:</strong> {effective_plan.title()} 
+                {" (Trial Active)" if trial_active else ""}
+            </div>
+            
+            <div class="tier unlocked">
+                <h3>🆓 Free Tier</h3>
+                <div class="companions">
+        '''
+        
+        # Add Free tier companions (always unlocked)
+        for companion in companions_by_tier['free']:
+            html += f'''
+                    <div class="companion">
+                        <img src="{companion['avatar_url']}" alt="{companion['name']}">
+                        <br>
+                        <a href="/community/select-companion/{companion['id']}">{companion['name']}</a>
+                    </div>
+            '''
+        
+        html += '''
+                </div>
+            </div>
+        '''
+        
+        # Add Growth tier
+        is_growth_unlocked = effective_plan in ['growth', 'max']
+        html += f'''
+            <div class="tier {'unlocked' if is_growth_unlocked else 'locked'}">
+                <h3>📈 Growth Tier {'(Unlocked)' if is_growth_unlocked else '(Locked - Requires Growth/Max subscription)'}</h3>
+                <div class="companions">
+        '''
+        
+        for companion in companions_by_tier['growth']:
+            if is_growth_unlocked:
+                html += f'''
+                        <div class="companion">
+                            <img src="{companion['avatar_url']}" alt="{companion['name']}">
+                            <br>
+                            <a href="/community/select-companion/{companion['id']}">{companion['name']}</a>
+                        </div>
+                '''
+            else:
+                html += f'''
+                        <div class="companion locked">
+                            <img src="{companion['avatar_url']}" alt="{companion['name']}">
+                            <br>
+                            <a href="#" onclick="alert('Requires Growth tier subscription')">{companion['name']}</a>
+                        </div>
+                '''
+        
+        html += '''
+                </div>
+            </div>
+        '''
+        
+        # Add Max tier
+        is_max_unlocked = effective_plan == 'max'
+        html += f'''
+            <div class="tier {'unlocked' if is_max_unlocked else 'locked'}">
+                <h3>⭐ Max Tier {'(Unlocked)' if is_max_unlocked else '(Locked - Requires Max subscription)'}</h3>
+                <div class="companions">
+        '''
+        
+        for companion in companions_by_tier['max']:
+            if is_max_unlocked:
+                html += f'''
+                        <div class="companion">
+                            <img src="{companion['avatar_url']}" alt="{companion['name']}">
+                            <br>
+                            <a href="/community/select-companion/{companion['id']}">{companion['name']}</a>
+                        </div>
+                '''
+            else:
+                html += f'''
+                        <div class="companion locked">
+                            <img src="{companion['avatar_url']}" alt="{companion['name']}">
+                            <br>
+                            <a href="#" onclick="alert('Requires Max tier subscription')">{companion['name']}</a>
+                        </div>
+                '''
+        
+        html += '''
+                </div>
+            </div>
+            
+            <p style="margin-top: 40px; color: #666; font-size: 14px;">
+                Click on any unlocked companion to set it as your community avatar.
+                Locked companions require subscription upgrades.
+            </p>
+        </body>
+        </html>
+        '''
+        
+        return html
+        
+    except Exception as e:
+        logger.error(f"Failed to show companion selector: {e}")
+        return f"<script>alert('Error loading companions: {str(e)}'); window.location.href='/community';</script>"
+
 @community_bp.route('/companions', methods=['GET'])
 def get_available_companions():
     """Get Netflix-style tiered companion display for community avatars"""
