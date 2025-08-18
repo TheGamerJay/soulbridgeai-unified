@@ -376,7 +376,7 @@
     <div style="font-size: 2rem; margin-bottom: 20px;">💳</div>
     <h3 style="color: #22d3ee; margin-bottom: 20px; font-size: 1.8rem;">Need More Trainer Time?</h3>
     <p style="color: #e2e8f0; line-height: 1.6; margin-bottom: 20px; font-size: 1.1rem;">
-      Max Plan subscribers get 650 trainer time monthly. Running low? Purchase additional trainer time anytime!
+      Growth & Max subscribers get monthly trainer time. Running low? Purchase additional trainer time anytime!
     </p>
     
     <!-- Important warning about rollover -->
@@ -1015,8 +1015,8 @@ async function purchaseTrainerTime(amount, price) {
       return;
     }
     
-    if (statusData.plan_type !== 'max') {
-      alert('Trainer time purchases are only available for Max Plan subscribers. Please upgrade to Max Plan first!');
+    if (statusData.plan_type !== 'max' && statusData.plan_type !== 'growth') {
+      alert('Trainer time purchases are only available for Growth or Max Plan subscribers. Please upgrade first!');
       return;
     }
     
