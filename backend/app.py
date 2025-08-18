@@ -1928,8 +1928,18 @@ def user_status():
     """Check if user is logged in for frontend authentication checks"""
     try:
         logged_in = is_logged_in()
-        user_plan = session.get('user_plan', 'free') if logged_in else 'free'
+        raw_user_plan = session.get('user_plan', 'free') if logged_in else 'free'
         trial_active = session.get('trial_active', False) if logged_in else False
+        
+        # Normalize plan names to new tier system
+        plan_normalization = {
+            'free': 'bronze',
+            'growth': 'silver', 
+            'max': 'gold',
+            'premium': 'silver',  # Legacy compatibility
+            'enterprise': 'gold'  # Legacy compatibility
+        }
+        user_plan = plan_normalization.get(raw_user_plan, raw_user_plan)
         
         # Debug logging for authentication issues
         if not logged_in:
@@ -1940,6 +1950,7 @@ def user_status():
             "success": True,
             "logged_in": logged_in,
             "user_plan": user_plan,
+            "plan_type": user_plan,  # Frontend expects plan_type
             "trial_active": trial_active
         })
     except Exception as e:
@@ -1947,7 +1958,8 @@ def user_status():
         return jsonify({
             "success": False,
             "logged_in": False,
-            "user_plan": "free",
+            "user_plan": "bronze",
+            "plan_type": "bronze",
             "trial_active": False
         })
 
@@ -1958,8 +1970,18 @@ def check_user_status():
         # Simple check without requiring full authentication
         user_id = session.get('user_id')
         logged_in = bool(user_id)
-        user_plan = session.get('user_plan', 'free')
+        raw_user_plan = session.get('user_plan', 'free')
         trial_active = session.get('trial_active', False)
+        
+        # Normalize plan names to new tier system
+        plan_normalization = {
+            'free': 'bronze',
+            'growth': 'silver', 
+            'max': 'gold',
+            'premium': 'silver',  # Legacy compatibility
+            'enterprise': 'gold'  # Legacy compatibility
+        }
+        user_plan = plan_normalization.get(raw_user_plan, raw_user_plan)
         
         return jsonify({
             "success": True,
@@ -1973,9 +1995,9 @@ def check_user_status():
         return jsonify({
             "success": True,
             "logged_in": False,
-            "user_plan": "free",
+            "user_plan": "bronze",
             "trial_active": False,
-            "plan_type": "free"
+            "plan_type": "bronze"
         })
 
 @app.route("/api/logout-on-close", methods=["POST"])
