@@ -13891,7 +13891,6 @@ TIERS_TEMPLATE = r"""
       <div class="row-title">
         🌱 Growth Companions
         {% if user_plan=='growth' %}
-          <a href="/buy-credits" class="btn" style="margin-left:10px;background:linear-gradient(90deg,#ff6b35,#ff9500);">⚡ Buy More Credits</a>
         {% endif %}
       </div>
       <div class="row">
@@ -13911,8 +13910,6 @@ TIERS_TEMPLATE = r"""
       <div class="row-title">
         🎯 Max Companions
         {% if user_plan=='max' %}
-          <a href="/mini-studio" class="btn" style="margin-left:10px;">🎶 GamerJay Mini Studio</a>
-          <a href="/buy-credits" class="btn" style="margin-left:8px;background:linear-gradient(90deg,#ff6b35,#ff9500);">⚡ Buy More Credits</a>
         {% endif %}
       </div>
       <div class="row">
