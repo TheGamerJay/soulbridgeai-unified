@@ -403,15 +403,15 @@ PRICE_ADFREE = os.environ.get('STRIPE_PRICE_ADFREE', 'price_1234567890')  # Ad-f
 
 # ---------- Companions (bulletproof data) ----------
 COMPANIONS_NEW = [
-    # Bronze tier (free) - 8 companions
-    {"id":"gamerjay_bronze","name":"GamerJay","tier":"free","image_url":"/static/logos/GamerJay_Free_companion.png"},
-    {"id":"blayzo_bronze","name":"Blayzo","tier":"free","image_url":"/static/logos/Blayzo.png"},
-    {"id":"blayzica_bronze","name":"Blayzica","tier":"free","image_url":"/static/logos/Blayzica.png"},
-    {"id":"claude_bronze","name":"Claude","tier":"free","image_url":"/static/logos/Claude_Free.png"},
-    {"id":"blayzia_bronze","name":"Blayzia","tier":"free","image_url":"/static/logos/Blayzia.png"},
-    {"id":"blayzion_bronze","name":"Blayzion","tier":"free","image_url":"/static/logos/Blayzion.png"},
-    {"id":"lumen_bronze","name":"Lumen","tier":"free","image_url":"/static/logos/Lumen.png"},
-    {"id":"blayzo2_bronze","name":"Blayzo.2","tier":"free","image_url":"/static/logos/Blayzo.png"},
+    # Free tier - 8 companions
+    {"id":"gamerjay_free","name":"GamerJay","tier":"free","image_url":"/static/logos/GamerJay_Free_companion.png"},
+    {"id":"blayzo_free","name":"Blayzo","tier":"free","image_url":"/static/logos/Blayzo.png"},
+    {"id":"blayzica_free","name":"Blayzica","tier":"free","image_url":"/static/logos/Blayzica.png"},
+    {"id":"claude_free","name":"Claude","tier":"free","image_url":"/static/logos/Claude_Free.png"},
+    {"id":"blayzia_free","name":"Blayzia","tier":"free","image_url":"/static/logos/Blayzia.png"},
+    {"id":"blayzion_free","name":"Blayzion","tier":"free","image_url":"/static/logos/Blayzion.png"},
+    {"id":"lumen_free","name":"Lumen","tier":"free","image_url":"/static/logos/Lumen.png"},
+    {"id":"blayzo2_free","name":"Blayzo.2","tier":"free","image_url":"/static/logos/Blayzo.png"},
     
     # Silver tier (growth) - 8 companions
     {"id":"sky_silver","name":"Sky","tier":"growth","image_url":"/static/logos/Sky_a_premium_companion.png"},
