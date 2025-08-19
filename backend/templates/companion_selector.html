@@ -1243,17 +1243,28 @@
                     // Map internal tier names to display tier names
                     const requiredTier = requiredTiers.includes('max') ? 'gold' : 
                                        requiredTiers.includes('growth') ? 'silver' : 'bronze';
-                    if (window.TierLock) {
+                    console.log(`🔒 Access denied for ${companionId}, showing upgrade modal for ${requiredTier} tier`);
+                    
+                    if (window.TierLock && typeof window.TierLock.showUpgradeModal === 'function') {
                         window.TierLock.showUpgradeModal(requiredTier);
+                    } else {
+                        console.warn('⚠️ TierLock system not available, falling back to alert');
+                        alert(`This companion requires ${requiredTier.charAt(0).toUpperCase() + requiredTier.slice(1)} tier. Please upgrade your plan.`);
                     }
                 }
             } catch (error) {
                 // Error checking trial status - show upgrade modal as fallback
+                console.error(`❌ Error checking access for ${companionId}:`, error);
                 // Map internal tier names to display tier names
                 const requiredTier = requiredTiers.includes('max') ? 'gold' : 
                                    requiredTiers.includes('growth') ? 'silver' : 'bronze';
-                if (window.TierLock) {
+                console.log(`🔒 Error fallback: showing upgrade modal for ${requiredTier} tier`);
+                
+                if (window.TierLock && typeof window.TierLock.showUpgradeModal === 'function') {
                     window.TierLock.showUpgradeModal(requiredTier);
+                } else {
+                    console.warn('⚠️ TierLock system not available in error fallback, using alert');
+                    alert(`This companion requires ${requiredTier.charAt(0).toUpperCase() + requiredTier.slice(1)} tier. Please upgrade your plan.`);
                 }
             }
         }
@@ -1509,6 +1520,16 @@
             }, 4000);
         }
 
+        // Load tier-lock system before initializing companion handlers
+        (function loadTierLockScript() {
+            const script = document.createElement('script');
+            script.src = "{{ url_for('static', filename='js/tier-lock.js') }}";
+            script.onload = function() {
+                console.log('🔒 Tier-lock system loaded');
+            };
+            document.head.appendChild(script);
+        })();
+
         // Initialize trial status checking
         document.addEventListener('DOMContentLoaded', function() {
       // Add event listeners to all companion cards with data attributes
@@ -1541,6 +1562,5 @@
             setInterval(loadTrialStatus, 30000);
         });
     </script>
-    <script src="{{ url_for('static', filename='js/tier-lock.js') }}"></script>
 </body>
 </html>
