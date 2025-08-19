@@ -347,6 +347,8 @@ if bsg_available:
         print("/api/me endpoint registered successfully")
     except Exception as e:
         print(f"WARNING: /api/me registration failed: {e}")
+else:
+    print("WARNING: Bronze/Silver/Gold tier system blueprints not registered")
 
 # Register analytics system blueprint
 try:
@@ -369,8 +371,20 @@ def analytics_page():
     except Exception as e:
         logger.error(f"Error rendering analytics page: {e}")
         return render_template('error.html', error="Failed to load analytics"), 500
-else:
-    print("WARNING: Bronze/Silver/Gold tier system blueprints not registered")
+
+# Voice chat route (Gold tier exclusive)
+@app.route("/voice-chat")
+def voice_chat_page():
+    """Render the voice chat page (Gold tier exclusive)."""
+    try:
+        from app_core import current_user
+        cu = current_user()
+        if not cu.get("id"):
+            return render_template('login.html', error="Please log in to access voice chat"), 401
+        return render_template('voice_chat.html')
+    except Exception as e:
+        logger.error(f"Error rendering voice chat page: {e}")
+        return render_template('error.html', error="Failed to load voice chat"), 500
 
 # Trial endpoints are now integrated directly in app.py
 print("Trial system ready")
@@ -1490,6 +1504,19 @@ def init_socketio():
         )
         services["socketio"] = socketio
         logger.info("✅ SocketIO initialized successfully")
+        
+        # Register voice chat WebSocket functionality
+        try:
+            from voice_websocket import register_voice_websocket
+            if register_voice_websocket(app, socketio):
+                logger.info("✅ Voice WebSocket system registered successfully")
+            else:
+                logger.warning("⚠️ Voice WebSocket registration failed")
+        except ImportError as e:
+            logger.warning(f"⚠️ Voice WebSocket system not available: {e}")
+        except Exception as e:
+            logger.error(f"❌ Voice WebSocket registration error: {e}")
+        
         return True
     except Exception as e:
         logger.error(f"❌ SocketIO initialization failed: {e}")
@@ -4328,17 +4355,6 @@ def get_library_content(user_id, content_type="all", user_plan="free"):
     except Exception as e:
         logger.error(f"Error fetching library content: {e}")
         return {"chat_conversations": [], "music_tracks": [], "creative_content": []}
-
-@app.route("/voice-chat")
-def voice_chat_page():
-    """Voice chat feature (coming soon)"""
-    try:
-        if not is_logged_in():
-            return redirect("/login")
-        return jsonify({"message": "Voice chat feature coming soon!", "redirect": "/"}), 200
-    except Exception as e:
-        logger.error(f"Voice chat page error: {e}")
-        return redirect("/")
 
 @app.route("/api/voice-chat/process", methods=["POST"])
 def voice_chat_process():
