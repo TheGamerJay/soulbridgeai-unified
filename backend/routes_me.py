@@ -294,3 +294,116 @@ def trial_activate():
             "success": False,
             "error": "Internal server error"
         }), 500
+
+@bp_me.route("/credits/purchase", methods=["POST"])
+def credits_purchase():
+    """
+    Create Stripe checkout session for credit purchase.
+    Only available for Silver and Gold tier subscribers.
+    """
+    try:
+        cu = current_user()
+        uid = cu.get("id")
+        
+        if not uid:
+            return jsonify({
+                "success": False,
+                "error": "Not authenticated"
+            }), 401
+        
+        # Get request data
+        data = request.get_json()
+        if not data:
+            return jsonify({
+                "success": False,
+                "error": "No data provided"
+            }), 400
+        
+        credits = data.get('credits')
+        price = data.get('price')
+        package_type = data.get('package_type', 'basic')
+        
+        if not credits or not price:
+            return jsonify({
+                "success": False,
+                "error": "Credits and price are required"
+            }), 400
+        
+        # Validate credit amounts and prices
+        valid_packages = {
+            'basic': {'credits': 350, 'price': 4.99},
+            'popular': {'credits': 750, 'price': 9.99},
+            'value': {'credits': 1200, 'price': 14.99}
+        }
+        
+        if package_type not in valid_packages:
+            return jsonify({
+                "success": False,
+                "error": "Invalid package type"
+            }), 400
+        
+        expected = valid_packages[package_type]
+        if credits != expected['credits'] or abs(price - expected['price']) > 0.01:
+            return jsonify({
+                "success": False,
+                "error": "Invalid credit package parameters"
+            }), 400
+        
+        # Check user plan - only Silver/Gold can purchase credits
+        plan = db_get_user_plan(uid)
+        if plan not in ['silver', 'gold']:
+            return jsonify({
+                "success": False,
+                "error": "Credit purchases are only available for Silver and Gold subscribers"
+            }), 403
+        
+        # Create Stripe checkout session
+        import stripe
+        import os
+        
+        stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
+        if not stripe.api_key:
+            return jsonify({
+                "success": False,
+                "error": "Payment system not configured"
+            }), 500
+        
+        # Create checkout session
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[{
+                'price_data': {
+                    'currency': 'usd',
+                    'product_data': {
+                        'name': f'{credits} Trainer Credits',
+                        'description': f'Additional trainer time credits for SoulBridge AI - {package_type.title()} package'
+                    },
+                    'unit_amount': int(price * 100),  # Convert to cents
+                },
+                'quantity': 1,
+            }],
+            mode='payment',
+            success_url=f"{os.environ.get('APP_DOMAIN', 'https://soulbridgeai.com')}/purchase-credits?success=true&credits={credits}",
+            cancel_url=f"{os.environ.get('APP_DOMAIN', 'https://soulbridgeai.com')}/purchase-credits?cancelled=true",
+            metadata={
+                'user_id': str(uid),
+                'credits': str(credits),
+                'package_type': package_type,
+                'type': 'credit_purchase'
+            }
+        )
+        
+        logger.info(f"💳 Created credit purchase checkout for user {uid}: {credits} credits for ${price}")
+        
+        return jsonify({
+            "success": True,
+            "checkout_url": checkout_session.url,
+            "session_id": checkout_session.id
+        })
+        
+    except Exception as e:
+        logger.error(f"Error in /api/credits/purchase endpoint: {e}")
+        return jsonify({
+            "success": False,
+            "error": "Failed to create checkout session"
+        }), 500

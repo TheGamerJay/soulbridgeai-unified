@@ -3923,6 +3923,17 @@ def credit_store():
         logger.error(f"Credit store template error: {e}")
         return jsonify({"error": "Credit store temporarily unavailable"}), 200
 
+@app.route("/purchase-credits")
+def purchase_credits_page():
+    """Credit Purchase page for Silver and Gold users"""
+    try:
+        if not is_logged_in():
+            return redirect("/login?return_to=purchase-credits")
+        return render_template("credit_purchase.html")
+    except Exception as e:
+        logger.error(f"Credit purchase template error: {e}")
+        return jsonify({"error": "Credit purchase page temporarily unavailable"}), 200
+
 @app.route("/referrals")
 def referrals_page():
     """Referrals page for earning cosmetic companions"""

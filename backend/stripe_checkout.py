@@ -277,11 +277,19 @@ def webhook():
     return jsonify({"received": True})
 
 def handle_checkout_completed(session_obj):
-    """Handle successful checkout completion."""
+    """Handle successful checkout completion for subscriptions and credit purchases."""
     customer_id = session_obj.get("customer")
     subscription_id = session_obj.get("subscription")
+    payment_status = session_obj.get("payment_status")
     customer_email = session_obj.get("customer_details", {}).get("email", "unknown")
+    metadata = session_obj.get("metadata", {})
     
+    # Check if this is a credit purchase (one-time payment)
+    if metadata.get("type") == "credit_purchase" and payment_status == "paid":
+        handle_credit_purchase_completed(session_obj)
+        return
+    
+    # Handle subscription checkouts
     if subscription_id and customer_id:
         # Get subscription details
         subscription = stripe.Subscription.retrieve(subscription_id)
@@ -397,3 +405,30 @@ def handle_payment_failed(invoice_obj):
     logger.warning(f"Payment failed for customer {customer_id}")
     
     # Optionally implement grace period logic here
+
+def handle_credit_purchase_completed(session_obj):
+    """Handle successful credit purchase completion."""
+    metadata = session_obj.get("metadata", {})
+    user_id = metadata.get("user_id")
+    credits = metadata.get("credits")
+    package_type = metadata.get("package_type", "unknown")
+    
+    if not user_id or not credits:
+        logger.error("❌ Credit purchase missing user_id or credits in metadata")
+        return
+    
+    try:
+        credits_amount = int(credits)
+        
+        # Add credits to user's account
+        from db_users import db_add_trainer_credits
+        
+        success = db_add_trainer_credits(user_id, credits_amount)
+        
+        if success:
+            logger.info(f"💎 Credit purchase successful: User {user_id} received {credits_amount} credits ({package_type} package)")
+        else:
+            logger.error(f"❌ Failed to add {credits_amount} credits to user {user_id}")
+            
+    except Exception as e:
+        logger.error(f"❌ Error processing credit purchase for user {user_id}: {e}")

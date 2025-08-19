@@ -310,3 +310,27 @@ def db_migrate_user_plan(user_id):
     except Exception as e:
         logger.error(f"Failed to migrate plan for user {user_id}: {e}")
         return False
+
+def db_add_trainer_credits(user_id, credits_amount):
+    """
+    Add trainer credits to user's account.
+    Credits are stored in session for immediate use.
+    """
+    if not user_id or not credits_amount:
+        return False
+        
+    try:
+        # For now, we'll add credits to the session since that's where the current system tracks them
+        # In the future, this could be enhanced to store in database for persistence
+        from flask import session
+        
+        current_credits = session.get('trainer_credits', 0)
+        new_credits = current_credits + int(credits_amount)
+        session['trainer_credits'] = new_credits
+        
+        logger.info(f"💎 Added {credits_amount} trainer credits to user {user_id} (total: {new_credits})")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Failed to add trainer credits to user {user_id}: {e}")
+        return False
