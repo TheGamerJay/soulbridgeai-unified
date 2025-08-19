@@ -14169,6 +14169,9 @@ TIERS_TEMPLATE = r"""
   </style>
 </head>
 <body>
+<!-- Trial Timer Mount Point -->
+<div id="trialTimerMount" style="position: fixed; top: 20px; right: 20px; z-index: 1000;"></div>
+
 <div class="wrap">
   <a href="/intro" class="back-btn">← Back to Intro</a>
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
