@@ -65,10 +65,13 @@ function cleanCharacterName(name) {
         'blayzo_free': 'Blayzo',
         'blayzica_free': 'Blayzica', 
         'companion_gamerjay': 'GamerJay',
+        'gamerjay_free': 'GamerJay',
         'gamerjay': 'GamerJay',
         'blayzia_free': 'Blayzia',
         'blayzion_free': 'Blayzion',
         'claude_free': 'Claude',
+        'lumen_free': 'Lumen',
+        'blayzo2_free': 'Blayzo.2',
         'companion_sky': 'Sky',
         'blayzo_growth': 'Blayzo Pro',
         'blayzica_growth': 'Blayzica Pro',
@@ -79,6 +82,14 @@ function cleanCharacterName(name) {
         'crimson_growth': 'Crimson',
         'violet_growth': 'Violet',
         'claude_growth': 'Claude Growth',
+        'sky_silver': 'Sky',
+        'gamerjay_silver': 'GamerJay Premium',
+        'claude_silver': 'Claude Growth', 
+        'blayzo_silver': 'Blayzo Pro',
+        'blayzica_silver': 'Blayzica Pro',
+        'watchdog_silver': 'WatchDog',
+        'rozia_silver': 'Rozia',
+        'lumen_silver': 'Lumen',
         'companion_crimson': 'Crimson Max',
         'companion_violet': 'Violet Max',
         'royal_max': 'Royal',
@@ -86,6 +97,14 @@ function cleanCharacterName(name) {
         'ven_blayzica': 'Ven Blayzica',
         'ven_sky': 'Ven Sky',
         'claude_max': 'Claude Max',
+        'crimson_gold': 'Crimson Max',
+        'violet_gold': 'Violet Max',
+        'claude_gold': 'Claude Max',
+        'royal_gold': 'Royal',
+        'ven_blayzica_gold': 'Ven Blayzica',
+        'ven_sky_gold': 'Ven Sky',
+        'watchdog_gold': 'WatchDog Max',
+        'violet2_gold': 'Violet Max',
         'blayzo': 'Blayzo Champion',
         'blayzike': 'Blayzike',
         'blazelian': 'Blazelian',
@@ -161,6 +180,10 @@ function updateCharacterDisplay() {
             // FREE TIER
             'GamerJay': '/static/logos/GamerJay_Free_companion.png', // URL-safe filename
             'Claude': '/static/logos/Claude_Free.png', // URL-safe filename
+            'Blayzia': '/static/logos/Blayzia.png',
+            'Blayzion': '/static/logos/Blayzion.png', 
+            'Lumen': '/static/logos/Lumen Bronze.png',
+            'Blayzo.2': '/static/logos/Blayzo.png',
             
             // GROWTH TIER
             'Sky': '/static/logos/Sky_a_premium_companion.png', // URL-safe filename
@@ -173,6 +196,7 @@ function updateCharacterDisplay() {
             'gamerjay_premium': '/static/logos/GamerJay_premium_companion.png', // Backend companion ID format
             'Claude Growth': '/static/logos/Claude_Growth.png', // URL-safe filename
             'WatchDog': '/static/logos/WatchDog_a_Premium_companion.png', // URL-safe filename
+            'Rozia': '/static/logos/Rozia Silver .png',
             
             // MAX TIER
             'Crimson': '/static/logos/Crimson.png',
