@@ -3611,6 +3611,7 @@ def chat():
             'blayzia_free': {'name': 'Blayzia', 'avatar': '/static/logos/Blayzia.png'},
             'blayzion_free': {'name': 'Blayzion', 'avatar': '/static/logos/Blayzion.png'},
             'claude_free': {'name': 'Claude', 'avatar': '/static/logos/Claude_Free.png'},
+            'lumen_free': {'name': 'Lumen', 'avatar': '/static/logos/Lumen.png?v=1'},
             
             # Growth companions  
             'companion_sky': {'name': 'Sky', 'avatar': '/static/logos/Sky_a_premium_companion.png'},
@@ -3625,6 +3626,8 @@ def chat():
             'crimson_growth': {'name': 'Crimson', 'avatar': '/static/logos/Crimson.png'},
             'violet_growth': {'name': 'Violet', 'avatar': '/static/logos/Violet.png'},
             'claude_growth': {'name': 'Claude Growth', 'avatar': '/static/logos/Claude_Growth.png'},
+            'rozia_silver': {'name': 'Rozia', 'avatar': '/static/logos/Rozia.png?v=2'},
+            'lumen_silver': {'name': 'Lumen', 'avatar': '/static/logos/Lumen Premium.png?v=3'},
             
             # Max companions
             'companion_crimson': {'name': 'Crimson', 'avatar': '/static/logos/Crimson_a_Max_companion.png'},
