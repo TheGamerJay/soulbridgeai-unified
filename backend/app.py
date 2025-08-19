@@ -2120,6 +2120,9 @@ def check_user_status():
 def api_me():
     """Get current user tier information for tier-lock system"""
     try:
+        logger.info("🔍 /api/me called - checking user session")
+        logger.info(f"🔍 Session keys: {list(session.keys())}")
+        logger.info(f"🔍 User authenticated: {session.get('user_authenticated')}")
         if not is_logged_in():
             return jsonify({
                 "success": True,
@@ -2181,7 +2184,11 @@ def api_me():
         })
         
     except Exception as e:
-        logger.error(f"Error in /api/me endpoint: {e}")
+        logger.error(f"❌ Error in /api/me endpoint: {e}")
+        logger.error(f"❌ Error type: {type(e).__name__}")
+        logger.error(f"❌ Error details: {str(e)}")
+        import traceback
+        logger.error(f"❌ Full traceback: {traceback.format_exc()}")
         # Fallback to guest mode on error
         return jsonify({
             "success": True,
