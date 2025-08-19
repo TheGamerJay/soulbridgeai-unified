@@ -411,7 +411,7 @@ COMPANIONS_NEW = [
     {"id":"blayzia_free","name":"Blayzia","tier":"free","image_url":"/static/logos/Blayzia.png"},
     {"id":"blayzion_free","name":"Blayzion","tier":"free","image_url":"/static/logos/Blayzion.png"},
     {"id":"lumen_free","name":"Lumen","tier":"free","image_url":"/static/logos/Lumen Bronze.png"},
-    {"id":"blayzo2_free","name":"Blayzo.2","tier":"free","image_url":"/static/logos/Blayzo.png"},
+    {"id":"blayzo2_free","name":"Blayzo.2","tier":"free","image_url":"/static/logos/blayzo free tier.png"},
     
     # Silver tier (growth) - 8 companions
     {"id":"sky_silver","name":"Sky","tier":"growth","image_url":"/static/logos/Sky_a_premium_companion.png"},
@@ -3613,6 +3613,7 @@ def chat():
             'blayzion_free': {'name': 'Blayzion', 'avatar': '/static/logos/Blayzion.png'},
             'claude_free': {'name': 'Claude', 'avatar': '/static/logos/Claude_Free.png'},
             'lumen_free': {'name': 'Lumen', 'avatar': '/static/logos/Lumen Bronze.png'},
+            'blayzo2_free': {'name': 'Blayzo.2', 'avatar': '/static/logos/blayzo free tier.png'},
             
             # Growth companions  
             'companion_sky': {'name': 'Sky', 'avatar': '/static/logos/Sky_a_premium_companion.png'},

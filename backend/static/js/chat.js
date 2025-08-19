@@ -183,7 +183,7 @@ function updateCharacterDisplay() {
             'Blayzia': '/static/logos/Blayzia.png',
             'Blayzion': '/static/logos/Blayzion.png', 
             'Lumen': '/static/logos/Lumen Bronze.png',
-            'Blayzo.2': '/static/logos/Blayzo.png',
+            'Blayzo.2': '/static/logos/blayzo free tier.png',
             
             // GROWTH TIER
             'Sky': '/static/logos/Sky_a_premium_companion.png', // URL-safe filename
