@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Choose Your Companion - SoulBridge AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tier-lock.css') }}">
     <style>
         * {
             margin: 0;
@@ -818,7 +819,7 @@
                 <div class="companion-row">
                   <!-- Sky -->
                   <div class="companion-card {% if user_plan in ['growth', 'max'] or trial_active %}unlocked{% else %}locked{% endif %}" 
-                       data-companion="sky" data-tiers="growth,max"
+                       data-companion="sky" data-tiers="growth,max" data-companion-tier="silver"
                        style="cursor: pointer;">
                     <img src="/static/logos/Sky.png" alt="Sky" onerror="this.src='/static/logos/IntroLogo.png'">
                     <div class="companion-name">Sky</div>
@@ -827,7 +828,7 @@
 
                   <!-- Blayzo Premium -->
                   <div class="companion-card {% if user_plan in ['growth', 'max'] or trial_active %}unlocked{% else %}locked{% endif %}" 
-                       data-companion="blayzo_premium" data-tiers="growth,max"
+                       data-companion="blayzo_premium" data-tiers="growth,max" data-companion-tier="silver"
                        style="cursor: pointer;">
                     <img src="/static/logos/Blayzo Premium.png" alt="Blayzo Premium" onerror="this.src='/static/logos/IntroLogo.png'">
                     <div class="companion-name">Blayzo Premium</div>
@@ -836,7 +837,7 @@
 
                   <!-- Blayzica Growth -->
                   <div class="companion-card {% if user_plan in ['growth', 'max'] or trial_active %}unlocked{% else %}locked{% endif %}" 
-                       data-companion="blayzica_growth" data-tiers="growth,max"
+                       data-companion="blayzica_growth" data-tiers="growth,max" data-companion-tier="silver"
                        style="cursor: pointer;">
                     <img src="/static/logos/Blayzica Growth.png" alt="Blayzica Growth" onerror="this.src='/static/logos/IntroLogo.png'">
                     <div class="companion-name">Blayzica Growth</div>
@@ -851,7 +852,7 @@
                 <div class="companion-row">
                   <!-- Companion Crimson -->
                   <div class="companion-card {% if user_plan == 'max' or trial_active %}unlocked{% else %}locked{% endif %}" 
-                       data-companion="companion_crimson" data-tiers="max"
+                       data-companion="companion_crimson" data-tiers="max" data-companion-tier="gold"
                        style="cursor: pointer;">
                     <img src="/static/logos/Companion Crimson.png" alt="Companion Crimson" onerror="this.src='/static/logos/IntroLogo.png'">
                     <div class="companion-name">Companion Crimson</div>
@@ -860,7 +861,7 @@
 
                   <!-- Companion Violet -->
                   <div class="companion-card {% if user_plan == 'max' or trial_active %}unlocked{% else %}locked{% endif %}" 
-                       data-companion="companion_violet" data-tiers="max"
+                       data-companion="companion_violet" data-tiers="max" data-companion-tier="gold"
                        style="cursor: pointer;">
                     <img src="/static/logos/Companion Violet.png" alt="Companion Violet" onerror="this.src='/static/logos/IntroLogo.png'">
                     <div class="companion-name">Companion Violet</div>
@@ -869,7 +870,7 @@
 
                   <!-- Royal Max -->
                   <div class="companion-card {% if user_plan == 'max' or trial_active %}unlocked{% else %}locked{% endif %}" 
-                       data-companion="royal_max" data-tiers="max"
+                       data-companion="royal_max" data-tiers="max" data-companion-tier="gold"
                        style="cursor: pointer;">
                     <img src="/static/logos/Royal Max.png" alt="Royal Max" onerror="this.src='/static/logos/IntroLogo.png'">
                     <div class="companion-name">Royal Max</div>
@@ -888,15 +889,15 @@
               <div class="feature-grid">
                 <div class="feature-box">
                   <h4>🧠 Decoder</h4>
-                  <p>15 uses per day</p>
+                  <p><span data-feature-limit="decoder">15 daily</span></p>
                 </div>
                 <div class="feature-box">
                   <h4>🔮 Fortune Teller</h4>
-                  <p>8 uses per day</p>
+                  <p><span data-feature-limit="fortune">8 daily</span></p>
                 </div>
                 <div class="feature-box">
                   <h4>⭐ Horoscope</h4>
-                  <p>10 uses per day</p>
+                  <p><span data-feature-limit="horoscope">10 daily</span></p>
                 </div>
                 <div class="feature-box">
                   <h4>🎙️ Voice Journaling</h4>
@@ -908,7 +909,7 @@
                 </div>
                 <div class="feature-box">
                   <h4>✍️ Creative Writing Assistant</h4>
-                  <p>Fully unlocked</p>
+                  <p><span data-feature-limit="creative_writer">20 daily</span></p>
                 </div>
                 <div class="feature-box">
                   <h4>📚 Library</h4>
@@ -1530,5 +1531,6 @@
             setInterval(loadTrialStatus, 30000);
         });
     </script>
+    <script src="{{ url_for('static', filename='js/tier-lock.js') }}"></script>
 </body>
 </html>

@@ -66,6 +66,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/themes.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/animations.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tier-lock.css') }}">
     
     <!-- IMMEDIATE styling script - runs before anything else -->
     <script>
@@ -633,6 +634,7 @@
                 👤 Profile
             </a>
             <a href="/mini-studio" 
+               data-tier-required="gold"
                style="background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%); 
                       border: 2px solid rgba(0, 255, 255, 0.3); border-radius: 15px; padding: 18px 35px; 
                       color: #00ffff; font-weight: 600; font-size: 1.1rem;
@@ -656,6 +658,7 @@
     </div>
     
     <script src="{{ url_for('static', filename='js/login-fixed.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/tier-lock.js') }}"></script>
     <script>
         // Set session flag for logged-in users (fresh login or page reload)
         sessionStorage.setItem('loggedIn', 'true');
