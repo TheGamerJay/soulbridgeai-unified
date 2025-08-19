@@ -314,10 +314,10 @@
 
     <!-- Plans Grid -->
     <div class="plan-grid">
-      <!-- Ad-Free Plan (For Free Users) -->
+      <!-- Bronze Plan (For Free Users) -->
       <div class="plan-card">
-        <div class="plan-icon">🚫</div>
-        <div class="plan-name">Ad-Free</div>
+        <div class="plan-icon">🥉</div>
+        <div class="plan-name">Bronze</div>
         
         <!-- Individual Tier Toggle -->
         <div style="display: flex; justify-content: center; margin: 20px auto; background: rgba(15, 23, 42, 0.8); border-radius: 50px; padding: 4px; width: fit-content;">
@@ -329,7 +329,7 @@
         <div class="plan-period" id="ad-free-period">/month</div>
         
         <ul class="plan-features">
-          <li><span class="feature-icon">✅</span> All Free Plan features</li>
+          <li><span class="feature-icon">✅</span> All basic features</li>
           <li><span class="feature-icon">✨</span> <strong>No advertisements</strong></li>
           <li><span class="feature-icon">✅</span> Uninterrupted conversations</li>
           <li><span class="feature-icon">✅</span> Same daily feature limits as free</li>
@@ -337,14 +337,14 @@
           <li><span class="feature-icon">🎯</span> Perfect for casual users</li>
         </ul>
         
-        <button class="select-btn" style="background: linear-gradient(135deg, #22d3ee, #0891b2);" onclick="selectPlan('ad_free')">Choose Ad-Free</button>
+        <button class="select-btn" style="background: linear-gradient(135deg, #22d3ee, #0891b2);" onclick="selectPlan('ad_free')">Choose Bronze</button>
       </div>
       
-      <!-- Growth Plan (Recommended) -->
+      <!-- Silver Plan (Recommended) -->
       <div class="plan-card recommended">
         <div class="badge">Most Popular</div>
-        <div class="plan-icon">🌱</div>
-        <div class="plan-name">Growth</div>
+        <div class="plan-icon">🥈</div>
+        <div class="plan-name">Silver</div>
         
         <!-- Individual Tier Toggle -->
         <div style="display: flex; justify-content: center; margin: 20px auto; background: rgba(15, 23, 42, 0.8); border-radius: 50px; padding: 4px; width: fit-content;">
@@ -363,13 +363,13 @@
           <li><span class="feature-icon">✅</span> Custom companion training</li>
         </ul>
         
-        <button class="select-btn paid" onclick="selectPlan('premium')">Choose Growth</button>
+        <button class="select-btn paid" onclick="selectPlan('premium')">Choose Silver</button>
       </div>
 
-      <!-- Transformation Plan (Premium) -->
+      <!-- Gold Plan (Premium) -->
       <div class="plan-card">
-        <div class="plan-icon">🚀</div>
-        <div class="plan-name">Transformation</div>
+        <div class="plan-icon">🥇</div>
+        <div class="plan-name">Gold</div>
         
         <!-- Individual Tier Toggle -->
         <div style="display: flex; justify-content: center; margin: 20px auto; background: rgba(15, 23, 42, 0.8); border-radius: 50px; padding: 4px; width: fit-content;">
@@ -381,7 +381,7 @@
         <div class="plan-period" id="enterprise-period">/month</div>
         
         <ul class="plan-features">
-          <li><span class="feature-icon">✅</span> All Growth features</li>
+          <li><span class="feature-icon">✅</span> All Silver features</li>
           <li><span class="feature-icon">✅</span> Exclusive elite companions</li>
           <li><span class="feature-icon">✅</span> Voice chat capabilities</li>
           <li><span class="feature-icon">✅</span> Advanced analytics</li>
@@ -389,7 +389,7 @@
           <li><span class="feature-icon">✅</span> 1-on-1 onboarding session</li>
         </ul>
         
-        <button class="select-btn premium" onclick="selectPlan('enterprise')">Choose Transformation</button>
+        <button class="select-btn premium" onclick="selectPlan('enterprise')">Choose Gold</button>
       </div>
     </div>
 
@@ -407,7 +407,7 @@
       <div style="font-size: 2rem; margin-bottom: 20px;">💳</div>
       <h3 style="color: #22d3ee; margin-bottom: 20px; font-size: 1.8rem;">Need More Trainer Time?</h3>
       <p style="color: #e2e8f0; line-height: 1.6; margin-bottom: 20px; font-size: 1.1rem;">
-        Growth & Max subscribers get monthly trainer time. Running low? Purchase additional trainer time anytime!
+        Silver & Gold subscribers get monthly trainer time. Running low? Purchase additional trainer time anytime!
       </p>
       
       <!-- Important warning about rollover -->
@@ -515,7 +515,7 @@
         Purchased trainer time is added instantly. <strong>Note:</strong> All trainer time (monthly + purchased) resets at your billing cycle with no rollover. Silver and Gold Plan subscribers can purchase additional trainer time.
       </p>
       
-      <!-- Lock overlay for non-Growth/Max subscribers -->
+      <!-- Lock overlay for non-Silver/Gold subscribers -->
       <div id="trainer-time-lock" style="
         display: none;
         position: absolute;
@@ -531,9 +531,9 @@
         z-index: 10;
       ">
         <div style="font-size: 3rem; margin-bottom: 20px;">🔒</div>
-        <h3 style="color: #22d3ee; margin-bottom: 15px; font-size: 1.5rem;">Growth or Max Plan Required</h3>
+        <h3 style="color: #22d3ee; margin-bottom: 15px; font-size: 1.5rem;">Silver or Gold Plan Required</h3>
         <p style="color: #e2e8f0; text-align: center; max-width: 400px; margin-bottom: 25px; line-height: 1.5;">
-          Upgrade to Growth or Max Plan to purchase additional trainer time when you run out of your monthly allowance. Remember: trainer time resets monthly with no rollover.
+          Upgrade to Silver or Gold Plan to purchase additional trainer time when you run out of your monthly allowance. Remember: trainer time resets monthly with no rollover.
         </p>
         <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;">
           <button onclick="selectPlan('premium')" style="
@@ -545,7 +545,7 @@
             font-weight: 600;
             cursor: pointer;
             font-size: 1rem;
-          ">🌱 Growth Plan</button>
+          ">🥈 Silver Plan</button>
           <button onclick="selectPlan('enterprise')" style="
             background: linear-gradient(135deg, #22d3ee, #0891b2);
             color: #000;
@@ -563,7 +563,7 @@
   <!-- Yearly Savings Banner -->
   <div class="yearly-savings" id="yearly-banner" style="display: none;">
     <h3>🎉 Save up to 25% with annual plans!</h3>
-    <p>Growth: <strong>$117/year</strong> (vs $155.88) • Max: <strong>$180/year</strong> (vs $239.88)</p>
+    <p>Silver: <strong>$117/year</strong> (vs $155.88) • Gold: <strong>$180/year</strong> (vs $239.88)</p>
   </div>
 
   <!-- Tier Comparison -->
@@ -736,9 +736,9 @@ function selectPlan(planType) {
   if (planType === 'ad_free') {
     selectedCard = document.querySelector('.plan-card'); // First card
   } else if (planType === 'premium') {
-    selectedCard = document.querySelector('.plan-card.recommended'); // Growth card
+    selectedCard = document.querySelector('.plan-card.recommended'); // Silver card
   } else if (planType === 'enterprise') {
-    selectedCard = document.querySelectorAll('.plan-card')[2]; // Transformation card
+    selectedCard = document.querySelectorAll('.plan-card')[2]; // Gold card
   }
   
   if (selectedCard) {
@@ -834,13 +834,13 @@ async function checkTrainerTimePurchaseAccess() {
         section.style.display = 'block';
         
         if (statusData.logged_in && (statusData.plan_type === 'max' || statusData.plan_type === 'growth')) {
-            // Growth/Max plan subscribers: hide lock, enable purchases
+            // Silver/Gold plan subscribers: hide lock, enable purchases
             lockOverlay.style.display = 'none';
             console.log(`✅ ${statusData.plan_type.charAt(0).toUpperCase() + statusData.plan_type.slice(1)} Plan subscriber - trainer time purchases enabled`);
         } else {
-            // Non-Growth/Max subscribers: show lock overlay
+            // Non-Silver/Gold subscribers: show lock overlay
             lockOverlay.style.display = 'flex';
-            console.log('🔒 Non-Growth/Max subscriber - showing upgrade prompt');
+            console.log('🔒 Non-Silver/Gold subscriber - showing upgrade prompt');
         }
     } catch (error) {
         console.error('Error checking trainer time purchase access:', error);
@@ -852,7 +852,7 @@ async function checkTrainerTimePurchaseAccess() {
 // Trainer time purchase function
 async function purchaseTrainerTime(amount, price) {
     try {
-        // Check if user is Growth/Max plan subscriber
+        // Check if user is Silver/Gold plan subscriber
         const statusResponse = await fetch('/api/user-status', {
             method: 'GET',
             credentials: 'include'
@@ -866,7 +866,7 @@ async function purchaseTrainerTime(amount, price) {
         }
         
         if (statusData.plan_type !== 'max' && statusData.plan_type !== 'growth') {
-            alert('Trainer time purchases are only available for Growth or Max Plan subscribers. Please upgrade first!');
+            alert('Trainer time purchases are only available for Silver or Gold Plan subscribers. Please upgrade first!');
             return;
         }
         
