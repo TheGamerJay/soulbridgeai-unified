@@ -14103,15 +14103,15 @@ TIERS_TEMPLATE = r"""
     <!-- Growth Row -->
     <div>
       <div class="row-title">
-        🌱 Growth Companions
+        🥈 Silver Companions
         {% if user_plan=='growth' %}
         {% endif %}
       </div>
       <div class="row">
         {% for c in growth_list %}
           {% set locked = not session.access_growth %}
-          <div class="card {{ 'locked' if locked }}" onclick="{{ 'openChat(\"' ~ c.slug ~ '\")' if not locked else 'notifyUpgrade(\"Growth\")' }}" title="{{ c.name }}" data-tier="growth">
-            <span class="lock">{{ '✅ Unlocked' if not locked else '🔒 Growth' }}</span>
+          <div class="card {{ 'locked' if locked }}" onclick="{{ 'openChat(\"' ~ c.slug ~ '\")' if not locked else 'notifyUpgrade(\"Silver\")' }}" title="{{ c.name }}" data-tier="growth">
+            <span class="lock">{{ '✅ Unlocked' if not locked else '🔒 Silver' }}</span>
             <img src="{{ c.image_url or '/static/logos/IntroLogo.png' }}" alt="{{ c.name }}" onerror="this.src='/static/logos/IntroLogo.png'">
             <div class="name">{{ c.name }}</div>
           </div>
@@ -14122,15 +14122,15 @@ TIERS_TEMPLATE = r"""
     <!-- Max Row -->
     <div>
       <div class="row-title">
-        🎯 Max Companions
+        🥇 Gold Companions
         {% if user_plan=='max' %}
         {% endif %}
       </div>
       <div class="row">
         {% for c in max_list %}
           {% set locked = not session.access_max %}
-          <div class="card {{ 'locked' if locked }}" onclick="{{ 'openChat(\"' ~ c.slug ~ '\")' if not locked else 'notifyUpgrade(\"Max\")' }}" title="{{ c.name }}" data-tier="max">
-            <span class="lock">{{ '✅ Unlocked' if not locked else '🔒 Max' }}</span>
+          <div class="card {{ 'locked' if locked }}" onclick="{{ 'openChat(\"' ~ c.slug ~ '\")' if not locked else 'notifyUpgrade(\"Gold\")' }}" title="{{ c.name }}" data-tier="max">
+            <span class="lock">{{ '✅ Unlocked' if not locked else '🔒 Gold' }}</span>
             <img src="{{ c.image_url or '/static/logos/IntroLogo.png' }}" alt="{{ c.name }}" onerror="this.src='/static/logos/IntroLogo.png'">
             <div class="name">{{ c.name }}</div>
           </div>
