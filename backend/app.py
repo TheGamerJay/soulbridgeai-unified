@@ -14091,7 +14091,7 @@ TIERS_TEMPLATE = r"""
   <div class="rows">
     <!-- Free Row -->
     <div>
-      <div class="row-title">🆓 Free Companions</div>
+      <div class="row-title">🥉 Bronze Companions</div>
       <div class="row">
         {% for c in free_list %}
           <div class="card" onclick="openChat('{{ c.slug }}')" title="{{ c.name }}">
