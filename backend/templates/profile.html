@@ -271,6 +271,18 @@
             font-style: italic;
         }
 
+        /* Trial Used Message */
+        .trial-used-message {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            font-size: 0.9rem;
+            color: #6c757d;
+            text-align: center;
+            font-weight: 500;
+        }
+
         /* Credits Display */
         .credits-info {
             display: flex;
@@ -674,10 +686,15 @@
                     <div id="tierBadge">
                         <div class="tier-badge tier-bronze">🥉 Bronze</div>
                     </div>
-                    <!-- Trial Activation Button (shown only for Bronze users without active trial) -->
+                    <!-- Trial Activation Button (shown only for eligible Bronze users) -->
                     <button id="trialActivationBtn" class="profile-btn" style="display: none; margin-top: 0.5rem;" onclick="activateTrial()">
                         ⏰ Start 5-Hour Trial
                     </button>
+                    
+                    <!-- Trial Used Message (shown for Bronze users who already used trial) -->
+                    <div id="trialUsedMessage" class="trial-used-message" style="display: none; margin-top: 0.5rem;">
+                        ✅ Trial completed - Upgrade to unlock premium features
+                    </div>
                     
                     <!-- Subscription Upgrade Buttons -->
                     <div id="upgradeButtons" style="margin-top: 1rem; display: none;">
@@ -1257,17 +1274,33 @@
                     }
                 }
 
-                // Show/hide trial activation button
+                // Show/hide trial activation button and trial used message
                 const trialBtn = document.getElementById('trialActivationBtn');
-                if (trialBtn) {
+                const trialUsedMsg = document.getElementById('trialUsedMessage');
+                
+                if (trialBtn && trialUsedMsg) {
                     const plan = this.userData.plan || 'bronze';
                     const trialActive = this.userTrial?.active || false;
+                    const trialEligible = this.userTrial?.eligible === true; // From /api/me endpoint
                     
-                    // Show button only for Bronze users without active trial
-                    if (plan === 'bronze' && !trialActive) {
-                        trialBtn.style.display = 'block';
+                    if (plan === 'bronze') {
+                        if (!trialActive && trialEligible) {
+                            // Show activation button for eligible Bronze users
+                            trialBtn.style.display = 'block';
+                            trialUsedMsg.style.display = 'none';
+                        } else if (!trialActive && !trialEligible) {
+                            // Show "trial used" message for ineligible Bronze users
+                            trialBtn.style.display = 'none';
+                            trialUsedMsg.style.display = 'block';
+                        } else {
+                            // Trial is active - hide both
+                            trialBtn.style.display = 'none';
+                            trialUsedMsg.style.display = 'none';
+                        }
                     } else {
+                        // Silver/Gold users - hide both
                         trialBtn.style.display = 'none';
+                        trialUsedMsg.style.display = 'none';
                     }
                 }
 

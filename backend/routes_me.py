@@ -64,11 +64,16 @@ def me():
             "trial_credits": access.get("trial_credits", 0)
         }
         
-        # Add trial expiration info if trial is active
+        # Add trial information (always include for Bronze users)
         trial_data = None
-        if access["trial_live"]:
+        if plan == "bronze":
+            # Check if user has used their trial permanently
+            user_data_full = db_fetch_user_row(uid)
+            trial_used_permanently = user_data_full.get('trial_used_permanently', False) if user_data_full else False
+            
             trial_data = {
-                "active": True,
+                "active": access["trial_live"],
+                "eligible": not trial_used_permanently,  # Can only use trial if not used permanently
                 "expires_at": trial_expires_at.isoformat() if trial_expires_at else None,
                 "credits_remaining": access.get("trial_credits", 0)
             }
