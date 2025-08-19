@@ -196,10 +196,17 @@ class SimpleAuth:
                             logger.warning("Could not migrate filesystem path, using default")
                     
                     session['profile_image'] = profile_img
+                    logger.info(f"✅ Profile image loaded from database: {profile_img}")
                 else:
-                    # Set default profile image if none exists
-                    session['profile_image'] = '/static/logos/Sapphire.png'
-                    logger.info("No profile image found, using default Sapphire.png")
+                    # Check if there's already a profile image in session (preserve uploads)
+                    existing_profile = session.get('profile_image')
+                    if existing_profile and existing_profile.startswith('/api/profile-image/'):
+                        logger.info(f"🔄 Preserving existing uploaded profile image from session: {existing_profile}")
+                        # Keep the existing uploaded image
+                    else:
+                        # Set default profile image if none exists and no upload in session
+                        session['profile_image'] = '/static/logos/IntroLogo.png'
+                        logger.info("No profile image found, using default IntroLogo.png")
                     
             except Exception as profile_error:
                 # If profile_image column doesn't exist, just get creation date
@@ -218,15 +225,27 @@ class SimpleAuth:
                 except Exception as date_error:
                     logger.warning(f"Could not fetch creation date: {date_error}")
                 
-                # Set default profile image
-                session['profile_image'] = '/static/logos/Sapphire.png'
-                logger.info("Set default profile image due to database schema issue")
+                # Check if there's already a profile image in session (preserve uploads)
+                existing_profile = session.get('profile_image')
+                if existing_profile and existing_profile.startswith('/api/profile-image/'):
+                    logger.info(f"🔄 Preserving existing uploaded profile image from session: {existing_profile}")
+                    # Keep the existing uploaded image
+                else:
+                    # Set default profile image due to database schema issue
+                    session['profile_image'] = '/static/logos/IntroLogo.png'
+                    logger.info("Set default profile image due to database schema issue")
             
             conn.close()
         except Exception as e:
             logger.warning(f"Could not fetch user data during login: {e}")
-            # Set default profile image on error
-            session['profile_image'] = '/static/logos/Sapphire.png'
+            # Check if there's already a profile image in session (preserve uploads) 
+            existing_profile = session.get('profile_image')
+            if existing_profile and existing_profile.startswith('/api/profile-image/'):
+                logger.info(f"🔄 Preserving existing uploaded profile image from session after error: {existing_profile}")
+                # Keep the existing uploaded image
+            else:
+                # Set default profile image on error
+                session['profile_image'] = '/static/logos/IntroLogo.png'
         
         logger.info(f"Secure session created for user: {user_data['email']}")
     

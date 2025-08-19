@@ -86,7 +86,8 @@ def me():
             "email": session.get("email", "unknown@soulbridgeai.com"),
             "displayName": session.get("display_name", "User"),
             "plan": plan,
-            "trainer_credits": trainer_credits
+            "trainer_credits": trainer_credits,
+            "profileImage": session.get("profile_image", "/static/logos/IntroLogo.png")
         }
         
         access_data = {
