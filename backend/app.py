@@ -6574,8 +6574,8 @@ def create_checkout_session():
         
         # Plan details (use normalized plan names)
         plan_names = {
-            "premium": "Growth Plan", "growth": "Growth Plan",
-            "enterprise": "Max Plan", "max": "Max Plan"
+            "premium": "Silver Plan", "growth": "Silver Plan",
+            "enterprise": "Gold Plan", "max": "Gold Plan"
         }
         plan_prices = {
             "monthly": {
@@ -9141,7 +9141,7 @@ def api_subscription_upgrade():
             stripe.api_key = stripe_secret_key
             
             user_email = session.get('user_email') or session.get('email')
-            plan_names = {"premium": "Growth Plan", "enterprise": "Max Plan"}
+            plan_names = {"premium": "Silver Plan", "enterprise": "Gold Plan"}
             plan_prices = {
                 "monthly": {
                     "premium": 1299,  # $12.99/month
@@ -10303,12 +10303,12 @@ def api_chat():
         if user_tier == 'max':  # Max Plan - Premium OpenAI
             ai_response = _get_openai_response(
                 message, character, "gpt-4", 300, 0.8,
-                f"You are {character}, an advanced AI companion from SoulBridge AI Max Plan. You have enhanced emotional intelligence, deeper insights, and provide more thoughtful, nuanced responses. You can engage in complex discussions and offer premium-level guidance."
+                f"You are {character}, an advanced AI companion from SoulBridge AI Gold Plan. You have enhanced emotional intelligence, deeper insights, and provide more thoughtful, nuanced responses. You can engage in complex discussions and offer premium-level guidance."
             )
         elif user_tier == 'growth':  # Growth Plan - Standard OpenAI
             ai_response = _get_openai_response(
                 message, character, "gpt-3.5-turbo", 200, 0.75,
-                f"You are {character}, an enhanced AI companion from SoulBridge AI Growth Plan. You provide more detailed responses and have access to advanced conversation features. You're helpful, insightful, and offer quality guidance."
+                f"You are {character}, an enhanced AI companion from SoulBridge AI Silver Plan. You provide more detailed responses and have access to advanced conversation features. You're helpful, insightful, and offer quality guidance."
             )
         else:  # Foundation (Free) - Premium Local AI
             logger.info(f"Using premium free AI for user: {character}")
@@ -12385,7 +12385,7 @@ def get_user_tier_status():
                 'premium_animations': False,
                 'max_companions': 'free_only'
             },
-            'growth': {  # Growth Plan
+            'growth': {  # Silver Plan
                 'voice_chat': True,
                 'advanced_ai': True,
                 'priority_support': True,
@@ -12414,8 +12414,8 @@ def get_user_tier_status():
             "tier": mapped_tier,
             "tier_display": {
                 'free': 'Free',
-                'growth': 'Growth Plan',
-                'max': 'Max Plan'
+                'growth': 'Silver Plan',
+                'max': 'Gold Plan'
             }.get(mapped_tier, 'Free'),
             "features": features,
             "switching_unlocked": session.get('switching_unlocked', False)
