@@ -3901,6 +3901,17 @@ def subscription():
         logger.error(f"Subscription template error: {e}")
         return jsonify({"error": "Subscription page temporarily unavailable"}), 200
 
+@app.route("/manage-subscription")
+def manage_subscription():
+    """Subscription management route"""
+    try:
+        if not is_logged_in():
+            return redirect("/login?return_to=manage-subscription")
+        return render_template("manage_subscription.html")
+    except Exception as e:
+        logger.error(f"Subscription management template error: {e}")
+        return jsonify({"error": "Subscription management page temporarily unavailable"}), 200
+
 @app.route("/credits")
 def credit_store():
     """Credit Store page for Growth and Max users"""
