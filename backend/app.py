@@ -435,10 +435,10 @@ COMPANIONS_NEW = [
     
     # Referral companions - 5 companions
     {"id":"blayzike","name":"Blayzike","tier":"referral","image_url":"/static/referral/blayzike.png"},
-    {"id":"nyxara","name":"Nyxara","tier":"referral","image_url":"/static/logos/IntroLogo.png"},
+    {"id":"nyxara","name":"Nyxara","tier":"referral","image_url":"/static/logos/Nyxara.png"},
     {"id":"blazelian","name":"Blazelian","tier":"referral","image_url":"/static/referral/blazelian.png"},
     {"id":"claude_referral","name":"Claude Referral","tier":"referral","image_url":"/static/referral/claude_referral.png"},
-    {"id":"blayzo_referral","name":"Blayzo Referral","tier":"referral","image_url":"/static/referral/blayzo_skin.png"},
+    {"id":"blayzo_referral","name":"Blayzo Referral","tier":"referral","image_url":"/static/logos/Blayzo_Referral.png"},
 ]
 
 # ---------- Bulletproof Helper Functions ----------
@@ -14142,39 +14142,43 @@ TIERS_TEMPLATE = r"""
       {% endif %}
     </div>
 
-    <!-- Referral Companions Row -->
+    <!-- Unified Referral Section -->
     <div>
-      <div class="row-title">🏆 Referral Companions <span class="small">(Earn through referrals)</span></div>
-      <div class="ref-note small">Referrals: <strong>{{ referral_count }}</strong>. Unlock exclusive companions by referring friends!</div>
-      <div class="row">
-        {% for c in referral_list %}
-          {% set unlocked = referral_count >= 2 %}
-          <div class="card {{ 'locked' if not unlocked }}" onclick="{{ 'openChat(\"' ~ c.slug ~ '\")' if unlocked else 'goToReferral()' }}" title="{{ c.name }}" data-tier="referral">
-            <span class="lock">{{ '✅ Unlocked' if unlocked else '🔒 Referral Only' }}</span>
-            <img src="{{ c.image_url or '/static/logos/IntroLogo.png' }}" alt="{{ c.name }}" onerror="this.src='/static/logos/IntroLogo.png'">
-            <div class="name">{{ c.name }}</div>
-          </div>
-        {% endfor %}
+      <div class="row-title">🏆 Referral Rewards <span class="small">(Earn through referrals)</span></div>
+      <div class="ref-note small">Referrals: <strong>{{ referral_count }}</strong>. Unlock exclusive companions & bonus rewards!</div>
+      
+      <!-- Referral Companions -->
+      <div style="margin-bottom:20px;">
+        <div style="font-size:16px; color:#8bd3ff; margin-bottom:8px;">🤖 Exclusive Companions</div>
+        <div class="row">
+          {% for c in referral_list %}
+            {% set unlocked = referral_count >= 2 %}
+            <div class="card {{ 'locked' if not unlocked }}" onclick="{{ 'openChat(\"' ~ c.slug ~ '\")' if unlocked else 'goToReferral()' }}" title="{{ c.name }}" data-tier="referral">
+              <span class="lock">{{ '✅ Unlocked' if unlocked else '🔒 Referral Only' }}</span>
+              <img src="{{ c.image_url or '/static/logos/IntroLogo.png' }}" alt="{{ c.name }}" onerror="this.src='/static/logos/IntroLogo.png'">
+              <div class="name">{{ c.name }}</div>
+            </div>
+          {% endfor %}
+        </div>
       </div>
-      <div class="small muted" style="margin-top:8px;">Referral companions are unlocked by referring friends. <a href="/referrals" style="color:#8bd3ff;">Learn more about referrals</a></div>
-    </div>
 
-    <!-- Referral Milestones Row -->
-    <div>
-      <div class="row-title">🎁 Referral Milestones <span class="small">(Bonus rewards)</span></div>
-      <div class="ref-note small">Referrals: <strong>{{ referral_count }}</strong>. Unlocks at 2, 5, 8, 10 (cosmetic skin).</div>
-      <div class="ref-grid">
-        {% for r in referral_milestones %}
-          {% set got = referral_count >= r.need %}
-          <div class="milestone {{ '' if got else 'dim' }}" onclick="goToReferral()" style="cursor:pointer;">
-            <div class="badge {{ 'ok' if got else '' }}">{{ '✅ Unlocked' if got else '🔒 Locked' }}</div>
-            <div class="need">Needs {{ r.need }} referrals</div>
-            <img src="/static/referral/{{ r.slug }}.png" alt="{{ r.name }}" style="width:100%;height:160px;object-fit:contain;border-radius:8px;background:#0b0f18;" onerror="this.src='/static/logos/IntroLogo.png'">
-            <div class="name" style="margin-top:6px;font-weight:600;">{{ r.name }}</div>
-          </div>
-        {% endfor %}
+      <!-- Referral Milestones -->
+      <div style="margin-bottom:20px;">
+        <div style="font-size:16px; color:#8bd3ff; margin-bottom:8px;">🎁 Bonus Milestones</div>
+        <div class="ref-grid">
+          {% for r in referral_milestones %}
+            {% set got = referral_count >= r.need %}
+            <div class="milestone {{ '' if got else 'dim' }}" onclick="goToReferral()" style="cursor:pointer;">
+              <div class="badge {{ 'ok' if got else '' }}">{{ '✅ Unlocked' if got else '🔒 Locked' }}</div>
+              <div class="need">Needs {{ r.need }} referrals</div>
+              <img src="/static/referral/{{ r.slug }}.png" alt="{{ r.name }}" style="width:100%;height:160px;object-fit:contain;border-radius:8px;background:#0b0f18;" onerror="this.src='/static/logos/IntroLogo.png'">
+              <div class="name" style="margin-top:6px;font-weight:600;">{{ r.name }}</div>
+            </div>
+          {% endfor %}
+        </div>
       </div>
-      <div class="small muted" style="margin-top:8px;">Referral rewards are collectible/cosmetic; features & limits still follow your paid tier.</div>
+      
+      <div class="small muted" style="margin-top:8px;">Refer friends to unlock companions & collectible rewards. <a href="/referrals" style="color:#8bd3ff;">Learn more about referrals</a></div>
     </div>
 
 
