@@ -154,6 +154,181 @@
             letter-spacing: 0.5px;
         }
 
+        /* Tier Badge Styles */
+        .tier-badge {
+            display: inline-block;
+            padding: 10px 16px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 700;
+            margin: 0.5rem 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 2px solid;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .tier-bronze {
+            background: linear-gradient(135deg, #cd7f32, #a0522d);
+            color: #fff;
+            border-color: #cd7f32;
+        }
+
+        .tier-silver {
+            background: linear-gradient(135deg, #c0c0c0, #a8a8a8);
+            color: #2d3748;
+            border-color: #c0c0c0;
+        }
+
+        .tier-gold {
+            background: linear-gradient(135deg, #ffd700, #ffb700);
+            color: #2d3748;
+            border-color: #ffd700;
+        }
+
+        .trial-indicator {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            margin-left: 8px;
+        }
+
+        /* Upgrade Button Styles */
+        .upgrade-options {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .upgrade-tier {
+            margin-bottom: 1rem;
+        }
+
+        .upgrade-buttons-row {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .upgrade-btn {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: 2px solid;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            position: relative;
+        }
+
+        .upgrade-btn.silver {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            color: #495057;
+            border-color: #c0c0c0;
+        }
+
+        .upgrade-btn.silver:hover {
+            background: linear-gradient(135deg, #c0c0c0, #a8a8a8);
+            color: #fff;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(192, 192, 192, 0.4);
+        }
+
+        .upgrade-btn.gold {
+            background: linear-gradient(135deg, #fff9e6, #fff3cd);
+            color: #856404;
+            border-color: #ffd700;
+        }
+
+        .upgrade-btn.gold:hover {
+            background: linear-gradient(135deg, #ffd700, #ffb700);
+            color: #2d3748;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4);
+        }
+
+        .upgrade-btn.yearly {
+            border-width: 3px;
+        }
+
+        .savings {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 500;
+            opacity: 0.8;
+        }
+
+        .tier-features {
+            font-size: 0.8rem;
+            color: #666;
+            text-align: center;
+            margin-top: 0.5rem;
+            font-style: italic;
+        }
+
+        /* Credits Display */
+        .credits-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 8px 12px;
+            background: rgba(34, 211, 238, 0.1);
+            border-radius: 12px;
+            margin: 0.5rem 0;
+        }
+
+        .trial-credits {
+            background: rgba(255, 215, 0, 0.2);
+            color: #ffd700;
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+        }
+
+        /* Trial Status */
+        .trial-status {
+            padding: 12px 16px;
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 165, 0, 0.2));
+            border: 1px solid rgba(255, 215, 0, 0.5);
+            border-radius: 12px;
+            color: #ffd700;
+            margin: 1rem 0;
+        }
+
+        .trial-benefits {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin-top: 0.5rem;
+        }
+
+        /* Usage Limits */
+        .limit-display {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .limit-display.basic {
+            background: rgba(107, 114, 128, 0.3);
+            color: #9ca3af;
+        }
+
+        .limit-display.high {
+            background: rgba(34, 211, 238, 0.3);
+            color: #22d3ee;
+        }
+
+        .limit-display.unlimited {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(255, 193, 7, 0.3));
+            color: #ffd700;
+        }
+
         .subscription-free {
             background: linear-gradient(135deg, rgba(107, 114, 128, 0.3), rgba(75, 85, 99, 0.3));
             color: #9ca3af;
@@ -493,6 +668,67 @@
                     <div id="subscriptionBadge">Loading...</div>
                 </div>
 
+                <!-- New Tier Information -->
+                <div class="user-info">
+                    <div class="info-label">Current Tier</div>
+                    <div id="tierBadge">
+                        <div class="tier-badge tier-bronze">🥉 Bronze</div>
+                    </div>
+                    <!-- Trial Activation Button (shown only for Bronze users without active trial) -->
+                    <button id="trialActivationBtn" class="profile-btn" style="display: none; margin-top: 0.5rem;" onclick="activateTrial()">
+                        ⏰ Start 5-Hour Trial
+                    </button>
+                    
+                    <!-- Subscription Upgrade Buttons -->
+                    <div id="upgradeButtons" style="margin-top: 1rem; display: none;">
+                        <div class="upgrade-options">
+                            <h4 style="margin: 0 0 0.75rem 0; color: #333;">Upgrade Your Plan</h4>
+                            
+                            <!-- Silver Tier Options -->
+                            <div class="upgrade-tier" style="margin-bottom: 1rem;">
+                                <h5 style="margin: 0 0 0.5rem 0; color: #666;">🥈 Silver Tier</h5>
+                                <div class="upgrade-buttons-row">
+                                    <button class="upgrade-btn silver" onclick="upgradeToSilver('monthly')">
+                                        $12.99/month
+                                    </button>
+                                    <button class="upgrade-btn silver yearly" onclick="upgradeToSilver('yearly')">
+                                        $117/year <span class="savings">(25% off)</span>
+                                    </button>
+                                </div>
+                                <div class="tier-features">
+                                    Enhanced limits • 100 credits • No ads
+                                </div>
+                            </div>
+                            
+                            <!-- Gold Tier Options -->
+                            <div class="upgrade-tier">
+                                <h5 style="margin: 0 0 0.5rem 0; color: #666;">🥇 Gold Tier</h5>
+                                <div class="upgrade-buttons-row">
+                                    <button class="upgrade-btn gold" onclick="upgradeToGold('monthly')">
+                                        $19.99/month
+                                    </button>
+                                    <button class="upgrade-btn gold yearly" onclick="upgradeToGold('yearly')">
+                                        $180/year <span class="savings">(25% off)</span>
+                                    </button>
+                                </div>
+                                <div class="tier-features">
+                                    Unlimited • 500 credits • Mini Studio • All features
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="user-info">
+                    <div class="info-label">Trainer Credits</div>
+                    <div id="creditsDisplay">
+                        <div class="credits-info">💎 0 Credits</div>
+                    </div>
+                </div>
+
+                <!-- Trial Information (shown only when active) -->
+                <div id="trialInfo"></div>
+
                 <div class="stats-grid">
                     <div class="stat-item">
                         <span class="stat-number" id="totalMessages">-</span>
@@ -509,6 +745,29 @@
                     <div class="stat-item">
                         <span class="stat-number" id="accountCreated">-</span>
                         <span class="stat-label">Account Created</span>
+                    </div>
+                </div>
+
+                <!-- Usage Limits Panel -->
+                <div class="user-info">
+                    <div class="info-label">Daily Usage Limits</div>
+                    <div class="stats-grid" style="grid-template-columns: repeat(2, 1fr); gap: 0.5rem;">
+                        <div class="stat-item">
+                            <span class="stat-label">Decoder</span>
+                            <span class="stat-number"><span id="decoderLimit" class="limit-display basic">3 daily</span></span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Fortune</span>
+                            <span class="stat-number"><span id="fortuneLimit" class="limit-display basic">2 daily</span></span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Horoscope</span>
+                            <span class="stat-number"><span id="horoscopeLimit" class="limit-display basic">3 daily</span></span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Creative Writer</span>
+                            <span class="stat-number"><span id="creativeWriterLimit" class="limit-display basic">2 daily</span></span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -697,8 +956,8 @@
                 try {
                     console.log('🔄 Loading user profile...');
                     
-                    // Get user data from server session
-                    const response = await fetch('/api/users', {
+                    // Get lightweight user data with access permissions from new /api/me endpoint
+                    const response = await fetch('/api/me', {
                         method: 'GET',
                         headers: {
                             'Content-Type': 'application/json'
@@ -714,15 +973,25 @@
                         
                         if (result.success) {
                             this.userData = result.user;
+                            this.userAccess = result.access || {}; // New: access permissions
+                            this.userTrial = result.trial || null; // New: trial information
+                            
+                            console.log('🎯 User tier access:', this.userAccess);
+                            console.log('⏰ Trial info:', this.userTrial);
                             console.log('🖼️ Profile image in userData:', result.user.profileImage);
                             console.log('📋 Full userData:', result.user);
+                            
                             this.currentUser = {
-                                uid: result.user.uid,
+                                uid: result.user.uid || result.user.id,
                                 email: result.user.email,
-                                displayName: result.user.displayName
+                                displayName: result.user.displayName,
+                                plan: result.user.plan, // New: current plan (bronze/silver/gold)
+                                trainerCredits: result.user.trainer_credits || 0 // New: available credits
                             };
+                            
                             console.log('✅ Profile loaded successfully:', this.userData);
                             this.updateProfileDisplay();
+                            this.updateTierDisplay(); // New: update tier-specific UI
                         } else {
                             console.error('❌ Profile API returned error:', result.error);
                             throw new Error(result.error || 'Failed to load user data');
@@ -933,6 +1202,113 @@
                         upgradeBtn.style.display = 'none';
                     }
                 }
+            }
+
+            updateTierDisplay() {
+                if (!this.userData || !this.userAccess) return;
+
+                console.log('🎯 Updating tier display for plan:', this.userData.plan);
+                
+                // Update tier badge
+                const tierBadge = document.getElementById('tierBadge');
+                if (tierBadge) {
+                    const plan = this.userData.plan || 'bronze';
+                    const tierEmojis = { bronze: '🥉', silver: '🥈', gold: '🥇' };
+                    const tierNames = { bronze: 'Bronze', silver: 'Silver', gold: 'Gold' };
+                    
+                    tierBadge.innerHTML = `
+                        <div class="tier-badge tier-${plan}">
+                            ${tierEmojis[plan]} ${tierNames[plan]}
+                            ${this.userTrial?.active ? ' <span class="trial-indicator">⏰ TRIAL</span>' : ''}
+                        </div>
+                    `;
+                }
+
+                // Update credits display
+                const creditsDisplay = document.getElementById('creditsDisplay');
+                if (creditsDisplay) {
+                    const credits = this.userData.trainerCredits || 0;
+                    const trialCredits = this.userTrial?.credits_remaining || 0;
+                    creditsDisplay.innerHTML = `
+                        <div class="credits-info">
+                            💎 ${credits} Credits
+                            ${trialCredits > 0 ? `<span class="trial-credits">+${trialCredits} trial</span>` : ''}
+                        </div>
+                    `;
+                }
+
+                // Update trial info if active
+                const trialInfo = document.getElementById('trialInfo');
+                if (trialInfo) {
+                    if (this.userTrial?.active) {
+                        const expiresAt = new Date(this.userTrial.expires_at);
+                        const timeLeft = Math.max(0, expiresAt - new Date());
+                        const hoursLeft = Math.floor(timeLeft / (1000 * 60 * 60));
+                        const minutesLeft = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                        
+                        trialInfo.innerHTML = `
+                            <div class="trial-status active">
+                                ⏰ Trial Active: ${hoursLeft}h ${minutesLeft}m remaining
+                                <div class="trial-benefits">Unlocked: ${this.userAccess.unlocked_tiers.join(', ')}</div>
+                            </div>
+                        `;
+                    } else {
+                        trialInfo.innerHTML = '';
+                    }
+                }
+
+                // Show/hide trial activation button
+                const trialBtn = document.getElementById('trialActivationBtn');
+                if (trialBtn) {
+                    const plan = this.userData.plan || 'bronze';
+                    const trialActive = this.userTrial?.active || false;
+                    
+                    // Show button only for Bronze users without active trial
+                    if (plan === 'bronze' && !trialActive) {
+                        trialBtn.style.display = 'block';
+                    } else {
+                        trialBtn.style.display = 'none';
+                    }
+                }
+
+                // Show/hide upgrade buttons
+                const upgradeButtons = document.getElementById('upgradeButtons');
+                if (upgradeButtons) {
+                    const plan = this.userData.plan || 'bronze';
+                    
+                    // Show upgrade buttons only for Bronze users
+                    if (plan === 'bronze') {
+                        upgradeButtons.style.display = 'block';
+                    } else {
+                        upgradeButtons.style.display = 'none';
+                    }
+                }
+
+                // Update usage limits display
+                this.updateUsageLimits();
+            }
+
+            updateUsageLimits() {
+                if (!this.userAccess?.limits) return;
+
+                const limits = this.userAccess.limits;
+                const limitElements = {
+                    decoder: document.getElementById('decoderLimit'),
+                    fortune: document.getElementById('fortuneLimit'),
+                    horoscope: document.getElementById('horoscopeLimit'),
+                    creative_writer: document.getElementById('creativeWriterLimit')
+                };
+
+                Object.entries(limitElements).forEach(([feature, element]) => {
+                    if (element && limits[feature] !== undefined) {
+                        const limit = limits[feature];
+                        const displayLimit = limit === Infinity ? '∞' : limit;
+                        element.textContent = `${displayLimit} daily`;
+                        
+                        // Add visual styling based on limits
+                        element.className = `limit-display ${limit === Infinity ? 'unlimited' : limit > 10 ? 'high' : 'basic'}`;
+                    }
+                });
             }
 
             updateCompanionInfo(companion) {
@@ -1372,6 +1748,106 @@
             const confirmation = prompt('Type "DELETE" to confirm account deletion:');
             if (confirmation === 'DELETE') {
                 alert('Account deletion feature will be implemented soon. Please contact support for account deletion.');
+            }
+        };
+
+        // Trial activation function
+        window.activateTrial = async () => {
+            if (!confirm('Start your 5-hour trial? This will unlock Silver and Gold features for 5 hours and give you 60 trainer credits.')) {
+                return;
+            }
+
+            const trialBtn = document.getElementById('trialActivationBtn');
+            if (trialBtn) {
+                trialBtn.disabled = true;
+                trialBtn.textContent = 'Activating...';
+            }
+
+            try {
+                const response = await fetch('/api/trial/activate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'same-origin'
+                });
+
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    alert('🎉 Trial activated! You now have access to Silver and Gold features for 5 hours, plus 60 trainer credits!');
+                    
+                    // Reload profile to update trial status
+                    window.location.reload();
+                } else {
+                    throw new Error(result.error || 'Trial activation failed');
+                }
+            } catch (error) {
+                console.error('Trial activation error:', error);
+                alert('❌ Failed to activate trial: ' + error.message);
+                
+                // Reset button
+                if (trialBtn) {
+                    trialBtn.disabled = false;
+                    trialBtn.textContent = '⏰ Start 5-Hour Trial';
+                }
+            }
+        };
+
+        // Subscription upgrade functions
+        window.upgradeToSilver = async (billingCycle) => {
+            try {
+                const response = await fetch('/api/stripe/checkout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({
+                        plan: 'silver',
+                        billing_cycle: billingCycle
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (response.ok && result.ok) {
+                    // Redirect to Stripe Checkout
+                    window.location.href = result.url;
+                } else {
+                    throw new Error(result.error || 'Failed to create checkout session');
+                }
+            } catch (error) {
+                console.error('Silver upgrade error:', error);
+                alert('❌ Failed to start Silver subscription: ' + error.message);
+            }
+        };
+
+        window.upgradeToGold = async (billingCycle) => {
+            try {
+                const response = await fetch('/api/stripe/checkout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({
+                        plan: 'gold',
+                        billing_cycle: billingCycle
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (response.ok && result.ok) {
+                    // Redirect to Stripe Checkout
+                    window.location.href = result.url;
+                } else {
+                    throw new Error(result.error || 'Failed to create checkout session');
+                }
+            } catch (error) {
+                console.error('Gold upgrade error:', error);
+                alert('❌ Failed to start Gold subscription: ' + error.message);
             }
         };
 
