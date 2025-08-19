@@ -3422,11 +3422,11 @@ def tiers_page():
     
     # Keep companions in their designated tiers (no redistribution needed)
     
-    # Referral milestones
+    # Referral milestones - bonus cosmetic rewards (separate from companions)
     referral_milestones = [
-        {'need': 2, 'slug': 'blayzike', 'name': 'Blayzike'},
-        {'need': 5, 'slug': 'blazelian', 'name': 'Blazelian'},
-        {'need': 8, 'slug': 'claude_referral', 'name': 'Claude Referral'},
+        {'need': 2, 'slug': 'bonus_badge', 'name': 'Referral Badge'},
+        {'need': 5, 'slug': 'special_title', 'name': 'VIP Title'},
+        {'need': 8, 'slug': 'custom_theme', 'name': 'Custom Theme'},
         {'need': 10, 'slug': 'blayzo_skin', 'name': 'Blayzo Special Skin'},
     ]
     
