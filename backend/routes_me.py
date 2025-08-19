@@ -100,10 +100,18 @@ def me():
         # Add trial information (always include for Bronze users)
         trial_data = None
         if plan == "bronze":
+            # Handle trial_expires_at - it might be a string or datetime object
+            expires_at_str = None
+            if trial_expires_at:
+                if isinstance(trial_expires_at, str):
+                    expires_at_str = trial_expires_at
+                else:
+                    expires_at_str = trial_expires_at.isoformat()
+            
             trial_data = {
                 "active": trial_active,
                 "eligible": True,  # Simplified for now
-                "expires_at": trial_expires_at.isoformat() if trial_expires_at else None,
+                "expires_at": expires_at_str,
                 "credits_remaining": access.get("trial_credits", 0)
             }
         
