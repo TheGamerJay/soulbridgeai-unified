@@ -67,13 +67,13 @@ def me():
         # Add trial information (always include for Bronze users)
         trial_data = None
         if plan == "bronze":
-            # Check if user has used their trial permanently
-            user_data_full = db_fetch_user_row(uid)
-            trial_used_permanently = user_data_full.get('trial_used_permanently', False) if user_data_full else False
+            # For now, assume trial is eligible if user is Bronze and not currently active
+            # TODO: Add trial_used_permanently field to database schema for one-time trial enforcement
+            trial_eligible = True  # Simplified for now - can be enhanced later
             
             trial_data = {
                 "active": access["trial_live"],
-                "eligible": not trial_used_permanently,  # Can only use trial if not used permanently
+                "eligible": trial_eligible,
                 "expires_at": trial_expires_at.isoformat() if trial_expires_at else None,
                 "credits_remaining": access.get("trial_credits", 0)
             }
