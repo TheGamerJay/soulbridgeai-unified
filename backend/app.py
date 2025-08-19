@@ -2123,7 +2123,12 @@ def api_me():
         logger.info("🔍 /api/me called - checking user session")
         logger.info(f"🔍 Session keys: {list(session.keys())}")
         logger.info(f"🔍 User authenticated: {session.get('user_authenticated')}")
-        if not is_logged_in():
+        
+        # Simple session-based check instead of is_logged_in() to avoid DB calls
+        user_authenticated = session.get('user_authenticated', False)
+        has_user_id = bool(session.get('user_id'))
+        
+        if not (user_authenticated or has_user_id):
             return jsonify({
                 "success": True,
                 "user": {"plan": "bronze"},
