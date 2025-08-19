@@ -410,7 +410,7 @@ COMPANIONS_NEW = [
     {"id":"claude_free","name":"Claude","tier":"free","image_url":"/static/logos/Claude_Free.png"},
     {"id":"blayzia_free","name":"Blayzia","tier":"free","image_url":"/static/logos/Blayzia.png"},
     {"id":"blayzion_free","name":"Blayzion","tier":"free","image_url":"/static/logos/Blayzion.png"},
-    {"id":"lumen_free","name":"Lumen","tier":"free","image_url":"/static/logos/Lumen.png"},
+    {"id":"lumen_free","name":"Lumen","tier":"free","image_url":"/static/logos/Lumen.png?v=2"},
     {"id":"blayzo2_free","name":"Blayzo.2","tier":"free","image_url":"/static/logos/Blayzo.png"},
     
     # Silver tier (growth) - 8 companions
@@ -420,8 +420,8 @@ COMPANIONS_NEW = [
     {"id":"blayzo_silver","name":"Blayzo","tier":"growth","image_url":"/static/logos/Blayzo_premium_companion.png"},
     {"id":"blayzica_silver","name":"Blayzica","tier":"growth","image_url":"/static/logos/Blayzica Pro.png"},
     {"id":"watchdog_silver","name":"WatchDog","tier":"growth","image_url":"/static/logos/WatchDog_a_Premium_companion.png"},
-    {"id":"rozia_silver","name":"Rozia","tier":"growth","image_url":"/static/logos/Rozia.png"},
-    {"id":"lumen_silver","name":"Lumen","tier":"growth","image_url":"/static/logos/Lumen Premium.png"},
+    {"id":"rozia_silver","name":"Rozia","tier":"growth","image_url":"/static/logos/Rozia.png?v=2"},
+    {"id":"lumen_silver","name":"Lumen","tier":"growth","image_url":"/static/logos/Lumen Premium.png?v=2"},
     
     # Gold tier (max) - 8 companions
     {"id":"crimson_gold","name":"Crimson","tier":"max","image_url":"/static/logos/Crimson_a_Max_companion.png"},
