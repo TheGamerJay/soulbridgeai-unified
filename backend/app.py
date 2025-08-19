@@ -411,7 +411,7 @@ COMPANIONS_NEW = [
     {"id":"blayzia_bronze","name":"Blayzia","tier":"free","image_url":"/static/logos/Blayzia.png"},
     {"id":"blayzion_bronze","name":"Blayzion","tier":"free","image_url":"/static/logos/Blayzion.png"},
     {"id":"lumen_bronze","name":"Lumen","tier":"free","image_url":"/static/logos/Lumen.png"},
-    {"id":"blayzo2_bronze","name":"Blayzo.2","tier":"free","image_url":"/static/logos/Blayzo2.png"},
+    {"id":"blayzo2_bronze","name":"Blayzo.2","tier":"free","image_url":"/static/logos/Blayzo.png"},
     
     # Silver tier (growth) - 8 companions
     {"id":"sky_silver","name":"Sky","tier":"growth","image_url":"/static/logos/Sky_a_premium_companion.png"},
@@ -421,7 +421,7 @@ COMPANIONS_NEW = [
     {"id":"blayzica_silver","name":"Blayzica","tier":"growth","image_url":"/static/logos/Blayzica Pro.png"},
     {"id":"watchdog_silver","name":"WatchDog","tier":"growth","image_url":"/static/logos/WatchDog_a_Premium_companion.png"},
     {"id":"rozia_silver","name":"Rozia","tier":"growth","image_url":"/static/logos/Rozia.png"},
-    {"id":"lumen_silver","name":"Lumen","tier":"growth","image_url":"/static/logos/Lumen_Growth.png"},
+    {"id":"lumen_silver","name":"Lumen","tier":"growth","image_url":"/static/logos/Lumen Premium.png"},
     
     # Gold tier (max) - 8 companions
     {"id":"crimson_gold","name":"Crimson","tier":"max","image_url":"/static/logos/Crimson_a_Max_companion.png"},
@@ -431,14 +431,14 @@ COMPANIONS_NEW = [
     {"id":"ven_blayzica_gold","name":"Ven Blayzica","tier":"max","image_url":"/static/logos/Ven_Blayzica_a_Max_companion.png"},
     {"id":"ven_sky_gold","name":"Ven Sky","tier":"max","image_url":"/static/logos/Ven_Sky_a_Max_companion.png"},
     {"id":"watchdog_gold","name":"WatchDog","tier":"max","image_url":"/static/logos/WatchDog_a_Max_Companion.png"},
-    {"id":"violet2_gold","name":"Violet","tier":"max","image_url":"/static/logos/Violet2_Max.png"},
+    {"id":"violet2_gold","name":"Violet","tier":"max","image_url":"/static/logos/Violet_a_Max_companion.png"},
     
     # Referral companions - 5 companions
     {"id":"blayzike","name":"Blayzike","tier":"referral","image_url":"/static/referral/blayzike.png"},
-    {"id":"nyxara","name":"Nyxara","tier":"referral","image_url":"/static/referral/nyxara.png"},
+    {"id":"nyxara","name":"Nyxara","tier":"referral","image_url":"/static/logos/IntroLogo.png"},
     {"id":"blazelian","name":"Blazelian","tier":"referral","image_url":"/static/referral/blazelian.png"},
     {"id":"claude_referral","name":"Claude Referral","tier":"referral","image_url":"/static/referral/claude_referral.png"},
-    {"id":"blayzo_referral","name":"Blayzo Referral","tier":"referral","image_url":"/static/referral/blayzo_referral.png"},
+    {"id":"blayzo_referral","name":"Blayzo Referral","tier":"referral","image_url":"/static/referral/blayzo_skin.png"},
 ]
 
 # ---------- Bulletproof Helper Functions ----------
