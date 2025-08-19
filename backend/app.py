@@ -347,6 +347,28 @@ if bsg_available:
         print("/api/me endpoint registered successfully")
     except Exception as e:
         print(f"WARNING: /api/me registration failed: {e}")
+
+# Register analytics system blueprint
+try:
+    from routes_analytics import bp_analytics
+    app.register_blueprint(bp_analytics)   # /api/analytics/...
+    print("Analytics system registered successfully")
+except ImportError as e:
+    print(f"WARNING: Analytics system not available: {e}")
+
+# Analytics dashboard route
+@app.route("/analytics")
+def analytics_page():
+    """Render the analytics dashboard page."""
+    try:
+        from app_core import current_user
+        cu = current_user()
+        if not cu.get("id"):
+            return render_template('login.html', error="Please log in to view analytics"), 401
+        return render_template('analytics.html')
+    except Exception as e:
+        logger.error(f"Error rendering analytics page: {e}")
+        return render_template('error.html', error="Failed to load analytics"), 500
 else:
     print("WARNING: Bronze/Silver/Gold tier system blueprints not registered")
 
