@@ -283,6 +283,113 @@
             font-weight: 500;
         }
 
+        /* Real-time Trial Countdown */
+        .trial-countdown {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            color: white;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .trial-countdown::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, rgba(255,255,255,0.1) 25%, transparent 25%), 
+                        linear-gradient(-45deg, rgba(255,255,255,0.1) 25%, transparent 25%);
+            background-size: 20px 20px;
+            animation: shimmer 10s linear infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .countdown-header {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .countdown-timer {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .time-unit {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 0.75rem 0.5rem;
+            min-width: 60px;
+            backdrop-filter: blur(10px);
+        }
+
+        .time-number {
+            display: block;
+            font-size: 1.5rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .time-label {
+            display: block;
+            font-size: 0.7rem;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 0.25rem;
+        }
+
+        .trial-progress {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            height: 8px;
+            margin: 1rem 0;
+            overflow: hidden;
+            position: relative;
+            z-index: 1;
+        }
+
+        .trial-progress-bar {
+            background: linear-gradient(90deg, #00d4aa, #00d4ff);
+            height: 100%;
+            border-radius: 10px;
+            transition: width 1s ease;
+            box-shadow: 0 0 10px rgba(0, 212, 170, 0.5);
+        }
+
+        .trial-benefits {
+            font-size: 0.85rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .countdown-expired {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
         /* Credits Display */
         .credits-info {
             display: flex;
@@ -1254,23 +1361,14 @@
                     `;
                 }
 
-                // Update trial info if active
+                // Update trial info with real-time countdown
                 const trialInfo = document.getElementById('trialInfo');
                 if (trialInfo) {
-                    if (this.userTrial?.active) {
-                        const expiresAt = new Date(this.userTrial.expires_at);
-                        const timeLeft = Math.max(0, expiresAt - new Date());
-                        const hoursLeft = Math.floor(timeLeft / (1000 * 60 * 60));
-                        const minutesLeft = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
-                        
-                        trialInfo.innerHTML = `
-                            <div class="trial-status active">
-                                ⏰ Trial Active: ${hoursLeft}h ${minutesLeft}m remaining
-                                <div class="trial-benefits">Unlocked: ${this.userAccess.unlocked_tiers.join(', ')}</div>
-                            </div>
-                        `;
+                    if (this.userTrial?.active && this.userTrial?.expires_at) {
+                        this.startTrialCountdown(this.userTrial.expires_at, this.userAccess.unlocked_tiers);
                     } else {
                         trialInfo.innerHTML = '';
+                        this.stopTrialCountdown();
                     }
                 }
 
@@ -1342,6 +1440,88 @@
                         element.className = `limit-display ${limit === Infinity ? 'unlimited' : limit > 10 ? 'high' : 'basic'}`;
                     }
                 });
+            }
+
+            startTrialCountdown(expiresAt, unlockedTiers) {
+                // Clear any existing countdown
+                this.stopTrialCountdown();
+                
+                const trialInfo = document.getElementById('trialInfo');
+                if (!trialInfo) return;
+
+                const updateCountdown = () => {
+                    const now = new Date();
+                    const expiryTime = new Date(expiresAt);
+                    const timeLeft = Math.max(0, expiryTime - now);
+                    
+                    if (timeLeft <= 0) {
+                        // Trial expired
+                        trialInfo.innerHTML = `
+                            <div class="trial-countdown countdown-expired">
+                                <div class="countdown-header">🔴 Trial Expired</div>
+                                <div class="trial-benefits">Refreshing page...</div>
+                            </div>
+                        `;
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 2000);
+                        this.stopTrialCountdown();
+                        return;
+                    }
+
+                    // Calculate time components
+                    const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+                    const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+                    // Calculate progress (5 hours = 18000000ms)
+                    const totalTime = 5 * 60 * 60 * 1000; // 5 hours in ms
+                    const elapsed = totalTime - timeLeft;
+                    const progressPercent = Math.max(0, Math.min(100, (elapsed / totalTime) * 100));
+
+                    // Update display
+                    trialInfo.innerHTML = `
+                        <div class="trial-countdown">
+                            <div class="countdown-header">⏰ Trial Active</div>
+                            
+                            <div class="countdown-timer">
+                                <div class="time-unit">
+                                    <span class="time-number">${hours.toString().padStart(2, '0')}</span>
+                                    <span class="time-label">Hours</span>
+                                </div>
+                                <div class="time-unit">
+                                    <span class="time-number">${minutes.toString().padStart(2, '0')}</span>
+                                    <span class="time-label">Minutes</span>
+                                </div>
+                                <div class="time-unit">
+                                    <span class="time-number">${seconds.toString().padStart(2, '0')}</span>
+                                    <span class="time-label">Seconds</span>
+                                </div>
+                            </div>
+                            
+                            <div class="trial-progress">
+                                <div class="trial-progress-bar" style="width: ${progressPercent}%"></div>
+                            </div>
+                            
+                            <div class="trial-benefits">
+                                🎉 Premium Access: ${unlockedTiers.join(' • ')}
+                            </div>
+                        </div>
+                    `;
+                };
+
+                // Initial update
+                updateCountdown();
+                
+                // Set up real-time updates every second
+                this.countdownInterval = setInterval(updateCountdown, 1000);
+            }
+
+            stopTrialCountdown() {
+                if (this.countdownInterval) {
+                    clearInterval(this.countdownInterval);
+                    this.countdownInterval = null;
+                }
             }
 
             updateCompanionInfo(companion) {
