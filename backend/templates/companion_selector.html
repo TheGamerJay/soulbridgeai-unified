@@ -1239,12 +1239,22 @@
                     // Access granted via subscription or trial
                     selectCompanion(companionId);
                 } else {
-                    // No access
-                    const tierText = requiredTiers.join(' or ');
+                    // No access - show upgrade modal
+                    // Map internal tier names to display tier names
+                    const requiredTier = requiredTiers.includes('max') ? 'gold' : 
+                                       requiredTiers.includes('growth') ? 'silver' : 'bronze';
+                    if (window.TierLock) {
+                        window.TierLock.showUpgradeModal(requiredTier);
+                    }
                 }
             } catch (error) {
-                // Error checking trial status
-                const tierText = requiredTiers.join(' or ');
+                // Error checking trial status - show upgrade modal as fallback
+                // Map internal tier names to display tier names
+                const requiredTier = requiredTiers.includes('max') ? 'gold' : 
+                                   requiredTiers.includes('growth') ? 'silver' : 'bronze';
+                if (window.TierLock) {
+                    window.TierLock.showUpgradeModal(requiredTier);
+                }
             }
         }
         
