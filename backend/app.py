@@ -1274,15 +1274,28 @@ def parse_request_data():
                 request.form.get("password", "").strip(),
                 request.form.get("display_name", "").strip())
 
+def preserve_profile_image_in_session():
+    """Preserve custom profile image from session, excluding default images"""
+    profile_image = session.get('profile_image')
+    if profile_image and profile_image not in ['/static/logos/Sapphire.png', '/static/logos/IntroLogo.png']:
+        return profile_image
+    return None
+
 def setup_user_session(email, user_id=None, is_admin=False, dev_mode=False):
     """Setup user session with security measures and companion data restoration"""
     # Security: Clear and regenerate session to prevent fixation attacks
-    # Preserve trial keys so trial is never lost on login
+    # Preserve trial keys and profile image so they are never lost on login
     trial_keys = ['trial_active', 'trial_started_at', 'trial_expires_at', 'trial_used_permanently', 'trial_warning_sent']
     preserved_trial = {k: session.get(k) for k in trial_keys if k in session}
+    preserved_profile_image = preserve_profile_image_in_session()
+    
     session.clear()
     for k, v in preserved_trial.items():
         session[k] = v
+    
+    # Restore profile image if preserved
+    if preserved_profile_image:
+        session['profile_image'] = preserved_profile_image
     # Session expires when browser closes
     session["user_authenticated"] = True
     session["session_version"] = "2025-07-28-banking-security"  # Required for auth
@@ -2605,6 +2618,7 @@ def force_session_reset():
     # Keep essential data but reset plan
     user_email = session.get('user_email')
     user_id = session.get('user_id')
+    preserved_profile_image = preserve_profile_image_in_session()
     
     # Clear and rebuild session with correct data
     session.clear()
@@ -2614,6 +2628,10 @@ def force_session_reset():
     session['user_id'] = user_id
     session['user_plan'] = 'free'  # Reset to free
     session['trial_active'] = False
+    
+    # Restore profile image if preserved
+    if preserved_profile_image:
+        session['profile_image'] = preserved_profile_image
     
     return jsonify({
         "success": True,
@@ -7326,6 +7344,9 @@ def fix_session_thegamer():
         target_email = "thegamerjay11309@gmail.com"
         target_user_id = 91
         
+        # Preserve profile image if it's a custom image (not default)
+        preserved_profile_image = preserve_profile_image_in_session()
+
         # Force set session for thegamerjay11309@gmail.com
         session.clear()
         session['user_authenticated'] = True
@@ -7337,6 +7358,10 @@ def fix_session_thegamer():
         session['display_name'] = "The Game r"
         session['user_plan'] = 'free'
         session['plan_type'] = 'free'
+        
+        # Restore profile image if preserved
+        if preserved_profile_image:
+            session['profile_image'] = preserved_profile_image
         
         logger.info(f"🔧 SESSION FIX: Set session for {target_email} (User ID {target_user_id})")
         
