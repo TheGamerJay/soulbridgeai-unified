@@ -3608,6 +3608,7 @@ def chat():
             'blayzo_free': {'name': 'Blayzo', 'avatar': '/static/logos/Blayzo.png'},
             'blayzica_free': {'name': 'Blayzica', 'avatar': '/static/logos/Blayzica.png'},
             'companion_gamerjay': {'name': 'GamerJay', 'avatar': '/static/logos/GamerJay_Free_companion.png'},
+            'gamerjay_free': {'name': 'GamerJay', 'avatar': '/static/logos/GamerJay_Free_companion.png'},
             'blayzia_free': {'name': 'Blayzia', 'avatar': '/static/logos/Blayzia.png'},
             'blayzion_free': {'name': 'Blayzion', 'avatar': '/static/logos/Blayzion.png'},
             'claude_free': {'name': 'Claude', 'avatar': '/static/logos/Claude_Free.png'},
@@ -3615,28 +3616,42 @@ def chat():
             
             # Growth companions  
             'companion_sky': {'name': 'Sky', 'avatar': '/static/logos/Sky_a_premium_companion.png'},
+            'sky_silver': {'name': 'Sky', 'avatar': '/static/logos/Sky_a_premium_companion.png'},
             'blayzo_premium': {'name': 'Blayzo Pro', 'avatar': '/static/logos/Blayzo_premium_companion.png'},
             'blayzo_growth': {'name': 'Blayzo Pro', 'avatar': '/static/logos/Blayzo_premium_companion.png'},  # Legacy compatibility
             'blayzo_pro': {'name': 'Blayzo Pro', 'avatar': '/static/logos/Blayzo_premium_companion.png'},  # Legacy compatibility
+            'blayzo_silver': {'name': 'Blayzo Pro', 'avatar': '/static/logos/Blayzo_premium_companion.png'},
             'blayzica_growth': {'name': 'Blayzica Pro', 'avatar': '/static/logos/Blayzica Pro.png'},
+            'blayzica_silver': {'name': 'Blayzica Pro', 'avatar': '/static/logos/Blayzica Pro.png'},
             'gamerjay_premium': {'name': 'GamerJay Premium', 'avatar': '/static/logos/GamerJay_premium_companion.png'},
+            'gamerjay_silver': {'name': 'GamerJay Premium', 'avatar': '/static/logos/GamerJay_premium_companion.png'},
             'companion_gamerjay_premium': {'name': 'GamerJay Premium', 'avatar': '/static/logos/GamerJay_premium_companion.png'},  # Legacy compatibility
             'gamerjay_pro': {'name': 'GamerJay Premium', 'avatar': '/static/logos/GamerJay_premium_companion.png'},  # Legacy compatibility
             'watchdog_growth': {'name': 'WatchDog', 'avatar': '/static/logos/WatchDog_a_Premium_companion.png'},
+            'watchdog_silver': {'name': 'WatchDog', 'avatar': '/static/logos/WatchDog_a_Premium_companion.png'},
             'crimson_growth': {'name': 'Crimson', 'avatar': '/static/logos/Crimson.png'},
             'violet_growth': {'name': 'Violet', 'avatar': '/static/logos/Violet.png'},
             'claude_growth': {'name': 'Claude Growth', 'avatar': '/static/logos/Claude_Growth.png'},
+            'claude_silver': {'name': 'Claude Growth', 'avatar': '/static/logos/Claude_Growth.png'},
             'rozia_silver': {'name': 'Rozia', 'avatar': '/static/logos/Rozia Silver .png'},
             'lumen_silver': {'name': 'Lumen', 'avatar': '/static/logos/Lumen Silver.png'},
             
             # Max companions
             'companion_crimson': {'name': 'Crimson', 'avatar': '/static/logos/Crimson_a_Max_companion.png'},
+            'crimson_gold': {'name': 'Crimson', 'avatar': '/static/logos/Crimson_a_Max_companion.png'},
             'companion_violet': {'name': 'Violet', 'avatar': '/static/logos/Violet_a_Max_companion.png'},
+            'violet_gold': {'name': 'Violet', 'avatar': '/static/logos/Violet_a_Max_companion.png'},
+            'violet2_gold': {'name': 'Violet', 'avatar': '/static/logos/Violet_a_Max_companion.png'},
             'royal_max': {'name': 'Royal', 'avatar': '/static/logos/Royal_a_Max_companion.png'},
+            'royal_gold': {'name': 'Royal', 'avatar': '/static/logos/Royal_a_Max_companion.png'},
             'watchdog_max': {'name': 'WatchDog Max', 'avatar': '/static/logos/WatchDog_a_Max_Companion.png'},
+            'watchdog_gold': {'name': 'WatchDog Max', 'avatar': '/static/logos/WatchDog_a_Max_Companion.png'},
             'ven_blayzica': {'name': 'Ven Blayzica', 'avatar': '/static/logos/Ven_Blayzica_a_Max_companion.png'},
+            'ven_blayzica_gold': {'name': 'Ven Blayzica', 'avatar': '/static/logos/Ven_Blayzica_a_Max_companion.png'},
             'ven_sky': {'name': 'Ven Sky', 'avatar': '/static/logos/Ven_Sky_a_Max_companion.png'},
+            'ven_sky_gold': {'name': 'Ven Sky', 'avatar': '/static/logos/Ven_Sky_a_Max_companion.png'},
             'claude_max': {'name': 'Claude Max', 'avatar': '/static/logos/Claude_Max.png'},
+            'claude_gold': {'name': 'Claude Max', 'avatar': '/static/logos/Claude_Max.png'},
             
             # Referral companions
             'blayzike': {'name': 'Blayzike', 'avatar': '/static/referral/blayzike.png'},
