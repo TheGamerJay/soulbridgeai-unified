@@ -410,7 +410,7 @@ COMPANIONS_NEW = [
     {"id":"claude_free","name":"Claude","tier":"free","image_url":"/static/logos/Claude_Free.png"},
     {"id":"blayzia_free","name":"Blayzia","tier":"free","image_url":"/static/logos/Blayzia.png"},
     {"id":"blayzion_free","name":"Blayzion","tier":"free","image_url":"/static/logos/Blayzion.png"},
-    {"id":"lumen_free","name":"Lumen","tier":"free","image_url":"/static/logos/Lumen.png?v=10"},
+    {"id":"lumen_free","name":"Lumen","tier":"free","image_url":"/static/logos/Lumen.png?t=20250119"},
     {"id":"blayzo2_free","name":"Blayzo.2","tier":"free","image_url":"/static/logos/Blayzo.png"},
     
     # Silver tier (growth) - 8 companions
@@ -420,8 +420,8 @@ COMPANIONS_NEW = [
     {"id":"blayzo_silver","name":"Blayzo","tier":"growth","image_url":"/static/logos/Blayzo_premium_companion.png"},
     {"id":"blayzica_silver","name":"Blayzica","tier":"growth","image_url":"/static/logos/Blayzica Pro.png"},
     {"id":"watchdog_silver","name":"WatchDog","tier":"growth","image_url":"/static/logos/WatchDog_a_Premium_companion.png"},
-    {"id":"rozia_silver","name":"Rozia","tier":"growth","image_url":"/static/logos/Rozia.png?v=10"},
-    {"id":"lumen_silver","name":"Lumen","tier":"growth","image_url":"/static/logos/Lumen Premium.png?v=10"},
+    {"id":"rozia_silver","name":"Rozia","tier":"growth","image_url":"/static/logos/Rozia.png?t=20250119"},
+    {"id":"lumen_silver","name":"Lumen","tier":"growth","image_url":"/static/logos/Lumen Premium.png?t=20250119"},
     
     # Gold tier (max) - 8 companions
     {"id":"crimson_gold","name":"Crimson","tier":"max","image_url":"/static/logos/Crimson_a_Max_companion.png"},
@@ -3611,7 +3611,7 @@ def chat():
             'blayzia_free': {'name': 'Blayzia', 'avatar': '/static/logos/Blayzia.png'},
             'blayzion_free': {'name': 'Blayzion', 'avatar': '/static/logos/Blayzion.png'},
             'claude_free': {'name': 'Claude', 'avatar': '/static/logos/Claude_Free.png'},
-            'lumen_free': {'name': 'Lumen', 'avatar': '/static/logos/Lumen.png?v=10'},
+            'lumen_free': {'name': 'Lumen', 'avatar': '/static/logos/Lumen.png?t=20250119'},
             
             # Growth companions  
             'companion_sky': {'name': 'Sky', 'avatar': '/static/logos/Sky_a_premium_companion.png'},
@@ -3626,8 +3626,8 @@ def chat():
             'crimson_growth': {'name': 'Crimson', 'avatar': '/static/logos/Crimson.png'},
             'violet_growth': {'name': 'Violet', 'avatar': '/static/logos/Violet.png'},
             'claude_growth': {'name': 'Claude Growth', 'avatar': '/static/logos/Claude_Growth.png'},
-            'rozia_silver': {'name': 'Rozia', 'avatar': '/static/logos/Rozia.png?v=10'},
-            'lumen_silver': {'name': 'Lumen', 'avatar': '/static/logos/Lumen Premium.png?v=10'},
+            'rozia_silver': {'name': 'Rozia', 'avatar': '/static/logos/Rozia.png?t=20250119'},
+            'lumen_silver': {'name': 'Lumen', 'avatar': '/static/logos/Lumen Premium.png?t=20250119'},
             
             # Max companions
             'companion_crimson': {'name': 'Crimson', 'avatar': '/static/logos/Crimson_a_Max_companion.png'},
