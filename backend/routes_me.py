@@ -33,14 +33,34 @@ def me():
                 "error": "Not authenticated"
             }), 401
         
-        # Get user plan (check both new and legacy columns)
-        plan = db_get_user_plan(uid)
+        # Simplified approach - get basic plan info
+        try:
+            plan = db_get_user_plan(uid) or "bronze"
+        except Exception as e:
+            logger.warning(f"Failed to get user plan for {uid}: {e}")
+            plan = "bronze"
         
         # Get trial state from database
-        trial_active, trial_expires_at = db_get_trial_state(uid)
+        try:
+            trial_active, trial_expires_at = db_get_trial_state(uid)
+        except Exception as e:
+            logger.warning(f"Failed to get trial state for {uid}: {e}")
+            trial_active, trial_expires_at = False, None
         
         # Calculate effective access permissions
-        access = get_effective_access(plan, trial_active, trial_expires_at)
+        try:
+            access = get_effective_access(plan, trial_active, trial_expires_at)
+        except Exception as e:
+            logger.warning(f"Failed to get effective access for {uid}: {e}")
+            # Fallback access
+            access = {
+                "plan": plan,
+                "trial_live": trial_active,
+                "unlocked_tiers": [plan],
+                "accessible_companion_tiers": [plan],
+                "limits": {"decoder": 3, "fortune": 2, "horoscope": 3, "creative_writer": 2},
+                "trial_credits": 0
+            }
         
         # Get trainer credits from session (includes trial credits)
         trainer_credits = session.get('trainer_credits', 0)
@@ -50,30 +70,26 @@ def me():
         # Build response
         user_data = {
             "id": uid,
-            "email": cu.get("email"),
-            "displayName": cu.get("display_name"),
-            "plan": access["plan"],
+            "email": cu.get("email", "unknown@soulbridgeai.com"),
+            "displayName": cu.get("display_name", "User"),
+            "plan": plan,
             "trainer_credits": trainer_credits
         }
         
         access_data = {
-            "trial_live": access["trial_live"],
-            "unlocked_tiers": access["unlocked_tiers"],
-            "accessible_companion_tiers": access["accessible_companion_tiers"],
-            "limits": access["limits"],
+            "trial_live": access.get("trial_live", False),
+            "unlocked_tiers": access.get("unlocked_tiers", [plan]),
+            "accessible_companion_tiers": access.get("accessible_companion_tiers", [plan]),
+            "limits": access.get("limits", {"decoder": 3, "fortune": 2, "horoscope": 3, "creative_writer": 2}),
             "trial_credits": access.get("trial_credits", 0)
         }
         
         # Add trial information (always include for Bronze users)
         trial_data = None
         if plan == "bronze":
-            # For now, assume trial is eligible if user is Bronze and not currently active
-            # TODO: Add trial_used_permanently field to database schema for one-time trial enforcement
-            trial_eligible = True  # Simplified for now - can be enhanced later
-            
             trial_data = {
-                "active": access["trial_live"],
-                "eligible": trial_eligible,
+                "active": trial_active,
+                "eligible": True,  # Simplified for now
                 "expires_at": trial_expires_at.isoformat() if trial_expires_at else None,
                 "credits_remaining": access.get("trial_credits", 0)
             }
