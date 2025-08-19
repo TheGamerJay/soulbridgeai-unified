@@ -403,37 +403,42 @@ PRICE_ADFREE = os.environ.get('STRIPE_PRICE_ADFREE', 'price_1234567890')  # Ad-f
 
 # ---------- Companions (bulletproof data) ----------
 COMPANIONS_NEW = [
-    # Free row
-
-#
-    {"id":"blayzo_free","name":"Blayzo Free","tier":"free","image_url":"/static/logos/Blayzo.png"},
-    {"id":"blayzica_free","name":"Blayzica Free","tier":"free","image_url":"/static/logos/Blayzica.png"},
-    {"id":"companion_gamerjay","name":"GamerJay Free","tier":"free","image_url":"/static/logos/GamerJay_Free_companion.png"},
-    {"id":"claude_free","name":"Claude Free","tier":"free","image_url":"/static/logos/Claude_Free.png"},
-    {"id":"blayzia_free","name":"Blayzia","tier":"free","image_url":"/static/logos/Blayzia.png"},
-    {"id":"blayzion_free","name":"Blayzion","tier":"free","image_url":"/static/logos/Blayzion.png"},
-    # Growth row
-    {"id":"companion_sky","name":"Sky","tier":"growth","image_url":"/static/logos/Sky_a_premium_companion.png"},
-    {"id":"blayzo_premium","name":"Blayzo Premium","tier":"growth","image_url":"/static/logos/Blayzo_premium_companion.png"},
-    {"id":"blayzica_growth","name":"Blayzica Growth","tier":"growth","image_url":"/static/logos/Blayzica Pro.png"},
-    {"id":"gamerjay_premium","name":"GamerJay Premium","tier":"growth","image_url":"/static/logos/GamerJay_premium_companion.png"},
-    {"id":"watchdog_growth","name":"WatchDog Growth","tier":"growth","image_url":"/static/logos/WatchDog_a_Premium_companion.png"},
-    {"id":"crimson_growth","name":"Crimson Growth","tier":"growth","image_url":"/static/logos/Crimson.png"},
-    {"id":"violet_growth","name":"Violet Growth","tier":"growth","image_url":"/static/logos/Violet.png"},
-    {"id":"claude_growth","name":"Claude Growth","tier":"growth","image_url":"/static/logos/Claude_Growth.png"},
-    # Max row
-    {"id":"companion_crimson","name":"Companion Crimson","tier":"max","image_url":"/static/logos/Crimson_a_Max_companion.png"},
-    {"id":"companion_violet","name":"Companion Violet","tier":"max","image_url":"/static/logos/Violet_a_Max_companion.png"},
-    {"id":"royal_max","name":"Royal Max","tier":"max","image_url":"/static/logos/Royal_a_Max_companion.png"},
-    {"id":"watchdog_max","name":"WatchDog Max","tier":"max","image_url":"/static/logos/WatchDog_a_Max_Companion.png"},
-    {"id":"ven_blayzica","name":"Ven Blayzica","tier":"max","image_url":"/static/logos/Ven_Blayzica_a_Max_companion.png"},
-    {"id":"ven_sky","name":"Ven Sky","tier":"max","image_url":"/static/logos/Ven_Sky_a_Max_companion.png"},
-    {"id":"claude_max","name":"Claude Max","tier":"max","image_url":"/static/logos/Claude_Max.png"},
-    # Referral (never unlocked by trial)
+    # Bronze tier (free) - 8 companions
+    {"id":"gamerjay_bronze","name":"GamerJay","tier":"free","image_url":"/static/logos/GamerJay_Free_companion.png"},
+    {"id":"blayzo_bronze","name":"Blayzo","tier":"free","image_url":"/static/logos/Blayzo.png"},
+    {"id":"blayzica_bronze","name":"Blayzica","tier":"free","image_url":"/static/logos/Blayzica.png"},
+    {"id":"claude_bronze","name":"Claude","tier":"free","image_url":"/static/logos/Claude_Free.png"},
+    {"id":"blayzia_bronze","name":"Blayzia","tier":"free","image_url":"/static/logos/Blayzia.png"},
+    {"id":"blayzion_bronze","name":"Blayzion","tier":"free","image_url":"/static/logos/Blayzion.png"},
+    {"id":"lumen_bronze","name":"Lumen","tier":"free","image_url":"/static/logos/Lumen.png"},
+    {"id":"blayzo2_bronze","name":"Blayzo.2","tier":"free","image_url":"/static/logos/Blayzo2.png"},
+    
+    # Silver tier (growth) - 8 companions
+    {"id":"sky_silver","name":"Sky","tier":"growth","image_url":"/static/logos/Sky_a_premium_companion.png"},
+    {"id":"gamerjay_silver","name":"GamerJay","tier":"growth","image_url":"/static/logos/GamerJay_premium_companion.png"},
+    {"id":"claude_silver","name":"Claude","tier":"growth","image_url":"/static/logos/Claude_Growth.png"},
+    {"id":"blayzo_silver","name":"Blayzo","tier":"growth","image_url":"/static/logos/Blayzo_premium_companion.png"},
+    {"id":"blayzica_silver","name":"Blayzica","tier":"growth","image_url":"/static/logos/Blayzica Pro.png"},
+    {"id":"watchdog_silver","name":"WatchDog","tier":"growth","image_url":"/static/logos/WatchDog_a_Premium_companion.png"},
+    {"id":"rozia_silver","name":"Rozia","tier":"growth","image_url":"/static/logos/Rozia.png"},
+    {"id":"lumen_silver","name":"Lumen","tier":"growth","image_url":"/static/logos/Lumen_Growth.png"},
+    
+    # Gold tier (max) - 8 companions
+    {"id":"crimson_gold","name":"Crimson","tier":"max","image_url":"/static/logos/Crimson_a_Max_companion.png"},
+    {"id":"violet_gold","name":"Violet","tier":"max","image_url":"/static/logos/Violet_a_Max_companion.png"},
+    {"id":"claude_gold","name":"Claude","tier":"max","image_url":"/static/logos/Claude_Max.png"},
+    {"id":"royal_gold","name":"Royal","tier":"max","image_url":"/static/logos/Royal_a_Max_companion.png"},
+    {"id":"ven_blayzica_gold","name":"Ven Blayzica","tier":"max","image_url":"/static/logos/Ven_Blayzica_a_Max_companion.png"},
+    {"id":"ven_sky_gold","name":"Ven Sky","tier":"max","image_url":"/static/logos/Ven_Sky_a_Max_companion.png"},
+    {"id":"watchdog_gold","name":"WatchDog","tier":"max","image_url":"/static/logos/WatchDog_a_Max_Companion.png"},
+    {"id":"violet2_gold","name":"Violet","tier":"max","image_url":"/static/logos/Violet2_Max.png"},
+    
+    # Referral companions - 5 companions
     {"id":"blayzike","name":"Blayzike","tier":"referral","image_url":"/static/referral/blayzike.png"},
+    {"id":"nyxara","name":"Nyxara","tier":"referral","image_url":"/static/referral/nyxara.png"},
     {"id":"blazelian","name":"Blazelian","tier":"referral","image_url":"/static/referral/blazelian.png"},
     {"id":"claude_referral","name":"Claude Referral","tier":"referral","image_url":"/static/referral/claude_referral.png"},
-    {"id":"blayzo_skin","name":"Blayzo Special Skin","tier":"referral","image_url":"/static/referral/blayzo_skin.png"},
+    {"id":"blayzo_referral","name":"Blayzo Referral","tier":"referral","image_url":"/static/referral/blayzo_referral.png"},
 ]
 
 # ---------- Bulletproof Helper Functions ----------
@@ -3415,6 +3420,7 @@ def tiers_page():
         elif c['tier'] == 'referral':
             referral_companions.append(companion_data)
     
+    # Keep companions in their designated tiers (no redistribution needed)
     
     # Referral milestones
     referral_milestones = [
