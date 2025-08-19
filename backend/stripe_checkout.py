@@ -21,15 +21,27 @@ bp_stripe = Blueprint("stripe_checkout", __name__, url_prefix="/api/stripe")
 stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
 STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET')
 
-# Price IDs from environment
+# Price IDs from environment - FAIL LOUD if missing
+REQUIRED_PRICE_IDS = [
+    'PRICE_SILVER_MONTHLY', 'PRICE_SILVER_YEARLY', 
+    'PRICE_GOLD_MONTHLY', 'PRICE_GOLD_YEARLY'
+]
+
+for price_var in REQUIRED_PRICE_IDS:
+    if not os.environ.get(price_var):
+        logger.error(f"❌ Missing required environment variable: {price_var}")
+        raise EnvironmentError(f"Missing required Stripe price ID: {price_var}")
+
 PRICE_SILVER_MONTHLY = os.environ.get('PRICE_SILVER_MONTHLY')
 PRICE_SILVER_YEARLY = os.environ.get('PRICE_SILVER_YEARLY') 
 PRICE_GOLD_MONTHLY = os.environ.get('PRICE_GOLD_MONTHLY')
 PRICE_GOLD_YEARLY = os.environ.get('PRICE_GOLD_YEARLY')
-PRICE_ADFREE = os.environ.get('PRICE_ADFREE')  # Ad-free addon
+PRICE_ADFREE = os.environ.get('PRICE_ADFREE')  # Ad-free addon (optional)
 
 # App domain for redirects
 APP_DOMAIN = os.environ.get("APP_DOMAIN", "https://soulbridgeai.com")
+
+logger.info(f"✅ Stripe price IDs configured: Silver({PRICE_SILVER_MONTHLY[:10]}..., {PRICE_SILVER_YEARLY[:10]}...), Gold({PRICE_GOLD_MONTHLY[:10]}..., {PRICE_GOLD_YEARLY[:10]}...)")
 
 def set_user_plan(user_id, plan):
     """
@@ -204,7 +216,7 @@ def create_adfree_checkout():
 @bp_stripe.route("/webhook", methods=["POST"])
 def webhook():
     """
-    Handle Stripe webhooks for subscription events.
+    Handle Stripe webhooks for subscription events with deduplication.
     """
     payload = request.data
     sig = request.headers.get("Stripe-Signature")
@@ -222,10 +234,18 @@ def webhook():
         logger.error("Invalid webhook signature")
         return "Invalid signature", 400
 
+    event_id = event["id"]
     event_type = event["type"]
     event_object = event["data"]["object"]
     
-    logger.info(f"Processing Stripe webhook: {event_type}")
+    # Import deduplication functions
+    from stripe_event_store import has_processed, mark_processed
+    
+    # Early exit if already processed
+    if has_processed(event_id):
+        return jsonify({"received": True})
+    
+    logger.info(f"Processing Stripe webhook: {event_type} (ID: {event_id})")
 
     try:
         if event_type == "checkout.session.completed":
@@ -246,8 +266,12 @@ def webhook():
         else:
             logger.info(f"Unhandled webhook event: {event_type}")
 
+        # Mark as processed after successful handling
+        mark_processed(event_id, event_type)
+
     except Exception as e:
         logger.error(f"Webhook processing error for {event_type}: {e}")
+        # Don't mark as processed if there was an error
         return "Webhook processing failed", 500
 
     return jsonify({"received": True})
@@ -256,58 +280,82 @@ def handle_checkout_completed(session_obj):
     """Handle successful checkout completion."""
     customer_id = session_obj.get("customer")
     subscription_id = session_obj.get("subscription")
+    customer_email = session_obj.get("customer_details", {}).get("email", "unknown")
     
     if subscription_id and customer_id:
         # Get subscription details
         subscription = stripe.Subscription.retrieve(subscription_id)
-        metadata = subscription.get("metadata", {})
         
-        plan = metadata.get("plan")
-        addon = metadata.get("addon")
-        
-        # Find user by customer ID
-        user = db_find_user_by_stripe_customer(customer_id)
-        
-        if user and plan in ("silver", "gold"):
-            # Update to Silver/Gold plan
-            set_user_plan(user["id"], plan)
-            logger.info(f"Checkout completed: User {user['id']} upgraded to {plan}")
+        # Get price ID from subscription items (more reliable than metadata)
+        items = subscription.get("items", {}).get("data", [])
+        if items:
+            price_id = items[0].get("price", {}).get("id")
             
-        elif user and addon == "adfree":
-            # Handle ad-free addon (plan stays Bronze, but addon is added)
-            # Note: Addon handling would be implemented in session/database
-            logger.info(f"Checkout completed: User {user['id']} added ad-free addon")
+            # Map price ID to plan (same as subscription_updated handler)
+            price_to_plan = {
+                PRICE_SILVER_MONTHLY: "silver",
+                PRICE_SILVER_YEARLY: "silver", 
+                PRICE_GOLD_MONTHLY: "gold",
+                PRICE_GOLD_YEARLY: "gold",
+            }
+            
+            plan = price_to_plan.get(price_id)
+            
+            # Find user by customer ID
+            user = db_find_user_by_stripe_customer(customer_id)
+            
+            if user and plan in ("silver", "gold"):
+                # Update to Silver/Gold plan
+                set_user_plan(user["id"], plan)
+                logger.info(f"✅ Checkout complete: {customer_email} (user {user['id']}) subscribed to {plan}")
+                
+            elif user and price_id == PRICE_ADFREE:
+                # Handle ad-free addon (plan stays Bronze, but addon is added)
+                logger.info(f"✅ Checkout complete: {customer_email} (user {user['id']}) added ad-free addon")
+                
+            else:
+                logger.warning(f"⚠️ Checkout complete but no valid plan mapping: {customer_email}, price_id: {price_id}")
+        else:
+            logger.warning(f"⚠️ Checkout complete but no subscription items found: {customer_email}")
 
 def handle_subscription_updated(subscription_obj):
-    """Handle subscription creation or updates."""
+    """Handle subscription creation or updates with robust status filtering."""
     customer_id = subscription_obj.get("customer")
     status = subscription_obj.get("status")
     
+    # Status filter - avoid upgrading on incomplete/paused subscriptions
+    if status not in {"active", "trialing", "past_due"}:
+        logger.info(f"⏭️ Skip plan change; subscription status={status} for customer {customer_id}")
+        return
+    
     try:
-        # Get price ID from subscription items
+        # Multiple subscription items support (future-proof for add-ons)
         items = subscription_obj.get("items", {}).get("data", [])
         if not items:
+            logger.warning(f"No subscription items found for customer {customer_id}")
             return
-            
-        price_id = items[0].get("price", {}).get("id")
         
-        # Map price ID to plan
-        price_to_plan = {
-            PRICE_SILVER_MONTHLY: "silver",
-            PRICE_SILVER_YEARLY: "silver", 
-            PRICE_GOLD_MONTHLY: "gold",
-            PRICE_GOLD_YEARLY: "gold",
-        }
+        # Get all price IDs from subscription items
+        price_ids = {item.get("price", {}).get("id") for item in items if item.get("price", {}).get("id")}
         
-        plan = price_to_plan.get(price_id)
-        if not plan:
-            # Check if it's ad-free addon
-            if price_id == PRICE_ADFREE:
-                logger.info(f"Ad-free subscription updated for customer {customer_id}")
-                return
-            else:
-                logger.warning(f"Unknown price ID in subscription: {price_id}")
-                return
+        # Determine highest tier plan from price IDs (Gold > Silver)
+        plan = None
+        for price_id in price_ids:
+            if price_id in (PRICE_GOLD_MONTHLY, PRICE_GOLD_YEARLY):
+                plan = "gold"
+                break  # Gold is highest tier
+            elif price_id in (PRICE_SILVER_MONTHLY, PRICE_SILVER_YEARLY):
+                plan = plan or "silver"  # Only set if not already Gold
+        
+        # Handle ad-free addon separately
+        has_adfree = PRICE_ADFREE in price_ids if PRICE_ADFREE else False
+        
+        if not plan and has_adfree:
+            logger.info(f"Ad-free subscription updated for customer {customer_id}")
+            return
+        elif not plan:
+            logger.warning(f"Unknown price IDs in subscription: {price_ids}")
+            return
         
         # Find user
         user = db_find_user_by_stripe_customer(customer_id)
@@ -315,27 +363,28 @@ def handle_subscription_updated(subscription_obj):
             logger.warning(f"User not found for Stripe customer {customer_id}")
             return
         
-        # Update plan based on subscription status
-        if status in ("active", "trialing", "past_due"):
-            set_user_plan(user["id"], plan)
-            logger.info(f"Subscription updated: User {user['id']} plan set to {plan} (status: {status})")
-        else:
-            # Subscription inactive - revert to Bronze
-            set_user_plan(user["id"], "bronze")
-            logger.info(f"Subscription updated: User {user['id']} reverted to bronze (status: {status})")
+        # Update plan
+        set_user_plan(user["id"], plan)
+        logger.info(f"✅ Subscription updated: User {user['id']} plan set to {plan} (status: {status}, price_ids: {price_ids})")
+        
+        # Log ad-free addon if present
+        if has_adfree:
+            logger.info(f"   + Ad-free addon also active for user {user['id']}")
             
     except Exception as e:
-        logger.error(f"Error handling subscription update: {e}")
+        logger.error(f"❌ Error handling subscription update: {e}")
 
 def handle_subscription_deleted(subscription_obj):
-    """Handle subscription cancellation."""
+    """Handle subscription cancellation - downgrade path."""
     customer_id = subscription_obj.get("customer")
     
     # Find user and revert to Bronze plan
     user = db_find_user_by_stripe_customer(customer_id)
     if user:
         set_user_plan(user["id"], "bronze")
-        logger.info(f"Subscription deleted: User {user['id']} reverted to bronze")
+        logger.info(f"✅ Subscription deleted: User {user['id']} reverted to bronze")
+    else:
+        logger.warning(f"⚠️ Subscription deleted but user not found for customer {customer_id}")
 
 def handle_payment_succeeded(invoice_obj):
     """Handle successful payment."""

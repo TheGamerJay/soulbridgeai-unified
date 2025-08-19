@@ -1525,6 +1525,13 @@ def initialize_services():
     # Run Bronze/Silver/Gold schema migrations if database is available
     if results.get("Database", False):
         ensure_bsg_migrations()
+        
+        # Clean up old Stripe events (keep last 30 days)
+        try:
+            from stripe_event_store import cleanup_old_events
+            cleanup_old_events(days_old=30)
+        except Exception as e:
+            logger.warning(f"⚠️ Stripe event cleanup failed: {e}")
     
     # Run periodic plan migration as safety net during startup
     logger.info("🧼 Running periodic plan migration safety check...")
