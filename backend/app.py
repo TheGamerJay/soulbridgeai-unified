@@ -3439,7 +3439,6 @@ def tiers_page():
                                 growth_list=growth_companions,
                                 max_list=max_companions,
                                 referral_list=referral_companions,
-                                referral_milestones=referral_milestones,
                                 referral_count=referral_count)
     
     # Disable caching to prevent stale locked HTML
@@ -14144,8 +14143,8 @@ TIERS_TEMPLATE = r"""
 
     <!-- Unified Referral Section -->
     <div>
-      <div class="row-title">🏆 Referral Rewards <span class="small">(Earn through referrals)</span></div>
-      <div class="ref-note small">Referrals: <strong>{{ referral_count }}</strong>. Unlock exclusive companions & bonus rewards!</div>
+      <div class="row-title">🏆 Referral Companions <span class="small">(Earn through referrals)</span></div>
+      <div class="ref-note small">Referrals: <strong>{{ referral_count }}</strong>. Unlock exclusive companions!</div>
       
       <!-- Referral Companions -->
       <div style="margin-bottom:20px;">
@@ -14162,23 +14161,7 @@ TIERS_TEMPLATE = r"""
         </div>
       </div>
 
-      <!-- Referral Milestones -->
-      <div style="margin-bottom:20px;">
-        <div style="font-size:16px; color:#8bd3ff; margin-bottom:8px;">🎁 Bonus Milestones</div>
-        <div class="ref-grid">
-          {% for r in referral_milestones %}
-            {% set got = referral_count >= r.need %}
-            <div class="milestone {{ '' if got else 'dim' }}" onclick="goToReferral()" style="cursor:pointer;">
-              <div class="badge {{ 'ok' if got else '' }}">{{ '✅ Unlocked' if got else '🔒 Locked' }}</div>
-              <div class="need">Needs {{ r.need }} referrals</div>
-              <img src="/static/referral/{{ r.slug }}.png" alt="{{ r.name }}" style="width:100%;height:160px;object-fit:contain;border-radius:8px;background:#0b0f18;" onerror="this.src='/static/logos/IntroLogo.png'">
-              <div class="name" style="margin-top:6px;font-weight:600;">{{ r.name }}</div>
-            </div>
-          {% endfor %}
-        </div>
-      </div>
-      
-      <div class="small muted" style="margin-top:8px;">Refer friends to unlock companions & collectible rewards. <a href="/referrals" style="color:#8bd3ff;">Learn more about referrals</a></div>
+      <div class="small muted" style="margin-top:8px;">Refer friends to unlock exclusive companions. <a href="/referrals" style="color:#8bd3ff;">Learn more about referrals</a></div>
     </div>
 
 
