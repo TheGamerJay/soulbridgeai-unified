@@ -2162,7 +2162,7 @@ def api_me():
         
         # Set feature limits based on tier
         if user_plan == 'max':
-            limits = {"decoder": float('inf'), "fortune": float('inf'), "horoscope": float('inf'), "creative_writer": float('inf')}
+            limits = {"decoder": 999999, "fortune": 999999, "horoscope": 999999, "creative_writer": 999999}
         elif user_plan == 'growth':
             limits = {"decoder": 15, "fortune": 8, "horoscope": 10, "creative_writer": 20}
         else:
