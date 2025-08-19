@@ -2120,60 +2120,38 @@ def check_user_status():
 def api_me():
     """Get current user tier information for tier-lock system"""
     try:
-        logger.info("🔍 /api/me called - checking user session")
-        logger.info(f"🔍 Session keys: {list(session.keys())}")
-        logger.info(f"🔍 User authenticated: {session.get('user_authenticated')}")
-        
-        # Simple session-based check instead of is_logged_in() to avoid DB calls
-        user_authenticated = session.get('user_authenticated', False)
-        has_user_id = bool(session.get('user_id'))
-        
-        if not (user_authenticated or has_user_id):
-            return jsonify({
-                "success": True,
-                "user": {"plan": "bronze"},
-                "access": {
-                    "trial_live": False,
-                    "unlocked_tiers": ["bronze"],
-                    "accessible_companion_tiers": ["bronze"],
-                    "limits": {"decoder": 3, "fortune": 2, "horoscope": 3, "creative_writer": 2}
-                },
-                "trial": {"active": False, "remaining_time": 0}
-            })
-        
-        # Get user session data
+        # Get basic session data with safe defaults
         user_plan = session.get('user_plan', 'free')
         trial_active = bool(session.get('trial_active', False))
         
-        # Map internal tier names to display names
-        plan_mapping = {
-            'free': 'bronze',
-            'growth': 'silver', 
-            'max': 'gold'
-        }
-        display_plan = plan_mapping.get(user_plan, 'bronze')
+        # Map internal tier names to display names (safe fallback)
+        display_plan = 'bronze'  # Safe default
+        if user_plan == 'growth':
+            display_plan = 'silver'
+        elif user_plan == 'max':
+            display_plan = 'gold'
         
-        # Determine unlocked tiers
-        unlocked_tiers = ["bronze"]  # Everyone gets bronze
+        # Determine unlocked tiers (safe defaults)
+        unlocked_tiers = ["bronze"]
         accessible_companion_tiers = ["bronze"]
         
-        if user_plan in ['growth', 'max'] or trial_active:
+        if user_plan == 'growth' or user_plan == 'max' or trial_active:
             unlocked_tiers.append("silver")
             accessible_companion_tiers.append("silver")
         
         if user_plan == 'max' or trial_active:
-            unlocked_tiers.append("gold")  
+            unlocked_tiers.append("gold")
             accessible_companion_tiers.append("gold")
         
-        # Set feature limits based on tier
-        if user_plan == 'max':
-            limits = {"decoder": 999999, "fortune": 999999, "horoscope": 999999, "creative_writer": 999999}
-        elif user_plan == 'growth':
+        # Set feature limits (safe defaults)
+        limits = {"decoder": 3, "fortune": 2, "horoscope": 3, "creative_writer": 2}
+        if user_plan == 'growth':
             limits = {"decoder": 15, "fortune": 8, "horoscope": 10, "creative_writer": 20}
-        else:
-            limits = {"decoder": 3, "fortune": 2, "horoscope": 3, "creative_writer": 2}
+        elif user_plan == 'max':
+            limits = {"decoder": 999999, "fortune": 999999, "horoscope": 999999, "creative_writer": 999999}
         
-        return jsonify({
+        # Simple response structure
+        response_data = {
             "success": True,
             "user": {"plan": display_plan},
             "access": {
@@ -2184,28 +2162,25 @@ def api_me():
             },
             "trial": {
                 "active": trial_active,
-                "remaining_time": session.get('trial_remaining_time', 0) if trial_active else 0
+                "remaining_time": 0
             }
-        })
+        }
+        
+        return jsonify(response_data)
         
     except Exception as e:
-        logger.error(f"❌ Error in /api/me endpoint: {e}")
-        logger.error(f"❌ Error type: {type(e).__name__}")
-        logger.error(f"❌ Error details: {str(e)}")
-        import traceback
-        logger.error(f"❌ Full traceback: {traceback.format_exc()}")
-        # Fallback to guest mode on error
+        # Ultra-safe fallback - minimal response
         return jsonify({
             "success": True,
             "user": {"plan": "bronze"},
             "access": {
                 "trial_live": False,
                 "unlocked_tiers": ["bronze"],
-                "accessible_companion_tiers": ["bronze"], 
+                "accessible_companion_tiers": ["bronze"],
                 "limits": {"decoder": 3, "fortune": 2, "horoscope": 3, "creative_writer": 2}
             },
             "trial": {"active": False, "remaining_time": 0}
-        })
+        }), 200
 
 @app.route("/api/logout-on-close", methods=["POST"])
 def logout_on_close():

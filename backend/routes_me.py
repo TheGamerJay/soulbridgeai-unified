@@ -5,7 +5,7 @@ from flask import Blueprint, jsonify, session, request
 import logging
 from datetime import datetime, timezone, timedelta
 from app_core import current_user
-from db_users import db_get_trial_state, db_get_user_plan, db_set_trial
+from db_users import db_get_trial_state, db_get_user_plan, db_set_trial, db_fetch_user_row
 from access import get_effective_access
 
 logger = logging.getLogger(__name__)
@@ -23,44 +23,57 @@ def me():
         - Trial information
     """
     try:
-        # Get current user from session
-        cu = current_user()
-        uid = cu.get("id")
+        # Get user data from session (avoid DB calls to prevent SQLAlchemy issues)
+        uid = session.get('user_id')
+        user_authenticated = session.get('user_authenticated', False)
         
-        if not uid:
+        if not uid or not user_authenticated:
             return jsonify({
                 "success": False,
                 "error": "Not authenticated"
             }), 401
         
-        # Simplified approach - get basic plan info
-        try:
-            plan = db_get_user_plan(uid) or "bronze"
-        except Exception as e:
-            logger.warning(f"Failed to get user plan for {uid}: {e}")
-            plan = "bronze"
+        # Get all data from session to avoid database calls
+        user_plan = session.get('user_plan', 'free')
+        trial_active = bool(session.get('trial_active', False))
+        trial_expires_at = session.get('trial_expires_at')
         
-        # Get trial state from database
-        try:
-            trial_active, trial_expires_at = db_get_trial_state(uid)
-        except Exception as e:
-            logger.warning(f"Failed to get trial state for {uid}: {e}")
-            trial_active, trial_expires_at = False, None
+        # Map internal plan names to display names
+        plan_mapping = {
+            'free': 'bronze',
+            'growth': 'silver',
+            'max': 'gold'
+        }
+        plan = plan_mapping.get(user_plan, 'bronze')
         
-        # Calculate effective access permissions
-        try:
-            access = get_effective_access(plan, trial_active, trial_expires_at)
-        except Exception as e:
-            logger.warning(f"Failed to get effective access for {uid}: {e}")
-            # Fallback access
-            access = {
-                "plan": plan,
-                "trial_live": trial_active,
-                "unlocked_tiers": [plan],
-                "accessible_companion_tiers": [plan],
-                "limits": {"decoder": 3, "fortune": 2, "horoscope": 3, "creative_writer": 2},
-                "trial_credits": 0
-            }
+        # Build access permissions from session data
+        unlocked_tiers = ["bronze"]
+        accessible_companion_tiers = ["bronze"]
+        
+        if user_plan in ['growth', 'max'] or trial_active:
+            unlocked_tiers.append("silver")
+            accessible_companion_tiers.append("silver")
+        
+        if user_plan == 'max' or trial_active:
+            unlocked_tiers.append("gold")
+            accessible_companion_tiers.append("gold")
+        
+        # Set limits based on plan
+        if user_plan == 'max':
+            limits = {"decoder": 999999, "fortune": 999999, "horoscope": 999999, "creative_writer": 999999}
+        elif user_plan == 'growth':
+            limits = {"decoder": 15, "fortune": 8, "horoscope": 10, "creative_writer": 20}
+        else:
+            limits = {"decoder": 3, "fortune": 2, "horoscope": 3, "creative_writer": 2}
+        
+        access = {
+            "plan": plan,
+            "trial_live": trial_active,
+            "unlocked_tiers": unlocked_tiers,
+            "accessible_companion_tiers": accessible_companion_tiers,
+            "limits": limits,
+            "trial_credits": 0
+        }
         
         # Get trainer credits from session (includes trial credits)
         trainer_credits = session.get('trainer_credits', 0)
@@ -70,8 +83,8 @@ def me():
         # Build response
         user_data = {
             "id": uid,
-            "email": cu.get("email", "unknown@soulbridgeai.com"),
-            "displayName": cu.get("display_name", "User"),
+            "email": session.get("email", "unknown@soulbridgeai.com"),
+            "displayName": session.get("display_name", "User"),
             "plan": plan,
             "trainer_credits": trainer_credits
         }
