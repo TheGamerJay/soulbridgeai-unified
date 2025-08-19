@@ -383,10 +383,10 @@
                 
                 <div class="plan-card recommended">
                     <div class="recommended-badge">Most Popular</div>
-                    <h3>Max Plan</h3>
+                    <h3>Gold Plan</h3>
                     <div class="bundle-price">$19.99/mo</div>
                     <p>500 credits/month + cheaper costs</p>
-                    <a href="/subscription?plan=max" class="buy-btn">Choose Max</a>
+                    <a href="/subscription?plan=max" class="buy-btn">Choose Gold</a>
                 </div>
             </div>
         </div>
@@ -487,10 +487,10 @@
             const upgradeBtn = document.getElementById('upgradeBtn');
             
             if (userPlan === 'max') {
-                tierBadge.textContent = 'Max Plan';
+                tierBadge.textContent = 'Gold Plan';
                 tierBadge.className = 'tier-badge max';
             } else {
-                tierBadge.textContent = 'Growth Plan';
+                tierBadge.textContent = 'Silver Plan';
                 tierBadge.className = 'tier-badge growth';
                 upgradeBtn.style.display = 'inline-block';
             }
