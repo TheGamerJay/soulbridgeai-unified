@@ -5,7 +5,7 @@ from flask import Blueprint, jsonify, session, request
 import logging
 from datetime import datetime, timezone, timedelta
 from app_core import current_user
-from db_users import db_get_trial_state, db_fetch_user_row, db_get_user_plan, db_set_trial
+from db_users import db_get_trial_state, db_get_user_plan, db_set_trial
 from access import get_effective_access
 
 logger = logging.getLogger(__name__)
@@ -90,10 +90,12 @@ def me():
         return jsonify(response)
         
     except Exception as e:
+        import traceback
         logger.error(f"Error in /api/me endpoint: {e}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
         return jsonify({
             "success": False,
-            "error": "Internal server error"
+            "error": f"Internal server error: {str(e)}"
         }), 500
 
 @bp_me.route("/me/trial-status", methods=["GET"])
