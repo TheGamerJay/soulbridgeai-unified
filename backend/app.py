@@ -14263,15 +14263,15 @@ TIERS_TEMPLATE = r"""
   }
   function notifyUpgrade(tier){
     const tierInfo = {
-      'Growth': {
+      'Silver': {
         features: '15 Decoders/day, 8 Fortunes/day, 10 Horoscopes/day + Voice Journal & AI Images',
         price: '$12.99/month or $117/year',
-        companions: '8 Growth companions + all Free companions'
+        companions: '8 Silver companions + all Bronze companions'
       },
-      'Max': {
+      'Gold': {
         features: 'Unlimited access to all features + Priority Support',
         price: '$19.99/month or $180/year', 
-        companions: '7 exclusive Max companions + all Growth & Free companions'
+        companions: '8 exclusive Gold companions + all Silver & Bronze companions'
       }
     };
     
