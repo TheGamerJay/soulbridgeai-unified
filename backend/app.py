@@ -363,10 +363,15 @@ except ImportError as e:
 def analytics_page():
     """Render the analytics dashboard page."""
     try:
-        from app_core import current_user
-        cu = current_user()
-        if not cu.get("id"):
+        # Use session-based authentication to avoid SQLAlchemy issues
+        if not session.get('user_authenticated') or not session.get('user_id'):
             return render_template('login.html', error="Please log in to view analytics"), 401
+        
+        # Check if user has access (Silver/Gold only)
+        user_plan = session.get('user_plan', 'free')
+        if user_plan not in ['growth', 'max']:  # growth=Silver, max=Gold
+            return render_template('error.html', error="Analytics dashboard requires Silver or Gold plan"), 403
+        
         return render_template('analytics.html')
     except Exception as e:
         logger.error(f"Error rendering analytics page: {e}")
@@ -2116,71 +2121,6 @@ def check_user_status():
             "plan_type": "bronze"
         })
 
-@app.route("/api/me", methods=["GET"])
-def api_me():
-    """Get current user tier information for tier-lock system"""
-    try:
-        # Get basic session data with safe defaults
-        user_plan = session.get('user_plan', 'free')
-        trial_active = bool(session.get('trial_active', False))
-        
-        # Map internal tier names to display names (safe fallback)
-        display_plan = 'bronze'  # Safe default
-        if user_plan == 'growth':
-            display_plan = 'silver'
-        elif user_plan == 'max':
-            display_plan = 'gold'
-        
-        # Determine unlocked tiers (safe defaults)
-        unlocked_tiers = ["bronze"]
-        accessible_companion_tiers = ["bronze"]
-        
-        if user_plan == 'growth' or user_plan == 'max' or trial_active:
-            unlocked_tiers.append("silver")
-            accessible_companion_tiers.append("silver")
-        
-        if user_plan == 'max' or trial_active:
-            unlocked_tiers.append("gold")
-            accessible_companion_tiers.append("gold")
-        
-        # Set feature limits (safe defaults)
-        limits = {"decoder": 3, "fortune": 2, "horoscope": 3, "creative_writer": 2}
-        if user_plan == 'growth':
-            limits = {"decoder": 15, "fortune": 8, "horoscope": 10, "creative_writer": 20}
-        elif user_plan == 'max':
-            limits = {"decoder": 999999, "fortune": 999999, "horoscope": 999999, "creative_writer": 999999}
-        
-        # Simple response structure
-        response_data = {
-            "success": True,
-            "user": {"plan": display_plan},
-            "access": {
-                "trial_live": trial_active,
-                "unlocked_tiers": unlocked_tiers,
-                "accessible_companion_tiers": accessible_companion_tiers,
-                "limits": limits
-            },
-            "trial": {
-                "active": trial_active,
-                "remaining_time": 0
-            }
-        }
-        
-        return jsonify(response_data)
-        
-    except Exception as e:
-        # Ultra-safe fallback - minimal response
-        return jsonify({
-            "success": True,
-            "user": {"plan": "bronze"},
-            "access": {
-                "trial_live": False,
-                "unlocked_tiers": ["bronze"],
-                "accessible_companion_tiers": ["bronze"],
-                "limits": {"decoder": 3, "fortune": 2, "horoscope": 3, "creative_writer": 2}
-            },
-            "trial": {"active": False, "remaining_time": 0}
-        }), 200
 
 @app.route("/api/logout-on-close", methods=["POST"])
 def logout_on_close():
