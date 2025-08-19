@@ -2116,6 +2116,85 @@ def check_user_status():
             "plan_type": "bronze"
         })
 
+@app.route("/api/me", methods=["GET"])
+def api_me():
+    """Get current user tier information for tier-lock system"""
+    try:
+        if not is_logged_in():
+            return jsonify({
+                "success": True,
+                "user": {"plan": "bronze"},
+                "access": {
+                    "trial_live": False,
+                    "unlocked_tiers": ["bronze"],
+                    "accessible_companion_tiers": ["bronze"],
+                    "limits": {"decoder": 3, "fortune": 2, "horoscope": 3, "creative_writer": 2}
+                },
+                "trial": {"active": False, "remaining_time": 0}
+            })
+        
+        # Get user session data
+        user_plan = session.get('user_plan', 'free')
+        trial_active = bool(session.get('trial_active', False))
+        
+        # Map internal tier names to display names
+        plan_mapping = {
+            'free': 'bronze',
+            'growth': 'silver', 
+            'max': 'gold'
+        }
+        display_plan = plan_mapping.get(user_plan, 'bronze')
+        
+        # Determine unlocked tiers
+        unlocked_tiers = ["bronze"]  # Everyone gets bronze
+        accessible_companion_tiers = ["bronze"]
+        
+        if user_plan in ['growth', 'max'] or trial_active:
+            unlocked_tiers.append("silver")
+            accessible_companion_tiers.append("silver")
+        
+        if user_plan == 'max' or trial_active:
+            unlocked_tiers.append("gold")  
+            accessible_companion_tiers.append("gold")
+        
+        # Set feature limits based on tier
+        if user_plan == 'max':
+            limits = {"decoder": float('inf'), "fortune": float('inf'), "horoscope": float('inf'), "creative_writer": float('inf')}
+        elif user_plan == 'growth':
+            limits = {"decoder": 15, "fortune": 8, "horoscope": 10, "creative_writer": 20}
+        else:
+            limits = {"decoder": 3, "fortune": 2, "horoscope": 3, "creative_writer": 2}
+        
+        return jsonify({
+            "success": True,
+            "user": {"plan": display_plan},
+            "access": {
+                "trial_live": trial_active,
+                "unlocked_tiers": unlocked_tiers,
+                "accessible_companion_tiers": accessible_companion_tiers,
+                "limits": limits
+            },
+            "trial": {
+                "active": trial_active,
+                "remaining_time": session.get('trial_remaining_time', 0) if trial_active else 0
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Error in /api/me endpoint: {e}")
+        # Fallback to guest mode on error
+        return jsonify({
+            "success": True,
+            "user": {"plan": "bronze"},
+            "access": {
+                "trial_live": False,
+                "unlocked_tiers": ["bronze"],
+                "accessible_companion_tiers": ["bronze"], 
+                "limits": {"decoder": 3, "fortune": 2, "horoscope": 3, "creative_writer": 2}
+            },
+            "trial": {"active": False, "remaining_time": 0}
+        })
+
 @app.route("/api/logout-on-close", methods=["POST"])
 def logout_on_close():
     """Logout user when browser/tab is closed (not tab switch)"""
