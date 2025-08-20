@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GPT-5 Features Demo - SoulBridge AI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+            color: #e2e8f0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #06b6d4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        
+        .tier-info {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        
+        .feature-card {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(100, 116, 139, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .feature-card h3 {
+            color: #60a5fa;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #cbd5e1;
+            font-weight: 500;
+        }
+        
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(100, 116, 139, 0.3);
+            border-radius: 8px;
+            color: #e2e8f0;
+            font-size: 14px;
+        }
+        
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 8px;
+            border-left: 4px solid #10b981;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .result h4 {
+            color: #34d399;
+            margin-bottom: 10px;
+        }
+        
+        .error {
+            border-left-color: #ef4444;
+        }
+        
+        .error h4 {
+            color: #f87171;
+        }
+        
+        .cost-info {
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 12px;
+        }
+        
+        .image-result {
+            text-align: center;
+        }
+        
+        .image-result img {
+            max-width: 100%;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #60a5fa;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 GPT-5 Features Demo</h1>
+            <p>Test the new tier-based AI features with real-time cost tracking</p>
+        </div>
+        
+        <div class="tier-info" id="tierInfo">
+            <p>Loading tier information...</p>
+        </div>
+        
+        <div class="features-grid">
+            <!-- Real Horoscope -->
+            <div class="feature-card">
+                <h3>🌟 Real Horoscope (GPT-5 Enhanced)</h3>
+                <div class="form-group">
+                    <label for="horoscopeSign">Zodiac Sign:</label>
+                    <select id="horoscopeSign">
+                        <option value="aries">Aries</option>
+                        <option value="taurus">Taurus</option>
+                        <option value="gemini">Gemini</option>
+                        <option value="cancer">Cancer</option>
+                        <option value="leo">Leo</option>
+                        <option value="virgo">Virgo</option>
+                        <option value="libra">Libra</option>
+                        <option value="scorpio">Scorpio</option>
+                        <option value="sagittarius">Sagittarius</option>
+                        <option value="capricorn">Capricorn</option>
+                        <option value="aquarius">Aquarius</option>
+                        <option value="pisces">Pisces</option>
+                    </select>
+                </div>
+                <button class="btn" onclick="generateHoroscope()">Generate Horoscope</button>
+                <div id="horoscopeResult"></div>
+            </div>
+            
+            <!-- Enhanced Decoder -->
+            <div class="feature-card">
+                <h3>🧠 Enhanced Decoder</h3>
+                <div class="form-group">
+                    <label for="decoderType">Analysis Type:</label>
+                    <select id="decoderType">
+                        <option value="dream">Dream Analysis</option>
+                        <option value="relationship">Relationship Analysis</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="decoderText">Text to Analyze:</label>
+                    <textarea id="decoderText" placeholder="Describe your dream or relationship situation..."></textarea>
+                </div>
+                <button class="btn" onclick="analyzeText()">Analyze</button>
+                <div id="decoderResult"></div>
+            </div>
+            
+            <!-- Enhanced Fortune -->
+            <div class="feature-card">
+                <h3>🔮 Authentic Tarot Reading</h3>
+                <div class="form-group">
+                    <label for="fortuneFocus">Reading Focus:</label>
+                    <select id="fortuneFocus">
+                        <option value="love">Love & Relationships</option>
+                        <option value="career">Career & Work</option>
+                        <option value="destiny">Life Path & Destiny</option>
+                        <option value="general">General Guidance</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="fortuneSpread">Card Spread:</label>
+                    <select id="fortuneSpread">
+                        <option value="one_card">Single Card</option>
+                        <option value="three_card">Three Card (Past/Present/Future)</option>
+                        <option value="five_card">Five Card Celtic Cross</option>
+                    </select>
+                </div>
+                <button class="btn" onclick="drawCards()">Draw Cards</button>
+                <div id="fortuneResult"></div>
+            </div>
+            
+            <!-- AI Image Generation -->
+            <div class="feature-card">
+                <h3>🎨 AI Image Generation</h3>
+                <div class="form-group">
+                    <label for="imagePrompt">Image Prompt:</label>
+                    <textarea id="imagePrompt" placeholder="Describe the image you want to create...">A mystical crystal ball surrounded by ethereal blue light, floating above an ancient wooden table</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="imageSize">Size:</label>
+                    <select id="imageSize">
+                        <option value="1024x1024">Square (1024x1024)</option>
+                        <option value="1024x1792">Portrait (1024x1792)</option>
+                        <option value="1792x1024">Landscape (1792x1024)</option>
+                    </select>
+                </div>
+                <button class="btn" onclick="generateImage()">Generate Image</button>
+                <div id="imageResult"></div>
+            </div>
+            
+            <!-- Creative Story -->
+            <div class="feature-card">
+                <h3>📚 Creative Story Generation</h3>
+                <div class="form-group">
+                    <label for="storyIdea">Story Idea:</label>
+                    <textarea id="storyIdea" placeholder="A mysterious adventure...">A person discovers a hidden door in their basement that leads to a world where emotions have colors</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="storyGenre">Genre:</label>
+                    <select id="storyGenre">
+                        <option value="fantasy">Fantasy</option>
+                        <option value="sci-fi">Science Fiction</option>
+                        <option value="mystery">Mystery</option>
+                        <option value="romance">Romance</option>
+                        <option value="adventure">Adventure</option>
+                        <option value="horror">Horror</option>
+                    </select>
+                </div>
+                <button class="btn" onclick="generateStory()">Generate Story</button>
+                <div id="storyResult"></div>
+            </div>
+            
+            <!-- Cost Tracking -->
+            <div class="feature-card">
+                <h3>💰 Cost Tracking</h3>
+                <p style="margin-bottom: 15px;">View your daily usage and costs</p>
+                <button class="btn" onclick="getUserCosts()">Get My Costs</button>
+                <div id="costsResult"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Load tier information on page load
+        async function loadTierInfo() {
+            try {
+                const response = await fetch('/api/v2/models/info');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const tierColors = {
+                        bronze: '#cd7f32',
+                        silver: '#c0c0c0', 
+                        gold: '#ffd700'
+                    };
+                    
+                    document.getElementById('tierInfo').innerHTML = `
+                        <h3 style="color: ${tierColors[data.your_tier]}">
+                            🏆 Your Tier: ${data.your_tier.toUpperCase()}
+                        </h3>
+                        <p>Model: ${data.your_model}</p>
+                        <p>Available Tiers: ${data.available_tiers.join(', ')}</p>
+                    `;
+                } else {
+                    document.getElementById('tierInfo').innerHTML = '<p>❌ Could not load tier information</p>';
+                }
+            } catch (error) {
+                document.getElementById('tierInfo').innerHTML = '<p>❌ Error loading tier information</p>';
+            }
+        }
+        
+        // Utility function to display results
+        function displayResult(elementId, data, isError = false) {
+            const element = document.getElementById(elementId);
+            
+            if (isError) {
+                element.innerHTML = `
+                    <div class="result error">
+                        <h4>❌ Error</h4>
+                        <p>${data.error || 'Unknown error occurred'}</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '<div class="result"><h4>✅ Result</h4>';
+            
+            // Add cost information if available
+            if (data.cost_usd !== undefined) {
+                html += `<div class="cost-info">
+                    💰 Cost: $${data.cost_usd} | Model: ${data.usage?.model || 'unknown'} | 
+                    Tokens: ${data.usage?.total_tokens || 0}
+                </div>`;
+            }
+            
+            html += '<div style="margin-top: 10px;">';
+            
+            // Handle different response types
+            if (data.horoscope) {
+                html += `<p><strong>Sign:</strong> ${data.sign}</p><p>${data.horoscope}</p>`;
+            } else if (data.analysis) {
+                html += `<p><strong>Type:</strong> ${data.type}</p><div style="white-space: pre-line;">${data.analysis}</div>`;
+            } else if (data.reading) {
+                html += `<p><strong>Focus:</strong> ${data.intent}</p><div style="white-space: pre-line;">${data.reading}</div>`;
+                if (data.cards) {
+                    html += '<h5 style="margin-top: 15px; color: #8b5cf6;">Cards Drawn:</h5><ul>';
+                    data.cards.forEach(card => {
+                        html += `<li>${card.position}: ${card.name} (${card.reversed ? 'Reversed' : 'Upright'})</li>`;
+                    });
+                    html += '</ul>';
+                }
+            } else if (data.story) {
+                html += `<div style="white-space: pre-line;">${data.story}</div>`;
+            } else if (data.image_b64) {
+                html += `<div class="image-result">
+                    <img src="data:image/png;base64,${data.image_b64}" alt="Generated image" />
+                    <p>Used: ${data.used_today}/${data.limit} daily images</p>
+                </div>`;
+            } else if (data.items) {
+                // Cost tracking results
+                html += `<p><strong>Total Cost:</strong> $${data.total_usd}</p>`;
+                if (data.items.length > 0) {
+                    html += '<table style="width: 100%; margin-top: 10px; border-collapse: collapse;">';
+                    html += '<tr style="border-bottom: 1px solid #374151;"><th>Feature</th><th>Calls</th><th>Tokens</th><th>Cost</th></tr>';
+                    data.items.forEach(item => {
+                        html += `<tr style="border-bottom: 1px solid #374151;">
+                            <td style="padding: 5px;">${item.feature}</td>
+                            <td style="padding: 5px;">${item.api_calls}</td>
+                            <td style="padding: 5px;">${item.prompt_tokens + item.completion_tokens}</td>
+                            <td style="padding: 5px;">$${item.subtotal_usd}</td>
+                        </tr>`;
+                    });
+                    html += '</table>';
+                }
+            } else {
+                html += `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            }
+            
+            html += '</div></div>';
+            element.innerHTML = html;
+        }
+        
+        // Feature functions
+        async function generateHoroscope() {
+            const sign = document.getElementById('horoscopeSign').value;
+            const resultEl = document.getElementById('horoscopeResult');
+            
+            resultEl.innerHTML = '<div class="loading">🌟 Fetching real horoscope data and styling with GPT-5...</div>';
+            
+            try {
+                const response = await fetch('/api/v2/horoscope', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sign })
+                });
+                
+                const data = await response.json();
+                displayResult('horoscopeResult', data, !data.success);
+            } catch (error) {
+                displayResult('horoscopeResult', { error: error.message }, true);
+            }
+        }
+        
+        async function analyzeText() {
+            const type = document.getElementById('decoderType').value;
+            const text = document.getElementById('decoderText').value.trim();
+            
+            if (!text) {
+                displayResult('decoderResult', { error: 'Please enter text to analyze' }, true);
+                return;
+            }
+            
+            const resultEl = document.getElementById('decoderResult');
+            resultEl.innerHTML = '<div class="loading">🧠 Analyzing with GPT-5...</div>';
+            
+            try {
+                const response = await fetch('/api/v2/decoder', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type, text })
+                });
+                
+                const data = await response.json();
+                displayResult('decoderResult', data, !data.success);
+            } catch (error) {
+                displayResult('decoderResult', { error: error.message }, true);
+            }
+        }
+        
+        async function drawCards() {
+            const intent = document.getElementById('fortuneFocus').value;
+            const spread = document.getElementById('fortuneSpread').value;
+            
+            const resultEl = document.getElementById('fortuneResult');
+            resultEl.innerHTML = '<div class="loading">🔮 Drawing cards and consulting GPT-5...</div>';
+            
+            try {
+                const response = await fetch('/api/v2/fortune', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ intent, spread })
+                });
+                
+                const data = await response.json();
+                displayResult('fortuneResult', data, !data.success);
+            } catch (error) {
+                displayResult('fortuneResult', { error: error.message }, true);
+            }
+        }
+        
+        async function generateImage() {
+            const prompt = document.getElementById('imagePrompt').value.trim();
+            const size = document.getElementById('imageSize').value;
+            
+            if (!prompt) {
+                displayResult('imageResult', { error: 'Please enter an image prompt' }, true);
+                return;
+            }
+            
+            const resultEl = document.getElementById('imageResult');
+            resultEl.innerHTML = '<div class="loading">🎨 Generating image (this may take 30-60 seconds)...</div>';
+            
+            try {
+                const response = await fetch('/api/v2/image', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt, size })
+                });
+                
+                const data = await response.json();
+                displayResult('imageResult', data, !data.success);
+            } catch (error) {
+                displayResult('imageResult', { error: error.message }, true);
+            }
+        }
+        
+        async function generateStory() {
+            const idea = document.getElementById('storyIdea').value.trim();
+            const genre = document.getElementById('storyGenre').value;
+            
+            if (!idea) {
+                displayResult('storyResult', { error: 'Please enter a story idea' }, true);
+                return;
+            }
+            
+            const resultEl = document.getElementById('storyResult');
+            resultEl.innerHTML = '<div class="loading">📚 Crafting story with GPT-5...</div>';
+            
+            try {
+                const response = await fetch('/api/v2/story', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ idea, genre })
+                });
+                
+                const data = await response.json();
+                displayResult('storyResult', data, !data.success);
+            } catch (error) {
+                displayResult('storyResult', { error: error.message }, true);
+            }
+        }
+        
+        async function getUserCosts() {
+            const resultEl = document.getElementById('costsResult');
+            resultEl.innerHTML = '<div class="loading">💰 Loading cost data...</div>';
+            
+            try {
+                const response = await fetch('/api/v2/costs/user');
+                const data = await response.json();
+                displayResult('costsResult', data, !data.success);
+            } catch (error) {
+                displayResult('costsResult', { error: error.message }, true);
+            }
+        }
+        
+        // Load tier info when page loads
+        loadTierInfo();
+    </script>
+</body>
+</html>

@@ -8428,9 +8428,13 @@ def debug_user_tier_info():
         },
         "internal_values": {
             "session_user_plan": session.get('user_plan'),
-            "is_growth": user_plan == 'growth',
-            "is_max": user_plan == 'max',
-            "is_free": user_plan == 'free'
+            "is_silver": user_plan == 'silver',
+            "is_gold": user_plan == 'gold',
+            "is_bronze": user_plan == 'bronze',
+            # Legacy compatibility
+            "is_growth": user_plan == 'silver',
+            "is_max": user_plan == 'gold',
+            "is_free": user_plan == 'bronze'
         }
     })
 
@@ -17410,6 +17414,415 @@ def stripe_debug():
         "stripe_secret_key_value": STRIPE_SECRET_KEY[:10] + "..." if STRIPE_SECRET_KEY else None,
         "price_adfree": PRICE_ADFREE
     })
+
+# ========================================
+# GPT-5 POWERED API ENDPOINTS  
+# ========================================
+
+# Import GPT-5 integration
+try:
+    from gpt5_integration import (
+        gpt5_complete, fetch_real_horoscope, generate_image, 
+        generate_tarot_reading, get_user_costs, get_daily_costs,
+        TIER_MODEL, pick_model
+    )
+    GPT5_AVAILABLE = True
+    logger.info("✅ GPT-5 integration loaded successfully")
+except Exception as e:
+    GPT5_AVAILABLE = False
+    logger.warning(f"⚠️ GPT-5 integration failed to load: {e}")
+
+@app.route("/api/v2/horoscope", methods=["POST"])
+def api_v2_horoscope():
+    """Enhanced horoscope with real daily data + GPT-5 styling"""
+    try:
+        if not GPT5_AVAILABLE:
+            return jsonify({"success": False, "error": "GPT-5 integration not available"}), 503
+        
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+            
+        data = request.get_json(force=True)
+        user_id = session.get("user_id")
+        
+        # Get user tier (with legacy compatibility)
+        user_plan = session.get("user_plan", "bronze")
+        tier_mapping = {"free": "bronze", "growth": "silver", "max": "gold"}
+        tier = tier_mapping.get(user_plan, user_plan)
+        
+        sign = (data.get("sign") or "aries").lower()
+        
+        # 1) Fetch real daily horoscope
+        raw_horoscope = fetch_real_horoscope(sign)
+        
+        # 2) Style with GPT-5
+        system_prompt = (
+            "You are a mystical yet grounded astrologer. Be positive, concise, and practical. "
+            "Never give medical or legal advice. Write 3–5 sentences, poetic but clear. "
+            "Transform the raw horoscope into your unique voice with spiritual insight."
+        )
+        
+        user_prompt = f"Real daily horoscope for {sign}: {raw_horoscope}\n\nRewrite this as your mystical voice for today's guidance."
+        
+        # Call GPT-5 with tier routing and cost tracking
+        response_text, usage, cost = gpt5_complete(
+            user_id=str(user_id),
+            tier=tier,
+            feature="horoscope",
+            system=system_prompt,
+            user_content=user_prompt,
+            temperature=0.7
+        )
+        
+        logger.info(f"🌟 Horoscope generated - User: {user_id}, Tier: {tier}, Sign: {sign}, Cost: ${cost}")
+        
+        return jsonify({
+            "success": True,
+            "sign": sign,
+            "tier": tier,
+            "horoscope": response_text,
+            "usage": usage,
+            "cost_usd": cost,
+            "raw_source": "Real daily horoscope data + GPT-5 styling",
+            "model": usage.get("model", "unknown")
+        })
+        
+    except Exception as e:
+        logger.error(f"❌ Enhanced horoscope error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/api/v2/decoder", methods=["POST"])
+def api_v2_decoder():
+    """Enhanced decoder with GPT-5 analysis"""
+    try:
+        if not GPT5_AVAILABLE:
+            return jsonify({"success": False, "error": "GPT-5 integration not available"}), 503
+            
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+            
+        data = request.get_json(force=True)
+        user_id = session.get("user_id")
+        
+        # Get user tier  
+        user_plan = session.get("user_plan", "bronze")
+        tier_mapping = {"free": "bronze", "growth": "silver", "max": "gold"}
+        tier = tier_mapping.get(user_plan, user_plan)
+        
+        analysis_type = (data.get("type") or "dream").lower()  # "dream" or "relationship"
+        text_input = data.get("text", "")
+        
+        if not text_input:
+            return jsonify({"success": False, "error": "Text input required"}), 400
+            
+        # Enhanced system prompt
+        system_prompt = (
+            "You are an insightful, compassionate interpreter with deep psychological understanding. "
+            "Acknowledge feelings, surface meaningful themes, and provide grounded next steps. "
+            "Be uplifting and practical; avoid fatalism. Write 2–4 short paragraphs with actionable insights."
+        )
+        
+        user_prompt = f"""Analysis Type: {analysis_type}
+
+User Input:
+{text_input}
+
+Please provide:
+1. Key themes and symbolic meanings
+2. What this may reflect about their emotional state or life situation  
+3. 2-3 concrete, actionable suggestions for moving forward
+4. A supportive closing thought"""
+        
+        # Call GPT-5 with enhanced parameters
+        response_text, usage, cost = gpt5_complete(
+            user_id=str(user_id),
+            tier=tier,
+            feature="decoder",
+            system=system_prompt,
+            user_content=user_prompt,
+            temperature=0.8 if analysis_type == "dream" else 0.7
+        )
+        
+        logger.info(f"🧠 Decoder analysis - User: {user_id}, Tier: {tier}, Type: {analysis_type}, Cost: ${cost}")
+        
+        return jsonify({
+            "success": True,
+            "type": analysis_type,
+            "tier": tier,
+            "analysis": response_text,
+            "usage": usage,
+            "cost_usd": cost,
+            "model": usage.get("model", "unknown")
+        })
+        
+    except Exception as e:
+        logger.error(f"❌ Enhanced decoder error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/api/v2/fortune", methods=["POST"])
+def api_v2_fortune():
+    """Enhanced fortune telling with real tarot deck + GPT-5 interpretation"""
+    try:
+        if not GPT5_AVAILABLE:
+            return jsonify({"success": False, "error": "GPT-5 integration not available"}), 503
+            
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+            
+        data = request.get_json(force=True)
+        user_id = session.get("user_id")
+        
+        # Get user tier
+        user_plan = session.get("user_plan", "bronze")
+        tier_mapping = {"free": "bronze", "growth": "silver", "max": "gold"}
+        tier = tier_mapping.get(user_plan, user_plan)
+        
+        focus = (data.get("intent") or "love").lower()  # love, career, destiny, general
+        spread = (data.get("spread") or "three_card").lower()
+        seed = data.get("seed")  # For reproducible readings
+        
+        # Generate authentic tarot reading
+        tarot_data = generate_tarot_reading(focus=focus, spread=spread, seed=seed)
+        
+        # Build card descriptions for GPT-5
+        card_lines = []
+        for card in tarot_data["cards"]:
+            keywords = ", ".join(card["keywords"]) if card["keywords"] else "mystic energy"
+            orientation = "Reversed" if card["reversed"] else "Upright"
+            card_lines.append(f"• {card['position']}: {card['name']} ({orientation}) — {keywords}")
+        
+        # Enhanced tarot interpretation prompt
+        system_prompt = (
+            "You are a wise, compassionate tarot reader with deep mystical knowledge. "
+            "Provide an uplifting, insightful reading that empowers the querent. "
+            "Frame reversals as opportunities for growth, not obstacles. "
+            "Give practical guidance and end with an inspiring affirmation."
+        )
+        
+        user_prompt = f"""Tarot Reading Request:
+Focus: {focus.title()}
+Spread: {spread.replace('_', ' ').title()}
+
+Cards Drawn:
+{chr(10).join(card_lines)}
+
+Please provide:
+1. A mystical opening (2-3 sentences)
+2. Interpretation of each card in its position relative to the focus area
+3. Overall message tying the cards together
+4. Practical guidance for moving forward
+5. A powerful one-line affirmation to close"""
+        
+        # Call GPT-5 for interpretation
+        response_text, usage, cost = gpt5_complete(
+            user_id=str(user_id),
+            tier=tier,
+            feature="fortune",
+            system=system_prompt,
+            user_content=user_prompt,
+            temperature=0.9
+        )
+        
+        logger.info(f"🔮 Fortune reading - User: {user_id}, Tier: {tier}, Focus: {focus}, Cost: ${cost}")
+        
+        return jsonify({
+            "success": True,
+            "intent": focus,
+            "spread": spread,
+            "tier": tier,
+            "cards": tarot_data["cards"],
+            "reading": response_text,
+            "usage": usage,
+            "cost_usd": cost,
+            "model": usage.get("model", "unknown"),
+            "seed": seed
+        })
+        
+    except Exception as e:
+        logger.error(f"❌ Enhanced fortune error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/api/v2/image", methods=["POST"])
+def api_v2_image():
+    """AI Image generation with daily limits per tier"""
+    try:
+        if not GPT5_AVAILABLE:
+            return jsonify({"success": False, "error": "GPT-5 integration not available"}), 503
+            
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+            
+        data = request.get_json(force=True)
+        user_id = session.get("user_id")
+        
+        # Get user tier
+        user_plan = session.get("user_plan", "bronze")
+        tier_mapping = {"free": "bronze", "growth": "silver", "max": "gold"}
+        tier = tier_mapping.get(user_plan, user_plan)
+        
+        prompt = data.get("prompt", "")
+        size = data.get("size", "1024x1024")
+        
+        if not prompt:
+            return jsonify({"success": False, "error": "Prompt required"}), 400
+            
+        # Generate image with quota checking
+        result = generate_image(user_id=str(user_id), tier=tier, prompt=prompt, size=size)
+        
+        if result["success"]:
+            logger.info(f"🎨 Image generated - User: {user_id}, Tier: {tier}, Cost: ${result.get('cost_usd', 0)}")
+        else:
+            logger.warning(f"🚫 Image generation failed - User: {user_id}, Error: {result.get('error', 'Unknown')}")
+            
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"❌ Image generation error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/api/v2/story", methods=["POST"])
+def api_v2_story():
+    """Creative story generation with GPT-5"""
+    try:
+        if not GPT5_AVAILABLE:
+            return jsonify({"success": False, "error": "GPT-5 integration not available"}), 503
+            
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+            
+        data = request.get_json(force=True)
+        user_id = session.get("user_id")
+        
+        # Get user tier
+        user_plan = session.get("user_plan", "bronze")
+        tier_mapping = {"free": "bronze", "growth": "silver", "max": "gold"}
+        tier = tier_mapping.get(user_plan, user_plan)
+        
+        idea = data.get("idea", "A mysterious adventure under starlight")
+        genre = data.get("genre", "fantasy")
+        length = data.get("length", "short")  # short, medium, long
+        
+        # Adjust system prompt based on tier
+        system_prompts = {
+            "bronze": "You are a creative storyteller. Write engaging, complete short stories (2-3 minutes reading time).",
+            "silver": "You are a skilled narrative craftsman. Create immersive stories with rich detail and character development (3-5 minutes reading time).", 
+            "gold": "You are a master storyteller with cinematic vision. Craft epic, emotionally resonant narratives with complex themes and memorable characters (5-8 minutes reading time)."
+        }
+        
+        system_prompt = system_prompts.get(tier, system_prompts["silver"])
+        user_prompt = f"Genre: {genre}\nLength: {length}\nStory idea: {idea}\n\nTell a complete, satisfying story."
+        
+        # Call GPT-5 with story-specific settings
+        response_text, usage, cost = gpt5_complete(
+            user_id=str(user_id),
+            tier=tier,
+            feature="story",
+            system=system_prompt,
+            user_content=user_prompt,
+            temperature=0.9
+        )
+        
+        logger.info(f"📚 Story generated - User: {user_id}, Tier: {tier}, Genre: {genre}, Cost: ${cost}")
+        
+        return jsonify({
+            "success": True,
+            "idea": idea,
+            "genre": genre,
+            "length": length,
+            "tier": tier,
+            "story": response_text,
+            "usage": usage,
+            "cost_usd": cost,
+            "model": usage.get("model", "unknown")
+        })
+        
+    except Exception as e:
+        logger.error(f"❌ Story generation error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+# Cost tracking and analytics endpoints
+@app.route("/api/v2/costs/user", methods=["GET"])
+def api_v2_costs_user():
+    """Get cost breakdown for current user"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+            
+        user_id = session.get("user_id")
+        day = request.args.get("day")  # Optional YYYY-MM-DD
+        
+        if GPT5_AVAILABLE:
+            costs = get_user_costs(str(user_id), day)
+            return jsonify({"success": True, **costs})
+        else:
+            return jsonify({"success": False, "error": "Cost tracking not available"}), 503
+            
+    except Exception as e:
+        logger.error(f"❌ User costs error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/api/v2/costs/daily", methods=["GET"])
+def api_v2_costs_daily():
+    """Get daily cost summary (admin only)"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+            
+        # Admin check
+        if not session.get("is_admin"):
+            return jsonify({"success": False, "error": "Admin access required"}), 403
+            
+        day = request.args.get("day")  # Optional YYYY-MM-DD
+        
+        if GPT5_AVAILABLE:
+            costs = get_daily_costs(day)
+            return jsonify({"success": True, **costs})
+        else:
+            return jsonify({"success": False, "error": "Cost tracking not available"}), 503
+            
+    except Exception as e:
+        logger.error(f"❌ Daily costs error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/api/v2/models/info", methods=["GET"])
+def api_v2_models_info():
+    """Get information about available models and tier routing"""
+    try:
+        if not GPT5_AVAILABLE:
+            return jsonify({"success": False, "error": "GPT-5 integration not available"}), 503
+            
+        user_tier = "bronze"  # Default
+        if is_logged_in():
+            user_plan = session.get("user_plan", "bronze")
+            tier_mapping = {"free": "bronze", "growth": "silver", "max": "gold"}
+            user_tier = tier_mapping.get(user_plan, user_plan)
+        
+        user_model = pick_model(user_tier)
+        
+        return jsonify({
+            "success": True,
+            "your_tier": user_tier,
+            "your_model": user_model,
+            "tier_models": TIER_MODEL,
+            "available_tiers": ["bronze", "silver", "gold"],
+            "gpt5_available": True
+        })
+        
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/gpt5-demo")
+def gpt5_demo():
+    """GPT-5 features demo page"""
+    try:
+        if not is_logged_in():
+            return redirect("/login?return_to=gpt5-demo")
+        
+        return render_template('gpt5_demo.html')
+        
+    except Exception as e:
+        logger.error(f"Error loading GPT-5 demo page: {e}")
+        return render_template('error.html', error="Failed to load demo page"), 500
 
 # APPLICATION STARTUP
 # ========================================

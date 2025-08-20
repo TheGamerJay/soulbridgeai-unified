@@ -630,7 +630,7 @@ async function refreshFortuneLimits() {
         }
 
         const usage = data.usage_today ?? 0;
-        const hasUnlimited = data.user_plan === 'max' && !data.trial_active;  // Only if REAL Max tier (not trial)
+        const hasUnlimited = data.user_plan === 'gold' && !data.trial_active;  // Only if REAL Gold tier (not trial)
 
         const limitDisplay = hasUnlimited ? '∞' : (data.daily_limit ?? '?');
 
@@ -652,11 +652,11 @@ async function refreshFortuneLimits() {
         const planNotice = document.getElementById("max-plan-message");
         const planDesc = document.getElementById("plan-description");
 
-        if (data.user_plan === "max") {
-            // 🔴 Max tier - show unlimited message
+        if (data.user_plan === "gold") {
+            // 🔴 Gold tier - show unlimited message
             if (planNotice) planNotice.style.display = "block";
             if (planDesc) planDesc.style.display = "none";
-        } else if (data.user_plan === "growth") {
+        } else if (data.user_plan === "silver") {
             // 🔵 Growth tier
             if (planNotice) planNotice.style.display = "none";
             if (planDesc) {

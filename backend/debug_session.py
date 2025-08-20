@@ -18,29 +18,36 @@ print("3. Verify trial_active status for different users")
 def get_effective_plan(user_plan: str, trial_active: bool) -> str:
     """Get effective plan for FEATURE ACCESS (not usage limits)"""  
     # Defensive migration for any legacy plans that slip through
-    legacy_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
+    legacy_mapping = {'foundation': 'bronze', 'premium': 'silver', 'enterprise': 'gold', 'free': 'bronze', 'growth': 'silver', 'max': 'gold'}
     user_plan = legacy_mapping.get(user_plan, user_plan)
     
     # Ensure we only work with valid plans
-    if user_plan not in ['free', 'growth', 'max']:
-        print(f"⚠️ Unknown plan '{user_plan}' defaulting to 'free'")
-        user_plan = 'free'
+    if user_plan not in ['bronze', 'silver', 'gold']:
+        print(f"⚠️ Unknown plan '{user_plan}' defaulting to 'bronze'")
+        user_plan = 'bronze'
     
-    # FIXED: During trial, unlock all features (max access) but keep subscription limits
-    # Trial gives 'max' feature access while usage limits stay tied to actual subscription
+    # FIXED: During trial, unlock all features (gold access) but keep subscription limits
+    # Trial gives 'gold' feature access while usage limits stay tied to actual subscription
     if trial_active:
-        return 'max'  # Unlock all features during trial
+        return 'gold'  # Unlock all features during trial
     else:
         return user_plan  # Use real plan when no trial
 
 print("\n=== TESTING get_effective_plan FUNCTION ===")
 test_cases = [
-    ('free', False, 'free'),
-    ('growth', False, 'growth'), 
-    ('max', False, 'max'),
-    ('free', True, 'max'),
-    ('growth', True, 'max'),
-    ('max', True, 'max')
+    ('bronze', False, 'bronze'),
+    ('silver', False, 'silver'), 
+    ('gold', False, 'gold'),
+    ('bronze', True, 'gold'),
+    ('silver', True, 'gold'),
+    ('gold', True, 'gold'),
+    # Legacy compatibility tests
+    ('free', False, 'bronze'),
+    ('growth', False, 'silver'),
+    ('max', False, 'gold'),
+    ('free', True, 'gold'),
+    ('growth', True, 'gold'),
+    ('max', True, 'gold')
 ]
 
 print("user_plan | trial_active | expected | actual   | status")

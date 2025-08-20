@@ -198,9 +198,9 @@ def get_effective_plan(user_plan: str, trial_active: bool) -> str:
     # DEBUG: Log the function call
     logger.info(f"🎯 GET_EFFECTIVE_PLAN DEBUG: user_plan='{user_plan}', trial_active={trial_active}")
     
-    if trial_active and user_plan == "free":
-        logger.info(f"🎯 GET_EFFECTIVE_PLAN: Returning 'max' for free user on trial")
-        return "max"  # Unlock all features during trial
+    if trial_active and user_plan in ["free", "bronze"]:
+        logger.info(f"🎯 GET_EFFECTIVE_PLAN: Returning 'gold' for bronze user on trial")
+        return "gold"  # Unlock all features during trial
     
     logger.info(f"🎯 GET_EFFECTIVE_PLAN: Returning '{user_plan}' (no trial or already premium)")
     return user_plan  # Non-trial or already premium users
@@ -243,7 +243,7 @@ def get_trial_trainer_time(user_id):
         user_plan, trial_active, trial_started_at = result
         
         # Verify trial is actually active and not expired
-        if user_plan == "free" and trial_active and trial_started_at:
+        if user_plan in ["free", "bronze"] and trial_active and trial_started_at:
             # Simple inline trial check (avoiding circular imports)
             from datetime import datetime, timezone
             try:

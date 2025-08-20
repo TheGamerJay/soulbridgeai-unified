@@ -601,7 +601,7 @@ async function refreshDecoderLimits() {
 
         const { effective_plan, trial_active, usage_today, daily_limit, user_plan } = data;
 
-        const hasUnlimited = user_plan === "max" && !trial_active;  // Only if REAL Max tier (not trial)
+        const hasUnlimited = user_plan === "gold" && !trial_active;  // Only if REAL Gold tier (not trial)
         const displayLimit = hasUnlimited ? "∞" : daily_limit;
 
         const usage = usage_today ?? 0;
@@ -632,10 +632,10 @@ async function refreshDecoderLimits() {
         const msg = document.getElementById("plan-description");
         const maxMsg = document.getElementById("max-plan-message");
 
-        if (user_plan === "max") {
+        if (user_plan === "gold") {
             maxMsg.style.display = "block";
             msg.style.display = "none";
-        } else if (user_plan === "growth") {
+        } else if (user_plan === "silver") {
             maxMsg.style.display = "none";
             msg.textContent = `🧠 Daily Decodes: ${usage} / ${displayLimit} used`;
         } else if (trial_active) {

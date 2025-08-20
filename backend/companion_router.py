@@ -286,7 +286,7 @@ if __name__ == "__main__":
     print("\n" + "="*50)
     print("Testing routing recommendations...")
     
-    test_plans = ["free", "growth", "vip", "max"]
+    test_plans = ["bronze", "silver", "vip", "gold"]
     test_user = "test_user_123"
     
     for plan in test_plans:

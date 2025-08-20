@@ -34,15 +34,18 @@ def me():
             }), 401
         
         # Get all data from session to avoid database calls
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         trial_active = bool(session.get('trial_active', False))
         trial_expires_at = session.get('trial_expires_at')
         
-        # Map internal plan names to display names
+        # Map legacy plan names to current names (for migration compatibility)
         plan_mapping = {
             'free': 'bronze',
-            'growth': 'silver',
-            'max': 'gold'
+            'growth': 'silver', 
+            'max': 'gold',
+            'bronze': 'bronze',
+            'silver': 'silver',
+            'gold': 'gold'
         }
         plan = plan_mapping.get(user_plan, 'bronze')
         
@@ -50,21 +53,21 @@ def me():
         unlocked_tiers = ["bronze"]
         accessible_companion_tiers = ["bronze"]
         
-        if user_plan in ['growth', 'max'] or trial_active:
+        if user_plan in ['growth', 'silver', 'max', 'gold'] or trial_active:
             unlocked_tiers.append("silver")
             accessible_companion_tiers.append("silver")
         
-        if user_plan == 'max' or trial_active:
+        if user_plan in ['max', 'gold'] or trial_active:
             unlocked_tiers.append("gold")
             accessible_companion_tiers.append("gold")
         
         # Set limits based on ACTUAL plan, not trial access
         # Trial users keep their bronze tier limits but gain companion access
-        if user_plan == 'max':
+        if user_plan in ['max', 'gold']:
             limits = {"decoder": 999999, "fortune": 999999, "horoscope": 999999, "creative_writer": 999999}
-        elif user_plan == 'growth':
+        elif user_plan in ['growth', 'silver']:
             limits = {"decoder": 15, "fortune": 8, "horoscope": 10, "creative_writer": 20}
-        else:  # Bronze tier (free plan) - even during trial
+        else:  # Bronze tier (free/bronze plan) - even during trial
             limits = {"decoder": 3, "fortune": 2, "horoscope": 3, "creative_writer": 2}
         
         access = {
@@ -159,8 +162,8 @@ def trial_status():
         # Get user plan to determine trial eligibility
         plan = db_get_user_plan(uid)
         
-        # Only Bronze users can use trial
-        trial_eligible = (plan == "bronze")
+        # Only Bronze users can use trial (support legacy 'free' name)
+        trial_eligible = (plan in ["bronze", "free"])
         
         # Calculate access during trial
         access = get_effective_access(plan, trial_active, trial_expires_at)
@@ -257,8 +260,8 @@ def trial_activate():
         # Get current user plan
         plan = db_get_user_plan(uid)
         
-        # Only Bronze users can activate trial
-        if plan != "bronze":
+        # Only Bronze users can activate trial (support legacy 'free' name)
+        if plan not in ["bronze", "free"]:
             return jsonify({
                 "success": False,
                 "error": f"Trial is only available for Bronze users. You have {plan.title()} tier."
@@ -372,9 +375,9 @@ def credits_purchase():
                 "error": "Invalid credit package parameters"
             }), 400
         
-        # Check user plan - only Silver/Gold can purchase credits
+        # Check user plan - only Silver/Gold can purchase credits (support legacy names)
         plan = db_get_user_plan(uid)
-        if plan not in ['silver', 'gold']:
+        if plan not in ['silver', 'gold', 'growth', 'max']:
             return jsonify({
                 "success": False,
                 "error": "Credit purchases are only available for Silver and Gold subscribers"

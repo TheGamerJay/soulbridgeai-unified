@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 
 export default function CharacterSelect({ onSelect }) {
-  const [companions, setCompanions] = useState({ free: [], growth: [], max: [], referral: [] });
-  const [selectedTier, setSelectedTier] = useState('free');
+  const [companions, setCompanions] = useState({ bronze: [], silver: [], gold: [], referral: [] });
+  const [selectedTier, setSelectedTier] = useState('bronze');
   const [loading, setLoading] = useState(true);
   const [userPlan, setUserPlan] = useState('free');
   const [trialActive, setTrialActive] = useState(false);
@@ -84,18 +84,21 @@ export default function CharacterSelect({ onSelect }) {
   const getAccessibleTiers = () => {
     if (trialActive) {
       // During trial: unlock everything regardless of subscription tier
-      return ['free', 'growth', 'max', 'referral'];
+      return ['bronze', 'silver', 'gold', 'referral'];
     } else {
       // Normal access based on subscription tier
       switch (userPlan) {
-        case 'free':
-          return ['free'];
-        case 'growth':
-          return ['free', 'growth'];
-        case 'max':
-          return ['free', 'growth', 'max', 'referral'];
+        case 'bronze':
+        case 'free': // Legacy compatibility
+          return ['bronze'];
+        case 'silver':
+        case 'growth': // Legacy compatibility
+          return ['bronze', 'silver'];
+        case 'gold':
+        case 'max': // Legacy compatibility
+          return ['bronze', 'silver', 'gold', 'referral'];
         default:
-          return ['free'];
+          return ['bronze'];
       }
     }
   };

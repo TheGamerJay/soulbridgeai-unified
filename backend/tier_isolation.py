@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-TIER ISOLATION SYSTEM - Complete separation of Free, Growth, and Max tiers
+TIER ISOLATION SYSTEM - Complete separation of Bronze, Silver, and Gold tiers
 No shared session data, no cross-contamination, perfect isolation
 """
 
@@ -42,11 +42,11 @@ class TierSystem:
             del session[self.session_key]
         session.modified = True
 
-class FreeTier(TierSystem):
-    """Free tier - completely isolated system"""
+class BronzeTier(TierSystem):
+    """Bronze tier - completely isolated system"""
     
     def __init__(self):
-        super().__init__('free')
+        super().__init__('bronze')
         self.features = [
             'basic_chat',
             'blayzo_companion', 
