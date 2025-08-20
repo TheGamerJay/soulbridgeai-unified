@@ -366,6 +366,14 @@ try:
 except ImportError as e:
     print(f"WARNING: Analytics system not available: {e}")
 
+# Register enhanced referral API blueprint
+try:
+    from referral_api import referral_api_bp
+    app.register_blueprint(referral_api_bp)  # /api/referrals/...
+    print("Enhanced referral API registered successfully")
+except ImportError as e:
+    print(f"WARNING: Enhanced referral API not available: {e}")
+
 # Analytics dashboard route
 @app.route("/analytics")
 def analytics_page():
@@ -11789,9 +11797,17 @@ def api_referrals_dashboard():
                 for record in history:
                     # Mask email for privacy
                     masked_email = record[0][:3] + "***@" + record[0].split('@')[1] if '@' in record[0] else "***"
+                    
+                    # Use proper datetime formatting (import at top of function)
+                    try:
+                        from datetime_utils import iso_z
+                        date_str = iso_z(record[1]) if record[1] else None
+                    except ImportError:
+                        date_str = record[1].strftime("%Y-%m-%d") if record[1] else "Unknown"
+                    
                     referral_history.append({
                         "email": masked_email,
-                        "date": record[1].strftime("%Y-%m-%d") if record[1] else "Unknown",
+                        "date": date_str,
                         "status": record[2] or "pending",
                         "reward_earned": "Companion Access" if record[2] == 'completed' else "Pending signup"
                     })

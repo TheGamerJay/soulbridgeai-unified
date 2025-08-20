@@ -19,11 +19,12 @@ def apply_hybrid_referrals_migration(db_connection):
     try:
         logger.info("🔧 Starting exact hybrid referrals migration...")
         
-        # Step 0: Add email columns if missing (exact SQL from specification)
-        logger.info("📝 Adding email columns to referrals table...")
+        # Step 0: Add email columns + fraud protection columns if missing
+        logger.info("📝 Adding email and fraud protection columns to referrals table...")
         cursor.execute("""
             DO $$
             BEGIN
+                -- Email columns for hybrid approach
                 IF NOT EXISTS (SELECT 1 FROM information_schema.columns
                                WHERE table_name='referrals' AND column_name='referrer_email') THEN
                     ALTER TABLE referrals ADD COLUMN referrer_email VARCHAR(255);
@@ -32,9 +33,19 @@ def apply_hybrid_referrals_migration(db_connection):
                                WHERE table_name='referrals' AND column_name='referred_email') THEN
                     ALTER TABLE referrals ADD COLUMN referred_email VARCHAR(255);
                 END IF;
+                
+                -- Fraud protection columns
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                               WHERE table_name='referrals' AND column_name='created_ip') THEN
+                    ALTER TABLE referrals ADD COLUMN created_ip INET;
+                END IF;
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                               WHERE table_name='referrals' AND column_name='created_ua') THEN
+                    ALTER TABLE referrals ADD COLUMN created_ua TEXT;
+                END IF;
             END $$;
         """)
-        logger.info("✅ Email columns added/verified")
+        logger.info("✅ Email and fraud protection columns added/verified")
         
         # Step 1: Backfill emails from users based on IDs
         logger.info("🔄 Backfilling emails from users based on IDs...")
