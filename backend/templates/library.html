@@ -1058,9 +1058,17 @@
                 { id: 'GoldVen Sky', name: 'Ven Sky (Gold)', avatar: '/static/logos/Ven Sky a Max companion.png', tier: 'gold', description: 'Advanced Sky variant', available: false },
                 { id: 'GoldWatchDog', name: 'WatchDog (Gold)', avatar: '/static/logos/WatchDog a Max Companion.png', tier: 'gold', description: 'Elite security companion', available: false },
                 
+                // Referral Tier (5 companions) - Locked, earned through referrals only
+                { id: 'Blayzike', name: 'Blayzike', avatar: '/static/logos/Blayzike.png', tier: 'referral', description: 'Exclusive referral companion', available: false },
+                { id: 'Nyxara', name: 'Nyxara', avatar: '/static/logos/Nyxara.png', tier: 'referral', description: 'Mystical referral companion', available: false },
+                { id: 'Blazelian', name: 'Blazelian', avatar: '/static/logos/Blazelian.png', tier: 'referral', description: 'Elite referral companion', available: false },
+                { id: 'Claude Referral', name: 'Claude Referral', avatar: '/static/logos/Claude Referral.png', tier: 'referral', description: 'Ultimate referral companion', available: false },
+                { id: 'Blayzo Referral', name: 'Blayzo Referral', avatar: '/static/logos/Blayzo Referral.png', tier: 'referral', description: 'Special Blayzo referral variant', available: false },
+                
                 // Special companions (content specialists - always available for filtering)
                 { id: 'Fortune Teller', name: 'Fortune Teller', avatar: '/static/logos/Fortune Teller Sky.png', tier: 'special', description: 'Fortune reading specialist', available: true },
-                { id: 'Agent', name: 'Agent', avatar: '/static/logos/Agent The decoder.png', tier: 'special', description: 'Decoder specialist', available: true }
+                { id: 'Agent', name: 'Agent', avatar: '/static/logos/Agent The decoder.png', tier: 'special', description: 'Decoder/Coder specialist', available: true },
+                { id: 'Sky', name: 'Sky (Horoscope)', avatar: '/static/logos/horoscope sky.png', tier: 'special', description: 'Horoscope specialist', available: true }
             ];
             
             // Clear existing dropdown content
@@ -1096,6 +1104,7 @@
             if (tier === 'bronze') return '<span class="companion-tier-badge tier-bronze">BRONZE</span>';
             if (tier === 'silver') return `<span class="companion-tier-badge ${available ? 'tier-silver' : 'tier-locked'}">SILVER</span>`;
             if (tier === 'gold') return `<span class="companion-tier-badge ${available ? 'tier-gold' : 'tier-locked'}">GOLD</span>`;
+            if (tier === 'referral') return '<span class="companion-tier-badge tier-locked">REFERRAL ONLY</span>';
             if (tier === 'special') return '<span class="companion-tier-badge tier-bronze">SPECIAL</span>';
             return '';
         }
