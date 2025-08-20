@@ -808,36 +808,26 @@
                         <div class="upgrade-options">
                             <h4 style="margin: 0 0 0.75rem 0; color: #333;">Upgrade Your Plan</h4>
                             
-                            <!-- Silver Tier Options -->
+                            <!-- Tier Information -->
                             <div class="upgrade-tier" style="margin-bottom: 1rem;">
-                                <h5 style="margin: 0 0 0.5rem 0; color: #666;">🥈 Silver Tier</h5>
-                                <div class="upgrade-buttons-row">
-                                    <button class="upgrade-btn silver" onclick="upgradeToSilver('monthly')">
-                                        $12.99/month
-                                    </button>
-                                    <button class="upgrade-btn silver yearly" onclick="upgradeToSilver('yearly')">
-                                        $117/year <span class="savings">(25% off)</span>
-                                    </button>
-                                </div>
+                                <h5 style="margin: 0 0 0.5rem 0; color: #666;">🥈 Silver Tier - $12.99/month or $117/year</h5>
                                 <div class="tier-features">
                                     Enhanced limits • 100 credits • No ads
                                 </div>
                             </div>
                             
-                            <!-- Gold Tier Options -->
-                            <div class="upgrade-tier">
-                                <h5 style="margin: 0 0 0.5rem 0; color: #666;">🥇 Gold Tier</h5>
-                                <div class="upgrade-buttons-row">
-                                    <button class="upgrade-btn gold" onclick="upgradeToGold('monthly')">
-                                        $19.99/month
-                                    </button>
-                                    <button class="upgrade-btn gold yearly" onclick="upgradeToGold('yearly')">
-                                        $180/year <span class="savings">(25% off)</span>
-                                    </button>
-                                </div>
+                            <div class="upgrade-tier" style="margin-bottom: 1rem;">
+                                <h5 style="margin: 0 0 0.5rem 0; color: #666;">🥇 Gold Tier - $19.99/month or $180/year</h5>
                                 <div class="tier-features">
                                     Unlimited • 500 credits • Mini Studio • All features
                                 </div>
+                            </div>
+                            
+                            <!-- Single upgrade button linking to subscription page -->
+                            <div style="text-align: center; margin-top: 1rem;">
+                                <a href="/subscription" class="profile-btn" style="text-decoration: none; display: inline-block; text-align: center; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600;">
+                                    ⚡ Choose Your Plan
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -2025,62 +2015,6 @@
             }
         };
 
-        // Subscription upgrade functions
-        window.upgradeToSilver = async (billingCycle) => {
-            try {
-                const response = await fetch('/api/create-checkout-session', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    credentials: 'same-origin',
-                    body: JSON.stringify({
-                        plan: 'silver',
-                        billing_cycle: billingCycle
-                    })
-                });
-
-                const result = await response.json();
-                
-                if (response.ok && result.ok) {
-                    // Redirect to Stripe Checkout
-                    window.location.href = result.url;
-                } else {
-                    throw new Error(result.error || 'Failed to create checkout session');
-                }
-            } catch (error) {
-                console.error('Silver upgrade error:', error);
-                alert('❌ Failed to start Silver subscription: ' + error.message);
-            }
-        };
-
-        window.upgradeToGold = async (billingCycle) => {
-            try {
-                const response = await fetch('/api/create-checkout-session', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    credentials: 'same-origin',
-                    body: JSON.stringify({
-                        plan: 'gold',
-                        billing_cycle: billingCycle
-                    })
-                });
-
-                const result = await response.json();
-                
-                if (response.ok && result.ok) {
-                    // Redirect to Stripe Checkout
-                    window.location.href = result.url;
-                } else {
-                    throw new Error(result.error || 'Failed to create checkout session');
-                }
-            } catch (error) {
-                console.error('Gold upgrade error:', error);
-                alert('❌ Failed to start Gold subscription: ' + error.message);
-            }
-        };
 
         // Color customization functions
 
