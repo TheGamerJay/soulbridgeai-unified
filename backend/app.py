@@ -17830,7 +17830,7 @@ def gpt5_demo():
 # Services will be initialized on first request to avoid blocking module import
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8080))
+    port = int(os.environ.get("PORT", 5000))  # Railway/Heroku standard default
     logger.info(f"Starting SoulBridge AI on port {port}")
     logger.info(f"Environment: {'Production' if os.environ.get('RAILWAY_ENVIRONMENT') else 'Development'}")
     

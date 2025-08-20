@@ -304,8 +304,20 @@ def create_indexes(db_connection):
         
         # Referral indexes - check if referrals table exists first
         try:
-            cursor.execute("SELECT 1 FROM referrals LIMIT 1")
-            # Table exists, create indexes
+            # First verify the table structure
+            cursor.execute("SELECT column_name FROM information_schema.columns WHERE table_name = 'referrals' ORDER BY ordinal_position")
+            columns = [row[0] for row in cursor.fetchall()]
+            logger.info(f"📋 Referrals table columns found: {columns}")
+            
+            if not columns:
+                logger.error("❌ Referrals table not found in database")
+                raise Exception("Referrals table does not exist")
+            
+            if 'referrer_id' not in columns:
+                logger.error(f"❌ referrer_id column missing from referrals table. Available columns: {columns}")
+                raise Exception("referrer_id column does not exist in referrals table")
+            
+            # Table exists with correct structure, create indexes
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_referrals_referrer ON referrals(referrer_id)")
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_referrals_referred ON referrals(referred_id)")
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_referrals_code ON referrals(referral_code)")
@@ -313,13 +325,6 @@ def create_indexes(db_connection):
             logger.info("✅ Referral indexes created")
         except Exception as e:
             logger.error(f"❌ Failed to create referral indexes: {e}")
-            # Check what columns actually exist
-            try:
-                cursor.execute("SELECT column_name FROM information_schema.columns WHERE table_name = 'referrals'")
-                columns = [row[0] for row in cursor.fetchall()]
-                logger.error(f"❌ Available columns in referrals table: {columns}")
-            except:
-                logger.error("❌ Could not query referrals table columns")
             raise
         
         # Cosmetic indexes
@@ -336,6 +341,11 @@ def create_indexes(db_connection):
         logger.info("✅ Database indexes created successfully")
     except Exception as e:
         logger.error(f"❌ Failed to create indexes: {e}")
+        # Rollback on error to ensure clean state
+        try:
+            db_connection.rollback()
+        except:
+            pass
         raise
 
 def initialize_subscriptions_referrals_cosmetics_schema():
@@ -343,6 +353,7 @@ def initialize_subscriptions_referrals_cosmetics_schema():
     Main function to initialize the complete schema
     Call this during application startup
     """
+    conn = None
     try:
         from database_utils import get_database
         
@@ -363,17 +374,29 @@ def initialize_subscriptions_referrals_cosmetics_schema():
         # Insert default data
         insert_default_cosmetics(conn)
         
-        # Create indexes
+        # Create indexes - this is where the referrer_id issue occurs
         create_indexes(conn)
         
-        conn.close()
+        # Final commit to ensure everything is persisted
+        conn.commit()
         
         logger.info("✅ Subscriptions + Referrals + Cosmetics schema initialized successfully!")
         return True
         
     except Exception as e:
         logger.error(f"❌ Failed to initialize schema: {e}")
+        if conn:
+            try:
+                conn.rollback()
+            except:
+                pass
         return False
+    finally:
+        if conn:
+            try:
+                conn.close()
+            except:
+                pass
 
 # Utility functions for schema management
 

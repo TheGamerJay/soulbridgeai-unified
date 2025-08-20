@@ -41,8 +41,8 @@ ENV FLASK_APP=app.py
 ENV FLASK_ENV=production
 ENV PYTHONPATH=/app
 
-# Expose Flask port
-EXPOSE 8080
+# Expose port (Railway will provide actual port via $PORT env var)
+EXPOSE 5000
 
 # Make start script executable
 RUN chmod +x start.sh
