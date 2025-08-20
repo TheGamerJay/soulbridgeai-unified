@@ -23,7 +23,7 @@ def create_subscriptions_tables(db_connection):
     # Subscriptions table - tracks Growth/Max tier subscriptions
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS subscriptions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             user_id INTEGER NOT NULL,
             stripe_subscription_id VARCHAR(255) UNIQUE,
             stripe_customer_id VARCHAR(255),
@@ -45,7 +45,7 @@ def create_subscriptions_tables(db_connection):
     # Subscription history - tracks all subscription changes
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS subscription_history (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             user_id INTEGER NOT NULL,
             subscription_id INTEGER,
             action VARCHAR(50) NOT NULL,
@@ -69,7 +69,7 @@ def create_referrals_tables(db_connection):
     # Referrals table - tracks referral relationships
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS referrals (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             referrer_id INTEGER NOT NULL,
             referred_id INTEGER NOT NULL,
             referral_code VARCHAR(20) NOT NULL,
@@ -89,7 +89,7 @@ def create_referrals_tables(db_connection):
     # Referral codes table - manages unique referral codes
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS referral_codes (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             user_id INTEGER NOT NULL,
             code VARCHAR(20) NOT NULL UNIQUE,
             uses_count INTEGER DEFAULT 0,
@@ -105,7 +105,7 @@ def create_referrals_tables(db_connection):
     # Referral rewards table - tracks cosmetic unlocks from referrals
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS referral_rewards (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             user_id INTEGER NOT NULL,
             threshold_reached INTEGER NOT NULL, -- 2, 5, 8, 10 referrals
             cosmetic_id INTEGER NOT NULL,
@@ -126,7 +126,7 @@ def create_cosmetics_tables(db_connection):
     # Cosmetics table - defines all available cosmetic companions
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS cosmetics (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             name VARCHAR(50) NOT NULL UNIQUE,
             display_name VARCHAR(100) NOT NULL,
             description TEXT,
@@ -149,7 +149,7 @@ def create_cosmetics_tables(db_connection):
     # User cosmetics table - tracks which cosmetics each user has unlocked
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS user_cosmetics (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             user_id INTEGER NOT NULL,
             cosmetic_id INTEGER NOT NULL,
             unlocked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -165,7 +165,7 @@ def create_cosmetics_tables(db_connection):
     # User equipped cosmetics - tracks currently equipped cosmetics
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS user_equipped_cosmetics (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             user_id INTEGER NOT NULL,
             cosmetic_type VARCHAR(20) NOT NULL,
             cosmetic_id INTEGER NOT NULL,
