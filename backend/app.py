@@ -8122,15 +8122,30 @@ def increment_decoder_usage():
                 conn = db_instance.get_connection()
                 cursor = conn.cursor()
                 
-                # Get current database count
-                if db_instance.use_postgres:
-                    cursor.execute("SELECT decoder_used FROM users WHERE id = %s", (user_id,))
-                else:
-                    cursor.execute("SELECT decoder_used FROM users WHERE id = ?", (user_id,))
+                # Check if it's a new day and reset counter if needed
+                today = datetime.now().strftime('%Y-%m-%d')
+                last_reset_key = f'decoder_reset_{user_id}'
+                last_reset = session.get(last_reset_key, '')
                 
-                result = cursor.fetchone()
-                current_db_usage = (result[0] if result and result[0] else 0) if result else 0
-                new_usage = current_db_usage + 1
+                if last_reset != today:
+                    # New day - reset database counter to 0
+                    if db_instance.use_postgres:
+                        cursor.execute("UPDATE users SET decoder_used = 0 WHERE id = %s", (user_id,))
+                    else:
+                        cursor.execute("UPDATE users SET decoder_used = 0 WHERE id = ?", (user_id,))
+                    session[last_reset_key] = today
+                    new_usage = 1
+                    logger.info(f"📅 DAILY RESET: Reset decoder usage for user {user_id}")
+                else:
+                    # Same day - increment existing count
+                    if db_instance.use_postgres:
+                        cursor.execute("SELECT decoder_used FROM users WHERE id = %s", (user_id,))
+                    else:
+                        cursor.execute("SELECT decoder_used FROM users WHERE id = ?", (user_id,))
+                    
+                    result = cursor.fetchone()
+                    current_db_usage = (result[0] if result and result[0] else 0) if result else 0
+                    new_usage = current_db_usage + 1
                 
                 # Update database count
                 if db_instance.use_postgres:
@@ -8187,15 +8202,30 @@ def increment_fortune_usage():
                 conn = db_instance.get_connection()
                 cursor = conn.cursor()
                 
-                # Get current database count
-                if db_instance.use_postgres:
-                    cursor.execute("SELECT fortune_used FROM users WHERE id = %s", (user_id,))
-                else:
-                    cursor.execute("SELECT fortune_used FROM users WHERE id = ?", (user_id,))
+                # Check if it's a new day and reset counter if needed
+                today = datetime.now().strftime('%Y-%m-%d')
+                last_reset_key = f'fortune_reset_{user_id}'
+                last_reset = session.get(last_reset_key, '')
                 
-                result = cursor.fetchone()
-                current_db_usage = (result[0] if result and result[0] else 0) if result else 0
-                new_usage = current_db_usage + 1
+                if last_reset != today:
+                    # New day - reset database counter to 0
+                    if db_instance.use_postgres:
+                        cursor.execute("UPDATE users SET fortune_used = 0 WHERE id = %s", (user_id,))
+                    else:
+                        cursor.execute("UPDATE users SET fortune_used = 0 WHERE id = ?", (user_id,))
+                    session[last_reset_key] = today
+                    new_usage = 1
+                    logger.info(f"📅 DAILY RESET: Reset fortune usage for user {user_id}")
+                else:
+                    # Same day - increment existing count
+                    if db_instance.use_postgres:
+                        cursor.execute("SELECT fortune_used FROM users WHERE id = %s", (user_id,))
+                    else:
+                        cursor.execute("SELECT fortune_used FROM users WHERE id = ?", (user_id,))
+                    
+                    result = cursor.fetchone()
+                    current_db_usage = (result[0] if result and result[0] else 0) if result else 0
+                    new_usage = current_db_usage + 1
                 
                 # Update database count
                 if db_instance.use_postgres:
@@ -8252,15 +8282,30 @@ def increment_horoscope_usage():
                 conn = db_instance.get_connection()
                 cursor = conn.cursor()
                 
-                # Get current database count
-                if db_instance.use_postgres:
-                    cursor.execute("SELECT horoscope_used FROM users WHERE id = %s", (user_id,))
-                else:
-                    cursor.execute("SELECT horoscope_used FROM users WHERE id = ?", (user_id,))
+                # Check if it's a new day and reset counter if needed
+                today = datetime.now().strftime('%Y-%m-%d')
+                last_reset_key = f'horoscope_reset_{user_id}'
+                last_reset = session.get(last_reset_key, '')
                 
-                result = cursor.fetchone()
-                current_db_usage = (result[0] if result and result[0] else 0) if result else 0
-                new_usage = current_db_usage + 1
+                if last_reset != today:
+                    # New day - reset database counter to 0
+                    if db_instance.use_postgres:
+                        cursor.execute("UPDATE users SET horoscope_used = 0 WHERE id = %s", (user_id,))
+                    else:
+                        cursor.execute("UPDATE users SET horoscope_used = 0 WHERE id = ?", (user_id,))
+                    session[last_reset_key] = today
+                    new_usage = 1
+                    logger.info(f"📅 DAILY RESET: Reset horoscope usage for user {user_id}")
+                else:
+                    # Same day - increment existing count
+                    if db_instance.use_postgres:
+                        cursor.execute("SELECT horoscope_used FROM users WHERE id = %s", (user_id,))
+                    else:
+                        cursor.execute("SELECT horoscope_used FROM users WHERE id = ?", (user_id,))
+                    
+                    result = cursor.fetchone()
+                    current_db_usage = (result[0] if result and result[0] else 0) if result else 0
+                    new_usage = current_db_usage + 1
                 
                 # Update database count
                 if db_instance.use_postgres:
