@@ -302,6 +302,14 @@ try:
 except ImportError as e:
     print(f"WARNING: Companion API not available: {e}")
 
+# Register new clean chat route
+try:
+    from chat_route import bp as chat_bp
+    app.register_blueprint(chat_bp)
+    print("Clean chat route registered successfully")
+except ImportError as e:
+    print(f"WARNING: Clean chat route not available: {e}")
+
 # Register community system blueprint
 try:
     from community_system import register_community_system
@@ -10343,8 +10351,9 @@ def _get_openai_response(message: str, character: str, model: str, max_tokens: i
         logger.warning(f"OpenAI API error: {ai_error}")
         return f"Hello! I'm {character}, your AI companion. I understand you said: '{message[:50]}...'. I'm experiencing some technical difficulties with our premium service right now, but I'm still here to help you! What would you like to talk about?"
 
-@app.route("/api/chat", methods=["POST"])
-def api_chat():
+# OLD ROUTE - Replaced by clean chat_route.py
+# @app.route("/api/chat", methods=["POST"])
+def api_chat_old():
     """Chat API endpoint"""
     try:
         if not is_logged_in():
