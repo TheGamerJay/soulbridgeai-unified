@@ -11,128 +11,101 @@ logger = logging.getLogger(__name__)
 
 def apply_hybrid_referrals_migration(db_connection):
     """
-    Apply hybrid referrals migration to add email columns and sync triggers
-    This function is designed to be called from the main schema initialization
+    Apply hybrid referrals migration using the exact SQL specification
+    This implements the precise hybrid approach with bidirectional sync
     """
     cursor = db_connection.cursor()
     
     try:
-        logger.info("🔧 Starting hybrid referrals migration...")
+        logger.info("🔧 Starting exact hybrid referrals migration...")
         
-        # Step 1: Add email columns if missing
+        # Step 0: Add email columns if missing (exact SQL from specification)
         logger.info("📝 Adding email columns to referrals table...")
-        
-        try:
-            cursor.execute("""
-                ALTER TABLE referrals 
-                ADD COLUMN IF NOT EXISTS referrer_email VARCHAR(255)
-            """)
-            logger.info("✅ Added referrer_email column")
-        except Exception as e:
-            logger.warning(f"⚠️ referrer_email column may already exist: {e}")
-        
-        try:
-            cursor.execute("""
-                ALTER TABLE referrals 
-                ADD COLUMN IF NOT EXISTS referred_email VARCHAR(255)
-            """)
-            logger.info("✅ Added referred_email column")
-        except Exception as e:
-            logger.warning(f"⚠️ referred_email column may already exist: {e}")
-        
-        # Commit column additions
-        db_connection.commit()
-        
-        # Step 2: Backfill emails from users table
-        logger.info("🔄 Backfilling emails from users table...")
-        
-        # Backfill referrer emails
         cursor.execute("""
-            UPDATE referrals 
-            SET referrer_email = (
-                SELECT email FROM users WHERE id = referrals.referrer_id
-            )
-            WHERE referrer_email IS NULL AND referrer_id IS NOT NULL
+            DO $$
+            BEGIN
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                               WHERE table_name='referrals' AND column_name='referrer_email') THEN
+                    ALTER TABLE referrals ADD COLUMN referrer_email VARCHAR(255);
+                END IF;
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                               WHERE table_name='referrals' AND column_name='referred_email') THEN
+                    ALTER TABLE referrals ADD COLUMN referred_email VARCHAR(255);
+                END IF;
+            END $$;
+        """)
+        logger.info("✅ Email columns added/verified")
+        
+        # Step 1: Backfill emails from users based on IDs
+        logger.info("🔄 Backfilling emails from users based on IDs...")
+        cursor.execute("""
+            UPDATE referrals r
+            SET referrer_email = u.email
+            FROM users u
+            WHERE r.referrer_id = u.id AND r.referrer_email IS NULL;
         """)
         referrer_updates = cursor.rowcount
-        logger.info(f"✅ Updated {referrer_updates} referrer_email records")
         
-        # Backfill referred emails
         cursor.execute("""
-            UPDATE referrals 
-            SET referred_email = (
-                SELECT email FROM users WHERE id = referrals.referred_id
-            )
-            WHERE referred_email IS NULL AND referred_id IS NOT NULL
+            UPDATE referrals r
+            SET referred_email = u.email
+            FROM users u
+            WHERE r.referred_id = u.id AND r.referred_email IS NULL;
         """)
         referred_updates = cursor.rowcount
-        logger.info(f"✅ Updated {referred_updates} referred_email records")
+        logger.info(f"✅ Backfilled {referrer_updates} referrer + {referred_updates} referred emails from IDs")
         
-        # Step 3: Backfill IDs from emails (if any exist)
+        # Step 2: Backfill IDs from emails if any exist  
+        logger.info("🔄 Backfilling IDs from emails...")
         cursor.execute("""
-            UPDATE referrals 
-            SET referrer_id = (
-                SELECT id FROM users WHERE LOWER(email) = LOWER(referrals.referrer_email)
-            )
-            WHERE referrer_id IS NULL AND referrer_email IS NOT NULL
+            UPDATE referrals r
+            SET referrer_id = u.id
+            FROM users u
+            WHERE r.referrer_id IS NULL AND lower(r.referrer_email) = lower(u.email);
         """)
         referrer_id_updates = cursor.rowcount
-        logger.info(f"✅ Updated {referrer_id_updates} referrer_id records from emails")
         
         cursor.execute("""
-            UPDATE referrals 
-            SET referred_id = (
-                SELECT id FROM users WHERE LOWER(email) = LOWER(referrals.referred_email)
-            )
-            WHERE referred_id IS NULL AND referred_email IS NOT NULL
+            UPDATE referrals r
+            SET referred_id = u.id
+            FROM users u
+            WHERE r.referred_id IS NULL AND lower(r.referred_email) = lower(u.email);
         """)
         referred_id_updates = cursor.rowcount
-        logger.info(f"✅ Updated {referred_id_updates} referred_id records from emails")
+        logger.info(f"✅ Backfilled {referrer_id_updates} referrer + {referred_id_updates} referred IDs from emails")
         
-        # Step 4: Create additional indexes for email columns
+        # Step 3: Create indexes for speed (exact SQL from specification)
         logger.info("📊 Creating performance indexes...")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_referrals_referrer_id     ON referrals (referrer_id);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_referrals_referred_id     ON referrals (referred_id);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_referrals_referrer_email  ON referrals (lower(referrer_email));")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_referrals_referred_email  ON referrals (lower(referred_email));")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_referrals_status          ON referrals (status);")
+        logger.info("✅ Performance indexes created")
         
-        try:
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_referrals_referrer_email ON referrals (referrer_email)")
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_referrals_referred_email ON referrals (referred_email)")
-            logger.info("✅ Email column indexes created")
-        except Exception as e:
-            logger.warning(f"⚠️ Index creation warning: {e}")
-        
-        # Step 5: Create trigger function and trigger
+        # Step 4: Create trigger to keep emails in sync with IDs (exact SQL)
         logger.info("🔗 Creating sync trigger...")
+        cursor.execute("""
+            CREATE OR REPLACE FUNCTION sync_referral_emails() RETURNS trigger AS $$
+            BEGIN
+              IF NEW.referrer_id IS NOT NULL THEN
+                SELECT email INTO NEW.referrer_email FROM users WHERE id = NEW.referrer_id;
+              END IF;
+              IF NEW.referred_id IS NOT NULL THEN
+                SELECT email INTO NEW.referred_email FROM users WHERE id = NEW.referred_id;
+              END IF;
+              RETURN NEW;
+            END $$ LANGUAGE plpgsql;
+        """)
         
-        try:
-            # Create or replace the trigger function
-            cursor.execute("""
-                CREATE OR REPLACE FUNCTION sync_referral_emails() RETURNS trigger AS $$
-                BEGIN
-                    -- If referrer_id is set/changed, update the corresponding email
-                    IF NEW.referrer_id IS NOT NULL THEN
-                        SELECT email INTO NEW.referrer_email FROM users WHERE id = NEW.referrer_id;
-                    END IF;
-                    
-                    -- If referred_id is set/changed, update the corresponding email
-                    IF NEW.referred_id IS NOT NULL THEN
-                        SELECT email INTO NEW.referred_email FROM users WHERE id = NEW.referred_id;
-                    END IF;
-                    
-                    RETURN NEW;
-                END $$ LANGUAGE plpgsql;
-            """)
-            
-            # Drop and recreate the trigger
-            cursor.execute("DROP TRIGGER IF EXISTS trg_sync_referral_emails ON referrals")
-            cursor.execute("""
-                CREATE TRIGGER trg_sync_referral_emails
-                    BEFORE INSERT OR UPDATE ON referrals
-                    FOR EACH ROW
-                    EXECUTE PROCEDURE sync_referral_emails()
-            """)
-            
-            logger.info("✅ Sync trigger created successfully")
-        except Exception as e:
-            logger.warning(f"⚠️ Trigger creation warning (PostgreSQL only): {e}")
+        cursor.execute("DROP TRIGGER IF EXISTS trg_sync_referral_emails ON referrals;")
+        cursor.execute("""
+            CREATE TRIGGER trg_sync_referral_emails
+            BEFORE INSERT OR UPDATE ON referrals
+            FOR EACH ROW
+            EXECUTE PROCEDURE sync_referral_emails();
+        """)
+        logger.info("✅ Sync trigger created successfully")
         
         # Final commit
         db_connection.commit()
