@@ -80,7 +80,7 @@ def api_chat():
                 {"role": "user", "content": user_message}
             ],
             temperature=0.7,
-            max_tokens=200
+            max_tokens=800  # Increased for longer responses like stories
         )
 
         # Extract response
