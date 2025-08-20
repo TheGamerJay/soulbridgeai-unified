@@ -3553,9 +3553,17 @@ def chat():
             logger.error(f"Error syncing trial session: {e}")
     
     # Use session values (now synced with database)
-    user_plan = session.get('user_plan', 'free') or 'free'
+    internal_user_plan = session.get('user_plan', 'free') or 'free'
     trial_active = session.get('trial_active', False)
-    effective_plan = get_effective_plan(user_plan, trial_active)  # FIXED: Calculate fresh
+    effective_plan = get_effective_plan(internal_user_plan, trial_active)  # FIXED: Calculate fresh
+    
+    # Map internal plan names to display names for template
+    plan_mapping = {
+        'free': 'bronze',
+        'growth': 'silver', 
+        'max': 'gold'
+    }
+    user_plan = plan_mapping.get(internal_user_plan, 'bronze')
     
     # Handle companion selection using bulletproof data
     companion_id = request.args.get('companion')
@@ -8403,7 +8411,7 @@ def debug_user_tier_info():
     trial_active = session.get('trial_active', False)
     effective_plan = get_effective_plan(user_plan, trial_active)
     
-    # Check what features should be unlocked
+    # Check what features should be unlocked (using internal plan names)
     should_see_relationships = user_plan in ['growth', 'max']
     should_see_meditations = user_plan in ['growth', 'max'] 
     should_see_mini_studio = user_plan == 'max'
@@ -8437,13 +8445,21 @@ def debug_set_user_tier(tier):
     if not user_id:
         return jsonify({"error": "Not logged in"}), 401
     
-    valid_tiers = ['free', 'growth', 'max']
+    valid_tiers = ['bronze', 'silver', 'gold']
     if tier not in valid_tiers:
         return jsonify({"error": f"Invalid tier. Must be one of: {valid_tiers}"}), 400
     
-    # Update session
+    # Map display names back to internal names
+    tier_mapping = {
+        'bronze': 'free',
+        'silver': 'growth',
+        'gold': 'max'
+    }
+    internal_tier = tier_mapping[tier]
+    
+    # Update session with internal name
     old_plan = session.get('user_plan', 'free')
-    session['user_plan'] = tier
+    session['user_plan'] = internal_tier
     
     # Update database if available
     try:
@@ -8453,9 +8469,9 @@ def debug_set_user_tier(tier):
             cursor = conn.cursor()
             
             if db_instance.use_postgres:
-                cursor.execute("UPDATE users SET user_plan = %s WHERE id = %s", (tier, user_id))
+                cursor.execute("UPDATE users SET user_plan = %s WHERE id = %s", (internal_tier, user_id))
             else:
-                cursor.execute("UPDATE users SET user_plan = ? WHERE id = ?", (tier, user_id))
+                cursor.execute("UPDATE users SET user_plan = ? WHERE id = ?", (internal_tier, user_id))
             
             conn.commit()
             conn.close()
@@ -8468,9 +8484,9 @@ def debug_set_user_tier(tier):
         "old_plan": old_plan,
         "new_plan": tier,
         "features_unlocked": {
-            "relationships": tier in ['growth', 'max'],
-            "meditations": tier in ['growth', 'max'],
-            "mini_studio": tier == 'max'
+            "relationships": internal_tier in ['growth', 'max'],
+            "meditations": internal_tier in ['growth', 'max'],
+            "mini_studio": internal_tier == 'max'
         }
     }), 200
 
