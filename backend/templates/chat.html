@@ -148,7 +148,7 @@
                 <!-- Trial Badge (shows when trial is active) -->
                 <div class="trial-status-container">
                     <!-- Removed redundant trial badge - timer banner shows trial status -->
-                    <div id="trial-banner" class="simple-timer" style="display: {% if session.get('trial_active') %}flex{% else %}none{% endif %}; align-items: center; gap: 15px;">
+                    <div id="trial-banner" style="display: {% if session.get('trial_active') %}flex{% else %}none{% endif %}; align-items: center; gap: 15px; background: rgba(34, 211, 238, 0.1); border: 1px solid rgba(34, 211, 238, 0.3); border-radius: 12px; padding: 8px 12px; color: #22d3ee; font-weight: bold;">
                         <div><strong><i class="fas fa-clock"></i> Trial Active</strong></div>
                         <div id="trial-circular-timer"></div>
                     </div>
