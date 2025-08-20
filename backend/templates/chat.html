@@ -148,9 +148,9 @@
                 <!-- Trial Badge (shows when trial is active) -->
                 <div class="trial-status-container">
                     <!-- Removed redundant trial badge - timer banner shows trial status -->
-                    <div id="trial-banner" class="simple-timer" style="display: {% if session.get('trial_active') %}block{% else %}none{% endif %};">
-                        <strong><i class="fas fa-clock"></i> Trial Active</strong>
-                        <span id="trial-eta">— 05:00:00</span>
+                    <div id="trial-banner" class="simple-timer" style="display: {% if session.get('trial_active') %}flex{% else %}none{% endif %}; align-items: center; gap: 15px;">
+                        <div><strong><i class="fas fa-clock"></i> Trial Active</strong></div>
+                        <div id="trial-circular-timer"></div>
                     </div>
                 </div>
             </div>
@@ -192,6 +192,9 @@
 
     <!-- Confetti Library -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    
+    <!-- Include Circular Trial Timer -->
+    <script src="{{ url_for('static', filename='js/circular-trial-timer.js') }}"></script>
 
     <!-- JavaScript -->
     <script>
@@ -2394,13 +2397,8 @@ Where emotion meets expression.
         }
 
         // =========================
-        // Front-end JS – robust countdown
+        // Circular Trial Timer System
         // =========================
-        // Common mistakes this fixes:
-        // - Using centiseconds as seconds (→ 8:99.99)
-        // - Parsing ISO without 'Z' (→ timezone drift)
-        // - Letting setInterval drift while tab is hidden
-
         async function loadTrial() {
             // Try v1 entitlements endpoint first
             let d = null;
@@ -2421,107 +2419,59 @@ Where emotion meets expression.
                 const r = await fetch('/api/trial-status', { credentials: 'include' });
                 d = await r.json();
             }
-            // Trial status received
+            
             if (!d.logged_in) { 
-                // Not logged in, timer hidden
                 return; 
             }
 
             const banner = document.getElementById('trial-banner');
-            const etaEl  = document.getElementById('trial-eta');
 
             if (!d.active) {
                 // No active trial, timer hidden
                 if (banner) banner.style.display = 'none';
                 
-                // Stop any running timer
-                if (window.chatTrialTimer) {
-                    clearInterval(window.chatTrialTimer);
-                    window.chatTrialTimer = null;
+                // Stop any running circular timer
+                if (window.chatCircularTimer) {
+                    window.chatCircularTimer.stop();
                 }
                 return;
             }
             
             // Active trial found, showing timer
+            if (banner) banner.style.display = 'flex';
 
-            if (banner) banner.style.display = 'block';
-
-            // Prefer server-provided epoch ms to avoid TZ parsing bugs
-            let expireMs;
+            // Initialize circular timer if not already running
+            if (!window.chatCircularTimer || !window.chatCircularTimer.isRunning()) {
+                initChatCircularTimer(d);
+            }
+        }
+        
+        // Initialize circular trial timer for chat page
+        function initChatCircularTimer(data) {
+            const container = document.getElementById('trial-circular-timer');
+            if (!container || !data.expires_at) return;
             
-            if (typeof d.expires_at_ms === 'number' && !isNaN(d.expires_at_ms)) {
-                expireMs = d.expires_at_ms;
-            } else if (d.expires_at) {
-                expireMs = new Date(d.expires_at).getTime();
-            } else {
-                console.error('❌ TIMER: No valid expiration data available');
-                if (etaEl) etaEl.textContent = '— Loading...';
-                return;
+            // Destroy any existing timer
+            if (window.chatCircularTimer) {
+                window.chatCircularTimer.destroy();
             }
             
-            // Validate the parsed timestamp
-            if (isNaN(expireMs)) {
-                console.error('❌ TIMER: Invalid expiration timestamp');
-                if (etaEl) etaEl.textContent = '— Error loading timer';
-                return;
-            }
-
-            function fmt(h, m, s) {
-                return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-            }
-
-            function tick() {
-                const now = Date.now();
-                let delta = Math.max(0, expireMs - now);  // clamp at 0
-                const hours   = Math.floor(delta / 3600000);
-                const minutes = Math.floor((delta % 3600000) / 60000);
-                const seconds = Math.floor((delta % 60000) / 1000);
-
-                const timeDisplay = `— ${fmt(hours, minutes, seconds)}`;
-                // Only log timer updates every 30 seconds to reduce console spam
-                if (Math.floor(delta/1000) % 30 === 0) {
-                    console.log(`⏱️ ROBUST TIMER: ${timeDisplay} (${Math.floor(delta/1000)}s remaining)`);
+            // Create new circular timer
+            window.chatCircularTimer = new CircularTrialTimer('trial-circular-timer', {
+                size: 60,
+                stroke: 4,
+                showLabel: false,
+                onExpire: function() {
+                    // Hide banner and refresh limits
+                    const banner = document.getElementById('trial-banner');
+                    if (banner) banner.style.display = 'none';
+                    // Refresh user status to update limits
+                    refreshUserStatus();
                 }
-                if (etaEl) etaEl.textContent = timeDisplay;
-
-                // Update warning states
-                if (banner) {
-                    banner.classList.remove('warning', 'critical');
-                    const timeInSeconds = delta / 1000;
-                    if (timeInSeconds < 600) { // < 10 minutes
-                        banner.classList.add('critical');
-                    } else if (timeInSeconds < 1800) { // < 30 minutes
-                        banner.classList.add('warning');
-                    }
-                }
-
-                if (delta === 0) {
-                    if (window.chatTrialTimer) {
-                        clearInterval(window.chatTrialTimer);
-                        window.chatTrialTimer = null;
-                    }
-                    if (etaEl) etaEl.textContent = '— 00:00:00';
-                    // optionally refresh UI/limits here
-                }
-            }
-
-            // Prevent multiple timers - clear any existing timer first
-            if (window.chatTrialTimer) {
-                clearInterval(window.chatTrialTimer);
-                window.chatTrialTimer = null;
-            }
-
-            // First draw + stable 1s cadence
-            tick();
-            window.chatTrialTimer = setInterval(tick, 1000);
-
-            // Recover quickly from background-tab drift
-            if (!window.chatVisibilityListenerAdded) {
-                document.addEventListener('visibilitychange', () => {
-                    if (!document.hidden) tick();
-                });
-                window.chatVisibilityListenerAdded = true;
-            }
+            });
+            
+            // Start the timer
+            window.chatCircularTimer.start(data.expires_at);
         }
 
         // Legacy function for compatibility - DISABLED to prevent timezone bugs

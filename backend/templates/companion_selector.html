@@ -769,10 +769,12 @@
                 <i class="fas fa-star"></i> Start 5hr Premium Trial
             </button>
             
-            <!-- Trial Active Banner -->
-            <div id="trial-banner" style="display: {% if session.get('trial_active') %}block{% else %}none{% endif %}; margin-top: 20px; background: linear-gradient(135deg, #22d3ee, #06b6d4); color: white; padding: 12px 20px; border-radius: 15px; font-weight: bold;">
-                <i class="fas fa-star"></i> Premium Trial Active - All Features Unlocked! 
-                <span id="trial-eta">5:00:00</span>
+            <!-- Trial Active Banner with Circular Timer -->
+            <div id="trial-banner" style="display: {% if session.get('trial_active') %}flex{% else %}none{% endif %}; margin-top: 20px; background: linear-gradient(135deg, #22d3ee, #06b6d4); color: white; padding: 12px 20px; border-radius: 15px; font-weight: bold; align-items: center; gap: 15px;">
+                <div>
+                    <i class="fas fa-star"></i> Premium Trial Active - All Features Unlocked!
+                </div>
+                <div id="trial-circular-timer"></div>
             </div>
             
         </div>
@@ -1182,6 +1184,9 @@
         </div>
     </div>
 
+    <!-- Include Circular Trial Timer -->
+    <script src="{{ url_for('static', filename='js/circular-trial-timer.js') }}"></script>
+    
     <script>
         // REMOVED problematic session check that was causing flash/redirects
         // Authentication is now handled server-side by the route
@@ -1305,71 +1310,33 @@
             }
         }
 
-        // Live countdown timer function
-        function startTrialCountdown(data) {
-            window.trialCountdownActive = true;
+        // Circular trial timer initialization
+        function initCircularTrialTimer(data) {
+            const container = document.getElementById('trial-circular-timer');
+            if (!container || !data.expires_at) return;
             
-            function updateCountdown() {
-                const etaEl = document.getElementById('trial-eta');
-                if (!etaEl) {
-                    // Element not found, stop countdown
-                    window.trialCountdownActive = false;
-                    if (window.trialCountdownInterval) {
-                        clearInterval(window.trialCountdownInterval);
-                        window.trialCountdownInterval = null;
-                    }
-                    return;
-                }
-                
-                let expireMs;
-                // Try multiple ways to get expiration timestamp
-                if (data.expires_at_ms && typeof data.expires_at_ms === 'number') {
-                    expireMs = data.expires_at_ms;
-                } else if (data.expires_at) {
-                    expireMs = new Date(data.expires_at).getTime();
-                } else {
-                    etaEl.textContent = 'Loading...';
-                    return;
-                }
-                
-                const now = Date.now();
-                const remaining = Math.max(0, expireMs - now);
-                
-                if (remaining <= 0) {
-                    // Trial expired - stop countdown and refresh
-                    window.trialCountdownActive = false;
-                    if (window.trialCountdownInterval) {
-                        clearInterval(window.trialCountdownInterval);
-                        window.trialCountdownInterval = null;
-                    }
-                    
+            // Destroy any existing timer
+            if (window.companionCircularTimer) {
+                window.companionCircularTimer.destroy();
+            }
+            
+            // Create new circular timer
+            window.companionCircularTimer = new CircularTrialTimer('trial-circular-timer', {
+                size: 60,
+                stroke: 4,
+                showLabel: false,
+                onExpire: function() {
+                    // Hide banner and refresh page
                     const banner = document.getElementById('trial-banner');
                     if (banner) banner.style.display = 'none';
-                    
                     setTimeout(() => {
                         window.location.reload();
-                    }, 500);
-                    return;
+                    }, 1000);
                 }
-                
-                const hours = Math.floor(remaining / (1000 * 60 * 60));
-                const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
-                const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
-                
-                if (isNaN(hours) || isNaN(minutes) || isNaN(seconds)) {
-                    etaEl.textContent = 'Loading...';
-                    return;
-                }
-                
-                etaEl.textContent = `${hours}:${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}`;
-            }
+            });
             
-            // Update immediately then every second
-            updateCountdown();
-            if (window.trialCountdownInterval) {
-                clearInterval(window.trialCountdownInterval);
-            }
-            window.trialCountdownInterval = setInterval(updateCountdown, 1000);
+            // Start the timer
+            window.companionCircularTimer.start(data.expires_at);
         }
 
         // Trial status monitoring - check for expired trials
@@ -1409,20 +1376,18 @@
                         trialBtn.style.display = 'inline-block'; // Show trial button if trial not used
                     }
                     
-                    // Stop any running countdown
-                    window.trialCountdownActive = false;
-                    if (window.trialCountdownInterval) {
-                        clearInterval(window.trialCountdownInterval);
-                        window.trialCountdownInterval = null;
+                    // Stop any running circular timer
+                    if (window.companionCircularTimer) {
+                        window.companionCircularTimer.stop();
                     }
                 } else {
                     // Trial is active
-                    if (banner) banner.style.display = 'block';
+                    if (banner) banner.style.display = 'flex';
                     if (trialBtn) trialBtn.style.display = 'none';
                     
-                    // Start live countdown timer (only if not already running)
-                    if (!window.trialCountdownActive) {
-                        startTrialCountdown(data);
+                    // Start circular timer (only if not already running)
+                    if (!window.companionCircularTimer || !window.companionCircularTimer.isRunning()) {
+                        initCircularTrialTimer(data);
                     }
                 }
             } catch (error) {
