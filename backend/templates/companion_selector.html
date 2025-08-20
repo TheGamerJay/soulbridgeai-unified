@@ -1305,6 +1305,73 @@
             }
         }
 
+        // Live countdown timer function
+        function startTrialCountdown(data) {
+            window.trialCountdownActive = true;
+            
+            function updateCountdown() {
+                const etaEl = document.getElementById('trial-eta');
+                if (!etaEl) {
+                    // Element not found, stop countdown
+                    window.trialCountdownActive = false;
+                    if (window.trialCountdownInterval) {
+                        clearInterval(window.trialCountdownInterval);
+                        window.trialCountdownInterval = null;
+                    }
+                    return;
+                }
+                
+                let expireMs;
+                // Try multiple ways to get expiration timestamp
+                if (data.expires_at_ms && typeof data.expires_at_ms === 'number') {
+                    expireMs = data.expires_at_ms;
+                } else if (data.expires_at) {
+                    expireMs = new Date(data.expires_at).getTime();
+                } else {
+                    etaEl.textContent = 'Loading...';
+                    return;
+                }
+                
+                const now = Date.now();
+                const remaining = Math.max(0, expireMs - now);
+                
+                if (remaining <= 0) {
+                    // Trial expired - stop countdown and refresh
+                    window.trialCountdownActive = false;
+                    if (window.trialCountdownInterval) {
+                        clearInterval(window.trialCountdownInterval);
+                        window.trialCountdownInterval = null;
+                    }
+                    
+                    const banner = document.getElementById('trial-banner');
+                    if (banner) banner.style.display = 'none';
+                    
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 500);
+                    return;
+                }
+                
+                const hours = Math.floor(remaining / (1000 * 60 * 60));
+                const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
+                
+                if (isNaN(hours) || isNaN(minutes) || isNaN(seconds)) {
+                    etaEl.textContent = 'Loading...';
+                    return;
+                }
+                
+                etaEl.textContent = `${hours}:${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}`;
+            }
+            
+            // Update immediately then every second
+            updateCountdown();
+            if (window.trialCountdownInterval) {
+                clearInterval(window.trialCountdownInterval);
+            }
+            window.trialCountdownInterval = setInterval(updateCountdown, 1000);
+        }
+
         // Trial status monitoring - check for expired trials
         async function loadTrialStatus() {
             try {
@@ -1341,53 +1408,21 @@
                     if (trialBtn && !data.trial_used_permanently) {
                         trialBtn.style.display = 'inline-block'; // Show trial button if trial not used
                     }
+                    
+                    // Stop any running countdown
+                    window.trialCountdownActive = false;
+                    if (window.trialCountdownInterval) {
+                        clearInterval(window.trialCountdownInterval);
+                        window.trialCountdownInterval = null;
+                    }
                 } else {
                     // Trial is active
                     if (banner) banner.style.display = 'block';
                     if (trialBtn) trialBtn.style.display = 'none';
                     
-                    // Update trial countdown
-                    const etaEl = document.getElementById('trial-eta');
-                    if (etaEl) {
-                        let expireMs;
-                        
-                        // Try multiple ways to get expiration timestamp
-                        if (data.expires_at_ms && typeof data.expires_at_ms === 'number') {
-                            expireMs = data.expires_at_ms;
-                        } else if (data.expires_at) {
-                            expireMs = new Date(data.expires_at).getTime();
-                        } else {
-                            // Fallback: show error message instead of NaN
-                            etaEl.textContent = 'Loading...';
-                            return;
-                        }
-                        
-                        const now = Date.now();
-                        const remaining = Math.max(0, expireMs - now);
-                        
-                        if (remaining <= 0) {
-                            // Trial expired - hide banner immediately and refresh
-                            const banner = document.getElementById('trial-banner');
-                            if (banner) banner.style.display = 'none';
-                            
-                            // Auto refresh to update companion access
-                            setTimeout(() => {
-                                window.location.reload();
-                            }, 500);
-                            return;
-                        }
-                        
-                        const hours = Math.floor(remaining / (1000 * 60 * 60));
-                        const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
-                        const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
-                        
-                        // Validate numbers before displaying
-                        if (isNaN(hours) || isNaN(minutes) || isNaN(seconds)) {
-                            etaEl.textContent = 'Loading...';
-                            return;
-                        }
-                        
-                        etaEl.textContent = `${hours}:${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}`;
+                    // Start live countdown timer (only if not already running)
+                    if (!window.trialCountdownActive) {
+                        startTrialCountdown(data);
                     }
                 }
             } catch (error) {
@@ -1576,8 +1611,10 @@
             // Check trial status on page load
             loadTrialStatus();
             
-            // Check trial status every 30 seconds
-            setInterval(loadTrialStatus, 30000);
+            // Check trial status every 30 seconds (prevent multiple intervals)
+            if (!window.trialStatusInterval) {
+                window.trialStatusInterval = setInterval(loadTrialStatus, 30000);
+            }
         });
     </script>
 </body>
