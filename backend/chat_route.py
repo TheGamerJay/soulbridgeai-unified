@@ -39,6 +39,7 @@ def api_chat():
         user_message = (payload.get("message") or "").strip()
         character = (payload.get("character") or "Blayzo").strip()
         tier_features = payload.get("tier_features") or {}
+        context = (payload.get("context") or "").strip()
 
         if not user_message:
             return jsonify({
@@ -62,6 +63,29 @@ def api_chat():
                     response = "Hey there! I'm GamerJay, your gaming buddy and tech enthusiast. I'm currently running in offline mode, but I'm here to help with gaming, tech, or just casual chat!"
                 else:
                     response = f"Hello! I'm {character}, your AI companion. I'm currently running in offline mode, but I'm here to help! How can I assist you today?"
+            
+            # Increment usage even for fallback responses
+            if context in ["fortune_mode", "fortune_reading"]:
+                try:
+                    from app import increment_fortune_usage
+                    increment_fortune_usage()
+                    logging.info("📊 Incremented fortune usage counter (fallback)")
+                except Exception as e:
+                    logging.error(f"Failed to increment fortune usage: {e}")
+            elif context in ["horoscope_mode", "horoscope_reading", "daily_horoscope", "compatibility_reading", "birth_chart_reading", "monthly_forecast"]:
+                try:
+                    from app import increment_horoscope_usage  
+                    increment_horoscope_usage()
+                    logging.info("📊 Incremented horoscope usage counter (fallback)")
+                except Exception as e:
+                    logging.error(f"Failed to increment horoscope usage: {e}")
+            elif context == "decoder_mode":
+                try:
+                    from app import increment_decoder_usage
+                    increment_decoder_usage() 
+                    logging.info("📊 Incremented decoder usage counter (fallback)")
+                except Exception as e:
+                    logging.error(f"Failed to increment decoder usage: {e}")
             
             return jsonify({
                 "success": True,
@@ -98,6 +122,30 @@ def api_chat():
                 content = f"Hi! I'm {character}. I couldn't generate a proper response right now, but I'm here to help!"
 
         logging.info(f"✅ CHAT API: Successfully responded as {character}")
+
+        # Increment feature usage based on context
+        from flask import session
+        if context in ["fortune_mode", "fortune_reading"]:
+            try:
+                from app import increment_fortune_usage
+                increment_fortune_usage()
+                logging.info("📊 Incremented fortune usage counter")
+            except Exception as e:
+                logging.error(f"Failed to increment fortune usage: {e}")
+        elif context in ["horoscope_mode", "horoscope_reading", "daily_horoscope", "compatibility_reading", "birth_chart_reading", "monthly_forecast"]:
+            try:
+                from app import increment_horoscope_usage  
+                increment_horoscope_usage()
+                logging.info("📊 Incremented horoscope usage counter")
+            except Exception as e:
+                logging.error(f"Failed to increment horoscope usage: {e}")
+        elif context == "decoder_mode":
+            try:
+                from app import increment_decoder_usage
+                increment_decoder_usage() 
+                logging.info("📊 Incremented decoder usage counter")
+            except Exception as e:
+                logging.error(f"Failed to increment decoder usage: {e}")
 
         return jsonify({
             "success": True,
