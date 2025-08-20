@@ -8110,11 +8110,41 @@ def increment_decoder_usage():
         today = datetime.now().strftime('%Y-%m-%d')
         usage_key = f'decoder_usage_{user_id}_{today}'
         
+        # Update session-based tracking
         current_usage = session.get(usage_key, 0)
         session[usage_key] = current_usage + 1
         session.modified = True
         
-        logger.info(f"📊 DECODER USAGE: User {user_id} now at {session[usage_key]} uses today")
+        # Also update database for /api/tier-limits consistency
+        try:
+            db_instance = get_database()
+            if db_instance:
+                conn = db_instance.get_connection()
+                cursor = conn.cursor()
+                
+                # Get current database count
+                if db_instance.use_postgres:
+                    cursor.execute("SELECT decoder_used FROM users WHERE id = %s", (user_id,))
+                else:
+                    cursor.execute("SELECT decoder_used FROM users WHERE id = ?", (user_id,))
+                
+                result = cursor.fetchone()
+                current_db_usage = (result[0] if result and result[0] else 0) if result else 0
+                new_usage = current_db_usage + 1
+                
+                # Update database count
+                if db_instance.use_postgres:
+                    cursor.execute("UPDATE users SET decoder_used = %s WHERE id = %s", (new_usage, user_id))
+                else:
+                    cursor.execute("UPDATE users SET decoder_used = ? WHERE id = ?", (new_usage, user_id))
+                
+                conn.commit()
+                conn.close()
+                logger.info(f"📊 DECODER USAGE: User {user_id} session={session[usage_key]}, database={new_usage}")
+        except Exception as db_error:
+            logger.error(f"Database update failed for decoder usage: {db_error}")
+            # Continue with session-only tracking if database fails
+        
         return True
     except Exception as e:
         logger.error(f"Increment decoder usage error: {e}")
@@ -8145,9 +8175,41 @@ def increment_fortune_usage():
         today = datetime.now().strftime('%Y-%m-%d')
         usage_key = f'fortune_usage_{user_id}_{today}'
         
+        # Update session-based tracking
         current_usage = session.get(usage_key, 0)
         session[usage_key] = current_usage + 1
         session.modified = True
+        
+        # Also update database for /api/tier-limits consistency
+        try:
+            db_instance = get_database()
+            if db_instance:
+                conn = db_instance.get_connection()
+                cursor = conn.cursor()
+                
+                # Get current database count
+                if db_instance.use_postgres:
+                    cursor.execute("SELECT fortune_used FROM users WHERE id = %s", (user_id,))
+                else:
+                    cursor.execute("SELECT fortune_used FROM users WHERE id = ?", (user_id,))
+                
+                result = cursor.fetchone()
+                current_db_usage = (result[0] if result and result[0] else 0) if result else 0
+                new_usage = current_db_usage + 1
+                
+                # Update database count
+                if db_instance.use_postgres:
+                    cursor.execute("UPDATE users SET fortune_used = %s WHERE id = %s", (new_usage, user_id))
+                else:
+                    cursor.execute("UPDATE users SET fortune_used = ? WHERE id = ?", (new_usage, user_id))
+                
+                conn.commit()
+                conn.close()
+                logger.info(f"📊 FORTUNE USAGE: User {user_id} session={session[usage_key]}, database={new_usage}")
+        except Exception as db_error:
+            logger.error(f"Database update failed for fortune usage: {db_error}")
+            # Continue with session-only tracking if database fails
+        
         return True
     except Exception as e:
         logger.error(f"Increment fortune usage error: {e}")
@@ -8178,9 +8240,41 @@ def increment_horoscope_usage():
         today = datetime.now().strftime('%Y-%m-%d')
         usage_key = f'horoscope_usage_{user_id}_{today}'
         
+        # Update session-based tracking
         current_usage = session.get(usage_key, 0)
         session[usage_key] = current_usage + 1
         session.modified = True
+        
+        # Also update database for /api/tier-limits consistency
+        try:
+            db_instance = get_database()
+            if db_instance:
+                conn = db_instance.get_connection()
+                cursor = conn.cursor()
+                
+                # Get current database count
+                if db_instance.use_postgres:
+                    cursor.execute("SELECT horoscope_used FROM users WHERE id = %s", (user_id,))
+                else:
+                    cursor.execute("SELECT horoscope_used FROM users WHERE id = ?", (user_id,))
+                
+                result = cursor.fetchone()
+                current_db_usage = (result[0] if result and result[0] else 0) if result else 0
+                new_usage = current_db_usage + 1
+                
+                # Update database count
+                if db_instance.use_postgres:
+                    cursor.execute("UPDATE users SET horoscope_used = %s WHERE id = %s", (new_usage, user_id))
+                else:
+                    cursor.execute("UPDATE users SET horoscope_used = ? WHERE id = ?", (new_usage, user_id))
+                
+                conn.commit()
+                conn.close()
+                logger.info(f"📊 HOROSCOPE USAGE: User {user_id} session={session[usage_key]}, database={new_usage}")
+        except Exception as db_error:
+            logger.error(f"Database update failed for horoscope usage: {db_error}")
+            # Continue with session-only tracking if database fails
+        
         return True
     except Exception as e:
         logger.error(f"Increment horoscope usage error: {e}")
