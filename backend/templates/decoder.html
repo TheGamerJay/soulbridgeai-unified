@@ -79,6 +79,21 @@
             border-radius: 20px;
             padding: 40px;
             margin-bottom: 40px;
+            position: relative;
+        }
+
+        .decoder-interface::before {
+            content: '';
+            position: absolute;
+            top: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 80px;
+            background: url('/static/logos/Agent The decoder.png') center/cover;
+            border-radius: 50%;
+            border: 3px solid #22d3ee;
+            box-shadow: 0 0 20px rgba(34, 211, 238, 0.5);
         }
 
         .mode-selector {

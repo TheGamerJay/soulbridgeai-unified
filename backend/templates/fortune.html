@@ -103,16 +103,17 @@
         }
 
         .fortune-interface::before {
-            content: '🔮';
+            content: '';
             position: absolute;
-            top: -20px;
+            top: -40px;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 2.5rem;
-            background: rgba(30, 27, 75, 0.9);
-            padding: 10px 20px;
-            border-radius: 50px;
-            border: 2px solid rgba(251, 191, 36, 0.5);
+            width: 80px;
+            height: 80px;
+            background: url('/static/logos/Fortune Teller Sky.png') center/cover;
+            border-radius: 50%;
+            border: 3px solid #fbbf24;
+            box-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
         }
 
         .usage-indicator {
