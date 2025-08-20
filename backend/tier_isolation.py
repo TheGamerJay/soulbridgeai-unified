@@ -214,30 +214,162 @@ class MaxTier(TierSystem):
         self.set_session_data(tier_session)
         logger.info(f"✅ MAX TIER: Initialized session for user {user_data.get('user_email')}")
 
+class SilverTier(TierSystem):
+    """Silver tier - completely isolated system (was Growth)"""
+    
+    def __init__(self):
+        super().__init__('silver')
+        self.features = [
+            'basic_chat',
+            'premium_chat',
+            'decoder_mode',
+            'creative_writing',
+            'all_free_companions',
+            'premium_companions'
+        ]
+        self.limits = {
+            'decoder': 15,
+            'fortune': 8,
+            'horoscope': 10,
+            'companions': [
+                # Bronze companions
+                'blayzo_free', 'blayzica_free', 'companion_gamerjay',
+                # Silver companions  
+                'companion_sky', 'blayzo_premium', 'blayzica_growth', 
+                'gamerjay_premium', 'watchdog_growth', 'crimson_growth', 
+                'violet_growth', 'claude_growth'
+            ]
+        }
+    
+    def can_access_feature(self, feature: str) -> bool:
+        """Check if silver tier can access a feature"""
+        return feature in self.features
+    
+    def get_available_companions(self) -> List[str]:
+        """Get silver tier companions"""
+        return self.limits['companions']
+    
+    def get_feature_limit(self, feature: str) -> int:
+        """Get silver tier limits"""
+        return self.limits.get(feature, 0)
+    
+    def initialize_user_session(self, user_data: Dict[str, Any]):
+        """Initialize silver tier user session"""
+        tier_session = {
+            'user_id': user_data.get('user_id'),
+            'user_email': user_data.get('user_email'),
+            'user_plan': user_data.get('user_plan', 'silver'),  # Store original plan for limits
+            'tier': 'silver',
+            'features': self.features,
+            'limits': self.limits,
+            'usage': {
+                'decoder': 0,
+                'fortune': 0,
+                'horoscope': 0
+            },
+            'selected_companion': 'companion_sky'  # Default silver companion
+        }
+        self.set_session_data(tier_session)
+        logger.info(f"✅ SILVER TIER: Initialized session for user {user_data.get('user_email')}")
+
+class GoldTier(TierSystem):
+    """Gold tier - completely isolated system (was Max)"""
+    
+    def __init__(self):
+        super().__init__('gold')
+        self.features = [
+            'basic_chat',
+            'premium_chat',
+            'decoder_mode',
+            'creative_writing',
+            'fortune_telling',
+            'horoscope',
+            'all_companions',
+            'voice_chat',
+            'priority_support',
+            'mini_studio'  # Added for Gold tier UI button
+        ]
+        self.limits = {
+            'decoder': 999999,
+            'fortune': 999999,
+            'horoscope': 999999,
+            'companions': [
+                # Bronze companions
+                'blayzo_free', 'blayzica_free', 'companion_gamerjay',
+                # Silver companions
+                'companion_sky', 'blayzo_premium', 'blayzica_growth', 
+                'gamerjay_premium', 'watchdog_growth', 'crimson_growth', 
+                'violet_growth', 'claude_growth',
+                # Gold companions
+                'companion_crimson', 'companion_violet', 'royal_max', 
+                'watchdog_max', 'ven_blayzica', 'ven_sky', 'claude_max'
+            ]
+        }
+    
+    def can_access_feature(self, feature: str) -> bool:
+        """Check if gold tier can access a feature"""
+        return feature in self.features
+    
+    def get_available_companions(self) -> List[str]:
+        """Get all companions for gold tier"""
+        return self.limits['companions']
+    
+    def get_feature_limit(self, feature: str) -> int:
+        """Get gold tier limits (unlimited)"""
+        return self.limits.get(feature, 999999)
+    
+    def initialize_user_session(self, user_data: Dict[str, Any]):
+        """Initialize gold tier user session"""
+        tier_session = {
+            'user_id': user_data.get('user_id'),
+            'user_email': user_data.get('user_email'),
+            'user_plan': user_data.get('user_plan', 'gold'),  # Store original plan for limits
+            'tier': 'gold',
+            'features': self.features,
+            'limits': self.limits,
+            'usage': {
+                'decoder': 0,
+                'fortune': 0,
+                'horoscope': 0
+            },
+            'selected_companion': 'companion_crimson'  # Default gold companion
+        }
+        self.set_session_data(tier_session)
+        logger.info(f"✅ GOLD TIER: Initialized session for user {user_data.get('user_email')}")
+
 class TierManager:
     """Manages tier detection and routing"""
     
     def __init__(self):
         self.tiers = {
-            'free': FreeTier(),
-            'growth': GrowthTier(), 
-            'max': MaxTier()
+            'bronze': BronzeTier(),
+            'silver': SilverTier(), 
+            'gold': GoldTier(),
+            # Legacy support
+            'free': BronzeTier(),
+            'growth': SilverTier(), 
+            'max': GoldTier()
         }
     
     def get_user_tier(self, user_plan: str, trial_active: bool = False) -> str:
         """Determine user's tier (simple, no complex logic)"""
-        # During trial, users get max tier access
+        # During trial, users get gold tier access
         if trial_active:
-            return 'max'
+            return 'gold'
         
-        # Map plan to tier directly
+        # Map plan to tier directly (with legacy support)
         tier_mapping = {
-            'free': 'free',
-            'growth': 'growth',
-            'max': 'max'
+            # New naming
+            'bronze': 'bronze',
+            'silver': 'silver',
+            'gold': 'gold',
+            # Legacy naming
+            'free': 'bronze',
+            'growth': 'silver',
+            'max': 'gold'
         }
         
-        return tier_mapping.get(user_plan, 'free')
+        return tier_mapping.get(user_plan, 'bronze')
     
     def clear_all_tier_sessions(self):
         """Clear all tier session keys from the session (strong isolation)"""
@@ -248,7 +380,7 @@ class TierManager:
         """Initialize user session for specific tier, enforcing strong isolation"""
         self.clear_all_tier_sessions()
         if tier_name in self.tiers:
-            # Special handling for trial users - they get access to max tier companions
+            # Special handling for trial users - they get access to gold tier companions
             # but keep their original plan limits to avoid false hope
             if user_data.get('trial_active', False):
                 self.initialize_trial_user(user_data, tier_name)
@@ -266,24 +398,24 @@ class TierManager:
         # Get the limits from the user's original tier
         original_tier_system = self.tiers[original_plan]
         
-        # Get the companions from the max tier
-        max_tier_system = self.tiers['max']
+        # Get the companions from the gold tier
+        gold_tier_system = self.tiers['gold']
         
-        # Create hybrid session: Max companions + Original limits
+        # Create hybrid session: Gold companions + Original limits
         tier_session = {
             'user_id': user_data.get('user_id'),
             'user_email': user_data.get('user_email'),
             'user_plan': original_plan,  # Store original plan for limits
-            'tier': access_tier,  # Max tier for access
-            'features': max_tier_system.features,  # Max tier features
+            'tier': access_tier,  # Gold tier for access
+            'features': gold_tier_system.features,  # Gold tier features
             'limits': original_tier_system.limits,  # Original tier limits (IMPORTANT!)
-            'companions': max_tier_system.limits['companions'],  # Max tier companions
+            'companions': gold_tier_system.limits['companions'],  # Gold tier companions
             'usage': {
                 'decoder': 0,
                 'fortune': 0,
                 'horoscope': 0
             },
-            'selected_companion': 'companion_crimson',  # Default max companion
+            'selected_companion': 'companion_crimson',  # Default gold companion
             'trial_mode': True  # Flag to indicate this is a trial session
         }
         
@@ -293,21 +425,22 @@ class TierManager:
     
     def get_tier_system(self, tier_name: str) -> TierSystem:
         """Get the tier system for a specific tier"""
-        return self.tiers.get(tier_name, self.tiers['free'])
+        return self.tiers.get(tier_name, self.tiers['bronze'])
 
 # Global tier manager instance
 tier_manager = TierManager()
 
 def get_current_user_tier() -> str:
     """Get current user's tier from session"""
-    # If trial is active, user gets max tier access
+    # If trial is active, user gets gold tier access
     trial_active = session.get('trial_active', False)
     if trial_active:
-        return 'max'
+        return 'gold'
     
     # DEBUG: Log all tier sessions to see contamination
     active_tiers = []
-    for tier_name in ['free', 'growth', 'max']:
+    all_tier_names = ['bronze', 'silver', 'gold', 'free', 'growth', 'max']
+    for tier_name in all_tier_names:
         tier_session = session.get(f'tier_{tier_name}', {})
         if tier_session and tier_session.get('user_id'):
             active_tiers.append(tier_name)
@@ -316,15 +449,20 @@ def get_current_user_tier() -> str:
         logger.warning(f"🚨 TIER CONTAMINATION: Multiple active tiers detected: {active_tiers}")
     
     # Check each tier session to see which one is active
-    # IMPORTANT: Check in reverse order (max -> growth -> free) so highest tier wins
-    for tier_name in ['max', 'growth', 'free']:
+    # IMPORTANT: Check in reverse order (gold -> silver -> bronze) so highest tier wins
+    priority_order = ['gold', 'max', 'silver', 'growth', 'bronze', 'free']
+    for tier_name in priority_order:
         tier_session = session.get(f'tier_{tier_name}', {})
         if tier_session and tier_session.get('user_id'):
             logger.info(f"🎯 TIER DETECTED: {tier_name} (active_tiers: {active_tiers})")
+            # Convert legacy names to new names
+            if tier_name == 'free': return 'bronze'
+            if tier_name == 'growth': return 'silver' 
+            if tier_name == 'max': return 'gold'
             return tier_name
     
-    logger.info(f"🎯 TIER DETECTED: free (default, active_tiers: {active_tiers})")
-    return 'free'  # Default to free if no tier is active
+    logger.info(f"🎯 TIER DETECTED: bronze (default, active_tiers: {active_tiers})")
+    return 'bronze'  # Default to bronze if no tier is active
 
 def get_current_tier_system() -> TierSystem:
     """Get current user's tier system"""

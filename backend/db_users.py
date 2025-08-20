@@ -2,7 +2,7 @@
 # Database helper functions for user operations with Bronze/Silver/Gold tier system
 
 import logging
-from app import get_database
+from database_utils import get_database
 from sql_utils import adapt_placeholders, to_db_bool, to_db_ts, from_db_ts
 
 logger = logging.getLogger(__name__)
