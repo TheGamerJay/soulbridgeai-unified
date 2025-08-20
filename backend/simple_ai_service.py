@@ -72,6 +72,33 @@ class SimpleAIService:
                     "There's wisdom in your experience. Help me understand what you're going through."
                 ]
             },
+            "GamerJay": {
+                "greetings": [
+                    "Hey there! I'm GamerJay, your gaming buddy and tech enthusiast. Ready to chat?",
+                    "What's up! GamerJay here, ready to talk games, tech, or whatever's on your mind!",
+                    "Hey! I'm GamerJay, your friendly neighborhood gamer. What's happening in your world?"
+                ],
+                "stress_responses": [
+                    "Gaming can be a great stress reliever! Want to talk about what's bugging you, or maybe discuss some chill games to help you unwind?",
+                    "Stress is like a tough boss fight - it seems impossible until you find the right strategy. Let's figure this out together!",
+                    "Hey, even the best gamers need a break sometimes. What's stressing you out? Maybe we can find a way to tackle it."
+                ],
+                "sad_responses": [
+                    "Hey, I get it - we all have those rough days. Sometimes a good game or chat with a friend can help. I'm here for you.",
+                    "Life can feel like a really hard level sometimes. But just like in games, we can always try again and get better. You've got this.",
+                    "I hear you, friend. Even the strongest characters have moments of vulnerability. Want to talk about it?"
+                ],
+                "happy_responses": [
+                    "Awesome! I love the positive energy! What's got you feeling so good? Did you beat a tough boss or discover something cool?",
+                    "That's epic! Your excitement is contagious. Share the good vibes - what's making you so happy?",
+                    "Yes! Love seeing you hyped up! What's the amazing news? Did you hit a new high score in life?"
+                ],
+                "default_responses": [
+                    "That's totally understandable, and here's what I think: every challenge is just another level to beat.",
+                    "I feel you on that! Let me share some thoughts - we gamers stick together through the tough levels.",
+                    "That reminds me of something - no matter how hard the game gets, there's always a way to win. Let's figure it out!"
+                ]
+            },
             "Crimson": {
                 "greetings": [
                     "Hey! I'm Crimson, and I'm here to help you tackle whatever's on your mind with passion and purpose.",

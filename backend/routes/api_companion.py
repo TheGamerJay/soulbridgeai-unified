@@ -120,7 +120,7 @@ def companion_chat():
         user_plan = session.get('user_plan', 'free')
         
         # Validate character
-        valid_characters = ['Blayzo', 'Blayzica', 'Crimson', 'Violet']
+        valid_characters = ['Blayzo', 'Blayzica', 'Crimson', 'Violet', 'GamerJay']
         if character not in valid_characters:
             return jsonify({
                 "success": False,
@@ -218,7 +218,7 @@ def companion_status():
                 "user_id": user_id,
                 "user_plan": user_plan
             },
-            "available_characters": ["Blayzo", "Blayzica", "Crimson", "Violet"],
+            "available_characters": ["Blayzo", "Blayzica", "Crimson", "Violet", "GamerJay"],
             "quality_options": ["fast", "quality", "auto"]
         }
         
@@ -446,7 +446,7 @@ def admin_stats():
                 "spend_stats": spend_stats,
                 "quota_system": quota_recommendations,
                 "system": {
-                    "available_characters": ["Blayzo", "Blayzica", "Crimson", "Violet"],
+                    "available_characters": ["Blayzo", "Blayzica", "Crimson", "Violet", "GamerJay"],
                     "supported_plans": ["free", "growth", "pro", "vip", "max"],
                     "api_version": "2.0",
                     "features": ["auto_quota", "cost_tracking", "budget_protection", "redis_caching"]

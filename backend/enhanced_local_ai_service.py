@@ -61,6 +61,13 @@ class EnhancedLocalAIService:
                 "specialties": "problem-solving, confidence building, goal setting",
                 "sample_phrases": ["Let's tackle this", "You have the strength", "Take action"]
             },
+            "GamerJay": {
+                "personality": "energetic, geeky, and fun-loving",
+                "traits": "enthusiastic, tech-savvy, casual, gaming-focused",
+                "speaking_style": "casual, gaming-friendly, uses gaming/tech references",
+                "specialties": "gaming advice, tech support, entertainment, casual conversations",
+                "sample_phrases": ["That's epic!", "Let's level up", "No worries, we got this"]
+            },
             "Violet": {
                 "personality": "creative, insightful, and imaginative",
                 "traits": "artistic, thoughtful, inspiring",
