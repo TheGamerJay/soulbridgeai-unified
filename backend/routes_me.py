@@ -58,12 +58,13 @@ def me():
             unlocked_tiers.append("gold")
             accessible_companion_tiers.append("gold")
         
-        # Set limits based on plan
+        # Set limits based on ACTUAL plan, not trial access
+        # Trial users keep their bronze tier limits but gain companion access
         if user_plan == 'max':
             limits = {"decoder": 999999, "fortune": 999999, "horoscope": 999999, "creative_writer": 999999}
         elif user_plan == 'growth':
             limits = {"decoder": 15, "fortune": 8, "horoscope": 10, "creative_writer": 20}
-        else:
+        else:  # Bronze tier (free plan) - even during trial
             limits = {"decoder": 3, "fortune": 2, "horoscope": 3, "creative_writer": 2}
         
         access = {
