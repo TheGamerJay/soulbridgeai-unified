@@ -123,61 +123,72 @@ def create_cosmetics_tables(db_connection):
     """Create cosmetic system tables"""
     cursor = db_connection.cursor()
     
-    # Cosmetics table - defines all available cosmetic companions
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS cosmetics (
-            id SERIAL PRIMARY KEY,
-            name VARCHAR(50) NOT NULL UNIQUE,
-            display_name VARCHAR(100) NOT NULL,
-            description TEXT,
-            type VARCHAR(20) NOT NULL CHECK (type IN ('companion', 'avatar', 'theme')),
-            rarity VARCHAR(20) NOT NULL CHECK (rarity IN ('common', 'rare', 'epic', 'legendary')),
-            unlock_method VARCHAR(50) NOT NULL CHECK (unlock_method IN ('referral', 'purchase', 'achievement', 'trial')),
-            unlock_requirement TEXT, -- JSON with specific requirements
-            image_url VARCHAR(255),
-            is_active BOOLEAN DEFAULT TRUE,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            
-            -- Ensure cosmetic companions have proper metadata
-            CHECK (
-                (type = 'companion' AND unlock_method IN ('referral', 'purchase')) OR
-                type != 'companion'
+    try:
+        # Cosmetics table - defines all available cosmetic companions
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS cosmetics (
+                id SERIAL PRIMARY KEY,
+                name VARCHAR(50) NOT NULL UNIQUE,
+                display_name VARCHAR(100) NOT NULL,
+                description TEXT,
+                type VARCHAR(20) NOT NULL CHECK (type IN ('companion', 'avatar', 'theme')),
+                rarity VARCHAR(20) NOT NULL CHECK (rarity IN ('common', 'rare', 'epic', 'legendary')),
+                unlock_method VARCHAR(50) NOT NULL CHECK (unlock_method IN ('referral', 'purchase', 'achievement', 'trial')),
+                unlock_requirement TEXT, -- JSON with specific requirements
+                image_url VARCHAR(255),
+                is_active BOOLEAN DEFAULT TRUE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                
+                -- Ensure cosmetic companions have proper metadata
+                CHECK (
+                    (type = 'companion' AND unlock_method IN ('referral', 'purchase')) OR
+                    type != 'companion'
+                )
             )
-        )
-    """)
+        """)
+        db_connection.commit()
+        logger.info("✅ Cosmetics table created successfully")
+    except Exception as e:
+        logger.error(f"❌ Failed to create cosmetics table: {e}")
+        raise
     
-    # User cosmetics table - tracks which cosmetics each user has unlocked
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS user_cosmetics (
-            id SERIAL PRIMARY KEY,
-            user_id INTEGER NOT NULL,
-            cosmetic_id INTEGER NOT NULL,
-            unlocked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            unlock_source VARCHAR(50) NOT NULL, -- 'referral_2', 'referral_5', 'purchase', etc.
-            is_equipped BOOLEAN DEFAULT FALSE,
-            
-            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-            FOREIGN KEY (cosmetic_id) REFERENCES cosmetics(id) ON DELETE CASCADE,
-            UNIQUE(user_id, cosmetic_id) -- Can't unlock same cosmetic twice
-        )
-    """)
-    
-    # User equipped cosmetics - tracks currently equipped cosmetics
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS user_equipped_cosmetics (
-            id SERIAL PRIMARY KEY,
-            user_id INTEGER NOT NULL,
-            cosmetic_type VARCHAR(20) NOT NULL,
-            cosmetic_id INTEGER NOT NULL,
-            equipped_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            
-            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-            FOREIGN KEY (cosmetic_id) REFERENCES cosmetics(id) ON DELETE CASCADE,
-            UNIQUE(user_id, cosmetic_type) -- One equipped item per type
-        )
-    """)
-    
-    logger.info("✅ Cosmetic tables created successfully")
+    try:
+        # User cosmetics table - tracks which cosmetics each user has unlocked
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS user_cosmetics (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER NOT NULL,
+                cosmetic_id INTEGER NOT NULL,
+                unlocked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                unlock_source VARCHAR(50) NOT NULL, -- 'referral_2', 'referral_5', 'purchase', etc.
+                is_equipped BOOLEAN DEFAULT FALSE,
+                
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY (cosmetic_id) REFERENCES cosmetics(id) ON DELETE CASCADE,
+                UNIQUE(user_id, cosmetic_id) -- Can't unlock same cosmetic twice
+            )
+        """)
+        
+        # User equipped cosmetics - tracks currently equipped cosmetics
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS user_equipped_cosmetics (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER NOT NULL,
+                cosmetic_type VARCHAR(20) NOT NULL,
+                cosmetic_id INTEGER NOT NULL,
+                equipped_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY (cosmetic_id) REFERENCES cosmetics(id) ON DELETE CASCADE,
+                UNIQUE(user_id, cosmetic_type) -- One equipped item per type
+            )
+        """)
+        
+        db_connection.commit()
+        logger.info("✅ Cosmetic tables created successfully")
+    except Exception as e:
+        logger.error(f"❌ Failed to create user cosmetic tables: {e}")
+        raise
 
 def insert_default_cosmetics(db_connection):
     """Insert the default referral reward cosmetics"""
@@ -239,14 +250,14 @@ def insert_default_cosmetics(db_connection):
     
     for cosmetic in default_cosmetics:
         # Check if cosmetic already exists
-        cursor.execute("SELECT id FROM cosmetics WHERE name = ?", (cosmetic['name'],))
+        cursor.execute("SELECT id FROM cosmetics WHERE name = %s", (cosmetic['name'],))
         if cursor.fetchone():
             logger.info(f"📦 Cosmetic {cosmetic['name']} already exists, skipping")
             continue
         
         cursor.execute("""
             INSERT INTO cosmetics (name, display_name, description, type, rarity, unlock_method, unlock_requirement, image_url)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         """, (
             cosmetic['name'],
             cosmetic['display_name'],
