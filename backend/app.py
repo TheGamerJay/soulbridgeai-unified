@@ -8326,6 +8326,72 @@ def increment_horoscope_usage():
         return False
 
 # Essential API endpoints restored for frontend functionality
+@app.route("/api/debug/decoder-session")
+def debug_decoder_session():
+    """Debug endpoint to check decoder session state"""
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"error": "Not logged in"})
+    
+    from datetime import datetime, timedelta
+    today = datetime.now().strftime('%Y-%m-%d')
+    yesterday = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
+    
+    usage_key_today = f'decoder_usage_{user_id}_{today}'
+    usage_key_yesterday = f'decoder_usage_{user_id}_{yesterday}'
+    reset_key = f'decoder_reset_{user_id}'
+    
+    return jsonify({
+        "current_time": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        "today": today,
+        "yesterday": yesterday,
+        "usage_key_today": usage_key_today,
+        "usage_key_yesterday": usage_key_yesterday,
+        "usage_today": session.get(usage_key_today, 0),
+        "usage_yesterday": session.get(usage_key_yesterday, 0),
+        "last_reset": session.get(reset_key, "never"),
+        "all_decoder_keys": {k: v for k, v in session.items() if 'decoder' in k.lower()}
+    })
+
+@app.route("/api/debug/reset-decoder-usage", methods=["POST"])
+def reset_decoder_usage():
+    """Reset decoder usage for current user (for testing)"""
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"error": "Not logged in"})
+    
+    from datetime import datetime
+    today = datetime.now().strftime('%Y-%m-%d')
+    
+    # Clear all decoder-related session keys
+    keys_to_remove = [k for k in session.keys() if 'decoder' in k.lower()]
+    for key in keys_to_remove:
+        session.pop(key, None)
+    
+    # Reset database if available
+    try:
+        db_instance = get_database()
+        if db_instance:
+            conn = db_instance.get_connection()
+            cursor = conn.cursor()
+            
+            if db_instance.use_postgres:
+                cursor.execute("UPDATE users SET decoder_used = 0 WHERE id = %s", (user_id,))
+            else:
+                cursor.execute("UPDATE users SET decoder_used = 0 WHERE id = ?", (user_id,))
+            
+            conn.commit()
+            conn.close()
+    except Exception as e:
+        logger.error(f"Failed to reset database decoder usage: {e}")
+    
+    return jsonify({
+        "success": True,
+        "message": "Decoder usage reset successfully",
+        "cleared_keys": keys_to_remove,
+        "new_usage": get_decoder_usage()
+    })
+
 @app.route("/api/decoder/check-limit")
 def check_decoder_limit():
     user_id = session.get("user_id")
