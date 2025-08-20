@@ -181,16 +181,22 @@ def check_active_subscription(user_id, plan):
 
 # DAILY LIMITS (non-credit features)
 DAILY_LIMITS = {
-    "free":    {"decoder": 3,  "fortune": 2,  "horoscope": 3, "creative_writer": 2},
-    "growth":  {"decoder": 15, "fortune": 8,  "horoscope": 10, "creative_writer": 20},
-    "max":     {"decoder": 999999, "fortune": 999999, "horoscope": 999999, "creative_writer": 999999}
+    "bronze":  {"decoder": 3,  "fortune": 2,  "horoscope": 3, "creative_writer": 2},    # Bronze tier
+    "free":    {"decoder": 3,  "fortune": 2,  "horoscope": 3, "creative_writer": 2},    # Legacy support
+    "silver":  {"decoder": 15, "fortune": 8,  "horoscope": 10, "creative_writer": 20},  # Silver tier  
+    "growth":  {"decoder": 15, "fortune": 8,  "horoscope": 10, "creative_writer": 20},  # Legacy support
+    "gold":    {"decoder": 999999, "fortune": 999999, "horoscope": 999999, "creative_writer": 999999}, # Gold tier
+    "max":     {"decoder": 999999, "fortune": 999999, "horoscope": 999999, "creative_writer": 999999}  # Legacy support
 }
 
 # MONTHLY CREDITS (premium features)
 MONTHLY_CREDITS = {
-    "free":   0,
-    "growth": 100,    # 100 credits/month for Growth
-    "max":    500     # 500 credits/month for Max
+    "bronze": 0,      # Bronze tier gets no monthly credits
+    "free":   0,      # Legacy support
+    "silver": 100,    # 100 credits/month for Silver
+    "growth": 100,    # Legacy support
+    "gold":   500,    # 500 credits/month for Gold
+    "max":    500     # Legacy support
 }
 
 # FEATURES THAT REQUIRE CREDITS

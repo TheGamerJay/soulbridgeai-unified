@@ -14,9 +14,12 @@ from collections import defaultdict
 logger = logging.getLogger(__name__)
 
 class CompanionTier(Enum):
-    FREE = "free"
-    GROWTH = "growth" 
-    MAX = "max"
+    BRONZE = "bronze"     # New Bronze tier
+    FREE = "free"         # Legacy support
+    SILVER = "silver"     # New Silver tier  
+    GROWTH = "growth"     # Legacy support
+    GOLD = "gold"         # New Gold tier
+    MAX = "max"           # Legacy support
     REFERRAL = "referral"
 
 class UnlockType(Enum):
@@ -85,13 +88,13 @@ class CompanionSystem:
     def _initialize_default_companions(self):
         """Initialize companions for each subscription tier"""
         
-        # FREE TIER COMPANIONS
+        # BRONZE TIER COMPANIONS (was: FREE TIER)
         free_companions = [
             {
                 "companion_id": "companion_gamerjay",
                 "name": "GamerJay",
                 "display_name": "GamerJay - The Gaming Coach", 
-                "tier": CompanionTier.FREE,
+                "tier": CompanionTier.BRONZE,
                 "unlock_type": UnlockType.SUBSCRIPTION,
                 "personality_tags": [PersonalityTag.MOTIVATIONAL, PersonalityTag.PLAYFUL],
                 "avatar_image": "/static/logos/GamerJay Free companion.png",
@@ -99,20 +102,20 @@ class CompanionSystem:
                 "detailed_bio": "GamerJay brings the energy and determination of a pro gamer to your wellness journey. He understands challenges, leveling up, and achieving goals through persistence.",
                 "voice_id": None,
                 "ai_personality_mode": "coach",
-                "unlock_requirements": {"subscription": "free"},
+                "unlock_requirements": {"subscription": "bronze"},
                 "popularity_score": 88,
                 "is_recommended": False,
                 "special_features": ["Goal setting", "Achievement tracking", "Motivation boosts", "Gaming mindset"]
             }
         ]
         
-        # GROWTH TIER COMPANIONS  
+        # SILVER TIER COMPANIONS (was: GROWTH TIER)
         growth_companions = [
             {
                 "companion_id": "companion_sky",
                 "name": "Sky",
                 "display_name": "Sky - The Spiritual Guide",
-                "tier": CompanionTier.GROWTH,
+                "tier": CompanionTier.SILVER,
                 "unlock_type": UnlockType.SUBSCRIPTION,
                 "personality_tags": [PersonalityTag.SPIRITUAL, PersonalityTag.HEALING],
                 "avatar_image": "/static/logos/Sky a premium companion.png", 
@@ -120,7 +123,7 @@ class CompanionSystem:
                 "detailed_bio": "Sky specializes in spiritual growth, mindfulness, and inner healing. She guides you through meditation, chakra work, and connecting with your higher self.",
                 "voice_id": "sky_voice_id",
                 "ai_personality_mode": "mentor",
-                "unlock_requirements": {"subscription": "growth"},
+                "unlock_requirements": {"subscription": "silver"},
                 "popularity_score": 92,
                 "is_recommended": True,
                 "special_features": ["Spiritual guidance", "Meditation sessions", "Energy healing", "Voice interactions"]
@@ -137,20 +140,20 @@ class CompanionSystem:
                 "detailed_bio": "The premium version of GamerJay brings strategic thinking, advanced problem-solving, and tactical approaches to wellness. Perfect for complex life situations.",
                 "voice_id": "gamerjay_premium_voice_id", 
                 "ai_personality_mode": "therapist",
-                "unlock_requirements": {"subscription": "growth"},
+                "unlock_requirements": {"subscription": "silver"},
                 "popularity_score": 85,
                 "is_recommended": False,
                 "special_features": ["Strategic thinking", "Advanced coaching", "Tactical solutions", "Voice interactions"]
             }
         ]
         
-        # MAX TIER COMPANIONS
+        # GOLD TIER COMPANIONS (was: MAX TIER)
         max_companions = [
             {
                 "companion_id": "companion_crimson",
                 "name": "Crimson",
                 "display_name": "Crimson - The Transformer",
-                "tier": CompanionTier.MAX,
+                "tier": CompanionTier.GOLD,
                 "unlock_type": UnlockType.SUBSCRIPTION,
                 "personality_tags": [PersonalityTag.HEALING, PersonalityTag.PROTECTIVE, PersonalityTag.WISE],
                 "avatar_image": "/static/logos/Crimson a Max companion.png",
@@ -158,7 +161,7 @@ class CompanionSystem:
                 "detailed_bio": "Crimson specializes in transformation, trauma healing, and helping you rise stronger from life's challenges. A powerful ally for deep personal growth and healing.",
                 "voice_id": "crimson_voice_id",
                 "ai_personality_mode": "therapist",
-                "unlock_requirements": {"subscription": "max"},
+                "unlock_requirements": {"subscription": "gold"},
                 "popularity_score": 98,
                 "is_recommended": True,
                 "special_features": ["Trauma healing", "Transformation coaching", "Crisis support", "Advanced voice AI", "Priority response"]
@@ -175,7 +178,7 @@ class CompanionSystem:
                 "detailed_bio": "Violet ignites creativity, encourages artistic expression, and helps you explore new possibilities. Perfect for artists, writers, and creative souls seeking inspiration.",
                 "voice_id": "violet_voice_id",
                 "ai_personality_mode": "friend", 
-                "unlock_requirements": {"subscription": "max"},
+                "unlock_requirements": {"subscription": "gold"},
                 "popularity_score": 91,
                 "is_recommended": False,
                 "special_features": ["Creative exercises", "Art therapy", "Inspiration sessions", "Advanced voice AI", "Custom personality modes"]
@@ -279,12 +282,12 @@ class CompanionSystem:
             # Check access based on companion tier
             has_access = False
             
-            if companion.tier == CompanionTier.FREE:
+            if companion.tier in [CompanionTier.BRONZE, CompanionTier.FREE]:
                 has_access = True
-            elif companion.tier == CompanionTier.GROWTH:
-                has_access = subscription_tier in ['growth', 'max']
-            elif companion.tier == CompanionTier.MAX:
-                has_access = subscription_tier == 'max'
+            elif companion.tier in [CompanionTier.SILVER, CompanionTier.GROWTH]:
+                has_access = subscription_tier in ['silver', 'growth', 'gold', 'max']
+            elif companion.tier in [CompanionTier.GOLD, CompanionTier.MAX]:
+                has_access = subscription_tier in ['gold', 'max']
             elif companion.tier == CompanionTier.REFERRAL:
                 required_points = companion.unlock_requirements.get('referral_points', 0)
                 has_access = referral_points >= required_points
