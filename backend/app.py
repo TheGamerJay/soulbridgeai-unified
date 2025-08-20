@@ -8406,7 +8406,6 @@ def debug_user_tier_info():
     # Check what features should be unlocked
     should_see_relationships = user_plan in ['growth', 'max']
     should_see_meditations = user_plan in ['growth', 'max'] 
-    should_see_music_studio = user_plan == 'max'
     should_see_mini_studio = user_plan == 'max'
     
     return jsonify({
@@ -8417,7 +8416,6 @@ def debug_user_tier_info():
         "tier_features": {
             "relationships": should_see_relationships,
             "meditations": should_see_meditations,
-            "music_studio": should_see_music_studio,
             "mini_studio": should_see_mini_studio
         },
         "internal_values": {
@@ -8431,13 +8429,17 @@ def debug_user_tier_info():
 @app.route("/api/debug/set-user-tier/<tier>", methods=["POST"])
 def debug_set_user_tier(tier):
     """Debug endpoint to manually set user tier for testing"""
+    # Security: Only allow in debug mode or for admin users
+    if not app.debug and not session.get("is_admin"):
+        return jsonify({"error": "Forbidden"}), 403
+        
     user_id = session.get("user_id")
     if not user_id:
-        return jsonify({"error": "Not logged in"})
+        return jsonify({"error": "Not logged in"}), 401
     
     valid_tiers = ['free', 'growth', 'max']
     if tier not in valid_tiers:
-        return jsonify({"error": f"Invalid tier. Must be one of: {valid_tiers}"})
+        return jsonify({"error": f"Invalid tier. Must be one of: {valid_tiers}"}), 400
     
     # Update session
     old_plan = session.get('user_plan', 'free')
@@ -8468,45 +8470,56 @@ def debug_set_user_tier(tier):
         "features_unlocked": {
             "relationships": tier in ['growth', 'max'],
             "meditations": tier in ['growth', 'max'],
-            "music_studio": tier == 'max',
             "mini_studio": tier == 'max'
         }
-    })
+    }), 200
 
 @app.route("/api/debug/fix-trial-timer", methods=["POST"])
 def fix_trial_timer():
-    """Fix trial timer by resetting localStorage data with proper format"""
+    """
+    Fix trial timer by resetting session + returning JS to sync localStorage.
+    NOTE: Debug endpoint - should be gated in production.
+    """
+    # Security: Only allow in debug mode or for admin users
+    if not app.debug and not session.get("is_admin"):
+        return jsonify({"error": "Forbidden"}), 403
+
     user_id = session.get("user_id")
     if not user_id:
-        return jsonify({"error": "Not logged in"})
-    
-    from datetime import datetime, timedelta
-    
-    trial_active = session.get('trial_active', False)
+        return jsonify({"error": "Not logged in"}), 401
+
+    trial_active = session.get("trial_active", False)
     if not trial_active:
-        return jsonify({"error": "No active trial to fix"})
-    
-    # Create proper trial times
-    now = datetime.utcnow()
-    started_at = now - timedelta(minutes=10)  # Assume trial started 10 min ago  
-    expires_at = now + timedelta(hours=5, minutes=-10)  # 4h50min remaining
-    
-    # Update session with proper format
-    session['trial_started_at'] = started_at.isoformat()
-    session['trial_expires_at'] = expires_at.isoformat() + 'Z'
-    
+        return jsonify({"error": "No active trial to fix"}), 400
+
+    # Build proper trial timestamps with timezone-aware UTC
+    now = datetime.now(timezone.utc)
+    started_at = now - timedelta(minutes=10)          # trial began 10 min ago
+    expires_at = now + timedelta(hours=4, minutes=50) # 4h50m remaining
+
+    # ISO8601 with Z suffix for proper timezone indication
+    started_iso = started_at.isoformat().replace("+00:00", "Z")
+    expires_iso = expires_at.isoformat().replace("+00:00", "Z")
+
+    # Persist to session
+    session["trial_started_at"] = started_iso
+    session["trial_expires_at"] = expires_iso
+
+    # Frontend JavaScript to sync localStorage, then reload
+    javascript_to_run = (
+        "localStorage.setItem('trial_active', '1');\n"
+        f"localStorage.setItem('trial_started_at', '{started_iso}');\n"
+        f"localStorage.setItem('trial_expires_at', '{expires_iso}');\n"
+        "location.reload();"
+    )
+
     return jsonify({
         "success": True,
         "message": "Trial timer fixed",
-        "trial_started_at": session['trial_started_at'],
-        "trial_expires_at": session['trial_expires_at'],
-        "javascript_to_run": f"""
-localStorage.setItem('trial_active', '1');
-localStorage.setItem('trial_started_at', '{started_at.isoformat()}');
-localStorage.setItem('trial_expires_at', '{expires_at.isoformat()}Z');
-location.reload();
-"""
-    })
+        "trial_started_at": started_iso,
+        "trial_expires_at": expires_iso,
+        "javascript_to_run": javascript_to_run
+    }), 200
 
 @app.route("/api/decoder/check-limit")
 def check_decoder_limit():

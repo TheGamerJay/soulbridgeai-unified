@@ -91,9 +91,6 @@
                 
                 <!-- PREMIUM FEATURES - Only show for actual growth/max subscribers -->
                 <!-- Template user_plan: {{ user_plan }} -->
-                <div style="background: red; color: white; padding: 10px; margin: 10px 0;">
-                    DEBUG: user_plan = "{{ user_plan }}" | Should show features: {{ user_plan in ['growth', 'max'] }}
-                </div>
                 {% if user_plan in ['growth', 'max'] %}
                 <a href="/voice-journaling" class="action-btn" data-tier="growth">
                     <i class="fas fa-microphone"></i>
@@ -106,10 +103,6 @@
                 {% endif %}
                 
                 {% if user_plan == 'max' %}
-                <a href="/music-studio" class="action-btn" data-tier="max">
-                    <i class="fas fa-music"></i>
-                    Music Studio
-                </a>
                 <a href="/mini-studio" class="action-btn" data-tier="max">
                     <i class="fas fa-robot"></i>
                     Mini Studio
