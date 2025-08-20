@@ -66,58 +66,70 @@ def create_referrals_tables(db_connection):
     """Create referral system tables"""
     cursor = db_connection.cursor()
     
-    # Referrals table - tracks referral relationships
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS referrals (
-            id SERIAL PRIMARY KEY,
-            referrer_id INTEGER NOT NULL,
-            referred_id INTEGER NOT NULL,
-            referral_code VARCHAR(20) NOT NULL,
-            status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'verified', 'rewarded', 'invalid')),
-            verification_method VARCHAR(50), -- 'email_phone', 'subscription', etc.
-            verified_at TIMESTAMP NULL,
-            rewarded_at TIMESTAMP NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            
-            FOREIGN KEY (referrer_id) REFERENCES users(id) ON DELETE CASCADE,
-            FOREIGN KEY (referred_id) REFERENCES users(id) ON DELETE CASCADE,
-            UNIQUE(referrer_id, referred_id), -- Prevent duplicate referrals
-            CHECK (referrer_id != referred_id) -- Can't refer yourself
-        )
-    """)
+    try:
+        # Referrals table - tracks referral relationships
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS referrals (
+                id SERIAL PRIMARY KEY,
+                referrer_id INTEGER NOT NULL,
+                referred_id INTEGER NOT NULL,
+                referral_code VARCHAR(20) NOT NULL,
+                status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'verified', 'rewarded', 'invalid')),
+                verification_method VARCHAR(50), -- 'email_phone', 'subscription', etc.
+                verified_at TIMESTAMP NULL,
+                rewarded_at TIMESTAMP NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                
+                FOREIGN KEY (referrer_id) REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY (referred_id) REFERENCES users(id) ON DELETE CASCADE,
+                UNIQUE(referrer_id, referred_id), -- Prevent duplicate referrals
+                CHECK (referrer_id != referred_id) -- Can't refer yourself
+            )
+        """)
+        logger.info("✅ Referrals table created successfully")
+    except Exception as e:
+        logger.error(f"❌ Failed to create referrals table: {e}")
+        raise
     
-    # Referral codes table - manages unique referral codes
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS referral_codes (
-            id SERIAL PRIMARY KEY,
-            user_id INTEGER NOT NULL,
-            code VARCHAR(20) NOT NULL UNIQUE,
-            uses_count INTEGER DEFAULT 0,
-            max_uses INTEGER DEFAULT NULL, -- NULL = unlimited
-            is_active BOOLEAN DEFAULT TRUE,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            expires_at TIMESTAMP NULL,
-            
-            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-        )
-    """)
-    
-    # Referral rewards table - tracks cosmetic unlocks from referrals
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS referral_rewards (
-            id SERIAL PRIMARY KEY,
-            user_id INTEGER NOT NULL,
-            threshold_reached INTEGER NOT NULL, -- 2, 5, 8, 10 referrals
-            cosmetic_id INTEGER NOT NULL,
-            unlocked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            
-            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-            FOREIGN KEY (cosmetic_id) REFERENCES cosmetics(id) ON DELETE CASCADE,
-            UNIQUE(user_id, threshold_reached) -- One reward per threshold
-        )
-    """)
-    
-    logger.info("✅ Referral tables created successfully")
+    try:
+        # Referral codes table - manages unique referral codes
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS referral_codes (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER NOT NULL,
+                code VARCHAR(20) NOT NULL UNIQUE,
+                uses_count INTEGER DEFAULT 0,
+                max_uses INTEGER DEFAULT NULL, -- NULL = unlimited
+                is_active BOOLEAN DEFAULT TRUE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                expires_at TIMESTAMP NULL,
+                
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+        """)
+        logger.info("✅ Referral codes table created successfully")
+        
+        # Referral rewards table - tracks cosmetic unlocks from referrals
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS referral_rewards (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER NOT NULL,
+                threshold_reached INTEGER NOT NULL, -- 2, 5, 8, 10 referrals
+                cosmetic_id INTEGER NOT NULL,
+                unlocked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY (cosmetic_id) REFERENCES cosmetics(id) ON DELETE CASCADE,
+                UNIQUE(user_id, threshold_reached) -- One reward per threshold
+            )
+        """)
+        logger.info("✅ Referral rewards table created successfully")
+        
+        db_connection.commit()
+        logger.info("✅ Referral tables created successfully")
+    except Exception as e:
+        logger.error(f"❌ Failed to create referral support tables: {e}")
+        raise
 
 def create_cosmetics_tables(db_connection):
     """Create cosmetic system tables"""
@@ -278,24 +290,31 @@ def create_indexes(db_connection):
     """Create database indexes for performance"""
     cursor = db_connection.cursor()
     
-    # Subscription indexes
-    cursor.execute("CREATE INDEX IF NOT EXISTS idx_subscriptions_user_id ON subscriptions(user_id)")
-    cursor.execute("CREATE INDEX IF NOT EXISTS idx_subscriptions_stripe_id ON subscriptions(stripe_subscription_id)")
-    cursor.execute("CREATE INDEX IF NOT EXISTS idx_subscriptions_status ON subscriptions(status)")
-    
-    # Referral indexes
-    cursor.execute("CREATE INDEX IF NOT EXISTS idx_referrals_referrer ON referrals(referrer_id)")
-    cursor.execute("CREATE INDEX IF NOT EXISTS idx_referrals_referred ON referrals(referred_id)")
-    cursor.execute("CREATE INDEX IF NOT EXISTS idx_referrals_code ON referrals(referral_code)")
-    cursor.execute("CREATE INDEX IF NOT EXISTS idx_referrals_status ON referrals(status)")
-    
-    # Cosmetic indexes
-    cursor.execute("CREATE INDEX IF NOT EXISTS idx_user_cosmetics_user ON user_cosmetics(user_id)")
-    cursor.execute("CREATE INDEX IF NOT EXISTS idx_user_cosmetics_equipped ON user_cosmetics(user_id, is_equipped)")
-    cursor.execute("CREATE INDEX IF NOT EXISTS idx_user_equipped_type ON user_equipped_cosmetics(user_id, cosmetic_type)")
-    
-    db_connection.commit()
-    logger.info("✅ Database indexes created successfully")
+    try:
+        # Subscription indexes
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_subscriptions_user_id ON subscriptions(user_id)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_subscriptions_stripe_id ON subscriptions(stripe_subscription_id)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_subscriptions_status ON subscriptions(status)")
+        logger.info("✅ Subscription indexes created")
+        
+        # Referral indexes
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_referrals_referrer ON referrals(referrer_id)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_referrals_referred ON referrals(referred_id)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_referrals_code ON referrals(referral_code)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_referrals_status ON referrals(status)")
+        logger.info("✅ Referral indexes created")
+        
+        # Cosmetic indexes
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_user_cosmetics_user ON user_cosmetics(user_id)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_user_cosmetics_equipped ON user_cosmetics(user_id, is_equipped)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_user_equipped_type ON user_equipped_cosmetics(user_id, cosmetic_type)")
+        logger.info("✅ Cosmetic indexes created")
+        
+        db_connection.commit()
+        logger.info("✅ Database indexes created successfully")
+    except Exception as e:
+        logger.error(f"❌ Failed to create indexes: {e}")
+        raise
 
 def initialize_subscriptions_referrals_cosmetics_schema():
     """
