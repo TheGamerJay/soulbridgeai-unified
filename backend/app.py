@@ -10355,11 +10355,28 @@ def api_chat():
             return jsonify({"success": False, "response": "Invalid request data"}), 400
             
         if not services["openai"]:
-            logger.warning("OpenAI service not available - providing fallback response")
-            # Provide a fallback response instead of failing
+            logger.warning("OpenAI service not available - using premium free AI service")
+            # Use premium free AI service instead of simple fallback
             character = data.get("character", "Blayzo")
-            fallback_response = f"Hello! I'm {character}, your AI companion. I'm currently running in offline mode, but I'm here to help! How can I assist you today?"
-            return jsonify({"success": True, "response": fallback_response})
+            message = data.get("message", "").strip()
+            context = data.get("context", "")
+            
+            logger.info(f"🎭 FALLBACK DEBUG: Using premium AI for character='{character}', message='{message[:50]}...'")
+            
+            try:
+                from premium_free_ai_service import get_premium_free_ai_service
+                premium_ai = get_premium_free_ai_service()
+                user_id = session.get('user_id', 'anonymous')
+                premium_response = premium_ai.generate_response(message, character, context, user_id)
+                ai_response = premium_response["response"]
+                
+                logger.info(f"✅ Premium AI fallback successful for character '{character}'")
+                return jsonify({"success": True, "response": ai_response, "character": character})
+                
+            except Exception as premium_error:
+                logger.error(f"Premium AI fallback error: {premium_error}")
+                fallback_response = f"Hello! I'm {character}, your AI companion. I'm currently running in offline mode, but I'm here to help! How can I assist you today?"
+                return jsonify({"success": True, "response": fallback_response, "character": character})
             
         message = data.get("message", "").strip()
         character = data.get("character", "Blayzo")
@@ -10416,10 +10433,11 @@ def api_chat():
                 f"You are {character}, an enhanced AI companion from SoulBridge AI Silver Plan. You provide more detailed responses and have access to advanced conversation features. You're helpful, insightful, and offer quality guidance."
             )
         else:  # Foundation (Free) - Premium Local AI
-            logger.info(f"Using premium free AI for user: {character}")
+            logger.info(f"🎭 MAIN FLOW DEBUG: Using premium free AI for character='{character}', message='{message[:50]}...'")
             try:
                 premium_ai = get_premium_free_ai_service()
                 user_id = session.get('user_id', 'anonymous')
+                logger.info(f"🎭 CALLING AI SERVICE: character='{character}', user_id='{user_id}'")
                 premium_response = premium_ai.generate_response(message, character, context, user_id)
                 ai_response = premium_response["response"]
                 

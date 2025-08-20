@@ -358,6 +358,9 @@ async function sendMessage() {
     try {
         isProcessing = true;
         
+        // DEBUG: Log what character we're sending to API
+        console.log('🐛 DEBUG: Sending character to API:', currentCharacter);
+        
         const response = await fetch('/api/chat', {
             method: 'POST',
             headers: {
