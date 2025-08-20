@@ -4379,6 +4379,7 @@ def get_library_content(user_id, content_type="all", user_plan="free"):
             "chat_conversations": [],
             "music_tracks": [],
             "creative_content": [],
+            "horoscope_readings": [],
             "limits": {
                 "chat_limit": chat_limit,
                 "music_enabled": effective_plan in ['growth', 'max']  # Free tier can't save music
@@ -4476,6 +4477,37 @@ def get_library_content(user_id, content_type="all", user_plan="free"):
                 ]
             except Exception as e:
                 logger.warning(f"Could not fetch creative content: {e}")
+                
+        # Get horoscope readings if requested
+        if content_type in ["all", "horoscope", "readings"]:
+            try:
+                if db_instance.use_postgres:
+                    cursor.execute("""
+                        SELECT id, title, content, created_at, metadata
+                        FROM user_library 
+                        WHERE user_id = %s AND content_type = 'horoscope'
+                        ORDER BY created_at DESC LIMIT 50
+                    """, (user_id,))
+                else:
+                    cursor.execute("""
+                        SELECT id, title, content, created_at, metadata
+                        FROM user_library 
+                        WHERE user_id = ? AND content_type = 'horoscope'
+                        ORDER BY created_at DESC LIMIT 50
+                    """, (user_id,))
+                
+                content_data["horoscope_readings"] = [
+                    {
+                        "id": row[0],
+                        "title": row[1],
+                        "content": row[2], 
+                        "created_at": row[3],
+                        "metadata": json.loads(row[4]) if row[4] else {},
+                        "type": "horoscope"
+                    } for row in cursor.fetchall()
+                ]
+            except Exception as e:
+                logger.warning(f"Could not fetch horoscope readings: {e}")
         
         conn.close()
         return content_data
@@ -11165,6 +11197,124 @@ def api_save_creative_content():
     except Exception as e:
         logger.error(f"Save creative content API error: {e}")
         return jsonify({"success": False, "error": "Failed to save creative content"}), 500
+
+@app.route("/api/save-horoscope", methods=["POST"])
+def api_save_horoscope():
+    """Save horoscope reading to user's library"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+            
+        data = request.get_json()
+        if not data:
+            return jsonify({"success": False, "error": "No data provided"}), 400
+
+        title = data.get('title', 'Horoscope Reading')
+        content = data.get('content', '')
+        reading_type = data.get('reading_type', 'horoscope')
+        metadata = data.get('metadata', {})
+        
+        if not content:
+            return jsonify({"success": False, "error": "Content is required"}), 400
+
+        user_id = session.get('user_id')
+        user_email = session.get('user_email')
+        
+        # Check user's library limits before saving
+        user_plan = session.get('user_plan', 'free')
+        library_limit = get_feature_limit(user_plan, 'library_chats')  # Use actual plan for limits, not effective
+        
+        # Get database connection
+        db = get_database()
+        if not db:
+            return jsonify({"success": False, "error": "Database not available"}), 500
+            
+        conn = db.get_connection()
+        cursor = conn.cursor()
+
+        # Check current library count if there's a limit
+        if library_limit < 999999:  # Only check if there's a limit
+            try:
+                if isinstance(db, PostgresDatabase):
+                    cursor.execute("SELECT COUNT(*) FROM user_library WHERE user_id = %s AND content_type = 'horoscope'", (user_id,))
+                else:
+                    cursor.execute("SELECT COUNT(*) FROM user_library WHERE user_id = ? AND content_type = 'horoscope'", (user_id,))
+                
+                current_count = cursor.fetchone()[0]
+                if current_count >= library_limit:
+                    tier_name = {"free": "Bronze", "growth": "Silver", "max": "Gold"}.get(user_plan, "Bronze")
+                    return jsonify({
+                        "success": False,
+                        "error": f"Library storage limit reached ({library_limit} items for {tier_name} tier). Upgrade your plan for more storage!"
+                    }), 429
+            except Exception as e:
+                logger.error(f"Error checking horoscope library limits: {e}")
+
+        # Prepare horoscope data for storage
+        horoscope_data = {
+            'title': title,
+            'content': content,
+            'reading_type': reading_type,
+            'metadata': metadata,
+            'timestamp': datetime.now().isoformat()
+        }
+
+        # Save to user_library
+        try:
+            if isinstance(db, PostgresDatabase):
+                cursor.execute("""
+                    INSERT INTO user_library (user_id, user_email, title, content, content_type, created_at, metadata)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    RETURNING id
+                """, (
+                    user_id,
+                    user_email, 
+                    title,
+                    content,
+                    'horoscope',
+                    datetime.now(),
+                    json.dumps(horoscope_data)
+                ))
+            else:
+                cursor.execute("""
+                    INSERT INTO user_library (user_id, user_email, title, content, content_type, created_at, metadata)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    user_id,
+                    user_email,
+                    title, 
+                    content,
+                    'horoscope',
+                    datetime.now().isoformat(),
+                    json.dumps(horoscope_data)
+                ))
+            
+            if isinstance(db, PostgresDatabase):
+                library_id = cursor.fetchone()[0] 
+            else:
+                library_id = cursor.lastrowid
+                
+            conn.commit()
+            
+            logger.info(f"Horoscope reading saved to library for user {user_email}: {reading_type}")
+            
+            return jsonify({
+                "success": True,
+                "message": "Horoscope reading saved to your library!",
+                "library_id": library_id
+            })
+            
+        except Exception as e:
+            conn.rollback()
+            logger.error(f"Database error saving horoscope: {e}")
+            return jsonify({"success": False, "error": "Failed to save to library"}), 500
+        finally:
+            cursor.close()
+            conn.close()
+            
+    except Exception as e:
+        logger.error(f"Save horoscope API error: {e}")
+        return jsonify({"success": False, "error": "Failed to save horoscope reading"}), 500
 
 @app.route("/api/save-canvas-art", methods=["POST"])
 def api_save_canvas_art():

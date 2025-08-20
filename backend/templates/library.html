@@ -464,6 +464,7 @@
             <div class="filter-btn" onclick="filterByType('Blayzica')" data-filter="Blayzica">
                 <img src="{{ url_for('static', filename='logos/Blayzica.png') }}" alt="Blayzica" style="width: 20px; height: 20px; border-radius: 50%; object-fit: contain; margin-right: 5px;"> Blayzica
             </div>
+            <div class="filter-btn" onclick="filterByType('horoscope')" data-filter="horoscope">⭐ Horoscope Readings</div>
             <div class="filter-btn" onclick="filterByType('favorites')" data-filter="favorites">⭐ Favorites</div>
         </div>
 
@@ -510,17 +511,65 @@
             loadCustomColors();
         });
 
-        function loadConversations() {
-            const savedConversations = JSON.parse(localStorage.getItem('savedConversations') || '[]');
-            const favorites = JSON.parse(localStorage.getItem('favoriteConversations') || '[]');
-            
-            allConversations = savedConversations.map((conv, index) => ({
-                ...conv,
-                id: index,
-                isFavorite: favorites.includes(index)
-            }));
+        async function loadConversations() {
+            try {
+                // Load from server-side data (unified library)
+                const libraryData = {{ content_data|tojson|safe }};
+                
+                allConversations = [];
+                
+                // Add chat conversations
+                if (libraryData.chat_conversations) {
+                    libraryData.chat_conversations.forEach(conv => {
+                        allConversations.push({
+                            ...conv,
+                            contentType: 'chat',
+                            character: conv.character || 'Blayzo',
+                            isFavorite: false // TODO: Implement favorites from server
+                        });
+                    });
+                }
+                
+                // Add horoscope readings
+                if (libraryData.horoscope_readings) {
+                    libraryData.horoscope_readings.forEach(reading => {
+                        allConversations.push({
+                            ...reading,
+                            contentType: 'horoscope',
+                            character: 'Sky', // Horoscopes use Sky character
+                            isFavorite: false
+                        });
+                    });
+                }
+                
+                // Add creative content
+                if (libraryData.creative_content) {
+                    libraryData.creative_content.forEach(creative => {
+                        allConversations.push({
+                            ...creative,
+                            contentType: 'creative',
+                            character: 'Creative AI',
+                            isFavorite: false
+                        });
+                    });
+                }
+                
+                displayConversations(allConversations);
+            } catch (error) {
+                console.error('Error loading library data:', error);
+                // Fallback to localStorage for backwards compatibility
+                const savedConversations = JSON.parse(localStorage.getItem('savedConversations') || '[]');
+                const favorites = JSON.parse(localStorage.getItem('favoriteConversations') || '[]');
+                
+                allConversations = savedConversations.map((conv, index) => ({
+                    ...conv,
+                    id: index,
+                    contentType: 'chat',
+                    isFavorite: favorites.includes(index)
+                }));
 
-            displayConversations(allConversations);
+                displayConversations(allConversations);
+            }
         }
 
         function displayConversations(conversations) {
@@ -541,9 +590,16 @@
 
         function createConversationCard(conv) {
             const preview = extractPreview(conv.content);
-            const characterIcon = conv.character === 'Blayzo' ? 
-                '<img src="/static/logos/Blayzo.png" alt="Blayzo" style="width: 16px; height: 16px; border-radius: 50%; object-fit: contain; margin-right: 4px;">' : 
-                '<img src="/static/logos/Blayzica.png" alt="Blayzica" style="width: 16px; height: 16px; border-radius: 50%; object-fit: contain; margin-right: 4px;">';
+            let characterIcon;
+            if (conv.character === 'Blayzo') {
+                characterIcon = '<img src="/static/logos/Blayzo.png" alt="Blayzo" style="width: 16px; height: 16px; border-radius: 50%; object-fit: contain; margin-right: 4px;">';
+            } else if (conv.character === 'Sky') {
+                characterIcon = '<img src="/static/logos/horoscope sky.png" alt="Sky" style="width: 16px; height: 16px; border-radius: 50%; object-fit: contain; margin-right: 4px;">';
+            } else if (conv.contentType === 'horoscope') {
+                characterIcon = '⭐'; // Fallback for horoscope readings
+            } else {
+                characterIcon = '<img src="/static/logos/Blayzica.png" alt="Blayzica" style="width: 16px; height: 16px; border-radius: 50%; object-fit: contain; margin-right: 4px;">';
+            }
             
             return `
                 <div class="conversation-card ${conv.isFavorite ? 'favorite' : ''}" data-id="${conv.id}">
@@ -556,7 +612,7 @@
                         <div class="conversation-character">
                             ${characterIcon} ${conv.character}
                         </div>
-                        <div class="conversation-date">${conv.date}</div>
+                        <div class="conversation-date">${conv.created_at || conv.date || 'Unknown date'}</div>
                     </div>
                     
                     <div class="conversation-preview">${preview}</div>
@@ -599,6 +655,8 @@
                 filtered = filtered.filter(conv => conv.character === 'Blayzo');
             } else if (currentFilter === 'Blayzica') {
                 filtered = filtered.filter(conv => conv.character === 'Blayzica');
+            } else if (currentFilter === 'horoscope') {
+                filtered = filtered.filter(conv => conv.contentType === 'horoscope');
             } else if (currentFilter === 'favorites') {
                 filtered = filtered.filter(conv => conv.isFavorite);
             }

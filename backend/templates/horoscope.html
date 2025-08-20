@@ -242,6 +242,7 @@
             display: block;
         }
 
+
         /* Mobile responsive */
         @media (max-width: 768px) {
             .container {
@@ -490,6 +491,14 @@ Keep it positive, insightful, and practical. Make it personal for someone born u
             output.innerHTML = result.response;
             userUsage++;
             refreshHoroscopeLimits();
+            
+            // Auto-save to library
+            await saveHoroscopeToLibrary(
+                `Daily Horoscope - ${selectedDailySign.name}`,
+                result.response,
+                'daily_horoscope',
+                { zodiac_sign: selectedDailySign.name, reading_type: 'daily' }
+            );
         } else {
             output.innerHTML = '⚠️ Unable to generate your horoscope right now. Please try again.';
         }
@@ -543,6 +552,14 @@ Be balanced, honest, and helpful. Focus on how they can build a strong connectio
             output.innerHTML = result.response;
             userUsage++;
             refreshHoroscopeLimits();
+            
+            // Auto-save to library
+            await saveHoroscopeToLibrary(
+                `Compatibility Reading - ${selectedYourSign.name} & ${selectedTheirSign.name}`,
+                result.response,
+                'compatibility_reading',
+                { your_sign: selectedYourSign.name, their_sign: selectedTheirSign.name, reading_type: 'compatibility' }
+            );
         } else {
             output.innerHTML = '⚠️ Unable to generate compatibility reading right now. Please try again.';
         }
@@ -598,6 +615,15 @@ Make it inspiring, practical, and specifically tailored for ${selectedMonthlySig
             output.innerHTML = result.response;
             userUsage++;
             refreshHoroscopeLimits();
+            
+            // Auto-save to library
+            const currentMonth = new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
+            await saveHoroscopeToLibrary(
+                `Monthly Forecast - ${selectedMonthlySign.name} (${currentMonth})`,
+                result.response,
+                'monthly_forecast',
+                { zodiac_sign: selectedMonthlySign.name, month: currentMonth, reading_type: 'monthly' }
+            );
         } else {
             output.innerHTML = '⚠️ Unable to generate monthly forecast right now. Please try again.';
         }
@@ -643,6 +669,74 @@ async function refreshHoroscopeLimits() {
     } catch (error) {
         console.error('Failed to refresh horoscope limits:', error);
     }
+}
+
+// Auto-save horoscope readings to library
+async function saveHoroscopeToLibrary(title, content, readingType, metadata) {
+    try {
+        const response = await fetch('/api/save-horoscope', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                title: title,
+                content: content,
+                reading_type: readingType,
+                metadata: metadata
+            })
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+            console.log('Horoscope reading saved to library:', title);
+            // Optional: Show a subtle notification
+            showSaveNotification('✅ Reading saved to your library');
+        } else {
+            console.warn('Failed to save horoscope reading:', result.error);
+        }
+    } catch (error) {
+        console.error('Error saving horoscope to library:', error);
+    }
+}
+
+// Show subtle save notification
+function showSaveNotification(message) {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: rgba(34, 197, 94, 0.9);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        z-index: 10000;
+        animation: slideIn 0.3s ease;
+    `;
+    notification.textContent = message;
+    
+    // Add slide-in animation
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    document.body.appendChild(notification);
+    
+    // Remove notification after 3 seconds
+    setTimeout(() => {
+        notification.style.animation = 'slideIn 0.3s ease reverse';
+        setTimeout(() => {
+            document.body.removeChild(notification);
+            document.head.removeChild(style);
+        }, 300);
+    }, 3000);
 }
 </script>
 
