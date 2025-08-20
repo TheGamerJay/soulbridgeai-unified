@@ -151,8 +151,18 @@ def get_feature_limit(user_plan: str, feature: str, trial_active=False, trial_ex
     Get usage limit for a specific feature.
     Always based on real plan, never trial.
     """
-    # Limits always from real plan
+    # Normalize plan names (handle legacy/inconsistent naming)
     plan = (user_plan or "bronze").lower()
+    plan_mapping = {
+        'free': 'bronze',
+        'growth': 'silver', 
+        'max': 'gold',
+        'foundation': 'bronze',
+        'premium': 'silver',
+        'enterprise': 'gold'
+    }
+    plan = plan_mapping.get(plan, plan)
+    
     limits = TIER_LIMITS.get(plan, TIER_LIMITS["bronze"])
     return limits.get(feature, 0)
 

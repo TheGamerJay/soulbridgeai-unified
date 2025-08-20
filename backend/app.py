@@ -2209,7 +2209,12 @@ def user_info():
                     trial_start_time = datetime.fromisoformat(trial_started.replace('Z', '+00:00'))
                 else:
                     trial_start_time = trial_started
-                elapsed = (datetime.utcnow() - trial_start_time).total_seconds()
+                
+                # Ensure both datetimes are timezone-aware for calculation
+                current_time = datetime.utcnow().replace(tzinfo=timezone.utc)
+                if trial_start_time.tzinfo is None:
+                    trial_start_time = trial_start_time.replace(tzinfo=timezone.utc)
+                elapsed = (current_time - trial_start_time).total_seconds()
                 trial_remaining = max(0, 18000 - elapsed)  # 5 hours = 18000 seconds
             except Exception as e:
                 logger.error(f"Error calculating trial remaining time: {e}")
@@ -3536,7 +3541,11 @@ def chat():
                                 expires_time = db_trial_expires
                             
                             # Only change trial state if we can confirm expiry status
-                            trial_is_active = datetime.utcnow() < expires_time
+                            # Ensure both datetimes are timezone-aware for comparison
+                            current_time = datetime.utcnow().replace(tzinfo=timezone.utc)
+                            if expires_time.tzinfo is None:
+                                expires_time = expires_time.replace(tzinfo=timezone.utc)
+                            trial_is_active = current_time < expires_time
                             logger.info(f"✅ TRIAL SYNC: Confirmed trial status - active={trial_is_active}, expires={expires_time}")
                         except Exception as e:
                             logger.error(f"⚠️ Error parsing trial expiry: {e} - PRESERVING current trial state: {current_trial_active}")
