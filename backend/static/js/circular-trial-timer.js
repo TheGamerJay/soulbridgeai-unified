@@ -215,7 +215,7 @@ class CircularTrialTimer {
         if (remainingMinutes < 10) {
             strokeColor = '#ef4444'; // red (critical)
         } else if (remainingMinutes < 30) {
-            strokeColor = '#f59e0b'; // amber (warning)
+            strokeColor = '#06b6d4'; // darker cyan (warning) - more visible
         }
 
         // Update the progress ring

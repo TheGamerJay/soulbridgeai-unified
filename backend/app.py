@@ -15044,7 +15044,7 @@ TIERS_TEMPLATE = r"""
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
     <h1 style="margin:0;">Choose the companion you most resonate with</h1>
     {% if trial_active and trial_expires_at %}
-      <div id="trialTimer" class="btn" style="background:linear-gradient(90deg,#ff6b35,#ff9500);font-size:14px;padding:8px 16px;cursor:default;" data-expires="{{ trial_expires_at }}">
+      <div id="trialTimer" class="btn" style="background:linear-gradient(90deg,#22d3ee,#06b6d4);font-size:14px;padding:8px 16px;cursor:default;" data-expires="{{ trial_expires_at }}">
         ⏱️ Trial: <span id="timeLeft">00:00:00</span>
       </div>
     {% elif not trial_active and not trial_used_permanently %}
