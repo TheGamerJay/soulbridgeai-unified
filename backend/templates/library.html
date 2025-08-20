@@ -237,6 +237,150 @@
             background: rgba(34, 211, 238, 0.2);
         }
         
+        /* Netflix-style Companion Dropdown */
+        .companion-dropdown {
+            position: relative;
+        }
+        
+        .companion-selector {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-width: 180px;
+            position: relative;
+        }
+        
+        .dropdown-arrow {
+            margin-left: 8px;
+            transition: transform 0.3s ease;
+        }
+        
+        .companion-selector.active .dropdown-arrow {
+            transform: rotate(180deg);
+        }
+        
+        .companion-dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.95);
+            border: 2px solid #22d3ee;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            max-height: 400px;
+            overflow-y: auto;
+            display: none;
+            margin-top: 5px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .companion-dropdown-menu.show {
+            display: block;
+            animation: dropdownSlide 0.3s ease;
+        }
+        
+        @keyframes dropdownSlide {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .companion-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 1px solid rgba(34, 211, 238, 0.1);
+        }
+        
+        .companion-item:last-child {
+            border-bottom: none;
+        }
+        
+        .companion-item:hover {
+            background: rgba(34, 211, 238, 0.1);
+        }
+        
+        .companion-item.locked {
+            opacity: 0.5;
+            cursor: not-allowed;
+            position: relative;
+        }
+        
+        .companion-item.locked:hover {
+            background: rgba(255, 0, 0, 0.1);
+        }
+        
+        .companion-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 12px;
+            border: 2px solid #22d3ee;
+        }
+        
+        .companion-info {
+            flex: 1;
+        }
+        
+        .companion-name {
+            font-weight: 600;
+            color: #22d3ee;
+            margin-bottom: 4px;
+        }
+        
+        .companion-description {
+            font-size: 0.85rem;
+            color: #9ca3af;
+            line-height: 1.3;
+        }
+        
+        .companion-tier-badge {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+        
+        .tier-bronze {
+            background: rgba(205, 127, 50, 0.2);
+            color: #cd7f32;
+            border: 1px solid #cd7f32;
+        }
+        
+        .tier-silver {
+            background: rgba(192, 192, 192, 0.2);
+            color: #c0c0c0;
+            border: 1px solid #c0c0c0;
+        }
+        
+        .tier-gold {
+            background: rgba(255, 215, 0, 0.2);
+            color: #ffd700;
+            border: 1px solid #ffd700;
+        }
+        
+        .tier-locked {
+            background: rgba(255, 0, 0, 0.2);
+            color: #ff4444;
+            border: 1px solid #ff4444;
+        }
+        
+        .lock-icon {
+            margin-left: 8px;
+            color: #ff4444;
+        }
+        
         /* Day mode styles */
         body.day-mode .library-title {
             color: #000;
@@ -301,19 +445,6 @@
             box-shadow: 0 0 0 2px #22d3ee !important;
         }
         
-        body.day-mode .filter-btn[data-filter="Blayzo"] {
-            background: rgba(220, 38, 38, 0.8) !important;
-            color: #22d3ee !important;
-            border-color: #dc2626 !important;
-            box-shadow: 0 0 0 2px #22d3ee !important;
-        }
-        
-        body.day-mode .filter-btn[data-filter="Blayzica"] {
-            background: rgba(220, 38, 38, 0.8) !important;
-            color: #22d3ee !important;
-            border-color: #dc2626 !important;
-            box-shadow: 0 0 0 2px #22d3ee !important;
-        }
         
         body.day-mode .filter-btn[data-filter="favorites"] {
             background: rgba(220, 38, 38, 0.8) !important;
@@ -458,12 +589,18 @@
         
         <div class="filter-options">
             <div class="filter-btn active" onclick="filterByType('all')" data-filter="all">All Conversations</div>
-            <div class="filter-btn" onclick="filterByType('Blayzo')" data-filter="Blayzo">
-                <img src="{{ url_for('static', filename='logos/Blayzo.png') }}" alt="Blayzo" style="width: 20px; height: 20px; border-radius: 50%; object-fit: contain; margin-right: 5px;"> Blayzo
+            
+            <!-- Netflix-style Companion Selector Dropdown -->
+            <div class="companion-dropdown">
+                <div class="filter-btn companion-selector" onclick="toggleCompanionDropdown()" data-filter="companions">
+                    <span id="companion-selector-text">🤖 AI Companions</span>
+                    <span class="dropdown-arrow">▼</span>
+                </div>
+                <div class="companion-dropdown-menu" id="companionDropdown">
+                    <!-- Will be populated by JavaScript -->
+                </div>
             </div>
-            <div class="filter-btn" onclick="filterByType('Blayzica')" data-filter="Blayzica">
-                <img src="{{ url_for('static', filename='logos/Blayzica.png') }}" alt="Blayzica" style="width: 20px; height: 20px; border-radius: 50%; object-fit: contain; margin-right: 5px;"> Blayzica
-            </div>
+            
             <div class="filter-btn" onclick="filterByType('horoscope')" data-filter="horoscope">⭐ Horoscope</div>
             <div class="filter-btn" onclick="filterByType('fortune')" data-filter="fortune">🔮 Fortune</div>
             <div class="filter-btn" onclick="filterByType('decoder')" data-filter="decoder">🔍 Decoder</div>
@@ -511,6 +648,7 @@
             loadConversations();
             loadSavedTheme();
             loadCustomColors();
+            populateCompanionDropdown();
         });
 
         async function loadConversations() {
@@ -685,11 +823,7 @@
             let filtered = allConversations;
 
             // Apply type filter
-            if (currentFilter === 'Blayzo') {
-                filtered = filtered.filter(conv => conv.character === 'Blayzo');
-            } else if (currentFilter === 'Blayzica') {
-                filtered = filtered.filter(conv => conv.character === 'Blayzica');
-            } else if (currentFilter === 'horoscope') {
+            if (currentFilter === 'horoscope') {
                 filtered = filtered.filter(conv => conv.contentType === 'horoscope');
             } else if (currentFilter === 'fortune') {
                 filtered = filtered.filter(conv => conv.contentType === 'fortune');
@@ -697,6 +831,9 @@
                 filtered = filtered.filter(conv => conv.contentType === 'decoder');
             } else if (currentFilter === 'favorites') {
                 filtered = filtered.filter(conv => conv.isFavorite);
+            } else if (currentFilter !== 'all') {
+                // Handle companion-specific filtering
+                filtered = filtered.filter(conv => conv.character === currentFilter);
             }
 
             // Apply search filter
@@ -856,6 +993,123 @@
                 themeText.textContent = 'Night Mode is ON';
                 themeIcon.textContent = '🌙';
             }
+        }
+
+        // Netflix-style Companion Dropdown Functions
+        let selectedCompanion = 'all';
+
+        function toggleCompanionDropdown() {
+            const dropdown = document.getElementById('companionDropdown');
+            const selector = document.querySelector('.companion-selector');
+            
+            dropdown.classList.toggle('show');
+            selector.classList.toggle('active');
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function closeDropdown(e) {
+                if (!e.target.closest('.companion-dropdown')) {
+                    dropdown.classList.remove('show');
+                    selector.classList.remove('active');
+                    document.removeEventListener('click', closeDropdown);
+                }
+            });
+        }
+
+        function populateCompanionDropdown() {
+            const dropdown = document.getElementById('companionDropdown');
+            console.log('🔧 Populating companion dropdown...');
+            
+            if (!dropdown) {
+                console.error('❌ Dropdown element not found!');
+                return;
+            }
+            
+            // Define all available companions with their tier information
+            const companions = [
+                // Bronze/Free Tier
+                { id: 'all', name: 'All Companions', avatar: '', tier: 'bronze', description: 'Show conversations from all companions', available: true },
+                { id: 'Blayzo', name: 'Blayzo', avatar: '/static/logos/Blayzo.png', tier: 'bronze', description: 'Your supportive AI companion', available: true },
+                { id: 'Blayzica', name: 'Blayzica', avatar: '/static/logos/Blayzica.png', tier: 'bronze', description: 'Your caring AI companion', available: true },
+                { id: 'GamerJay', name: 'GamerJay', avatar: '/static/logos/GamerJay Free companion.png', tier: 'bronze', description: 'Gaming-focused companion', available: true },
+                
+                // Silver Tier
+                { id: 'Sky', name: 'Sky', avatar: '/static/logos/Sky.png', tier: 'silver', description: 'Mystical insights companion', available: false },
+                { id: 'Blayzo Premium', name: 'Blayzo Premium', avatar: '/static/logos/Blayzo Premium.png', tier: 'silver', description: 'Enhanced Blayzo experience', available: false },
+                { id: 'Blayzica Growth', name: 'Blayzica Growth', avatar: '/static/logos/Blayzica Growth.png', tier: 'silver', description: 'Advanced Blayzica features', available: false },
+                
+                // Gold Tier  
+                { id: 'Companion Crimson', name: 'Companion Crimson', avatar: '/static/logos/Companion Crimson.png', tier: 'gold', description: 'Elite companion experience', available: false },
+                { id: 'Companion Violet', name: 'Companion Violet', avatar: '/static/logos/Companion Violet.png', tier: 'gold', description: 'Premium companion features', available: false },
+                { id: 'Royal Max', name: 'Royal Max', avatar: '/static/logos/Royal Max.png', tier: 'gold', description: 'Ultimate companion experience', available: false },
+                
+                // Special companions (based on content type)
+                { id: 'Fortune Teller', name: 'Fortune Teller', avatar: '/static/logos/Fortune Teller Sky.png', tier: 'special', description: 'Fortune reading specialist', available: true },
+                { id: 'Agent', name: 'Agent', avatar: '/static/logos/Agent The decoder.png', tier: 'special', description: 'Decoder specialist', available: true }
+            ];
+            
+            // Clear existing dropdown content
+            dropdown.innerHTML = '';
+            
+            // Create companion items
+            companions.forEach(companion => {
+                const item = document.createElement('div');
+                item.className = `companion-item ${companion.available ? '' : 'locked'}`;
+                item.onclick = () => selectCompanionFilter(companion.id, companion.name);
+                
+                const tierBadge = getTierBadge(companion.tier, companion.available);
+                
+                item.innerHTML = `
+                    ${companion.avatar ? `<img src="${companion.avatar}" alt="${companion.name}" class="companion-avatar" onerror="this.style.display='none'">` : '<div class="companion-avatar" style="background: #22d3ee; display: flex; align-items: center; justify-content: center; color: #000; font-weight: bold;">🤖</div>'}
+                    <div class="companion-info">
+                        <div class="companion-name">${companion.name}</div>
+                        <div class="companion-description">${companion.description}</div>
+                    </div>
+                    ${tierBadge}
+                    ${!companion.available ? '<span class="lock-icon">🔒</span>' : ''}
+                `;
+                
+                dropdown.appendChild(item);
+            });
+        }
+
+        function getTierBadge(tier, available) {
+            if (tier === 'bronze') return '<span class="companion-tier-badge tier-bronze">BRONZE</span>';
+            if (tier === 'silver') return `<span class="companion-tier-badge ${available ? 'tier-silver' : 'tier-locked'}">SILVER</span>`;
+            if (tier === 'gold') return `<span class="companion-tier-badge ${available ? 'tier-gold' : 'tier-locked'}">GOLD</span>`;
+            if (tier === 'special') return '<span class="companion-tier-badge tier-bronze">SPECIAL</span>';
+            return '';
+        }
+
+        function selectCompanionFilter(companionId, companionName) {
+            selectedCompanion = companionId;
+            
+            // Update dropdown button text
+            const selectorText = document.getElementById('companion-selector-text');
+            if (companionId === 'all') {
+                selectorText.textContent = '🤖 AI Companions';
+            } else {
+                selectorText.textContent = `🤖 ${companionName}`;
+            }
+            
+            // Close dropdown
+            const dropdown = document.getElementById('companionDropdown');
+            const selector = document.querySelector('.companion-selector');
+            dropdown.classList.remove('show');
+            selector.classList.remove('active');
+            
+            // Update filter
+            if (companionId === 'all') {
+                filterByType('all');
+            } else {
+                currentFilter = companionId;
+                filterConversations();
+            }
+            
+            // Update active filter button
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector('.companion-selector').classList.add('active');
         }
     </script>
 </body>
