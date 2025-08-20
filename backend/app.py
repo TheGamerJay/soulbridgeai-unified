@@ -8529,9 +8529,9 @@ def debug_user_tier_info():
     effective_plan = get_effective_plan(user_plan, trial_active)
     
     # Check what features should be unlocked (using internal plan names)
-    should_see_relationships = user_plan in ['growth', 'max']
-    should_see_meditations = user_plan in ['growth', 'max'] 
-    should_see_mini_studio = user_plan == 'max'
+    should_see_relationships = user_plan in ['silver', 'growth', 'gold', 'max']
+    should_see_meditations = user_plan in ['silver', 'growth', 'gold', 'max'] 
+    should_see_mini_studio = user_plan in ['gold', 'max']  # Support both new and legacy names
     
     return jsonify({
         "user_id": user_id,
@@ -8605,9 +8605,9 @@ def debug_set_user_tier(tier):
         "old_plan": old_plan,
         "new_plan": tier,
         "features_unlocked": {
-            "relationships": internal_tier in ['growth', 'max'],
-            "meditations": internal_tier in ['growth', 'max'],
-            "mini_studio": internal_tier == 'max'
+            "relationships": internal_tier in ['silver', 'growth', 'gold', 'max'],
+            "meditations": internal_tier in ['silver', 'growth', 'gold', 'max'],
+            "mini_studio": internal_tier in ['gold', 'max']
         }
     }), 200
 
