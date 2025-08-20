@@ -314,10 +314,10 @@ def initialize_subscriptions_referrals_cosmetics_schema():
         
         logger.info("🚀 Initializing Subscriptions + Referrals + Cosmetics schema...")
         
-        # Create all tables
+        # Create all tables (cosmetics first due to foreign key dependencies)
         create_subscriptions_tables(conn)
-        create_referrals_tables(conn)
         create_cosmetics_tables(conn)
+        create_referrals_tables(conn)
         
         # Insert default data
         insert_default_cosmetics(conn)
