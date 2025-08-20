@@ -2433,6 +2433,12 @@ Where emotion meets expression.
             if (!d.active) {
                 // No active trial, timer hidden
                 if (banner) banner.style.display = 'none';
+                
+                // Stop any running timer
+                if (window.chatTrialTimer) {
+                    clearInterval(window.chatTrialTimer);
+                    window.chatTrialTimer = null;
+                }
                 return;
             }
             
@@ -2472,7 +2478,10 @@ Where emotion meets expression.
                 const seconds = Math.floor((delta % 60000) / 1000);
 
                 const timeDisplay = `— ${fmt(hours, minutes, seconds)}`;
-                console.log(`⏱️ ROBUST TIMER: ${timeDisplay} (${Math.floor(delta/1000)}s remaining)`);
+                // Only log timer updates every 30 seconds to reduce console spam
+                if (Math.floor(delta/1000) % 30 === 0) {
+                    console.log(`⏱️ ROBUST TIMER: ${timeDisplay} (${Math.floor(delta/1000)}s remaining)`);
+                }
                 if (etaEl) etaEl.textContent = timeDisplay;
 
                 // Update warning states
@@ -2487,20 +2496,32 @@ Where emotion meets expression.
                 }
 
                 if (delta === 0) {
-                    clearInterval(timerId);
+                    if (window.chatTrialTimer) {
+                        clearInterval(window.chatTrialTimer);
+                        window.chatTrialTimer = null;
+                    }
                     if (etaEl) etaEl.textContent = '— 00:00:00';
                     // optionally refresh UI/limits here
                 }
             }
 
+            // Prevent multiple timers - clear any existing timer first
+            if (window.chatTrialTimer) {
+                clearInterval(window.chatTrialTimer);
+                window.chatTrialTimer = null;
+            }
+
             // First draw + stable 1s cadence
             tick();
-            let timerId = setInterval(tick, 1000);
+            window.chatTrialTimer = setInterval(tick, 1000);
 
             // Recover quickly from background-tab drift
-            document.addEventListener('visibilitychange', () => {
-                if (!document.hidden) tick();
-            });
+            if (!window.chatVisibilityListenerAdded) {
+                document.addEventListener('visibilitychange', () => {
+                    if (!document.hidden) tick();
+                });
+                window.chatVisibilityListenerAdded = true;
+            }
         }
 
         // Legacy function for compatibility - DISABLED to prevent timezone bugs
