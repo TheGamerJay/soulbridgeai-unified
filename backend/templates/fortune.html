@@ -757,6 +757,14 @@ async function getFortune() {
             userUsage++;
             refreshFortuneLimits();
             
+            // Auto-save to library
+            await saveFortuneToLibrary(
+                `Fortune Reading - ${config.title}`,
+                result.response,
+                config.type,
+                { fortune_type: config.type, question: inputText }
+            );
+            
             // Show result with animation
             outputBox.className = 'output-box show';
             outputBox.innerHTML = result.response;
@@ -940,6 +948,74 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+// Auto-save fortune readings to library
+async function saveFortuneToLibrary(title, content, fortuneType, metadata) {
+    try {
+        const response = await fetch('/api/save-fortune', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                title: title,
+                content: content,
+                fortune_type: fortuneType,
+                metadata: metadata
+            })
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+            console.log('Fortune reading saved to library:', title);
+            // Optional: Show a subtle notification
+            showSaveNotification('✅ Fortune reading saved to your library');
+        } else {
+            console.warn('Failed to save fortune reading:', result.error);
+        }
+    } catch (error) {
+        console.error('Error saving fortune to library:', error);
+    }
+}
+
+// Show subtle save notification (reuse from horoscope)
+function showSaveNotification(message) {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: rgba(34, 197, 94, 0.9);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        z-index: 10000;
+        animation: slideIn 0.3s ease;
+    `;
+    notification.textContent = message;
+    
+    // Add slide-in animation
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    document.body.appendChild(notification);
+    
+    // Remove notification after 3 seconds
+    setTimeout(() => {
+        notification.style.animation = 'slideIn 0.3s ease reverse';
+        setTimeout(() => {
+            document.body.removeChild(notification);
+            document.head.removeChild(style);
+        }, 300);
+    }, 3000);
+}
 </script>
 
 </body>

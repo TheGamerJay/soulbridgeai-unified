@@ -4380,6 +4380,8 @@ def get_library_content(user_id, content_type="all", user_plan="free"):
             "music_tracks": [],
             "creative_content": [],
             "horoscope_readings": [],
+            "fortune_readings": [],
+            "decoder_readings": [],
             "limits": {
                 "chat_limit": chat_limit,
                 "music_enabled": effective_plan in ['growth', 'max']  # Free tier can't save music
@@ -4508,6 +4510,68 @@ def get_library_content(user_id, content_type="all", user_plan="free"):
                 ]
             except Exception as e:
                 logger.warning(f"Could not fetch horoscope readings: {e}")
+                
+        # Get fortune readings if requested
+        if content_type in ["all", "fortune", "readings"]:
+            try:
+                if db_instance.use_postgres:
+                    cursor.execute("""
+                        SELECT id, title, content, created_at, metadata
+                        FROM user_library 
+                        WHERE user_id = %s AND content_type = 'fortune'
+                        ORDER BY created_at DESC LIMIT 50
+                    """, (user_id,))
+                else:
+                    cursor.execute("""
+                        SELECT id, title, content, created_at, metadata
+                        FROM user_library 
+                        WHERE user_id = ? AND content_type = 'fortune'
+                        ORDER BY created_at DESC LIMIT 50
+                    """, (user_id,))
+                
+                content_data["fortune_readings"] = [
+                    {
+                        "id": row[0],
+                        "title": row[1],
+                        "content": row[2], 
+                        "created_at": row[3],
+                        "metadata": json.loads(row[4]) if row[4] else {},
+                        "type": "fortune"
+                    } for row in cursor.fetchall()
+                ]
+            except Exception as e:
+                logger.warning(f"Could not fetch fortune readings: {e}")
+                
+        # Get decoder readings if requested
+        if content_type in ["all", "decoder", "readings"]:
+            try:
+                if db_instance.use_postgres:
+                    cursor.execute("""
+                        SELECT id, title, content, created_at, metadata
+                        FROM user_library 
+                        WHERE user_id = %s AND content_type = 'decoder'
+                        ORDER BY created_at DESC LIMIT 50
+                    """, (user_id,))
+                else:
+                    cursor.execute("""
+                        SELECT id, title, content, created_at, metadata
+                        FROM user_library 
+                        WHERE user_id = ? AND content_type = 'decoder'
+                        ORDER BY created_at DESC LIMIT 50
+                    """, (user_id,))
+                
+                content_data["decoder_readings"] = [
+                    {
+                        "id": row[0],
+                        "title": row[1],
+                        "content": row[2], 
+                        "created_at": row[3],
+                        "metadata": json.loads(row[4]) if row[4] else {},
+                        "type": "decoder"
+                    } for row in cursor.fetchall()
+                ]
+            except Exception as e:
+                logger.warning(f"Could not fetch decoder readings: {e}")
         
         conn.close()
         return content_data
@@ -11315,6 +11379,222 @@ def api_save_horoscope():
     except Exception as e:
         logger.error(f"Save horoscope API error: {e}")
         return jsonify({"success": False, "error": "Failed to save horoscope reading"}), 500
+
+@app.route("/api/save-fortune", methods=["POST"])
+def api_save_fortune():
+    """Save fortune reading to user's library"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+            
+        data = request.get_json()
+        if not data:
+            return jsonify({"success": False, "error": "No data provided"}), 400
+
+        title = data.get('title', 'Fortune Reading')
+        content = data.get('content', '')
+        fortune_type = data.get('fortune_type', 'fortune')
+        metadata = data.get('metadata', {})
+        
+        if not content:
+            return jsonify({"success": False, "error": "Content is required"}), 400
+
+        user_id = session.get('user_id')
+        user_email = session.get('user_email')
+        
+        # Check user's library limits before saving
+        user_plan = session.get('user_plan', 'free')
+        library_limit = get_feature_limit(user_plan, 'library_chats')
+        
+        # Get database connection
+        db = get_database()
+        if not db:
+            return jsonify({"success": False, "error": "Database not available"}), 500
+            
+        conn = db.get_connection()
+        cursor = conn.cursor()
+
+        # Check current library count if there's a limit
+        if library_limit < 999999:
+            try:
+                if isinstance(db, PostgresDatabase):
+                    cursor.execute("SELECT COUNT(*) FROM user_library WHERE user_id = %s AND content_type = 'fortune'", (user_id,))
+                else:
+                    cursor.execute("SELECT COUNT(*) FROM user_library WHERE user_id = ? AND content_type = 'fortune'", (user_id,))
+                
+                current_count = cursor.fetchone()[0]
+                if current_count >= library_limit:
+                    tier_name = {"free": "Bronze", "growth": "Silver", "max": "Gold"}.get(user_plan, "Bronze")
+                    return jsonify({
+                        "success": False,
+                        "error": f"Library storage limit reached ({library_limit} items for {tier_name} tier). Upgrade your plan for more storage!"
+                    }), 429
+            except Exception as e:
+                logger.error(f"Error checking fortune library limits: {e}")
+
+        # Prepare fortune data for storage
+        fortune_data = {
+            'title': title,
+            'content': content,
+            'fortune_type': fortune_type,
+            'metadata': metadata,
+            'timestamp': datetime.now().isoformat()
+        }
+
+        # Save to user_library
+        try:
+            if isinstance(db, PostgresDatabase):
+                cursor.execute("""
+                    INSERT INTO user_library (user_id, user_email, title, content, content_type, created_at, metadata)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    RETURNING id
+                """, (
+                    user_id, user_email, title, content, 'fortune',
+                    datetime.now(), json.dumps(fortune_data)
+                ))
+            else:
+                cursor.execute("""
+                    INSERT INTO user_library (user_id, user_email, title, content, content_type, created_at, metadata)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    user_id, user_email, title, content, 'fortune',
+                    datetime.now().isoformat(), json.dumps(fortune_data)
+                ))
+            
+            if isinstance(db, PostgresDatabase):
+                library_id = cursor.fetchone()[0] 
+            else:
+                library_id = cursor.lastrowid
+                
+            conn.commit()
+            
+            logger.info(f"Fortune reading saved to library for user {user_email}: {fortune_type}")
+            
+            return jsonify({
+                "success": True,
+                "message": "Fortune reading saved to your library!",
+                "library_id": library_id
+            })
+            
+        except Exception as e:
+            conn.rollback()
+            logger.error(f"Database error saving fortune: {e}")
+            return jsonify({"success": False, "error": "Failed to save to library"}), 500
+        finally:
+            cursor.close()
+            conn.close()
+            
+    except Exception as e:
+        logger.error(f"Save fortune API error: {e}")
+        return jsonify({"success": False, "error": "Failed to save fortune reading"}), 500
+
+@app.route("/api/save-decoder", methods=["POST"])
+def api_save_decoder():
+    """Save decoder reading to user's library"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+            
+        data = request.get_json()
+        if not data:
+            return jsonify({"success": False, "error": "No data provided"}), 400
+
+        title = data.get('title', 'Decoder Reading')
+        content = data.get('content', '')
+        decoder_type = data.get('decoder_type', 'decoder')
+        metadata = data.get('metadata', {})
+        
+        if not content:
+            return jsonify({"success": False, "error": "Content is required"}), 400
+
+        user_id = session.get('user_id')
+        user_email = session.get('user_email')
+        
+        # Check user's library limits before saving
+        user_plan = session.get('user_plan', 'free')
+        library_limit = get_feature_limit(user_plan, 'library_chats')
+        
+        # Get database connection
+        db = get_database()
+        if not db:
+            return jsonify({"success": False, "error": "Database not available"}), 500
+            
+        conn = db.get_connection()
+        cursor = conn.cursor()
+
+        # Check current library count if there's a limit
+        if library_limit < 999999:
+            try:
+                if isinstance(db, PostgresDatabase):
+                    cursor.execute("SELECT COUNT(*) FROM user_library WHERE user_id = %s AND content_type = 'decoder'", (user_id,))
+                else:
+                    cursor.execute("SELECT COUNT(*) FROM user_library WHERE user_id = ? AND content_type = 'decoder'", (user_id,))
+                
+                current_count = cursor.fetchone()[0]
+                if current_count >= library_limit:
+                    tier_name = {"free": "Bronze", "growth": "Silver", "max": "Gold"}.get(user_plan, "Bronze")
+                    return jsonify({
+                        "success": False,
+                        "error": f"Library storage limit reached ({library_limit} items for {tier_name} tier). Upgrade your plan for more storage!"
+                    }), 429
+            except Exception as e:
+                logger.error(f"Error checking decoder library limits: {e}")
+
+        # Prepare decoder data for storage
+        decoder_data = {
+            'title': title,
+            'content': content,
+            'decoder_type': decoder_type,
+            'metadata': metadata,
+            'timestamp': datetime.now().isoformat()
+        }
+
+        # Save to user_library
+        try:
+            if isinstance(db, PostgresDatabase):
+                cursor.execute("""
+                    INSERT INTO user_library (user_id, user_email, title, content, content_type, created_at, metadata)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    RETURNING id
+                """, (
+                    user_id, user_email, title, content, 'decoder',
+                    datetime.now(), json.dumps(decoder_data)
+                ))
+            else:
+                cursor.execute("""
+                    INSERT INTO user_library (user_id, user_email, title, content, content_type, created_at, metadata)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    user_id, user_email, title, content, 'decoder',
+                    datetime.now().isoformat(), json.dumps(decoder_data)
+                ))
+            
+            if isinstance(db, PostgresDatabase):
+                library_id = cursor.fetchone()[0] 
+            else:
+                library_id = cursor.lastrowid
+                
+            conn.commit()
+            
+            logger.info(f"Decoder reading saved to library for user {user_email}: {decoder_type}")
+            
+            return jsonify({
+                "success": True,
+                "message": "Decoder reading saved to your library!",
+                "library_id": library_id
+            })
+            
+        except Exception as e:
+            conn.rollback()
+            logger.error(f"Database error saving decoder: {e}")
+            return jsonify({"success": False, "error": "Failed to save to library"}), 500
+        finally:
+            cursor.close()
+            conn.close()
+            
+    except Exception as e:
+        logger.error(f"Save decoder API error: {e}")
+        return jsonify({"success": False, "error": "Failed to save decoder reading"}), 500
 
 @app.route("/api/save-canvas-art", methods=["POST"])
 def api_save_canvas_art():

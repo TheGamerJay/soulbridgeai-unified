@@ -727,6 +727,14 @@ async function decodeText() {
             userUsage++;
             refreshDecoderLimits();
             
+            // Auto-save to library
+            await saveDecoderToLibrary(
+                `Decoder Reading - ${config.title}`,
+                result.response,
+                config.type,
+                { decoder_type: config.type, input_text: inputText }
+            );
+            
             // Show result with animation
             outputBox.className = 'output-box show';
             outputBox.innerHTML = result.response;
@@ -947,6 +955,74 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+// Auto-save decoder readings to library
+async function saveDecoderToLibrary(title, content, decoderType, metadata) {
+    try {
+        const response = await fetch('/api/save-decoder', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                title: title,
+                content: content,
+                decoder_type: decoderType,
+                metadata: metadata
+            })
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+            console.log('Decoder reading saved to library:', title);
+            // Optional: Show a subtle notification
+            showSaveNotification('✅ Decoder reading saved to your library');
+        } else {
+            console.warn('Failed to save decoder reading:', result.error);
+        }
+    } catch (error) {
+        console.error('Error saving decoder to library:', error);
+    }
+}
+
+// Show subtle save notification
+function showSaveNotification(message) {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: rgba(34, 197, 94, 0.9);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        z-index: 10000;
+        animation: slideIn 0.3s ease;
+    `;
+    notification.textContent = message;
+    
+    // Add slide-in animation
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    document.body.appendChild(notification);
+    
+    // Remove notification after 3 seconds
+    setTimeout(() => {
+        notification.style.animation = 'slideIn 0.3s ease reverse';
+        setTimeout(() => {
+            document.body.removeChild(notification);
+            document.head.removeChild(style);
+        }, 300);
+    }, 3000);
+}
 </script>
 
 </body>
