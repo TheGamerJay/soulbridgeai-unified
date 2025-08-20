@@ -803,34 +803,6 @@
                         ✅ Trial completed - Upgrade to unlock premium features
                     </div>
                     
-                    <!-- Subscription Upgrade Buttons -->
-                    <div id="upgradeButtons" style="margin-top: 1rem; display: none;">
-                        <div class="upgrade-options">
-                            <h4 style="margin: 0 0 0.75rem 0; color: #333;">Upgrade Your Plan</h4>
-                            
-                            <!-- Tier Information -->
-                            <div class="upgrade-tier" style="margin-bottom: 1rem;">
-                                <h5 style="margin: 0 0 0.5rem 0; color: #666;">🥈 Silver Tier - $12.99/month or $117/year</h5>
-                                <div class="tier-features">
-                                    Enhanced limits • 100 credits • No ads
-                                </div>
-                            </div>
-                            
-                            <div class="upgrade-tier" style="margin-bottom: 1rem;">
-                                <h5 style="margin: 0 0 0.5rem 0; color: #666;">🥇 Gold Tier - $19.99/month or $180/year</h5>
-                                <div class="tier-features">
-                                    Unlimited • 500 credits • Mini Studio • All features
-                                </div>
-                            </div>
-                            
-                            <!-- Single upgrade button linking to subscription page -->
-                            <div style="text-align: center; margin-top: 1rem;">
-                                <a href="/subscription" class="profile-btn" style="text-decoration: none; display: inline-block; text-align: center; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600;">
-                                    ⚡ Choose Your Plan
-                                </a>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
                 <div class="user-info">
@@ -1392,18 +1364,7 @@
                     }
                 }
 
-                // Show/hide upgrade buttons
-                const upgradeButtons = document.getElementById('upgradeButtons');
-                if (upgradeButtons) {
-                    const plan = this.userData.plan || 'bronze';
-                    
-                    // Show upgrade buttons only for Bronze users
-                    if (plan === 'bronze') {
-                        upgradeButtons.style.display = 'block';
-                    } else {
-                        upgradeButtons.style.display = 'none';
-                    }
-                }
+                // Upgrade buttons removed - users should use Account & Subscription section
 
                 // Update usage limits display
                 this.updateUsageLimits();
