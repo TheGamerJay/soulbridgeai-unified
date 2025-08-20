@@ -2028,7 +2028,7 @@
         // Subscription upgrade functions
         window.upgradeToSilver = async (billingCycle) => {
             try {
-                const response = await fetch('/api/stripe/checkout', {
+                const response = await fetch('/api/create-checkout-session', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -2056,7 +2056,7 @@
 
         window.upgradeToGold = async (billingCycle) => {
             try {
-                const response = await fetch('/api/stripe/checkout', {
+                const response = await fetch('/api/create-checkout-session', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

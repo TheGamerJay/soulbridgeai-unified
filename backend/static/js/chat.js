@@ -145,8 +145,6 @@ function loadCharacterInfo() {
     // Show voice chat button for Growth+ companions
     showVoiceChatButton();
     
-    // REMOVED: Old trial system integration - handled by new_trial_system.js
-    console.log('🚫 OLD: Trial initialization disabled - using new_trial_system.js');
     
     // Show selection success message
     const selectionTime = localStorage.getItem('companionSelectionTime');
@@ -587,9 +585,7 @@ setTimeout(showQuickResponses, 2000);
 
 // Trial system integration
 function checkTrialStatus() {
-    // REMOVED: Old localStorage-based trial system that conflicted with new system
     // Trial status is now handled by new_trial_system.js exclusively
-    console.log('🚫 OLD: Legacy trial check disabled - using new_trial_system.js');
 }
 
 function showTrialBanner(timeRemaining) {
@@ -647,8 +643,7 @@ function startNewTrialTimer() {
     const circumference = 2 * Math.PI * radius;
     
     function updateNewTimer() {
-        // REMOVED: localStorage trial logic - let new_trial_system.js handle this
-        console.log('🚫 OLD: Timer update disabled - using new_trial_system.js');
+        // Timer logic handled by new_trial_system.js
         return;
         
         if (remaining <= 0) {
@@ -685,8 +680,6 @@ function startNewTrialTimer() {
     console.log('✅ NEW: Circular trial timer started');
 }
 
-// REMOVED: Old trial initialization - handled by new_trial_system.js
-console.log('🚫 OLD: Removed duplicate trial initialization');
 
 // Bulletproof tier display logic
 function updateTierDisplay() {

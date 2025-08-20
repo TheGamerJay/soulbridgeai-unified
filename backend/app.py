@@ -2197,7 +2197,11 @@ def user_info():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
         user_id = session.get('user_id')
-        user_plan = session.get('user_plan', 'free')
+        raw_user_plan = session.get('user_plan', 'bronze')
+        # Migrate legacy plan names to new tier system
+        plan_migration = {'free': 'bronze', 'growth': 'silver', 'max': 'gold'}
+        user_plan = plan_migration.get(raw_user_plan, raw_user_plan)
+        
         trial_active = session.get('trial_active', False)
         trial_started = session.get('trial_started_at')
         trial_used_permanently = session.get('trial_used_permanently', False)
@@ -2538,7 +2542,7 @@ def start_trial():
     # Update session - CRITICAL: Set trial_active to True, don't mark as used permanently yet
     session['trial_active'] = True
     session['trial_started_at'] = now.isoformat()
-    session['trial_expires_at'] = expires.isoformat() + 'Z'
+    session['trial_expires_at'] = expires.isoformat().replace('+00:00', 'Z')
     session['trial_used_permanently'] = False  # Only set to True when trial expires
     # Don't cache effective_plan - get_effective_plan() will return 'max' when trial_active=True
     session['trial_warning_sent'] = False
@@ -3562,7 +3566,7 @@ def chat():
                     # Update session only if we have reliable data
                     session['trial_active'] = trial_is_active
                     session['trial_started_at'] = db_trial_started.isoformat() if db_trial_started else None
-                    session['trial_expires_at'] = (db_trial_expires.isoformat() + 'Z') if db_trial_expires else None  
+                    session['trial_expires_at'] = (db_trial_expires.isoformat().replace('+00:00', 'Z')) if db_trial_expires else None  
                     session['trial_used_permanently'] = bool(db_trial_used)
                     
                     logger.info(f"🔄 TRIAL SYNC: DB trial_active={db_trial_active}, expires={db_trial_expires}, session trial_active={trial_is_active}")
@@ -9201,16 +9205,18 @@ def debug_session_state():
     """Bulletproof session state API for frontend"""
     if not is_logged_in():
         return jsonify({
-            "user_plan": "free",
-            "effective_plan": "free",
+            "user_plan": "bronze",
+            "effective_plan": "bronze", 
             "trial_active": False,
             "access_free": True,
             "access_growth": False,
             "access_max": False
         })
     
-    # Use session values set by @app.before_request
-    user_plan = session.get('user_plan', 'free') or 'free'
+    # Use session values set by @app.before_request with plan migration
+    raw_user_plan = session.get('user_plan', 'bronze') or 'bronze'
+    plan_migration = {'free': 'bronze', 'growth': 'silver', 'max': 'gold'}
+    user_plan = plan_migration.get(raw_user_plan, raw_user_plan)
     effective_plan = session.get('effective_plan', 'free') or 'free'
     trial_active = session.get('trial_active', False)
     

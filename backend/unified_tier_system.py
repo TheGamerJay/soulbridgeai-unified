@@ -66,16 +66,24 @@ def ensure_database_schema():
         
         for column_name, column_def in missing_columns:
             try:
-                cur.execute(f"ALTER TABLE users ADD COLUMN {column_name} {column_def}")
-                conn.commit()
-                logger.info(f"📊 SCHEMA: Added column users.{column_name}")
-            except psycopg2.Error as e:
-                if 'already exists' in str(e).lower():
+                # Check if column exists first to avoid errors
+                cur.execute("""
+                    SELECT column_name 
+                    FROM information_schema.columns 
+                    WHERE table_name = 'users' AND column_name = %s
+                """, (column_name,))
+                
+                if cur.fetchone():
                     logger.info(f"📊 SCHEMA: Column users.{column_name} already exists")
-                    conn.rollback()
                 else:
-                    logger.error(f"📊 SCHEMA ERROR adding users.{column_name}: {e}")
-                    conn.rollback()
+                    # Column doesn't exist, add it
+                    cur.execute(f"ALTER TABLE users ADD COLUMN {column_name} {column_def}")
+                    conn.commit()
+                    logger.info(f"📊 SCHEMA: Added column users.{column_name}")
+                    
+            except Exception as e:
+                logger.error(f"📊 SCHEMA ERROR with users.{column_name}: {e}")
+                conn.rollback()
         
         # Create index for performance
         try:
@@ -304,8 +312,22 @@ def get_user_credits(user_id):
 
         now = datetime.utcnow()
 
-        # Reset if 1 month has passed - ONLY FOR ACTIVE SUBSCRIBERS
-        if not last_reset or (now - last_reset).days >= 30:
+        # Reset if 1 month has passed - ONLY FOR ACTIVE SUBSCRIBERS  
+        # Fix datetime vs date comparison issue
+        if not last_reset:
+            needs_reset = True
+        else:
+            # Convert last_reset to datetime if it's a date object
+            if hasattr(last_reset, 'date'):
+                # It's already a datetime
+                reset_datetime = last_reset
+            else:
+                # It's a date, convert to datetime
+                reset_datetime = datetime.combine(last_reset, datetime.min.time())
+            
+            needs_reset = (now - reset_datetime).days >= 30
+        
+        if needs_reset:
             # Check if user has active subscription before resetting
             subscription_active = check_active_subscription(user_id, plan)
             

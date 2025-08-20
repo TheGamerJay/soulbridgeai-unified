@@ -14,42 +14,75 @@ logger = logging.getLogger(__name__)
 # TIERED CREDIT COSTS (per feature, per tier)
 CREDIT_COSTS = {
     "ai_images": {
-        "growth": 5,  # Growth pays more 
-        "max": 2      # Max gets 60% discount
+        "bronze": 999,  # Not available to Bronze (locked)
+        "free": 999,    # Legacy support - same as bronze 
+        "silver": 5,    # Silver pays more (was: growth)
+        "growth": 5,    # Legacy support - same as silver
+        "gold": 2,      # Gold gets 60% discount (was: max)
+        "max": 2        # Legacy support - same as gold
     },
     "voice_journaling": {
-        "growth": 4,  # Growth pays more
-        "max": 2      # Max gets 50% discount  
+        "bronze": 999,  # Not available to Bronze (locked)
+        "free": 999,    # Legacy support - same as bronze
+        "silver": 4,    # Silver pays more (was: growth)
+        "growth": 4,    # Legacy support - same as silver  
+        "gold": 2,      # Gold gets 50% discount (was: max)
+        "max": 2        # Legacy support - same as gold
     },
     "relationship_profiles": {
-        "growth": 8,  # Growth pays more
-        "max": 3      # Max gets 62% discount
+        "bronze": 999,  # Not available to Bronze (locked)
+        "free": 999,    # Legacy support - same as bronze
+        "silver": 8,    # Silver pays more (was: growth)
+        "growth": 8,    # Legacy support - same as silver
+        "gold": 3,      # Gold gets 62% discount (was: max)
+        "max": 3        # Legacy support - same as gold
     },
     "meditations": {
-        "growth": 6,  # Growth pays more
-        "max": 2      # Max gets 66% discount
+        "bronze": 999,  # Not available to Bronze (locked)
+        "free": 999,    # Legacy support - same as bronze
+        "silver": 6,    # Silver pays more (was: growth)
+        "growth": 6,    # Legacy support - same as silver
+        "gold": 2,      # Gold gets 66% discount (was: max)
+        "max": 2        # Legacy support - same as gold
     },
     "mini_studio": {
-        "growth": 999,  # Not available to Growth
-        "max": 3        # Exclusive to Max
+        "bronze": 999,  # Not available to Bronze (locked)
+        "free": 999,    # Legacy support - same as bronze
+        "silver": 999,  # Not available to Silver
+        "growth": 999,  # Legacy support - same as silver
+        "gold": 3,      # Exclusive to Gold (was: max)
+        "max": 3        # Legacy support - same as gold
     }
 }
 
 # MONTHLY CREDIT ALLOWANCES
 MONTHLY_ALLOWANCES = {
-    "free": 0,
-    "growth": 100,
-    "max": 500
+    "bronze": 0,    # Bronze tier gets no monthly credits
+    "free": 0,      # Legacy support - same as bronze
+    "silver": 100,  # Silver tier gets 100 monthly credits (was: growth)
+    "growth": 100,  # Legacy support - same as silver
+    "gold": 500,    # Gold tier gets 500 monthly credits (was: max)
+    "max": 500      # Legacy support - same as gold
 }
 
 # CREDIT STORE BUNDLES (tier-specific pricing)
 CREDIT_BUNDLES = {
-    "growth": [
+    "silver": [
+        {"credits": 50, "price": 4.99, "id": "silver_small"},
+        {"credits": 120, "price": 9.99, "id": "silver_medium"}, 
+        {"credits": 300, "price": 19.99, "id": "silver_large"}
+    ],
+    "growth": [  # Legacy support - same as silver
         {"credits": 50, "price": 4.99, "id": "growth_small"},
         {"credits": 120, "price": 9.99, "id": "growth_medium"}, 
         {"credits": 300, "price": 19.99, "id": "growth_large"}
     ],
-    "max": [
+    "gold": [
+        {"credits": 150, "price": 4.99, "id": "gold_small"},   # Better value
+        {"credits": 400, "price": 9.99, "id": "gold_medium"},  # Better value
+        {"credits": 1000, "price": 19.99, "id": "gold_large"} # Better value
+    ],
+    "max": [  # Legacy support - same as gold
         {"credits": 150, "price": 4.99, "id": "max_small"},   # Better value
         {"credits": 400, "price": 9.99, "id": "max_medium"},  # Better value
         {"credits": 1000, "price": 19.99, "id": "max_large"} # Better value
@@ -67,8 +100,11 @@ def get_feature_cost(feature_name: str, user_plan: str) -> int:
     
     if user_plan not in CREDIT_COSTS[feature_name]:
         logger.warning(f"Unknown plan {user_plan} for feature {feature_name}")
-        # Default to growth pricing if plan unknown
-        return CREDIT_COSTS[feature_name].get("growth", 1)
+        # Default to silver pricing if plan unknown (fallback order: silver -> growth -> bronze -> free)
+        return CREDIT_COSTS[feature_name].get("silver", 
+               CREDIT_COSTS[feature_name].get("growth",
+               CREDIT_COSTS[feature_name].get("bronze",
+               CREDIT_COSTS[feature_name].get("free", 1))))
     
     cost = CREDIT_COSTS[feature_name][user_plan]
     logger.info(f"💳 {feature_name} costs {cost} credits for {user_plan} tier")

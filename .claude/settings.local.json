@@ -104,7 +104,16 @@
       "WebFetch(domain:pypi.org)",
       "Bash(set PYTHONIOENCODING=utf-8)",
       "Bash(set ENVIRONMENT=development)",
-      "Bash(set DEBUG_MODE=true)"
+      "Bash(set DEBUG_MODE=true)",
+      "Bash(DATABASE_URL=\"postgresql://postgres:sDCOyvWZKSxyJvnJBZNSJemzZKbbSjIT@postgres-wj-8.railway.internal:5432/railway\" python -c \"\nimport psycopg2\nfrom database_utils import get_database\n\n# Check if referrals table exists and has referrer_id column\ntry:\n    db = get_database()\n    conn = db.get_connection()\n    cursor = conn.cursor()\n    \n    # Check table existence\n    cursor.execute(\"\"\"\"\"\"SELECT table_name FROM information_schema.tables WHERE table_name = ''referrals''\"\"\"\"\"\")\n    table_exists = cursor.fetchone()\n    print(f''Referrals table exists: {table_exists is not None}'')\n    \n    if table_exists:\n        # Check columns\n        cursor.execute(\"\"\"\"\"\"SELECT column_name FROM information_schema.columns WHERE table_name = ''referrals'' ORDER BY ordinal_position\"\"\"\"\"\")\n        columns = [row[0] for row in cursor.fetchall()]\n        print(f''Referrals table columns: {columns}'')\n        print(f''referrer_id in columns: {\"\"referrer_id\"\" in columns}'')\n    \n    conn.close()\nexcept Exception as e:\n    print(f''Error: {e}'')\n\")",
+      "Bash(set PRICE_SILVER_MONTHLY=price_test_silver_monthly)",
+      "Bash(set PRICE_SILVER_YEARLY=price_test_silver_yearly)",
+      "Bash(set PRICE_GOLD_MONTHLY=price_test_gold_monthly)",
+      "Bash(set PRICE_GOLD_YEARLY=price_test_gold_yearly)",
+      "Bash(set STRIPE_SECRET_KEY=sk_test_fake)",
+      "Bash(set STRIPE_PUBLISHABLE_KEY=pk_test_fake)",
+      "Bash(set STRIPE_WEBHOOK_SECRET=whsec_test_fake)",
+      "Bash(git reset:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"
