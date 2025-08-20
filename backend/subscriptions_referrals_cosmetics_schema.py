@@ -353,7 +353,7 @@ def get_user_subscription(user_id: int) -> Optional[Dict[str, Any]]:
                    billing_interval, status, current_period_start, current_period_end,
                    cancel_at_period_end, canceled_at, created_at
             FROM subscriptions 
-            WHERE user_id = ? AND status != 'canceled'
+            WHERE user_id = %s AND status != 'canceled'
             ORDER BY created_at DESC 
             LIMIT 1
         """, (user_id,))
@@ -401,7 +401,7 @@ def get_user_referral_stats(user_id: int) -> Dict[str, Any]:
                 SUM(CASE WHEN status = 'verified' THEN 1 ELSE 0 END) as verified,
                 SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending
             FROM referrals 
-            WHERE referrer_id = ?
+            WHERE referrer_id = %s
         """, (user_id,))
         
         row = cursor.fetchone()
@@ -435,7 +435,7 @@ def get_user_cosmetics(user_id: int) -> Dict[str, Any]:
                    uc.unlocked_at, uc.unlock_source, uc.is_equipped
             FROM user_cosmetics uc
             JOIN cosmetics c ON uc.cosmetic_id = c.id
-            WHERE uc.user_id = ?
+            WHERE uc.user_id = %s
             ORDER BY uc.unlocked_at DESC
         """, (user_id,))
         
@@ -457,7 +457,7 @@ def get_user_cosmetics(user_id: int) -> Dict[str, Any]:
             SELECT uec.cosmetic_type, c.id, c.name, c.display_name
             FROM user_equipped_cosmetics uec
             JOIN cosmetics c ON uec.cosmetic_id = c.id
-            WHERE uec.user_id = ?
+            WHERE uec.user_id = %s
         """, (user_id,))
         
         equipped = {}
