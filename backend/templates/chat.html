@@ -2123,6 +2123,20 @@ Where emotion meets expression.
             // Update tier limits every 30 seconds
             setInterval(updateTierLimits, 30000);
             
+            // Update tier limits when user returns to page (after using features)
+            window.addEventListener('focus', () => {
+                console.log('🔄 Page gained focus - refreshing feature usage counters');
+                updateTierLimits();
+            });
+            
+            // Also update when page becomes visible (tab switching)
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden) {
+                    console.log('🔄 Page became visible - refreshing feature usage counters');
+                    updateTierLimits();
+                }
+            });
+            
             // Debug premium features only for premium users or when debugging
             const effectivePlan = '{{ effective_plan }}';
             if (effectivePlan !== 'free' || sessionStorage.getItem('debugPremiumFeatures')) {
