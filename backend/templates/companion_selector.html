@@ -1348,14 +1348,25 @@
                     
                     // Update trial countdown
                     const etaEl = document.getElementById('trial-eta');
-                    if (etaEl && data.expires_at_ms) {
-                        const expireMs = data.expires_at_ms;
+                    if (etaEl) {
+                        let expireMs;
+                        
+                        // Try multiple ways to get expiration timestamp
+                        if (data.expires_at_ms && typeof data.expires_at_ms === 'number') {
+                            expireMs = data.expires_at_ms;
+                        } else if (data.expires_at) {
+                            expireMs = new Date(data.expires_at).getTime();
+                        } else {
+                            // Fallback: show error message instead of NaN
+                            etaEl.textContent = 'Loading...';
+                            return;
+                        }
+                        
                         const now = Date.now();
                         const remaining = Math.max(0, expireMs - now);
                         
                         if (remaining <= 0) {
                             // Trial expired - hide banner immediately and refresh
-                            // Trial expired - hiding banner and refreshing
                             const banner = document.getElementById('trial-banner');
                             if (banner) banner.style.display = 'none';
                             
@@ -1369,6 +1380,13 @@
                         const hours = Math.floor(remaining / (1000 * 60 * 60));
                         const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
                         const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
+                        
+                        // Validate numbers before displaying
+                        if (isNaN(hours) || isNaN(minutes) || isNaN(seconds)) {
+                            etaEl.textContent = 'Loading...';
+                            return;
+                        }
+                        
                         etaEl.textContent = `${hours}:${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}`;
                     }
                 }
