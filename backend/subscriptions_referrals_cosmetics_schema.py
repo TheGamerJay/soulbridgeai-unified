@@ -261,26 +261,45 @@ def insert_default_cosmetics(db_connection):
         }
     ]
     
+    # Detect database type for parameter placeholders
+    db_type = "postgresql" if hasattr(db_connection, 'server_version') else "sqlite"
+    placeholder = "%s" if db_type == "postgresql" else "?"
+    
     for cosmetic in default_cosmetics:
         # Check if cosmetic already exists
-        cursor.execute("SELECT id FROM cosmetics WHERE name = %s", (cosmetic['name'],))
+        cursor.execute(f"SELECT id FROM cosmetics WHERE name = {placeholder}", (cosmetic['name'],))
         if cursor.fetchone():
             logger.info(f"📦 Cosmetic {cosmetic['name']} already exists, skipping")
             continue
         
-        cursor.execute("""
-            INSERT INTO cosmetics (name, display_name, description, type, rarity, unlock_method, unlock_requirement, image_url)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-        """, (
-            cosmetic['name'],
-            cosmetic['display_name'],
-            cosmetic['description'],
-            cosmetic['type'],
-            cosmetic['rarity'],
-            cosmetic['unlock_method'],
-            cosmetic['unlock_requirement'],
-            cosmetic['image_url']
-        ))
+        if db_type == "postgresql":
+            cursor.execute("""
+                INSERT INTO cosmetics (name, display_name, description, type, rarity, unlock_method, unlock_requirement, image_url)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            """, (
+                cosmetic['name'],
+                cosmetic['display_name'],
+                cosmetic['description'],
+                cosmetic['type'],
+                cosmetic['rarity'],
+                cosmetic['unlock_method'],
+                cosmetic['unlock_requirement'],
+                cosmetic['image_url']
+            ))
+        else:
+            cursor.execute("""
+                INSERT INTO cosmetics (name, display_name, description, type, rarity, unlock_method, unlock_requirement, image_url)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                cosmetic['name'],
+                cosmetic['display_name'],
+                cosmetic['description'],
+                cosmetic['type'],
+                cosmetic['rarity'],
+                cosmetic['unlock_method'],
+                cosmetic['unlock_requirement'],
+                cosmetic['image_url']
+            ))
         
         logger.info(f"📦 Created cosmetic: {cosmetic['display_name']}")
     
@@ -304,10 +323,22 @@ def create_indexes(db_connection):
         
         # Referral indexes - check if referrals table exists first
         try:
-            # First verify the table structure
-            cursor.execute("SELECT column_name FROM information_schema.columns WHERE table_name = 'referrals' ORDER BY ordinal_position")
-            columns = [row[0] for row in cursor.fetchall()]
-            logger.info(f"📋 Referrals table columns found: {columns}")
+            # Detect database type and get table structure accordingly
+            db_type = "postgresql" if hasattr(db_connection, 'server_version') else "sqlite"
+            
+            if db_type == "postgresql":
+                cursor.execute("SELECT column_name FROM information_schema.columns WHERE table_name = 'referrals' ORDER BY ordinal_position")
+            else:
+                # SQLite syntax
+                cursor.execute("PRAGMA table_info(referrals)")
+                columns_info = cursor.fetchall()
+                # SQLite PRAGMA returns (cid, name, type, notnull, dflt_value, pk)
+                columns = [row[1] for row in columns_info] if columns_info else []
+                
+            if db_type == "postgresql":
+                columns = [row[0] for row in cursor.fetchall()]
+            
+            logger.info(f"📋 Referrals table columns found ({db_type}): {columns}")
             
             if not columns:
                 logger.error("❌ Referrals table not found in database")

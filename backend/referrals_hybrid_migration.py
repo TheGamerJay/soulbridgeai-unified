@@ -21,68 +21,137 @@ def apply_hybrid_referrals_migration(db_connection):
         
         # Step 0: Add email columns + fraud protection columns if missing
         logger.info("📝 Adding email and fraud protection columns to referrals table...")
-        cursor.execute("""
-            DO $$
-            BEGIN
-                -- Email columns for hybrid approach
-                IF NOT EXISTS (SELECT 1 FROM information_schema.columns
-                               WHERE table_name='referrals' AND column_name='referrer_email') THEN
-                    ALTER TABLE referrals ADD COLUMN referrer_email VARCHAR(255);
-                END IF;
-                IF NOT EXISTS (SELECT 1 FROM information_schema.columns
-                               WHERE table_name='referrals' AND column_name='referred_email') THEN
-                    ALTER TABLE referrals ADD COLUMN referred_email VARCHAR(255);
-                END IF;
-                
-                -- Fraud protection columns
-                IF NOT EXISTS (SELECT 1 FROM information_schema.columns
-                               WHERE table_name='referrals' AND column_name='created_ip') THEN
-                    ALTER TABLE referrals ADD COLUMN created_ip INET;
-                END IF;
-                IF NOT EXISTS (SELECT 1 FROM information_schema.columns
-                               WHERE table_name='referrals' AND column_name='created_ua') THEN
-                    ALTER TABLE referrals ADD COLUMN created_ua TEXT;
-                END IF;
-            END $$;
-        """)
+        
+        # Detect database type
+        db_type = "postgresql" if hasattr(db_connection, 'server_version') else "sqlite"
+        
+        if db_type == "postgresql":
+            # PostgreSQL version with DO block
+            cursor.execute("""
+                DO $$
+                BEGIN
+                    -- Email columns for hybrid approach
+                    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                                   WHERE table_name='referrals' AND column_name='referrer_email') THEN
+                        ALTER TABLE referrals ADD COLUMN referrer_email VARCHAR(255);
+                    END IF;
+                    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                                   WHERE table_name='referrals' AND column_name='referred_email') THEN
+                        ALTER TABLE referrals ADD COLUMN referred_email VARCHAR(255);
+                    END IF;
+                    
+                    -- Referral code column (required for API)
+                    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                                   WHERE table_name='referrals' AND column_name='referral_code') THEN
+                        ALTER TABLE referrals ADD COLUMN referral_code VARCHAR(50);
+                    END IF;
+                    
+                    -- Fraud protection columns
+                    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                                   WHERE table_name='referrals' AND column_name='created_ip') THEN
+                        ALTER TABLE referrals ADD COLUMN created_ip INET;
+                    END IF;
+                    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                                   WHERE table_name='referrals' AND column_name='created_ua') THEN
+                        ALTER TABLE referrals ADD COLUMN created_ua TEXT;
+                    END IF;
+                END $$;
+            """)
+        else:
+            # SQLite version - add columns one by one with try/catch
+            columns_to_add = [
+                ('referrer_email', 'VARCHAR(255)'),
+                ('referred_email', 'VARCHAR(255)'), 
+                ('referral_code', 'VARCHAR(50)'),
+                ('created_ip', 'TEXT'),  # SQLite doesn't have INET, use TEXT
+                ('created_ua', 'TEXT')
+            ]
+            
+            for column_name, column_type in columns_to_add:
+                try:
+                    cursor.execute(f"ALTER TABLE referrals ADD COLUMN {column_name} {column_type}")
+                    logger.info(f"   ✅ Added column: {column_name}")
+                except Exception as e:
+                    if "duplicate column name" in str(e).lower() or "already exists" in str(e).lower():
+                        logger.info(f"   ✓ Column {column_name} already exists")
+                    else:
+                        logger.warning(f"   ⚠️ Failed to add column {column_name}: {e}")
         logger.info("✅ Email and fraud protection columns added/verified")
         
         # Step 1: Backfill emails from users based on IDs
         logger.info("🔄 Backfilling emails from users based on IDs...")
-        cursor.execute("""
-            UPDATE referrals r
-            SET referrer_email = u.email
-            FROM users u
-            WHERE r.referrer_id = u.id AND r.referrer_email IS NULL;
-        """)
-        referrer_updates = cursor.rowcount
         
-        cursor.execute("""
-            UPDATE referrals r
-            SET referred_email = u.email
-            FROM users u
-            WHERE r.referred_id = u.id AND r.referred_email IS NULL;
-        """)
-        referred_updates = cursor.rowcount
+        if db_type == "postgresql":
+            # PostgreSQL version with FROM clause
+            cursor.execute("""
+                UPDATE referrals r
+                SET referrer_email = u.email
+                FROM users u
+                WHERE r.referrer_id = u.id AND r.referrer_email IS NULL;
+            """)
+            referrer_updates = cursor.rowcount
+            
+            cursor.execute("""
+                UPDATE referrals r
+                SET referred_email = u.email
+                FROM users u
+                WHERE r.referred_id = u.id AND r.referred_email IS NULL;
+            """)
+            referred_updates = cursor.rowcount
+        else:
+            # SQLite version with subqueries
+            cursor.execute("""
+                UPDATE referrals 
+                SET referrer_email = (SELECT email FROM users WHERE id = referrals.referrer_id)
+                WHERE referrer_id IS NOT NULL AND referrer_email IS NULL;
+            """)
+            referrer_updates = cursor.rowcount
+            
+            cursor.execute("""
+                UPDATE referrals 
+                SET referred_email = (SELECT email FROM users WHERE id = referrals.referred_id)
+                WHERE referred_id IS NOT NULL AND referred_email IS NULL;
+            """)
+            referred_updates = cursor.rowcount
+            
         logger.info(f"✅ Backfilled {referrer_updates} referrer + {referred_updates} referred emails from IDs")
         
         # Step 2: Backfill IDs from emails if any exist  
         logger.info("🔄 Backfilling IDs from emails...")
-        cursor.execute("""
-            UPDATE referrals r
-            SET referrer_id = u.id
-            FROM users u
-            WHERE r.referrer_id IS NULL AND lower(r.referrer_email) = lower(u.email);
-        """)
-        referrer_id_updates = cursor.rowcount
         
-        cursor.execute("""
-            UPDATE referrals r
-            SET referred_id = u.id
-            FROM users u
-            WHERE r.referred_id IS NULL AND lower(r.referred_email) = lower(u.email);
-        """)
-        referred_id_updates = cursor.rowcount
+        if db_type == "postgresql":
+            # PostgreSQL version
+            cursor.execute("""
+                UPDATE referrals r
+                SET referrer_id = u.id
+                FROM users u
+                WHERE r.referrer_id IS NULL AND lower(r.referrer_email) = lower(u.email);
+            """)
+            referrer_id_updates = cursor.rowcount
+            
+            cursor.execute("""
+                UPDATE referrals r
+                SET referred_id = u.id
+                FROM users u
+                WHERE r.referred_id IS NULL AND lower(r.referred_email) = lower(u.email);
+            """)
+            referred_id_updates = cursor.rowcount
+        else:
+            # SQLite version
+            cursor.execute("""
+                UPDATE referrals 
+                SET referrer_id = (SELECT id FROM users WHERE lower(email) = lower(referrals.referrer_email))
+                WHERE referrer_id IS NULL AND referrer_email IS NOT NULL;
+            """)
+            referrer_id_updates = cursor.rowcount
+            
+            cursor.execute("""
+                UPDATE referrals 
+                SET referred_id = (SELECT id FROM users WHERE lower(email) = lower(referrals.referred_email))
+                WHERE referred_id IS NULL AND referred_email IS NOT NULL;
+            """)
+            referred_id_updates = cursor.rowcount
+            
         logger.info(f"✅ Backfilled {referrer_id_updates} referrer + {referred_id_updates} referred IDs from emails")
         
         # Step 3: Create indexes for speed (exact SQL from specification)
@@ -92,30 +161,50 @@ def apply_hybrid_referrals_migration(db_connection):
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_referrals_referrer_email  ON referrals (lower(referrer_email));")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_referrals_referred_email  ON referrals (lower(referred_email));")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_referrals_status          ON referrals (status);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_referrals_code            ON referrals (referral_code);")
         logger.info("✅ Performance indexes created")
         
-        # Step 4: Create trigger to keep emails in sync with IDs (exact SQL)
+        # Step 4: Create trigger to keep emails in sync with IDs (database-specific)
         logger.info("🔗 Creating sync trigger...")
-        cursor.execute("""
-            CREATE OR REPLACE FUNCTION sync_referral_emails() RETURNS trigger AS $$
-            BEGIN
-              IF NEW.referrer_id IS NOT NULL THEN
-                SELECT email INTO NEW.referrer_email FROM users WHERE id = NEW.referrer_id;
-              END IF;
-              IF NEW.referred_id IS NOT NULL THEN
-                SELECT email INTO NEW.referred_email FROM users WHERE id = NEW.referred_id;
-              END IF;
-              RETURN NEW;
-            END $$ LANGUAGE plpgsql;
-        """)
         
-        cursor.execute("DROP TRIGGER IF EXISTS trg_sync_referral_emails ON referrals;")
-        cursor.execute("""
-            CREATE TRIGGER trg_sync_referral_emails
-            BEFORE INSERT OR UPDATE ON referrals
-            FOR EACH ROW
-            EXECUTE PROCEDURE sync_referral_emails();
-        """)
+        if db_type == "postgresql":
+            # PostgreSQL version with function and trigger
+            cursor.execute("""
+                CREATE OR REPLACE FUNCTION sync_referral_emails() RETURNS trigger AS $$
+                BEGIN
+                  IF NEW.referrer_id IS NOT NULL THEN
+                    SELECT email INTO NEW.referrer_email FROM users WHERE id = NEW.referrer_id;
+                  END IF;
+                  IF NEW.referred_id IS NOT NULL THEN
+                    SELECT email INTO NEW.referred_email FROM users WHERE id = NEW.referred_id;
+                  END IF;
+                  RETURN NEW;
+                END $$ LANGUAGE plpgsql;
+            """)
+            
+            cursor.execute("DROP TRIGGER IF EXISTS trg_sync_referral_emails ON referrals;")
+            cursor.execute("""
+                CREATE TRIGGER trg_sync_referral_emails
+                BEFORE INSERT OR UPDATE ON referrals
+                FOR EACH ROW
+                EXECUTE PROCEDURE sync_referral_emails();
+            """)
+        else:
+            # SQLite version - simpler trigger syntax
+            cursor.execute("DROP TRIGGER IF EXISTS trg_sync_referral_emails;")
+            cursor.execute("""
+                CREATE TRIGGER trg_sync_referral_emails
+                AFTER INSERT ON referrals
+                FOR EACH ROW
+                WHEN NEW.referrer_id IS NOT NULL OR NEW.referred_id IS NOT NULL
+                BEGIN
+                  UPDATE referrals SET 
+                    referrer_email = (SELECT email FROM users WHERE id = NEW.referrer_id),
+                    referred_email = (SELECT email FROM users WHERE id = NEW.referred_id)
+                  WHERE id = NEW.id;
+                END;
+            """)
+        
         logger.info("✅ Sync trigger created successfully")
         
         # Final commit
