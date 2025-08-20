@@ -318,10 +318,17 @@ def create_indexes(db_connection):
                 raise Exception("referrer_id column does not exist in referrals table")
             
             # Table exists with correct structure, create indexes
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_referrals_referrer ON referrals(referrer_id)")
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_referrals_referred ON referrals(referred_id)")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_referrals_referrer_id ON referrals(referrer_id)")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_referrals_referred_id ON referrals(referred_id)")
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_referrals_code ON referrals(referral_code)")
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_referrals_status ON referrals(status)")
+            
+            # Create email indexes if columns exist (hybrid migration)
+            if 'referrer_email' in columns:
+                cursor.execute("CREATE INDEX IF NOT EXISTS idx_referrals_referrer_email ON referrals(referrer_email)")
+            if 'referred_email' in columns:
+                cursor.execute("CREATE INDEX IF NOT EXISTS idx_referrals_referred_email ON referrals(referred_email)")
+                
             logger.info("✅ Referral indexes created")
         except Exception as e:
             logger.error(f"❌ Failed to create referral indexes: {e}")
@@ -374,7 +381,17 @@ def initialize_subscriptions_referrals_cosmetics_schema():
         # Insert default data
         insert_default_cosmetics(conn)
         
-        # Create indexes - this is where the referrer_id issue occurs
+        # Apply hybrid referrals migration to add email columns and sync
+        try:
+            from referrals_hybrid_migration import apply_hybrid_referrals_migration
+            logger.info("🔧 Applying hybrid referrals migration...")
+            apply_hybrid_referrals_migration(conn)
+        except ImportError:
+            logger.warning("⚠️ Hybrid referrals migration module not available")
+        except Exception as e:
+            logger.warning(f"⚠️ Hybrid referrals migration failed (continuing): {e}")
+        
+        # Create indexes - this should now work with both ID and email columns
         create_indexes(conn)
         
         # Final commit to ensure everything is persisted
