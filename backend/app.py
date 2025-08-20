@@ -3624,6 +3624,55 @@ def chat():
         session['selected_companion'] = companion_name  # Update session with new ID
         logger.info(f"🔄 Migrated companion ID: {original_companion_name} → {companion_name}")
     
+    # Convert companion ID to clean character name for AI
+    def get_character_name_for_ai(companion_id):
+        """Convert companion ID to character name that AI understands"""
+        character_mapping = {
+            # GamerJay variants
+            'gamerjay_free': 'GamerJay',
+            'gamerjay_silver': 'GamerJay', 
+            'gamerjay_premium': 'GamerJay',
+            'companion_gamerjay': 'GamerJay',
+            'companion_gamerjay_premium': 'GamerJay',
+            'gamerjay_pro': 'GamerJay',
+            'gamerjay': 'GamerJay',
+            
+            # Blayzo variants
+            'blayzo_free': 'Blayzo',
+            'blayzo_premium': 'Blayzo',
+            'blayzo_pro': 'Blayzo',
+            'blayzo': 'Blayzo',
+            
+            # Blayzica variants
+            'blayzica_free': 'Blayzica',
+            'blayzica_silver': 'Blayzica',
+            'blayzica_premium': 'Blayzica',
+            'blayzica': 'Blayzica',
+            
+            # Crimson variants
+            'crimson_free': 'Crimson',
+            'crimson_growth': 'Crimson',
+            'crimson_gold': 'Crimson',
+            'companion_crimson': 'Crimson',
+            'crimson': 'Crimson',
+            
+            # Violet variants
+            'violet_free': 'Violet',
+            'violet_growth': 'Violet',
+            'violet_gold': 'Violet',
+            'companion_violet': 'Violet',
+            'violet': 'Violet',
+            'violet2_gold': 'Violet',
+            
+            # Other character variants - for future expansion
+            'claude_free': 'Claude',
+            'claude_silver': 'Claude',
+            'claude_max': 'Claude',
+            'claude_gold': 'Claude',
+        }
+        
+        return character_mapping.get(companion_id, 'Blayzo')  # Default to Blayzo if not found
+
     # Get companion avatar and display name
     def get_companion_info(companion_id):
         """Get companion display name and avatar image"""
@@ -3704,15 +3753,18 @@ def chat():
     
     companion_info = get_companion_info(companion_name)
     
+    # Get clean character name for AI
+    ai_character_name = get_character_name_for_ai(companion_name)
+    
     # Debug logging
-    logger.info(f"🎭 CHAT COMPANION DEBUG: companion_name={companion_name}, display_name={companion_info['name']}, avatar={companion_info['avatar']}")
+    logger.info(f"🎭 CHAT COMPANION DEBUG: companion_id={companion_name}, ai_character={ai_character_name}, display_name={companion_info['name']}, avatar={companion_info['avatar']}")
     
     # SPECIAL DEBUG for GamerJay Premium
     if "gamerjay" in companion_name.lower():
-        logger.info(f"🔍 GAMERJAY DEBUG: Original companion_id={request.args.get('companion')}, Final companion_name={companion_name}, Avatar path={companion_info['avatar']}")
+        logger.info(f"🔍 GAMERJAY DEBUG: Original companion_id={request.args.get('companion')}, Final companion_name={companion_name}, AI Character={ai_character_name}, Avatar path={companion_info['avatar']}")
     
     return render_template("chat.html",
-        companion=companion_name,
+        companion=ai_character_name,  # Use clean character name for AI
         companion_display_name=companion_info['name'],
         companion_avatar=companion_info['avatar'],
         user_plan=user_plan,
