@@ -986,12 +986,12 @@
             
             if (savedTheme === 'day') {
                 document.body.classList.add('day-mode');
-                themeText.textContent = 'Day Mode is ON';
-                themeIcon.textContent = '☀️';
+                if (themeText) themeText.textContent = 'Day Mode is ON';
+                if (themeIcon) themeIcon.textContent = '☀️';
             } else {
                 document.body.classList.remove('day-mode');
-                themeText.textContent = 'Night Mode is ON';
-                themeIcon.textContent = '🌙';
+                if (themeText) themeText.textContent = 'Night Mode is ON';
+                if (themeIcon) themeIcon.textContent = '🌙';
             }
         }
 
