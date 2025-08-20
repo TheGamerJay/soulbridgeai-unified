@@ -1049,9 +1049,11 @@
             
             // Clear existing dropdown content
             dropdown.innerHTML = '';
+            console.log('🔧 Found', companions.length, 'companions to populate');
             
             // Create companion items
             companions.forEach(companion => {
+                console.log('🔧 Adding companion:', companion.name);
                 const item = document.createElement('div');
                 item.className = `companion-item ${companion.available ? '' : 'locked'}`;
                 item.onclick = () => selectCompanionFilter(companion.id, companion.name);
@@ -1070,6 +1072,8 @@
                 
                 dropdown.appendChild(item);
             });
+            
+            console.log('✅ Dropdown populated with', dropdown.children.length, 'companion items');
         }
 
         function getTierBadge(tier, available) {
