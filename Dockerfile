@@ -47,5 +47,5 @@ EXPOSE 8080
 # Make start script executable
 RUN chmod +x start.sh
 
-# Use Python directly for simplicity
-CMD ["python", "app.py"]
+# Use Gunicorn via start.sh for production
+CMD ["./start.sh"]
