@@ -2441,9 +2441,24 @@ Where emotion meets expression.
             if (banner) banner.style.display = 'block';
 
             // Prefer server-provided epoch ms to avoid TZ parsing bugs
-            const expireMs = typeof d.expires_at_ms === 'number'
-                ? d.expires_at_ms
-                : new Date(d.expires_at).getTime(); // fallback if needed
+            let expireMs;
+            
+            if (typeof d.expires_at_ms === 'number' && !isNaN(d.expires_at_ms)) {
+                expireMs = d.expires_at_ms;
+            } else if (d.expires_at) {
+                expireMs = new Date(d.expires_at).getTime();
+            } else {
+                console.error('❌ TIMER: No valid expiration data available');
+                if (etaEl) etaEl.textContent = '— Loading...';
+                return;
+            }
+            
+            // Validate the parsed timestamp
+            if (isNaN(expireMs)) {
+                console.error('❌ TIMER: Invalid expiration timestamp');
+                if (etaEl) etaEl.textContent = '— Error loading timer';
+                return;
+            }
 
             function fmt(h, m, s) {
                 return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;

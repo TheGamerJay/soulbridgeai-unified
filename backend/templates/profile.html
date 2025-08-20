@@ -1451,7 +1451,25 @@
 
                 const updateCountdown = () => {
                     const now = new Date();
-                    const expiryTime = new Date(expiresAt);
+                    let expiryTime;
+                    
+                    // Handle different expiration data formats
+                    if (typeof expiresAt === 'number') {
+                        expiryTime = new Date(expiresAt);
+                    } else if (typeof expiresAt === 'string') {
+                        expiryTime = new Date(expiresAt);
+                    } else {
+                        console.error('❌ PROFILE TIMER: Invalid expires_at format:', expiresAt);
+                        return;
+                    }
+                    
+                    // Validate the parsed date
+                    if (isNaN(expiryTime.getTime())) {
+                        console.error('❌ PROFILE TIMER: Invalid expiration timestamp');
+                        trialInfo.innerHTML = '<div class="trial-countdown">⏰ Trial Active — Loading...</div>';
+                        return;
+                    }
+                    
                     const timeLeft = Math.max(0, expiryTime - now);
                     
                     if (timeLeft <= 0) {
