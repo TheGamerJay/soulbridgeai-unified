@@ -8473,6 +8473,41 @@ def debug_set_user_tier(tier):
         }
     })
 
+@app.route("/api/debug/fix-trial-timer", methods=["POST"])
+def fix_trial_timer():
+    """Fix trial timer by resetting localStorage data with proper format"""
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"error": "Not logged in"})
+    
+    from datetime import datetime, timedelta
+    
+    trial_active = session.get('trial_active', False)
+    if not trial_active:
+        return jsonify({"error": "No active trial to fix"})
+    
+    # Create proper trial times
+    now = datetime.utcnow()
+    started_at = now - timedelta(minutes=10)  # Assume trial started 10 min ago  
+    expires_at = now + timedelta(hours=5, minutes=-10)  # 4h50min remaining
+    
+    # Update session with proper format
+    session['trial_started_at'] = started_at.isoformat()
+    session['trial_expires_at'] = expires_at.isoformat() + 'Z'
+    
+    return jsonify({
+        "success": True,
+        "message": "Trial timer fixed",
+        "trial_started_at": session['trial_started_at'],
+        "trial_expires_at": session['trial_expires_at'],
+        "javascript_to_run": f"""
+localStorage.setItem('trial_active', '1');
+localStorage.setItem('trial_started_at', '{started_at.isoformat()}');
+localStorage.setItem('trial_expires_at', '{expires_at.isoformat()}Z');
+location.reload();
+"""
+    })
+
 @app.route("/api/decoder/check-limit")
 def check_decoder_limit():
     user_id = session.get("user_id")
