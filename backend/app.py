@@ -15283,7 +15283,7 @@ TIERS_TEMPLATE = r"""
 
 <!-- Load proper trial system from external files -->
 <script src="/static/js/tiers.js"></script>
-<script src="/static/js/trial-countdown.js"></script>
+<script src="/static/js/circular-trial-timer.js"></script>
 
 </body>
 </html>

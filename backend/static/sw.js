@@ -312,9 +312,7 @@ function refreshTrialRelatedResources() {
     const trialResources = [
         '/tiers',
         '/static/js/tiers.js',
-        '/static/js/trial-countdown.js', 
-        '/static/css/trial-countdown.css',
-        '/static/js/new_trial_system.js'
+        '/static/js/circular-trial-timer.js'
     ];
     
     return Promise.all(
