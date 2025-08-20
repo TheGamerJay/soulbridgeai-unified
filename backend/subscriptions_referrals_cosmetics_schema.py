@@ -86,6 +86,7 @@ def create_referrals_tables(db_connection):
                 CHECK (referrer_id != referred_id) -- Can't refer yourself
             )
         """)
+        db_connection.commit()
         logger.info("✅ Referrals table created successfully")
     except Exception as e:
         logger.error(f"❌ Failed to create referrals table: {e}")
@@ -292,23 +293,44 @@ def create_indexes(db_connection):
     
     try:
         # Subscription indexes
-        cursor.execute("CREATE INDEX IF NOT EXISTS idx_subscriptions_user_id ON subscriptions(user_id)")
-        cursor.execute("CREATE INDEX IF NOT EXISTS idx_subscriptions_stripe_id ON subscriptions(stripe_subscription_id)")
-        cursor.execute("CREATE INDEX IF NOT EXISTS idx_subscriptions_status ON subscriptions(status)")
-        logger.info("✅ Subscription indexes created")
+        try:
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_subscriptions_user_id ON subscriptions(user_id)")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_subscriptions_stripe_id ON subscriptions(stripe_subscription_id)")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_subscriptions_status ON subscriptions(status)")
+            logger.info("✅ Subscription indexes created")
+        except Exception as e:
+            logger.error(f"❌ Failed to create subscription indexes: {e}")
+            raise
         
-        # Referral indexes
-        cursor.execute("CREATE INDEX IF NOT EXISTS idx_referrals_referrer ON referrals(referrer_id)")
-        cursor.execute("CREATE INDEX IF NOT EXISTS idx_referrals_referred ON referrals(referred_id)")
-        cursor.execute("CREATE INDEX IF NOT EXISTS idx_referrals_code ON referrals(referral_code)")
-        cursor.execute("CREATE INDEX IF NOT EXISTS idx_referrals_status ON referrals(status)")
-        logger.info("✅ Referral indexes created")
+        # Referral indexes - check if referrals table exists first
+        try:
+            cursor.execute("SELECT 1 FROM referrals LIMIT 1")
+            # Table exists, create indexes
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_referrals_referrer ON referrals(referrer_id)")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_referrals_referred ON referrals(referred_id)")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_referrals_code ON referrals(referral_code)")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_referrals_status ON referrals(status)")
+            logger.info("✅ Referral indexes created")
+        except Exception as e:
+            logger.error(f"❌ Failed to create referral indexes: {e}")
+            # Check what columns actually exist
+            try:
+                cursor.execute("SELECT column_name FROM information_schema.columns WHERE table_name = 'referrals'")
+                columns = [row[0] for row in cursor.fetchall()]
+                logger.error(f"❌ Available columns in referrals table: {columns}")
+            except:
+                logger.error("❌ Could not query referrals table columns")
+            raise
         
         # Cosmetic indexes
-        cursor.execute("CREATE INDEX IF NOT EXISTS idx_user_cosmetics_user ON user_cosmetics(user_id)")
-        cursor.execute("CREATE INDEX IF NOT EXISTS idx_user_cosmetics_equipped ON user_cosmetics(user_id, is_equipped)")
-        cursor.execute("CREATE INDEX IF NOT EXISTS idx_user_equipped_type ON user_equipped_cosmetics(user_id, cosmetic_type)")
-        logger.info("✅ Cosmetic indexes created")
+        try:
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_user_cosmetics_user ON user_cosmetics(user_id)")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_user_cosmetics_equipped ON user_cosmetics(user_id, is_equipped)")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_user_equipped_type ON user_equipped_cosmetics(user_id, cosmetic_type)")
+            logger.info("✅ Cosmetic indexes created")
+        except Exception as e:
+            logger.error(f"❌ Failed to create cosmetic indexes: {e}")
+            raise
         
         db_connection.commit()
         logger.info("✅ Database indexes created successfully")
