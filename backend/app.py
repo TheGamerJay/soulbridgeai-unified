@@ -10365,6 +10365,9 @@ def api_chat():
         character = data.get("character", "Blayzo")
         context = data.get("context", "")
         
+        # DEBUG: Log the character parameter
+        logger.info(f"🎭 API CHAT DEBUG: Received character='{character}', message='{message}'")
+        
         if not message or len(message) > 1000:
             return jsonify({"success": False, "response": "Message is required and must be under 1000 characters"}), 400
         

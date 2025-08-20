@@ -230,7 +230,15 @@ class PremiumFreeAIService:
             emotions = self._detect_emotions(message)
             
             # Get character profile
+            # DEBUG: Log character lookup
+            logger.info(f"🎭 AI SERVICE DEBUG: Looking for character='{character}', available characters: {list(self.character_profiles.keys())}")
+            
             profile = self.character_profiles.get(character, self.character_profiles["Blayzo"])
+            
+            if character not in self.character_profiles:
+                logger.warning(f"⚠️ Character '{character}' not found in profiles, defaulting to Blayzo")
+            else:
+                logger.info(f"✅ Found character profile for '{character}'")
             
             # Check if this is a greeting
             is_greeting = self._is_greeting(message)
