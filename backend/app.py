@@ -8392,6 +8392,87 @@ def reset_decoder_usage():
         "new_usage": get_decoder_usage()
     })
 
+@app.route("/api/debug/user-tier-info")
+def debug_user_tier_info():
+    """Debug endpoint to check user's tier and feature access"""
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"error": "Not logged in"})
+    
+    user_plan = session.get('user_plan', 'free')
+    trial_active = session.get('trial_active', False)
+    effective_plan = get_effective_plan(user_plan, trial_active)
+    
+    # Check what features should be unlocked
+    should_see_relationships = user_plan in ['growth', 'max']
+    should_see_meditations = user_plan in ['growth', 'max'] 
+    should_see_music_studio = user_plan == 'max'
+    should_see_mini_studio = user_plan == 'max'
+    
+    return jsonify({
+        "user_id": user_id,
+        "user_plan": user_plan,
+        "trial_active": trial_active,
+        "effective_plan": effective_plan,
+        "tier_features": {
+            "relationships": should_see_relationships,
+            "meditations": should_see_meditations,
+            "music_studio": should_see_music_studio,
+            "mini_studio": should_see_mini_studio
+        },
+        "internal_values": {
+            "session_user_plan": session.get('user_plan'),
+            "is_growth": user_plan == 'growth',
+            "is_max": user_plan == 'max',
+            "is_free": user_plan == 'free'
+        }
+    })
+
+@app.route("/api/debug/set-user-tier/<tier>", methods=["POST"])
+def debug_set_user_tier(tier):
+    """Debug endpoint to manually set user tier for testing"""
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"error": "Not logged in"})
+    
+    valid_tiers = ['free', 'growth', 'max']
+    if tier not in valid_tiers:
+        return jsonify({"error": f"Invalid tier. Must be one of: {valid_tiers}"})
+    
+    # Update session
+    old_plan = session.get('user_plan', 'free')
+    session['user_plan'] = tier
+    
+    # Update database if available
+    try:
+        db_instance = get_database()
+        if db_instance:
+            conn = db_instance.get_connection()
+            cursor = conn.cursor()
+            
+            if db_instance.use_postgres:
+                cursor.execute("UPDATE users SET user_plan = %s WHERE id = %s", (tier, user_id))
+            else:
+                cursor.execute("UPDATE users SET user_plan = ? WHERE id = ?", (tier, user_id))
+            
+            conn.commit()
+            conn.close()
+    except Exception as e:
+        logger.error(f"Failed to update database user plan: {e}")
+    
+    return jsonify({
+        "success": True,
+        "message": f"User tier changed from {old_plan} to {tier}",
+        "old_plan": old_plan,
+        "new_plan": tier,
+        "features_unlocked": {
+            "relationships": tier in ['growth', 'max'],
+            "meditations": tier in ['growth', 'max'],
+            "music_studio": tier == 'max',
+            "mini_studio": tier == 'max'
+        }
+    })
+
 @app.route("/api/decoder/check-limit")
 def check_decoder_limit():
     user_id = session.get("user_id")
