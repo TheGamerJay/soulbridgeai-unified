@@ -63,7 +63,7 @@ def iso_z(dt: Optional[Union[datetime, str]]) -> Optional[str]:
         dt = dt.astimezone(timezone.utc)
     
     # Format as ISO Z (no microseconds, clean format)
-    return dt.strftime('%Y-%m-%dT%H:%M:%SZ')
+    return dt.replace(microsecond=0).strftime('%Y-%m-%dT%H:%M:%SZ')
 
 def parse_iso_z(iso_string: Optional[str]) -> Optional[datetime]:
     """

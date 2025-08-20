@@ -24,10 +24,22 @@
       return; // no active trial
     }
 
+    // Normalize malformed ISO timestamps before parsing
+    function normalizeIsoZ(s) {
+      if (!s) return null;
+      let x = String(s).trim().replace(' ', 'T'); // Fix space separator
+      x = x.replace(/\.\d+/, '');                 // Remove microseconds
+      x = x.replace(/\+00:00Z$/, 'Z');           // Fix double timezone
+      x = x.replace(/\+00:00$/, 'Z');            // +00:00 -> Z
+      if (!x.endsWith('Z')) x += 'Z';            // Ensure Z suffix
+      return x;
+    }
+
     // Enhanced validation for expiry date parsing
-    const expiresAt = new Date(expiresIso);
+    const normalizedExpiry = normalizeIsoZ(expiresIso);
+    const expiresAt = new Date(normalizedExpiry);
     if (isNaN(expiresAt.getTime())) {
-      console.warn('[trial-timer] Invalid expiry date format:', expiresIso);
+      console.warn('[trial-timer] Invalid expiry date format:', expiresIso, '→', normalizedExpiry);
       mount.innerHTML = '<div class="trial-timer expired"><div class="label"><div class="title">Trial Status</div><div class="time">Invalid Date</div></div></div>';
       return;
     }
@@ -35,9 +47,10 @@
     const now = Date.now();
     let totalSeconds;
     if (startedIso) {
-      const startedAt = new Date(startedIso);
+      const normalizedStarted = normalizeIsoZ(startedIso);
+      const startedAt = new Date(normalizedStarted);
       if (isNaN(startedAt.getTime())) {
-        console.warn('[trial-timer] Invalid start date format, using default duration:', startedIso);
+        console.warn('[trial-timer] Invalid start date format, using default duration:', startedIso, '→', normalizedStarted);
         totalSeconds = DEFAULT_SECONDS;
       } else {
         totalSeconds = Math.max(1, Math.round((expiresAt - startedAt) / 1000));
