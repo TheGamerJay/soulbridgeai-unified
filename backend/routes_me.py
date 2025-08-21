@@ -73,7 +73,7 @@ def me():
         # Restore trial credits if session is missing them but trial is active
         trial_credits = session.get('trial_credits', 0)
         if trial_active and trial_credits == 0 and trial_expires_at:
-            # Session lost trial credits but trial is still active - calculate remaining credits
+            # Session lost trial credits but trial is still active
             from datetime import datetime, timezone
             now = datetime.now(timezone.utc)
             
@@ -83,16 +83,17 @@ def me():
             else:
                 expires_dt = trial_expires_at
             
-            # Calculate remaining time in hours
-            remaining_seconds = (expires_dt - now).total_seconds()
-            remaining_hours = max(0, remaining_seconds / 3600)
-            
-            # Calculate remaining credits (60 credits for 5 hours = 12 credits per hour)
-            trial_credits = int(remaining_hours * 12)
-            trial_credits = max(0, min(60, trial_credits))  # Ensure 0-60 range
+            # Check if trial has actually expired
+            if now >= expires_dt:
+                # Trial time is up - credits should be 0
+                trial_credits = 0
+                logger.info(f"⏰ Trial expired for user {uid}")
+            else:
+                # Trial still active - restore full credits (only usage should reduce them)
+                trial_credits = 60
+                logger.info(f"🔄 Restored full trial credits for user {uid}: {trial_credits}")
             
             session['trial_credits'] = trial_credits
-            logger.info(f"🔄 Restored trial credits for user {uid}: {trial_credits} (remaining hours: {remaining_hours:.1f})")
         
         access = {
             "plan": plan,
