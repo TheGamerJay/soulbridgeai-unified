@@ -497,9 +497,11 @@ def companion_unlock_state_new(user_plan: str, trial_active: bool, referrals: in
         unlocked_tiers = set(["free", "growth", "max"])
     else:
         unlocked_tiers = set(["free"])
-        if user_plan == "growth":
+        # Map new tier names to old companion tier names
+        if user_plan in ["silver", "growth"]:
             unlocked_tiers.add("growth")
-        elif user_plan == "max":
+        elif user_plan in ["gold", "max"]:
+            unlocked_tiers.add("growth")
             unlocked_tiers.add("max")
     # Referral progressive unlocks (separate from subscription tiers)
     referral_unlocks = []
@@ -843,7 +845,7 @@ def increment_rate_limit_session():
 @app.before_request
 def ensure_session_persistence():
     # IMPORTANT: Check open paths FIRST before authentication checks
-    open_paths = {"/api/login", "/api/logout", "/login", "/auth/login", "/auth/register", "/auth/forgot-password", "/", "/mini-studio", "/mini_studio_health", "/api/stripe-debug", "/api/admin/reset-trial", "/health", "/api/user-status", "/api/check-user-status", "/api/chat", "/api/companion/chat", "/api/companion/status", "/api/companion/quota", "/api/companion/health", "/api/creative-writing", "/api/voice-chat/process", "/api/tier-limits", "/api/trial-status", "/api/user-info"}
+    open_paths = {"/api/login", "/api/logout", "/login", "/auth/login", "/auth/register", "/auth/forgot-password", "/", "/mini-studio", "/mini_studio_health", "/api/stripe-debug", "/api/admin/reset-trial", "/health", "/api/user-status", "/api/check-user-status", "/api/chat", "/api/companion/chat", "/api/companion/status", "/api/companion/quota", "/api/companion/health", "/api/creative-writing", "/api/voice-chat/process", "/api/tier-limits", "/api/trial-status", "/api/user-info", "/api/companions", "/api/companions-test"}
     
     # Debug logging for auth paths
     if "/auth" in request.path:
@@ -851,9 +853,15 @@ def ensure_session_persistence():
         print(f"DEBUG MIDDLEWARE: in_open_paths={request.path in open_paths}")
         print(f"DEBUG MIDDLEWARE: open_paths={open_paths}")
     
+    # Debug logging for companion paths
+    if request.path in ["/api/companions", "/api/companions-test"]:
+        print(f"DEBUG: Request path: {repr(request.path)}")
+        print(f"DEBUG: Path in open_paths: {request.path in open_paths}")
+        print(f"DEBUG: open_paths contains: {[p for p in open_paths if 'companion' in p]}")
+    
     # Allow static files, open paths, and admin endpoints without authentication
     if request.path.startswith("/static/") or request.path in open_paths or request.path.startswith("/api/admin/reset-trial"):
-        if "/auth" in request.path or request.path == "/api/user-status":
+        if "/auth" in request.path or request.path == "/api/user-status" or request.path in ["/api/companions", "/api/companions-test"]:
             logger.warning(f"🔓 DEBUG MIDDLEWARE: Allowing {request.path} and returning early")
         return
     
@@ -8169,6 +8177,10 @@ def api_plan_new():
             "features": FEATURE_ACCESS["free"]
         }), 500
 
+@app.route("/api/companions-test")
+def api_companions_test():
+    return jsonify({"success": True, "message": "Test endpoint working"})
+
 @app.route("/api/companions")
 def api_companions():
     """Bulletproof companions API with server-side lock state"""
@@ -8185,7 +8197,13 @@ def api_companions():
                     "locked": True,
                     "lock_reason": "Login required"
                 })
-            return jsonify({"companions": companions})
+            return jsonify({
+                "success": True,
+                "companions": companions,
+                "user_plan": "bronze",
+                "trial_active": False,
+                "effective_plan": "bronze"
+            })
         
         user_plan = session.get("user_plan", "free")
         trial_active = bool(session.get("trial_active", False))
@@ -8237,11 +8255,17 @@ def api_companions():
                 "lock_reason": lock_reason
             })
         
-        return jsonify({"companions": companions})
+        return jsonify({
+            "success": True,
+            "companions": companions,
+            "user_plan": user_plan,
+            "trial_active": trial_active,
+            "effective_plan": get_effective_plan_new(user_plan, trial_active)
+        })
     
     except Exception as e:
         logger.error(f"API companions error: {e}")
-        return jsonify({"companions": []}), 500
+        return jsonify({"success": False, "companions": [], "error": str(e)}), 500
 
 # REMOVED: Old buggy /start-trial endpoint - use /api/trial/activate instead
 
@@ -17711,90 +17735,94 @@ logger.info("✅ Tier-specific chat routes added")
 
 def companion_chat_handler(tier, companion_id):
     """Handle companion-specific chat with complete isolation"""
-    from unified_tier_system import get_feature_limit
-    
-    # Find companion info
-    companion_info = None
-    for c in COMPANIONS_NEW:
-        if c['id'] == companion_id:
-            companion_info = c
-            break
-    
-    if not companion_info:
-        return redirect(f"/chat/{tier}")
-    
-    # Verify companion access
-    user_plan = session.get("user_plan", "bronze")
-    trial_active = session.get("trial_active", False)
-    referrals = int(session.get('referrals', 0))
-    
-    # Map user_plan to unlock tiers  
-    plan_mapping = {'free': 'bronze', 'growth': 'silver', 'max': 'gold'}
-    user_tier = plan_mapping.get(user_plan, 'bronze')
-    
-    # Calculate unlocked tiers
-    unlocked_tiers, referral_ids = companion_unlock_state_new(user_tier, trial_active, referrals)
-    
-    # Check access
-    can_access = False
-    if companion_info['tier'] in ('free', 'growth', 'max'):
-        can_access = companion_info['tier'] in unlocked_tiers
-    elif companion_info['tier'] == 'referral':
-        can_access = companion_id in referral_ids
-    
-    if not can_access:
-        return redirect("/tiers?upgrade_required=true")
-    
-    # Store selected companion in session
-    session['selected_companion'] = companion_id
-    
-    # Calculate tier-specific limits (use tier, not user plan)
-    limits = {
-        "decoder": get_feature_limit(tier, "decoder", False),
-        "fortune": get_feature_limit(tier, "fortune", False),
-        "horoscope": get_feature_limit(tier, "horoscope", False),
-        "creative_writer": get_feature_limit(tier, "creative_writer", False)
-    }
-    
-    return render_template("chat.html",
-        companion=companion_id,
-        companion_display_name=f"{companion_info['name']} ({tier.title()} Tier)",
-        companion_avatar=companion_info['image_url'],
-        ai_character_name=companion_info['name'],
-        user_plan=user_plan,
-        trial_active=trial_active,
-        tier=tier,
-        limits=limits,
-        selected_companion=companion_id,
-        companion_info=companion_info
-    )
+    try:
+        logger.info(f"🎯 COMPANION HANDLER: tier={tier}, companion_id={companion_id}")
+        from unified_tier_system import get_feature_limit
+        
+        # Find companion info
+        companion_info = None
+        for c in COMPANIONS_NEW:
+            if c['id'] == companion_id:
+                companion_info = c
+                break
+        
+        if not companion_info:
+            logger.error(f"❌ COMPANION NOT FOUND: {companion_id}")
+            return redirect(f"/chat/{tier}")
+        
+        logger.info(f"✅ COMPANION FOUND: {companion_info}")
+        
+        # Verify companion access
+        user_plan = session.get("user_plan", "bronze")
+        trial_active = session.get("trial_active", False)
+        referrals = int(session.get('referrals', 0))
+        
+        logger.info(f"🔍 ACCESS CHECK: user_plan={user_plan}, trial_active={trial_active}, referrals={referrals}")
+        
+        # Map user_plan to unlock tiers  
+        plan_mapping = {'free': 'bronze', 'growth': 'silver', 'max': 'gold'}
+        user_tier = plan_mapping.get(user_plan, 'bronze')
+        
+        # Calculate unlocked tiers
+        unlocked_tiers, referral_ids = companion_unlock_state_new(user_tier, trial_active, referrals)
+        logger.info(f"🔓 UNLOCKED TIERS: {unlocked_tiers}, referral_ids: {referral_ids}")
+        
+        # Check access
+        can_access = False
+        if companion_info['tier'] in ('free', 'growth', 'max'):
+            can_access = companion_info['tier'] in unlocked_tiers
+        elif companion_info['tier'] == 'referral':
+            can_access = companion_id in referral_ids
+        
+        logger.info(f"🚪 ACCESS RESULT: can_access={can_access} for {companion_info['tier']} tier companion")
+        
+        if not can_access:
+            logger.warning(f"🚫 ACCESS DENIED: Redirecting to tiers page")
+            return redirect("/tiers?upgrade_required=true")
+        
+        # Store selected companion in session
+        session['selected_companion'] = companion_id
+        
+        # Calculate tier-specific limits (use tier, not user plan)
+        limits = {
+            "decoder": get_feature_limit(tier, "decoder", False),
+            "fortune": get_feature_limit(tier, "fortune", False),
+            "horoscope": get_feature_limit(tier, "horoscope", False),
+            "creative_writer": get_feature_limit(tier, "creative_writer", False)
+        }
+        
+        logger.info(f"🎨 RENDERING: tier={tier}, companion={companion_info['name']}, limits={limits}")
+        
+        return render_template("chat.html",
+            companion=companion_id,
+            companion_display_name=f"{companion_info['name']} ({tier.title()} Tier)",
+            companion_avatar=companion_info['image_url'],
+            ai_character_name=companion_info['name'],
+            user_plan=user_plan,
+            trial_active=trial_active,
+            tier=tier,
+            limits=limits,
+            selected_companion=companion_id,
+            companion_info=companion_info
+        )
+    except Exception as e:
+        logger.error(f"❌ COMPANION HANDLER ERROR: {e}")
+        import traceback
+        logger.error(f"❌ TRACEBACK: {traceback.format_exc()}")
+        return jsonify({"error": "Not found"}), 404
 
-# Generate companion-specific routes dynamically
-for companion in COMPANIONS_NEW:
-    companion_id = companion['id']
-    companion_tier = companion['tier']
+# Simple catch-all companion route with URL parameter
+@app.route("/chat/<tier>/<companion_id>")
+def companion_specific_chat(tier, companion_id):
+    """Catch-all route for companion-specific chat"""
+    logger.info(f"🚀 COMPANION ROUTE: {tier}/{companion_id}")
     
-    # Map companion tier to our tier system
-    tier_mapping = {'free': 'bronze', 'growth': 'silver', 'max': 'gold', 'referral': 'bronze'}
-    tier = tier_mapping.get(companion_tier, 'bronze')
+    if not is_logged_in():
+        logger.info(f"🔐 NOT LOGGED IN: Redirecting to login")
+        return redirect(f"/login?return_to=chat/{tier}/{companion_id}")
     
-    # Create unique route for each companion
-    route_path = f"/chat/{tier}/{companion_id}"
-    
-    def make_companion_route(tier_name, comp_id):
-        def companion_route():
-            if not is_logged_in():
-                return redirect(f"/login?return_to=chat/{tier_name}/{comp_id}")
-            return companion_chat_handler(tier_name, comp_id)
-        return companion_route
-    
-    # Register the route
-    app.add_url_rule(
-        route_path,
-        f"chat_{tier}_{companion_id}",
-        make_companion_route(tier, companion_id),
-        methods=['GET']
-    )
+    logger.info(f"✅ LOGGED IN: Calling companion_chat_handler")
+    return companion_chat_handler(tier, companion_id)
 
 logger.info("✅ Companion-specific chat routes added")
 
