@@ -89,19 +89,8 @@
                     </div>
                 </a>
                 
-                <!-- BULLETPROOF TIER ISOLATION - Each feature explicitly validates tier -->
-                <!-- Template user_plan: {{ user_plan }}, trial_active: {{ trial_active }} -->
-                
-                <!-- DEBUG: Visible tier state display -->
-                <div style="background: #ffeb3b; color: #000; padding: 10px; margin: 10px 0; border-radius: 5px; font-family: monospace; font-size: 12px;">
-                    <strong>🔍 DEBUG INFO:</strong><br>
-                    user_plan: {{ user_plan }}<br>
-                    trial_active: {{ trial_active }}<br>
-                    effective_plan: {{ effective_plan }}
-                </div>
-                
-                <!-- SILVER TIER FEATURES: Voice Journal, AI Images, Relationships, Meditations -->
-                {% if user_plan == 'silver' or user_plan == 'gold' %}
+                <!-- SIMPLE WORKING TEMPLATE - Get site back online -->
+                {% if user_plan in ['silver', 'gold'] or trial_active %}
                 <a href="/voice-journaling" class="action-btn" data-tier="silver">
                     <i class="fas fa-microphone"></i>
                     Voice Journal
@@ -120,35 +109,10 @@
                 </a>
                 {% endif %}
                 
-                <!-- GOLD TIER EXCLUSIVE FEATURES: Mini Studio -->
-                {% if user_plan == 'gold' %}
+                {% if user_plan == 'gold' or trial_active %}
                 <a href="/mini-studio" class="action-btn" data-tier="gold">
                     <i class="fas fa-robot"></i>
                     Mini Studio
-                </a>
-                {% endif %}
-                
-                <!-- TRIAL FEATURES: Bronze users with active trial get Silver/Gold access -->
-                {% if trial_active and user_plan == 'bronze' %}
-                <a href="/voice-journaling" class="action-btn trial-feature" data-tier="silver">
-                    <i class="fas fa-microphone"></i>
-                    Voice Journal (Trial)
-                </a>
-                <a href="/ai-image-generation" class="action-btn trial-feature" data-tier="silver">
-                    <i class="fas fa-palette"></i>
-                    AI Images (Trial)
-                </a>
-                <a href="/mini-studio" class="action-btn trial-feature" data-tier="gold">
-                    <i class="fas fa-robot"></i>
-                    Mini Studio (Trial)
-                </a>
-                <a href="/relationship-profiles" class="action-btn trial-feature" data-tier="silver">
-                    <i class="fas fa-heart"></i>
-                    Relationships (Trial)
-                </a>
-                <a href="/emotional-meditations" class="action-btn trial-feature" data-tier="silver">
-                    <i class="fas fa-om"></i>
-                    Meditations (Trial)
                 </a>
                 {% endif %}
                 <button onclick="openCreativeWriting();" class="action-btn creative-btn tier-btn" data-feature="creative_writer" title="Creative Writing Assistant" style="cursor: pointer;">
