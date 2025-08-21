@@ -370,6 +370,56 @@ def trial_reset_session():
             "error": f"Internal server error: {str(e)}"
         }), 500
 
+@bp_me.route("/trial/reset", methods=["POST"])
+def trial_reset():
+    """
+    Reset trial eligibility for testing (admin/dev function).
+    """
+    try:
+        uid = session.get('user_id')
+        if not uid:
+            return jsonify({"success": False, "error": "Not authenticated"}), 401
+        
+        # Reset trial eligibility in database
+        from database_utils import get_database
+        db = get_database()
+        if not db:
+            return jsonify({"success": False, "error": "Database not available"}), 500
+            
+        conn = db.get_connection()
+        try:
+            # Clear all trial data - make user eligible again
+            cursor = conn.cursor()
+            cursor.execute(
+                "UPDATE users SET trial_active = 0, trial_started_at = NULL, trial_expires_at = NULL, trial_used_permanently = 0 WHERE id = ?", 
+                (uid,)
+            )
+            conn.commit()
+            
+            # Clear session data too
+            session['trial_active'] = False
+            session.pop('trial_expires_at', None)
+            session.pop('trial_started_at', None)
+            session.pop('trial_credits', None)
+            session['trial_used_permanently'] = False
+            
+            logger.info(f"🔄 RESET: Full trial reset completed for user {uid}")
+            
+            return jsonify({
+                "success": True,
+                "message": "Trial eligibility reset successfully! You can now activate your trial."
+            })
+            
+        finally:
+            conn.close()
+        
+    except Exception as e:
+        logger.error(f"Error in trial reset: {e}")
+        return jsonify({
+            "success": False,
+            "error": f"Internal server error: {str(e)}"
+        }), 500
+
 @bp_me.route("/credits/purchase", methods=["POST"])
 def credits_purchase():
     """
