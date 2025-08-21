@@ -91,6 +91,15 @@
                 
                 <!-- PREMIUM FEATURES - Show for subscribers OR trial users -->
                 <!-- Template user_plan: {{ user_plan }}, trial_active: {{ trial_active }} -->
+                
+                <!-- DEBUG: Visible tier state display -->
+                <div style="background: #ffeb3b; color: #000; padding: 10px; margin: 10px 0; border-radius: 5px; font-family: monospace; font-size: 12px;">
+                    <strong>🔍 DEBUG INFO:</strong><br>
+                    user_plan: {{ user_plan }}<br>
+                    trial_active: {{ trial_active }}<br>
+                    effective_plan: {{ effective_plan }}<br>
+                    Condition check: {{ user_plan in ['silver', 'gold'] or trial_active }}
+                </div>
                 {% if user_plan in ['silver', 'gold'] or trial_active %}
                 <a href="/voice-journaling" class="action-btn" data-tier="silver">
                     <i class="fas fa-microphone"></i>
