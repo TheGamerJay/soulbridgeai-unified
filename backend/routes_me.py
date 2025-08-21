@@ -305,19 +305,45 @@ def trial_activate():
         trial_active, trial_expires_at = db_get_trial_state(uid)
         logger.info(f"🔍 DATABASE DEBUG: user_id={uid}, trial_active={trial_active}, trial_expires_at={trial_expires_at}")
         
-        # Clear stale session data if database shows no trial
+        # Sync session with database state
+        was_restored = False
         if not trial_active and session_trial:
             logger.info(f"🧹 CLEANING: Removing stale session trial data")
             session['trial_active'] = False
             session.pop('trial_expires_at', None)
             session.pop('trial_started_at', None)
             session.pop('trial_credits', None)
+        elif trial_active and not session_trial and trial_expires_at:
+            # Database shows active trial but session doesn't - restore to session
+            from datetime import datetime, timezone
+            now = datetime.now(timezone.utc)
+            if now < trial_expires_at:
+                logger.info(f"🔄 RESTORING: Database trial is active, updating session")
+                session['trial_active'] = True
+                session['trial_expires_at'] = trial_expires_at.isoformat()
+                session['trial_credits'] = 60  # Restore full credits
+                was_restored = True
         
         if trial_active and trial_expires_at and datetime.now(timezone.utc) < trial_expires_at:
-            return jsonify({
-                "success": False,
-                "error": "You already have an active trial."
-            }), 400
+            # If we just restored the trial to session, return success instead of error
+            if was_restored:
+                remaining_hours = (trial_expires_at - datetime.now(timezone.utc)).total_seconds() / 3600
+                return jsonify({
+                    "success": True,
+                    "message": "Trial restored successfully!",
+                    "trial": {
+                        "active": True,
+                        "expires_at": trial_expires_at.isoformat(),
+                        "credits_granted": 60,
+                        "unlocked_tiers": ["bronze", "silver", "gold"],
+                        "hours_remaining": round(remaining_hours, 1)
+                    }
+                })
+            else:
+                return jsonify({
+                    "success": False,
+                    "error": "You already have an active trial."
+                }), 400
         
         # Check if user has used their trial before (one-time only)
         # Use session data to check if they've used trial permanently
