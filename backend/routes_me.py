@@ -72,11 +72,27 @@ def me():
         
         # Restore trial credits if session is missing them but trial is active
         trial_credits = session.get('trial_credits', 0)
-        if trial_active and trial_credits == 0:
-            # Session lost trial credits but trial is still active - restore them
-            trial_credits = 60
+        if trial_active and trial_credits == 0 and trial_expires_at:
+            # Session lost trial credits but trial is still active - calculate remaining credits
+            from datetime import datetime, timezone
+            now = datetime.now(timezone.utc)
+            
+            # Handle trial_expires_at - it might be a string or datetime object
+            if isinstance(trial_expires_at, str):
+                expires_dt = datetime.fromisoformat(trial_expires_at.replace("Z", "+00:00"))
+            else:
+                expires_dt = trial_expires_at
+            
+            # Calculate remaining time in hours
+            remaining_seconds = (expires_dt - now).total_seconds()
+            remaining_hours = max(0, remaining_seconds / 3600)
+            
+            # Calculate remaining credits (60 credits for 5 hours = 12 credits per hour)
+            trial_credits = int(remaining_hours * 12)
+            trial_credits = max(0, min(60, trial_credits))  # Ensure 0-60 range
+            
             session['trial_credits'] = trial_credits
-            logger.info(f"🔄 Restored trial credits for user {uid}: {trial_credits}")
+            logger.info(f"🔄 Restored trial credits for user {uid}: {trial_credits} (remaining hours: {remaining_hours:.1f})")
         
         access = {
             "plan": plan,
