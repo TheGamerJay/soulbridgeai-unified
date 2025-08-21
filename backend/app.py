@@ -15044,8 +15044,9 @@ TIERS_TEMPLATE = r"""
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
     <h1 style="margin:0;">Choose the companion you most resonate with</h1>
     {% if trial_active and trial_expires_at %}
-      <div id="trialTimer" class="btn" style="background:linear-gradient(90deg,#22d3ee,#06b6d4);font-size:14px;padding:8px 16px;cursor:default;" data-expires="{{ trial_expires_at }}">
-        ⏱️ Trial: <span id="timeLeft">00:00:00</span>
+      <div style="display: flex; align-items: center; gap: 15px; background: rgba(34, 211, 238, 0.1); border: 1px solid rgba(34, 211, 238, 0.3); border-radius: 12px; padding: 8px 16px; color: #22d3ee; font-weight: bold;">
+        <div><i class="fas fa-clock"></i> Trial Active</div>
+        <div id="tiers-circular-timer"></div>
       </div>
     {% elif not trial_active and not trial_used_permanently %}
       <button onclick="startTrial()" class="btn" style="background:linear-gradient(90deg,#00ff7f,#00c6ff);font-size:14px;padding:8px 16px;">🚀 Start 5-Hour Trial</button>
@@ -15279,6 +15280,35 @@ TIERS_TEMPLATE = r"""
   function goToReferral() {
     window.location.href = '/referrals';  // Fixed: plural to match actual route
   }
+  
+  // Initialize circular trial timer if trial is active
+  {% if trial_active and trial_expires_at %}
+  document.addEventListener('DOMContentLoaded', function() {
+    const container = document.getElementById('tiers-circular-timer');
+    if (container && typeof CircularTrialTimer !== 'undefined') {
+      // Destroy any existing timer
+      if (window.tiersCircularTimer) {
+        window.tiersCircularTimer.destroy();
+      }
+      
+      // Create new circular timer for tiers page
+      window.tiersCircularTimer = new CircularTrialTimer('tiers-circular-timer', {
+        size: 50,  // Medium size for tiers page
+        stroke: 3,
+        showLabel: false,
+        onExpire: function() {
+          // Refresh page when trial expires
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
+        }
+      });
+      
+      // Start the timer
+      window.tiersCircularTimer.start('{{ trial_expires_at }}');
+    }
+  });
+  {% endif %}
 </script>
 
 <!-- Load proper trial system from external files -->
