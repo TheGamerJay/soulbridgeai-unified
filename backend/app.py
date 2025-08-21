@@ -1317,7 +1317,7 @@ def setup_user_session(email, user_id=None, is_admin=False, dev_mode=False):
     session["session_version"] = "2025-07-28-banking-security"  # Required for auth
     session["user_email"] = email
     session["login_timestamp"] = datetime.now().isoformat()
-    session["user_plan"] = "free"
+    # DON'T set user_plan here - let caller set it based on database data
     if user_id:
         session["user_id"] = user_id
     if is_admin:
@@ -1900,8 +1900,12 @@ def auth_login():
             # Set user plan from database result (migrate old plan names immediately)
             raw_plan = result.get('plan_type', 'free')
             raw_user_plan = result.get('user_plan', 'free')
-            plan_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
-            session['user_plan'] = plan_mapping.get(raw_plan, raw_plan)
+            plan_mapping = {
+                'foundation': 'bronze', 'free': 'bronze',        # Bronze tier
+                'premium': 'silver', 'growth': 'silver',         # Silver tier  
+                'enterprise': 'gold', 'max': 'gold'             # Gold tier
+            }
+            session['user_plan'] = plan_mapping.get(raw_plan, raw_plan or 'bronze')
             session['display_name'] = result.get('display_name', 'User')
             # Auto-migrate legacy plans in database
             needs_migration = False
