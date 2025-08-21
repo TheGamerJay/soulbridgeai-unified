@@ -17809,7 +17809,7 @@ def companion_chat_handler(tier, companion_id):
         logger.error(f"❌ COMPANION HANDLER ERROR: {e}")
         import traceback
         logger.error(f"❌ TRACEBACK: {traceback.format_exc()}")
-        return jsonify({"error": "Not found"}), 404
+        return redirect(f"/chat/{tier}")
 
 # Simple catch-all companion route with URL parameter
 @app.route("/chat/<tier>/<companion_id>")
