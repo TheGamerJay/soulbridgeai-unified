@@ -269,6 +269,8 @@ def trial_activate():
         
         # Check if user already has an active trial
         trial_active, trial_expires_at = db_get_trial_state(uid)
+        logger.info(f"🔍 TRIAL DEBUG: user_id={uid}, trial_active={trial_active}, trial_expires_at={trial_expires_at}")
+        
         if trial_active and trial_expires_at and datetime.now(timezone.utc) < trial_expires_at:
             return jsonify({
                 "success": False,
