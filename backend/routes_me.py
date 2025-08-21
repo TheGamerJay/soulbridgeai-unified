@@ -672,3 +672,56 @@ def credits_purchase():
             "success": False,
             "error": "Failed to create checkout session"
         }), 500
+
+@bp_me.route("/trial/sql-reset", methods=["POST"])
+def trial_sql_reset():
+    """SQL-based trial reset for production database"""
+    try:
+        uid = session.get('user_id')
+        
+        if not uid or uid != 104:  # Security check
+            return jsonify({"success": False, "error": "Not authorized"}), 403
+        
+        from database_utils import get_database
+        db = get_database()
+        if not db:
+            return jsonify({"success": False, "error": "Database not available"}), 500
+            
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        
+        # Use PostgreSQL-compatible SQL
+        sql = """
+            UPDATE users SET 
+                trial_active = %s,
+                trial_used_permanently = %s,
+                trial_expires_at = NULL,
+                trial_started_at = NULL,
+                trial_start = NULL,
+                trial_companion = NULL
+            WHERE id = %s
+        """
+        
+        cursor.execute(sql, (False, False, uid))
+        conn.commit()
+        conn.close()
+        
+        # Clear session
+        session.pop('trial_active', None)
+        session.pop('trial_expires_at', None)
+        session.pop('trial_started_at', None)
+        session.pop('trial_credits', None)
+        
+        logger.info(f"🔧 SQL reset complete for user {uid}")
+        
+        return jsonify({
+            "success": True,
+            "message": "Trial reset complete via SQL - you can now activate fresh trial"
+        })
+        
+    except Exception as e:
+        logger.error(f"SQL reset error: {e}")
+        return jsonify({
+            "success": False,
+            "error": f"SQL reset failed: {str(e)}"
+        }), 500
