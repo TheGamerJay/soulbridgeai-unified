@@ -2349,7 +2349,7 @@ Where emotion meets expression.
             
             // Check session state from backend
             try {
-                const response = await fetch('/debug/session-state');
+                const response = await fetch('/api/user-info');
                 const sessionData = await response.json();
                 // Logging removed for production hygiene
                 

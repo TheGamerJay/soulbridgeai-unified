@@ -683,7 +683,7 @@ function startNewTrialTimer() {
 
 // Bulletproof tier display logic
 function updateTierDisplay() {
-    fetch("/debug/session-state")
+    fetch("/api/user-info")
         .then(res => res.json())
         .then(data => {
             const userPlan = data.user_plan || "free";  // Original plan for display
