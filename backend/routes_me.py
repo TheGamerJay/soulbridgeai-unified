@@ -267,9 +267,22 @@ def trial_activate():
                 "error": f"Trial is only available for Bronze users. You have {plan.title()} tier."
             }), 400
         
+        # Check session trial state first (might be stale)
+        session_trial = session.get('trial_active', False)
+        session_expires = session.get('trial_expires_at')
+        logger.info(f"🔍 SESSION DEBUG: trial_active={session_trial}, trial_expires_at={session_expires}")
+        
         # Check if user already has an active trial
         trial_active, trial_expires_at = db_get_trial_state(uid)
-        logger.info(f"🔍 TRIAL DEBUG: user_id={uid}, trial_active={trial_active}, trial_expires_at={trial_expires_at}")
+        logger.info(f"🔍 DATABASE DEBUG: user_id={uid}, trial_active={trial_active}, trial_expires_at={trial_expires_at}")
+        
+        # Clear stale session data if database shows no trial
+        if not trial_active and session_trial:
+            logger.info(f"🧹 CLEANING: Removing stale session trial data")
+            session['trial_active'] = False
+            session.pop('trial_expires_at', None)
+            session.pop('trial_started_at', None)
+            session.pop('trial_credits', None)
         
         if trial_active and trial_expires_at and datetime.now(timezone.utc) < trial_expires_at:
             return jsonify({
@@ -321,6 +334,37 @@ def trial_activate():
         error_details = traceback.format_exc()
         logger.error(f"Error in /api/trial/activate endpoint: {e}")
         logger.error(f"Full traceback: {error_details}")
+        return jsonify({
+            "success": False,
+            "error": f"Internal server error: {str(e)}"
+        }), 500
+
+@bp_me.route("/trial/reset-session", methods=["POST"])
+def trial_reset_session():
+    """
+    Reset trial session data (for debugging stale session issues).
+    """
+    try:
+        uid = session.get('user_id')
+        if not uid:
+            return jsonify({"success": False, "error": "Not authenticated"}), 401
+        
+        # Clear all trial-related session data
+        session['trial_active'] = False
+        session.pop('trial_expires_at', None)
+        session.pop('trial_started_at', None)
+        session.pop('trial_credits', None)
+        session.pop('trial_used_permanently', None)
+        
+        logger.info(f"🧹 RESET: Cleared all trial session data for user {uid}")
+        
+        return jsonify({
+            "success": True,
+            "message": "Trial session data cleared successfully"
+        })
+        
+    except Exception as e:
+        logger.error(f"Error in trial session reset: {e}")
         return jsonify({
             "success": False,
             "error": f"Internal server error: {str(e)}"
