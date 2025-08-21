@@ -424,43 +424,72 @@ PRICE_ADFREE = os.environ.get('STRIPE_PRICE_ADFREE', 'price_1234567890')  # Ad-f
 
 # ---------- Companions (bulletproof data) ----------
 COMPANIONS_NEW = [
-    # Free tier - 8 companions
-    {"id":"gamerjay_free","name":"GamerJay","tier":"free","image_url":"/static/logos/GamerJay_Free_companion.png"},
-    {"id":"blayzo_free","name":"Blayzo","tier":"free","image_url":"/static/logos/Blayzo.png"},
-    {"id":"blayzica_free","name":"Blayzica","tier":"free","image_url":"/static/logos/Blayzica.png"},
-    {"id":"claude_free","name":"Claude","tier":"free","image_url":"/static/logos/Claude_Free.png"},
-    {"id":"blayzia_free","name":"Blayzia","tier":"free","image_url":"/static/logos/Blayzia.png"},
-    {"id":"blayzion_free","name":"Blayzion","tier":"free","image_url":"/static/logos/Blayzion.png"},
-    {"id":"lumen_free","name":"Lumen","tier":"free","image_url":"/static/logos/Lumen Bronze.png"},
-    {"id":"blayzo2_free","name":"Blayzo.2","tier":"free","image_url":"/static/logos/blayzo free tier.png"},
+    # Bronze tier (formerly "free") - 8 companions
+    {"id":"gamerjay_free","name":"GamerJay","tier":"bronze","image_url":"/static/logos/GamerJay_Free_companion.png","min_referrals":0},
+    {"id":"blayzo_free","name":"Blayzo","tier":"bronze","image_url":"/static/logos/Blayzo.png","min_referrals":0},
+    {"id":"blayzica_free","name":"Blayzica","tier":"bronze","image_url":"/static/logos/Blayzica.png","min_referrals":0},
+    {"id":"claude_free","name":"Claude","tier":"bronze","image_url":"/static/logos/Claude_Free.png","min_referrals":0},
+    {"id":"blayzia_free","name":"Blayzia","tier":"bronze","image_url":"/static/logos/Blayzia.png","min_referrals":0},
+    {"id":"blayzion_free","name":"Blayzion","tier":"bronze","image_url":"/static/logos/Blayzion.png","min_referrals":0},
+    {"id":"lumen_free","name":"Lumen","tier":"bronze","image_url":"/static/logos/Lumen Bronze.png","min_referrals":0},
+    {"id":"blayzo2_free","name":"Blayzo.2","tier":"bronze","image_url":"/static/logos/blayzo free tier.png","min_referrals":0},
     
-    # Silver tier (growth) - 8 companions
-    {"id":"sky_silver","name":"Sky","tier":"growth","image_url":"/static/logos/Sky_a_premium_companion.png"},
-    {"id":"gamerjay_silver","name":"GamerJay","tier":"growth","image_url":"/static/logos/GamerJay_premium_companion.png"},
-    {"id":"claude_silver","name":"Claude","tier":"growth","image_url":"/static/logos/Claude_Growth.png"},
-    {"id":"blayzo_silver","name":"Blayzo","tier":"growth","image_url":"/static/logos/Blayzo_premium_companion.png"},
-    {"id":"blayzica_silver","name":"Blayzica","tier":"growth","image_url":"/static/logos/Blayzica Pro.png"},
-    {"id":"watchdog_silver","name":"WatchDog","tier":"growth","image_url":"/static/logos/WatchDog_a_Premium_companion.png"},
-    {"id":"rozia_silver","name":"Rozia","tier":"growth","image_url":"/static/logos/Rozia Silver .png"},
-    {"id":"lumen_silver","name":"Lumen","tier":"growth","image_url":"/static/logos/Lumen Silver.png"},
+    # Silver tier (formerly "growth") - 8 companions
+    {"id":"sky_silver","name":"Sky","tier":"silver","image_url":"/static/logos/Sky_a_premium_companion.png","min_referrals":0},
+    {"id":"gamerjay_silver","name":"GamerJay","tier":"silver","image_url":"/static/logos/GamerJay_premium_companion.png","min_referrals":0},
+    {"id":"claude_silver","name":"Claude","tier":"silver","image_url":"/static/logos/Claude_Growth.png","min_referrals":0},
+    {"id":"blayzo_silver","name":"Blayzo","tier":"silver","image_url":"/static/logos/Blayzo_premium_companion.png","min_referrals":0},
+    {"id":"blayzica_silver","name":"Blayzica","tier":"silver","image_url":"/static/logos/Blayzica Pro.png","min_referrals":0},
+    {"id":"watchdog_silver","name":"WatchDog","tier":"silver","image_url":"/static/logos/WatchDog_a_Premium_companion.png","min_referrals":0},
+    {"id":"rozia_silver","name":"Rozia","tier":"silver","image_url":"/static/logos/Rozia Silver .png","min_referrals":0},
+    {"id":"lumen_silver","name":"Lumen","tier":"silver","image_url":"/static/logos/Lumen Silver.png","min_referrals":0},
     
-    # Gold tier (max) - 8 companions
-    {"id":"crimson_gold","name":"Crimson","tier":"max","image_url":"/static/logos/Crimson_a_Max_companion.png"},
-    {"id":"violet_gold","name":"Violet","tier":"max","image_url":"/static/logos/Violet_a_Max_companion.png"},
-    {"id":"claude_gold","name":"Claude","tier":"max","image_url":"/static/logos/Claude_Max.png"},
-    {"id":"royal_gold","name":"Royal","tier":"max","image_url":"/static/logos/Royal_a_Max_companion.png"},
-    {"id":"ven_blayzica_gold","name":"Ven Blayzica","tier":"max","image_url":"/static/logos/Ven_Blayzica_a_Max_companion.png"},
-    {"id":"ven_sky_gold","name":"Ven Sky","tier":"max","image_url":"/static/logos/Ven_Sky_a_Max_companion.png"},
-    {"id":"watchdog_gold","name":"WatchDog","tier":"max","image_url":"/static/logos/WatchDog_a_Max_Companion.png"},
-    {"id":"violet2_gold","name":"Violet","tier":"max","image_url":"/static/logos/Violet_a_Max_companion.png"},
+    # Gold tier (formerly "max") - 8 companions
+    {"id":"crimson_gold","name":"Crimson","tier":"gold","image_url":"/static/logos/Crimson_a_Max_companion.png","min_referrals":0},
+    {"id":"violet_gold","name":"Violet","tier":"gold","image_url":"/static/logos/Violet_a_Max_companion.png","min_referrals":0},
+    {"id":"claude_gold","name":"Claude","tier":"gold","image_url":"/static/logos/Claude_Max.png","min_referrals":0},
+    {"id":"royal_gold","name":"Royal","tier":"gold","image_url":"/static/logos/Royal_a_Max_companion.png","min_referrals":0},
+    {"id":"ven_blayzica_gold","name":"Ven Blayzica","tier":"gold","image_url":"/static/logos/Ven_Blayzica_a_Max_companion.png","min_referrals":0},
+    {"id":"ven_sky_gold","name":"Ven Sky","tier":"gold","image_url":"/static/logos/Ven_Sky_a_Max_companion.png","min_referrals":0},
+    {"id":"watchdog_gold","name":"WatchDog","tier":"gold","image_url":"/static/logos/WatchDog_a_Max_Companion.png","min_referrals":0},
+    {"id":"violet2_gold","name":"Violet","tier":"gold","image_url":"/static/logos/Violet_a_Max_companion.png","min_referrals":0},
     
-    # Referral companions - 5 companions
-    {"id":"blayzike","name":"Blayzike","tier":"referral","image_url":"/static/referral/blayzike.png"},
-    {"id":"nyxara","name":"Nyxara","tier":"referral","image_url":"/static/logos/Nyxara.png"},
-    {"id":"blazelian","name":"Blazelian","tier":"referral","image_url":"/static/referral/blazelian.png"},
-    {"id":"claude_referral","name":"Claude Referral","tier":"referral","image_url":"/static/referral/claude_referral.png"},
-    {"id":"blayzo_referral","name":"Blayzo Referral","tier":"referral","image_url":"/static/logos/Blayzo_Referral.png"},
+    # Referral companions - 5 companions (require referrals, ignore trial)
+    {"id":"blayzike","name":"Blayzike","tier":"silver","image_url":"/static/referral/blayzike.png","min_referrals":2},
+    {"id":"nyxara","name":"Nyxara","tier":"silver","image_url":"/static/logos/Nyxara.png","min_referrals":3},
+    {"id":"blazelian","name":"Blazelian","tier":"gold","image_url":"/static/referral/blazelian.png","min_referrals":5},
+    {"id":"claude_referral","name":"Claude Referral","tier":"gold","image_url":"/static/referral/claude_referral.png","min_referrals":8},
+    {"id":"blayzo_referral","name":"Blayzo Referral","tier":"gold","image_url":"/static/logos/Blayzo_Referral.png","min_referrals":10},
 ]
+COMPANIONS_BY_ID = {c["id"]: c for c in COMPANIONS_NEW}
+
+# ---------- Tier Canonicalization & Access Control ----------
+# Standardize all plan names to Bronze/Silver/Gold
+PLAN_TO_CANON = {
+    # canonical
+    "bronze": "bronze",
+    "silver": "silver", 
+    "gold": "gold",
+    # legacy synonyms
+    "free": "bronze",
+    "growth": "silver",
+    "max": "gold",
+}
+TIER_ORDER = ["bronze", "silver", "gold"]
+
+def normalize_plan(plan: str) -> str:
+    """Convert any plan name to canonical bronze/silver/gold"""
+    return PLAN_TO_CANON.get(str(plan).lower(), "bronze")
+
+def allowed_tiers_for_plan(plan: str):
+    """
+    Bronze -> {"bronze"}
+    Silver -> {"bronze","silver"} 
+    Gold   -> {"bronze","silver","gold"}
+    """
+    canon = normalize_plan(plan)
+    idx = TIER_ORDER.index(canon)
+    return set(TIER_ORDER[: idx + 1])
 
 # ---------- Bulletproof Helper Functions ----------
 def get_user_id_new():
@@ -488,28 +517,42 @@ def get_access_matrix_new(user_plan: str, trial_active: bool):
     return base
 
 def companion_unlock_state_new(user_plan: str, trial_active: bool, referrals: int):
-    """Determine which companions are unlocked - TRIAL DOES NOT CHANGE ACCESS"""
-    # During trial, unlock all companions (growth + max)
-
-#
-    # If trial is active, unlock all non-referral companions (free, growth, max)
+    """
+    Returns access state for companions based on user's plan, trial status, and referrals.
+    - Trial unlocks bronze+silver+gold companions TEMPORARILY
+    - Referral-only companions stay locked during trial; they require min_referrals
+    """
+    canon = normalize_plan(user_plan)
     if trial_active:
-        unlocked_tiers = set(["free", "growth", "max"])
+        tier_access = set(["bronze", "silver", "gold"])
     else:
-        unlocked_tiers = set(["free"])
-        # Map new tier names to old companion tier names
-        if user_plan in ["silver", "growth"]:
-            unlocked_tiers.add("growth")
-        elif user_plan in ["gold", "max"]:
-            unlocked_tiers.add("growth")
-            unlocked_tiers.add("max")
-    # Referral progressive unlocks (separate from subscription tiers)
-    referral_unlocks = []
-    if referrals >= REFERRAL_THRESHOLDS["blayzike"]: referral_unlocks.append("blayzike")
-    if referrals >= REFERRAL_THRESHOLDS["blazelian"]: referral_unlocks.append("blazelian")
-    if referrals >= REFERRAL_THRESHOLDS["claude_referral"]: referral_unlocks.append("claude_referral")
-    if referrals >= REFERRAL_THRESHOLDS["blayzo_skin"]: referral_unlocks.append("blayzo_skin")
-    return unlocked_tiers, set(referral_unlocks)
+        tier_access = allowed_tiers_for_plan(canon)
+
+    referral_unlocked_ids = set(
+        c["id"] for c in COMPANIONS_NEW
+        if c.get("min_referrals", 0) > 0 and referrals >= c["min_referrals"]
+    )
+
+    return {
+        "tier_access": tier_access,
+        "referral_unlocked_ids": referral_unlocked_ids
+    }
+
+def user_can_access_companion(user_plan: str, trial_active: bool, referrals: int, comp: dict):
+    """
+    Final server-side decision for companion access.
+    Returns (can_access: bool, reason: str|None)
+    """
+    state = companion_unlock_state_new(user_plan, trial_active, referrals)
+    tier_ok = comp["tier"] in state["tier_access"]
+
+    # Referral-only companions: require min_referrals and IGNORE trial unlock
+    min_refs = comp.get("min_referrals", 0)
+    if min_refs > 0:
+        return (comp["id"] in state["referral_unlocked_ids"],
+                f"Referral companion: requires {min_refs} referrals")
+
+    return (tier_ok, None if tier_ok else f"Tier locked: requires {comp['tier'].title()}")
 
 def require_max_for_mini_studio_new():
     """Hard gate Mini Studio; use unified system for trial support"""
@@ -3382,29 +3425,40 @@ def tiers_page():
 
 @app.route("/chat")
 def chat():
-    """Redirect to tier-specific chat page"""
+    """Redirect to tier-specific chat page with server-side validation"""
+    companion_slug = request.args.get('companion', '').strip()
+    
     if not is_logged_in():
-        companion = request.args.get('companion')
-        if companion:
-            return redirect(f"/login?return_to=chat&companion={companion}")
+        if companion_slug:
+            return redirect(f"/login?return_to=chat&companion={companion_slug}")
         return redirect("/login?return_to=chat")
     
-    # Map internal plan to tier-specific URL
-    internal_user_plan = session.get('user_plan', 'free') or 'free'
-    plan_mapping = {
-        'free': 'bronze',
-        'growth': 'silver', 
-        'max': 'gold'
-    }
-    user_tier = plan_mapping.get(internal_user_plan, 'bronze')
+    # Get user info
+    user_plan = session.get('user_plan', 'bronze')
+    trial_active = session.get('trial_active', False)
+    referrals = int(session.get('referrals', 0))
     
-    # Preserve companion parameter if present and redirect to companion-specific URL
-    companion = request.args.get('companion')
-    if companion:
-        return redirect(f"/chat/{user_tier}/{companion}")
+    # Use canonical tier for URL namespace
+    canonical_user_tier = normalize_plan(user_plan)
+    
+    if companion_slug:
+        # Validate companion exists
+        comp = COMPANIONS_BY_ID.get(companion_slug)
+        if not comp:
+            return redirect("/tiers?error=unknown_companion")
+        
+        # Check access permissions before redirecting
+        can_access, reason = user_can_access_companion(user_plan, trial_active, referrals, comp)
+        if not can_access:
+            return redirect(f"/tiers?locked={comp['id']}&reason={reason or 'locked'}")
+        
+        # Set session and redirect to isolated companion URL
+        session['selected_companion'] = comp['id']
+        session['active_tier_namespace'] = canonical_user_tier
+        return redirect(f"/chat/{canonical_user_tier}/{companion_slug}")
     else:
-        # No companion specified, redirect to tier page (will show companion selection)
-        return redirect(f"/chat/{user_tier}")
+        # No companion specified, redirect to tier page
+        return redirect(f"/chat/{canonical_user_tier}")
 
 # REMOVED: api_companions_old_disabled function - was a disabled/deprecated companions API endpoint
 
@@ -8205,7 +8259,7 @@ def api_companions():
                 "effective_plan": "bronze"
             })
         
-        user_plan = session.get("user_plan", "free")
+        user_plan = session.get("user_plan", "bronze")
         trial_active = bool(session.get("trial_active", False))
         referrals = int(session.get("referrals", 0))
         
@@ -8227,24 +8281,25 @@ def api_companions():
         except Exception as e:
             logger.error(f"Error getting referral count: {e}")
         
-        unlocked_tiers, referral_ids = companion_unlock_state_new(user_plan, trial_active, referrals)
-        
+        # Use cleaner lock state calculation
         companions = []
         for c in COMPANIONS_NEW:
-            locked = True
+            # Use the new cleaner access control function
+            can_access = user_can_access_companion(user_plan, trial_active, referrals, c)
+            
+            locked = not can_access
             lock_reason = ""
             
-            if c["tier"] in ("free", "growth", "max"):
-                if c["tier"] in unlocked_tiers:
-                    locked = False
+            if locked:
+                companion_tier = c.get("tier", "bronze")
+                min_referrals = c.get("min_referrals", 0)
+                
+                if companion_tier == "referral":
+                    lock_reason = f"Requires {min_referrals} referrals"
+                elif companion_tier in ["bronze", "silver", "gold"]:
+                    lock_reason = f"{companion_tier.capitalize()} tier required"
                 else:
-                    lock_reason = f"{c['tier'].capitalize()} tier required"
-            elif c["tier"] == "referral":
-                # Only unlock via referral thresholds; trial NEVER unlocks these
-                if c["id"] in referral_ids:
-                    locked = False
-                else:
-                    lock_reason = "Referral required"
+                    lock_reason = "Access restricted"
             
             companions.append({
                 "id": c["id"],
@@ -17738,6 +17793,12 @@ def companion_chat_handler(tier, companion_id):
     try:
         logger.info(f"🎯 COMPANION HANDLER: tier={tier}, companion_id={companion_id}")
         
+        # Validate and normalize URL tier
+        normalized_tier = normalize_plan(tier)
+        if normalized_tier != tier:
+            logger.info(f"🔄 REDIRECTING: tier '{tier}' normalized to '{normalized_tier}'")
+            return redirect(f"/chat/{normalized_tier}/{companion_id}")
+        
         # Simple feature limits without complex imports
         def get_simple_feature_limit(tier_name, feature, trial_active):
             """Simple tier limits without external dependencies"""
@@ -17766,28 +17827,33 @@ def companion_chat_handler(tier, companion_id):
         trial_active = session.get("trial_active", False)
         referrals = int(session.get('referrals', 0))
         
-        logger.info(f"🔍 ACCESS CHECK: user_plan={user_plan}, trial_active={trial_active}, referrals={referrals}")
-        
-        # Map user_plan to unlock tiers  
-        plan_mapping = {'free': 'bronze', 'growth': 'silver', 'max': 'gold'}
-        user_tier = plan_mapping.get(user_plan, 'bronze')
-        
-        # Calculate unlocked tiers using the original plan names that companions use
-        unlocked_tiers, referral_ids = companion_unlock_state_new(user_plan, trial_active, referrals)
-        logger.info(f"🔓 UNLOCKED TIERS: {unlocked_tiers}, referral_ids: {referral_ids}")
-        
-        # Check access
-        can_access = False
-        if companion_info['tier'] in ('free', 'growth', 'max'):
-            can_access = companion_info['tier'] in unlocked_tiers
-        elif companion_info['tier'] == 'referral':
-            can_access = companion_id in referral_ids
-        
-        logger.info(f"🚪 ACCESS RESULT: can_access={can_access} for {companion_info['tier']} tier companion")
-        
-        if not can_access:
-            logger.warning(f"🚫 ACCESS DENIED: Redirecting to tiers page")
+        # URL namespace validation - check if user can access this tier in URL
+        if not user_can_access_companion(user_plan, trial_active, referrals, companion_info):
+            logger.warning(f"🚫 ACCESS DENIED: User cannot access companion {companion_id}")
             return redirect("/tiers?upgrade_required=true")
+        
+        # Validate URL tier matches companion's minimum access tier
+        companion_tier = companion_info.get('tier', 'bronze')
+        if companion_tier not in ['bronze', 'silver', 'gold']:
+            # Special handling for referral companions
+            if companion_tier == 'referral':
+                # Referral companions can be accessed from any tier if unlocked
+                pass
+            else:
+                logger.warning(f"🚫 INVALID TIER: Unknown companion tier '{companion_tier}'")
+                return redirect(f"/chat/bronze/{companion_id}")
+        else:
+            # Validate user is accessing from appropriate tier URL
+            # If URL tier is lower than companion tier, redirect to companion's tier
+            tier_hierarchy = {'bronze': 0, 'silver': 1, 'gold': 2}
+            url_tier_level = tier_hierarchy.get(tier, 0)
+            companion_tier_level = tier_hierarchy.get(companion_tier, 0)
+            
+            if url_tier_level < companion_tier_level:
+                logger.info(f"🔄 TIER REDIRECT: URL tier '{tier}' < companion tier '{companion_tier}', redirecting")
+                return redirect(f"/chat/{companion_tier}/{companion_id}")
+        
+        logger.info(f"🔍 ACCESS CHECK: user_plan={user_plan}, trial_active={trial_active}, referrals={referrals}")
         
         # Store selected companion in session
         session['selected_companion'] = companion_id
