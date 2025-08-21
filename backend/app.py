@@ -15286,6 +15286,17 @@ TIERS_TEMPLATE = r"""
   document.addEventListener('DOMContentLoaded', function() {
     const container = document.getElementById('tiers-circular-timer');
     if (container && typeof CircularTrialTimer !== 'undefined') {
+      
+      // Check if trial is already expired (prevent infinite refresh loop)
+      const expiresAt = new Date('{{ trial_expires_at }}').getTime();
+      const now = Date.now();
+      
+      if (now >= expiresAt) {
+        console.log('⏰ Trial already expired, hiding timer and stopping refresh loop');
+        container.style.display = 'none';
+        return; // Don't start timer for expired trial
+      }
+      
       // Destroy any existing timer
       if (window.tiersCircularTimer) {
         window.tiersCircularTimer.destroy();
@@ -15297,10 +15308,9 @@ TIERS_TEMPLATE = r"""
         stroke: 3,
         showLabel: false,
         onExpire: function() {
-          // Refresh page when trial expires
-          setTimeout(() => {
-            window.location.reload();
-          }, 1000);
+          // Hide the timer and clean up session, but don't auto-refresh
+          console.log('⏰ Timer expired, cleaning up without refresh loop');
+          if (container) container.style.display = 'none';
         }
       });
       

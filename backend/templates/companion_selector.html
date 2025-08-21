@@ -1334,12 +1334,10 @@
                 stroke: 3,
                 showLabel: false,
                 onExpire: function() {
-                    // Hide banner and refresh page
+                    // Hide banner and clean up, but don't auto-refresh to prevent loops
                     const banner = document.getElementById('trial-banner');
                     if (banner) banner.style.display = 'none';
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1000);
+                    console.log('⏰ Companion selector timer expired, hiding banner');
                 }
             });
             

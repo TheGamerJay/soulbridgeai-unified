@@ -2462,11 +2462,10 @@ Where emotion meets expression.
                 stroke: 3,
                 showLabel: false,
                 onExpire: function() {
-                    // Hide banner and refresh limits
+                    // Hide banner and clean up, but don't auto-refresh to prevent loops
                     const banner = document.getElementById('trial-banner');
                     if (banner) banner.style.display = 'none';
-                    // Refresh user status to update limits
-                    refreshUserStatus();
+                    console.log('⏰ Chat timer expired, hiding banner');
                 }
             });
             
