@@ -1312,8 +1312,14 @@
 
         // Circular trial timer initialization
         function initCircularTrialTimer(data) {
+            console.log('🔄 InitCircularTrialTimer called with:', data);
             const container = document.getElementById('trial-circular-timer');
+            console.log('📍 Container found:', container);
+            console.log('⏰ Expires at:', data.expires_at);
+            console.log('🔧 CircularTrialTimer available:', typeof CircularTrialTimer !== 'undefined');
+            
             if (!container || !data.expires_at || typeof CircularTrialTimer === 'undefined') {
+                console.log('❌ Early return - missing requirements');
                 return;
             }
             
@@ -1384,12 +1390,16 @@
                     }
                 } else {
                     // Trial is active
+                    console.log('🟢 Trial is active! Banner and timer should appear');
                     if (banner) banner.style.display = 'flex';
                     if (trialBtn) trialBtn.style.display = 'none';
                     
                     // Start circular timer (only if not already running)
                     if (!window.companionCircularTimer || !window.companionCircularTimer.isRunning()) {
+                        console.log('🚀 About to call initCircularTrialTimer');
                         initCircularTrialTimer(data);
+                    } else {
+                        console.log('⏩ Timer already running, skipping');
                     }
                 }
             } catch (error) {
