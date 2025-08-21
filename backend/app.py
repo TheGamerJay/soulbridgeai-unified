@@ -3374,630 +3374,31 @@ def tiers_page():
 
 @app.route("/chat")
 def chat():
-    """Chat page with bulletproof tier system"""
+    """Redirect to tier-specific chat page"""
     if not is_logged_in():
         companion = request.args.get('companion')
         if companion:
             return redirect(f"/login?return_to=chat&companion={companion}")
         return redirect("/login?return_to=chat")
-        
-    # Check if user has accepted terms
-    terms_check = requires_terms_acceptance()
-    if terms_check:
-        return terms_check
     
-    # Get user data
-    user_id = session.get('user_id')
-    
-    # CRITICAL FIX: Sync trial data from database to session before loading chat
-    if user_id:
-        try:
-            db_instance = get_database()
-            if db_instance:
-                conn = db_instance.get_connection()
-                cursor = conn.cursor()
-                
-                # Get current trial state from database
-                if db_instance.use_postgres:
-                    cursor.execute("SELECT trial_active, trial_started_at, trial_expires_at, trial_used_permanently FROM users WHERE id = %s", (user_id,))
-                else:
-                    cursor.execute("SELECT trial_active, trial_started_at, trial_expires_at, trial_used_permanently FROM users WHERE id = ?", (user_id,))
-                
-                result = cursor.fetchone()
-                conn.close()
-                
-                if result:
-                    db_trial_active, db_trial_started, db_trial_expires, db_trial_used = result
-                    
-                    # FIXED: Preserve existing active trials unless we're 100% sure they should be deactivated
-                    current_trial_active = session.get('trial_active', False)
-                    trial_is_active = current_trial_active  # Start with current state
-                    
-                    if db_trial_active and not db_trial_used and db_trial_expires:
-                        try:
-                            if isinstance(db_trial_expires, str):
-                                expires_time = datetime.fromisoformat(db_trial_expires.replace('Z', '+00:00'))
-                            else:
-                                expires_time = db_trial_expires
-                            
-                            # Only change trial state if we can confirm expiry status
-                            # Ensure both datetimes are timezone-aware for comparison
-                            current_time = datetime.utcnow().replace(tzinfo=timezone.utc)
-                            if expires_time.tzinfo is None:
-                                expires_time = expires_time.replace(tzinfo=timezone.utc)
-                            trial_is_active = current_time < expires_time
-                            logger.info(f"✅ TRIAL SYNC: Confirmed trial status - active={trial_is_active}, expires={expires_time}")
-                        except Exception as e:
-                            logger.error(f"⚠️ Error parsing trial expiry: {e} - PRESERVING current trial state: {current_trial_active}")
-                            trial_is_active = current_trial_active  # Keep existing state on error
-                    elif db_trial_used:
-                        # Only deactivate if trial is marked as used
-                        trial_is_active = False
-                        logger.info(f"❌ TRIAL SYNC: Trial marked as used - deactivating")
-                    else:
-                        # No trial data in DB - preserve session state
-                        trial_is_active = current_trial_active  # ACTUALLY preserve it
-                        logger.info(f"ℹ️ TRIAL SYNC: No trial data in DB - preserving session state: {current_trial_active}")
-                    
-                    # Update session only if we have reliable data
-                    session['trial_active'] = trial_is_active
-                    session['trial_started_at'] = db_trial_started.isoformat() if db_trial_started else None
-                    session['trial_expires_at'] = (db_trial_expires.isoformat().replace('+00:00', 'Z')) if db_trial_expires else None  
-                    session['trial_used_permanently'] = bool(db_trial_used)
-                    
-                    logger.info(f"🔄 TRIAL SYNC: DB trial_active={db_trial_active}, expires={db_trial_expires}, session trial_active={trial_is_active}")
-        except Exception as e:
-            logger.error(f"Error syncing trial session: {e}")
-    
-    # Use session values (now synced with database)
+    # Map internal plan to tier-specific URL
     internal_user_plan = session.get('user_plan', 'free') or 'free'
-    trial_active = session.get('trial_active', False)
-    effective_plan = get_effective_plan(internal_user_plan, trial_active)  # FIXED: Calculate fresh
-    
-    # Map internal plan names to display names for template
     plan_mapping = {
         'free': 'bronze',
         'growth': 'silver', 
         'max': 'gold'
     }
-    user_plan = plan_mapping.get(internal_user_plan, 'bronze')
+    user_tier = plan_mapping.get(internal_user_plan, 'bronze')
     
-    # Handle companion selection using bulletproof data
-    companion_id = request.args.get('companion')
-    if companion_id:
-        # Skip processing if this companion is already selected (prevent double-click issues)
-        current_companion = session.get('selected_companion')
-        if current_companion == companion_id:
-            logger.info(f"🔄 COMPANION: {companion_id} already selected, skipping duplicate selection")
-        else:
-            # Find companion tier from bulletproof companion data
-            companion_tier = 'free'  # default
-            companion_found = False
-            
-            for c in COMPANIONS_NEW:
-                if c['id'] == companion_id:
-                    companion_tier = c['tier']
-                    companion_found = True
-                    break
-            
-            if not companion_found:
-                # Try legacy companion mapping for backwards compatibility
-                legacy_mapping = {
-                    'blayzo': 'blayzo_free',
-                    'blayzica': 'blayzica_free', 
-                    'gamerjay': 'companion_gamerjay',
-                    'sky': 'companion_sky',
-                    'violet': 'companion_violet',
-                    'crimson': 'companion_crimson',
-                    'royal': 'royal_max',
-                    'watchdog': 'watchdog_max'
-                }
-                if companion_id in legacy_mapping:
-                    new_id = legacy_mapping[companion_id]
-                    for c in COMPANIONS_NEW:
-                        if c['id'] == new_id:
-                            companion_tier = c['tier']
-                            companion_found = True
-                            companion_id = new_id  # update to new ID
-                            break
-            
-            if not companion_found:
-                # Default to free tier if not found
-                companion_tier = 'free'
-            
-            # Use bulletproof companion unlock logic
-            referrals = int(session.get('referrals', 0))
-            unlocked_tiers, referral_ids = companion_unlock_state_new(user_plan, trial_active, referrals)
-            
-            # Check access
-            can_access = False
-            if companion_tier in ('free', 'growth', 'max'):
-                can_access = companion_tier in unlocked_tiers
-            elif companion_tier == 'referral':
-                can_access = companion_id in referral_ids
-            
-            if not can_access:
-                return redirect("/tiers?upgrade_required=true")
-                
-            session['selected_companion'] = companion_id
-    
-    companion_name = session.get('selected_companion', 'blayzo_free')
-    
-    # Handle legacy companion ID compatibility (map old IDs to new ones)
-    companion_id_mapping = {
-        'blayzo_growth': 'blayzo_premium',
-        'companion_gamerjay_premium': 'gamerjay_premium',
-        # Add any other legacy mappings if needed
-        'blayzo_pro': 'blayzo_premium',
-        'gamerjay_pro': 'gamerjay_premium'
-    }
-    original_companion_name = companion_name
-    if companion_name in companion_id_mapping:
-        companion_name = companion_id_mapping[companion_name]
-        session['selected_companion'] = companion_name  # Update session with new ID
-        logger.info(f"🔄 Migrated companion ID: {original_companion_name} → {companion_name}")
-    
-    # Convert companion ID to clean character name for AI
-    def get_character_name_for_ai(companion_id):
-        """Convert companion ID to character name that AI understands"""
-        character_mapping = {
-            # GamerJay variants
-            'gamerjay_free': 'GamerJay',
-            'gamerjay_silver': 'GamerJay', 
-            'gamerjay_premium': 'GamerJay',
-            'companion_gamerjay': 'GamerJay',
-            'companion_gamerjay_premium': 'GamerJay',
-            'gamerjay_pro': 'GamerJay',
-            'gamerjay': 'GamerJay',
-            
-            # Blayzo variants
-            'blayzo_free': 'Blayzo',
-            'blayzo_premium': 'Blayzo',
-            'blayzo_pro': 'Blayzo',
-            'blayzo': 'Blayzo',
-            
-            # Blayzica variants
-            'blayzica_free': 'Blayzica',
-            'blayzica_silver': 'Blayzica',
-            'blayzica_premium': 'Blayzica',
-            'blayzica': 'Blayzica',
-            
-            # Crimson variants
-            'crimson_free': 'Crimson',
-            'crimson_growth': 'Crimson',
-            'crimson_gold': 'Crimson',
-            'companion_crimson': 'Crimson',
-            'crimson': 'Crimson',
-            
-            # Violet variants
-            'violet_free': 'Violet',
-            'violet_growth': 'Violet',
-            'violet_gold': 'Violet',
-            'companion_violet': 'Violet',
-            'violet': 'Violet',
-            'violet2_gold': 'Violet',
-            
-            # Other character variants - for future expansion
-            'claude_free': 'Claude',
-            'claude_silver': 'Claude',
-            'claude_max': 'Claude',
-            'claude_gold': 'Claude',
-        }
-        
-        return character_mapping.get(companion_id, 'Blayzo')  # Default to Blayzo if not found
-
-    # Get companion avatar and display name
-    def get_companion_info(companion_id):
-        """Get companion display name and avatar image"""
-        companion_data = {
-            # Free companions
-            'blayzo_free': {'name': 'Blayzo', 'avatar': '/static/logos/Blayzo.png'},
-            'blayzica_free': {'name': 'Blayzica', 'avatar': '/static/logos/Blayzica.png'},
-            'companion_gamerjay': {'name': 'GamerJay', 'avatar': '/static/logos/GamerJay_Free_companion.png'},
-            'gamerjay_free': {'name': 'GamerJay', 'avatar': '/static/logos/GamerJay_Free_companion.png'},
-            'blayzia_free': {'name': 'Blayzia', 'avatar': '/static/logos/Blayzia.png'},
-            'blayzion_free': {'name': 'Blayzion', 'avatar': '/static/logos/Blayzion.png'},
-            'claude_free': {'name': 'Claude', 'avatar': '/static/logos/Claude_Free.png'},
-            'lumen_free': {'name': 'Lumen', 'avatar': '/static/logos/Lumen Bronze.png'},
-            'blayzo2_free': {'name': 'Blayzo.2', 'avatar': '/static/logos/blayzo free tier.png'},
-            
-            # Growth companions  
-            'companion_sky': {'name': 'Sky', 'avatar': '/static/logos/Sky_a_premium_companion.png'},
-            'sky_silver': {'name': 'Sky', 'avatar': '/static/logos/Sky_a_premium_companion.png'},
-            'blayzo_premium': {'name': 'Blayzo Pro', 'avatar': '/static/logos/Blayzo_premium_companion.png'},
-            'blayzo_growth': {'name': 'Blayzo Pro', 'avatar': '/static/logos/Blayzo_premium_companion.png'},  # Legacy compatibility
-            'blayzo_pro': {'name': 'Blayzo Pro', 'avatar': '/static/logos/Blayzo_premium_companion.png'},  # Legacy compatibility
-            'blayzo_silver': {'name': 'Blayzo Pro', 'avatar': '/static/logos/Blayzo_premium_companion.png'},
-            'blayzica_growth': {'name': 'Blayzica Pro', 'avatar': '/static/logos/Blayzica Pro.png'},
-            'blayzica_silver': {'name': 'Blayzica Pro', 'avatar': '/static/logos/Blayzica Pro.png'},
-            'gamerjay_premium': {'name': 'GamerJay Premium', 'avatar': '/static/logos/GamerJay_premium_companion.png'},
-            'gamerjay_silver': {'name': 'GamerJay Premium', 'avatar': '/static/logos/GamerJay_premium_companion.png'},
-            'companion_gamerjay_premium': {'name': 'GamerJay Premium', 'avatar': '/static/logos/GamerJay_premium_companion.png'},  # Legacy compatibility
-            'gamerjay_pro': {'name': 'GamerJay Premium', 'avatar': '/static/logos/GamerJay_premium_companion.png'},  # Legacy compatibility
-            'watchdog_growth': {'name': 'WatchDog', 'avatar': '/static/logos/WatchDog_a_Premium_companion.png'},
-            'watchdog_silver': {'name': 'WatchDog', 'avatar': '/static/logos/WatchDog_a_Premium_companion.png'},
-            'crimson_growth': {'name': 'Crimson', 'avatar': '/static/logos/Crimson.png'},
-            'violet_growth': {'name': 'Violet', 'avatar': '/static/logos/Violet.png'},
-            'claude_growth': {'name': 'Claude Growth', 'avatar': '/static/logos/Claude_Growth.png'},
-            'claude_silver': {'name': 'Claude Growth', 'avatar': '/static/logos/Claude_Growth.png'},
-            'rozia_silver': {'name': 'Rozia', 'avatar': '/static/logos/Rozia Silver .png'},
-            'lumen_silver': {'name': 'Lumen', 'avatar': '/static/logos/Lumen Silver.png'},
-            
-            # Max companions
-            'companion_crimson': {'name': 'Crimson', 'avatar': '/static/logos/Crimson_a_Max_companion.png'},
-            'crimson_gold': {'name': 'Crimson', 'avatar': '/static/logos/Crimson_a_Max_companion.png'},
-            'companion_violet': {'name': 'Violet', 'avatar': '/static/logos/Violet_a_Max_companion.png'},
-            'violet_gold': {'name': 'Violet', 'avatar': '/static/logos/Violet_a_Max_companion.png'},
-            'violet2_gold': {'name': 'Violet', 'avatar': '/static/logos/Violet_a_Max_companion.png'},
-            'royal_max': {'name': 'Royal', 'avatar': '/static/logos/Royal_a_Max_companion.png'},
-            'royal_gold': {'name': 'Royal', 'avatar': '/static/logos/Royal_a_Max_companion.png'},
-            'watchdog_max': {'name': 'WatchDog Max', 'avatar': '/static/logos/WatchDog_a_Max_Companion.png'},
-            'watchdog_gold': {'name': 'WatchDog Max', 'avatar': '/static/logos/WatchDog_a_Max_Companion.png'},
-            'ven_blayzica': {'name': 'Ven Blayzica', 'avatar': '/static/logos/Ven_Blayzica_a_Max_companion.png'},
-            'ven_blayzica_gold': {'name': 'Ven Blayzica', 'avatar': '/static/logos/Ven_Blayzica_a_Max_companion.png'},
-            'ven_sky': {'name': 'Ven Sky', 'avatar': '/static/logos/Ven_Sky_a_Max_companion.png'},
-            'ven_sky_gold': {'name': 'Ven Sky', 'avatar': '/static/logos/Ven_Sky_a_Max_companion.png'},
-            'claude_max': {'name': 'Claude Max', 'avatar': '/static/logos/Claude_Max.png'},
-            'claude_gold': {'name': 'Claude Max', 'avatar': '/static/logos/Claude_Max.png'},
-            
-            # Referral companions
-            'blayzike': {'name': 'Blayzike', 'avatar': '/static/referral/blayzike.png'},
-            'blazelian': {'name': 'Blazelian', 'avatar': '/static/referral/blazelian.png'},
-            'blayzo_referral': {'name': 'Blayzo Referral', 'avatar': '/static/logos/Blayzo_Referral.png'},
-            'claude_referral': {'name': 'Claude Referral', 'avatar': '/static/referral/claude_referral.png'},
-            'blayzo_skin': {'name': 'Blayzo Special Skin', 'avatar': '/static/referral/blayzo_skin.png'}
-        }
-        
-        # Add debug logging before returning
-        if companion_id in companion_data:
-            logger.info(f"✅ COMPANION FOUND: {companion_id} -> {companion_data[companion_id]}")
-            return companion_data[companion_id]
-        else:
-            logger.error(f"❌ COMPANION NOT FOUND: {companion_id}, using fallback. Available keys: {list(companion_data.keys())}")
-            # Try to find a partial match as emergency fallback
-            for key, data in companion_data.items():
-                if companion_id.lower() in key.lower() or key.lower() in companion_id.lower():
-                    logger.warning(f"🔄 EMERGENCY FALLBACK: Using {key} for {companion_id}")
-                    return data
-            return {
-                'name': companion_id.replace('_', ' ').title(),
-                'avatar': '/static/logos/IntroLogo.png'  # fallback
-            }
-    
-    companion_info = get_companion_info(companion_name)
-    
-    # Get clean character name for AI
-    ai_character_name = get_character_name_for_ai(companion_name)
-    
-    # Debug logging
-    logger.info(f"🎭 CHAT COMPANION DEBUG: companion_id={companion_name}, ai_character={ai_character_name}, display_name={companion_info['name']}, avatar={companion_info['avatar']}")
-    
-    # SPECIAL DEBUG for GamerJay Premium
-    if "gamerjay" in companion_name.lower():
-        logger.info(f"🔍 GAMERJAY DEBUG: Original companion_id={request.args.get('companion')}, Final companion_name={companion_name}, AI Character={ai_character_name}, Avatar path={companion_info['avatar']}")
-    
-    # Calculate tier-specific limits
-    from unified_tier_system import get_feature_limit
-    limits = {
-        'decoder': get_feature_limit(user_plan, 'decoder', trial_active),
-        'fortune': get_feature_limit(user_plan, 'fortune', trial_active), 
-        'horoscope': get_feature_limit(user_plan, 'horoscope', trial_active),
-        'creative_writer': get_feature_limit(user_plan, 'creative_writer', trial_active)
-    }
-    
-    return render_template("chat.html",
-        companion=ai_character_name,  # Use clean character name for AI
-        companion_display_name=companion_info['name'],
-        companion_avatar=companion_info['avatar'],
-        user_plan=user_plan,
-        trial_active=trial_active, 
-        effective_plan=effective_plan,
-        limits=limits
-    )
+    # Preserve companion parameter if present and redirect to companion-specific URL
+    companion = request.args.get('companion')
+    if companion:
+        return redirect(f"/chat/{user_tier}/{companion}")
+    else:
+        # No companion specified, redirect to tier page (will show companion selection)
+        return redirect(f"/chat/{user_tier}")
 
 # REMOVED: api_companions_old_disabled function - was a disabled/deprecated companions API endpoint
-
-@app.route("/api/companions/accessible", methods=["GET"])
-def api_companions_accessible():
-    """Get accessible companions based on user tier and points"""
-    try:
-        if not is_logged_in():
-            return jsonify({"success": False, "error": "Authentication required"}), 401
-            
-        tier = request.args.get('tier', 'free')
-        points = int(request.args.get('points', 0))
-        
-        # Return basic companion accessibility info
-        accessible_companions = {
-            "free": ["sapphire", "gamerjay_free", "blayzo", "blayzica", "blayzia", "blayzion", "claude_free"],
-            "growth": ["sky", "gamerjay_premium", "blayzo_premium", "claude_growth"],
-            "max": ["crimson", "violet", "watchdog", "royal", "claude_max", "ven_blayzica", "ven_sky"]
-        }
-        
-        # For free tier, only show free companions
-        if tier == 'free':
-            companions = accessible_companions["free"]
-        else:
-            # For paid tiers, show all companions up to their tier
-            companions = accessible_companions["free"]
-            if tier in ["growth", "max"]:
-                companions.extend(accessible_companions["growth"])
-            if tier == "max":
-                companions.extend(accessible_companions["max"])
-        
-        return jsonify({
-            "success": True,
-            "accessible_companions": companions,
-            "user_tier": tier,
-            "referral_points": points
-        })
-        
-    except Exception as e:
-        logger.error(f"Companions accessible API error: {e}")
-        return jsonify({"success": False, "error": "Failed to get accessible companions"}), 500
-
-@app.route("/api/companions/select", methods=["POST"])
-def api_companions_select():
-    """Select a companion"""
-    try:
-        if not is_logged_in():
-            return jsonify({"success": False, "error": "Authentication required"}), 401
-        
-        data = request.get_json() or {}
-        companion_id = data.get("companion_id")
-        
-        if not companion_id:
-            return jsonify({"success": False, "error": "Companion ID required"}), 400
-        
-        # Check if user has access to this companion using bulletproof access control
-        user_plan = session.get('user_plan', 'free')
-        trial_active = session.get('trial_active', False)
-        effective_plan = get_effective_plan(user_plan, trial_active)  # FIXED: Calculate fresh
-        
-        # Get companion details to check tier
-        companion_found = False
-        companion_tier = None
-        
-        # Check all companions to find the tier
-        companions_data = {
-            "free": [
-                {"companion_id": "blayzo_free", "tier": "free"},
-                {"companion_id": "blayzica_free", "tier": "free"},
-                {"companion_id": "companion_gamerjay", "tier": "free"},
-                {"companion_id": "blayzia_free", "tier": "free"},
-                {"companion_id": "blayzion_free", "tier": "free"},
-                {"companion_id": "claude_free", "tier": "free"}
-            ],
-            "growth": [
-                {"companion_id": "companion_sky", "tier": "growth"},
-                {"companion_id": "blayzo_premium", "tier": "growth"},
-                {"companion_id": "blayzica_growth", "tier": "growth"},
-                {"companion_id": "gamerjay_premium", "tier": "growth"},
-                {"companion_id": "watchdog_growth", "tier": "growth"},
-                {"companion_id": "crimson_growth", "tier": "growth"},
-                {"companion_id": "violet_growth", "tier": "growth"},
-                {"companion_id": "claude_growth", "tier": "growth"}
-            ],
-            "max": [
-                {"companion_id": "companion_crimson", "tier": "max"},
-                {"companion_id": "companion_violet", "tier": "max"},
-                {"companion_id": "royal_max", "tier": "max"},
-                {"companion_id": "watchdog_max", "tier": "max"},
-                {"companion_id": "ven_blayzica", "tier": "max"},
-                {"companion_id": "ven_sky", "tier": "max"},
-                {"companion_id": "claude_max", "tier": "max"}
-            ]
-        }
-        
-        # Find companion tier
-        for tier_companions in companions_data.values():
-            for comp in tier_companions:
-                if comp["companion_id"] == companion_id:
-                    companion_found = True
-                    companion_tier = comp["tier"]
-                    break
-            if companion_found:
-                break
-        
-        if not companion_found:
-            return jsonify({"success": False, "error": "Invalid companion ID"}), 400
-        
-        # Use bulletproof access control with session data (already set by @app.before_request)
-        logger.info(f"🔍 COMPANION SELECTION DEBUG: user_plan={user_plan}, effective_plan={effective_plan}, trial_active={trial_active}, companion_tier={companion_tier}, companion_id={companion_id}")
-        
-        # Use bulletproof companion access control
-        has_access = can_access_companion(user_plan, companion_tier, trial_active)
-        
-        if not has_access:
-            logger.warning(f"🚫 COMPANION SELECTION BLOCKED: user_plan={user_plan}, trial_active={trial_active}, companion_tier={companion_tier}, companion_id={companion_id}")
-            return jsonify({
-                "success": False, 
-                "error": f"Upgrade required to access {companion_tier} tier companions",
-                "tier_required": companion_tier
-            }), 403
-        
-        # Store selected companion in session, preserving trial keys
-        trial_keys = ['trial_active', 'trial_started_at', 'trial_expires_at', 'trial_used_permanently', 'trial_warning_sent']
-        preserved_trial = {k: session.get(k) for k in trial_keys if k in session}
-        session['selected_companion'] = companion_id
-        session['companion_selected_at'] = time.time()
-        # Restore trial keys if they existed
-        for k, v in preserved_trial.items():
-            session[k] = v
-        
-        # CRITICAL FIX: Save companion selection to database
-        try:
-            user_id = session.get('user_id')
-            user_email = session.get('user_email') or session.get('email')
-            
-            if user_id or user_email:
-                conn = psycopg2.connect(os.environ.get('DATABASE_URL'))
-                cursor = conn.cursor()
-                placeholder = '%s'
-                
-                # Get current companion_data or create new
-                if user_id:
-                    cursor.execute("SELECT companion_data FROM users WHERE id = %s", (user_id,))
-                else:
-                    cursor.execute("SELECT companion_data FROM users WHERE email = %s", (user_email,))
-                
-                result = cursor.fetchone()
-                current_data = result[0] if result and result[0] else {}
-                
-                # Update selected companion in companion_data
-                current_data['selected_companion'] = companion_id
-                
-                # Save back to database
-                if user_id:
-                    cursor.execute("UPDATE users SET companion_data = %s WHERE id = %s", 
-                                 (json.dumps(current_data), user_id))
-                else:
-                    cursor.execute("UPDATE users SET companion_data = %s WHERE email = %s", 
-                                 (json.dumps(current_data), user_email))
-                
-                conn.commit()
-                conn.close()
-                logger.info(f"💾 COMPANION SELECTION SAVED TO DATABASE: {companion_id} for user {user_id or user_email}")
-            else:
-                logger.warning("⚠️ No user ID or email found in session - companion selection not saved to database")
-                
-        except Exception as db_error:
-            logger.error(f"❌ Database error saving companion selection: {db_error}")
-            # Don't fail the request if database save fails, but log it
-        
-        # Track first companion selection
-        if not session.get('first_companion_picked', False):
-            session['first_companion_picked'] = True
-            logger.info(f"FIRST COMPANION: User {session.get('email')} selected their first companion: {companion_id}")
-        else:
-            logger.info(f"User {session.get('email')} selected companion: {companion_id}")
-        
-        return jsonify({
-            "success": True,
-            "message": f"Successfully selected companion",
-            "companion_id": companion_id,
-            "redirect_url": "/chat"
-        })
-        
-    except Exception as e:
-        logger.error(f"Companion selection error: {e}")
-        return jsonify({"success": False, "error": "Failed to select companion"}), 500
-
-# ========================================
-# MAIN APP ROUTES
-# ========================================
-
-@app.route("/profile")
-def profile():
-    """Profile route"""
-    try:
-        auth_check = is_logged_in()
-        
-        if not auth_check:
-            # Try alternative session validation for profile page
-            if session.get('user_id') or session.get('user_email') or session.get('email'):
-                # Repair session authentication
-                session['user_authenticated'] = True
-                session['session_version'] = "2025-07-28-banking-security"  # Required for auth
-                session['last_activity'] = datetime.now().isoformat()
-                auth_check = True
-            else:
-                return redirect("/login")
-        
-        # Ensure session has minimal required data for profile
-        if not session.get('user_email') and not session.get('email'):
-            session['email'] = 'user@soulbridgeai.com'
-        if not session.get('display_name') and not session.get('user_name'):
-            session['display_name'] = 'SoulBridge User'
-        if not session.get('user_plan'):
-            session['user_plan'] = 'free'
-        
-        # Update last activity
-        session['last_activity'] = datetime.now().isoformat()
-        
-        # Get profile image for server-side rendering (eliminates flash)
-        profile_image = session.get('profile_image', '/static/logos/IntroLogo.png')
-        
-        # Also try to load from database if not in session
-        if not profile_image or profile_image in ['/static/logos/Sapphire.png', '/static/logos/IntroLogo.png']:
-            user_id = session.get('user_id')
-            if user_id:
-                try:
-                    db_instance = get_database()
-                    if db_instance:
-                        conn = db_instance.get_connection()
-                        cursor = conn.cursor()
-                        
-                        placeholder = "%s" if hasattr(db_instance, 'postgres_url') and db_instance.postgres_url else "?"
-                        
-                        # Ensure columns exist
-                        try:
-                            if hasattr(db_instance, 'postgres_url') and db_instance.postgres_url:
-                                cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_image TEXT")
-                                cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_image_data TEXT")
-                        except:
-                            # Columns might already exist
-                            pass
-                        
-                        cursor.execute(f"SELECT profile_image, profile_picture_url, profile_image_data FROM users WHERE id = {placeholder}", (user_id,))
-                        result = cursor.fetchone()
-                        conn.close()
-                        
-                        if result:
-                            # Use same logic as /api/users route - prioritize API endpoints
-                            if result[0] and result[0].startswith('/api/profile-image/'):
-                                # Already correct API endpoint format
-                                profile_image = result[0]
-                                logger.info(f"Using correct API profile image URL: {profile_image}")
-                            elif result[1]:  # Have base64 data, use API endpoint
-                                profile_image = f"/api/profile-image/{user_id}"
-                                logger.info(f"Using profile image API endpoint: {profile_image}")
-                            elif result[0]:  # Old filesystem path, convert to API endpoint
-                                profile_image = f"/api/profile-image/{user_id}"
-                                logger.info(f"Converting old filesystem path to API endpoint: {profile_image}")
-                            
-                            session['profile_image'] = profile_image  # Cache in session
-                except Exception as e:
-                    logger.warning(f"Failed to load profile image for template: {e}")
-        
-        return render_template("profile.html", user_profile_image=profile_image)
-    except Exception as e:
-        logger.error(f"Profile template error: {e}")
-        return jsonify({"error": "Profile page temporarily unavailable"}), 200
-
-
-@app.route("/subscription")
-def subscription():
-    """Subscription route"""
-    try:
-        if not is_logged_in():
-            return redirect("/login?return_to=subscription")
-        return render_template("subscription.html")
-    except Exception as e:
-        logger.error(f"Subscription template error: {e}")
-        return jsonify({"error": "Subscription page temporarily unavailable"}), 200
-
-@app.route("/manage-subscription")
-def manage_subscription():
-    """Subscription management route"""
-    try:
-        if not is_logged_in():
-            return redirect("/login?return_to=manage-subscription")
-        return render_template("manage_subscription.html")
-    except Exception as e:
-        logger.error(f"Subscription management template error: {e}")
-        return jsonify({"error": "Subscription management page temporarily unavailable"}), 200
-
-@app.route("/credits")
-def credit_store():
-    """Credit Store page for Growth and Max users"""
-    try:
-        if not is_logged_in():
-            return redirect("/login?return_to=credits")
-        return render_template("credit_store.html")
-    except Exception as e:
-        logger.error(f"Credit store template error: {e}")
-        return jsonify({"error": "Credit store temporarily unavailable"}), 200
 
 @app.route("/purchase-credits")
 def purchase_credits_page():
@@ -8586,13 +7987,15 @@ def check_decoder_limit():
     # Calculate effective_plan fresh each time
     effective_plan = get_effective_plan(user_plan, trial_active)
     
-    # Get limits based on ACTUAL plan, not effective tier
-    # Trial users keep their bronze tier limits but get tier access
-    if user_plan == 'max':
+    # Get limits based on effective plan during trial, actual plan otherwise
+    # During trial, Bronze users get Gold tier limits (unlimited)
+    if trial_active and user_plan in ['free', 'bronze']:
+        daily_limit = 999999  # Trial gives Gold tier limits (unlimited)
+    elif user_plan == 'max' or effective_plan == 'max':
         daily_limit = 999999  # Unlimited for max tier
-    elif user_plan == 'growth':
+    elif user_plan == 'growth' or effective_plan == 'growth':
         daily_limit = 15      # Growth tier limit
-    else:  # Bronze tier (free plan) - even during trial
+    else:  # Bronze tier (free plan) - no trial
         daily_limit = 3       # Bronze tier limit
     
     logger.info(f"🔒 TIER ISOLATION: user_plan={user_plan}, tier={current_tier}, effective_plan={effective_plan}, trial_active={trial_active}, limit={daily_limit}")
@@ -8629,13 +8032,15 @@ def check_fortune_limit():
     trial_active = session.get("trial_active", False)
     effective_plan = get_effective_plan(user_plan, trial_active)
     
-    # Get limits based on ACTUAL plan, not effective tier
-    # Trial users keep their bronze tier limits but get tier access
-    if user_plan == 'max':
+    # Get limits based on effective plan during trial, actual plan otherwise
+    # During trial, Bronze users get Gold tier limits (unlimited)
+    if trial_active and user_plan in ['free', 'bronze']:
+        daily_limit = 999999  # Trial gives Gold tier limits (unlimited)
+    elif user_plan == 'max' or effective_plan == 'max':
         daily_limit = 999999  # Unlimited for max tier
-    elif user_plan == 'growth':
+    elif user_plan == 'growth' or effective_plan == 'growth':
         daily_limit = 8       # Growth tier limit
-    else:  # Bronze tier (free plan) - even during trial
+    else:  # Bronze tier (free plan) - no trial
         daily_limit = 2       # Bronze tier limit
     usage_today = get_fortune_usage()
 
@@ -8663,13 +8068,15 @@ def check_horoscope_limit():
     trial_active = session.get("trial_active", False)
     effective_plan = get_effective_plan(user_plan, trial_active)
     
-    # Get limits based on ACTUAL plan, not effective tier
-    # Trial users keep their bronze tier limits but get tier access
-    if user_plan == 'max':
+    # Get limits based on effective plan during trial, actual plan otherwise
+    # During trial, Bronze users get Gold tier limits (unlimited)
+    if trial_active and user_plan in ['free', 'bronze']:
+        daily_limit = 999999  # Trial gives Gold tier limits (unlimited)
+    elif user_plan == 'max' or effective_plan == 'max':
         daily_limit = 999999  # Unlimited for max tier
-    elif user_plan == 'growth':
+    elif user_plan == 'growth' or effective_plan == 'growth':
         daily_limit = 10      # Growth tier limit
-    else:  # Bronze tier (free plan) - even during trial
+    else:  # Bronze tier (free plan) - no trial
         daily_limit = 3       # Bronze tier limit
     usage_today = get_horoscope_usage()
 
@@ -18247,8 +17654,99 @@ def gold_chat():
     return tier_chat_handler("gold")
 
 def tier_chat_handler(tier):
-    """Handle tier-specific chat with complete isolation"""
+    """Handle tier-specific chat - shows companion selection for this tier"""
     from unified_tier_system import get_feature_limit
+    
+    # Get user's accessible companions for this tier
+    user_plan = session.get("user_plan", "bronze")
+    trial_active = session.get("trial_active", False)
+    referrals = int(session.get('referrals', 0))
+    
+    # Map user_plan to unlock tiers  
+    plan_mapping = {'free': 'bronze', 'growth': 'silver', 'max': 'gold'}
+    user_tier = plan_mapping.get(user_plan, 'bronze')
+    
+    # Calculate unlocked tiers
+    unlocked_tiers, referral_ids = companion_unlock_state_new(user_tier, trial_active, referrals)
+    
+    # Filter companions for this specific tier
+    tier_reverse_mapping = {'bronze': 'free', 'silver': 'growth', 'gold': 'max'}
+    companion_tier = tier_reverse_mapping.get(tier, 'free')
+    
+    accessible_companions = []
+    for companion in COMPANIONS_NEW:
+        can_access = False
+        if companion['tier'] in ('free', 'growth', 'max'):
+            can_access = companion['tier'] in unlocked_tiers
+        elif companion['tier'] == 'referral':
+            can_access = companion['id'] in referral_ids
+        
+        # Only include companions for this tier (or referral companions for Bronze)
+        if can_access and (companion['tier'] == companion_tier or 
+                          (tier == 'bronze' and companion['tier'] == 'referral')):
+            accessible_companions.append(companion)
+    
+    # Calculate tier-specific limits
+    limits = {
+        "decoder": get_feature_limit(tier, "decoder", False),
+        "fortune": get_feature_limit(tier, "fortune", False),
+        "horoscope": get_feature_limit(tier, "horoscope", False),
+        "creative_writer": get_feature_limit(tier, "creative_writer", False)
+    }
+    
+    return render_template("companion_selection.html",
+        tier=tier,
+        tier_display=tier.title(),
+        companions=accessible_companions,
+        user_plan=user_plan,
+        trial_active=trial_active,
+        limits=limits
+    )
+
+logger.info("✅ Tier-specific chat routes added")
+
+# ================================================
+# COMPANION-SPECIFIC ISOLATION ROUTES  
+# ================================================
+
+def companion_chat_handler(tier, companion_id):
+    """Handle companion-specific chat with complete isolation"""
+    from unified_tier_system import get_feature_limit
+    
+    # Find companion info
+    companion_info = None
+    for c in COMPANIONS_NEW:
+        if c['id'] == companion_id:
+            companion_info = c
+            break
+    
+    if not companion_info:
+        return redirect(f"/chat/{tier}")
+    
+    # Verify companion access
+    user_plan = session.get("user_plan", "bronze")
+    trial_active = session.get("trial_active", False)
+    referrals = int(session.get('referrals', 0))
+    
+    # Map user_plan to unlock tiers  
+    plan_mapping = {'free': 'bronze', 'growth': 'silver', 'max': 'gold'}
+    user_tier = plan_mapping.get(user_plan, 'bronze')
+    
+    # Calculate unlocked tiers
+    unlocked_tiers, referral_ids = companion_unlock_state_new(user_tier, trial_active, referrals)
+    
+    # Check access
+    can_access = False
+    if companion_info['tier'] in ('free', 'growth', 'max'):
+        can_access = companion_info['tier'] in unlocked_tiers
+    elif companion_info['tier'] == 'referral':
+        can_access = companion_id in referral_ids
+    
+    if not can_access:
+        return redirect("/tiers?upgrade_required=true")
+    
+    # Store selected companion in session
+    session['selected_companion'] = companion_id
     
     # Calculate tier-specific limits (use tier, not user plan)
     limits = {
@@ -18259,16 +17757,46 @@ def tier_chat_handler(tier):
     }
     
     return render_template("chat.html",
-        companion="Blayzo",
-        companion_display_name=f"Blayzo ({tier.title()} Tier)",
-        companion_avatar="/static/logos/Blayzo.png", 
-        user_plan=session.get("user_plan", "bronze"),
-        trial_active=session.get("trial_active", False),
+        companion=companion_id,
+        companion_display_name=f"{companion_info['name']} ({tier.title()} Tier)",
+        companion_avatar=companion_info['image_url'],
+        ai_character_name=companion_info['name'],
+        user_plan=user_plan,
+        trial_active=trial_active,
         tier=tier,
-        limits=limits
+        limits=limits,
+        selected_companion=companion_id,
+        companion_info=companion_info
     )
 
-logger.info("✅ Tier-specific chat routes added")
+# Generate companion-specific routes dynamically
+for companion in COMPANIONS_NEW:
+    companion_id = companion['id']
+    companion_tier = companion['tier']
+    
+    # Map companion tier to our tier system
+    tier_mapping = {'free': 'bronze', 'growth': 'silver', 'max': 'gold', 'referral': 'bronze'}
+    tier = tier_mapping.get(companion_tier, 'bronze')
+    
+    # Create unique route for each companion
+    route_path = f"/chat/{tier}/{companion_id}"
+    
+    def make_companion_route(tier_name, comp_id):
+        def companion_route():
+            if not is_logged_in():
+                return redirect(f"/login?return_to=chat/{tier_name}/{comp_id}")
+            return companion_chat_handler(tier_name, comp_id)
+        return companion_route
+    
+    # Register the route
+    app.add_url_rule(
+        route_path,
+        f"chat_{tier}_{companion_id}",
+        make_companion_route(tier, companion_id),
+        methods=['GET']
+    )
+
+logger.info("✅ Companion-specific chat routes added")
 
 
 
