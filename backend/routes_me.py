@@ -4,7 +4,7 @@
 from flask import Blueprint, jsonify, session, request
 import logging
 from datetime import datetime, timezone, timedelta
-from app_core import current_user
+# from app_core import current_user  # Avoid SQLAlchemy issues
 from db_users import db_get_trial_state, db_get_user_plan, db_set_trial, db_fetch_user_row
 from access import get_effective_access
 
@@ -147,8 +147,8 @@ def trial_status():
     Separate endpoint for trial-specific information.
     """
     try:
-        cu = current_user()
-        uid = cu.get("id")
+        # Get user ID from session (avoid SQLAlchemy issues)
+        uid = session.get('user_id')
         
         if not uid:
             return jsonify({
@@ -196,8 +196,8 @@ def access_check(tier):
     Used by frontend to enable/disable tier buttons.
     """
     try:
-        cu = current_user()
-        uid = cu.get("id")
+        # Get user ID from session (avoid SQLAlchemy issues)
+        uid = session.get('user_id')
         
         if not uid:
             return jsonify({
@@ -248,8 +248,8 @@ def trial_activate():
     - Unlocks Silver/Gold tier access temporarily
     """
     try:
-        cu = current_user()
-        uid = cu.get("id")
+        # Get user ID from session (avoid SQLAlchemy issues)
+        uid = session.get('user_id')
         
         if not uid:
             return jsonify({
@@ -331,8 +331,8 @@ def credits_purchase():
     Only available for Silver and Gold tier subscribers.
     """
     try:
-        cu = current_user()
-        uid = cu.get("id")
+        # Get user ID from session (avoid SQLAlchemy issues)
+        uid = session.get('user_id')
         
         if not uid:
             return jsonify({
