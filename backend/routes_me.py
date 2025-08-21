@@ -70,13 +70,21 @@ def me():
         else:  # Bronze tier (free/bronze plan) - even during trial
             limits = {"decoder": 3, "fortune": 2, "horoscope": 3, "creative_writer": 2}
         
+        # Restore trial credits if session is missing them but trial is active
+        trial_credits = session.get('trial_credits', 0)
+        if trial_active and trial_credits == 0:
+            # Session lost trial credits but trial is still active - restore them
+            trial_credits = 60
+            session['trial_credits'] = trial_credits
+            logger.info(f"🔄 Restored trial credits for user {uid}: {trial_credits}")
+        
         access = {
             "plan": plan,
             "trial_live": trial_active,
             "unlocked_tiers": unlocked_tiers,
             "accessible_companion_tiers": accessible_companion_tiers,
             "limits": limits,
-            "trial_credits": session.get('trial_credits', 0)
+            "trial_credits": trial_credits
         }
         
         # Get trainer credits from session (includes trial credits)
