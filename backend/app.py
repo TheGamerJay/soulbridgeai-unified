@@ -3676,13 +3676,23 @@ def chat():
     if "gamerjay" in companion_name.lower():
         logger.info(f"🔍 GAMERJAY DEBUG: Original companion_id={request.args.get('companion')}, Final companion_name={companion_name}, AI Character={ai_character_name}, Avatar path={companion_info['avatar']}")
     
+    # Calculate tier-specific limits
+    from unified_tier_system import get_feature_limit
+    limits = {
+        'decoder': get_feature_limit(user_plan, 'decoder', trial_active),
+        'fortune': get_feature_limit(user_plan, 'fortune', trial_active), 
+        'horoscope': get_feature_limit(user_plan, 'horoscope', trial_active),
+        'creative_writer': get_feature_limit(user_plan, 'creative_writer', trial_active)
+    }
+    
     return render_template("chat.html",
         companion=ai_character_name,  # Use clean character name for AI
         companion_display_name=companion_info['name'],
         companion_avatar=companion_info['avatar'],
         user_plan=user_plan,
         trial_active=trial_active, 
-        effective_plan=effective_plan
+        effective_plan=effective_plan,
+        limits=limits
     )
 
 # REMOVED: api_companions_old_disabled function - was a disabled/deprecated companions API endpoint
