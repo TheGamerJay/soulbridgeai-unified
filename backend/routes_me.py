@@ -389,11 +389,11 @@ def trial_reset():
         conn = db.get_connection()
         try:
             # Clear all trial data - make user eligible again
+            from sql_utils import adapt_placeholders, to_db_bool
             cursor = conn.cursor()
-            cursor.execute(
-                "UPDATE users SET trial_active = 0, trial_started_at = NULL, trial_expires_at = NULL, trial_used_permanently = 0 WHERE id = ?", 
-                (uid,)
-            )
+            q = "UPDATE users SET trial_active = %s, trial_started_at = NULL, trial_expires_at = NULL, trial_used_permanently = %s WHERE id = %s"
+            q = adapt_placeholders(db, q)
+            cursor.execute(q, (to_db_bool(db, False), to_db_bool(db, False), uid))
             conn.commit()
             
             # Clear session data too
@@ -415,6 +415,58 @@ def trial_reset():
         
     except Exception as e:
         logger.error(f"Error in trial reset: {e}")
+        return jsonify({
+            "success": False,
+            "error": f"Internal server error: {str(e)}"
+        }), 500
+
+@bp_me.route("/trial/nuclear-reset", methods=["POST"])
+def trial_nuclear_reset():
+    """
+    Nuclear option: Complete session wipe and trial reset.
+    """
+    try:
+        uid = session.get('user_id')
+        email = session.get('user_email')
+        
+        if not uid:
+            return jsonify({"success": False, "error": "Not authenticated"}), 401
+        
+        # Reset in database
+        from database_utils import get_database
+        db = get_database()
+        if db:
+            conn = db.get_connection()
+            try:
+                from sql_utils import adapt_placeholders, to_db_bool
+                cursor = conn.cursor()
+                q = "UPDATE users SET trial_active = %s, trial_started_at = NULL, trial_expires_at = NULL, trial_used_permanently = %s WHERE id = %s"
+                q = adapt_placeholders(db, q)
+                cursor.execute(q, (to_db_bool(db, False), to_db_bool(db, False), uid))
+                conn.commit()
+                logger.info(f"💥 NUCLEAR: Database trial reset for user {uid}")
+            finally:
+                conn.close()
+        
+        # Nuclear session clear - remove EVERYTHING trial-related
+        trial_keys = [k for k in session.keys() if 'trial' in k.lower()]
+        for key in trial_keys:
+            session.pop(key, None)
+        
+        # Force set to safe values
+        session['trial_active'] = False
+        session['trial_used_permanently'] = False
+        
+        logger.info(f"💥 NUCLEAR: Complete session reset for user {uid} ({email})")
+        
+        return jsonify({
+            "success": True,
+            "message": "Nuclear reset complete! Try trial activation now.",
+            "cleared_keys": trial_keys
+        })
+        
+    except Exception as e:
+        logger.error(f"Error in nuclear reset: {e}")
         return jsonify({
             "success": False,
             "error": f"Internal server error: {str(e)}"
