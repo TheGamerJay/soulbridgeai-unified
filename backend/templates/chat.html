@@ -91,8 +91,8 @@
                 
                 <!-- PROPER TIER ISOLATION: Each tier sees only their tier features -->
                 
-                <!-- SILVER TIER FEATURES: Only Silver/Gold subscribers see these -->
-                {% if user_plan == 'silver' or user_plan == 'gold' %}
+                <!-- SILVER TIER FEATURES: Show on Silver/Gold tier pages -->
+                {% if tier == 'silver' or tier == 'gold' %}
                 <a href="/voice-journaling" class="action-btn" data-tier="silver">
                     <i class="fas fa-microphone"></i>
                     Voice Journal
@@ -111,8 +111,8 @@
                 </a>
                 {% endif %}
                 
-                <!-- GOLD TIER FEATURES: Only Gold subscribers see these -->
-                {% if user_plan == 'gold' %}
+                <!-- GOLD TIER FEATURES: Show only on Gold tier page -->
+                {% if tier == 'gold' %}
                 <a href="/mini-studio" class="action-btn" data-tier="gold">
                     <i class="fas fa-robot"></i>
                     Mini Studio
