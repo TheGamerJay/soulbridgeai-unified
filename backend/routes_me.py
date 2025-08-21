@@ -76,7 +76,7 @@ def me():
             "unlocked_tiers": unlocked_tiers,
             "accessible_companion_tiers": accessible_companion_tiers,
             "limits": limits,
-            "trial_credits": 0
+            "trial_credits": session.get('trial_credits', 0)
         }
         
         # Get trainer credits from session (includes trial credits)
