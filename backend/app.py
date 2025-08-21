@@ -18270,3 +18270,55 @@ def tier_chat_handler(tier):
 
 logger.info("✅ Tier-specific chat routes added")
 
+
+
+@app.route("/api/admin/reset-trial/<int:user_id>", methods=["POST"])
+def reset_trial_admin(user_id):
+    """Admin endpoint to reset trial for testing"""
+    try:
+        # Simple auth check - only allow for user 104 for testing
+        if user_id != 104:
+            return jsonify({"error": "Not authorized"}), 403
+            
+        if not services["database"]:
+            return jsonify({"error": "Database not available"}), 500
+            
+        db_instance = get_database()
+        if not db_instance:
+            return jsonify({"error": "Database connection failed"}), 500
+            
+        conn = db_instance.get_connection()
+        cursor = conn.cursor()
+        
+        # Reset trial completely
+        cursor.execute("""
+            UPDATE users SET 
+            trial_active = FALSE,
+            trial_used_permanently = FALSE,
+            trial_started_at = NULL,
+            trial_expires_at = NULL,
+            trial_warning_sent = FALSE
+            WHERE id = %s
+        """, (user_id,))
+        
+        # Clear max_trials if exists
+        try:
+            cursor.execute("DELETE FROM max_trials WHERE user_id = %s", (user_id,))
+        except:
+            pass
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({
+            "success": True,
+            "message": f"Trial reset completed for user {user_id}",
+            "user_id": user_id
+        })
+        
+    except Exception as e:
+        logger.error(f"Trial reset error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+logger.info("✅ Trial reset endpoint added")
+
