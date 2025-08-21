@@ -9046,6 +9046,30 @@ def debug_session_state():
         "access_max": effective_plan == "max" or trial_active
     })
 
+@app.route("/api/debug-session")
+def debug_session():
+    """DEBUG: Show raw session data to identify Bronze tier issue"""
+    if not is_logged_in():
+        return jsonify({"error": "Not logged in"}), 401
+    
+    return jsonify({
+        "raw_session_data": {
+            "user_id": session.get('user_id'),
+            "user_plan": session.get('user_plan'),
+            "trial_active": session.get('trial_active'),
+            "trial_started_at": session.get('trial_started_at'),
+            "trial_expires_at": session.get('trial_expires_at'),
+            "trial_used_permanently": session.get('trial_used_permanently'),
+            "effective_plan": session.get('effective_plan'),
+        },
+        "calculated_values": {
+            "internal_user_plan": session.get('user_plan', 'free') or 'free',
+            "trial_active_bool": session.get('trial_active', False),
+            "mapped_user_plan": {'free': 'bronze', 'growth': 'silver', 'max': 'gold'}.get(session.get('user_plan', 'free'), 'bronze'),
+            "get_effective_plan_result": get_effective_plan(session.get('user_plan', 'free'), session.get('trial_active', False))
+        }
+    })
+
 @app.route("/api/session-lite")
 def session_lite():
     """Lightweight session endpoint for frontend trial state checking"""
