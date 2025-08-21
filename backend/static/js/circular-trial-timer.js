@@ -236,14 +236,24 @@ class CircularTrialTimer {
             this.progressRing.style.strokeDashoffset = '0';
         }
 
-        // Call expiration callback
-        if (typeof this.options.onExpire === 'function') {
-            this.options.onExpire();
+        // Stop the timer immediately to prevent glitching
+        if (this.timerInterval) {
+            clearInterval(this.timerInterval);
+            this.timerInterval = null;
         }
 
-        // Auto-hide after 2 seconds
+        // Call expiration callback
+        if (typeof this.options.onExpire === 'function') {
+            try {
+                this.options.onExpire();
+            } catch (e) {
+                console.error('Timer expiration callback error:', e);
+            }
+        }
+
+        // Clean up completely after 2 seconds
         setTimeout(() => {
-            this.stop();
+            this.destroy();
         }, 2000);
     }
 
