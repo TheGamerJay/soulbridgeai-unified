@@ -7699,10 +7699,10 @@ def get_effective_plan(user_plan: str, trial_active: bool) -> str:
     legacy_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
     user_plan = legacy_mapping.get(user_plan, user_plan)
     
-    # Ensure we only work with valid plans
-    if user_plan not in ['free', 'growth', 'max']:
-        logger.warning(f"⚠️ Unknown plan '{user_plan}' defaulting to 'free'")
-        user_plan = 'free'
+    # Ensure we only work with valid plans (updated for new tier system)
+    if user_plan not in ['free', 'growth', 'max', 'bronze', 'silver', 'gold']:
+        logger.warning(f"⚠️ Unknown plan '{user_plan}' defaulting to 'bronze'")
+        user_plan = 'bronze'
     
     # TRIAL DOES NOT CHANGE ACCESS LEVEL
     # Trial is just a time-limited experience of whatever plan the user already has
