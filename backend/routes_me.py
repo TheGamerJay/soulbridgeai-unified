@@ -71,8 +71,8 @@ def me():
             limits = {"decoder": 3, "fortune": 2, "horoscope": 3, "creative_writer": 2}
         
         # Restore trial credits if session is missing them but trial is active
-        trial_credits = session.get('trial_credits', 0)
-        if trial_active and trial_credits == 0 and trial_expires_at:
+        trial_credits = session.get('trial_credits')
+        if trial_active and (trial_credits is None or trial_credits == 0) and trial_expires_at:
             # Session lost trial credits but trial is still active
             from datetime import datetime, timezone
             now = datetime.now(timezone.utc)
@@ -94,6 +94,10 @@ def me():
                 logger.info(f"🔄 Restored full trial credits for user {uid}: {trial_credits}")
             
             session['trial_credits'] = trial_credits
+        
+        # Ensure trial_credits is always a number for the response
+        if trial_credits is None:
+            trial_credits = 0
         
         access = {
             "plan": plan,
