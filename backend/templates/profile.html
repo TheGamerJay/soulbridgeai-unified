@@ -1314,11 +1314,12 @@
                 const creditsDisplay = document.getElementById('creditsDisplay');
                 if (creditsDisplay) {
                     const credits = this.userData.trainerCredits || 0;
-                    const trialCredits = this.userTrial?.credits_remaining || 0;
+                    const trialCredits = this.userAccess?.trial_credits || 0;
+                    const totalCredits = credits + trialCredits;
                     creditsDisplay.innerHTML = `
                         <div class="credits-info">
-                            💎 ${credits} Credits
-                            ${trialCredits > 0 ? `<span class="trial-credits">+${trialCredits} trial</span>` : ''}
+                            💎 ${totalCredits} Credits
+                            ${trialCredits > 0 ? `<span class="trial-credits">(${trialCredits} trial)</span>` : ''}
                         </div>
                     `;
                 }
