@@ -472,6 +472,65 @@ def trial_nuclear_reset():
             "error": f"Internal server error: {str(e)}"
         }), 500
 
+@bp_me.route("/trial/debug", methods=["GET"])
+def trial_debug():
+    """
+    Debug endpoint to see all trial-related data.
+    """
+    try:
+        uid = session.get('user_id')
+        if not uid:
+            return jsonify({"error": "Not authenticated"}), 401
+            
+        # Get all session data
+        session_data = {k: v for k, v in session.items() if 'trial' in k.lower()}
+        
+        # Get database data
+        from database_utils import get_database
+        db = get_database()
+        db_data = {}
+        
+        if db:
+            conn = db.get_connection()
+            try:
+                from sql_utils import adapt_placeholders
+                cursor = conn.cursor()
+                q = "SELECT trial_active, trial_expires_at, trial_started_at, trial_used_permanently FROM users WHERE id = %s"
+                q = adapt_placeholders(db, q)
+                cursor.execute(q, (uid,))
+                row = cursor.fetchone()
+                
+                if row:
+                    db_data = {
+                        "trial_active": bool(row[0]) if row[0] is not None else None,
+                        "trial_expires_at": str(row[1]) if row[1] else None,
+                        "trial_started_at": str(row[2]) if row[2] else None,
+                        "trial_used_permanently": bool(row[3]) if row[3] is not None else None
+                    }
+            finally:
+                conn.close()
+        
+        # Get what db_get_trial_state returns
+        from db_users import db_get_trial_state
+        trial_active, trial_expires_at = db_get_trial_state(uid)
+        
+        return jsonify({
+            "user_id": uid,
+            "session_data": session_data,
+            "database_data": db_data,
+            "db_get_trial_state": {
+                "trial_active": trial_active,
+                "trial_expires_at": str(trial_expires_at) if trial_expires_at else None
+            }
+        })
+        
+    except Exception as e:
+        import traceback
+        return jsonify({
+            "error": str(e),
+            "traceback": traceback.format_exc()
+        }), 500
+
 @bp_me.route("/credits/purchase", methods=["POST"])
 def credits_purchase():
     """
