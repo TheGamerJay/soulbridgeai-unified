@@ -18206,3 +18206,67 @@ if __name__ == "__main__":
     # Use regular Flask for stability (SocketIO available but not used for startup)
     logger.info("Using regular Flask server for stability")
     app.run(host="0.0.0.0", port=port, debug=False, threaded=True, use_reloader=False)
+
+# ========================================
+# TIER-SPECIFIC CHAT ROUTES - Complete tier isolation  
+# ========================================
+
+@app.route("/chat/bronze")
+def bronze_chat():
+    """Bronze tier exclusive chat page"""
+    if not is_logged_in():
+        return redirect("/login?return_to=chat/bronze")
+    return tier_chat_handler("bronze")
+
+@app.route("/chat/silver") 
+def silver_chat():
+    """Silver tier exclusive chat page"""
+    if not is_logged_in():
+        return redirect("/login?return_to=chat/silver")
+    
+    # Verify Silver/Gold access or trial
+    user_plan = session.get("user_plan", "bronze")
+    trial_active = session.get("trial_active", False)
+    if user_plan not in ["silver", "gold"] and not trial_active:
+        return redirect("/chat/bronze")
+    
+    return tier_chat_handler("silver")
+
+@app.route("/chat/gold")
+def gold_chat():
+    """Gold tier exclusive chat page"""  
+    if not is_logged_in():
+        return redirect("/login?return_to=chat/gold")
+    
+    # Verify Gold access or trial
+    user_plan = session.get("user_plan", "bronze")
+    trial_active = session.get("trial_active", False)
+    if user_plan != "gold" and not trial_active:
+        return redirect("/chat/silver" if user_plan == "silver" else "/chat/bronze")
+    
+    return tier_chat_handler("gold")
+
+def tier_chat_handler(tier):
+    """Handle tier-specific chat with complete isolation"""
+    from unified_tier_system import get_feature_limit
+    
+    # Calculate tier-specific limits (use tier, not user plan)
+    limits = {
+        "decoder": get_feature_limit(tier, "decoder", False),
+        "fortune": get_feature_limit(tier, "fortune", False),
+        "horoscope": get_feature_limit(tier, "horoscope", False),
+        "creative_writer": get_feature_limit(tier, "creative_writer", False)
+    }
+    
+    return render_template("chat.html",
+        companion="Blayzo",
+        companion_display_name=f"Blayzo ({tier.title()} Tier)",
+        companion_avatar="/static/logos/Blayzo.png", 
+        user_plan=session.get("user_plan", "bronze"),
+        trial_active=session.get("trial_active", False),
+        tier=tier,
+        limits=limits
+    )
+
+logger.info("✅ Tier-specific chat routes added")
+
