@@ -720,8 +720,8 @@ function updateTierDisplay() {
         });
 }
 
-// Call tier display update on page load
-document.addEventListener('DOMContentLoaded', updateTierDisplay);
+// DISABLED: Server-side template now handles tier display correctly
+// document.addEventListener('DOMContentLoaded', updateTierDisplay);
 
 // Utility functions
 function showNotification(message, type = 'info') {
