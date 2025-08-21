@@ -17772,8 +17772,8 @@ def companion_chat_handler(tier, companion_id):
         plan_mapping = {'free': 'bronze', 'growth': 'silver', 'max': 'gold'}
         user_tier = plan_mapping.get(user_plan, 'bronze')
         
-        # Calculate unlocked tiers
-        unlocked_tiers, referral_ids = companion_unlock_state_new(user_tier, trial_active, referrals)
+        # Calculate unlocked tiers using the original plan names that companions use
+        unlocked_tiers, referral_ids = companion_unlock_state_new(user_plan, trial_active, referrals)
         logger.info(f"🔓 UNLOCKED TIERS: {unlocked_tiers}, referral_ids: {referral_ids}")
         
         # Check access
