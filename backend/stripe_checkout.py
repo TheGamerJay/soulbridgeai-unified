@@ -21,16 +21,23 @@ bp_stripe = Blueprint("stripe_checkout", __name__, url_prefix="/api/stripe")
 stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
 STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET')
 
-# Price IDs from environment - FAIL LOUD if missing
+# Price IDs from environment - Only required in production
 REQUIRED_PRICE_IDS = [
     'PRICE_SILVER_MONTHLY', 'PRICE_SILVER_YEARLY', 
     'PRICE_GOLD_MONTHLY', 'PRICE_GOLD_YEARLY'
 ]
 
+# Check if running in production (Railway sets DATABASE_URL)
+is_production = bool(os.environ.get('DATABASE_URL'))
+
 for price_var in REQUIRED_PRICE_IDS:
     if not os.environ.get(price_var):
-        logger.error(f"❌ Missing required environment variable: {price_var}")
-        raise EnvironmentError(f"Missing required Stripe price ID: {price_var}")
+        if is_production:
+            logger.error(f"❌ Missing required environment variable: {price_var}")
+            raise EnvironmentError(f"Missing required Stripe price ID: {price_var}")
+        else:
+            logger.warning(f"⚠️ Development mode: Missing {price_var} (using dummy value)")
+            os.environ[price_var] = f"price_test_{price_var.lower()}"
 
 PRICE_SILVER_MONTHLY = os.environ.get('PRICE_SILVER_MONTHLY')
 PRICE_SILVER_YEARLY = os.environ.get('PRICE_SILVER_YEARLY') 
