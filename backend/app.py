@@ -2273,9 +2273,9 @@ def user_info():
             "effective_plan": effective_plan,
             "trial_remaining": trial_remaining,
             "limits": {
-                "decoder": get_feature_limit(user_plan, "decoder"), 
-                "fortune": get_feature_limit(user_plan, "fortune"),
-                "horoscope": get_feature_limit(user_plan, "horoscope")
+                "decoder": get_feature_limit(user_plan, "decoder", trial_active), 
+                "fortune": get_feature_limit(user_plan, "fortune", trial_active),
+                "horoscope": get_feature_limit(user_plan, "horoscope", trial_active)
             },
             "usage": usage_counts
         })
@@ -7675,16 +7675,16 @@ def get_user_addons():
 
 # REMOVED: Old duplicate get_effective_plan function - using bulletproof version below
 
-def get_feature_limit(plan: str, feature: str) -> int:
+def get_feature_limit(plan: str, feature: str, trial_active: bool = False) -> int:
     """
-    DEPRECATED: Redirect to unified tier system
+    UPDATED: Redirect to unified tier system with trial support
     This function redirects to the unified tier system for consistency
     """
     # Import here to avoid circular imports
     from unified_tier_system import get_feature_limit as unified_get_feature_limit
     
-    # Call unified tier system with trial_active=False (legacy behavior)
-    return unified_get_feature_limit(plan, feature, False)
+    # Call unified tier system with proper trial_active parameter
+    return unified_get_feature_limit(plan, feature, trial_active)
 
 def get_feature_access_tier(user_plan: str, trial_active: bool) -> str:
     """

@@ -222,10 +222,16 @@ def get_effective_plan(user_plan: str, trial_active: bool) -> str:
 # GET DAILY LIMITS (always based on actual plan, not trial)
 def get_feature_limit(user_plan: str, feature: str, trial_active: bool = False) -> int:
     """
-    Daily limits are always based on your actual subscription plan
-    Trial does NOT increase daily limits - only unlocks features
+    Get feature limits based on subscription plan OR trial status
+    Trial users get Gold tier limits (unlimited) per CLAUDE.md
     """
-    plan = user_plan  # Always use actual plan for limits, never "max" during trial
+    if trial_active:
+        # Trial users get Gold tier limits (unlimited)
+        plan = "gold"
+    else:
+        # Use actual subscription plan
+        plan = user_plan
+    
     return DAILY_LIMITS.get(plan, {}).get(feature, 0)
 
 # GET TRIAL TRAINER TIME (60 credits for free users during 5hr trial)
