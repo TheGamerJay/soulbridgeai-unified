@@ -391,7 +391,7 @@ def trial_reset():
             # Clear all trial data - make user eligible again
             from sql_utils import adapt_placeholders, to_db_bool
             cursor = conn.cursor()
-            q = "UPDATE users SET trial_active = %s, trial_started_at = NULL, trial_expires_at = NULL, trial_used_permanently = %s WHERE id = %s"
+            q = "UPDATE users SET trial_active = %s, trial_started_at = NULL, trial_expires_at = NULL, trial_used_permanently = %s, trial_companion = NULL WHERE id = %s"
             q = adapt_placeholders(db, q)
             cursor.execute(q, (to_db_bool(db, False), to_db_bool(db, False), uid))
             conn.commit()
@@ -440,7 +440,7 @@ def trial_nuclear_reset():
             try:
                 from sql_utils import adapt_placeholders, to_db_bool
                 cursor = conn.cursor()
-                q = "UPDATE users SET trial_active = %s, trial_started_at = NULL, trial_expires_at = NULL, trial_used_permanently = %s WHERE id = %s"
+                q = "UPDATE users SET trial_active = %s, trial_started_at = NULL, trial_expires_at = NULL, trial_used_permanently = %s, trial_companion = NULL WHERE id = %s"
                 q = adapt_placeholders(db, q)
                 cursor.execute(q, (to_db_bool(db, False), to_db_bool(db, False), uid))
                 conn.commit()
