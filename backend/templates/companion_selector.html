@@ -772,9 +772,8 @@
             <!-- Trial Active Banner with Circular Timer -->
             <div id="trial-banner" style="display: {% if session.get('trial_active') %}flex{% else %}none{% endif %}; margin-top: 20px; background: linear-gradient(135deg, #22d3ee, #06b6d4); color: white; padding: 12px 20px; border-radius: 15px; font-weight: bold; align-items: center; gap: 15px;">
                 <div>
-                    <i class="fas fa-star"></i> Premium Trial Active - All Features Unlocked!
+                    <i class="fas fa-star"></i> Premium Trial Active - Check timer in chat/profile
                 </div>
-                <div id="trial-circular-timer"></div>
             </div>
             
         </div>
@@ -1185,7 +1184,7 @@
     </div>
 
     <!-- Include Circular Trial Timer -->
-    <script src="{{ url_for('static', filename='js/circular-trial-timer.js') }}"></script>
+    <!-- Circular timer script removed - timer available in chat/profile pages -->
     
     <script>
         // REMOVED problematic session check that was causing flash/redirects
@@ -1311,39 +1310,7 @@
         }
 
         // Circular trial timer initialization
-        function initCircularTrialTimer(data) {
-            console.log('🔄 InitCircularTrialTimer called with:', data);
-            const container = document.getElementById('trial-circular-timer');
-            console.log('📍 Container found:', container);
-            console.log('⏰ Expires at:', data.expires_at);
-            console.log('🔧 CircularTrialTimer available:', typeof CircularTrialTimer !== 'undefined');
-            
-            if (!container || !data.expires_at || typeof CircularTrialTimer === 'undefined') {
-                console.log('❌ Early return - missing requirements');
-                return;
-            }
-            
-            // Destroy any existing timer
-            if (window.companionCircularTimer) {
-                window.companionCircularTimer.destroy();
-            }
-            
-            // Create new circular timer
-            window.companionCircularTimer = new CircularTrialTimer('trial-circular-timer', {
-                size: 45,  // Smaller for companion selector
-                stroke: 3,
-                showLabel: false,
-                onExpire: function() {
-                    // Hide banner and clean up, but don't auto-refresh to prevent loops
-                    const banner = document.getElementById('trial-banner');
-                    if (banner) banner.style.display = 'none';
-                    console.log('⏰ Companion selector timer expired, hiding banner');
-                }
-            });
-            
-            // Start the timer
-            window.companionCircularTimer.start(data.expires_at);
-        }
+        // Timer removed from companion selector - users can check timer in chat/profile pages
 
         // Trial status monitoring - check for expired trials
         async function loadTrialStatus() {
@@ -1382,23 +1349,14 @@
                         trialBtn.style.display = 'inline-block'; // Show trial button if trial not used
                     }
                     
-                    // Stop any running circular timer
-                    if (window.companionCircularTimer) {
-                        window.companionCircularTimer.stop();
-                    }
+                    // Timer removed from this page
                 } else {
                     // Trial is active
                     console.log('🟢 Trial is active! Banner and timer should appear');
                     if (banner) banner.style.display = 'flex';
                     if (trialBtn) trialBtn.style.display = 'none';
                     
-                    // Start circular timer (only if not already running)
-                    if (!window.companionCircularTimer || !window.companionCircularTimer.isRunning()) {
-                        console.log('🚀 About to call initCircularTrialTimer');
-                        initCircularTrialTimer(data);
-                    } else {
-                        console.log('⏩ Timer already running, skipping');
-                    }
+                    // Timer removed from this page - users can check timer elsewhere
                 }
             } catch (error) {
                 // Error checking trial status
