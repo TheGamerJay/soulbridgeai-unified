@@ -2445,145 +2445,7 @@ def accept_terms():
         return jsonify({"success": False, "error": "Failed to save terms acceptance"}), 500
 
 
-@app.route('/api/start-trial', methods=['POST'])
-def start_trial():
-    """Start 5-hour trial for user"""
-    logger.info(f"🎯 TRIAL START: Request received from user session: {list(session.keys())}")
-    logger.info(f"🎯 TRIAL START: user_id={session.get('user_id')}, trial_used={session.get('trial_used_permanently')}")
-    
-    if not session.get('user_id'):
-        logger.warning("🚫 TRIAL START: No user_id in session")
-        return jsonify({"success": False, "error": "Login required"}), 401
-
-    db = get_database()
-    if not db:
-        return jsonify({"success": False, "error": "Database unavailable"}), 500
-
-    conn = db.get_connection()
-    cursor = conn.cursor()
-
-    user_id = session['user_id']
-    user_plan = session.get('user_plan', 'free')
-    
-    # Check if user already has a paid subscription - they don't need trial
-    if user_plan in ['growth', 'max']:
-        conn.close()
-        logger.info(f"🚫 TRIAL BLOCKED: User {user_id} already has {user_plan} subscription")
-        return jsonify({"success": False, "error": f"Trial not needed - you already have {user_plan.title()} access!"}), 400
-    
-    if db.use_postgres:
-        cursor.execute("SELECT trial_started_at, trial_used_permanently FROM users WHERE id = %s", (user_id,))
-    else:
-        cursor.execute("SELECT trial_started_at, trial_used_permanently FROM users WHERE id = ?", (user_id,))
-
-    row = cursor.fetchone()
-    if not row:
-        conn.close()
-        return jsonify({"success": False, "error": "User not found"}), 404
-
-    trial_started_at, trial_used = row
-    
-    # Allow restarting trial - removed "Trial already active" check for better user experience
-    
-    # Check if trial was already used
-    if trial_used:
-        conn.close()
-        logger.info(f"🚫 TRIAL BLOCKED: User {user_id} already used trial permanently")
-        return jsonify({
-            "ok": False,
-            "success": False, 
-            "error": "Trial already used",
-            "trial_active": False
-        }), 400
-
-    # ALWAYS reset trial time to correct 5-hour duration
-    now = datetime.utcnow()
-    expires = now + timedelta(hours=TRIAL_DURATION_HOURS)
-    
-    # DEBUG: Log exact trial duration calculation
-    logger.info(f"🕒 TRIAL START DEBUG: TRIAL_DURATION_HOURS={TRIAL_DURATION_HOURS}")
-    logger.info(f"🕒 TRIAL START DEBUG: now={now}, expires={expires}")
-    logger.info(f"🕒 TRIAL START DEBUG: duration_seconds={(expires-now).total_seconds()}")
-
-    # Ensure trial columns exist before updating
-    try:
-        if db.use_postgres:
-            logger.info(f"🔍 TRIAL: Ensuring PostgreSQL trial columns exist")
-            # Add trial columns if they don't exist - use proper BOOLEAN types
-            cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS trial_started_at TIMESTAMPTZ")
-            cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS trial_expires_at TIMESTAMPTZ") 
-            cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS trial_active BOOLEAN DEFAULT FALSE")
-            cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS trial_used_permanently BOOLEAN DEFAULT FALSE")
-            cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS trial_warning_sent BOOLEAN DEFAULT FALSE")
-            conn.commit()
-            
-            # Now update with trial data - use TRUE/FALSE for PostgreSQL BOOLEAN columns
-            cursor.execute("UPDATE users SET trial_started_at = %s, trial_expires_at = %s, trial_active = TRUE, trial_used_permanently = FALSE WHERE id = %s", (now, expires, user_id))
-        else:
-            logger.info(f"🔍 TRIAL: Ensuring SQLite trial columns exist")
-            # Add trial columns if they don't exist
-            cursor.execute("ALTER TABLE users ADD COLUMN trial_started_at TIMESTAMP")
-            cursor.execute("ALTER TABLE users ADD COLUMN trial_expires_at TIMESTAMP")
-            cursor.execute("ALTER TABLE users ADD COLUMN trial_active BOOLEAN DEFAULT 0")
-            cursor.execute("ALTER TABLE users ADD COLUMN trial_used_permanently BOOLEAN DEFAULT 0")
-            
-            # Now update with trial data
-            cursor.execute("UPDATE users SET trial_started_at = ?, trial_expires_at = ?, trial_active = 1, trial_used_permanently = 0 WHERE id = ?", (now.isoformat(), expires.isoformat(), user_id))
-        
-        conn.commit()
-        conn.close()
-        logger.info(f"✅ TRIAL: Database schema updated and trial activated for user {user_id}")
-        
-    except Exception as schema_error:
-        logger.warning(f"⚠️ TRIAL: Schema migration failed, continuing anyway: {schema_error}")
-        conn.close()
-        # Continue with session-only trial if database schema can't be updated
-
-    # Update session - CRITICAL: Set trial_active to True, don't mark as used permanently yet
-    session['trial_active'] = True
-    session['trial_started_at'] = now.isoformat()
-    session['trial_expires_at'] = expires.isoformat().replace('+00:00', 'Z')
-    session['trial_used_permanently'] = False  # Only set to True when trial expires
-    # Don't cache effective_plan - get_effective_plan() will return 'max' when trial_active=True
-    session['trial_warning_sent'] = False
-
-    # TIER ISOLATION: Re-initialize user for max tier when trial starts
-    from tier_isolation import tier_manager
-    user_plan = session.get('user_plan', 'free')
-    trial_active = True  # Trial is now active
-    
-    user_data = {
-        'user_id': user_id,
-        'user_email': session.get('user_email'),
-        'user_plan': user_plan,
-        'trial_active': trial_active
-    }
-    
-    # Get max tier for trial access
-    target_tier = tier_manager.get_user_tier(user_plan, trial_active)  # Should return 'max'
-    tier_manager.initialize_user_for_tier(user_data, target_tier)
-    logger.info(f"✨ TRIAL MODE: User re-initialized for {target_tier} tier access with {user_plan} limits")
-
-    logger.info(f"Trial started for user {user_id}")
-
-    logger.info(f"✅ TRIAL SUCCESS: user_id={user_id}, trial_active={session.get('trial_active')}, expires_at={expires}")
-    
-    return jsonify({
-        "ok": True,  # Frontend expects data.ok === true
-        "success": True, 
-        "message": "🎉 5-hour trial activated! All premium features unlocked.",
-        "trial_active": session.get('trial_active'),
-        "trial_started_at": session.get('trial_started_at'),
-        "trial_expires_at": session.get('trial_expires_at'),
-        "expires_at": expires.isoformat(),
-        "effective_plan": 'max',
-        "plan_limits_from": user_plan,
-        "debug": {
-            "session_trial_active": session.get('trial_active'),
-            "session_trial_started": session.get('trial_started_at'),
-            "session_trial_expires": session.get('trial_expires_at')
-        }
-    })
+# REMOVED: Old buggy /api/start-trial endpoint - use /api/trial/activate instead
 
 # REMOVED: Duplicate debug_session_info function - using the more comprehensive one at /debug/session-info
 
@@ -8950,66 +8812,7 @@ def api_companions():
         logger.error(f"API companions error: {e}")
         return jsonify({"companions": []}), 500
 
-@app.route("/start-trial", methods=["POST"])
-def start_trial_bulletproof():
-    """Bulletproof trial start - only visibility changes"""
-    try:
-        if not is_logged_in():
-            return jsonify({"ok": False, "error": "Authentication required"}), 401
-        
-        if session.get("trial_used_permanently"):
-            return jsonify({"ok": False, "error": "Trial already used"}), 400
-        
-        # Start trial - only changes visibility, never changes limits
-        session["trial_active"] = True
-        session["trial_started_at"] = datetime.utcnow().isoformat()
-        session["trial_expires_at"] = (datetime.utcnow() + timedelta(hours=TRIAL_DURATION_HOURS)).isoformat()
-        
-        # Update database trial status
-        try:
-            user_id = session.get('user_id')
-            if user_id:
-                db_instance = get_database()
-                if db_instance:
-                    conn = db_instance.get_connection()
-                    cursor = conn.cursor()
-                    now = datetime.utcnow()
-                    expires = now + timedelta(hours=TRIAL_DURATION_HOURS)
-                    
-                    # Update users table
-                    if db_instance.use_postgres:
-                        cursor.execute("UPDATE users SET trial_started_at = %s, trial_expires_at = %s, trial_active = TRUE, trial_used_permanently = FALSE WHERE id = %s", (now, expires, user_id))
-                        
-                        # Create MaxTrial record with 60 credits
-                        cursor.execute("""
-                            INSERT INTO max_trials (user_id, expires_at, credits_granted, active)
-                            VALUES (%s, %s, 60, TRUE)
-                        """, (user_id, expires))
-                        
-                        # Grant 60 credits to user
-                        cursor.execute("UPDATE users SET trainer_credits = COALESCE(trainer_credits, 0) + 60 WHERE id = %s", (user_id,))
-                    else:
-                        cursor.execute("UPDATE users SET trial_started_at = ?, trial_expires_at = ?, trial_active = 1, trial_used_permanently = 0 WHERE id = ?", (now.isoformat(), expires.isoformat(), user_id))
-                        
-                        # Create MaxTrial record with 60 credits
-                        cursor.execute("""
-                            INSERT INTO max_trials (user_id, expires_at, credits_granted, active)
-                            VALUES (?, ?, 60, 1)
-                        """, (user_id, expires.isoformat()))
-                        
-                        # Grant 60 credits to user
-                        cursor.execute("UPDATE users SET trainer_credits = COALESCE(trainer_credits, 0) + 60 WHERE id = ?", (user_id,))
-                    
-                    conn.commit()
-                    conn.close()
-        except Exception as e:
-            logger.error(f"Database error during trial start: {e}")
-        
-        return jsonify({"ok": True, "message": "5-hour trial started"})
-    
-    except Exception as e:
-        logger.error(f"Trial start error: {e}")
-        return jsonify({"ok": False, "error": "Trial start failed"}), 500
+# REMOVED: Old buggy /start-trial endpoint - use /api/trial/activate instead
 
 @app.route("/poll-trial")
 def poll_trial_bulletproof():
@@ -15192,7 +14995,7 @@ TIERS_TEMPLATE = r"""
     }
     
     try {
-      const response = await fetch('/api/start-trial', {
+      const response = await fetch('/api/trial/activate', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({})
@@ -15239,7 +15042,7 @@ TIERS_TEMPLATE = r"""
     if (choice) {
       // Start trial
       if (confirm('Start your 5-hour trial now? You\'ll get temporary access to preview features.')) {
-        fetch('/api/start-trial', {
+        fetch('/api/trial/activate', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({})

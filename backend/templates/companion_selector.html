@@ -1288,7 +1288,7 @@
         // Trial System Functions
         async function startTrial() {
             try {
-                const res = await fetch('/api/start-trial', { method: 'POST' });
+                const res = await fetch('/api/trial/activate', { method: 'POST' });
                 const data = await res.json();
                 
                 if (data.success) {

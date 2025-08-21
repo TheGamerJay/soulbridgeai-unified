@@ -21,7 +21,7 @@
       btn?.setAttribute('disabled', 'true');
       setStatus('Starting trial…');
 
-      const res = await fetch('/api/start-trial', {
+      const res = await fetch('/api/trial/activate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include'
