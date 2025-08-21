@@ -17737,7 +17737,16 @@ def companion_chat_handler(tier, companion_id):
     """Handle companion-specific chat with complete isolation"""
     try:
         logger.info(f"🎯 COMPANION HANDLER: tier={tier}, companion_id={companion_id}")
-        from unified_tier_system import get_feature_limit
+        
+        # Simple feature limits without complex imports
+        def get_simple_feature_limit(tier_name, feature, trial_active):
+            """Simple tier limits without external dependencies"""
+            limits_map = {
+                "bronze": {"decoder": 3, "fortune": 2, "horoscope": 3, "creative_writer": 2},
+                "silver": {"decoder": 15, "fortune": 8, "horoscope": 10, "creative_writer": 20},
+                "gold": {"decoder": 999, "fortune": 999, "horoscope": 999, "creative_writer": 999}
+            }
+            return limits_map.get(tier_name, limits_map["bronze"]).get(feature, 0)
         
         # Find companion info
         companion_info = None
@@ -17785,10 +17794,10 @@ def companion_chat_handler(tier, companion_id):
         
         # Calculate tier-specific limits (use tier, not user plan)
         limits = {
-            "decoder": get_feature_limit(tier, "decoder", False),
-            "fortune": get_feature_limit(tier, "fortune", False),
-            "horoscope": get_feature_limit(tier, "horoscope", False),
-            "creative_writer": get_feature_limit(tier, "creative_writer", False)
+            "decoder": get_simple_feature_limit(tier, "decoder", trial_active),
+            "fortune": get_simple_feature_limit(tier, "fortune", trial_active),
+            "horoscope": get_simple_feature_limit(tier, "horoscope", trial_active),
+            "creative_writer": get_simple_feature_limit(tier, "creative_writer", trial_active)
         }
         
         logger.info(f"🎨 RENDERING: tier={tier}, companion={companion_info['name']}, limits={limits}")
