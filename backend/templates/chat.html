@@ -89,9 +89,9 @@
                     </div>
                 </a>
                 
-                <!-- PREMIUM FEATURES - Only show for actual growth/max subscribers -->
-                <!-- Template user_plan: {{ user_plan }} -->
-                {% if user_plan in ['silver', 'gold'] %}
+                <!-- PREMIUM FEATURES - Show for subscribers OR trial users -->
+                <!-- Template user_plan: {{ user_plan }}, trial_active: {{ trial_active }} -->
+                {% if user_plan in ['silver', 'gold'] or trial_active %}
                 <a href="/voice-journaling" class="action-btn" data-tier="silver">
                     <i class="fas fa-microphone"></i>
                     Voice Journal
@@ -102,14 +102,14 @@
                 </a>
                 {% endif %}
                 
-                {% if user_plan == 'gold' %}
+                {% if user_plan == 'gold' or trial_active %}
                 <a href="/mini-studio" class="action-btn" data-tier="gold">
                     <i class="fas fa-robot"></i>
                     Mini Studio
                 </a>
                 {% endif %}
                 
-                {% if user_plan in ['silver', 'gold'] %}
+                {% if user_plan in ['silver', 'gold'] or trial_active %}
                 <a href="/relationship-profiles" class="action-btn" data-tier="silver">
                     <i class="fas fa-heart"></i>
                     Relationships
