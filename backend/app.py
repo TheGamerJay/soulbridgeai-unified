@@ -1958,13 +1958,23 @@ def auth_login():
                         trial_started_at, trial_companion, trial_used_permanently, trial_expires_at = trial_result
                         # Check if trial is still active
                         if not trial_used_permanently and trial_expires_at:
-                            now = datetime.utcnow()
-                            if now < trial_expires_at:
+                            from datetime import timezone
+                            now = datetime.now(timezone.utc)
+                            
+                            # Handle timezone-aware comparison
+                            if hasattr(trial_expires_at, 'tzinfo') and trial_expires_at.tzinfo:
+                                # Database value is timezone-aware
+                                expires_dt = trial_expires_at
+                            else:
+                                # Database value is naive - assume UTC
+                                expires_dt = trial_expires_at.replace(tzinfo=timezone.utc)
+                            
+                            if now < expires_dt:
                                 # Trial is still active - restore to session
                                 session["trial_active"] = True
                                 session["trial_companion"] = trial_companion
-                                session["trial_expires_at"] = trial_expires_at.isoformat() + 'Z'
-                                time_remaining = int((trial_expires_at - now).total_seconds() / 60)
+                                session["trial_expires_at"] = expires_dt.isoformat()
+                                time_remaining = int((expires_dt - now).total_seconds() / 60)
                                 logger.info(f"✅ TRIAL RESTORED: {trial_companion} trial active for {time_remaining} minutes")
                             else:
                                 # Trial expired - mark as used (this should be handled by get-trial-status but just in case)
