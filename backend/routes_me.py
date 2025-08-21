@@ -315,10 +315,13 @@ def trial_activate():
         })
         
     except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
         logger.error(f"Error in /api/trial/activate endpoint: {e}")
+        logger.error(f"Full traceback: {error_details}")
         return jsonify({
             "success": False,
-            "error": "Internal server error"
+            "error": f"Internal server error: {str(e)}"
         }), 500
 
 @bp_me.route("/credits/purchase", methods=["POST"])
