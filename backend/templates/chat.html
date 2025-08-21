@@ -97,8 +97,7 @@
                     <strong>🔍 DEBUG INFO:</strong><br>
                     user_plan: {{ user_plan }}<br>
                     trial_active: {{ trial_active }}<br>
-                    effective_plan: {{ effective_plan }}<br>
-                    Condition check: {{ user_plan in ['silver', 'gold'] or trial_active }}
+                    effective_plan: {{ effective_plan }}
                 </div>
                 {% if user_plan in ['silver', 'gold'] or trial_active %}
                 <a href="/voice-journaling" class="action-btn" data-tier="silver">
