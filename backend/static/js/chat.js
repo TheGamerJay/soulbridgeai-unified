@@ -686,30 +686,30 @@ function updateTierDisplay() {
     fetch("/api/user-info")
         .then(res => res.json())
         .then(data => {
-            const userPlan = data.user_plan || "free";  // Original plan for display
-            const effectivePlan = data.effective_plan || "free";  // Effective plan for access
+            const userPlan = data.user_plan || "bronze";  // Original plan for display (updated default)
+            const effectivePlan = data.effective_plan || "bronze";  // Effective plan for access (updated default)
             const trial = data.trial_active || false;
             
             console.log(`🎯 TIER UPDATE: user_plan=${userPlan}, effective_plan=${effectivePlan}, trial=${trial}`);
             
             // Update premium feature visibility using effective_plan
-            if (effectivePlan === "free" && !trial) {
+            if (effectivePlan === "bronze" && !trial) {
                 document.querySelectorAll(".premium-feature").forEach(el => el.style.display = "none");
             } else {
                 document.querySelectorAll(".premium-feature").forEach(el => el.style.display = "inline-block");
             }
             
-            // Update tier-specific elements
+            // Update tier-specific elements using new tier names
             document.querySelectorAll("[data-tier]").forEach(el => {
                 const requiredTier = el.dataset.tier;
                 let hasAccess = false;
                 
-                if (requiredTier === "free") {
-                    hasAccess = true;
-                } else if (requiredTier === "growth") {
-                    hasAccess = effectivePlan === "growth" || effectivePlan === "max" || trial;
-                } else if (requiredTier === "max") {
-                    hasAccess = effectivePlan === "max" || trial;
+                if (requiredTier === "bronze") {
+                    hasAccess = true;  // Bronze always accessible
+                } else if (requiredTier === "silver") {
+                    hasAccess = effectivePlan === "silver" || effectivePlan === "gold" || trial;
+                } else if (requiredTier === "gold") {
+                    hasAccess = effectivePlan === "gold" || trial;
                 }
                 
                 el.style.display = hasAccess ? "block" : "none";
