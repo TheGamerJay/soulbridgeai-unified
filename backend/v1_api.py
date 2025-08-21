@@ -116,25 +116,25 @@ def get_entitlements():
         "credits": credits,
         "feature_flags": feature_flags,
         "credit_costs": {
-            "ai_images": get_feature_cost("ai_images", user_plan),
-            "voice_journaling": get_feature_cost("voice_journaling", user_plan),
-            "relationship_profiles": get_feature_cost("relationship_profiles", user_plan),
-            "meditations": get_feature_cost("meditations", user_plan),
-            "mini_studio": get_feature_cost("mini_studio", user_plan)
+            "ai_images": get_feature_cost("ai_images", effective_plan),
+            "voice_journaling": get_feature_cost("voice_journaling", effective_plan),
+            "relationship_profiles": get_feature_cost("relationship_profiles", effective_plan),
+            "meditations": get_feature_cost("meditations", effective_plan),
+            "mini_studio": get_feature_cost("mini_studio", effective_plan)
         },
         "credit_bundles": get_credit_bundles(user_plan),
         "daily_limits": {
             "decoder": {
-                "max": get_feature_limit(user_plan, 'decoder'),
-                "remaining": get_feature_limit(user_plan, 'decoder') - session.get('decoder_usage', 0)
+                "max": get_feature_limit(user_plan, 'decoder', trial_active),
+                "remaining": get_feature_limit(user_plan, 'decoder', trial_active) - session.get('decoder_usage', 0)
             },
             "fortune": {
-                "max": get_feature_limit(user_plan, 'fortune'),
-                "remaining": get_feature_limit(user_plan, 'fortune') - session.get('fortune_usage', 0)
+                "max": get_feature_limit(user_plan, 'fortune', trial_active),
+                "remaining": get_feature_limit(user_plan, 'fortune', trial_active) - session.get('fortune_usage', 0)
             },
             "horoscope": {
-                "max": get_feature_limit(user_plan, 'horoscope'),
-                "remaining": get_feature_limit(user_plan, 'horoscope') - session.get('horoscope_usage', 0)
+                "max": get_feature_limit(user_plan, 'horoscope', trial_active),
+                "remaining": get_feature_limit(user_plan, 'horoscope', trial_active) - session.get('horoscope_usage', 0)
             }
         }
     })
