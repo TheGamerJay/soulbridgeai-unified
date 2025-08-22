@@ -7829,15 +7829,18 @@ def is_trial_active(user_id) -> bool:
 
 # Essential usage tracking functions restored for decoder functionality
 def get_decoder_usage():
-    """Get user's decoder usage for today"""
+    """Get user's decoder usage for today (companion-specific)"""
     try:
         user_id = session.get('user_id')
         if not user_id:
             return 0
+        
+        # Get current companion for isolation
+        companion_id = session.get('selected_companion', 'blayzo_free')  # Default fallback
             
-        # Use session-based tracking for now (in production, use database)
+        # Use companion-specific session tracking
         today = datetime.now().strftime('%Y-%m-%d')
-        usage_key = f'decoder_usage_{user_id}_{today}'
+        usage_key = f'decoder_usage_{user_id}_{companion_id}_{today}'
         
         return session.get(usage_key, 0)
     except Exception as e:
@@ -7845,14 +7848,17 @@ def get_decoder_usage():
         return 0
 
 def increment_decoder_usage():
-    """Increment user's decoder usage for today"""
+    """Increment user's decoder usage for today (companion-specific)"""
     try:
         user_id = session.get('user_id')
         if not user_id:
             return False
+        
+        # Get current companion for isolation
+        companion_id = session.get('selected_companion', 'blayzo_free')  # Default fallback
             
         today = datetime.now().strftime('%Y-%m-%d')
-        usage_key = f'decoder_usage_{user_id}_{today}'
+        usage_key = f'decoder_usage_{user_id}_{companion_id}_{today}'
         
         # Update session-based tracking
         current_usage = session.get(usage_key, 0)
@@ -7910,14 +7916,17 @@ def increment_decoder_usage():
         return False
 
 def get_fortune_usage():
-    """Get user's fortune usage for today"""
+    """Get user's fortune usage for today (companion-specific)"""
     try:
         user_id = session.get('user_id')
         if not user_id:
             return 0
+        
+        # Get current companion for isolation
+        companion_id = session.get('selected_companion', 'blayzo_free')  # Default fallback
             
         today = datetime.now().strftime('%Y-%m-%d')
-        usage_key = f'fortune_usage_{user_id}_{today}'
+        usage_key = f'fortune_usage_{user_id}_{companion_id}_{today}'
         
         return session.get(usage_key, 0)
     except Exception as e:
@@ -7925,14 +7934,17 @@ def get_fortune_usage():
         return 0
 
 def increment_fortune_usage():
-    """Increment user's fortune usage for today"""
+    """Increment user's fortune usage for today (companion-specific)"""
     try:
         user_id = session.get('user_id')
         if not user_id:
             return False
+        
+        # Get current companion for isolation
+        companion_id = session.get('selected_companion', 'blayzo_free')  # Default fallback
             
         today = datetime.now().strftime('%Y-%m-%d')
-        usage_key = f'fortune_usage_{user_id}_{today}'
+        usage_key = f'fortune_usage_{user_id}_{companion_id}_{today}'
         
         # Update session-based tracking
         current_usage = session.get(usage_key, 0)
@@ -7990,14 +8002,17 @@ def increment_fortune_usage():
         return False
 
 def get_horoscope_usage():
-    """Get user's horoscope usage for today"""
+    """Get user's horoscope usage for today (companion-specific)"""
     try:
         user_id = session.get('user_id')
         if not user_id:
             return 0
+        
+        # Get current companion for isolation
+        companion_id = session.get('selected_companion', 'blayzo_free')  # Default fallback
             
         today = datetime.now().strftime('%Y-%m-%d')
-        usage_key = f'horoscope_usage_{user_id}_{today}'
+        usage_key = f'horoscope_usage_{user_id}_{companion_id}_{today}'
         
         return session.get(usage_key, 0)
     except Exception as e:
@@ -8005,14 +8020,17 @@ def get_horoscope_usage():
         return 0
 
 def increment_horoscope_usage():
-    """Increment user's horoscope usage for today"""
+    """Increment user's horoscope usage for today (companion-specific)"""
     try:
         user_id = session.get('user_id')
         if not user_id:
             return False
+        
+        # Get current companion for isolation
+        companion_id = session.get('selected_companion', 'blayzo_free')  # Default fallback
             
         today = datetime.now().strftime('%Y-%m-%d')
-        usage_key = f'horoscope_usage_{user_id}_{today}'
+        usage_key = f'horoscope_usage_{user_id}_{companion_id}_{today}'
         
         # Update session-based tracking
         current_usage = session.get(usage_key, 0)
