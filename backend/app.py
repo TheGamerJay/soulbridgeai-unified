@@ -8133,16 +8133,8 @@ def check_decoder_limit():
     # Calculate effective_plan fresh each time
     effective_plan = get_effective_plan(user_plan, trial_active)
     
-    # Get limits based on effective plan during trial, actual plan otherwise
-    # During trial, Bronze users get Gold tier limits (unlimited)
-    if trial_active and user_plan in ['free', 'bronze']:
-        daily_limit = 999999  # Trial gives Gold tier limits (unlimited)
-    elif user_plan == 'max' or effective_plan == 'max':
-        daily_limit = 999999  # Unlimited for max tier
-    elif user_plan == 'growth' or effective_plan == 'growth':
-        daily_limit = 15      # Growth tier limit
-    else:  # Bronze tier (free plan) - no trial
-        daily_limit = 3       # Bronze tier limit
+    # Use unified tier system for consistent limits - trial doesn't change daily limits
+    daily_limit = get_feature_limit(user_plan, "decoder", trial_active)
     
     logger.info(f"🔒 TIER ISOLATION: user_plan={user_plan}, tier={current_tier}, effective_plan={effective_plan}, trial_active={trial_active}, limit={daily_limit}")
     usage_today = get_decoder_usage()
@@ -8180,14 +8172,8 @@ def check_fortune_limit():
     
     # Get limits based on effective plan during trial, actual plan otherwise
     # During trial, Bronze users get Gold tier limits (unlimited)
-    if trial_active and user_plan in ['free', 'bronze']:
-        daily_limit = 999999  # Trial gives Gold tier limits (unlimited)
-    elif user_plan == 'max' or effective_plan == 'max':
-        daily_limit = 999999  # Unlimited for max tier
-    elif user_plan == 'growth' or effective_plan == 'growth':
-        daily_limit = 8       # Growth tier limit
-    else:  # Bronze tier (free plan) - no trial
-        daily_limit = 2       # Bronze tier limit
+    # Use unified tier system for consistent limits - trial doesn't change daily limits
+    daily_limit = get_feature_limit(user_plan, "fortune", trial_active)
     usage_today = get_fortune_usage()
 
     return jsonify({
@@ -8214,16 +8200,8 @@ def check_horoscope_limit():
     trial_active = session.get("trial_active", False)
     effective_plan = get_effective_plan(user_plan, trial_active)
     
-    # Get limits based on effective plan during trial, actual plan otherwise
-    # During trial, Bronze users get Gold tier limits (unlimited)
-    if trial_active and user_plan in ['free', 'bronze']:
-        daily_limit = 999999  # Trial gives Gold tier limits (unlimited)
-    elif user_plan == 'max' or effective_plan == 'max':
-        daily_limit = 999999  # Unlimited for max tier
-    elif user_plan == 'growth' or effective_plan == 'growth':
-        daily_limit = 10      # Growth tier limit
-    else:  # Bronze tier (free plan) - no trial
-        daily_limit = 3       # Bronze tier limit
+    # Use unified tier system for consistent limits - trial doesn't change daily limits
+    daily_limit = get_feature_limit(user_plan, "horoscope", trial_active)
     usage_today = get_horoscope_usage()
 
     return jsonify({
