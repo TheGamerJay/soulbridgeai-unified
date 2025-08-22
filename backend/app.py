@@ -463,6 +463,69 @@ COMPANIONS_NEW = [
 ]
 COMPANIONS_BY_ID = {c["id"]: c for c in COMPANIONS_NEW}
 
+# Create individual routes for each companion
+def create_companion_routes():
+    """Create individual chat routes for each companion"""
+    for companion in COMPANIONS_NEW:
+        companion_id = companion["id"]
+        companion_name = companion["name"]
+        companion_tier = companion["tier"]
+        companion_avatar = companion["image_url"]
+        min_referrals = companion.get("min_referrals", 0)
+        
+        def make_companion_route(comp_id, comp_name, comp_tier, comp_avatar, comp_min_refs):
+            def companion_route():
+                # Check authentication
+                if not is_logged_in():
+                    return redirect(f"/login?return_to=chat_{comp_id}")
+                
+                # Get user info
+                user_plan = session.get('user_plan', 'bronze')
+                trial_active = session.get('trial_active', False)
+                referrals = int(session.get('referrals', 0))
+                
+                # Check access permissions
+                comp_data = COMPANIONS_BY_ID[comp_id]
+                can_access, reason = user_can_access_companion(user_plan, trial_active, referrals, comp_data)
+                if not can_access:
+                    return redirect("/tiers?upgrade_required=true")
+                
+                # Set session data
+                session['selected_companion'] = comp_id
+                
+                # Calculate tier-specific limits
+                canonical_tier = normalize_plan(user_plan)
+                limits = {
+                    "decoder": 3 if canonical_tier == "bronze" else (15 if canonical_tier == "silver" else 999),
+                    "fortune": 2 if canonical_tier == "bronze" else (8 if canonical_tier == "silver" else 999),
+                    "horoscope": 3 if canonical_tier == "bronze" else (10 if canonical_tier == "silver" else 999),
+                    "creative_writer": 2 if canonical_tier == "bronze" else (20 if canonical_tier == "silver" else 999)
+                }
+                
+                # Render chat template
+                return render_template("chat.html",
+                    companion=comp_id,
+                    companion_display_name=f"{comp_name} ({comp_tier.title()} Tier)",
+                    companion_avatar=comp_avatar,
+                    ai_character_name=comp_name,
+                    user_plan=user_plan,
+                    trial_active=trial_active,
+                    tier=comp_tier,
+                    limits=limits,
+                    selected_companion=comp_id,
+                    companion_info=comp_data
+                )
+            
+            return companion_route
+        
+        # Register the route
+        route_func = make_companion_route(companion_id, companion_name, companion_tier, companion_avatar, min_referrals)
+        route_func.__name__ = f"chat_{companion_id}"
+        app.add_url_rule(f"/chat/{companion_id}", f"chat_{companion_id}", route_func)
+
+# Create all companion routes
+create_companion_routes()
+
 # ---------- Tier Canonicalization & Access Control ----------
 # Standardize all plan names to Bronze/Silver/Gold
 PLAN_TO_CANON = {
@@ -3429,39 +3492,57 @@ def tiers_page():
 @app.route("/chat")
 def chat():
     """Redirect to tier-specific chat page with server-side validation"""
-    companion_slug = request.args.get('companion', '').strip()
-    
-    if not is_logged_in():
+    try:
+        companion_slug = request.args.get('companion', '').strip()
+        logger.info(f"🎯 CHAT ROUTE: companion_slug='{companion_slug}'")
+        
+        if not is_logged_in():
+            logger.info(f"🔐 NOT LOGGED IN: Redirecting to login")
+            if companion_slug:
+                return redirect(f"/login?return_to=chat&companion={companion_slug}")
+            return redirect("/login?return_to=chat")
+        
+        # Get user info
+        user_plan = session.get('user_plan', 'bronze')
+        trial_active = session.get('trial_active', False)
+        referrals = int(session.get('referrals', 0))
+        logger.info(f"🎯 USER INFO: plan={user_plan}, trial={trial_active}, refs={referrals}")
+        
+        # Use canonical tier for URL namespace
+        canonical_user_tier = normalize_plan(user_plan)
+        logger.info(f"🎯 CANONICAL TIER: {canonical_user_tier}")
+        
         if companion_slug:
-            return redirect(f"/login?return_to=chat&companion={companion_slug}")
-        return redirect("/login?return_to=chat")
-    
-    # Get user info
-    user_plan = session.get('user_plan', 'bronze')
-    trial_active = session.get('trial_active', False)
-    referrals = int(session.get('referrals', 0))
-    
-    # Use canonical tier for URL namespace
-    canonical_user_tier = normalize_plan(user_plan)
-    
-    if companion_slug:
-        # Validate companion exists
-        comp = COMPANIONS_BY_ID.get(companion_slug)
-        if not comp:
-            return redirect("/tiers?error=unknown_companion")
-        
-        # Check access permissions before redirecting
-        can_access, reason = user_can_access_companion(user_plan, trial_active, referrals, comp)
-        if not can_access:
-            return redirect(f"/tiers?locked={comp['id']}&reason={reason or 'locked'}")
-        
-        # Set session and redirect to isolated companion URL
-        session['selected_companion'] = comp['id']
-        session['active_tier_namespace'] = canonical_user_tier
-        return redirect(f"/chat/{canonical_user_tier}/{companion_slug}")
-    else:
-        # No companion specified, redirect to tier page
-        return redirect(f"/chat/{canonical_user_tier}")
+            # Validate companion exists
+            comp = COMPANIONS_BY_ID.get(companion_slug)
+            logger.info(f"🎯 COMPANION LOOKUP: {companion_slug} -> {comp is not None}")
+            if not comp:
+                logger.warning(f"❌ COMPANION NOT FOUND: {companion_slug}")
+                return redirect("/tiers?error=unknown_companion")
+            
+            # Check access permissions before redirecting
+            can_access, reason = user_can_access_companion(user_plan, trial_active, referrals, comp)
+            logger.info(f"🎯 ACCESS CHECK: can_access={can_access}, reason={reason}")
+            if not can_access:
+                logger.warning(f"🚫 ACCESS DENIED: {reason}")
+                return redirect(f"/tiers?locked={comp['id']}&reason={reason or 'locked'}")
+            
+            # Set session and redirect to isolated companion URL
+            session['selected_companion'] = comp['id']
+            session['active_tier_namespace'] = canonical_user_tier
+            redirect_url = f"/chat/{canonical_user_tier}/{companion_slug}"
+            logger.info(f"✅ REDIRECTING TO: {redirect_url}")
+            return redirect(redirect_url)
+        else:
+            # No companion specified, redirect to tier page
+            redirect_url = f"/chat/{canonical_user_tier}"
+            logger.info(f"✅ NO COMPANION: Redirecting to {redirect_url}")
+            return redirect(redirect_url)
+    except Exception as e:
+        logger.error(f"❌ CHAT ROUTE ERROR: {e}")
+        import traceback
+        logger.error(f"❌ TRACEBACK: {traceback.format_exc()}")
+        return redirect("/tiers?error=chat_error")
 
 # REMOVED: api_companions_old_disabled function - was a disabled/deprecated companions API endpoint
 
@@ -14470,8 +14551,8 @@ TIERS_TEMPLATE = r"""
   function openChat(slug){ 
     // Performance optimization: use requestAnimationFrame to prevent blocking
     requestAnimationFrame(() => {
-      // Use the existing /chat route which handles tier redirection
-      window.location.href = '/chat?companion=' + encodeURIComponent(slug);
+      // Direct route to companion chat page
+      window.location.href = '/chat/' + encodeURIComponent(slug);
     });
   }
   
