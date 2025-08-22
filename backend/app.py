@@ -3776,6 +3776,134 @@ def horoscope():
         return jsonify({"error": "Horoscope temporarily unavailable"}), 500
 
 # ========================================
+# TIER-SPECIFIC FEATURE ROUTES
+# ========================================
+
+@app.route("/decoder/<tier>")
+def decoder_tier(tier):
+    """Tier-specific decoder route - auto-redirects to appropriate version"""
+    if not is_logged_in():
+        return redirect("/login")
+    
+    user_plan = session.get('user_plan', 'bronze')
+    trial_active = session.get('trial_active', False)
+    
+    # Validate tier access
+    if tier not in ['bronze', 'silver', 'gold']:
+        return redirect('/decoder')
+    
+    # Check if user can access this tier
+    if tier == 'silver' and user_plan not in ['silver', 'gold'] and not trial_active:
+        return redirect('/tiers?upgrade_required=true')
+    elif tier == 'gold' and user_plan != 'gold' and not trial_active:
+        return redirect('/tiers?upgrade_required=true')
+    
+    # Redirect to main decoder with tier context
+    return redirect(f'/decoder?tier={tier}')
+
+@app.route("/fortune/<tier>")
+def fortune_tier(tier):
+    """Tier-specific fortune route - auto-redirects to appropriate version"""
+    if not is_logged_in():
+        return redirect("/login")
+    
+    user_plan = session.get('user_plan', 'bronze')
+    trial_active = session.get('trial_active', False)
+    
+    # Validate tier access
+    if tier not in ['bronze', 'silver', 'gold']:
+        return redirect('/fortune')
+    
+    # Check if user can access this tier
+    if tier == 'silver' and user_plan not in ['silver', 'gold'] and not trial_active:
+        return redirect('/tiers?upgrade_required=true')
+    elif tier == 'gold' and user_plan != 'gold' and not trial_active:
+        return redirect('/tiers?upgrade_required=true')
+    
+    # Redirect to main fortune with tier context
+    return redirect(f'/fortune?tier={tier}')
+
+@app.route("/horoscope/<tier>")
+def horoscope_tier(tier):
+    """Tier-specific horoscope route - auto-redirects to appropriate version"""
+    if not is_logged_in():
+        return redirect("/login")
+    
+    user_plan = session.get('user_plan', 'bronze')
+    trial_active = session.get('trial_active', False)
+    
+    # Validate tier access
+    if tier not in ['bronze', 'silver', 'gold']:
+        return redirect('/horoscope')
+    
+    # Check if user can access this tier
+    if tier == 'silver' and user_plan not in ['silver', 'gold'] and not trial_active:
+        return redirect('/tiers?upgrade_required=true')
+    elif tier == 'gold' and user_plan != 'gold' and not trial_active:
+        return redirect('/tiers?upgrade_required=true')
+    
+    # Redirect to main horoscope with tier context
+    return redirect(f'/horoscope?tier={tier}')
+
+# Auto-redirect routes - automatically send users to their tier
+@app.route("/decoder/auto")
+def decoder_auto():
+    """Auto-redirect to user's appropriate decoder tier"""
+    if not is_logged_in():
+        return redirect("/login")
+    
+    user_plan = session.get('user_plan', 'bronze')
+    trial_active = session.get('trial_active', False)
+    
+    # Determine appropriate tier
+    if trial_active or user_plan == 'gold':
+        tier = 'gold'
+    elif user_plan == 'silver':
+        tier = 'silver'
+    else:
+        tier = 'bronze'
+    
+    return redirect(f'/decoder/{tier}')
+
+@app.route("/fortune/auto")
+def fortune_auto():
+    """Auto-redirect to user's appropriate fortune tier"""
+    if not is_logged_in():
+        return redirect("/login")
+    
+    user_plan = session.get('user_plan', 'bronze')
+    trial_active = session.get('trial_active', False)
+    
+    # Determine appropriate tier
+    if trial_active or user_plan == 'gold':
+        tier = 'gold'
+    elif user_plan == 'silver':
+        tier = 'silver'
+    else:
+        tier = 'bronze'
+    
+    return redirect(f'/fortune/{tier}')
+
+@app.route("/horoscope/auto")
+def horoscope_auto():
+    """Auto-redirect to user's appropriate horoscope tier"""
+    if not is_logged_in():
+        return redirect("/login")
+    
+    user_plan = session.get('user_plan', 'bronze')
+    trial_active = session.get('trial_active', False)
+    
+    # Determine appropriate tier
+    if trial_active or user_plan == 'gold':
+        tier = 'gold'
+    elif user_plan == 'silver':
+        tier = 'silver'
+    else:
+        tier = 'bronze'
+    
+    return redirect(f'/horoscope/{tier}')
+
+# ========================================
 # ADDITIONAL ROUTES
 # ========================================
 
