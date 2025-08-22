@@ -3440,6 +3440,39 @@ def profile():
         logger.error(f"❌ PROFILE TRACEBACK: {traceback.format_exc()}")
         return f"<h1>Profile Error</h1><p>Error: {str(e)}</p>", 500
 
+@app.route("/subscription")
+def subscription():
+    """Subscription management page"""
+    try:
+        if not is_logged_in():
+            return redirect("/login")
+            
+        # Check if user has accepted terms
+        terms_check = requires_terms_acceptance()
+        if terms_check:
+            return terms_check
+        
+        # Get user data for subscription page
+        user_plan = session.get('user_plan', 'bronze')
+        trial_active = session.get('trial_active', False)
+        effective_plan = get_effective_plan(user_plan, trial_active)
+        
+        # Set access flags for subscription page
+        session['access_bronze'] = True
+        session['access_silver'] = effective_plan in ['silver', 'gold'] or trial_active
+        session['access_gold'] = effective_plan == 'gold' or trial_active  
+        session['access_trial'] = trial_active
+        session.modified = True
+        
+        logger.info(f"✅ SUBSCRIPTION: user_plan={user_plan}, trial_active={trial_active}, effective_plan={effective_plan}")
+        
+        return render_template("subscription.html")
+    except Exception as e:
+        logger.error(f"❌ SUBSCRIPTION ERROR: {e}")
+        import traceback
+        logger.error(f"❌ SUBSCRIPTION TRACEBACK: {traceback.format_exc()}")
+        return f"<h1>Subscription Error</h1><p>Error: {str(e)}</p>", 500
+
 @app.route("/companion-selection")
 def companion_selection():
     """Companion selection page"""
