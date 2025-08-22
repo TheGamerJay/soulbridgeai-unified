@@ -1427,7 +1427,7 @@ def select_companion_direct(companion_id):
             9: {'name': 'Blayzia', 'tier': 'bronze', 'avatar_url': '/static/logos/Blayzia.png'},
             10: {'name': 'Blayzion', 'tier': 'bronze', 'avatar_url': '/static/logos/Blayzion.png'},
             25: {'name': 'Lumen', 'tier': 'bronze', 'avatar_url': '/static/logos/Lumen Bronze.png'},
-            27: {'name': 'Blayzo.2', 'tier': 'bronze', 'avatar_url': '/static/logos/blayzo bronze tier.png'},
+            27: {'name': 'Blayzo.2', 'tier': 'bronze', 'avatar_url': '/static/logos/blayzo free tier.png'},
             11: {'name': 'Blayzike', 'tier': 'referral', 'avatar_url': '/static/logos/Blayzike.png'},
             12: {'name': 'Blazelian', 'tier': 'referral', 'avatar_url': '/static/logos/Blazelian.png'},
             # Silver tier companions
@@ -1634,7 +1634,7 @@ def companion_selector_page():
                 {'id': 9, 'name': 'Blayzia', 'avatar_url': '/static/logos/Blayzia.png'},
                 {'id': 10, 'name': 'Blayzion', 'avatar_url': '/static/logos/Blayzion.png'},
                 {'id': 25, 'name': 'Lumen', 'avatar_url': '/static/logos/Lumen Bronze.png'},
-                {'id': 27, 'name': 'Blayzo.2', 'avatar_url': '/static/logos/blayzo bronze tier.png'}
+                {'id': 27, 'name': 'Blayzo.2', 'avatar_url': '/static/logos/blayzo free tier.png'}
             ],
             'silver': [
                 {'id': 2, 'name': 'Sky', 'avatar_url': '/static/logos/Sky a premium companion.png'},
