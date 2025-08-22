@@ -659,11 +659,11 @@ async function refreshHoroscopeLimits() {
             const usageLimit = document.getElementById('usage-limit');
             const planDesc = document.getElementById('plan-description');
             
-            if (usageCount) usageCount.textContent = userUsage;
+            if (usageCount) usageCount.textContent = userUsage || 0;
             if (usageLimit) usageLimit.textContent = dailyLimit === null ? '∞' : dailyLimit;
             if (planDesc) {
                 const limitDisplay = dailyLimit === null ? '∞' : dailyLimit;
-                planDesc.textContent = `⭐ Daily Horoscopes: ${userUsage} / ${limitDisplay} used`;
+                planDesc.textContent = `⭐ Daily Horoscopes: ${userUsage || 0} / ${limitDisplay} used`;
             }
         }
     } catch (error) {

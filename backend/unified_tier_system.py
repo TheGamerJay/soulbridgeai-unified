@@ -94,12 +94,127 @@ def ensure_database_schema():
             logger.error(f"📊 SCHEMA ERROR creating index: {e}")
             conn.rollback()
         
+        # Create tier_limits table for proper per-tier limit management
+        try:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS tier_limits (
+                    id INTEGER PRIMARY KEY,
+                    tier TEXT NOT NULL CHECK (tier IN ('free','bronze','silver','gold','growth','max')),
+                    feature TEXT NOT NULL CHECK (feature IN ('decoder','fortune','horoscope')),
+                    daily_limit INTEGER,
+                    UNIQUE (tier, feature)
+                )
+            """)
+            conn.commit()
+            logger.info("📊 SCHEMA: tier_limits table created/verified")
+            
+            # Seed default limits
+            default_limits = [
+                ('bronze','decoder',3), ('bronze','fortune',2), ('bronze','horoscope',3),
+                ('free','decoder',3), ('free','fortune',2), ('free','horoscope',3),  # Legacy support
+                ('silver','decoder',15), ('silver','fortune',8), ('silver','horoscope',10),
+                ('growth','decoder',15), ('growth','fortune',8), ('growth','horoscope',10),  # Legacy support
+                ('gold','decoder',None), ('gold','fortune',None), ('gold','horoscope',None),
+                ('max','decoder',None), ('max','fortune',None), ('max','horoscope',None)  # Legacy support
+            ]
+            
+            for tier, feature, limit in default_limits:
+                cur.execute("""
+                    INSERT OR IGNORE INTO tier_limits (tier, feature, daily_limit)
+                    VALUES (?, ?, ?)
+                """, (tier, feature, limit))
+            conn.commit()
+            logger.info("📊 SCHEMA: Default tier limits seeded")
+            
+        except Exception as e:
+            logger.error(f"📊 SCHEMA ERROR creating tier_limits: {e}")
+            conn.rollback()
+        
         conn.close()
         logger.info("📊 SCHEMA: Migration completed successfully")
         return True
         
     except Exception as e:
         logger.error(f"📊 SCHEMA ERROR: {e}")
+        return False
+
+def get_limits_for_tier(tier: str) -> dict:
+    """Get feature limits for a specific tier from database"""
+    try:
+        database_url = os.environ.get('DATABASE_URL')
+        if database_url:
+            # PostgreSQL
+            import psycopg2
+            from psycopg2.extras import RealDictCursor
+            conn = psycopg2.connect(database_url)
+            with conn.cursor(cursor_factory=RealDictCursor) as cur:
+                cur.execute("""
+                    SELECT feature, daily_limit
+                    FROM tier_limits
+                    WHERE tier = %s
+                    ORDER BY feature
+                """, (tier,))
+                rows = cur.fetchall()
+            conn.close()
+        else:
+            # SQLite
+            import sqlite3
+            conn = sqlite3.connect('soulbridge.db')
+            conn.row_factory = sqlite3.Row
+            cur = conn.cursor()
+            cur.execute("""
+                SELECT feature, daily_limit
+                FROM tier_limits
+                WHERE tier = ?
+                ORDER BY feature
+            """, (tier,))
+            rows = cur.fetchall()
+            conn.close()
+        
+        # Return dict like {'decoder': 3, 'fortune': 2, 'horoscope': 3}
+        return {row['feature']: row['daily_limit'] for row in rows}
+        
+    except Exception as e:
+        logger.error(f"📊 ERROR getting limits for tier {tier}: {e}")
+        # Fallback to hardcoded limits
+        return DAILY_LIMITS.get(tier, DAILY_LIMITS.get('bronze', {}))
+
+def set_limits_for_tier(tier: str, limits: dict) -> bool:
+    """Set feature limits for a specific tier in database"""
+    try:
+        database_url = os.environ.get('DATABASE_URL')
+        if database_url:
+            # PostgreSQL
+            import psycopg2
+            conn = psycopg2.connect(database_url)
+            with conn.cursor() as cur:
+                for feature, daily_limit in limits.items():
+                    cur.execute("""
+                        INSERT INTO tier_limits (tier, feature, daily_limit)
+                        VALUES (%s, %s, %s)
+                        ON CONFLICT (tier, feature)
+                        DO UPDATE SET daily_limit = EXCLUDED.daily_limit
+                    """, (tier, feature, daily_limit))
+            conn.commit()
+            conn.close()
+        else:
+            # SQLite
+            import sqlite3
+            conn = sqlite3.connect('soulbridge.db')
+            cur = conn.cursor()
+            for feature, daily_limit in limits.items():
+                cur.execute("""
+                    INSERT OR REPLACE INTO tier_limits (tier, feature, daily_limit)
+                    VALUES (?, ?, ?)
+                """, (tier, feature, daily_limit))
+            conn.commit()
+            conn.close()
+        
+        logger.info(f"📊 Updated limits for tier {tier}: {limits}")
+        return True
+        
+    except Exception as e:
+        logger.error(f"📊 ERROR setting limits for tier {tier}: {e}")
         return False
 
 def get_user_timezone(user_id):
@@ -222,7 +337,7 @@ def get_effective_plan(user_plan: str, trial_active: bool) -> str:
 # GET DAILY LIMITS (always based on actual plan, not trial)
 def get_feature_limit(user_plan: str, feature: str, trial_active: bool = False) -> int:
     """
-    Get feature limits based on subscription plan
+    Get feature limits based on subscription plan from database
     TRIAL DOES NOT CHANGE DAILY LIMITS - trial only unlocks access to companions/features
     Per CLAUDE.md: Trial gives 60 credits + companion access, but Bronze users keep Bronze limits
     """
@@ -230,7 +345,24 @@ def get_feature_limit(user_plan: str, feature: str, trial_active: bool = False) 
     # Trial unlocks access but doesn't change usage limits
     plan = user_plan
     
-    return DAILY_LIMITS.get(plan, {}).get(feature, 0)
+    # Get limits from database first, fallback to hardcoded
+    try:
+        db_limits = get_limits_for_tier(plan)
+        limit = db_limits.get(feature)
+        
+        # Handle None (unlimited) vs missing feature
+        if limit is None and feature in db_limits:
+            return 999999  # Unlimited represented as large number for UI compatibility
+        elif limit is not None:
+            return limit
+        else:
+            # Feature not found in database, use hardcoded fallback
+            return DAILY_LIMITS.get(plan, {}).get(feature, 0)
+            
+    except Exception as e:
+        logger.error(f"📊 ERROR getting feature limit for {plan}/{feature}: {e}")
+        # Fallback to hardcoded limits
+        return DAILY_LIMITS.get(plan, {}).get(feature, 0)
 
 # GET TRIAL TRAINER TIME (60 credits for free users during 5hr trial)
 def get_trial_trainer_time(user_id):
