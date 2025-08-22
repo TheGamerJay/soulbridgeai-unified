@@ -55,8 +55,8 @@ def fix_users_table():
         
         # Define all required columns with their specifications
         required_columns = {
-            'plan_type': "TEXT DEFAULT 'free'",
-            'user_plan': "TEXT DEFAULT 'free'",
+            'plan_type': "TEXT DEFAULT 'bronze'",
+            'user_plan': "TEXT DEFAULT 'bronze'",
             'trial_active': "INTEGER DEFAULT 0",
             'trial_started_at': "TIMESTAMP",
             'trial_used_permanently': "BOOLEAN DEFAULT FALSE",

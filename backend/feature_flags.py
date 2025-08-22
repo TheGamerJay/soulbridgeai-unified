@@ -155,12 +155,12 @@ class FeatureFlagManager:
 
     def _get_user_context(self) -> Dict[str, Any]:
         """Get current user context for feature flag evaluation"""
-        context = {"user_id": None, "tier": "free", "region": None, "ip": None}
+        context = {"user_id": None, "tier": "bronze", "region": None, "ip": None}
 
         # Get user info from Flask context
         if hasattr(g, "current_user") and g.current_user:
             context["user_id"] = g.current_user.get("userID")
-            context["tier"] = g.current_user.get("subscription_status", "free")
+            context["tier"] = g.current_user.get("subscription_status", "bronze")
 
         # Get IP and region from request
         if request:

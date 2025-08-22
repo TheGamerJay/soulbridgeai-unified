@@ -31,14 +31,14 @@ except Exception as e:
 
 def companion_limit_for(plan: str) -> int:
     """Get daily companion message limit for a user plan"""
-    plan = (plan or "free").lower()
+    plan = (plan or "bronze").lower()
     
-    if plan in ["vip", "max"]:
-        return int(os.getenv("COMP_MSG_LIMIT_VIP", "50"))
-    elif plan in ["pro", "growth"]:
-        return int(os.getenv("COMP_MSG_LIMIT_PRO", "25"))
-    else:  # free
-        return int(os.getenv("COMP_MSG_LIMIT_FREE", "0"))
+    if plan in ["gold"]:
+        return int(os.getenv("COMP_MSG_LIMIT_GOLD", "50"))
+    elif plan in ["silver"]:
+        return int(os.getenv("COMP_MSG_LIMIT_SILVER", "25"))
+    else:  # bronze
+        return int(os.getenv("COMP_MSG_LIMIT_BRONZE", "0"))
 
 def _get_today_key() -> str:
     """Get today's date key for quota tracking"""
@@ -183,7 +183,7 @@ if __name__ == "__main__":
     print("Testing Quota Management System...")
     
     test_user = "test_user_123"
-    test_plan = "growth"
+    test_plan = "silver"
     
     print(f"Storage type: {'Redis' if REDIS_AVAILABLE else 'File-based'}")
     
@@ -200,6 +200,6 @@ if __name__ == "__main__":
     print(f"Final status: {final_status}")
     
     # Test plan limits
-    for plan in ["free", "growth", "max"]:
+    for plan in ["bronze", "silver", "gold"]:
         limit = companion_limit_for(plan)
         print(f"Plan '{plan}' daily limit: {limit}")

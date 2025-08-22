@@ -67,7 +67,7 @@ class AIModelManager:
         
         # Rate limiting and monitoring
         self.rate_limits = {
-            "free": {"requests_per_hour": 20, "tokens_per_day": 10000},
+            "bronze": {"requests_per_hour": 20, "tokens_per_day": 10000},
             "premium": {"requests_per_hour": 100, "tokens_per_day": 100000},
             "galaxy": {"requests_per_hour": 500, "tokens_per_day": 1000000}
         }
@@ -109,7 +109,7 @@ class AIModelManager:
 
         # User tier model limits
         self.tier_models = {
-            "free": ["openai_gpt35"],
+            "bronze": ["openai_gpt35"],
             "premium": ["openai_gpt35", "openai_gpt4"],
             "galaxy": ["openai_gpt35", "openai_gpt4", "openai_gpt4_turbo"],
         }
@@ -248,7 +248,7 @@ Your personality: Transcendent, all-knowing cosmic consciousness that speaks wit
         }
 
     def get_companion_response(
-        self, companion_name: str, user_message: str, user_tier: str = "free", 
+        self, companion_name: str, user_message: str, user_tier: str = "bronze", 
         user_id: str = None, personality_mode: str = None
     ) -> Dict:
         """Get AI response with content filtering, performance monitoring, and rate limiting"""
@@ -522,7 +522,7 @@ Your personality: Transcendent, all-knowing cosmic consciousness that speaks wit
                 if req.user_id == user_id and req.timestamp > day_ago
             ])
             
-            limits = self.rate_limits.get(user_tier, self.rate_limits["free"])
+            limits = self.rate_limits.get(user_tier, self.rate_limits["bronze"])
             
             if len(recent_requests) >= limits["requests_per_hour"]:
                 logging.warning(f"Rate limit exceeded for user {user_id}: {len(recent_requests)} requests/hour")

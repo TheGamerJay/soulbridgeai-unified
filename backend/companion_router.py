@@ -24,8 +24,8 @@ class CompanionRouter:
         self.hybrid_client = get_hybrid_local_client()
         
         # Routing configuration from environment
-        self.openai_plans = set(os.getenv("OPENAI_PLANS", "vip,max,pro").split(","))
-        self.force_local_plans = set(os.getenv("FORCE_LOCAL_PLANS", "free").split(","))
+        self.openai_plans = set(os.getenv("OPENAI_PLANS", "silver,gold").split(","))
+        self.force_local_plans = set(os.getenv("FORCE_LOCAL_PLANS", "bronze").split(","))
         self.cache_enabled = os.getenv("CACHE_ENABLED", "true").lower() == "true"
         self.cache_ttl_hours = int(os.getenv("CACHE_TTL_HOURS", "24"))
         
@@ -37,7 +37,7 @@ class CompanionRouter:
         character: str = "Blayzo",
         context: str = "",
         user_id: str = "anonymous",
-        user_plan: str = "free",
+        user_plan: str = "bronze",
         force_provider: Optional[str] = None,  # "openai", "local", or None for auto
         quality_preference: str = "auto"  # "fast", "quality", or "auto"
     ) -> Dict[str, Any]:
@@ -302,10 +302,10 @@ if __name__ == "__main__":
     
     # Test different scenarios
     scenarios = [
-        {"plan": "free", "force": None, "quality": "auto"},
+        {"plan": "bronze", "force": None, "quality": "auto"},
         {"plan": "vip", "force": None, "quality": "quality"},
         {"plan": "vip", "force": "local", "quality": "fast"},
-        {"plan": "max", "force": None, "quality": "auto"}
+        {"plan": "gold", "force": None, "quality": "auto"}
     ]
     
     for scenario in scenarios:

@@ -432,7 +432,7 @@ COMPANIONS_NEW = [
     {"id":"blayzia_free","name":"Blayzia","tier":"bronze","image_url":"/static/logos/Blayzia.png","min_referrals":0},
     {"id":"blayzion_free","name":"Blayzion","tier":"bronze","image_url":"/static/logos/Blayzion.png","min_referrals":0},
     {"id":"lumen_free","name":"Lumen","tier":"bronze","image_url":"/static/logos/Lumen Bronze.png","min_referrals":0},
-    {"id":"blayzo2_free","name":"Blayzo.2","tier":"bronze","image_url":"/static/logos/blayzo free tier.png","min_referrals":0},
+    {"id":"blayzo2_bronze","name":"Blayzo.2","tier":"bronze","image_url":"/static/logos/blayzo bronze tier.png","min_referrals":0},
     
     # Silver tier - 8 companions
     {"id":"sky_silver","name":"Sky Silver","tier":"silver","image_url":"/static/logos/Sky_a_premium_companion.png","min_referrals":0},
@@ -14110,10 +14110,10 @@ You are Mini Assistant - a helpful development assistant for SoulBridge AI. Keep
 def generate_rule_based_response(message_lower, original_message):
     
     # Pattern matching for common development queries
-    if any(word in message_lower for word in ['tier', 'isolation', 'free user', 'premium']):
+    if any(word in message_lower for word in ['tier', 'isolation', 'bronze user', 'premium']):
         return """Based on our recent work on tier isolation:
 
-**Current Issue**: Free users are still seeing premium features they shouldn't have access to.
+**Current Issue**: Bronze users are still seeing premium features they shouldn't have access to.
 
 **What we've fixed**:
 - ✅ Duplicate API endpoint causing all companions to appear unlocked  

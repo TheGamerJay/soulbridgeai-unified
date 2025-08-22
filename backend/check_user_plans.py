@@ -28,7 +28,7 @@ def main():
             print(f"  ID: {user_id}, Email: {email}, plan_type: {plan_type}, user_plan: {user_plan}, trial_active: {trial_active}")
         
         # Fix any users with NULL or invalid user_plan
-        cursor.execute("UPDATE users SET user_plan = 'free' WHERE user_plan IS NULL OR user_plan = ''")
+        cursor.execute("UPDATE users SET user_plan = 'bronze' WHERE user_plan IS NULL OR user_plan = ''")
         updated_count = cursor.rowcount
         if updated_count > 0:
             print(f"\n✅ Fixed {updated_count} users with NULL/empty user_plan")

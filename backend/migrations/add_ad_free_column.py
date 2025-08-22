@@ -25,7 +25,7 @@ def migrate_sqlite(db_path):
         cursor.execute('''
             UPDATE users 
             SET ad_free = FALSE 
-            WHERE plan_type = 'free' OR user_plan = 'free'
+            WHERE plan_type = 'bronze' OR user_plan = 'bronze'
         ''')
         
         # Update existing ad_free plan users 
@@ -71,7 +71,7 @@ def migrate_postgresql(database_url):
         cursor.execute('''
             UPDATE users 
             SET ad_free = FALSE 
-            WHERE (plan_type = 'free' OR user_plan = 'free') AND ad_free IS NULL
+            WHERE (plan_type = 'bronze' OR user_plan = 'bronze') AND ad_free IS NULL
         ''')
         
         # Update existing ad_free plan users 

@@ -20,8 +20,8 @@ def main():
         
         # Add all missing columns for registration to work
         sql_commands = [
-            "ALTER TABLE users ADD COLUMN plan_type TEXT DEFAULT 'free';",
-            "ALTER TABLE users ADD COLUMN user_plan TEXT DEFAULT 'free';", 
+            "ALTER TABLE users ADD COLUMN plan_type TEXT DEFAULT 'bronze';",
+            "ALTER TABLE users ADD COLUMN user_plan TEXT DEFAULT 'bronze';", 
             "ALTER TABLE users ADD COLUMN trial_active INTEGER DEFAULT 0;",
             "ALTER TABLE users ADD COLUMN trial_started_at TIMESTAMP;",
             "ALTER TABLE users ADD COLUMN trial_companion TEXT;", 

@@ -27,13 +27,13 @@ def tier_test_page():
             body { font-family: Arial, sans-serif; padding: 30px; background: #000; color: #fff; }
             .container { max-width: 900px; margin: auto; }
             .tier-card { background: #1a1a1a; padding: 25px; margin: 20px 0; border-radius: 15px; border: 2px solid #22d3ee; }
-            .tier-card.max { border-color: #fbbf24; }
-            .tier-card.growth { border-color: #22c55e; }
-            .tier-card.free { border-color: #ef4444; }
+            .tier-card.gold { border-color: #fbbf24; }
+            .tier-card.silver { border-color: #22c55e; }
+            .tier-card.bronze { border-color: #ef4444; }
             .test-btn { background: #22d3ee; color: #000; padding: 12px 25px; margin: 10px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px; }
-            .test-btn.max { background: #fbbf24; }
-            .test-btn.growth { background: #22c55e; }
-            .test-btn.free { background: #ef4444; color: #fff; }
+            .test-btn.gold { background: #fbbf24; }
+            .test-btn.silver { background: #22c55e; }
+            .test-btn.bronze { background: #ef4444; color: #fff; }
             .test-btn:hover { opacity: 0.8; transform: translateY(-2px); }
             .result { background: #2a2a2a; padding: 15px; margin: 15px 0; border-radius: 8px; font-family: monospace; font-size: 13px; }
             h1 { color: #22d3ee; text-align: center; margin-bottom: 10px; }
@@ -56,28 +56,28 @@ def tier_test_page():
             </div>
             
             <!-- Max Tier -->
-            <div class="tier-card max">
+            <div class="tier-card gold">
                 <h2>Max Tier (Enterprise)</h2>
                 <p><strong>Unlimited access</strong> to all features - decoder, fortune teller, horoscope</p>
-                <button class="test-btn max" onclick="upgradeTo('enterprise')">Upgrade to Max Tier</button>
+                <button class="test-btn gold" onclick="upgradeTo('enterprise')">Upgrade to Gold Tier</button>
                 <button class="test-btn" onclick="testLimits('enterprise')">Test Max Limits</button>
                 <div id="enterprise-result" class="result" style="display: none;"></div>
             </div>
             
             <!-- Growth Tier -->  
-            <div class="tier-card growth">
+            <div class="tier-card silver">
                 <h2>Growth Tier (Premium)</h2>
                 <p><strong>Enhanced limits:</strong> 15 decodes, 8 fortunes, 10 horoscopes per day</p>
-                <button class="test-btn growth" onclick="upgradeTo('premium')">Upgrade to Growth Tier</button>
+                <button class="test-btn silver" onclick="upgradeTo('premium')">Upgrade to Silver Tier</button>
                 <button class="test-btn" onclick="testLimits('premium')">Test Growth Limits</button>
                 <div id="premium-result" class="result" style="display: none;"></div>
             </div>
             
             <!-- Free Tier -->
-            <div class="tier-card free">
+            <div class="tier-card bronze">
                 <h2>Free Tier (Foundation)</h2>
                 <p><strong>Basic limits:</strong> 3 decodes, 2 fortunes, 3 horoscopes per day</p>
-                <button class="test-btn free" onclick="upgradeTo('foundation')">Reset to Free Tier</button>
+                <button class="test-btn bronze" onclick="upgradeTo('foundation')">Reset to Bronze Tier</button>
                 <button class="test-btn" onclick="testLimits('foundation')">Test Free Limits</button>
                 <div id="foundation-result" class="result" style="display: none;"></div>
             </div>
@@ -196,7 +196,7 @@ def test_tier_limits(tier):
         elif tier == 'premium':
             display_plan = 'premium'
         else:
-            display_plan = 'free'
+            display_plan = 'bronze'
         
         return jsonify({
             "success": True,

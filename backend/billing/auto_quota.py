@@ -96,23 +96,23 @@ def get_quota_for_plan(plan: str, model: str = "gpt-4o-mini") -> Dict[str, Any]:
     Returns:
         Quota information for the plan
     """
-    plan = (plan or "free").lower()
+    plan = (plan or "bronze").lower()
     
     # Free users get static limits (usually 0 for OpenAI usage)
-    if plan == "free":
+    if plan == "bronze":
         return {
             "per_user_per_day": int(os.getenv("COMP_MSG_LIMIT_FREE", "0")),
-            "reason": "free-plan-static",
+            "reason": "bronze-plan-static",
             "plan": plan,
             "uses_openai": False,
             "static_fallback": True
         }
     
     # Growth users get limited access
-    elif plan == "growth":
+    elif plan == "silver":
         # Could use auto-quota but with more conservative limits
         auto_result = auto_quota_tokens(model)
-        # Cap growth users to lower limits
+        # Cap silver users to lower limits
         growth_max = int(os.getenv("COMP_MSG_LIMIT_GROWTH", "15"))
         quota = min(auto_result["per_user_per_day"], growth_max)
         
@@ -124,15 +124,15 @@ def get_quota_for_plan(plan: str, model: str = "gpt-4o-mini") -> Dict[str, Any]:
             "reason": f"auto-capped-for-{plan}"
         }
     
-    # Premium users (pro, vip, max) get full auto-quota
-    elif plan in ["pro", "vip", "max"]:
+    # Premium users (gold) get full auto-quota
+    elif plan in ["gold"]:
         auto_result = auto_quota_tokens(model)
         
         # Apply plan-specific multipliers if desired
         multipliers = {
             "pro": 1.0,
             "vip": 1.2,   # 20% more for VIP
-            "max": 1.5    # 50% more for MAX
+            "gold": 1.5    # 50% more for GOLD
         }
         
         multiplier = multipliers.get(plan, 1.0)
@@ -153,10 +153,10 @@ def get_quota_for_plan(plan: str, model: str = "gpt-4o-mini") -> Dict[str, Any]:
         }
     
     else:
-        # Unknown plan, treat as free
+        # Unknown plan, treat as bronze
         return {
             "per_user_per_day": 0,
-            "reason": "unknown-plan-default-free",
+            "reason": "unknown-plan-default-bronze",
             "plan": plan,
             "uses_openai": False,
             "static_fallback": True
@@ -166,7 +166,7 @@ def get_quota_recommendations() -> Dict[str, Any]:
     """
     Get quota recommendations for all plan types
     """
-    plans = ["free", "growth", "pro", "vip", "max"]
+    plans = ["bronze", "silver", "gold"]
     recommendations = {}
     
     for plan in plans:
@@ -284,7 +284,7 @@ if __name__ == "__main__":
     
     # Test plan-specific quotas
     print(f"\n--- Plan-Specific Quotas ---")
-    plans = ["free", "growth", "pro", "vip", "max"]
+    plans = ["bronze", "silver", "gold"]
     for plan in plans:
         result = get_quota_for_plan(plan)
         print(f"{plan.upper()}: {result['per_user_per_day']} msgs/day ({result['reason']})")

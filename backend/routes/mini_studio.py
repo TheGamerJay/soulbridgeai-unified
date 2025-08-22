@@ -11,8 +11,8 @@ def is_logged_in():
 
 def get_effective_plan(user_plan, trial_active):
     """Get effective plan considering trial status"""
-    if trial_active and user_plan == "free":
-        return "max"
+    if trial_active and user_plan == "bronze":
+        return "gold"
     return user_plan
 
 bp = Blueprint("mini_studio", __name__)
@@ -29,9 +29,9 @@ def mini_studio():
     effective_plan = get_effective_plan(user_plan, trial_active)
     user_id = session.get('user_id')
     
-    # Mini studio is Max tier exclusive + trial users get access
-    if effective_plan != 'max':
-        return redirect("/tiers?upgrade=max")
+    # Mini studio is Gold tier exclusive + trial users get access
+    if effective_plan != 'gold':
+        return redirect("/tiers?upgrade=gold")
     
     # Get user credits (trainer time for mini studio)
     try:

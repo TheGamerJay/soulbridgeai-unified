@@ -1718,15 +1718,15 @@ def companion_selector_page():
         '''
         
         # Add Growth tier
-        is_growth_unlocked = effective_plan in ['growth', 'max']
+        is_silver_unlocked = effective_plan in ['silver', 'gold']
         html += f'''
-            <div class="tier {'unlocked' if is_growth_unlocked else 'locked'}">
-                <h3>📈 Growth Tier {'(Unlocked)' if is_growth_unlocked else '(Locked - Requires Growth/Max subscription)'}{' | ' if not is_growth_unlocked and effective_plan == 'free' else ''}<a href="#" onclick="trialPrompt()" style="color: #00ffff; text-decoration: none;">{' Try 5-Hour Trial!' if not is_growth_unlocked and effective_plan == 'free' else ''}</a></h3>
+            <div class="tier {'unlocked' if is_silver_unlocked else 'locked'}">
+                <h3>🥈 Silver Tier {'(Unlocked)' if is_silver_unlocked else '(Locked - Requires Silver/Gold subscription)'}{' | ' if not is_silver_unlocked and effective_plan == 'bronze' else ''}<a href="#" onclick="trialPrompt()" style="color: #00ffff; text-decoration: none;">{' Try 5-Hour Trial!' if not is_silver_unlocked and effective_plan == 'bronze' else ''}</a></h3>
                 <div class="companions">
         '''
         
         for companion in companions_by_tier['growth']:
-            if is_growth_unlocked:
+            if is_silver_unlocked:
                 html += f'''
                         <div class="companion">
                             <img src="{companion['avatar_url']}" alt="{companion['name']}">
@@ -1749,15 +1749,15 @@ def companion_selector_page():
         '''
         
         # Add Max tier
-        is_max_unlocked = effective_plan == 'max'
+        is_gold_unlocked = effective_plan == 'gold'
         html += f'''
-            <div class="tier {'unlocked' if is_max_unlocked else 'locked'}">
-                <h3>⭐ Max Tier {'(Unlocked)' if is_max_unlocked else '(Locked - Requires Max subscription)'}</h3>
+            <div class="tier {'unlocked' if is_gold_unlocked else 'locked'}">
+                <h3>🥇 Gold Tier {'(Unlocked)' if is_gold_unlocked else '(Locked - Requires Gold subscription)'}</h3>
                 <div class="companions">
         '''
         
         for companion in companions_by_tier['max']:
-            if is_max_unlocked:
+            if is_gold_unlocked:
                 html += f'''
                         <div class="companion">
                             <img src="{companion['avatar_url']}" alt="{companion['name']}">
@@ -1826,10 +1826,10 @@ def companion_selector_page():
                 function upgradePrompt(tier) {
                     let message, upgradeUrl;
                     
-                    if (tier === 'silver' || tier === 'growth') {
+                    if (tier === 'silver') {
                         message = 'This companion requires Silver tier subscription. Would you like to upgrade to unlock all Silver companions?';
                         upgradeUrl = '/plan-selection';
-                    } else if (tier === 'gold' || tier === 'max') {
+                    } else if (tier === 'gold') {
                         message = 'This companion requires Gold tier subscription. Would you like to upgrade to unlock all Gold companions?';
                         upgradeUrl = '/plan-selection';
                     }

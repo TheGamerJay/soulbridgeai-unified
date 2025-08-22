@@ -248,16 +248,16 @@ class DataVisualizationManager:
                 """)
                 
                 results = cursor.fetchall()
-                tier_counts = {"free": 0, "premium": 0, "enterprise": 0}
+                tier_counts = {"bronze": 0, "silver": 0, "gold": 0}
                 
                 for tier, count in results:
                     if tier and tier.lower() in tier_counts:
                         tier_counts[tier.lower()] = count
                 
                 chart_data["datasets"][0]["data"] = [
-                    tier_counts["free"],
-                    tier_counts["premium"], 
-                    tier_counts["enterprise"]
+                    tier_counts["bronze"],
+                    tier_counts["silver"], 
+                    tier_counts["gold"]
                 ]
             
             return chart_data

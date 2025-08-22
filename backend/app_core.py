@@ -62,7 +62,7 @@ CREDIT_COST_PER_SONG = 1        # 1 credit per new output (trim is free)
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(200), unique=True, nullable=False)
-    plan = db.Column(db.String(20), default='free')   # free | growth | max
+    plan = db.Column(db.String(20), default='bronze')   # bronze | silver | gold
     trainer_credits = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     disclaimer_accepted_at = db.Column(db.DateTime, nullable=True)
@@ -137,7 +137,7 @@ def has_active_max_trial(user):
     return True
 
 def is_max_allowed(user):
-    return bool(user and (user.plan == 'max' or has_active_max_trial(user)))
+    return bool(user and (user.plan == 'gold' or has_active_max_trial(user)))
 
 def add_trainer_credits(user, amount):
     user.trainer_credits = int(user.trainer_credits or 0) + int(amount or 0)
@@ -148,7 +148,7 @@ def ensure_monthly_credits(user):
     Resets monthly credits to 650 for Max subscribers once per calendar month.
     Triggered when visiting pages (soft auto-reset). Cron route below provides a hard reset.
     """
-    if not user or user.plan != 'max':
+    if not user or user.plan != 'gold':
         return
     today = today_utc_date()
     if (user.last_credit_reset is None) or (user.last_credit_reset.year != today.year) or (user.last_credit_reset.month != today.month):
@@ -176,7 +176,7 @@ def music_login():
         if not email: return 'Email required', 400
         user = User.query.filter_by(email=email).first()
         if not user:
-            user = User(email=email, plan='free', trainer_credits=0)
+            user = User(email=email, plan='bronze', trainer_credits=0)
             db.session.add(user); db.session.commit()
         session['uid'] = user.id
         session['user_id'] = user.id  # Compatibility with existing system
@@ -233,8 +233,8 @@ a.btn,button{background:#06b6d4;color:#001018;border:none;padding:10px 14px;bord
   <div class="card"><h3>Growth</h3><p>More features. No Mini Studio.</p></div>
   <div class="card">
     <h3>Max</h3><p>Full features + Mini Studio access.</p>
-    {% if u.plan != 'max' %}
-      <form method="post" action="{{url_for('upgrade_plan')}}"><input type="hidden" name="plan" value="max"><button>Upgrade to Max</button></form>
+    {% if u.plan != 'gold' %}
+      <form method="post" action="{{url_for('upgrade_plan')}}"><input type="hidden" name="plan" value="gold"><button>Upgrade to Gold</button></form>
     {% else %}<div class="muted">You're on Max. Monthly credits reset automatically.</div>{% endif %}
     <div style="margin-top:10px">
       {% if not u.used_max_trial and not trial_active %}
@@ -265,14 +265,14 @@ a.btn,button{background:#06b6d4;color:#001018;border:none;padding:10px 14px;bord
 @login_required
 def upgrade_plan():
     plan = request.form.get('plan')
-    if plan not in ('free','growth','max'): return 'bad plan', 400
+    if plan not in ('bronze','silver','gold'): return 'bad plan', 400
     u = current_user(); u.plan = plan; db.session.commit()
     # On upgrading to Max, assign monthly credits immediately
-    if plan == 'max':
+    if plan == 'gold':
         ensure_monthly_credits(u)
     return redirect(url_for('music_home'))
 
-@app.route('/music/trial/max/start', methods=['POST'])
+@app.route('/music/trial/gold/start', methods=['POST'])
 @login_required
 def start_max_trial():
     u = current_user()
@@ -542,7 +542,7 @@ from audio_tools import register_audio_routes
 register_audio_routes(app, db, Song, current_user, is_max_allowed, _save_new_song)
 
 # ---------- Cron-safe admin endpoints ----------
-@app.route('/admin/reset-max-credits', methods=['POST', 'GET'])
+@app.route('/admin/reset-gold-credits', methods=['POST', 'GET'])
 def reset_max_credits():
     """
     Cron-safe endpoint to refill all active Max subscribers to MONTHLY_CREDITS_MAX.
@@ -555,7 +555,7 @@ def reset_max_credits():
     dry = request.args.get('dry_run') in ('1', 'true', 'yes')
     today = today_utc_date()
 
-    users = User.query.filter_by(plan='max').all()
+    users = User.query.filter_by(plan='gold').all()
     to_reset = []
     for u in users:
         if (u.last_credit_reset is None or
