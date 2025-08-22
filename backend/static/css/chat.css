@@ -42,14 +42,14 @@ body::before {
 
 /* ========================================
    COMPANION-SPECIFIC THEMES - TIERED SYSTEM
-   FREE < GROWTH < MAX (Progressive Enhancement)
+   BRONZE < SILVER < GOLD (Progressive Enhancement)
    ======================================== */
 
 /* ========================================
-   FREE TIER THEMES - Basic Visual Effects
+   BRONZE TIER THEMES - Basic Visual Effects
    ======================================== */
 
-/* GamerJay Theme - Gaming/Tech (FREE TIER) */
+/* GamerJay Theme - Gaming/Tech (BRONZE TIER) */
 body.theme-gamerjay {
     background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
 }
@@ -77,10 +77,10 @@ body.theme-gamerjay .message.assistant .message-content {
 }
 
 /* ========================================
-   GROWTH TIER THEMES - Enhanced Effects
+   SILVER TIER THEMES - Enhanced Effects
    ======================================== */
 
-/* Sky Theme - Celestial/Spiritual (GROWTH TIER) */
+/* Sky Theme - Celestial/Spiritual (SILVER TIER) */
 body.theme-sky {
     background: linear-gradient(135deg, #0a0a2e 0%, #1a1a3a 50%, #2a2a4a 100%);
     position: relative;
@@ -131,7 +131,7 @@ body.theme-sky .message.assistant .message-content {
     box-shadow: 0 0 15px rgba(135, 206, 250, 0.1);
 }
 
-/* Blayzo Theme - Creative/Fun (GROWTH TIER) */
+/* Blayzo Theme - Creative/Fun (SILVER TIER) */
 body.theme-blayzo {
     background: linear-gradient(135deg, #2d1b69 0%, #11998e 50%, #38ef7d 100%);
     position: relative;
@@ -182,7 +182,7 @@ body.theme-blayzo .message.assistant .message-content {
     box-shadow: 0 0 15px rgba(255, 165, 0, 0.1);
 }
 
-/* Blayzica Theme - Empathetic/Caring (GROWTH TIER) */
+/* Blayzica Theme - Empathetic/Caring (SILVER TIER) */
 body.theme-blayzica {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
     position: relative;
@@ -233,7 +233,7 @@ body.theme-blayzica .message.assistant .message-content {
     box-shadow: 0 0 15px rgba(255, 182, 193, 0.1);
 }
 
-/* Claude Theme - Professional/Methodical (GROWTH TIER) */
+/* Claude Theme - Professional/Methodical (SILVER TIER) */
 body.theme-claude {
     background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #4285f4 100%);
     position: relative;
@@ -285,10 +285,10 @@ body.theme-claude .message.assistant .message-content {
 }
 
 /* ========================================
-   MAX TIER THEMES - Premium Effects
+   GOLD TIER THEMES - Premium Effects
    ======================================== */
 
-/* Crimson Theme - Transformational/Powerful (MAX TIER) */
+/* Crimson Theme - Transformational/Powerful (GOLD TIER) */
 body.theme-crimson {
     background: linear-gradient(135deg, #8B0000 0%, #DC143C 50%, #FF6347 100%);
     position: relative;
@@ -314,7 +314,7 @@ body.theme-crimson::after {
         radial-gradient(circle at 80% 20%, rgba(220, 20, 60, 0.08) 0%, transparent 40%),
         radial-gradient(circle at 20% 80%, rgba(255, 99, 71, 0.06) 0%, transparent 35%),
         radial-gradient(circle at 50% 50%, rgba(139, 0, 0, 0.05) 0%, transparent 30%),
-        /* MAX TIER EXCLUSIVE: Ultra-premium particle effects */
+        /* GOLD TIER EXCLUSIVE: Ultra-premium particle effects */
         radial-gradient(circle at 15% 45%, rgba(255, 215, 0, 0.03) 0%, transparent 20%),
         radial-gradient(circle at 85% 55%, rgba(255, 215, 0, 0.02) 0%, transparent 25%);
     pointer-events: none;
@@ -347,7 +347,7 @@ body.theme-crimson .chat-header {
         0 0 20px rgba(255, 215, 0, 0.15),
         inset 0 1px 0 rgba(255, 215, 0, 0.1);
     backdrop-filter: blur(25px) saturate(130%);
-    /* MAX TIER EXCLUSIVE: Premium border animation */
+    /* GOLD TIER EXCLUSIVE: Premium border animation */
     position: relative;
     overflow: hidden;
 }
@@ -370,7 +370,7 @@ body.theme-crimson .message.assistant .message-content {
     backdrop-filter: blur(10px);
 }
 
-/* Violet Theme - Creative/Artistic (MAX TIER) */
+/* Violet Theme - Creative/Artistic (GOLD TIER) */
 body.theme-violet {
     background: linear-gradient(135deg, #4B0082 0%, #8A2BE2 50%, #9370DB 100%);
     position: relative;
@@ -396,7 +396,7 @@ body.theme-violet::after {
         radial-gradient(circle at 75% 25%, rgba(138, 43, 226, 0.08) 0%, transparent 40%),
         radial-gradient(circle at 25% 75%, rgba(147, 112, 219, 0.06) 0%, transparent 35%),
         radial-gradient(circle at 50% 10%, rgba(75, 0, 130, 0.05) 0%, transparent 30%),
-        /* MAX TIER EXCLUSIVE: Ultra-premium sparkle effects */
+        /* GOLD TIER EXCLUSIVE: Ultra-premium sparkle effects */
         radial-gradient(circle at 10% 30%, rgba(255, 215, 0, 0.02) 0%, transparent 15%),
         radial-gradient(circle at 90% 70%, rgba(255, 215, 0, 0.03) 0%, transparent 20%);
     pointer-events: none;
@@ -428,7 +428,7 @@ body.theme-violet .message.assistant .message-content {
     backdrop-filter: blur(10px);
 }
 
-/* WatchDog Theme - Protective/Guardian (MAX TIER) */
+/* WatchDog Theme - Protective/Guardian (GOLD TIER) */
 body.theme-watchdog {
     background: linear-gradient(135deg, #2F4F4F 0%, #708090 50%, #4682B4 100%);
     position: relative;
@@ -487,7 +487,7 @@ body.theme-watchdog .message.assistant .message-content {
    REFERRAL TIER THEMES - Growth Level
    ======================================== */
 
-/* Blayzia, Blayzion - same as Growth tier styling */
+/* Blayzia, Blayzion - same as Silver tier styling */
 body.theme-blayzia {
     background: linear-gradient(135deg, #1a0033 0%, #330066 50%, #4d0099 100%);
     position: relative;
@@ -726,7 +726,7 @@ body.theme-blayzion .message.assistant .message-content {
     100% { opacity: 1.0; }
 }
 
-/* Max Tier Addon Buttons */
+/* Gold Tier Addon Buttons */
 .action-btn.addon-btn {
     border-color: rgba(139, 92, 246, 0.4);
     color: #8b5cf6;
