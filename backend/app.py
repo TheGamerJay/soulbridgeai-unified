@@ -425,19 +425,19 @@ PRICE_ADFREE = os.environ.get('STRIPE_PRICE_ADFREE', 'price_1234567890')  # Ad-f
 # ---------- Companions (bulletproof data) ----------
 COMPANIONS_NEW = [
     # Bronze tier - 8 companions
-    {"id":"gamerjay_free","name":"GamerJay Bronze","tier":"bronze","image_url":"/static/logos/GamerJay_Free_companion.png","min_referrals":0},
-    {"id":"blayzo_free","name":"Blayzo Bronze","tier":"bronze","image_url":"/static/logos/Blayzo.png","min_referrals":0},
-    {"id":"blayzica_free","name":"Blayzica","tier":"bronze","image_url":"/static/logos/Blayzica.png","min_referrals":0},
-    {"id":"claude_free","name":"Claude","tier":"bronze","image_url":"/static/logos/Claude_Free.png","min_referrals":0},
-    {"id":"blayzia_free","name":"Blayzia","tier":"bronze","image_url":"/static/logos/Blayzia.png","min_referrals":0},
-    {"id":"blayzion_free","name":"Blayzion","tier":"bronze","image_url":"/static/logos/Blayzion.png","min_referrals":0},
-    {"id":"lumen_free","name":"Lumen","tier":"bronze","image_url":"/static/logos/Lumen Bronze.png","min_referrals":0},
+    {"id":"gamerjay_bronze","name":"GamerJay Bronze","tier":"bronze","image_url":"/static/logos/GamerJay_Bronze_companion.png","min_referrals":0},
+    {"id":"blayzo_bronze","name":"Blayzo Bronze","tier":"bronze","image_url":"/static/logos/Blayzo.png","min_referrals":0},
+    {"id":"blayzica_bronze","name":"Blayzica","tier":"bronze","image_url":"/static/logos/Blayzica.png","min_referrals":0},
+    {"id":"claude_bronze","name":"Claude","tier":"bronze","image_url":"/static/logos/Claude_Bronze.png","min_referrals":0},
+    {"id":"blayzia_bronze","name":"Blayzia","tier":"bronze","image_url":"/static/logos/Blayzia.png","min_referrals":0},
+    {"id":"blayzion_bronze","name":"Blayzion","tier":"bronze","image_url":"/static/logos/Blayzion.png","min_referrals":0},
+    {"id":"lumen_bronze","name":"Lumen","tier":"bronze","image_url":"/static/logos/Lumen Bronze.png","min_referrals":0},
     {"id":"blayzo2_bronze","name":"Blayzo.2","tier":"bronze","image_url":"/static/logos/blayzo bronze tier.png","min_referrals":0},
     
     # Silver tier - 8 companions
     {"id":"sky_silver","name":"Sky Silver","tier":"silver","image_url":"/static/logos/Sky_a_premium_companion.png","min_referrals":0},
     {"id":"gamerjay_silver","name":"GamerJay Silver","tier":"silver","image_url":"/static/logos/GamerJay_premium_companion.png","min_referrals":0},
-    {"id":"claude_silver","name":"Claude","tier":"silver","image_url":"/static/logos/Claude_Growth.png","min_referrals":0},
+    {"id":"claude_silver","name":"Claude","tier":"silver","image_url":"/static/logos/Claude_Silver.png","min_referrals":0},
     {"id":"blayzo_silver","name":"Blayzo","tier":"silver","image_url":"/static/logos/Blayzo_premium_companion.png","min_referrals":0},
     {"id":"blayzica_silver","name":"Blayzica","tier":"silver","image_url":"/static/logos/Blayzica Pro.png","min_referrals":0},
     {"id":"watchdog_silver","name":"WatchDog","tier":"silver","image_url":"/static/logos/WatchDog_a_Premium_companion.png","min_referrals":0},
@@ -445,14 +445,14 @@ COMPANIONS_NEW = [
     {"id":"lumen_silver","name":"Lumen","tier":"silver","image_url":"/static/logos/Lumen Silver.png","min_referrals":0},
     
     # Gold tier - 8 companions
-    {"id":"crimson_gold","name":"Crimson","tier":"gold","image_url":"/static/logos/Crimson_a_Max_companion.png","min_referrals":0},
-    {"id":"violet_gold","name":"Violet","tier":"gold","image_url":"/static/logos/Violet_a_Max_companion.png","min_referrals":0},
-    {"id":"claude_gold","name":"Claude","tier":"gold","image_url":"/static/logos/Claude_Max.png","min_referrals":0},
-    {"id":"royal_gold","name":"Royal","tier":"gold","image_url":"/static/logos/Royal_a_Max_companion.png","min_referrals":0},
-    {"id":"ven_blayzica_gold","name":"Ven Blayzica","tier":"gold","image_url":"/static/logos/Ven_Blayzica_a_Max_companion.png","min_referrals":0},
-    {"id":"ven_sky_gold","name":"Ven Sky","tier":"gold","image_url":"/static/logos/Ven_Sky_a_Max_companion.png","min_referrals":0},
+    {"id":"crimson_gold","name":"Crimson","tier":"gold","image_url":"/static/logos/Crimson_a_Gold_companion.png","min_referrals":0},
+    {"id":"violet_gold","name":"Violet","tier":"gold","image_url":"/static/logos/Violet_a_Gold_companion.png","min_referrals":0},
+    {"id":"claude_gold","name":"Claude","tier":"gold","image_url":"/static/logos/Claude_Gold.png","min_referrals":0},
+    {"id":"royal_gold","name":"Royal","tier":"gold","image_url":"/static/logos/Royal_a_Gold_companion.png","min_referrals":0},
+    {"id":"ven_blayzica_gold","name":"Ven Blayzica","tier":"gold","image_url":"/static/logos/Ven_Blayzica_a_Gold_companion.png","min_referrals":0},
+    {"id":"ven_sky_gold","name":"Ven Sky","tier":"gold","image_url":"/static/logos/Ven_Sky_a_Gold_companion.png","min_referrals":0},
     {"id":"watchdog_gold","name":"WatchDog","tier":"gold","image_url":"/static/logos/WatchDog_a_Max_Companion.png","min_referrals":0},
-    {"id":"violet2_gold","name":"Violet","tier":"gold","image_url":"/static/logos/Violet_a_Max_companion.png","min_referrals":0},
+    {"id":"violet2_gold","name":"Violet","tier":"gold","image_url":"/static/logos/Violet_a_Gold_companion.png","min_referrals":0},
     
     # Referral companions - 5 companions (require referrals, ignore trial)
     {"id":"blayzike","name":"Blayzike","tier":"silver","image_url":"/static/referral/blayzike.png","min_referrals":2},
@@ -14717,7 +14717,7 @@ TIERS_TEMPLATE = r"""
         {% endfor %}
       </div>
       {% if user_plan=='gold' or trial_active %}
-        <div class="small" style="margin-top:6px;">Tip: Mini Studio is Max-only. Trial users can preview Max companions; usage limits still follow your plan.</div>
+        <div class="small" style="margin-top:6px;">Tip: Mini Studio is Gold-only. Trial users can preview Gold companions; usage limits still follow your plan.</div>
       {% endif %}
     </div>
 
@@ -14799,7 +14799,7 @@ TIERS_TEMPLATE = r"""
   }
   
   async function startTrial() {
-    if (!confirm('Start your 5-hour trial now? You\'ll get temporary access to preview Growth and Max companions.')) {
+    if (!confirm('Start your 5-hour trial now? You\'ll get temporary access to preview Silver and Gold companions.')) {
       return;
     }
     

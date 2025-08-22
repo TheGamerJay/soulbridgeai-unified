@@ -1493,11 +1493,11 @@
         function upgradePrompt(tier) {
             let message, upgradeUrl;
             
-            if (tier === 'growth') {
-                message = 'This companion requires Growth tier subscription. Would you like to upgrade to unlock all Growth companions?';
+            if (tier === 'silver') {
+                message = 'This companion requires Silver tier subscription. Would you like to upgrade to unlock all Silver companions?';
                 upgradeUrl = '/plan-selection';
-            } else if (tier === 'max') {
-                message = 'This companion requires Max tier subscription. Would you like to upgrade to unlock all Max companions?';
+            } else if (tier === 'gold') {
+                message = 'This companion requires Gold tier subscription. Would you like to upgrade to unlock all Gold companions?';
                 upgradeUrl = '/plan-selection';
             }
             

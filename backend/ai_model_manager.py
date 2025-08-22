@@ -98,8 +98,8 @@ class AIModelManager:
 
         # Companion-specific model assignments
         self.companion_models = {
-            "Blayzo": "openai_gpt35",  # Free tier
-            "Blayzica": "openai_gpt35",  # Free tier
+            "Blayzo": "openai_gpt35",  # Bronze tier
+            "Blayzica": "openai_gpt35",  # Bronze tier
             "Crimson": "openai_gpt4",  # Premium
             "Violet": "openai_gpt4",  # Premium
             "Blayzion": "openai_gpt4_turbo",  # Premium+

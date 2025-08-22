@@ -274,16 +274,16 @@
             margin-left: 1rem;
         }
         
-        .max-tier {
+        .gold-tier {
             background: #2a1a2a;
             border: 2px solid #a855f7;
         }
         
-        .max-tier h2 {
+        .gold-tier h2 {
             color: #a855f7;
         }
         
-        .max-tier h3 {
+        .gold-tier h3 {
             color: #a855f7;
             margin: 1.5rem 0 0.5rem 0;
         }
@@ -812,10 +812,10 @@
             <!-- 🎯 FREE TIER COMPANIONS -->
             <!-- ========================= -->
             <div class="tier-section">
-              <h2 class="tier-title">🆓 Free Tier Companions</h2>
+              <h2 class="tier-title">🥉 Bronze Tier Companions</h2>
               <div class="tier-description">
                 <p><strong>Limits:</strong> 3 Decoders / 2 Fortunes / 3 Horoscopes per day</p>
-                <p><strong>Access:</strong> Only Free-tier companions</p>
+                <p><strong>Access:</strong> Only Bronze-tier companions</p>
               </div>
 
               <div class="companion-row">
@@ -902,7 +902,7 @@
                        style="cursor: pointer;">
                     <img src="/static/logos/Royal Max.png" alt="Royal Max" onerror="this.src='/static/logos/IntroLogo.png'">
                     <div class="companion-name">Royal Max</div>
-                    <div class="companion-lock">{% if user_plan == 'gold' or trial_active %}✅ Unlocked{% else %}🔒 Max Tier{% endif %}</div>
+                    <div class="companion-lock">{% if user_plan == 'gold' or trial_active %}✅ Unlocked{% else %}🔒 Gold Tier{% endif %}</div>
                   </div>
                 </div>
               </div>
@@ -910,7 +910,7 @@
 
             <!-- 🌱 GROWTH TIER FEATURES (REAL CODE) -->
             <div class="tier-section silver-tier">
-              <h2>🌱 Growth Tier Features</h2>
+              <h2>🥈 Silver Tier Features</h2>
 
               <p>Upgrade to Growth for enhanced features, higher limits, and access to more companions.</p>
 
@@ -994,7 +994,7 @@
 
             <!-- 📦 MAX TIER UI WITH FULL FEATURE LIST, TRIAL & REFERRAL LOCKS -->
             <div class="tier-section max-tier" id="max-tier">
-              <h2>🎯 Max Tier – Unlimited Access</h2>
+              <h2>🥇 Gold Tier – Unlimited Access</h2>
               <ul class="feature-list">
                 <li>🧠 <strong>Decoder Mode</strong> <span class="badge">Unlimited</span></li>
                 <li>🔮 <strong>Fortune Teller</strong> <span class="badge">Unlimited</span></li>
