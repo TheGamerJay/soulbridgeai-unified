@@ -12538,12 +12538,24 @@ def ai_image_generation_usage():
 # Error handlers
 @app.errorhandler(404)
 def not_found(e):
-    return jsonify({"error": "Not found"}), 404
+    """Handle 404 errors - return JSON for API requests, redirect for web requests"""
+    # Check if this is an API request
+    if request.path.startswith('/api/') or 'application/json' in request.headers.get('Accept', ''):
+        return jsonify({"error": "Not found"}), 404
+    
+    # For web requests, redirect to tiers page instead of showing JSON error
+    logger.warning(f"404 Not Found: {request.path} - redirecting to tiers")
+    return redirect("/tiers")
 
 @app.errorhandler(500)
 def server_error(e):
     logger.error(f"Server error: {e}")
-    return jsonify({"error": "Internal server error"}), 500
+    # Check if this is an API request
+    if request.path.startswith('/api/') or 'application/json' in request.headers.get('Accept', ''):
+        return jsonify({"error": "Internal server error"}), 500
+    
+    # For web requests, redirect to a proper error page
+    return redirect("/tiers?error=server_error")
 
 # ========================================
 # ========================================
