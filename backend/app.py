@@ -493,18 +493,14 @@ def create_companion_routes():
                 # Set session data
                 session['selected_companion'] = comp_id
                 
-                # Use the COMPANION'S tier limits, not user's limits
-                # Bronze companions show bronze limits, Silver show silver limits, etc.
-                companion_tier = comp_tier.lower()
-                if companion_tier == "bronze":
-                    limits = {"decoder": 3, "fortune": 2, "horoscope": 3, "creative_writer": 2}
-                elif companion_tier == "silver":
-                    limits = {"decoder": 15, "fortune": 8, "horoscope": 10, "creative_writer": 20}
-                elif companion_tier == "gold":
-                    limits = {"decoder": 999, "fortune": 999, "horoscope": 999, "creative_writer": 999}
-                else:
-                    # Default to bronze limits for any unrecognized tier
-                    limits = {"decoder": 3, "fortune": 2, "horoscope": 3, "creative_writer": 2}
+                # Show USER'S actual usage limits (based on their plan + trial status)
+                # This determines what limits are displayed in the UI for usage tracking
+                limits = {
+                    "decoder": get_feature_limit(user_plan, "decoder", trial_active),
+                    "fortune": get_feature_limit(user_plan, "fortune", trial_active),
+                    "horoscope": get_feature_limit(user_plan, "horoscope", trial_active),
+                    "creative_writer": get_feature_limit(user_plan, "creative_writer", trial_active)
+                }
                 
                 # Render chat template
                 return render_template("chat.html",
