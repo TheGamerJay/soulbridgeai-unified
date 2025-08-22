@@ -56,23 +56,23 @@ def get_entitlements():
         return jsonify({"error": "Authentication required"}), 401
     
     user_id = session.get('user_id')
-    user_plan = session.get('user_plan', 'free')
+    user_plan = session.get('user_plan', 'bronze')
     trial_active = session.get('trial_active', False)
     trial_expires = session.get('trial_expires_at')
     
-    # Get effective plan (trial gives max access)
+    # Get effective plan (trial gives gold access)
     effective_plan = get_effective_plan(user_plan, trial_active)
     
     # Determine plan status
     if trial_active:
         plan_status = "trial"
         plan_name = "trial"
-    elif user_plan in ['growth', 'max']:
+    elif user_plan in ['silver', 'gold']:
         plan_status = "active"  # TODO: Check subscription status from Stripe
         plan_name = user_plan
     else:
-        plan_status = "active"  # Free is always active
-        plan_name = "free"
+        plan_status = "active"  # Bronze is always active
+        plan_name = "bronze"
     
     # Get credit balances
     total_credits = get_user_credits(user_id)
@@ -83,7 +83,7 @@ def get_entitlements():
         # During trial, all credits are trial credits
         credits = {
             "monthly": {"remaining": 0, "resets_at": "2025-09-16T10:00:00Z"},
-            "topups": {"remaining": 0, "frozen": user_plan == 'free'},
+            "topups": {"remaining": 0, "frozen": user_plan == 'bronze'},
             "trial": {"remaining": total_credits, "expires_at": trial_expires}
         }
     else:
@@ -93,19 +93,19 @@ def get_entitlements():
         
         credits = {
             "monthly": {"remaining": monthly_credits, "resets_at": "2025-09-16T10:00:00Z"},
-            "topups": {"remaining": topup_credits, "frozen": user_plan == 'free'},
+            "topups": {"remaining": topup_credits, "frozen": user_plan == 'bronze'},
             "trial": {"remaining": 0, "expires_at": None}
         }
     
     # Feature flags based on entitlements
     feature_flags = {
-        "advanced_ai": effective_plan in ['growth', 'max', 'trial'] and total_credits > 0,
-        "mini_studio": effective_plan == 'max' or (trial_active and total_credits > 0),
-        "buy_topups_enabled": user_plan in ['growth', 'max']
+        "advanced_ai": effective_plan in ['silver', 'gold', 'trial'] and total_credits > 0,
+        "mini_studio": effective_plan == 'gold' or (trial_active and total_credits > 0),
+        "buy_topups_enabled": user_plan in ['silver', 'gold']
     }
     
     # Ads configuration
-    ads_enabled = user_plan == 'free'  # TODO: Check ad-free addon
+    ads_enabled = user_plan == 'bronze'  # TODO: Check ad-free addon
     
     return jsonify({
         "plan": plan_name,
@@ -150,10 +150,10 @@ def start_trial():
         return jsonify({"error": "Authentication required"}), 401
     
     user_id = session.get('user_id')
-    user_plan = session.get('user_plan', 'free')
+    user_plan = session.get('user_plan', 'bronze')
     
     # Check eligibility
-    if user_plan in ['growth', 'max']:
+    if user_plan in ['silver', 'gold']:
         return jsonify({"error": "trial_not_eligible"}), 403
     
     # Check if already used (TODO: Check database)
@@ -168,7 +168,7 @@ def start_trial():
         # Set trial state
         session['trial_active'] = True
         session['trial_expires_at'] = expires_at
-        session['effective_plan'] = 'max'
+        session['effective_plan'] = 'gold'
         
         return jsonify({
             "plan": "trial",
@@ -196,19 +196,19 @@ def get_credits():
         return jsonify({"error": "Authentication required"}), 401
     
     user_id = session.get('user_id')
-    user_plan = session.get('user_plan', 'free')
+    user_plan = session.get('user_plan', 'bronze')
     trial_active = session.get('trial_active', False)
     
     total_credits = get_user_credits(user_id)
     
     return jsonify({
         "monthly": {
-            "remaining": total_credits if user_plan in ['growth', 'max'] else 0,
+            "remaining": total_credits if user_plan in ['silver', 'gold'] else 0,
             "resets_at": "2025-09-16T10:00:00Z"  # TODO: Calculate from billing cycle
         },
         "topups": {
             "remaining": 0,  # TODO: Implement separate topup tracking
-            "frozen": user_plan == 'free'
+            "frozen": user_plan == 'bronze'
         },
         "trial": {
             "remaining": total_credits if trial_active else 0,
@@ -282,7 +282,7 @@ def advanced_ai_generate():
         return jsonify({"error": "prompt required"}), 400
     
     user_id = session.get('user_id')
-    user_plan = session.get('user_plan', 'free')
+    user_plan = session.get('user_plan', 'bronze')
     
     # Check entitlements
     if not can_access_feature(user_id, 'ai_images'):
@@ -324,17 +324,17 @@ def get_credit_store():
         return jsonify({"error": "Authentication required"}), 401
     
     user_id = session.get('user_id')
-    user_plan = session.get('user_plan', 'free')
+    user_plan = session.get('user_plan', 'bronze')
     
-    # Free users see upsell
-    if user_plan == 'free':
+    # Bronze users see upsell
+    if user_plan == 'bronze':
         return jsonify({
             "available": False,
-            "message": "Subscribe to Growth or Max to buy credits",
+            "message": "Subscribe to Silver or Gold to buy credits",
             "upgrade_url": "/subscription",
             "plans": [
-                {"name": "Growth", "price": "$12.99/mo", "credits": "100/month"},
-                {"name": "Max", "price": "$19.99/mo", "credits": "500/month"}
+                {"name": "Silver", "price": "$12.99/mo", "credits": "100/month"},
+                {"name": "Gold", "price": "$19.99/mo", "credits": "500/month"}
             ]
         })
     
@@ -351,8 +351,8 @@ def get_credit_store():
         "bundles": bundles,
         "upsell": upsell,
         "tier_benefits": {
-            "growth": "Growth tier pricing",
-            "max": "Max tier gets better value!"
+            "silver": "Silver tier pricing",
+            "gold": "Gold tier gets better value!"
         }.get(user_plan)
     })
 
@@ -367,11 +367,11 @@ def purchase_credits():
         return jsonify({"error": "bundle_id required"}), 400
     
     user_id = session.get('user_id')
-    user_plan = session.get('user_plan', 'free')
+    user_plan = session.get('user_plan', 'bronze')
     bundle_id = data['bundle_id']
     
-    # Free users can't buy credits
-    if user_plan == 'free':
+    # Bronze users can't buy credits
+    if user_plan == 'bronze':
         return jsonify({"error": "subscription_required"}), 403
     
     # Find the bundle

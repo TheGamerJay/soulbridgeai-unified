@@ -14,12 +14,9 @@ from collections import defaultdict
 logger = logging.getLogger(__name__)
 
 class CompanionTier(Enum):
-    BRONZE = "bronze"     # New Bronze tier
-    FREE = "free"         # Legacy support
-    SILVER = "silver"     # New Silver tier  
-    GROWTH = "growth"     # Legacy support
-    GOLD = "gold"         # New Gold tier
-    MAX = "max"           # Legacy support
+    BRONZE = "bronze"     # Bronze tier
+    SILVER = "silver"     # Silver tier  
+    GOLD = "gold"         # Gold tier
     REFERRAL = "referral"
 
 class UnlockType(Enum):
@@ -266,9 +263,9 @@ class CompanionSystem:
         achievements = achievements or []
         
         accessible_companions = {
-            'free': [],
-            'growth': [],
-            'max': [],
+            'bronze': [],
+            'silver': [],
+            'gold': [],
             'referral': [],
             'locked': []
         }
@@ -282,19 +279,20 @@ class CompanionSystem:
             # Check access based on companion tier
             has_access = False
             
-            if companion.tier in [CompanionTier.BRONZE, CompanionTier.FREE]:
+            if companion.tier == CompanionTier.BRONZE:
                 has_access = True
-            elif companion.tier in [CompanionTier.SILVER, CompanionTier.GROWTH]:
-                has_access = subscription_tier in ['silver', 'growth', 'gold', 'max']
-            elif companion.tier in [CompanionTier.GOLD, CompanionTier.MAX]:
-                has_access = subscription_tier in ['gold', 'max']
+            elif companion.tier == CompanionTier.SILVER:
+                has_access = subscription_tier in ['silver', 'gold']
+            elif companion.tier == CompanionTier.GOLD:
+                has_access = subscription_tier in ['gold']
             elif companion.tier == CompanionTier.REFERRAL:
                 required_points = companion.unlock_requirements.get('referral_points', 0)
                 has_access = referral_points >= required_points
             
             # Add to appropriate section
             if has_access:
-                accessible_companions[companion.tier.value].append(companion_dict)
+                tier_key = companion.tier.value if companion.tier.value in accessible_companions else 'bronze'
+                accessible_companions[tier_key].append(companion_dict)
             else:
                 companion_dict['lock_reason'] = self._get_lock_reason(companion, subscription_tier, referral_points)
                 accessible_companions['locked'].append(companion_dict)
@@ -330,8 +328,8 @@ class CompanionSystem:
         
         # Check if user has access
         accessible = self.get_user_accessible_companions(user_id, subscription_tier, referral_points)
-        all_accessible = (accessible['free'] + accessible['growth'] + 
-                         accessible['max'] + accessible['referral'])
+        all_accessible = (accessible['bronze'] + accessible['silver'] + 
+                         accessible['gold'] + accessible['referral'])
         
         accessible_ids = [comp['companion_id'] for comp in all_accessible]
         
@@ -374,14 +372,14 @@ class CompanionSystem:
     def get_recommended_companions(self, user_id: str, subscription_tier: str) -> List[Dict[str, Any]]:
         """Get recommended companions for user"""
         accessible = self.get_user_accessible_companions(user_id, subscription_tier)
-        all_accessible = (accessible['free'] + accessible['growth'] + 
-                         accessible['max'] + accessible['referral'])
+        all_accessible = (accessible['bronze'] + accessible['silver'] + 
+                         accessible['gold'] + accessible['referral'])
         
         recommended = [comp for comp in all_accessible if comp['is_recommended']]
         return recommended[:2]  # Top 2 recommendations
     
     def get_trial_companion(self, user_id: str, companion_id: str) -> Dict[str, Any]:
-        """Allow free users to trial a premium companion for limited time"""
+        """Allow bronze users to trial a premium companion for limited time"""
         if companion_id not in self.companions:
             return {"success": False, "error": "Companion not found"}
         
