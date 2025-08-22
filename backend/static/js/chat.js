@@ -66,6 +66,14 @@ function cleanCharacterName(name) {
         'blayzica_free': 'Blayzica', 
         'companion_gamerjay': 'GamerJay',
         'gamerjay_free': 'GamerJay',
+        'gamerjay_bronze': 'GamerJay Bronze',
+        'blayzo_bronze': 'Blayzo Bronze',
+        'blayzica_bronze': 'Blayzica',
+        'claude_bronze': 'Claude',
+        'blayzia_bronze': 'Blayzia',
+        'blayzion_bronze': 'Blayzion',
+        'lumen_bronze': 'Lumen',
+        'blayzo2_bronze': 'Blayzo.2',
         'gamerjay': 'GamerJay',
         'blayzia_free': 'Blayzia',
         'blayzion_free': 'Blayzion',
@@ -126,15 +134,16 @@ function loadCharacterInfo() {
     // Priority: URL > Server > Storage
     if (urlCharacter) {
         currentCharacter = urlCharacter.charAt(0).toUpperCase() + urlCharacter.slice(1);
+        // Clean immediately to prevent race condition glitches
+        currentCharacter = cleanCharacterName(currentCharacter);
         localStorage.setItem('selectedCharacter', currentCharacter);
         console.log('🔄 Character loaded from URL:', currentCharacter);
     } else {
         currentCharacter = serverCharacter || storageCharacter || 'AI Assistant';
+        // Clean immediately to prevent race condition glitches  
+        currentCharacter = cleanCharacterName(currentCharacter);
         console.log('🤖 Character loaded from storage/server:', currentCharacter);
     }
-    
-    // Clean up character names to remove suffixes like "_free", "_premium", etc.
-    currentCharacter = cleanCharacterName(currentCharacter);
     
     // Update UI with character info
     updateCharacterDisplay();
@@ -175,43 +184,78 @@ function updateCharacterDisplay() {
     if (characterAvatar) {
         // Map display names to their actual image files
         const avatarMap = {
-            // FREE TIER
+            // BRONZE TIER (Display Names)
             'GamerJay': '/static/logos/GamerJay_Free_companion.png', // URL-safe filename
+            'GamerJay Bronze': '/static/logos/GamerJay_Free_companion.png', // URL-safe filename
+            'Blayzo Bronze': '/static/logos/Blayzo.png',
             'Claude': '/static/logos/Claude_Free.png', // URL-safe filename
+            'Blayzica': '/static/logos/Blayzica.png',
             'Blayzia': '/static/logos/Blayzia.png',
             'Blayzion': '/static/logos/Blayzion.png', 
             'Lumen': '/static/logos/Lumen_Bronze.png',
             'Blayzo.2': '/static/logos/blayzo_free_tier.png',
             
-            // SILVER TIER
+            // BRONZE TIER (Backend IDs)
+            'gamerjay_bronze': '/static/logos/GamerJay_Free_companion.png',
+            'blayzo_bronze': '/static/logos/Blayzo.png',
+            'blayzica_bronze': '/static/logos/Blayzica.png',
+            'claude_bronze': '/static/logos/Claude_Free.png',
+            'blayzia_bronze': '/static/logos/Blayzia.png',
+            'blayzion_bronze': '/static/logos/Blayzion.png',
+            'lumen_bronze': '/static/logos/Lumen_Bronze.png',
+            'blayzo2_bronze': '/static/logos/blayzo_free_tier.png',
+            
+            // SILVER TIER (Display Names)
             'Sky': '/static/logos/Sky_a_premium_companion.png', // URL-safe filename
+            'Sky Silver': '/static/logos/Sky_a_premium_companion.png', // URL-safe filename
+            'GamerJay Silver': '/static/logos/GamerJay_premium_companion.png', // URL-safe filename
             'Blayzo': '/static/logos/Blayzo.png',
             'Blayzo Pro': '/static/logos/Blayzo_premium_companion.png', // URL-safe filename
             'Blayzo Champion': '/static/logos/Blayzo_Referral.png', // URL-safe filename
             'Blayzica': '/static/logos/Blayzica.png', // Free version
             'Blayzica Pro': '/static/logos/Blayzica_Pro.png', // Using correct Pro image
             'GamerJay Premium': '/static/logos/GamerJay_premium_companion.png', // URL-safe filename
-            'gamerjay_premium': '/static/logos/GamerJay_premium_companion.png', // Backend companion ID format
             'Claude Growth': '/static/logos/Claude_Growth.png', // URL-safe filename
             'WatchDog': '/static/logos/WatchDog_a_Premium_companion.png', // URL-safe filename
             'Rozia': '/static/logos/Rozia_Silver.png',
             
-            // MAX TIER
+            // SILVER TIER (Backend IDs)
+            'sky_silver': '/static/logos/Sky_a_premium_companion.png',
+            'gamerjay_silver': '/static/logos/GamerJay_premium_companion.png',
+            'claude_silver': '/static/logos/Claude_Growth.png',
+            'blayzo_silver': '/static/logos/Blayzo_premium_companion.png',
+            'blayzica_silver': '/static/logos/Blayzica_Pro.png',
+            'watchdog_silver': '/static/logos/WatchDog_a_Premium_companion.png',
+            'rozia_silver': '/static/logos/Rozia_Silver.png',
+            'lumen_silver': '/static/logos/Lumen_Silver.png',
+            'gamerjay_premium': '/static/logos/GamerJay_premium_companion.png', // Backend companion ID format
+            
+            // GOLD TIER (Display Names)
             'Crimson': '/static/logos/Crimson.png',
             'Crimson Max': '/static/logos/Crimson_a_Max_companion.png', // URL-safe filename
-            'companion_crimson': '/static/logos/Crimson_a_Max_companion.png', // Backend ID
             'Violet': '/static/logos/Violet.png',
             'Violet Max': '/static/logos/Violet_a_Max_companion.png', // URL-safe filename
-            'companion_violet': '/static/logos/Violet_a_Max_companion.png', // Backend ID
             'WatchDog Max': '/static/logos/WatchDog_a_Max_Companion.png', // URL-safe filename
-            'watchdog_max': '/static/logos/WatchDog_a_Max_Companion.png', // Backend ID
             'Royal': '/static/logos/Royal_a_Max_companion.png', // URL-safe filename
-            'royal_max': '/static/logos/Royal_a_Max_companion.png', // Backend ID
             'Ven Blayzica': '/static/logos/Ven_Blayzica_a_Max_companion.png', // URL-safe filename
-            'ven_blayzica': '/static/logos/Ven_Blayzica_a_Max_companion.png', // Backend ID
             'Ven Sky': '/static/logos/Ven_Sky_a_Max_companion.png', // URL-safe filename
-            'ven_sky': '/static/logos/Ven_Sky_a_Max_companion.png', // Backend ID
             'Claude Max': '/static/logos/Claude_Max.png', // URL-safe filename
+            
+            // GOLD TIER (Backend IDs)
+            'crimson_gold': '/static/logos/Crimson_a_Max_companion.png',
+            'violet_gold': '/static/logos/Violet_a_Max_companion.png',
+            'claude_gold': '/static/logos/Claude_Max.png',
+            'royal_gold': '/static/logos/Royal_a_Max_companion.png',
+            'ven_blayzica_gold': '/static/logos/Ven_Blayzica_a_Max_companion.png',
+            'ven_sky_gold': '/static/logos/Ven_Sky_a_Max_companion.png',
+            'watchdog_gold': '/static/logos/WatchDog_a_Max_Companion.png',
+            'violet2_gold': '/static/logos/Violet_a_Max_companion.png',
+            'companion_crimson': '/static/logos/Crimson_a_Max_companion.png', // Backend ID
+            'companion_violet': '/static/logos/Violet_a_Max_companion.png', // Backend ID
+            'watchdog_max': '/static/logos/WatchDog_a_Max_Companion.png', // Backend ID
+            'royal_max': '/static/logos/Royal_a_Max_companion.png', // Backend ID
+            'ven_blayzica': '/static/logos/Ven_Blayzica_a_Max_companion.png', // Backend ID
+            'ven_sky': '/static/logos/Ven_Sky_a_Max_companion.png', // Backend ID
             'claude_max': '/static/logos/Claude_Max.png', // Backend ID
             
             // REFERRAL TIER
@@ -225,7 +269,8 @@ function updateCharacterDisplay() {
             'Sapphire': '/static/logos/Sapphire.png'
         };
         
-        const avatarSrc = avatarMap[currentCharacter] || '/static/logos/IntroLogo.png';
+        // Try both the display name and the original character ID for lookup
+        const avatarSrc = avatarMap[currentCharacter] || avatarMap[currentCharacter.toLowerCase()] || '/static/logos/IntroLogo.png';
         characterAvatar.src = avatarSrc;
         characterAvatar.alt = currentCharacter;
         console.log('🖼️ Updated character avatar to:', avatarSrc);
