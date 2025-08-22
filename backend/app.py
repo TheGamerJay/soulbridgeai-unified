@@ -6516,7 +6516,6 @@ def create_checkout_session():
         try:
             # Create Stripe checkout session
             checkout_session = stripe.checkout.Session.create(
-                payment_method_types=['card'],
                 customer_email=user_email,
                 line_items=[{
                     'price_data': {
@@ -6607,7 +6606,6 @@ def create_addon_checkout():
         try:
             # Create Stripe checkout session for add-on
             checkout_session = stripe.checkout.Session.create(
-                payment_method_types=['card'],
                 customer_email=user_email,
                 line_items=[{
                     'price_data': {
@@ -9419,7 +9417,6 @@ def api_subscription_upgrade():
             }
             
             checkout_session = stripe.checkout.Session.create(
-                payment_method_types=['card'],
                 line_items=[{
                     'price_data': {
                         'currency': 'usd',
@@ -12941,7 +12938,6 @@ def create_switching_payment():
         
         # Create Stripe checkout session for $3 switching payment
         checkout_session = stripe.checkout.Session.create(
-            payment_method_types=['card'],
             line_items=[{
                 'price_data': {
                     'currency': 'usd',
@@ -17166,7 +17162,6 @@ def api_buy_credits():
         
         # Create Stripe checkout session
         checkout_session = stripe.checkout.Session.create(
-            payment_method_types=['card'],
             line_items=[{
                 'price_data': {
                     'currency': 'usd',
