@@ -2353,7 +2353,7 @@ Where emotion meets expression.
                 // Logging removed for production hygiene
                 
                 // Show alert with debug info ONLY if user SHOULD have premium features but doesn't
-                const shouldHavePremium = sessionData.access_growth || sessionData.access_max || sessionData.trial_active;
+                const shouldHavePremium = sessionData.access_silver || sessionData.access_gold || sessionData.trial_active;
                 const hasPremiumFeatures = voiceJournal || aiImages || relationships || meditations || writeBtn;
                 
                 if (shouldHavePremium && !hasPremiumFeatures) {

@@ -237,7 +237,7 @@ def register_debug_endpoints(app):
             return jsonify({"error": "Not authenticated"}), 401
         keys = (
             "trial_active", "trial_started_at", "trial_expires_at",
-            "access_trial", "access_growth", "access_max", "user_plan"
+            "access_trial", "access_silver", "access_gold", "user_plan"
         )
         return jsonify({k: session.get(k) for k in keys})
 
@@ -2394,6 +2394,10 @@ def user_info():
             "trial_used_permanently": trial_used_permanently,
             "effective_plan": effective_plan,
             "trial_remaining": trial_remaining,
+            "access_bronze": True,
+            "access_silver": effective_plan in ['silver', 'gold'] or trial_active,
+            "access_gold": effective_plan == 'gold' or trial_active,
+            "access_trial": trial_active,
             "limits": {
                 "decoder": get_feature_limit(user_plan, "decoder", trial_active), 
                 "fortune": get_feature_limit(user_plan, "fortune", trial_active),
@@ -8804,9 +8808,9 @@ def debug_session_state():
             "user_plan": "bronze",
             "effective_plan": "bronze", 
             "trial_active": False,
-            "access_free": True,
-            "access_growth": False,
-            "access_max": False
+            "access_bronze": True,
+            "access_silver": False,
+            "access_gold": False
         })
     
     # Use session values set by @app.before_request with plan migration
