@@ -2019,7 +2019,9 @@ def auth_login():
                 'premium': 'silver', 'growth': 'silver',         # Silver tier  
                 'enterprise': 'gold', 'max': 'gold'             # Gold tier
             }
-            session['user_plan'] = plan_mapping.get(raw_plan, raw_plan or 'bronze')
+            # Use user_plan field first (more accurate), fallback to plan_type
+            actual_plan = raw_user_plan or raw_plan
+            session['user_plan'] = plan_mapping.get(actual_plan, actual_plan or 'bronze')
             session['display_name'] = result.get('display_name', 'User')
             # Auto-migrate legacy plans in database
             needs_migration = False
