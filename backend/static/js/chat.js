@@ -180,8 +180,8 @@ function updateCharacterDisplay() {
             'Claude': '/static/logos/Claude_Free.png', // URL-safe filename
             'Blayzia': '/static/logos/Blayzia.png',
             'Blayzion': '/static/logos/Blayzion.png', 
-            'Lumen': '/static/logos/Lumen Bronze.png',
-            'Blayzo.2': '/static/logos/blayzo bronze tier.png',
+            'Lumen': '/static/logos/Lumen_Bronze.png',
+            'Blayzo.2': '/static/logos/blayzo_free_tier.png',
             
             // SILVER TIER
             'Sky': '/static/logos/Sky_a_premium_companion.png', // URL-safe filename

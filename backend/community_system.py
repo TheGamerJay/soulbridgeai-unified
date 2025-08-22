@@ -1426,8 +1426,8 @@ def select_companion_direct(companion_id):
             8: {'name': 'Claude', 'tier': 'bronze', 'avatar_url': '/static/logos/Claude_Free.png'},
             9: {'name': 'Blayzia', 'tier': 'bronze', 'avatar_url': '/static/logos/Blayzia.png'},
             10: {'name': 'Blayzion', 'tier': 'bronze', 'avatar_url': '/static/logos/Blayzion.png'},
-            25: {'name': 'Lumen', 'tier': 'bronze', 'avatar_url': '/static/logos/Lumen Bronze.png'},
-            27: {'name': 'Blayzo.2', 'tier': 'bronze', 'avatar_url': '/static/logos/blayzo free tier.png'},
+            25: {'name': 'Lumen', 'tier': 'bronze', 'avatar_url': '/static/logos/Lumen_Bronze.png'},
+            27: {'name': 'Blayzo.2', 'tier': 'bronze', 'avatar_url': '/static/logos/blayzo_free_tier.png'},
             11: {'name': 'Blayzike', 'tier': 'referral', 'avatar_url': '/static/logos/Blayzike.png'},
             12: {'name': 'Blazelian', 'tier': 'referral', 'avatar_url': '/static/logos/Blazelian.png'},
             # Silver tier companions
@@ -1633,8 +1633,8 @@ def companion_selector_page():
                 {'id': 8, 'name': 'Claude', 'avatar_url': '/static/logos/Claude_Free.png'},
                 {'id': 9, 'name': 'Blayzia', 'avatar_url': '/static/logos/Blayzia.png'},
                 {'id': 10, 'name': 'Blayzion', 'avatar_url': '/static/logos/Blayzion.png'},
-                {'id': 25, 'name': 'Lumen', 'avatar_url': '/static/logos/Lumen Bronze.png'},
-                {'id': 27, 'name': 'Blayzo.2', 'avatar_url': '/static/logos/blayzo free tier.png'}
+                {'id': 25, 'name': 'Lumen', 'avatar_url': '/static/logos/Lumen_Bronze.png'},
+                {'id': 27, 'name': 'Blayzo.2', 'avatar_url': '/static/logos/blayzo_free_tier.png'}
             ],
             'silver': [
                 {'id': 2, 'name': 'Sky', 'avatar_url': '/static/logos/Sky_a_premium_companion.png'},

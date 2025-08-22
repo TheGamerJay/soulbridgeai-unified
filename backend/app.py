@@ -431,8 +431,8 @@ COMPANIONS_NEW = [
     {"id":"claude_bronze","name":"Claude","tier":"bronze","image_url":"/static/logos/Claude_Free.png","min_referrals":0},
     {"id":"blayzia_bronze","name":"Blayzia","tier":"bronze","image_url":"/static/logos/Blayzia.png","min_referrals":0},
     {"id":"blayzion_bronze","name":"Blayzion","tier":"bronze","image_url":"/static/logos/Blayzion.png","min_referrals":0},
-    {"id":"lumen_bronze","name":"Lumen","tier":"bronze","image_url":"/static/logos/Lumen Bronze.png","min_referrals":0},
-    {"id":"blayzo2_bronze","name":"Blayzo.2","tier":"bronze","image_url":"/static/logos/blayzo free tier.png","min_referrals":0},
+    {"id":"lumen_bronze","name":"Lumen","tier":"bronze","image_url":"/static/logos/Lumen_Bronze.png","min_referrals":0},
+    {"id":"blayzo2_bronze","name":"Blayzo.2","tier":"bronze","image_url":"/static/logos/blayzo_free_tier.png","min_referrals":0},
     
     # Silver tier - 8 companions
     {"id":"sky_silver","name":"Sky Silver","tier":"silver","image_url":"/static/logos/Sky_a_premium_companion.png","min_referrals":0},
