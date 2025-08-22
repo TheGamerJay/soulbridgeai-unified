@@ -352,7 +352,7 @@
         <li><span class="feature-icon">✅</span> Custom companion training</li>
       </ul>
       
-      <button class="select-btn paid" onclick="selectPlan('premium')">Choose Silver</button>
+      <button class="select-btn paid" onclick="selectPlan('silver')">Choose Silver</button>
     </div>
 
     <!-- Gold Plan (Premium) -->
@@ -378,7 +378,7 @@
         <li><span class="feature-icon">✅</span> 1-on-1 onboarding session</li>
       </ul>
       
-      <button class="select-btn premium" onclick="selectPlan('enterprise')">Choose Gold</button>
+      <button class="select-btn premium" onclick="selectPlan('gold')">Choose Gold</button>
     </div>
   </div>
 
@@ -525,7 +525,7 @@
         Upgrade to Silver or Gold Plan to purchase additional trainer time when you run out of your monthly allowance. Remember: trainer time resets monthly with no rollover.
       </p>
       <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;">
-        <button onclick="selectPlan('premium')" style="
+        <button onclick="selectPlan('silver')" style="
           background: linear-gradient(135deg, #22d3ee, #0891b2);
           color: #000;
           border: none;
@@ -538,7 +538,7 @@
         " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
           🥈 Silver Plan
         </button>
-        <button onclick="selectPlan('enterprise')" style="
+        <button onclick="selectPlan('gold')" style="
           background: linear-gradient(135deg, #22d3ee, #0891b2);
           color: #000;
           border: none;
@@ -1019,9 +1019,9 @@ function selectPlan(planType) {
   let billingPeriod = 'monthly';
   if (planType === 'ad_free') {
     billingPeriod = tierPricing['ad-free'];
-  } else if (planType === 'premium') {
+  } else if (planType === 'silver') {
     billingPeriod = tierPricing['silver'];
-  } else if (planType === 'enterprise') {
+  } else if (planType === 'gold') {
     billingPeriod = tierPricing['transformation'];
   }
   
@@ -1034,9 +1034,9 @@ function selectPlan(planType) {
   let selectedCard = null;
   if (planType === 'ad_free') {
     selectedCard = document.querySelector('.plan-card'); // First card
-  } else if (planType === 'premium') {
+  } else if (planType === 'silver') {
     selectedCard = document.querySelector('.plan-card.recommended'); // Silver card
-  } else if (planType === 'enterprise') {
+  } else if (planType === 'gold') {
     selectedCard = document.querySelectorAll('.plan-card')[2]; // Gold card
   }
   
@@ -1277,7 +1277,7 @@ function showUpgradePrompt(featureName, description) {
       </p>
       
       <div style="display: flex; gap: 15px; justify-content: center; margin-top: 30px;">
-        <button onclick="selectPlan('premium')" style="
+        <button onclick="selectPlan('silver')" style="
           background: linear-gradient(135deg, #22d3ee, #0891b2);
           color: #000;
           border: none;
@@ -1287,7 +1287,7 @@ function showUpgradePrompt(featureName, description) {
           cursor: pointer;
           font-size: 1rem;
         ">🥈 Upgrade to Silver</button>
-        <button onclick="selectPlan('enterprise')" style="
+        <button onclick="selectPlan('gold')" style="
           background: linear-gradient(135deg, #22d3ee, #0891b2);
           color: #000;
           border: none;
