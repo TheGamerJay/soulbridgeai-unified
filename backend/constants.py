@@ -6,21 +6,21 @@ Centralized configuration for all magic numbers and constants
 
 # Feature limits per plan
 PLAN_LIMITS = {
-    "free": {
+    "bronze": {
         "decoder": 3,
         "fortune": 2, 
         "horoscope": 3,
-        "creative_writer": 2,  # 2 uses per day for free tier
+        "creative_writer": 2,  # 2 uses per day for bronze tier
         "library_chats": 3     # Save max 3 chat conversations
     },
-    "growth": {
+    "silver": {
         "decoder": 15,
         "fortune": 8,
         "horoscope": 10,
         "creative_writer": 20,  # 20 uses per day
         "library_chats": 50     # Save max 50 chat conversations
     },
-    "max": {
+    "gold": {
         "decoder": 999999,  # Large number that displays as "unlimited"
         "fortune": 999999,  # Large number that displays as "unlimited"
         "horoscope": 999999,  # Large number that displays as "unlimited"
@@ -31,21 +31,21 @@ PLAN_LIMITS = {
 
 # Feature access per plan
 FEATURE_ACCESS = {
-    "free": {
+    "bronze": {
         "voice_journal": False,
         "ai_image": False,
         "creative_writer": True,
         "library": True,
         "mini_studio": False
     },
-    "growth": {
+    "silver": {
         "voice_journal": True,
         "ai_image": True,
         "creative_writer": True,
         "library": True,
         "mini_studio": False
     },
-    "max": {
+    "gold": {
         "voice_journal": True,
         "ai_image": True,
         "creative_writer": True,

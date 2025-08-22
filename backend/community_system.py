@@ -1420,34 +1420,34 @@ def select_companion_direct(companion_id):
         # Define available companions by tier
         available_companions = {
             # Free tier companions
-            1: {'name': 'GamerJay', 'tier': 'free', 'avatar_url': '/static/logos/GamerJay Free companion.png'},
-            5: {'name': 'Blayzo', 'tier': 'free', 'avatar_url': '/static/logos/Blayzo.png'},
-            6: {'name': 'Blayzica', 'tier': 'free', 'avatar_url': '/static/logos/Blayzica.png'},
-            8: {'name': 'Claude', 'tier': 'free', 'avatar_url': '/static/logos/Claude Free.png'},
-            9: {'name': 'Blayzia', 'tier': 'free', 'avatar_url': '/static/logos/Blayzia.png'},
-            10: {'name': 'Blayzion', 'tier': 'free', 'avatar_url': '/static/logos/Blayzion.png'},
-            25: {'name': 'Lumen', 'tier': 'free', 'avatar_url': '/static/logos/Lumen Bronze.png'},
-            27: {'name': 'Blayzo.2', 'tier': 'free', 'avatar_url': '/static/logos/blayzo free tier.png'},
+            1: {'name': 'GamerJay', 'tier': 'bronze', 'avatar_url': '/static/logos/GamerJay Free companion.png'},
+            5: {'name': 'Blayzo', 'tier': 'bronze', 'avatar_url': '/static/logos/Blayzo.png'},
+            6: {'name': 'Blayzica', 'tier': 'bronze', 'avatar_url': '/static/logos/Blayzica.png'},
+            8: {'name': 'Claude', 'tier': 'bronze', 'avatar_url': '/static/logos/Claude Free.png'},
+            9: {'name': 'Blayzia', 'tier': 'bronze', 'avatar_url': '/static/logos/Blayzia.png'},
+            10: {'name': 'Blayzion', 'tier': 'bronze', 'avatar_url': '/static/logos/Blayzion.png'},
+            25: {'name': 'Lumen', 'tier': 'bronze', 'avatar_url': '/static/logos/Lumen Bronze.png'},
+            27: {'name': 'Blayzo.2', 'tier': 'bronze', 'avatar_url': '/static/logos/blayzo free tier.png'},
             11: {'name': 'Blayzike', 'tier': 'referral', 'avatar_url': '/static/logos/Blayzike.png'},
             12: {'name': 'Blazelian', 'tier': 'referral', 'avatar_url': '/static/logos/Blazelian.png'},
-            # Growth tier companions
-            2: {'name': 'Sky', 'tier': 'growth', 'avatar_url': '/static/logos/Sky a premium companion.png'},
-            7: {'name': 'GamerJay', 'tier': 'growth', 'avatar_url': '/static/logos/GamerJay premium companion.png'},
-            20: {'name': 'Claude', 'tier': 'growth', 'avatar_url': '/static/logos/Claude Growth.png'},
-            21: {'name': 'Blayzo', 'tier': 'growth', 'avatar_url': '/static/logos/Blayzo premium companion.png'},
-            22: {'name': 'Blayzica', 'tier': 'growth', 'avatar_url': '/static/logos/Blayzica Pro.png'},
-            23: {'name': 'WatchDog', 'tier': 'growth', 'avatar_url': '/static/logos/WatchDog a Premium companion.png'},
-            24: {'name': 'Rozia', 'tier': 'growth', 'avatar_url': '/static/logos/Rozia Silver .png'},
-            26: {'name': 'Lumen', 'tier': 'growth', 'avatar_url': '/static/logos/Lumen Silver.png'},
-            # Max tier companions
-            3: {'name': 'Crimson', 'tier': 'max', 'avatar_url': '/static/logos/Crimson a Max companion.png'},
-            4: {'name': 'Violet', 'tier': 'max', 'avatar_url': '/static/logos/Violet.png'},
-            30: {'name': 'Claude', 'tier': 'max', 'avatar_url': '/static/logos/Claude Max.png'},
-            31: {'name': 'Royal', 'tier': 'max', 'avatar_url': '/static/logos/Royal_a_Max_companion.png'},
-            43: {'name': 'Violet', 'tier': 'max', 'avatar_url': '/static/logos/Violet_a_Max_companion.png'},
-            32: {'name': 'Ven Blayzica', 'tier': 'max', 'avatar_url': '/static/logos/Ven_Blayzica_a_Max_companion.png'},
-            33: {'name': 'Ven Sky', 'tier': 'max', 'avatar_url': '/static/logos/Ven_Sky_a_Max_companion.png'},
-            34: {'name': 'WatchDog', 'tier': 'max', 'avatar_url': '/static/logos/WatchDog a Max Companion.png'},
+            # Silver tier companions
+            2: {'name': 'Sky', 'tier': 'silver', 'avatar_url': '/static/logos/Sky a premium companion.png'},
+            7: {'name': 'GamerJay', 'tier': 'silver', 'avatar_url': '/static/logos/GamerJay premium companion.png'},
+            20: {'name': 'Claude', 'tier': 'silver', 'avatar_url': '/static/logos/Claude Growth.png'},
+            21: {'name': 'Blayzo', 'tier': 'silver', 'avatar_url': '/static/logos/Blayzo premium companion.png'},
+            22: {'name': 'Blayzica', 'tier': 'silver', 'avatar_url': '/static/logos/Blayzica Pro.png'},
+            23: {'name': 'WatchDog', 'tier': 'silver', 'avatar_url': '/static/logos/WatchDog a Premium companion.png'},
+            24: {'name': 'Rozia', 'tier': 'silver', 'avatar_url': '/static/logos/Rozia Silver .png'},
+            26: {'name': 'Lumen', 'tier': 'silver', 'avatar_url': '/static/logos/Lumen Silver.png'},
+            # Gold tier companions
+            3: {'name': 'Crimson', 'tier': 'gold', 'avatar_url': '/static/logos/Crimson a Max companion.png'},
+            4: {'name': 'Violet', 'tier': 'gold', 'avatar_url': '/static/logos/Violet.png'},
+            30: {'name': 'Claude', 'tier': 'gold', 'avatar_url': '/static/logos/Claude Max.png'},
+            31: {'name': 'Royal', 'tier': 'gold', 'avatar_url': '/static/logos/Royal_a_Max_companion.png'},
+            43: {'name': 'Violet', 'tier': 'gold', 'avatar_url': '/static/logos/Violet_a_Max_companion.png'},
+            32: {'name': 'Ven Blayzica', 'tier': 'gold', 'avatar_url': '/static/logos/Ven_Blayzica_a_Max_companion.png'},
+            33: {'name': 'Ven Sky', 'tier': 'gold', 'avatar_url': '/static/logos/Ven_Sky_a_Max_companion.png'},
+            34: {'name': 'WatchDog', 'tier': 'gold', 'avatar_url': '/static/logos/WatchDog a Max Companion.png'},
             # Referral tier companions
             40: {'name': 'Claude Referral', 'tier': 'referral', 'avatar_url': '/static/logos/Claude Referral.png'},
             41: {'name': 'Blayzo Referral', 'tier': 'referral', 'avatar_url': '/static/logos/Blayzo Referral.png'},
@@ -1498,13 +1498,13 @@ def select_companion_direct(companion_id):
         success = set_user_community_avatar(user_id, companion_data)
         
         if success:
-            # Check if user should see ads (free tier users)
-            if effective_plan == 'free':
-                # Show ad for free users when changing companions
+            # Check if user should see ads (bronze tier users)
+            if effective_plan == 'bronze':
+                # Show ad for bronze users when changing companions
                 return f'''
                 <script>
                     alert('Avatar set to {companion['name']}!');
-                    // Show ad for free users after companion change
+                    // Show ad for bronze users after companion change
                     window.location.href = '/community/ad-break?return_to=/community&reason=companion_change';
                 </script>
                 '''
@@ -1563,7 +1563,7 @@ def ad_break():
                 <div class="ad-message">
                     Your avatar has been updated! Ads help keep SoulBridge AI free for everyone.
                     <br><br>
-                    🚀 <strong>Want ad-free experience?</strong> Upgrade to Growth or Max tier for unlimited companion switching!
+                    🚀 <strong>Want ad-free experience?</strong> Upgrade to Silver or Gold tier for unlimited companion switching!
                 </div>
                 
                 <!-- Simulated Ad Space -->

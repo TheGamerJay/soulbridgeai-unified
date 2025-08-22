@@ -141,7 +141,7 @@ def check_subscription_status(user_id: int) -> Dict[str, Any]:
 
 def revert_to_free(user_id: int):
     """
-    Revert user to free tier after grace period expires
+    Revert user to bronze tier after grace period expires
     """
     try:
         conn = get_db_connection()
@@ -160,7 +160,7 @@ def revert_to_free(user_id: int):
         conn.commit()
         conn.close()
         
-        logger.info(f"⬇️ REVERTED TO FREE: User {user_id} grace period ended, reverted to free tier")
+        logger.info(f"⬇️ REVERTED TO BRONZE: User {user_id} grace period ended, reverted to bronze tier")
         return True
         
     except Exception as e:
@@ -169,7 +169,7 @@ def revert_to_free(user_id: int):
 
 def cleanup_expired_subscriptions():
     """
-    Periodic cleanup task to revert expired grace period users to free tier
+    Periodic cleanup task to revert expired grace period users to bronze tier
     This should be run daily via cron job or scheduler
     """
     try:
@@ -201,7 +201,7 @@ def cleanup_expired_subscriptions():
             """, (user_ids,))
             
             conn.commit()
-            logger.info(f"🧹 CLEANUP: Reverted {len(expired_users)} expired users to free tier")
+            logger.info(f"🧹 CLEANUP: Reverted {len(expired_users)} expired users to bronze tier")
         
         conn.close()
         return len(expired_users)
