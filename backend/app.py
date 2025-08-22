@@ -14458,6 +14458,7 @@ TIERS_TEMPLATE = r"""
   function openChat(slug){ 
     // Performance optimization: use requestAnimationFrame to prevent blocking
     requestAnimationFrame(() => {
+      // Use the existing /chat route which handles tier redirection
       window.location.href = '/chat?companion=' + encodeURIComponent(slug);
     });
   }
