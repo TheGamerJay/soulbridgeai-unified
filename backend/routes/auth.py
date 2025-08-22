@@ -19,7 +19,7 @@ def login():
         # For now, accept any email/password and set demo session
         # This gets the app running while we fix the database issues
         session["user_id"] = "demo_user_" + email.replace("@", "_").replace(".", "_")
-        session["user_plan"] = "free"
+        session["user_plan"] = "bronze"
         
         logger.info(f"Demo login for email: {email}")
         

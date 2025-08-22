@@ -35,7 +35,7 @@ Create a new user account.
   "user": {
     "userID": "uid12345678",
     "email": "user@example.com",
-    "subscriptionStatus": "free",
+    "subscriptionStatus": "bronze",
     "companion": "Blayzo",
     "chatHistory": [],
     "settings": {
@@ -94,7 +94,7 @@ Update user's subscription status.
 **Request Body:**
 ```json
 {
-  "subscriptionStatus": "plus"  // "free", "plus", or "galaxy"
+  "subscriptionStatus": "silver"  // "bronze", "silver", or "gold"
 }
 ```
 
@@ -256,7 +256,7 @@ Get overall database statistics.
   "stats": {
     "totalUsers": 150,
     "subscriptionCounts": {
-      "free": 120,
+      "bronze": 120,
       "plus": 25,
       "galaxy": 5
     },
@@ -316,7 +316,7 @@ All endpoints return consistent error responses:
 {
   "userID": "string",           // Unique user identifier
   "email": "string",            // User's email address
-  "subscriptionStatus": "string", // "free", "plus", or "galaxy"
+  "subscriptionStatus": "string", // "bronze", "silver", or "gold"
   "companion": "string",        // Active AI companion
   "chatHistory": [],            // Array of chat messages
   "settings": {},               // User preference object

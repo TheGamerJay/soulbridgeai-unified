@@ -149,9 +149,9 @@ pip install audiocraft
 ## 📊 Credit Management
 
 ### Monthly Reset (Automated)
-- Cron endpoint: `POST /admin/reset-max-credits`
+- Cron endpoint: `POST /admin/reset-gold-credits`
 - Header: `X-Admin-Token: your_admin_token`
-- Resets all Max users to 650 credits monthly
+- Resets all Gold users to 650 credits monthly
 
 ### Trial Cleanup (Optional)
 - Cron endpoint: `POST /admin/cleanup-trials`
@@ -160,7 +160,7 @@ pip install audiocraft
 ### Example Cron Jobs
 ```bash
 # Monthly credit reset (1st @ 00:05)
-5 0 1 * * curl -sS -X POST "https://YOUR_HOST/admin/reset-max-credits" -H "X-Admin-Token: your_admin_token"
+5 0 1 * * curl -sS -X POST "https://YOUR_HOST/admin/reset-gold-credits" -H "X-Admin-Token: your_admin_token"
 
 # Daily trial cleanup (00:10)
 10 0 * * * curl -sS -X POST "https://YOUR_HOST/admin/cleanup-trials" -H "X-Admin-Token: your_admin_token"

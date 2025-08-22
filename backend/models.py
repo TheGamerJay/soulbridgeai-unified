@@ -29,7 +29,7 @@ class User(Base):
     id = Column(Integer, primary_key=True)
     email = Column(String, unique=True, index=True, nullable=False)
     password_hash = Column(String, nullable=False)
-    user_plan = Column(String, nullable=False, default="free")  # Match existing schema
+    user_plan = Column(String, nullable=False, default="bronze")  # Match existing schema
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 
@@ -131,7 +131,7 @@ class User:
         new_user = {
             "userID": user_id,
             "email": email,
-            "subscriptionStatus": "free",
+            "subscriptionStatus": "bronze",
             "companion": companion,
             "chatHistory": [],
             "settings": {
@@ -184,7 +184,7 @@ class User:
 
     def update_subscription(self, user_id: str, subscription_status: str) -> bool:
         """Update user subscription status"""
-        valid_statuses = ["free", "plus", "galaxy"]
+        valid_statuses = ["bronze", "silver", "gold"]
         if subscription_status not in valid_statuses:
             raise ValueError(
                 f"Invalid subscription status. Must be one of: {valid_statuses}"
@@ -219,10 +219,10 @@ class User:
         """Get default color palette for companion"""
         companion_colors = {
             "Blayzo": "cyan",
-            "Blayzion": "galaxy",
+            "Blayzion": "gold",
             "Crimson": "blood-orange",
             "Blayzica": "red",
-            "Blayzia": "galaxy",
+            "Blayzia": "gold",
             "Violet": "violet",
         }
         return companion_colors.get(companion, "cyan")
@@ -738,7 +738,7 @@ class DiagnosticTools:
         diagnostics = {
             "userID": user["userID"],
             "email": user_email,
-            "subscriptionStatus": user.get("subscriptionStatus", "free"),
+            "subscriptionStatus": user.get("subscriptionStatus", "bronze"),
             "companion": user.get("companion", "Blayzo"),
             "chatHistoryCount": len(user.get("chatHistory", [])),
             "lastActivity": user.get("lastActivity", "Never"),
@@ -755,7 +755,7 @@ class DiagnosticTools:
                 "Try starting a conversation with your AI companion"
             )
 
-        if user.get("subscriptionStatus") == "free":
+        if user.get("subscriptionStatus") == "bronze":
             diagnostics["recommendations"].append(
                 "Consider upgrading to SoulBridge AI Plus for unlimited features"
             )
@@ -783,7 +783,7 @@ class DiagnosticTools:
         # Calculate metrics
         total_users = len(users)
         active_users = len([u for u in users if len(u.get("chatHistory", [])) > 0])
-        premium_users = len([u for u in users if u.get("subscriptionStatus") != "free"])
+        premium_users = len([u for u in users if u.get("subscriptionStatus") != "bronze"])
 
         open_tickets = len([t for t in tickets if t["status"] == "open"])
         urgent_tickets = len([t for t in tickets if t["priority"] == "urgent"])
@@ -829,13 +829,13 @@ class SoulBridgeDB:
     def get_user_stats(self) -> Dict:
         """Get database statistics"""
         total_users = len(self.db_manager.data["users"])
-        subscription_counts = {"free": 0, "plus": 0, "galaxy": 0}
+        subscription_counts = {"bronze": 0, "silver": 0, "gold": 0}
         companion_counts = {}
         total_messages = 0
 
         for user in self.db_manager.data["users"]:
             # Count subscriptions
-            sub_status = user.get("subscriptionStatus", "free")
+            sub_status = user.get("subscriptionStatus", "bronze")
             subscription_counts[sub_status] += 1
 
             # Count companions

@@ -572,7 +572,7 @@ def get_available_companions_for_user(user_id: int) -> List[Dict[str, Any]]:
         
         # Get tier-based companions (existing system)
         from unified_tier_system import get_effective_plan
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         trial_active = session.get('trial_active', False)
         effective_plan = get_effective_plan(user_plan, trial_active)
         
