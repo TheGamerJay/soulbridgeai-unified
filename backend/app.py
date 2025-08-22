@@ -21,6 +21,14 @@ import psycopg2
 from copy import deepcopy
 from datetime import datetime, timezone, timedelta
 
+# Load environment variables FIRST before any other imports that need them
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+    print("OK Environment variables loaded from .env file early")
+except ImportError:
+    print("WARNING python-dotenv not installed, relying on system environment variables")
+
 # Flask imports
 from flask import Flask, jsonify, render_template, render_template_string, request, session, redirect, url_for, flash, make_response
 
@@ -191,15 +199,7 @@ def record_admin_login_attempt(ip_address):
         admin_login_attempts[ip_address] = []
     admin_login_attempts[ip_address].append(time.time())
 
-# Load environment variables from .env file
-try:
-    from dotenv import load_dotenv
-
-#
-    load_dotenv()
-    logger.info("Environment variables loaded from .env file")
-except ImportError:
-    logger.warning("python-dotenv not installed, relying on system environment variables")
+# Environment variables already loaded at top of file
 
 # Create Flask app with secure session configuration
 
@@ -1582,6 +1582,16 @@ def get_database():
             temp_conn.close()
             services["database"] = db
             logger.info("✅ Database lazy initialization successful")
+            
+            # Run tier limits migration
+            try:
+                from unified_tier_system import ensure_database_schema
+                if ensure_database_schema():
+                    logger.info("✅ Tier limits schema migration completed")
+                else:
+                    logger.warning("⚠️ Tier limits schema migration failed")
+            except Exception as e:
+                logger.error(f"❌ Tier limits migration error: {e}")
         except Exception as e:
             logger.error(f"❌ Database lazy initialization failed: {e}")
             db = None
@@ -8605,11 +8615,22 @@ def poll_trial_bulletproof():
                 session["trial_active"] = False
                 session["trial_used_permanently"] = True
                 
+                # CRITICAL: Reset access flags to lock Silver/Gold tiers when trial expires
+                user_plan = session.get('user_plan', 'bronze')
+                trial_active = False  # Trial has expired
+                
+                # Reset access flags based on actual user plan (no trial)
+                session['access_free'] = True  # Everyone gets free features
+                session['access_growth'] = user_plan in ['silver', 'gold']  # Only real Silver/Gold users
+                session['access_max'] = user_plan == 'gold'  # Only real Gold users
+                session['access_trial'] = False  # Trial is over
+                session.modified = True  # Ensure session changes are saved
+                
+                logger.info(f"🔒 TRIAL EXPIRED: Access flags reset - growth={session['access_growth']}, max={session['access_max']} (user_plan={user_plan})")
+                
                 # TIER ISOLATION: Re-initialize user back to their original tier when trial expires
                 from tier_isolation import tier_manager
                 user_id = session.get('user_id')
-                user_plan = session.get('user_plan', 'bronze')
-                trial_active = False  # Trial has expired
                 
                 if user_id:
                     user_data = {
@@ -8642,11 +8663,17 @@ def poll_trial_bulletproof():
                 
                 active = False
         
-        return jsonify({"trial_active": active})
+        return jsonify({
+            "trial_active": active,
+            "trial_used_permanently": session.get("trial_used_permanently", False)
+        })
     
     except Exception as e:
         logger.error(f"Poll trial error: {e}")
-        return jsonify({"trial_active": False})
+        return jsonify({
+            "trial_active": False,
+            "trial_used_permanently": session.get("trial_used_permanently", False)
+        })
 
 # ============================================
 # BULLETPROOF MINI STUDIO GATE
