@@ -2877,6 +2877,60 @@ def get_current_plan():
         }
     })
 
+@app.route("/api/debug/refresh-session")
+def refresh_user_session():
+    """Refresh user session with correct plan from database"""
+    if not is_logged_in():
+        return jsonify({"success": False, "error": "Authentication required"}), 401
+    
+    try:
+        user_id = session.get('user_id')
+        db_instance = get_database()
+        if not db_instance:
+            return jsonify({"success": False, "error": "Database not available"}), 500
+            
+        conn = db_instance.get_connection()
+        cursor = conn.cursor()
+        
+        # Get user's actual plan from database
+        cursor.execute("SELECT plan_type, user_plan FROM users WHERE id = %s", (user_id,))
+        result = cursor.fetchone()
+        conn.close()
+        
+        if not result:
+            return jsonify({"success": False, "error": "User not found"}), 404
+        
+        raw_plan_type, raw_user_plan = result
+        
+        # Apply same mapping logic as login
+        plan_mapping = {
+            'foundation': 'bronze', 'free': 'bronze',        # Bronze tier
+            'premium': 'silver', 'growth': 'silver',         # Silver tier  
+            'enterprise': 'gold', 'max': 'gold'             # Gold tier
+        }
+        
+        # Use user_plan field first (more accurate), fallback to plan_type
+        actual_plan = raw_user_plan or raw_plan_type
+        new_session_plan = plan_mapping.get(actual_plan, actual_plan or 'bronze')
+        
+        old_plan = session.get('user_plan', 'unknown')
+        session['user_plan'] = new_session_plan
+        
+        return jsonify({
+            "success": True,
+            "message": "Session refreshed successfully",
+            "old_plan": old_plan,
+            "new_plan": new_session_plan,
+            "database_plans": {
+                "plan_type": raw_plan_type,
+                "user_plan": raw_user_plan
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Session refresh error: {e}")
+        return jsonify({"success": False, "error": "Failed to refresh session"}), 500
+
 @app.route("/admin/force-logout-all", methods=["POST"])
 @require_debug_mode()
 def force_logout_all():
