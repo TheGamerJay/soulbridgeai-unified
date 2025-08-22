@@ -493,14 +493,18 @@ def create_companion_routes():
                 # Set session data
                 session['selected_companion'] = comp_id
                 
-                # Calculate tier-specific limits
-                canonical_tier = normalize_plan(user_plan)
-                limits = {
-                    "decoder": 3 if canonical_tier == "bronze" else (15 if canonical_tier == "silver" else 999),
-                    "fortune": 2 if canonical_tier == "bronze" else (8 if canonical_tier == "silver" else 999),
-                    "horoscope": 3 if canonical_tier == "bronze" else (10 if canonical_tier == "silver" else 999),
-                    "creative_writer": 2 if canonical_tier == "bronze" else (20 if canonical_tier == "silver" else 999)
-                }
+                # Use the COMPANION'S tier limits, not user's limits
+                # Bronze companions show bronze limits, Silver show silver limits, etc.
+                companion_tier = comp_tier.lower()
+                if companion_tier == "bronze":
+                    limits = {"decoder": 3, "fortune": 2, "horoscope": 3, "creative_writer": 2}
+                elif companion_tier == "silver":
+                    limits = {"decoder": 15, "fortune": 8, "horoscope": 10, "creative_writer": 20}
+                elif companion_tier == "gold":
+                    limits = {"decoder": 999, "fortune": 999, "horoscope": 999, "creative_writer": 999}
+                else:
+                    # Default to bronze limits for any unrecognized tier
+                    limits = {"decoder": 3, "fortune": 2, "horoscope": 3, "creative_writer": 2}
                 
                 # Render chat template
                 return render_template("chat.html",
