@@ -1420,10 +1420,10 @@ def select_companion_direct(companion_id):
         # Define available companions by tier
         available_companions = {
             # Free tier companions
-            1: {'name': 'GamerJay', 'tier': 'bronze', 'avatar_url': '/static/logos/GamerJay Free companion.png'},
+            1: {'name': 'GamerJay', 'tier': 'bronze', 'avatar_url': '/static/logos/GamerJay_Free_companion.png'},
             5: {'name': 'Blayzo', 'tier': 'bronze', 'avatar_url': '/static/logos/Blayzo.png'},
             6: {'name': 'Blayzica', 'tier': 'bronze', 'avatar_url': '/static/logos/Blayzica.png'},
-            8: {'name': 'Claude', 'tier': 'bronze', 'avatar_url': '/static/logos/Claude Free.png'},
+            8: {'name': 'Claude', 'tier': 'bronze', 'avatar_url': '/static/logos/Claude_Free.png'},
             9: {'name': 'Blayzia', 'tier': 'bronze', 'avatar_url': '/static/logos/Blayzia.png'},
             10: {'name': 'Blayzion', 'tier': 'bronze', 'avatar_url': '/static/logos/Blayzion.png'},
             25: {'name': 'Lumen', 'tier': 'bronze', 'avatar_url': '/static/logos/Lumen Bronze.png'},
@@ -1431,25 +1431,25 @@ def select_companion_direct(companion_id):
             11: {'name': 'Blayzike', 'tier': 'referral', 'avatar_url': '/static/logos/Blayzike.png'},
             12: {'name': 'Blazelian', 'tier': 'referral', 'avatar_url': '/static/logos/Blazelian.png'},
             # Silver tier companions
-            2: {'name': 'Sky', 'tier': 'silver', 'avatar_url': '/static/logos/Sky a premium companion.png'},
-            7: {'name': 'GamerJay', 'tier': 'silver', 'avatar_url': '/static/logos/GamerJay premium companion.png'},
-            20: {'name': 'Claude', 'tier': 'silver', 'avatar_url': '/static/logos/Claude Growth.png'},
-            21: {'name': 'Blayzo', 'tier': 'silver', 'avatar_url': '/static/logos/Blayzo premium companion.png'},
+            2: {'name': 'Sky', 'tier': 'silver', 'avatar_url': '/static/logos/Sky_a_premium_companion.png'},
+            7: {'name': 'GamerJay', 'tier': 'silver', 'avatar_url': '/static/logos/GamerJay_premium_companion.png'},
+            20: {'name': 'Claude', 'tier': 'silver', 'avatar_url': '/static/logos/Claude_Growth.png'},
+            21: {'name': 'Blayzo', 'tier': 'silver', 'avatar_url': '/static/logos/Blayzo_premium_companion.png'},
             22: {'name': 'Blayzica', 'tier': 'silver', 'avatar_url': '/static/logos/Blayzica Pro.png'},
             23: {'name': 'WatchDog', 'tier': 'silver', 'avatar_url': '/static/logos/WatchDog a Premium companion.png'},
             24: {'name': 'Rozia', 'tier': 'silver', 'avatar_url': '/static/logos/Rozia Silver .png'},
             26: {'name': 'Lumen', 'tier': 'silver', 'avatar_url': '/static/logos/Lumen Silver.png'},
             # Gold tier companions
-            3: {'name': 'Crimson', 'tier': 'gold', 'avatar_url': '/static/logos/Crimson a Max companion.png'},
+            3: {'name': 'Crimson', 'tier': 'gold', 'avatar_url': '/static/logos/Crimson_a_Max_companion.png'},
             4: {'name': 'Violet', 'tier': 'gold', 'avatar_url': '/static/logos/Violet.png'},
-            30: {'name': 'Claude', 'tier': 'gold', 'avatar_url': '/static/logos/Claude Max.png'},
+            30: {'name': 'Claude', 'tier': 'gold', 'avatar_url': '/static/logos/Claude_Max.png'},
             31: {'name': 'Royal', 'tier': 'gold', 'avatar_url': '/static/logos/Royal_a_Max_companion.png'},
             43: {'name': 'Violet', 'tier': 'gold', 'avatar_url': '/static/logos/Violet_a_Max_companion.png'},
             32: {'name': 'Ven Blayzica', 'tier': 'gold', 'avatar_url': '/static/logos/Ven_Blayzica_a_Max_companion.png'},
             33: {'name': 'Ven Sky', 'tier': 'gold', 'avatar_url': '/static/logos/Ven_Sky_a_Max_companion.png'},
             34: {'name': 'WatchDog', 'tier': 'gold', 'avatar_url': '/static/logos/WatchDog a Max Companion.png'},
             # Referral tier companions
-            40: {'name': 'Claude Referral', 'tier': 'referral', 'avatar_url': '/static/logos/Claude Referral.png'},
+            40: {'name': 'Claude Referral', 'tier': 'referral', 'avatar_url': '/static/logos/Claude_Referral.png'},
             41: {'name': 'Blayzo Referral', 'tier': 'referral', 'avatar_url': '/static/logos/Blayzo Referral.png'},
             42: {'name': 'Nyxara', 'tier': 'referral', 'avatar_url': '/static/logos/Nyxara.png'},
         }
@@ -1627,29 +1627,29 @@ def companion_selector_page():
         # Define companions organized by tier
         companions_by_tier = {
             'bronze': [
-                {'id': 1, 'name': 'GamerJay', 'avatar_url': '/static/logos/GamerJay Free companion.png'},
+                {'id': 1, 'name': 'GamerJay', 'avatar_url': '/static/logos/GamerJay_Free_companion.png'},
                 {'id': 5, 'name': 'Blayzo', 'avatar_url': '/static/logos/Blayzo.png'},
                 {'id': 6, 'name': 'Blayzica', 'avatar_url': '/static/logos/Blayzica.png'},
-                {'id': 8, 'name': 'Claude', 'avatar_url': '/static/logos/Claude Free.png'},
+                {'id': 8, 'name': 'Claude', 'avatar_url': '/static/logos/Claude_Free.png'},
                 {'id': 9, 'name': 'Blayzia', 'avatar_url': '/static/logos/Blayzia.png'},
                 {'id': 10, 'name': 'Blayzion', 'avatar_url': '/static/logos/Blayzion.png'},
                 {'id': 25, 'name': 'Lumen', 'avatar_url': '/static/logos/Lumen Bronze.png'},
                 {'id': 27, 'name': 'Blayzo.2', 'avatar_url': '/static/logos/blayzo free tier.png'}
             ],
             'silver': [
-                {'id': 2, 'name': 'Sky', 'avatar_url': '/static/logos/Sky a premium companion.png'},
-                {'id': 7, 'name': 'GamerJay', 'avatar_url': '/static/logos/GamerJay premium companion.png'},
-                {'id': 20, 'name': 'Claude', 'avatar_url': '/static/logos/Claude Growth.png'},
-                {'id': 21, 'name': 'Blayzo', 'avatar_url': '/static/logos/Blayzo premium companion.png'},
+                {'id': 2, 'name': 'Sky', 'avatar_url': '/static/logos/Sky_a_premium_companion.png'},
+                {'id': 7, 'name': 'GamerJay', 'avatar_url': '/static/logos/GamerJay_premium_companion.png'},
+                {'id': 20, 'name': 'Claude', 'avatar_url': '/static/logos/Claude_Growth.png'},
+                {'id': 21, 'name': 'Blayzo', 'avatar_url': '/static/logos/Blayzo_premium_companion.png'},
                 {'id': 22, 'name': 'Blayzica', 'avatar_url': '/static/logos/Blayzica Pro.png'},
                 {'id': 23, 'name': 'WatchDog', 'avatar_url': '/static/logos/WatchDog a Premium companion.png'},
                 {'id': 24, 'name': 'Rozia', 'avatar_url': '/static/logos/Rozia Silver .png'},
                 {'id': 26, 'name': 'Lumen', 'avatar_url': '/static/logos/Lumen Silver.png'}
             ],
             'gold': [
-                {'id': 3, 'name': 'Crimson', 'avatar_url': '/static/logos/Crimson a Max companion.png'},
+                {'id': 3, 'name': 'Crimson', 'avatar_url': '/static/logos/Crimson_a_Max_companion.png'},
                 {'id': 4, 'name': 'Violet', 'avatar_url': '/static/logos/Violet.png'},
-                {'id': 30, 'name': 'Claude', 'avatar_url': '/static/logos/Claude Max.png'},
+                {'id': 30, 'name': 'Claude', 'avatar_url': '/static/logos/Claude_Max.png'},
                 {'id': 31, 'name': 'Royal', 'avatar_url': '/static/logos/Royal_a_Max_companion.png'},
                 {'id': 32, 'name': 'Ven Blayzica', 'avatar_url': '/static/logos/Ven_Blayzica_a_Max_companion.png'},
                 {'id': 33, 'name': 'Ven Sky', 'avatar_url': '/static/logos/Ven_Sky_a_Max_companion.png'},
@@ -1660,7 +1660,7 @@ def companion_selector_page():
                 {'id': 11, 'name': 'Blayzike', 'avatar_url': '/static/logos/Blayzike.png', 'referrals_needed': 5},
                 {'id': 42, 'name': 'Nyxara', 'avatar_url': '/static/logos/Nyxara.png', 'referrals_needed': 6},
                 {'id': 12, 'name': 'Blazelian', 'avatar_url': '/static/logos/Blazelian.png', 'referrals_needed': 8},
-                {'id': 40, 'name': 'Claude Referral', 'avatar_url': '/static/logos/Claude Referral.png', 'referrals_needed': 10},
+                {'id': 40, 'name': 'Claude Referral', 'avatar_url': '/static/logos/Claude_Referral.png', 'referrals_needed': 10},
                 {'id': 41, 'name': 'Blayzo Referral', 'avatar_url': '/static/logos/Blayzo Referral.png', 'referrals_needed': 'Special'}
             ]
         }
