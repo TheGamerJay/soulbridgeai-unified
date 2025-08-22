@@ -222,15 +222,13 @@ def get_effective_plan(user_plan: str, trial_active: bool) -> str:
 # GET DAILY LIMITS (always based on actual plan, not trial)
 def get_feature_limit(user_plan: str, feature: str, trial_active: bool = False) -> int:
     """
-    Get feature limits based on subscription plan OR trial status
-    Trial users get Gold tier limits (unlimited) per CLAUDE.md
+    Get feature limits based on subscription plan
+    TRIAL DOES NOT CHANGE DAILY LIMITS - trial only unlocks access to companions/features
+    Per CLAUDE.md: Trial gives 60 credits + companion access, but Bronze users keep Bronze limits
     """
-    if trial_active:
-        # Trial users get Gold tier limits (unlimited)
-        plan = "gold"
-    else:
-        # Use actual subscription plan
-        plan = user_plan
+    # ALWAYS use actual user plan for daily limits, regardless of trial
+    # Trial unlocks access but doesn't change usage limits
+    plan = user_plan
     
     return DAILY_LIMITS.get(plan, {}).get(feature, 0)
 
