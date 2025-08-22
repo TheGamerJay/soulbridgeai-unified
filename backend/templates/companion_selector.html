@@ -912,7 +912,7 @@
             <div class="tier-section silver-tier">
               <h2>🥈 Silver Tier Features</h2>
 
-              <p>Upgrade to Growth for enhanced features, higher limits, and access to more companions.</p>
+              <p>Upgrade to Silver for enhanced features, higher limits, and access to more companions.</p>
 
               <div class="feature-grid">
                 <div class="feature-box">
@@ -945,7 +945,7 @@
                 </div>
                 <div class="feature-box">
                   <h4>💬 Companions (11)</h4>
-                  <p>Access Free + Growth companions</p>
+                  <p>Access Bronze + Silver companions</p>
                 </div>
                 <div class="feature-box">
                   <h4>🧠 Memory</h4>
@@ -973,8 +973,8 @@
               <div class="trial-info">
                 <h4>🕒 During 5-Hour Trial</h4>
                 <ul>
-                  <li>Temporarily unlocks Max features + companions</li>
-                  <li>Growth limits still apply: <strong>15 / 8 / 10</strong></li>
+                  <li>Temporarily unlocks Gold features + companions</li>
+                  <li>Silver limits still apply: <strong>15 / 8 / 10</strong></li>
                   <li>Referral companions remain locked</li>
                 </ul>
               </div>
@@ -1022,7 +1022,7 @@
               <h3>📊 Feature Access Comparison</h3>
               <table class="feature-table">
                 <thead>
-                  <tr><th>Feature</th><th>Free</th><th>Growth</th><th>Max</th></tr>
+                  <tr><th>Feature</th><th>Bronze</th><th>Silver</th><th>Gold</th></tr>
                 </thead>
                 <tbody>
                   <tr><td>🧠 Decoder</td><td>3/day</td><td>15/day</td><td>∞</td></tr>
@@ -1037,7 +1037,7 @@
               </table>
 
               <h3>🕒 5-Hour Trial Info</h3>
-              <p class="trial-note">During trial, you temporarily unlock all Max features and companions — but limits stay based on your actual plan (Free = 3/2/3, Growth = 15/8/10, Max = ∞). Referral companions <strong>remain locked</strong> until earned by referral.</p>
+              <p class="trial-note">During trial, you temporarily unlock all Gold features and companions — but limits stay based on your actual plan (Bronze = 3/2/3, Silver = 15/8/10, Gold = ∞). Referral companions <strong>remain locked</strong> until earned by referral.</p>
 
               <h3>🏆 Referral Rewards</h3>
               <p>Earn 8 successful referrals to unlock:</p>
@@ -1047,14 +1047,14 @@
                 <li>🔓 Claude Referral (100% popularity)</li>
                 <li>✨ Blayzo Special Skin</li>
               </ul>
-              <p class="referral-note">Referral rewards are <strong>cosmetic only</strong> and do not change your feature access. Not part of Free/Growth/Max — purely collectible!</p>
+              <p class="referral-note">Referral rewards are <strong>cosmetic only</strong> and do not change your feature access. Not part of Bronze/Silver/Gold — purely collectible!</p>
             </div>
 
             <!-- ✅ Referral Tier Section – Netflix-Style Layout -->
             <section class="tier-section referral-tier">
               <h2 class="tier-title">🏆 Referral Companions</h2>
               <p class="tier-description">
-                These companions and rewards are unlocked through successful referrals only – they are NOT available in Free, Growth, or Max tiers, and are NEVER unlocked during trials. Once unlocked, they are yours forever.
+                These companions and rewards are unlocked through successful referrals only – they are NOT available in Bronze, Silver, or Gold tiers, and are NEVER unlocked during trials. Once unlocked, they are yours forever.
               </p>
 
               <div class="referral-unlocks">
@@ -1079,7 +1079,7 @@
               <ul class="referral-rules">
                 <li>✅ Only <strong>confirmed signups</strong> count (not just link clicks)</li>
                 <li>🔒 <strong>Trial users cannot access</strong> referral companions</li>
-                <li>🚫 Not part of <strong>Free, Growth, or Max</strong> tiers</li>
+                <li>🚫 Not part of <strong>Bronze, Silver, or Gold</strong> tiers</li>
                 <li>✅ Once unlocked, <strong>you keep them forever</strong> (even if you downgrade)</li>
                 <li>🎁 <strong>Purely cosmetic & social</strong> – no effect on usage/limits</li>
               </ul>
@@ -1231,7 +1231,7 @@
             // Checking access for companion
             
             // Get current user plan 
-            const userPlan = '{{ user_plan }}' || 'free';
+            const userPlan = '{{ user_plan }}' || 'bronze';
             // User plan
             
             // Check subscription access first
@@ -1255,7 +1255,7 @@
                         const trialActive = entitlements.status === 'trial';
                         hasAccess = requiredTiers.some(tier => 
                             userPlan === tier || 
-                            (trialActive && ['growth', 'max'].includes(tier))
+                            (trialActive && ['silver', 'gold'].includes(tier))
                         );
                     }
                 } catch (v1Error) {
@@ -1272,8 +1272,8 @@
                 } else {
                     // No access - show upgrade modal
                     // Map internal tier names to display tier names
-                    const requiredTier = requiredTiers.includes('max') ? 'gold' : 
-                                       requiredTiers.includes('growth') ? 'silver' : 'bronze';
+                    const requiredTier = requiredTiers.includes('gold') ? 'gold' : 
+                                       requiredTiers.includes('silver') ? 'silver' : 'bronze';
                     console.log(`🔒 Access denied for ${companionId}, showing upgrade modal for ${requiredTier} tier`);
                     
                     if (window.TierLock && typeof window.TierLock.showUpgradeModal === 'function') {
@@ -1287,8 +1287,8 @@
                 // Error checking trial status - show upgrade modal as fallback
                 console.error(`❌ Error checking access for ${companionId}:`, error);
                 // Map internal tier names to display tier names
-                const requiredTier = requiredTiers.includes('max') ? 'gold' : 
-                                   requiredTiers.includes('growth') ? 'silver' : 'bronze';
+                const requiredTier = requiredTiers.includes('gold') ? 'gold' : 
+                                   requiredTiers.includes('silver') ? 'silver' : 'bronze';
                 console.log(`🔒 Error fallback: showing upgrade modal for ${requiredTier} tier`);
                 
                 if (window.TierLock && typeof window.TierLock.showUpgradeModal === 'function') {

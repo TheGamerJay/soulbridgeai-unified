@@ -150,9 +150,9 @@
                         <img src="{{ companion.image_url }}" alt="{{ companion.name }}" class="companion-avatar">
                         <div class="companion-name">{{ companion.name }}</div>
                         <div class="companion-tier-badge">
-                            {% if companion.tier == 'free' %}🥉 Bronze
-                            {% elif companion.tier == 'growth' %}🥈 Silver
-                            {% elif companion.tier == 'max' %}🥇 Gold
+                            {% if companion.tier == 'bronze' %}🥉 Bronze
+                            {% elif companion.tier == 'silver' %}🥈 Silver
+                            {% elif companion.tier == 'gold' %}🥇 Gold
                             {% elif companion.tier == 'referral' %}🎁 Referral
                             {% endif %}
                         </div>

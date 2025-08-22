@@ -56,17 +56,17 @@
             font-size: 0.9rem;
         }
 
-        .tier-badge.growth {
+        .tier-badge.silver {
             background: linear-gradient(45deg, #4CAF50, #45a049);
             color: white;
         }
 
-        .tier-badge.max {
+        .tier-badge.gold {
             background: linear-gradient(45deg, #FF6B35, #F7931E);
             color: white;
         }
 
-        .tier-badge.free {
+        .tier-badge.bronze {
             background: #f1f1f1;
             color: #666;
         }
@@ -488,10 +488,10 @@
             
             if (userPlan === 'max') {
                 tierBadge.textContent = 'Gold Plan';
-                tierBadge.className = 'tier-badge max';
+                tierBadge.className = 'tier-badge gold';
             } else {
                 tierBadge.textContent = 'Silver Plan';
-                tierBadge.className = 'tier-badge growth';
+                tierBadge.className = 'tier-badge silver';
                 upgradeBtn.style.display = 'inline-block';
             }
         }

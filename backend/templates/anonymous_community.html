@@ -1345,7 +1345,7 @@
             let message = `You can change your avatar again in ${hours}h ${minutes}m.\\n\\n`;
             message += `Do you want to change to ${companionName} anyway?\\n\\n`;
             
-            if (cooldownData.user_tier === 'free') {
+            if (cooldownData.user_tier === 'bronze') {
                 message += '• Watch an ad to bypass cooldown (6h cooldown after)\\n';
                 message += '• Wait for cooldown to expire (no additional cooldown)';
                 

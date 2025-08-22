@@ -425,19 +425,19 @@ PRICE_ADFREE = os.environ.get('STRIPE_PRICE_ADFREE', 'price_1234567890')  # Ad-f
 # ---------- Companions (bulletproof data) ----------
 COMPANIONS_NEW = [
     # Bronze tier - 8 companions
-    {"id":"gamerjay_bronze","name":"GamerJay Bronze","tier":"bronze","image_url":"/static/logos/GamerJay_Bronze_companion.png","min_referrals":0},
+    {"id":"gamerjay_bronze","name":"GamerJay Bronze","tier":"bronze","image_url":"/static/logos/GamerJay_Free_companion.png","min_referrals":0},
     {"id":"blayzo_bronze","name":"Blayzo Bronze","tier":"bronze","image_url":"/static/logos/Blayzo.png","min_referrals":0},
     {"id":"blayzica_bronze","name":"Blayzica","tier":"bronze","image_url":"/static/logos/Blayzica.png","min_referrals":0},
-    {"id":"claude_bronze","name":"Claude","tier":"bronze","image_url":"/static/logos/Claude_Bronze.png","min_referrals":0},
+    {"id":"claude_bronze","name":"Claude","tier":"bronze","image_url":"/static/logos/Claude_Free.png","min_referrals":0},
     {"id":"blayzia_bronze","name":"Blayzia","tier":"bronze","image_url":"/static/logos/Blayzia.png","min_referrals":0},
     {"id":"blayzion_bronze","name":"Blayzion","tier":"bronze","image_url":"/static/logos/Blayzion.png","min_referrals":0},
     {"id":"lumen_bronze","name":"Lumen","tier":"bronze","image_url":"/static/logos/Lumen Bronze.png","min_referrals":0},
-    {"id":"blayzo2_bronze","name":"Blayzo.2","tier":"bronze","image_url":"/static/logos/blayzo bronze tier.png","min_referrals":0},
+    {"id":"blayzo2_bronze","name":"Blayzo.2","tier":"bronze","image_url":"/static/logos/blayzo free tier.png","min_referrals":0},
     
     # Silver tier - 8 companions
     {"id":"sky_silver","name":"Sky Silver","tier":"silver","image_url":"/static/logos/Sky_a_premium_companion.png","min_referrals":0},
     {"id":"gamerjay_silver","name":"GamerJay Silver","tier":"silver","image_url":"/static/logos/GamerJay_premium_companion.png","min_referrals":0},
-    {"id":"claude_silver","name":"Claude","tier":"silver","image_url":"/static/logos/Claude_Silver.png","min_referrals":0},
+    {"id":"claude_silver","name":"Claude","tier":"silver","image_url":"/static/logos/Claude_Growth.png","min_referrals":0},
     {"id":"blayzo_silver","name":"Blayzo","tier":"silver","image_url":"/static/logos/Blayzo_premium_companion.png","min_referrals":0},
     {"id":"blayzica_silver","name":"Blayzica","tier":"silver","image_url":"/static/logos/Blayzica Pro.png","min_referrals":0},
     {"id":"watchdog_silver","name":"WatchDog","tier":"silver","image_url":"/static/logos/WatchDog_a_Premium_companion.png","min_referrals":0},
@@ -445,14 +445,14 @@ COMPANIONS_NEW = [
     {"id":"lumen_silver","name":"Lumen","tier":"silver","image_url":"/static/logos/Lumen Silver.png","min_referrals":0},
     
     # Gold tier - 8 companions
-    {"id":"crimson_gold","name":"Crimson","tier":"gold","image_url":"/static/logos/Crimson_a_Gold_companion.png","min_referrals":0},
-    {"id":"violet_gold","name":"Violet","tier":"gold","image_url":"/static/logos/Violet_a_Gold_companion.png","min_referrals":0},
-    {"id":"claude_gold","name":"Claude","tier":"gold","image_url":"/static/logos/Claude_Gold.png","min_referrals":0},
-    {"id":"royal_gold","name":"Royal","tier":"gold","image_url":"/static/logos/Royal_a_Gold_companion.png","min_referrals":0},
-    {"id":"ven_blayzica_gold","name":"Ven Blayzica","tier":"gold","image_url":"/static/logos/Ven_Blayzica_a_Gold_companion.png","min_referrals":0},
-    {"id":"ven_sky_gold","name":"Ven Sky","tier":"gold","image_url":"/static/logos/Ven_Sky_a_Gold_companion.png","min_referrals":0},
+    {"id":"crimson_gold","name":"Crimson","tier":"gold","image_url":"/static/logos/Crimson_a_Max_companion.png","min_referrals":0},
+    {"id":"violet_gold","name":"Violet","tier":"gold","image_url":"/static/logos/Violet_a_Max_companion.png","min_referrals":0},
+    {"id":"claude_gold","name":"Claude","tier":"gold","image_url":"/static/logos/Claude_Max.png","min_referrals":0},
+    {"id":"royal_gold","name":"Royal","tier":"gold","image_url":"/static/logos/Royal_a_Max_companion.png","min_referrals":0},
+    {"id":"ven_blayzica_gold","name":"Ven Blayzica","tier":"gold","image_url":"/static/logos/Ven_Blayzica_a_Max_companion.png","min_referrals":0},
+    {"id":"ven_sky_gold","name":"Ven Sky","tier":"gold","image_url":"/static/logos/Ven_Sky_a_Max_companion.png","min_referrals":0},
     {"id":"watchdog_gold","name":"WatchDog","tier":"gold","image_url":"/static/logos/WatchDog_a_Max_Companion.png","min_referrals":0},
-    {"id":"violet2_gold","name":"Violet","tier":"gold","image_url":"/static/logos/Violet_a_Gold_companion.png","min_referrals":0},
+    {"id":"violet2_gold","name":"Violet","tier":"gold","image_url":"/static/logos/Violet_a_Max_companion.png","min_referrals":0},
     
     # Referral companions - 5 companions (require referrals, ignore trial)
     {"id":"blayzike","name":"Blayzike","tier":"silver","image_url":"/static/referral/blayzike.png","min_referrals":2},
@@ -3406,6 +3406,39 @@ def intro():
         import traceback
         logger.error(f"❌ INTRO TRACEBACK: {traceback.format_exc()}")
         return f"<h1>Intro Error</h1><p>Error: {str(e)}</p>", 500
+
+@app.route("/profile")
+def profile():
+    """User profile page"""
+    try:
+        if not is_logged_in():
+            return redirect("/login")
+            
+        # Check if user has accepted terms
+        terms_check = requires_terms_acceptance()
+        if terms_check:
+            return terms_check
+        
+        # Get user data for profile
+        user_plan = session.get('user_plan', 'bronze')
+        trial_active = session.get('trial_active', False)
+        effective_plan = get_effective_plan(user_plan, trial_active)
+        
+        # Set access flags for profile page
+        session['access_bronze'] = True
+        session['access_silver'] = effective_plan in ['silver', 'gold'] or trial_active
+        session['access_gold'] = effective_plan == 'gold' or trial_active  
+        session['access_trial'] = trial_active
+        session.modified = True
+        
+        logger.info(f"✅ PROFILE: user_plan={user_plan}, trial_active={trial_active}, effective_plan={effective_plan}")
+        
+        return render_template("profile.html")
+    except Exception as e:
+        logger.error(f"❌ PROFILE ERROR: {e}")
+        import traceback
+        logger.error(f"❌ PROFILE TRACEBACK: {traceback.format_exc()}")
+        return f"<h1>Profile Error</h1><p>Error: {str(e)}</p>", 500
 
 @app.route("/companion-selection")
 def companion_selection():
