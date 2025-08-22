@@ -123,7 +123,7 @@ class TestFeatureFlags:
         # Should be enabled only for premium tiers
         assert self.manager.is_feature_enabled("test_feature", {"user_id": "user1", "tier": "premium"})
         assert self.manager.is_feature_enabled("test_feature", {"user_id": "user2", "tier": "premium_annual"})
-        assert not self.manager.is_feature_enabled("test_feature", {"user_id": "user3", "tier": "free"})
+        assert not self.manager.is_feature_enabled("test_feature", {"user_id": "user3", "tier": "bronze"})
         assert not self.manager.is_feature_enabled("test_feature", {"user_id": "user4", "tier": "basic"})
     
     def test_nonexistent_feature(self):

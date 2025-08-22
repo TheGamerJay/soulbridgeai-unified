@@ -21,7 +21,7 @@ class UserEngagementMetrics:
     avg_session_duration: float = 0.0
     favorite_companion: str = ""
     last_active: Optional[datetime] = None
-    subscription_tier: str = "free"
+    subscription_tier: str = "bronze"
     lifetime_value: float = 0.0
     churn_risk_score: float = 0.0
     engagement_score: float = 0.0
@@ -270,8 +270,8 @@ class BusinessIntelligenceManager:
             upgrades = 0
             
             for user in all_users:
-                subscription_status = user.get("subscription_status", "free")
-                subscription_tier = user.get("subscription_tier", "free")
+                subscription_status = user.get("subscription_status", "bronze")
+                subscription_tier = user.get("subscription_tier", "bronze")
                 
                 if subscription_status in ["active", "trialing"]:
                     if subscription_tier in subscription_tiers:
@@ -385,7 +385,7 @@ class BusinessIntelligenceManager:
         try:
             # Factors that influence churn risk
             last_login = user.get("last_login", "")
-            subscription_status = user.get("subscription_status", "free")
+            subscription_status = user.get("subscription_status", "bronze")
             
             # Days since last login (simulated)
             import random
@@ -430,8 +430,8 @@ class BusinessIntelligenceManager:
                 # Return sample data for testing
                 return [
                     {"userID": f"user_{i}", "email": f"user{i}@example.com", 
-                     "subscription_status": "active" if i % 3 == 0 else "free",
-                     "subscription_tier": "plus" if i % 3 == 0 else "free",
+                     "subscription_status": "active" if i % 3 == 0 else "bronze",
+                     "subscription_tier": "silver" if i % 3 == 0 else "bronze",
                      "last_login": datetime.utcnow().isoformat()}
                     for i in range(100)
                 ]

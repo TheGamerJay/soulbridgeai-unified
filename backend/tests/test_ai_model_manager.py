@@ -17,8 +17,8 @@ class TestAIModelManager:
         """Test model selection for companions"""
         ai_manager = AIModelManager()
         
-        # Test free tier
-        model = ai_manager._get_model_for_companion("Blayzo", "free")
+        # Test bronze tier
+        model = ai_manager._get_model_for_companion("Blayzo", "bronze")
         assert model == "openai_gpt35"
         
         # Test premium tier

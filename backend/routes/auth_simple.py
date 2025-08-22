@@ -73,7 +73,7 @@ def login():
             
             # Set session data
             session["user_id"] = str(user_data.get('id', ''))
-            session["user_plan"] = user_data.get('user_plan', 'free')
+            session["user_plan"] = user_data.get('user_plan', 'bronze')
             
             return j_ok(user_id=session["user_id"], plan=session["user_plan"])
         
@@ -116,7 +116,7 @@ def login():
             
             # Set session
             session["user_id"] = str(user_row['id'])
-            session["user_plan"] = user_row['user_plan'] or 'free'
+            session["user_plan"] = user_row['user_plan'] or 'bronze'
             
             return j_ok(user_id=session["user_id"], plan=session["user_plan"])
             

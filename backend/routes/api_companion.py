@@ -117,7 +117,7 @@ def companion_chat():
         
         # Get user info from session (with fallback)
         user_id = session.get('user_id', 'anonymous')
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         
         # Validate character
         valid_characters = ['Blayzo', 'Blayzica', 'Crimson', 'Violet', 'GamerJay']
@@ -196,7 +196,7 @@ def companion_status():
         
         # Get user info
         user_id = session.get('user_id', 'anonymous') 
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         
         # Get comprehensive status
         router_status = router.get_router_status()
@@ -244,7 +244,7 @@ def companion_status():
         else:
             # Add user-friendly provider status
             openai_available = router_status.get("providers", {}).get("openai", {}).get("available", False)
-            if user_plan in ["vip", "max", "pro"]:
+            if user_plan in ["silver", "gold"]:
                 response_data["provider_status"] = "Premium" if openai_available else "Standard"
             else:
                 response_data["provider_status"] = "Standard"
@@ -264,7 +264,7 @@ def companion_quota():
     """Get detailed quota information for the user"""
     try:
         user_id = session.get('user_id', 'anonymous')
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         
         quota_status = get_quota_status(user_id, user_plan)
         plan_quota_info = get_quota_for_plan(user_plan)
@@ -294,7 +294,7 @@ def companion_recommendation():
     """Get routing recommendation for the current user"""
     try:
         user_id = session.get('user_id', 'anonymous')
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         
         router = get_companion_router()
         recommendation = router.get_routing_recommendation(user_plan, user_id)
@@ -335,7 +335,7 @@ def admin_debug_panel():
         
         # Get user info
         user_id = session.get('user_id', 'admin_user')
-        user_plan = session.get('user_plan', 'max')
+        user_plan = session.get('user_plan', 'gold')
         
         # Get ALL the debug info
         router_status = router.get_router_status()
@@ -447,7 +447,7 @@ def admin_stats():
                 "quota_system": quota_recommendations,
                 "system": {
                     "available_characters": ["Blayzo", "Blayzica", "Crimson", "Violet", "GamerJay"],
-                    "supported_plans": ["free", "growth", "pro", "vip", "max"],
+                    "supported_plans": ["bronze", "silver", "gold"],
                     "api_version": "2.0",
                     "features": ["auto_quota", "cost_tracking", "budget_protection", "redis_caching"]
                 }
