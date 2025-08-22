@@ -8674,14 +8674,14 @@ def poll_trial_bulletproof():
 
 @app.route("/mini-studio")
 def mini_studio_bulletproof():
-    """Hard-gated Mini Studio - Max tier only"""
+    """Hard-gated Mini Studio - Gold tier only"""
     try:
         if not is_logged_in():
             return redirect("/login?return_to=mini-studio")
         
-        # Hard gate: Only Max users can access
+        # Hard gate: Only Gold users can access
         if not require_max_for_mini_studio_new():
-            flash("Mini Studio is exclusive to Max tier subscribers", "error")
+            flash("Mini Studio is exclusive to Gold tier subscribers", "error")
             return redirect("/tiers?upgrade=gold")
         
         # Get user data for display
@@ -10560,7 +10560,7 @@ def api_chat_old():
 
 @app.route("/api/creative-writing", methods=["POST"])
 def api_creative_writing():
-    """Creative writing assistant API endpoint for Growth/Max tiers"""
+    """Creative writing assistant API endpoint for Silver/Gold tiers"""
     try:
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
@@ -11216,7 +11216,7 @@ def api_save_canvas_art():
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
             
-        # Check if user has access to creative canvas (Growth/Max tiers or active trial)
+        # Check if user has access to creative canvas (Silver/Gold tiers or active trial)
         user_plan = session.get('user_plan', 'bronze')
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
@@ -11421,7 +11421,7 @@ def api_share_to_wellness_gallery():
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
             
-        # Check if user has access (Growth/Max tiers or active trial)
+        # Check if user has access (Silver/Gold tiers or active trial)
         user_plan = session.get('user_plan', 'bronze')
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
@@ -11953,12 +11953,12 @@ def voice_journaling_page():
     if not is_logged_in():
         return redirect("/login")
     
-    # Check if user has voice-journaling access (Max tier, addon, or trial)
+    # Check if user has voice-journaling access (Gold tier, addon, or trial)
     user_plan = session.get('user_plan', 'bronze')
     user_addons = session.get('user_addons', [])
     trial_active = check_trial_active_from_db(session.get('user_id'))
     
-    # Max tier users get all addon features included, trial users get access
+    # Gold tier users get all addon features included, trial users get access
     
     if user_plan not in ['silver', 'gold'] and not trial_active and 'voice-journaling' not in user_addons:
         return redirect("/subscription?feature=voice-journaling")
@@ -11972,13 +11972,13 @@ def voice_journaling_transcribe():
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
-        # Check if user has voice-journaling access (Max tier, addon, or trial)
+        # Check if user has voice-journaling access (Gold tier, addon, or trial)
         user_plan = session.get('user_plan', 'bronze')
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
         if user_plan not in ['silver', 'gold'] and not trial_active and 'voice-journaling' not in user_addons:
-            return jsonify({"success": False, "error": "Voice Journaling requires Max tier, addon, or trial"}), 403
+            return jsonify({"success": False, "error": "Voice Journaling requires Gold tier, addon, or trial"}), 403
         
         if 'audio' not in request.files:
             return jsonify({"success": False, "error": "No audio file provided"}), 400
@@ -12104,13 +12104,13 @@ def voice_journaling_save():
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
-        # Check if user has voice-journaling access (Max tier, addon, or trial)
+        # Check if user has voice-journaling access (Gold tier, addon, or trial)
         user_plan = session.get('user_plan', 'bronze')
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
         if user_plan not in ['silver', 'gold'] and not trial_active and 'voice-journaling' not in user_addons:
-            return jsonify({"success": False, "error": "Voice Journaling requires Max tier, addon, or trial"}), 403
+            return jsonify({"success": False, "error": "Voice Journaling requires Gold tier, addon, or trial"}), 403
         
         data = request.get_json()
         if not data:
@@ -12151,13 +12151,13 @@ def voice_journaling_entries():
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
-        # Check if user has voice-journaling access (Max tier, addon, or trial)
+        # Check if user has voice-journaling access (Gold tier, addon, or trial)
         user_plan = session.get('user_plan', 'bronze')
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
         if user_plan not in ['silver', 'gold'] and not trial_active and 'voice-journaling' not in user_addons:
-            return jsonify({"success": False, "error": "Voice Journaling requires Max tier, addon, or trial"}), 403
+            return jsonify({"success": False, "error": "Voice Journaling requires Gold tier, addon, or trial"}), 403
         
         # Get entries from session (in production, get from database)
         entries = session.get('voice_journal_entries', [])
@@ -12184,7 +12184,7 @@ def relationship_profiles_page():
     if not is_logged_in():
         return redirect("/login")
     
-    # Check if user has relationship access (Max tier, addon, or trial)
+    # Check if user has relationship access (Gold tier, addon, or trial)
     user_plan = session.get('user_plan', 'bronze')
     user_addons = session.get('user_addons', [])
     trial_active = check_trial_active_from_db(session.get('user_id'))
@@ -12201,13 +12201,13 @@ def relationship_profiles_add():
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
-        # Check if user has relationship access (Max tier, addon, or trial)
+        # Check if user has relationship access (Gold tier, addon, or trial)
         user_plan = session.get('user_plan', 'bronze')
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
         if user_plan not in ['silver', 'gold'] and not trial_active and 'relationship' not in user_addons:
-            return jsonify({"success": False, "error": "Relationship Profiles requires Max tier or addon"}), 403
+            return jsonify({"success": False, "error": "Relationship Profiles requires Gold tier or addon"}), 403
         
         # Check and deduct credits before processing
         user_id = session.get('user_id')
@@ -12277,13 +12277,13 @@ def relationship_profiles_list():
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
-        # Check if user has relationship access (Max tier, addon, or trial)
+        # Check if user has relationship access (Gold tier, addon, or trial)
         user_plan = session.get('user_plan', 'bronze')
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
         if user_plan not in ['silver', 'gold'] and not trial_active and 'relationship' not in user_addons:
-            return jsonify({"success": False, "error": "Relationship Profiles requires Max tier or addon"}), 403
+            return jsonify({"success": False, "error": "Relationship Profiles requires Gold tier or addon"}), 403
         
         # Get profiles from session (in production, get from database)
         profiles = session.get('relationship_profiles', [])
@@ -12304,13 +12304,13 @@ def relationship_profiles_delete(profile_id):
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
-        # Check if user has relationship access (Max tier, addon, or trial)
+        # Check if user has relationship access (Gold tier, addon, or trial)
         user_plan = session.get('user_plan', 'bronze')
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
         if user_plan not in ['silver', 'gold'] and not trial_active and 'relationship' not in user_addons:
-            return jsonify({"success": False, "error": "Relationship Profiles requires Max tier or addon"}), 403
+            return jsonify({"success": False, "error": "Relationship Profiles requires Gold tier or addon"}), 403
         
         # Get profiles from session
         profiles = session.get('relationship_profiles', [])
@@ -12345,7 +12345,7 @@ def emotional_meditations_page():
     if not is_logged_in():
         return redirect("/login")
     
-    # Check if user has emotional-meditations access (Growth/Max tier, addon, or trial)
+    # Check if user has emotional-meditations access (Silver/Gold tier, addon, or trial)
     user_plan = session.get('user_plan', 'bronze')
     user_addons = session.get('user_addons', [])
     trial_active = check_trial_active_from_db(session.get('user_id'))
@@ -12362,13 +12362,13 @@ def emotional_meditations_save_session():
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
-        # Check if user has emotional-meditations access (Growth/Max tier, addon, or trial)
+        # Check if user has emotional-meditations access (Silver/Gold tier, addon, or trial)
         user_plan = session.get('user_plan', 'bronze')
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
         if user_plan not in ['silver', 'gold'] and not trial_active and 'emotional-meditations' not in user_addons:
-            return jsonify({"success": False, "error": "Emotional Meditations requires Growth/Max tier, addon, or trial"}), 403
+            return jsonify({"success": False, "error": "Emotional Meditations requires Silver/Gold tier, addon, or trial"}), 403
         
         # Check and deduct credits before processing
         user_id = session.get('user_id')
@@ -12435,13 +12435,13 @@ def emotional_meditations_stats():
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
-        # Check if user has emotional-meditations access (Growth/Max tier, addon, or trial)
+        # Check if user has emotional-meditations access (Silver/Gold tier, addon, or trial)
         user_plan = session.get('user_plan', 'bronze')
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
         if user_plan not in ['silver', 'gold'] and not trial_active and 'emotional-meditations' not in user_addons:
-            return jsonify({"success": False, "error": "Emotional Meditations requires Growth/Max tier, addon, or trial"}), 403
+            return jsonify({"success": False, "error": "Emotional Meditations requires Silver/Gold tier, addon, or trial"}), 403
         
         # Get sessions from session storage
         sessions = session.get('meditation_sessions', [])
@@ -12519,7 +12519,7 @@ def ai_image_generation_page():
     if not is_logged_in():
         return redirect("/login")
     
-    # Check if user has ai-image-generation access (Growth/Max tier, addon, or trial)
+    # Check if user has ai-image-generation access (Silver/Gold tier, addon, or trial)
     user_plan = session.get('user_plan', 'bronze')
     user_addons = session.get('user_addons', [])
     trial_active = check_trial_active_from_db(session.get('user_id'))
@@ -12641,13 +12641,13 @@ def ai_image_generation_analyze_reference():
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
-        # Check if user has ai-image-generation access (Growth/Max tier, addon, or trial)
+        # Check if user has ai-image-generation access (Silver/Gold tier, addon, or trial)
         user_plan = session.get('user_plan', 'bronze')
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
         if user_plan not in ['silver', 'gold'] and not trial_active and 'ai-image-generation' not in user_addons:
-            return jsonify({"success": False, "error": "AI Image Generation requires Growth/Max tier, addon, or trial"}), 403
+            return jsonify({"success": False, "error": "AI Image Generation requires Silver/Gold tier, addon, or trial"}), 403
         
         data = request.get_json()
         if not data or not data.get('image'):
@@ -12712,13 +12712,13 @@ def ai_image_generation_save():
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
-        # Check if user has ai-image-generation access (Growth/Max tier, addon, or trial)
+        # Check if user has ai-image-generation access (Silver/Gold tier, addon, or trial)
         user_plan = session.get('user_plan', 'bronze')
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
         if user_plan not in ['silver', 'gold'] and not trial_active and 'ai-image-generation' not in user_addons:
-            return jsonify({"success": False, "error": "AI Image Generation requires Growth/Max tier, addon, or trial"}), 403
+            return jsonify({"success": False, "error": "AI Image Generation requires Silver/Gold tier, addon, or trial"}), 403
         
         data = request.get_json()
         if not data:
@@ -12759,13 +12759,13 @@ def ai_image_generation_gallery():
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
-        # Check if user has ai-image-generation access (Growth/Max tier, addon, or trial)
+        # Check if user has ai-image-generation access (Silver/Gold tier, addon, or trial)
         user_plan = session.get('user_plan', 'bronze')
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
         if user_plan not in ['silver', 'gold'] and not trial_active and 'ai-image-generation' not in user_addons:
-            return jsonify({"success": False, "error": "AI Image Generation requires Growth/Max tier, addon, or trial"}), 403
+            return jsonify({"success": False, "error": "AI Image Generation requires Silver/Gold tier, addon, or trial"}), 403
         
         # Get images from session (in production, get from database)
         images = session.get('ai_image_gallery', [])
@@ -12789,13 +12789,13 @@ def ai_image_generation_usage():
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
-        # Check if user has ai-image-generation access (Growth/Max tier, addon, or trial)
+        # Check if user has ai-image-generation access (Silver/Gold tier, addon, or trial)
         user_plan = session.get('user_plan', 'bronze')
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
         if user_plan not in ['silver', 'gold'] and not trial_active and 'ai-image-generation' not in user_addons:
-            return jsonify({"success": False, "error": "AI Image Generation requires Growth/Max tier, addon, or trial"}), 403
+            return jsonify({"success": False, "error": "AI Image Generation requires Silver/Gold tier, addon, or trial"}), 403
         
         # Get current month usage
         current_month = datetime.now().strftime('%Y-%m')
@@ -13344,7 +13344,7 @@ def emergency_login_page():
     <body>
         <div class="container">
             <h1>🚨 Emergency Login</h1>
-            <p>Use this to bypass authentication issues and login directly with Max tier.</p>
+            <p>Use this to bypass authentication issues and login directly with Gold tier.</p>
             <button onclick="emergencyLogin()">Login as dagamerjay13@gmail.com (Max Tier)</button>
             <div id="result" class="result" style="display:none;"></div>
         </div>
@@ -15171,7 +15171,7 @@ def mini_studio():
     effective_plan = get_effective_plan(user_plan, trial_active)
     user_id = session.get('user_id')
     
-    # Mini studio is Max tier exclusive + trial users get 60 minutes
+    # Mini studio is Gold tier exclusive + trial users get 60 minutes
     if effective_plan != 'gold':
         return redirect("/tiers?upgrade=gold")
     
@@ -15862,7 +15862,7 @@ def mini_studio_vocal_recording():
         effective_plan = get_effective_plan(user_plan, trial_active)
         
         if effective_plan != 'gold':
-            return jsonify({"success": False, "error": "Mini Studio requires Max tier or trial"}), 403
+            return jsonify({"success": False, "error": "Mini Studio requires Gold tier or trial"}), 403
         
         data = request.get_json()
         user_id = session.get('user_id')
@@ -15912,7 +15912,7 @@ def mini_studio_instrumental():
         effective_plan = get_effective_plan(user_plan, trial_active)
         
         if effective_plan != 'gold':
-            return jsonify({"success": False, "error": "Mini Studio requires Max tier or trial"}), 403
+            return jsonify({"success": False, "error": "Mini Studio requires Gold tier or trial"}), 403
         
         data = request.get_json()
         user_id = session.get('user_id')
@@ -16020,7 +16020,7 @@ def mini_studio_lyrics():
         effective_plan = get_effective_plan(user_plan, trial_active)
         
         if effective_plan != 'gold':
-            return jsonify({"success": False, "error": "Mini Studio requires Max tier or trial"}), 403
+            return jsonify({"success": False, "error": "Mini Studio requires Gold tier or trial"}), 403
         
         data = request.get_json()
         user_id = session.get('user_id')
@@ -16150,7 +16150,7 @@ def mini_studio_mixing():
         effective_plan = get_effective_plan(user_plan, trial_active)
         
         if effective_plan != 'gold':
-            return jsonify({"success": False, "error": "Mini Studio requires Max tier or trial"}), 403
+            return jsonify({"success": False, "error": "Mini Studio requires Gold tier or trial"}), 403
         
         data = request.get_json()
         user_id = session.get('user_id')
@@ -16277,7 +16277,7 @@ def mini_studio_session_control():
         effective_plan = get_effective_plan(user_plan, trial_active)
         
         if effective_plan != 'gold':
-            return jsonify({"success": False, "error": "Mini Studio requires Max tier or trial"}), 403
+            return jsonify({"success": False, "error": "Mini Studio requires Gold tier or trial"}), 403
         
         from unified_tier_system import get_user_credits, deduct_credits
         
@@ -16355,7 +16355,7 @@ def mini_studio_effects():
         effective_plan = get_effective_plan(user_plan, trial_active)
         
         if effective_plan != 'gold':
-            return jsonify({"success": False, "error": "Effects require Max tier or trial"}), 403
+            return jsonify({"success": False, "error": "Effects require Gold tier or trial"}), 403
         
         data = request.get_json()
         wav_path = data.get('wav_path')
@@ -16452,7 +16452,7 @@ def mini_studio_cover_art():
         effective_plan = get_effective_plan(user_plan, trial_active)
         
         if effective_plan != 'gold':
-            return jsonify({"success": False, "error": "Cover art generation requires Max tier or trial"}), 403
+            return jsonify({"success": False, "error": "Cover art generation requires Gold tier or trial"}), 403
         
         data = request.get_json()
         prompt = data.get('prompt', '')
@@ -16538,7 +16538,7 @@ def mini_studio_library_list():
         effective_plan = get_effective_plan(user_plan, trial_active)
         
         if effective_plan != 'gold':
-            return jsonify({"success": False, "error": "Library access requires Max tier or trial"}), 403
+            return jsonify({"success": False, "error": "Library access requires Gold tier or trial"}), 403
         
         user_id = session.get('user_id')
         
@@ -16583,7 +16583,7 @@ def mini_studio_library_delete(asset_id):
         effective_plan = get_effective_plan(user_plan, trial_active)
         
         if effective_plan != 'gold':
-            return jsonify({"success": False, "error": "Library access requires Max tier or trial"}), 403
+            return jsonify({"success": False, "error": "Library access requires Gold tier or trial"}), 403
         
         user_id = session.get('user_id')
         
@@ -16624,7 +16624,7 @@ def mini_studio_export(asset_id):
         effective_plan = get_effective_plan(user_plan, trial_active)
         
         if effective_plan != 'gold':
-            return jsonify({"success": False, "error": "Export requires Max tier or trial"}), 403
+            return jsonify({"success": False, "error": "Export requires Gold tier or trial"}), 403
         
         user_id = session.get('user_id')
         
