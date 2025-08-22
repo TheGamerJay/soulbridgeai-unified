@@ -109,8 +109,8 @@
           document.body.classList.add('trial-active', 'max-access');
           setStatus('Trial active');
           
-          // Unlock Growth/Max companions
-          document.querySelectorAll('[data-lock="growth"],[data-lock="max"]').forEach(el => {
+          // Unlock Silver/Gold companions
+          document.querySelectorAll('[data-lock="silver"],[data-lock="gold"]').forEach(el => {
             el.classList.remove('locked');
             el.setAttribute('aria-disabled', 'false');
           });
@@ -136,8 +136,8 @@
         btn?.classList.add('hidden');
         setStatus('Trial active');
         
-        // Unlock Growth/Max companions
-        document.querySelectorAll('[data-lock="growth"],[data-lock="max"]').forEach(el => {
+        // Unlock Silver/Gold companions
+        document.querySelectorAll('[data-lock="silver"],[data-lock="gold"]').forEach(el => {
           el.classList.remove('locked');
           el.setAttribute('aria-disabled', 'false');
         });

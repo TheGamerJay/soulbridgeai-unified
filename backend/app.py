@@ -384,7 +384,7 @@ def analytics_page():
             return render_template('login.html', error="Please log in to view analytics"), 401
         
         # Check if user has access (Silver/Gold only)
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         if user_plan not in ['growth', 'max']:  # growth=Silver, max=Gold
             return render_template('error.html', error="Analytics dashboard requires Silver or Gold plan"), 403
         
@@ -512,8 +512,8 @@ def get_access_matrix_new(user_plan: str, trial_active: bool):
     # During trial, use max tier for access
 
 #
-    plan = "max" if trial_active else user_plan
-    base = FEATURE_ACCESS.get(plan, FEATURE_ACCESS["free"]).copy()
+    plan = "gold" if trial_active else user_plan
+    base = FEATURE_ACCESS.get(plan, FEATURE_ACCESS["bronze"]).copy()
     return base
 
 def companion_unlock_state_new(user_plan: str, trial_active: bool, referrals: int):
@@ -559,7 +559,7 @@ def require_max_for_mini_studio_new():
     trial_active = session.get('trial_active', False)
 
 #
-    user_plan = session.get('user_plan', 'free')
+    user_plan = session.get('user_plan', 'bronze')
     effective_plan = get_effective_plan(user_plan, trial_active)
     return effective_plan == 'max'
 
@@ -913,7 +913,7 @@ def ensure_session_persistence():
         # Set a default user session for testing
         if "user_id" not in session:
             session["user_id"] = "demo_user"
-            session["user_plan"] = "free"
+            session["user_plan"] = "bronze"
         return
     
     # For every other route, require a user_id
@@ -938,13 +938,13 @@ def ensure_session_persistence():
 
     # CRITICAL: Apply access flags on every request (trial first, then fan out)
     if session.get('user_id'):  # Only for authenticated users
-        plan = session.get("user_plan", "free")
+        plan = session.get("user_plan", "bronze")
         trial = bool(session.get("trial_active"))
 
         # Base: free is always true
         access_free = True
-        access_growth = trial or plan.lower() in ("growth", "max")
-        access_max = trial or plan.lower() == "max"
+        access_growth = trial or plan.lower() in ("silver", "gold")
+        access_max = trial or plan.lower() == "gold"
 
         session["access_trial"] = trial
         session["access_free"] = access_free
@@ -980,7 +980,7 @@ _service_lock = threading.RLock()
 
 # Constants
 VALID_CHARACTERS = ["Blayzo", "Sapphire", "Violet", "Crimson", "Blayzia", "Blayzica", "Blayzike", "Blayzion", "Blazelian"]
-VALID_PLANS = ["growth", "max"]  # Only Growth/Max selectable - Free is automatic default
+VALID_PLANS = ["silver", "gold"]  # Only Growth/Max selectable - Free is automatic default
 
 # Admin and surveillance constants
 ADMIN_DASH_KEY = os.environ.get("ADMIN_DASH_KEY", "soulbridge_admin_2024")
@@ -1329,7 +1329,7 @@ def requires_terms_acceptance():
 
 def get_user_plan():
     """Get user's selected plan"""
-    return session.get("user_plan", "free")
+    return session.get("user_plan", "bronze")
 
 def parse_request_data():
     """Parse request data from both JSON and form data"""
@@ -1387,7 +1387,7 @@ def setup_user_session(email, user_id=None, is_admin=False, dev_mode=False):
     # TIER ISOLATION: Initialize user for proper tier based on their plan and trial status
     if user_id:
         from tier_isolation import tier_manager
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         trial_active = session.get('trial_active', False)
         
         # Determine tier
@@ -1785,7 +1785,7 @@ def health():
                         # Don't cache effective_plan - calculate it fresh each time with get_effective_plan()
                         
                         # Calculate effective_plan fresh instead of reading cached value  
-                        user_plan = session.get('user_plan', 'free')
+                        user_plan = session.get('user_plan', 'bronze')
                         trial_active = session.get('trial_active', False)
                         effective_plan = get_effective_plan(user_plan, trial_active)
                         
@@ -2037,7 +2037,7 @@ def auth_login():
             except Exception as trial_error:
                 logger.warning(f"Failed to restore trial status on login: {trial_error}")
             # ISOLATED TIER ACCESS FLAGS - Prevents cross-contamination
-            user_plan = session.get('user_plan', 'free')
+            user_plan = session.get('user_plan', 'bronze')
             trial_active = session.get('trial_active', False)
             # Define isolated access flags for each tier using effective_plan
             effective_plan = get_effective_plan(user_plan, trial_active)
@@ -2143,7 +2143,7 @@ def user_status():
     """Check if user is logged in for frontend authentication checks"""
     try:
         logged_in = is_logged_in()
-        raw_user_plan = session.get('user_plan', 'free') if logged_in else 'free'
+        raw_user_plan = session.get('user_plan', 'bronze') if logged_in else 'free'
         trial_active = session.get('trial_active', False) if logged_in else False
         
         # Normalize plan names to new tier system
@@ -2185,7 +2185,7 @@ def check_user_status():
         # Simple check without requiring full authentication
         user_id = session.get('user_id')
         logged_in = bool(user_id)
-        raw_user_plan = session.get('user_plan', 'free')
+        raw_user_plan = session.get('user_plan', 'bronze')
         trial_active = session.get('trial_active', False)
         
         # Normalize plan names to new tier system
@@ -2578,7 +2578,7 @@ def force_session_reset():
     session['session_version'] = '2025-07-28-banking-security'
     session['user_email'] = user_email
     session['user_id'] = user_id
-    session['user_plan'] = 'free'  # Reset to free
+    session['user_plan'] = 'bronze'  # Reset to free
     session['trial_active'] = False
     
     # Restore profile image if preserved
@@ -2588,7 +2588,7 @@ def force_session_reset():
     return jsonify({
         "success": True,
         "message": "Session reset to clean free user state",
-        "new_plan": "free"
+        "new_plan": "bronze"
     })
 
 @app.route("/api/debug/reset-to-free")
@@ -2598,7 +2598,7 @@ def reset_to_free():
     if not is_logged_in():
         return jsonify({"success": False, "error": "Authentication required"}), 401
     
-    session['user_plan'] = 'free'
+    session['user_plan'] = 'bronze'
     
     # TIER ISOLATION: Re-initialize user for free tier
     from tier_isolation import tier_manager
@@ -2666,7 +2666,7 @@ def reset_trial_state():
         session['trial_started_at'] = None
         session['trial_used_permanently'] = False
         session['trial_warning_sent'] = False
-        session['user_plan'] = 'free'
+        session['user_plan'] = 'bronze'
         # Don't cache effective_plan - calculate it fresh each time
         
         return jsonify({
@@ -2674,7 +2674,7 @@ def reset_trial_state():
             "message": "Trial state reset - you can now start a new trial",
             "trial_active": False,
             "trial_used_permanently": False,
-            "user_plan": "free"
+            "user_plan": "bronze"
         })
         
     except Exception as e:
@@ -2801,7 +2801,7 @@ def get_current_plan():
     if not is_logged_in():
         return jsonify({"success": False, "error": "Authentication required"}), 401
     
-    user_plan = session.get('user_plan', 'free')
+    user_plan = session.get('user_plan', 'bronze')
     
     return jsonify({
         "success": True,
@@ -3135,7 +3135,7 @@ def auth_register():
         session['user_authenticated'] = True
         session['session_version'] = "2025-07-28-banking-security"
         session['last_activity'] = datetime.now().isoformat()
-        session['user_plan'] = 'free'
+        session['user_plan'] = 'bronze'
         session['plan_selected_at'] = time.time()
         session['first_time_user'] = False
         
@@ -3257,7 +3257,7 @@ def intro():
         logger.info(f"🔒 INTRO TIER ISOLATION: Using {current_tier.upper()} tier data - plan={user_plan}, features={len(features)}")
         
         # ISOLATED TIER ACCESS FLAGS - Prevents cross-contamination 
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         trial_active = session.get('trial_active', False)
         effective_plan = get_effective_plan(user_plan, trial_active)  # FIXED: Calculate fresh
         
@@ -3296,7 +3296,7 @@ def companion_selection():
         return terms_check
     
     # CRITICAL: Ensure session has correct plan names for templates (ONLY migrate old names)
-    user_plan = session.get('user_plan', 'free')
+    user_plan = session.get('user_plan', 'bronze')
     plan_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
     # ONLY migrate if it's an OLD plan name that needs updating
     if user_plan in plan_mapping and user_plan != plan_mapping[user_plan]:
@@ -3309,7 +3309,7 @@ def companion_selection():
     
     # Get user data for template
     user_id = session.get('user_id')
-    user_plan = session.get('user_plan', 'free')
+    user_plan = session.get('user_plan', 'bronze')
     trial_active = session.get('trial_active', False)
     
     # Get referral count (default to 0 if not available)
@@ -3350,7 +3350,7 @@ def tiers_page():
     
     # Get user data
     user_id = session.get('user_id')
-    user_plan = session.get('user_plan', 'free')
+    user_plan = session.get('user_plan', 'bronze')
     trial_active = session.get('trial_active', False)
     trial_expires_at = session.get('trial_expires_at')
     
@@ -3387,13 +3387,14 @@ def tiers_page():
             'name': c['name'],
             'image_url': c['image_url']
         }
-        if c['tier'] == 'free':
+        # Use canonical tier names
+        if c['tier'] == 'bronze':
             free_companions.append(companion_data)
-        elif c['tier'] == 'growth':
+        elif c['tier'] == 'silver':
             growth_companions.append(companion_data)
-        elif c['tier'] == 'max':
+        elif c['tier'] == 'gold':
             max_companions.append(companion_data)
-        elif c['tier'] == 'referral':
+        elif c.get('min_referrals', 0) > 0:  # Referral companions are identified by min_referrals > 0
             referral_companions.append(companion_data)
     
     # Keep companions in their designated tiers (no redistribution needed)
@@ -3543,7 +3544,7 @@ def decoder():
             
         # Get user's plan and decoder usage
         user_id = session.get('user_id')
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         decoder_usage = get_decoder_usage()
         
         # Use session values set by @app.before_request (more efficient)
@@ -3576,7 +3577,7 @@ def fortune():
             
         # Get user's plan and fortune usage
         user_id = session.get('user_id')
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         fortune_usage = get_fortune_usage()
         
         # Use session values set by @app.before_request (more efficient)
@@ -3609,7 +3610,7 @@ def horoscope():
             
         # Get user's plan and horoscope usage
         user_id = session.get('user_id')
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         horoscope_usage = get_horoscope_usage()
         
         # Use session values set by @app.before_request (more efficient)
@@ -3708,7 +3709,7 @@ def unified_library(content_type="all"):
             return redirect("/login?return_to=library")
         
         user_id = session.get('user_id')
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         trial_active = session.get('trial_active', False)
         
         # Get user's saved content based on type
@@ -3723,7 +3724,7 @@ def unified_library(content_type="all"):
         logger.error(f"Unified library error: {e}")
         return redirect("/")
 
-def get_library_content(user_id, content_type="all", user_plan="free"):
+def get_library_content(user_id, content_type="all", user_plan="bronze"):
     """Get user's saved content from unified library system with plan-based limits"""
     try:
         # Get plan-based limits
@@ -5371,13 +5372,13 @@ def admin_fix_user_plans():
         if db_instance.use_postgres:
             cursor.execute("""
                 UPDATE users 
-                SET plan_type = 'free', user_plan = 'free'
+                SET plan_type = 'free', user_plan = 'bronze'
                 WHERE plan_type = 'foundation' OR user_plan = 'foundation'
             """)
         else:
             cursor.execute("""
                 UPDATE users 
-                SET plan_type = 'free', user_plan = 'free'
+                SET plan_type = 'free', user_plan = 'bronze'
                 WHERE plan_type = 'foundation' OR user_plan = 'foundation'
             """)
         
@@ -5744,7 +5745,7 @@ def sync_trial_session():
                 # Don't cache effective_plan - calculate it fresh each time with get_effective_plan()
                 
                 # Calculate effective_plan fresh instead of reading cached value
-                user_plan = session.get('user_plan', 'free')
+                user_plan = session.get('user_plan', 'bronze')
                 trial_active = session.get('trial_active', False)
                 effective_plan = get_effective_plan(user_plan, trial_active)
                 
@@ -5982,11 +5983,11 @@ def select_plan():
         logger.info(f"Session after plan selection: {dict(session)}")
         
         # ✅ Create appropriate success message and redirect
-        if normalized_plan == "free":
+        if normalized_plan == "bronze":
             message = "Welcome to SoulBridge AI! Your free plan is now active."
             redirect_url = "/intro"
         else:
-            plan_names = {"growth": "Growth", "max": "Max"}
+            plan_names = {"silver": "Silver", "gold": "Gold"}
             plan_display = plan_names.get(normalized_plan, normalized_plan.title())
             message = f"Great choice! {plan_display} plan selected. Complete payment to activate premium features."
             redirect_url = f"/payment?plan={normalized_plan}&billing={billing}"
@@ -6078,7 +6079,7 @@ def payment_page():
         if plan not in VALID_PLANS or plan == "foundation":
             return redirect("/subscription")
             
-        plan_names = {"growth": "Growth", "max": "Max"}
+        plan_names = {"silver": "Silver", "gold": "Gold"}
         plan_display = plan_names.get(plan, plan.title())
         
         # Prices in cents - Updated for accurate yearly pricing
@@ -6890,7 +6891,7 @@ def fix_session_thegamer():
         session['user_email'] = target_email
         session['email'] = target_email
         session['display_name'] = "The Game r"
-        session['user_plan'] = 'free'
+        session['user_plan'] = 'bronze'
         session['plan_type'] = 'free'
         
         # Restore profile image if preserved
@@ -7387,7 +7388,7 @@ def protected_feature_check():
             return jsonify({"error": "Authentication required"}), 401
         
         feature = request.args.get('feature', 'ai_image')
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         trial_active = session.get('trial_active', False)
         effective_plan = get_effective_plan(user_plan, trial_active)
         
@@ -7873,7 +7874,7 @@ def debug_user_tier_info():
     if not user_id:
         return jsonify({"error": "Not logged in"})
     
-    user_plan = session.get('user_plan', 'free')
+    user_plan = session.get('user_plan', 'bronze')
     trial_active = session.get('trial_active', False)
     effective_plan = get_effective_plan(user_plan, trial_active)
     
@@ -7928,7 +7929,7 @@ def debug_set_user_tier(tier):
     internal_tier = tier_mapping[tier]
     
     # Update session with internal name
-    old_plan = session.get('user_plan', 'free')
+    old_plan = session.get('user_plan', 'bronze')
     session['user_plan'] = internal_tier
     
     # Update database if available
@@ -8018,7 +8019,7 @@ def check_decoder_limit():
     logger.info(f"🔍 Full session contents: {dict(session)}")
     
     # Always calculate effective_plan fresh instead of reading cached values
-    user_plan = session.get("user_plan", "free") 
+    user_plan = session.get("user_plan", "bronze") 
     trial_active = session.get("trial_active", False)
     
     # Fallback: If session values are missing, force update them
@@ -8090,7 +8091,7 @@ def check_fortune_limit():
     tier_system = get_current_tier_system()
     tier_data = tier_system.get_session_data()
     
-    user_plan = session.get("user_plan", "free")  # Original plan for display
+    user_plan = session.get("user_plan", "bronze")  # Original plan for display
     trial_active = session.get("trial_active", False)
     effective_plan = get_effective_plan(user_plan, trial_active)
     
@@ -8126,7 +8127,7 @@ def check_horoscope_limit():
     tier_system = get_current_tier_system()
     tier_data = tier_system.get_session_data()
     
-    user_plan = session.get("user_plan", "free")  # Original plan for display
+    user_plan = session.get("user_plan", "bronze")  # Original plan for display
     trial_active = session.get("trial_active", False)
     effective_plan = get_effective_plan(user_plan, trial_active)
     
@@ -8163,7 +8164,7 @@ def get_user_plan_api():
             return jsonify({"plan": "free", "trial_active": False})
         
         user_id = session.get('user_id')
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         
         # Map old plan names to new consistent naming
         plan_mapping = {'foundation': 'free', 'premium': 'growth', 'enterprise': 'max'}
@@ -8194,14 +8195,14 @@ def api_plan_new():
     try:
         if not is_logged_in():
             return jsonify({
-                "user_plan": "free",
+                "user_plan": "bronze",
                 "trial_active": False,
                 "effective_plan": "free",
                 "limits": {"decoder": 3, "fortune": 2, "horoscope": 3},
                 "features": FEATURE_ACCESS["free"]
             })
         
-        user_plan = session.get("user_plan", "free")
+        user_plan = session.get("user_plan", "bronze")
         trial_active = bool(session.get("trial_active", False))
         effective_plan = get_effective_plan_new(user_plan, trial_active)
         access = get_access_matrix_new(user_plan, trial_active)
@@ -8224,7 +8225,7 @@ def api_plan_new():
     except Exception as e:
         logger.error(f"API plan error: {e}")
         return jsonify({
-            "user_plan": "free",
+            "user_plan": "bronze",
             "trial_active": False,
             "effective_plan": "free",
             "limits": {"decoder": 3, "fortune": 2, "horoscope": 3},
@@ -8341,7 +8342,7 @@ def poll_trial_bulletproof():
                 # TIER ISOLATION: Re-initialize user back to their original tier when trial expires
                 from tier_isolation import tier_manager
                 user_id = session.get('user_id')
-                user_plan = session.get('user_plan', 'free')
+                user_plan = session.get('user_plan', 'bronze')
                 trial_active = False  # Trial has expired
                 
                 if user_id:
@@ -8399,7 +8400,7 @@ def mini_studio_bulletproof():
         
         # Get user data for display
         user_email = session.get('user_email', 'Unknown')
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         trial_active = session.get('trial_active', False)
         user_id = session.get('user_id')
         
@@ -8428,7 +8429,7 @@ def mini_studio_bulletproof():
 @app.route("/debug/upgrade-to-free", methods=["POST"])
 def debug_upgrade_to_free():
     """Debug endpoint to set user to Free tier"""
-    session['user_plan'] = 'free'
+    session['user_plan'] = 'bronze'
     session['user_authenticated'] = True
     session.modified = True
     return jsonify({"success": True, "message": "Upgraded to Free tier", "user_plan": "foundation"})
@@ -8554,7 +8555,7 @@ def session_lite():
         "access_free": bool(session.get("access_free", True)),
         "access_growth": bool(session.get("access_growth", False)),
         "access_max": bool(session.get("access_max", False)),
-        "user_plan": session.get("user_plan", "free"),
+        "user_plan": session.get("user_plan", "bronze"),
         "effective_plan": session.get("effective_plan", "free")
     }), 200
 
@@ -8604,9 +8605,9 @@ def debug_session_info():
         "session_trial_active": session.get('trial_active'),
         "session_user_plan": session.get('user_plan'),
         "session_effective_plan": session.get('effective_plan'),
-        "decoder_limit": get_feature_limit(session.get('user_plan', 'free'), 'decoder'),
-        "fortune_limit": get_feature_limit(session.get('user_plan', 'free'), 'fortune'),
-        "horoscope_limit": get_feature_limit(session.get('user_plan', 'free'), 'horoscope')
+        "decoder_limit": get_feature_limit(session.get('user_plan', 'bronze'), 'decoder'),
+        "fortune_limit": get_feature_limit(session.get('user_plan', 'bronze'), 'fortune'),
+        "horoscope_limit": get_feature_limit(session.get('user_plan', 'bronze'), 'horoscope')
     })
 
 @app.route("/debug/state", methods=["GET"])
@@ -8805,7 +8806,7 @@ def debug_force_free_plan():
             return jsonify({"error": "Not logged in"})
         
         # Force session to free plan
-        session['user_plan'] = 'free'
+        session['user_plan'] = 'bronze'
         # Don't cache effective_plan - calculate it fresh each time
         session['trial_active'] = False
         
@@ -8992,14 +8993,14 @@ def debug_force_free_user():
             conn.close()
             
         # Reset session
-        session['user_plan'] = 'free'
+        session['user_plan'] = 'bronze'
         # Don't cache effective_plan - calculate it fresh each time 
         session['trial_active'] = False
         
         return jsonify({
             "success": True, 
             "message": "User forced to Free tier with no trial",
-            "user_plan": "free",
+            "user_plan": "bronze",
             "trial_active": False
         })
         
@@ -10206,7 +10207,7 @@ def api_chat_old():
         if context == 'decoder_mode':
             # Use effective_plan from session (set by @app.before_request)
             effective_plan = session.get('effective_plan', 'free')
-            user_plan = session.get('user_plan', 'free')
+            user_plan = session.get('user_plan', 'bronze')
             trial_active = session.get('trial_active', False)
             user_id = session.get('user_id')
             daily_limit = get_feature_limit(user_plan, 'decoder')
@@ -10282,7 +10283,7 @@ def api_creative_writing():
             return jsonify({"success": False, "error": "Authentication required"}), 401
             
         # Check daily usage limits for creative writing
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         user_id = session.get('user_id')
         
         # Get effective plan for limits (not trial-affected)
@@ -10446,7 +10447,7 @@ def api_save_creative_content():
             return jsonify({"success": False, "error": "Authentication required"}), 401
             
         # Check user's library limits before saving
-        user_plan = session.get('user_plan', 'free') 
+        user_plan = session.get('user_plan', 'bronze') 
         user_id = session.get('user_id')
         
         # Get effective plan for limits (not trial-affected)
@@ -10614,7 +10615,7 @@ def api_save_horoscope():
         user_email = session.get('user_email')
         
         # Check user's library limits before saving
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         library_limit = get_feature_limit(user_plan, 'library_chats')  # Use actual plan for limits, not effective
         
         # Get database connection
@@ -10732,7 +10733,7 @@ def api_save_fortune():
         user_email = session.get('user_email')
         
         # Check user's library limits before saving
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         library_limit = get_feature_limit(user_plan, 'library_chats')
         
         # Get database connection
@@ -10840,7 +10841,7 @@ def api_save_decoder():
         user_email = session.get('user_email')
         
         # Check user's library limits before saving
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         library_limit = get_feature_limit(user_plan, 'library_chats')
         
         # Get database connection
@@ -10933,7 +10934,7 @@ def api_save_canvas_art():
             return jsonify({"success": False, "error": "Authentication required"}), 401
             
         # Check if user has access to creative canvas (Growth/Max tiers or active trial)
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
         if user_plan not in ['growth', 'premium', 'enterprise'] and not trial_active:
@@ -11138,7 +11139,7 @@ def api_share_to_wellness_gallery():
             return jsonify({"success": False, "error": "Authentication required"}), 401
             
         # Check if user has access (Growth/Max tiers or active trial)
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
         if user_plan not in ['growth', 'premium', 'enterprise'] and not trial_active:
@@ -11670,7 +11671,7 @@ def voice_journaling_page():
         return redirect("/login")
     
     # Check if user has voice-journaling access (Max tier, addon, or trial)
-    user_plan = session.get('user_plan', 'free')
+    user_plan = session.get('user_plan', 'bronze')
     user_addons = session.get('user_addons', [])
     trial_active = check_trial_active_from_db(session.get('user_id'))
     
@@ -11689,7 +11690,7 @@ def voice_journaling_transcribe():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
         # Check if user has voice-journaling access (Max tier, addon, or trial)
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
@@ -11821,7 +11822,7 @@ def voice_journaling_save():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
         # Check if user has voice-journaling access (Max tier, addon, or trial)
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
@@ -11868,7 +11869,7 @@ def voice_journaling_entries():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
         # Check if user has voice-journaling access (Max tier, addon, or trial)
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
@@ -11901,7 +11902,7 @@ def relationship_profiles_page():
         return redirect("/login")
     
     # Check if user has relationship access (Max tier, addon, or trial)
-    user_plan = session.get('user_plan', 'free')
+    user_plan = session.get('user_plan', 'bronze')
     user_addons = session.get('user_addons', [])
     trial_active = check_trial_active_from_db(session.get('user_id'))
     
@@ -11918,7 +11919,7 @@ def relationship_profiles_add():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
         # Check if user has relationship access (Max tier, addon, or trial)
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
@@ -11994,7 +11995,7 @@ def relationship_profiles_list():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
         # Check if user has relationship access (Max tier, addon, or trial)
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
@@ -12021,7 +12022,7 @@ def relationship_profiles_delete(profile_id):
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
         # Check if user has relationship access (Max tier, addon, or trial)
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
@@ -12062,7 +12063,7 @@ def emotional_meditations_page():
         return redirect("/login")
     
     # Check if user has emotional-meditations access (Growth/Max tier, addon, or trial)
-    user_plan = session.get('user_plan', 'free')
+    user_plan = session.get('user_plan', 'bronze')
     user_addons = session.get('user_addons', [])
     trial_active = check_trial_active_from_db(session.get('user_id'))
     
@@ -12079,7 +12080,7 @@ def emotional_meditations_save_session():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
         # Check if user has emotional-meditations access (Growth/Max tier, addon, or trial)
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
@@ -12152,7 +12153,7 @@ def emotional_meditations_stats():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
         # Check if user has emotional-meditations access (Growth/Max tier, addon, or trial)
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
@@ -12236,7 +12237,7 @@ def ai_image_generation_page():
         return redirect("/login")
     
     # Check if user has ai-image-generation access (Growth/Max tier, addon, or trial)
-    user_plan = session.get('user_plan', 'free')
+    user_plan = session.get('user_plan', 'bronze')
     user_addons = session.get('user_addons', [])
     trial_active = check_trial_active_from_db(session.get('user_id'))
     
@@ -12253,7 +12254,7 @@ def ai_image_generation_generate():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
         # Check if user has ai-image-generation access (Growth/Max tier, addon, or trial)
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
@@ -12357,7 +12358,7 @@ def ai_image_generation_analyze_reference():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
         # Check if user has ai-image-generation access (Growth/Max tier, addon, or trial)
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
@@ -12428,7 +12429,7 @@ def ai_image_generation_save():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
         # Check if user has ai-image-generation access (Growth/Max tier, addon, or trial)
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
@@ -12475,7 +12476,7 @@ def ai_image_generation_gallery():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
         # Check if user has ai-image-generation access (Growth/Max tier, addon, or trial)
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
@@ -12505,7 +12506,7 @@ def ai_image_generation_usage():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
         # Check if user has ai-image-generation access (Growth/Max tier, addon, or trial)
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         user_addons = session.get('user_addons', [])
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
@@ -12761,7 +12762,7 @@ def get_user_status():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
         # Get basic user data
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         user_email = session.get('user_email', session.get('email'))
         user_id = session.get('user_id')
         
@@ -12851,7 +12852,7 @@ def emergency_login_foundation(email):
         session['user_authenticated'] = True
         session['user_email'] = email.lower()
         session['email'] = email.lower()
-        session['user_plan'] = 'free'  # Set to Foundation tier (NOT enterprise)
+        session['user_plan'] = 'bronze'  # Set to Foundation tier (NOT enterprise)
         session['display_name'] = 'GamerJay'
         session['session_version'] = "2025-07-28-banking-security"
         session['last_activity'] = datetime.now().isoformat()
@@ -12893,7 +12894,7 @@ def reset_user_to_foundation():
             return jsonify({"success": False, "error": "Not logged in"}), 401
             
         # Reset session to foundation
-        session['user_plan'] = 'free'
+        session['user_plan'] = 'bronze'
         session['last_activity'] = datetime.now().isoformat()
         
         user_email = session.get('user_email', 'unknown')
@@ -14848,7 +14849,7 @@ def music_create_track():
     
     # Use unified system for consistent trial handling
     trial_active = session.get('trial_active', False)
-    user_plan = session.get('user_plan', 'free')
+    user_plan = session.get('user_plan', 'bronze')
     effective_plan = get_effective_plan(user_plan, trial_active)
     
     if effective_plan != 'max':
@@ -14868,7 +14869,7 @@ def mini_studio():
         return redirect("/login?return_to=mini-studio")
     
     # Check access permissions
-    user_plan = session.get('user_plan', 'free')
+    user_plan = session.get('user_plan', 'bronze')
     trial_active = session.get('trial_active', False)
     effective_plan = get_effective_plan(user_plan, trial_active)
     user_id = session.get('user_id')
@@ -14882,7 +14883,7 @@ def mini_studio():
     credits = get_user_credits(user_id) if user_id else 0
     
     # For trial users, they get 60 "trainer time" credits specifically for mini studio
-    if user_plan == 'free' and trial_active:
+    if user_plan == 'bronze' and trial_active:
         from unified_tier_system import get_trial_trainer_time
         trial_credits = get_trial_trainer_time(user_id)
         credits = max(credits, trial_credits)  # Use trial credits if higher
@@ -15559,7 +15560,7 @@ def mini_studio_vocal_recording():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
         # Check access
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         trial_active = session.get('trial_active', False)
         effective_plan = get_effective_plan(user_plan, trial_active)
         
@@ -15573,7 +15574,7 @@ def mini_studio_vocal_recording():
         from unified_tier_system import get_user_credits, deduct_credits
         credits = get_user_credits(user_id) if user_id else 0
         
-        if user_plan == 'free' and trial_active:
+        if user_plan == 'bronze' and trial_active:
             from unified_tier_system import get_trial_trainer_time
             trial_credits = get_trial_trainer_time(user_id)
             credits = max(credits, trial_credits)
@@ -15609,7 +15610,7 @@ def mini_studio_instrumental():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
         # Check access
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         trial_active = session.get('trial_active', False)
         effective_plan = get_effective_plan(user_plan, trial_active)
         
@@ -15626,7 +15627,7 @@ def mini_studio_instrumental():
         from unified_tier_system import get_user_credits, deduct_credits
         credits = get_user_credits(user_id) if user_id else 0
         
-        if user_plan == 'free' and trial_active:
+        if user_plan == 'bronze' and trial_active:
             from unified_tier_system import get_trial_trainer_time
             trial_credits = get_trial_trainer_time(user_id)
             credits = max(credits, trial_credits)
@@ -15717,7 +15718,7 @@ def mini_studio_lyrics():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
         # Check access
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         trial_active = session.get('trial_active', False)
         effective_plan = get_effective_plan(user_plan, trial_active)
         
@@ -15735,7 +15736,7 @@ def mini_studio_lyrics():
         from unified_tier_system import get_user_credits, deduct_credits
         credits = get_user_credits(user_id) if user_id else 0
         
-        if user_plan == 'free' and trial_active:
+        if user_plan == 'bronze' and trial_active:
             from unified_tier_system import get_trial_trainer_time
             trial_credits = get_trial_trainer_time(user_id)
             credits = max(credits, trial_credits)
@@ -15847,7 +15848,7 @@ def mini_studio_mixing():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
         # Check access
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         trial_active = session.get('trial_active', False)
         effective_plan = get_effective_plan(user_plan, trial_active)
         
@@ -15867,7 +15868,7 @@ def mini_studio_mixing():
         from unified_tier_system import get_user_credits, deduct_credits
         credits = get_user_credits(user_id) if user_id else 0
         
-        if user_plan == 'free' and trial_active:
+        if user_plan == 'bronze' and trial_active:
             from unified_tier_system import get_trial_trainer_time
             trial_credits = get_trial_trainer_time(user_id)
             credits = max(credits, trial_credits)
@@ -15974,7 +15975,7 @@ def mini_studio_session_control():
         user_id = session.get('user_id')
         
         # Check access
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         trial_active = session.get('trial_active', False)
         effective_plan = get_effective_plan(user_plan, trial_active)
         
@@ -15987,7 +15988,7 @@ def mini_studio_session_control():
             # Check if user has credits to start session
             credits = get_user_credits(user_id) if user_id else 0
             
-            if user_plan == 'free' and trial_active:
+            if user_plan == 'bronze' and trial_active:
                 from unified_tier_system import get_trial_trainer_time
                 trial_credits = get_trial_trainer_time(user_id)
                 credits = max(credits, trial_credits)
@@ -16052,7 +16053,7 @@ def mini_studio_effects():
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         trial_active = session.get('trial_active', False)
         effective_plan = get_effective_plan(user_plan, trial_active)
         
@@ -16149,7 +16150,7 @@ def mini_studio_cover_art():
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         trial_active = session.get('trial_active', False)
         effective_plan = get_effective_plan(user_plan, trial_active)
         
@@ -16235,7 +16236,7 @@ def mini_studio_library_list():
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         trial_active = session.get('trial_active', False)
         effective_plan = get_effective_plan(user_plan, trial_active)
         
@@ -16280,7 +16281,7 @@ def mini_studio_library_delete(asset_id):
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         trial_active = session.get('trial_active', False)
         effective_plan = get_effective_plan(user_plan, trial_active)
         
@@ -16321,7 +16322,7 @@ def mini_studio_export(asset_id):
         if not is_logged_in():
             return redirect("/login")
         
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         trial_active = session.get('trial_active', False)
         effective_plan = get_effective_plan(user_plan, trial_active)
         
@@ -16615,11 +16616,11 @@ def buy_credits_page():
     if not is_logged_in():
         return redirect("/login?return_to=buy-credits")
     
-    user_plan = session.get('user_plan', 'free')
+    user_plan = session.get('user_plan', 'bronze')
     trial_active = session.get('trial_active', False)
     
     # Only show for Growth/Max users (trial doesn't change this)
-    if user_plan == 'free':
+    if user_plan == 'bronze':
         return redirect("/tiers?upgrade=growth")
     
     # Check if user has active subscription (prevent cancelled users from accessing)
@@ -16779,11 +16780,11 @@ def api_buy_credits():
     
     try:
         user_email = session.get('user_email')
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         trial_active = session.get('trial_active', False)
         
         # Only allow Growth/Max users to purchase credits (trial doesn't change this)
-        if user_plan == 'free':
+        if user_plan == 'bronze':
             return jsonify({"success": False, "error": "Credits purchase requires Growth/Max plan"}), 403
         
         # Check if user has active subscription (prevent cancelled users from purchasing)
@@ -16894,10 +16895,10 @@ def credits_purchase_success():
                         credits_amount = int(checkout_session.metadata.get('credits_amount', 350))
                         
                         # SECURITY: Verify user is authorized to purchase credits
-                        user_plan = session.get('user_plan', 'free')
+                        user_plan = session.get('user_plan', 'bronze')
                         trial_active = session.get('trial_active', False)
                         
-                        if user_plan == 'free':
+                        if user_plan == 'bronze':
                             logger.warning(f"🚨 SECURITY: Free user {current_user_email} trying to claim credits without authorization")
                             return render_template_string('''
                             <div style="text-align: center; padding: 50px; font-family: Arial;">
