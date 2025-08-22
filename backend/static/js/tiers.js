@@ -47,11 +47,11 @@
         localStorage.setItem('trial_active', '1');
         localStorage.setItem('trial_started_at', data.trial_started_at || new Date().toISOString());
         localStorage.setItem('trial_expires_at', data.trial_expires_at);
-        localStorage.setItem('trial_plan_limits_from', data.plan_limits_from || 'free');
+        localStorage.setItem('trial_plan_limits_from', data.plan_limits_from || 'bronze');
 
         // UI: hide button immediately; add trial CSS flags
         btn?.classList.add('hidden');
-        document.body.classList.add('trial-active', 'max-access');
+        document.body.classList.add('trial-active', 'gold-access');
         setStatus('🎉 5-hour trial activated!');
 
         // Force session sync before reload to ensure trial state is properly set
@@ -106,7 +106,7 @@
         if (data.ok && data.trial_active) {
           // Trial is active - hide button and update UI
           btn?.classList.add('hidden');
-          document.body.classList.add('trial-active', 'max-access');
+          document.body.classList.add('trial-active', 'gold-access');
           setStatus('Trial active');
           
           // Unlock Silver/Gold companions
@@ -132,7 +132,7 @@
       const active = localStorage.getItem('trial_active') === '1';
       const expires = localStorage.getItem('trial_expires_at');
       if (active && expires) {
-        document.body.classList.add('trial-active', 'max-access');
+        document.body.classList.add('trial-active', 'gold-access');
         btn?.classList.add('hidden');
         setStatus('Trial active');
         

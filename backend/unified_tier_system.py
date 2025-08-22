@@ -3,11 +3,11 @@
 ============================================
 📦 Unified Tier + Trial + Credits System
 ============================================
-Single clean block that merges credits + daily limits with correct Free/Growth/Max isolation and trial behavior.
+Single clean block that merges credits + daily limits with correct Bronze/Silver/Gold isolation and trial behavior.
 
 This fixes:
-- Growth showing Free limits
-- Max showing wrong features  
+- Silver showing Bronze limits
+- Gold showing wrong features  
 - Trial unlocking features but keeping plan limits
 - Credits applying only to premium features
 - No more "∞ unlimited" mix-up
@@ -99,7 +99,7 @@ def ensure_database_schema():
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS tier_limits (
                     id INTEGER PRIMARY KEY,
-                    tier TEXT NOT NULL CHECK (tier IN ('free','bronze','silver','gold','growth','max')),
+                    tier TEXT NOT NULL CHECK (tier IN ('bronze','silver','gold')),
                     feature TEXT NOT NULL CHECK (feature IN ('decoder','fortune','horoscope')),
                     daily_limit INTEGER,
                     UNIQUE (tier, feature)
@@ -111,11 +111,8 @@ def ensure_database_schema():
             # Seed default limits
             default_limits = [
                 ('bronze','decoder',3), ('bronze','fortune',2), ('bronze','horoscope',3),
-                ('free','decoder',3), ('free','fortune',2), ('free','horoscope',3),  # Legacy support
                 ('silver','decoder',15), ('silver','fortune',8), ('silver','horoscope',10),
-                ('growth','decoder',15), ('growth','fortune',8), ('growth','horoscope',10),  # Legacy support
-                ('gold','decoder',None), ('gold','fortune',None), ('gold','horoscope',None),
-                ('max','decoder',None), ('max','fortune',None), ('max','horoscope',None)  # Legacy support
+                ('gold','decoder',None), ('gold','fortune',None), ('gold','horoscope',None)
             ]
             
             for tier, feature, limit in default_limits:
@@ -297,21 +294,15 @@ def check_active_subscription(user_id, plan):
 # DAILY LIMITS (non-credit features)
 DAILY_LIMITS = {
     "bronze":  {"decoder": 3,  "fortune": 2,  "horoscope": 3, "creative_writer": 2},    # Bronze tier
-    "free":    {"decoder": 3,  "fortune": 2,  "horoscope": 3, "creative_writer": 2},    # Legacy support
     "silver":  {"decoder": 15, "fortune": 8,  "horoscope": 10, "creative_writer": 20},  # Silver tier  
-    "growth":  {"decoder": 15, "fortune": 8,  "horoscope": 10, "creative_writer": 20},  # Legacy support
-    "gold":    {"decoder": 999999, "fortune": 999999, "horoscope": 999999, "creative_writer": 999999}, # Gold tier
-    "max":     {"decoder": 999999, "fortune": 999999, "horoscope": 999999, "creative_writer": 999999}  # Legacy support
+    "gold":    {"decoder": 999999, "fortune": 999999, "horoscope": 999999, "creative_writer": 999999}  # Gold tier
 }
 
 # MONTHLY CREDITS (premium features)
 MONTHLY_CREDITS = {
     "bronze": 0,      # Bronze tier gets no monthly credits
-    "free":   0,      # Legacy support
     "silver": 100,    # 100 credits/month for Silver
-    "growth": 100,    # Legacy support
-    "gold":   500,    # 500 credits/month for Gold
-    "max":    500     # Legacy support
+    "gold":   500     # 500 credits/month for Gold
 }
 
 # FEATURES THAT REQUIRE CREDITS
@@ -320,14 +311,14 @@ CREDIT_FEATURES = ["ai_images", "voice_journaling", "relationship_profiles", "me
 # EFFECTIVE PLAN (trial never changes what tier you are)
 def get_effective_plan(user_plan: str, trial_active: bool) -> str:
     """
-    5hr trial unlocks max tier features but keeps actual plan limits
-    - For feature access: trial gives max tier access
+    5hr trial unlocks gold tier features but keeps actual plan limits
+    - For feature access: trial gives gold tier access
     - For usage limits: always use actual plan (handled separately)
     """
     # DEBUG: Log the function call
     logger.info(f"🎯 GET_EFFECTIVE_PLAN DEBUG: user_plan='{user_plan}', trial_active={trial_active}")
     
-    if trial_active and user_plan in ["free", "bronze"]:
+    if trial_active and user_plan in ["bronze"]:
         logger.info(f"🎯 GET_EFFECTIVE_PLAN: Returning 'gold' for bronze user on trial")
         return "gold"  # Unlock all features during trial
     
@@ -367,7 +358,7 @@ def get_feature_limit(user_plan: str, feature: str, trial_active: bool = False) 
 # GET TRIAL TRAINER TIME (60 credits for free users during 5hr trial)
 def get_trial_trainer_time(user_id):
     """
-    Get trainer time credits for free users during 5hr trial
+    Get trainer time credits for bronze users during 5hr trial
     Returns 60 credits for Mini Studio access during trial period
     SECURITY: Validates trial status against database, not session
     """
@@ -393,7 +384,7 @@ def get_trial_trainer_time(user_id):
         user_plan, trial_active, trial_started_at = result
         
         # Verify trial is actually active and not expired
-        if user_plan in ["free", "bronze"] and trial_active and trial_started_at:
+        if user_plan in ["bronze"] and trial_active and trial_started_at:
             # Simple inline trial check (avoiding circular imports)
             from datetime import datetime, timezone
             try:
@@ -449,7 +440,7 @@ def get_user_credits(user_id):
             return 0
             
         credits, last_reset, plan_type, purchased_credits = row
-        plan = plan_type or session.get("user_plan", "free")
+        plan = plan_type or session.get("user_plan", "bronze")
         purchased_credits = purchased_credits or 0
 
         now = datetime.utcnow()
@@ -473,7 +464,7 @@ def get_user_credits(user_id):
             # Check if user has active subscription before resetting
             subscription_active = check_active_subscription(user_id, plan)
             
-            if subscription_active and plan in ['growth', 'max']:
+            if subscription_active and plan in ['silver', 'gold']:
                 # ACTIVE SUBSCRIBER: Reset to plan allowance (no rollover)
                 plan_credits = MONTHLY_CREDITS.get(plan, 0)
                 
@@ -588,7 +579,7 @@ def can_access_feature(user_id, feature):
     """
     try:
         trial_active = session.get("trial_active", False)
-        plan = session.get("user_plan", "free")
+        plan = session.get("user_plan", "bronze")
         effective_plan = get_effective_plan(plan, trial_active)
 
         # Daily limit features (decoder, fortune, horoscope, creative_writer)
@@ -598,17 +589,17 @@ def can_access_feature(user_id, feature):
                 limit = get_feature_limit(plan, feature, trial_active)
                 return limit > 0
             elif feature in ["fortune", "horoscope"]:
-                # Fortune/Horoscope: Trial removes the lock for free users
-                if plan == "free" and trial_active:
-                    # Free user on trial can use these features (lock removed)
+                # Fortune/Horoscope: Trial removes the lock for bronze users
+                if plan == "bronze" and trial_active:
+                    # Bronze user on trial can use these features (lock removed)
                     limit = get_feature_limit(plan, feature, trial_active)
                     return limit > 0
-                elif plan in ["growth", "max"]:
-                    # Growth/Max users always have access
+                elif plan in ["silver", "gold"]:
+                    # Silver/Gold users always have access
                     limit = get_feature_limit(plan, feature, trial_active)
                     return limit > 0
                 else:
-                    # Free user without trial - locked
+                    # Bronze user without trial - locked
                     return False
             elif feature == "creative_writer":
                 # Creative writer available to all tiers (with different limits)
@@ -617,35 +608,35 @@ def can_access_feature(user_id, feature):
 
         # Credit-based features (AI images, voice journaling, etc.)
         if feature in CREDIT_FEATURES:
-            # Trial removes the lock for free users
-            if plan == "free" and trial_active:
-                # Free user on trial can use these features (but with 0 credits)
+            # Trial removes the lock for bronze users
+            if plan == "bronze" and trial_active:
+                # Bronze user on trial can use these features (but with 0 credits)
                 credits = get_user_credits(user_id)
                 return credits >= 0  # Allow access even with 0 credits during trial
-            elif plan in ["growth", "max"]:
-                # Growth/Max users always have access
+            elif plan in ["silver", "gold"]:
+                # Silver/Gold users always have access
                 credits = get_user_credits(user_id)
                 return credits > 0
             else:
-                # Free user without trial - locked
+                # Bronze user without trial - locked
                 return False
         
-        # Mini Studio (max tier exclusive with trainer time)
+        # Mini Studio (gold tier exclusive with trainer time)
         if feature == "mini_studio":
-            if plan == "max":
-                # Max users have full access with their trainer time
+            if plan == "gold":
+                # Gold users have full access with their trainer time
                 return True
-            elif plan == "free" and trial_active:
-                # Free users on trial get 60 trainer time to taste Mini Studio
+            elif plan == "bronze" and trial_active:
+                # Bronze users on trial get 60 trainer time to taste Mini Studio
                 return True  # Access granted, will handle trainer time separately
             else:
-                # Growth users and free users without trial - no access
+                # Silver users and bronze users without trial - no access
                 return False
 
-        # All other features: Trial removes locks for free users
-        if plan == "free" and trial_active:
+        # All other features: Trial removes locks for bronze users
+        if plan == "bronze" and trial_active:
             return True  # Trial removes all locks
-        return plan in ["growth", "max"]
+        return plan in ["silver", "gold"]
         
     except Exception as e:
         logger.error(f"Error checking feature access: {e}")
@@ -733,7 +724,7 @@ def get_tier_status(user_id):
         # Ensure database schema is up to date
         ensure_database_schema()
         trial_active = session.get("trial_active", False)
-        plan = session.get("user_plan", "free")
+        plan = session.get("user_plan", "bronze")
         effective_plan = get_effective_plan(plan, trial_active)
         
         # DEBUG: Log what we got from session
@@ -793,10 +784,10 @@ def get_tier_status(user_id):
     except Exception as e:
         logger.error(f"Error getting tier status: {e}")
         return {
-            "user_plan": "free",
-            "effective_plan": "free", 
+            "user_plan": "bronze",
+            "effective_plan": "bronze", 
             "trial_active": False,
-            "limits": DAILY_LIMITS["free"],
+            "limits": DAILY_LIMITS["bronze"],
             "usage": {"decoder": 0, "fortune": 0, "horoscope": 0},
             "credits": 0,
             "feature_access": {}

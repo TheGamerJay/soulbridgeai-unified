@@ -154,12 +154,9 @@ def get_feature_limit(user_plan: str, feature: str, trial_active=False, trial_ex
     # Normalize plan names (handle legacy/inconsistent naming)
     plan = (user_plan or "bronze").lower()
     plan_mapping = {
-        'free': 'bronze',
-        'growth': 'silver', 
-        'max': 'gold',
-        'foundation': 'bronze',
-        'premium': 'silver',
-        'enterprise': 'gold'
+        'bronze': 'bronze',
+        'silver': 'silver', 
+        'gold': 'gold'
     }
     plan = plan_mapping.get(plan, plan)
     

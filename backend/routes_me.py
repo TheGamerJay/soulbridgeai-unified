@@ -53,19 +53,19 @@ def me():
         unlocked_tiers = ["bronze"]
         accessible_companion_tiers = ["bronze"]
         
-        if user_plan in ['growth', 'silver', 'max', 'gold'] or trial_active:
+        if plan in ['silver', 'gold'] or trial_active:
             unlocked_tiers.append("silver")
             accessible_companion_tiers.append("silver")
         
-        if user_plan in ['max', 'gold'] or trial_active:
+        if plan in ['gold'] or trial_active:
             unlocked_tiers.append("gold")
             accessible_companion_tiers.append("gold")
         
         # Set limits based on plan OR trial access
         # Trial users get Gold tier limits + companion access (per CLAUDE.md)
-        if user_plan in ['max', 'gold'] or trial_active:
+        if plan in ['gold'] or trial_active:
             limits = {"decoder": 999999, "fortune": 999999, "horoscope": 999999, "creative_writer": 999999}
-        elif user_plan in ['growth', 'silver']:
+        elif plan in ['silver']:
             limits = {"decoder": 15, "fortune": 8, "horoscope": 10, "creative_writer": 20}
         else:  # Bronze tier only (no trial)
             limits = {"decoder": 3, "fortune": 2, "horoscope": 3, "creative_writer": 2}

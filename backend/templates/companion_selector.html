@@ -208,6 +208,33 @@
             padding: 0.2rem 0;
         }
         
+        /* New Bronze/Silver/Gold CSS Classes */
+        .silver-companions {
+            background: #1f2f1f;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border: 1px solid #4ade80;
+        }
+        
+        .silver-companions h3 {
+            color: #4ade80;
+            margin-bottom: 0.5rem;
+        }
+        
+        .gold-companions {
+            background: #2f1f2f;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border: 1px solid #8b5cf6;
+        }
+        
+        .gold-companions h3 {
+            color: #8b5cf6;
+            margin-bottom: 0.5rem;
+        }
+        
         .trial-info {
             background: #2a1a2a;
             padding: 1rem;
@@ -814,42 +841,42 @@
                 </div>
               </div>
 
-              <!-- Growth Tier Companions -->
-              <div class="tier-section growth-companions" style="margin-top: 2rem;">
-                <h3 style="color: #22c55e; margin-bottom: 1rem;">🌱 Growth Tier Companions</h3>
+              <!-- Silver Tier Companions -->
+              <div class="tier-section silver-companions" style="margin-top: 2rem;">
+                <h3 style="color: #22c55e; margin-bottom: 1rem;">🥈 Silver Tier Companions</h3>
                 <div class="companion-row">
                   <!-- Sky -->
-                  <div class="companion-card {% if user_plan in ['growth', 'max'] or trial_active %}unlocked{% else %}locked{% endif %}" 
-                       data-companion="sky" data-tiers="growth,max" data-companion-tier="silver"
+                  <div class="companion-card {% if user_plan in ['silver', 'gold'] or trial_active %}unlocked{% else %}locked{% endif %}" 
+                       data-companion="sky" data-tiers="silver,gold" data-companion-tier="silver"
                        style="cursor: pointer;">
                     <img src="/static/logos/Sky.png" alt="Sky" onerror="this.src='/static/logos/IntroLogo.png'">
                     <div class="companion-name">Sky</div>
-                    <div class="companion-lock">{% if user_plan in ['growth', 'max'] or trial_active %}✅ Unlocked{% else %}🔒 Silver Tier{% endif %}</div>
+                    <div class="companion-lock">{% if user_plan in ['silver', 'gold'] or trial_active %}✅ Unlocked{% else %}🔒 Silver Tier{% endif %}</div>
                   </div>
 
                   <!-- Blayzo Premium -->
-                  <div class="companion-card {% if user_plan in ['growth', 'max'] or trial_active %}unlocked{% else %}locked{% endif %}" 
-                       data-companion="blayzo_premium" data-tiers="growth,max" data-companion-tier="silver"
+                  <div class="companion-card {% if user_plan in ['silver', 'gold'] or trial_active %}unlocked{% else %}locked{% endif %}" 
+                       data-companion="blayzo_premium" data-tiers="silver,gold" data-companion-tier="silver"
                        style="cursor: pointer;">
                     <img src="/static/logos/Blayzo Premium.png" alt="Blayzo Premium" onerror="this.src='/static/logos/IntroLogo.png'">
                     <div class="companion-name">Blayzo Premium</div>
-                    <div class="companion-lock">{% if user_plan in ['growth', 'max'] or trial_active %}✅ Unlocked{% else %}🔒 Silver Tier{% endif %}</div>
+                    <div class="companion-lock">{% if user_plan in ['silver', 'gold'] or trial_active %}✅ Unlocked{% else %}🔒 Silver Tier{% endif %}</div>
                   </div>
 
                   <!-- Blayzica Growth -->
-                  <div class="companion-card {% if user_plan in ['growth', 'max'] or trial_active %}unlocked{% else %}locked{% endif %}" 
-                       data-companion="blayzica_growth" data-tiers="growth,max" data-companion-tier="silver"
+                  <div class="companion-card {% if user_plan in ['silver', 'gold'] or trial_active %}unlocked{% else %}locked{% endif %}" 
+                       data-companion="blayzica_growth" data-tiers="silver,gold" data-companion-tier="silver"
                        style="cursor: pointer;">
                     <img src="/static/logos/Blayzica Growth.png" alt="Blayzica Growth" onerror="this.src='/static/logos/IntroLogo.png'">
                     <div class="companion-name">Blayzica Growth</div>
-                    <div class="companion-lock">{% if user_plan in ['growth', 'max'] or trial_active %}✅ Unlocked{% else %}🔒 Silver Tier{% endif %}</div>
+                    <div class="companion-lock">{% if user_plan in ['silver', 'gold'] or trial_active %}✅ Unlocked{% else %}🔒 Silver Tier{% endif %}</div>
                   </div>
                 </div>
               </div>
 
-              <!-- Max Tier Companions -->
-              <div class="tier-section max-companions" style="margin-top: 2rem;">
-                <h3 style="color: #8b5cf6; margin-bottom: 1rem;">⭐ Gold Tier Companions</h3>
+              <!-- Gold Tier Companions -->
+              <div class="tier-section gold-companions" style="margin-top: 2rem;">
+                <h3 style="color: #8b5cf6; margin-bottom: 1rem;">🥇 Gold Tier Companions</h3>
                 <div class="companion-row">
                   <!-- Companion Crimson -->
                   <div class="companion-card {% if user_plan == 'gold' or trial_active %}unlocked{% else %}locked{% endif %}" 
@@ -875,7 +902,7 @@
                        style="cursor: pointer;">
                     <img src="/static/logos/Royal Max.png" alt="Royal Max" onerror="this.src='/static/logos/IntroLogo.png'">
                     <div class="companion-name">Royal Max</div>
-                    <div class="companion-lock">{% if user_plan == 'max' or trial_active %}✅ Unlocked{% else %}🔒 Max Tier{% endif %}</div>
+                    <div class="companion-lock">{% if user_plan == 'gold' or trial_active %}✅ Unlocked{% else %}🔒 Max Tier{% endif %}</div>
                   </div>
                 </div>
               </div>

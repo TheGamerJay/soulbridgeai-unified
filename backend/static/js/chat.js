@@ -181,9 +181,9 @@ function updateCharacterDisplay() {
             'Blayzia': '/static/logos/Blayzia.png',
             'Blayzion': '/static/logos/Blayzion.png', 
             'Lumen': '/static/logos/Lumen Bronze.png',
-            'Blayzo.2': '/static/logos/blayzo free tier.png',
+            'Blayzo.2': '/static/logos/blayzo bronze tier.png',
             
-            // GROWTH TIER
+            // SILVER TIER
             'Sky': '/static/logos/Sky_a_premium_companion.png', // URL-safe filename
             'Blayzo': '/static/logos/Blayzo.png',
             'Blayzo Pro': '/static/logos/Blayzo_premium_companion.png', // URL-safe filename
@@ -380,7 +380,7 @@ async function sendMessage() {
             console.log('📥 Received response:', data.response);
             addMessage(data.response, 'assistant');
             
-            // Show ad after AI response for free users
+            // Show ad after AI response for bronze users
             await handlePostResponseAd(data);
         } else {
             console.error('❌ API error:', data.error);
@@ -921,7 +921,7 @@ function stopVoiceChat() {
             console.log('🎤 Stopping media recorder...');
             mediaRecorder.stop();
             
-            // Stop all audio tracks to free up the microphone
+            // Stop all audio tracks to release the microphone
             if (mediaRecorder.stream) {
                 mediaRecorder.stream.getTracks().forEach(track => {
                     console.log('🎤 Stopping audio track:', track.kind);
@@ -1014,7 +1014,7 @@ function getTierFeatures(characterName) {
         // FREE TIER - Basic features (NO VOICE CHAT)
         // ==========================================
         'GamerJay': {
-            tier: 'free',
+            tier: 'bronze',
             features: {
                 response_quality: 'basic',
                 context_memory: 3, // messages
@@ -1027,7 +1027,7 @@ function getTierFeatures(characterName) {
             }
         },
         'Claude': {
-            tier: 'free',
+            tier: 'bronze',
             features: {
                 response_quality: 'basic',
                 context_memory: 3,
@@ -1040,7 +1040,7 @@ function getTierFeatures(characterName) {
             }
         },
         'Blayzo': {
-            tier: 'free',
+            tier: 'bronze',
             features: {
                 response_quality: 'basic',
                 context_memory: 3,
@@ -1053,7 +1053,7 @@ function getTierFeatures(characterName) {
             }
         },
         'Blayzica': {
-            tier: 'free',
+            tier: 'bronze',
             features: {
                 response_quality: 'basic',
                 context_memory: 3,
@@ -1066,7 +1066,7 @@ function getTierFeatures(characterName) {
             }
         },
         'Blayzia': {
-            tier: 'free',
+            tier: 'bronze',
             features: {
                 response_quality: 'basic',
                 context_memory: 3,
@@ -1079,7 +1079,7 @@ function getTierFeatures(characterName) {
             }
         },
         'Blayzion': {
-            tier: 'free',
+            tier: 'bronze',
             features: {
                 response_quality: 'basic',
                 context_memory: 3,
@@ -1096,7 +1096,7 @@ function getTierFeatures(characterName) {
         // GROWTH TIER - Enhanced features with Voice Chat
         // ==========================================
         'Sky': {
-            tier: 'growth',
+            tier: 'silver',
             features: {
                 response_quality: 'enhanced',
                 context_memory: 15, // messages
@@ -1114,7 +1114,7 @@ function getTierFeatures(characterName) {
             }
         },
         'Blayzo Pro': {
-            tier: 'growth',
+            tier: 'silver',
             features: {
                 response_quality: 'enhanced',
                 context_memory: 15,
@@ -1127,7 +1127,7 @@ function getTierFeatures(characterName) {
             }
         },
         'Blayzica Pro': {
-            tier: 'growth',
+            tier: 'silver',
             features: {
                 response_quality: 'enhanced',
                 context_memory: 15,
@@ -1140,7 +1140,7 @@ function getTierFeatures(characterName) {
             }
         },
         'GamerJay Premium': {
-            tier: 'growth',
+            tier: 'silver',
             features: {
                 response_quality: 'enhanced',
                 context_memory: 15,
@@ -1153,7 +1153,7 @@ function getTierFeatures(characterName) {
             }
         },
         'Claude Growth': {
-            tier: 'growth',
+            tier: 'silver',
             features: {
                 response_quality: 'enhanced',
                 context_memory: 15,
@@ -1166,7 +1166,7 @@ function getTierFeatures(characterName) {
             }
         },
         'WatchDog': {
-            tier: 'growth',
+            tier: 'silver',
             features: {
                 response_quality: 'enhanced',
                 context_memory: 15,
@@ -1183,7 +1183,7 @@ function getTierFeatures(characterName) {
         // MAX TIER - Premium features with Advanced Voice AI
         // ==========================================
         'Crimson': {
-            tier: 'max',
+            tier: 'gold',
             features: {
                 response_quality: 'premium',
                 context_memory: 30, // messages
@@ -1197,7 +1197,7 @@ function getTierFeatures(characterName) {
             }
         },
         'Crimson Max': {
-            tier: 'max',
+            tier: 'gold',
             features: {
                 response_quality: 'premium',
                 context_memory: 30,
@@ -1211,7 +1211,7 @@ function getTierFeatures(characterName) {
             }
         },
         'Violet': {
-            tier: 'max',
+            tier: 'gold',
             features: {
                 response_quality: 'premium',
                 context_memory: 30,
@@ -1225,7 +1225,7 @@ function getTierFeatures(characterName) {
             }
         },
         'Violet Max': {
-            tier: 'max',
+            tier: 'gold',
             features: {
                 response_quality: 'premium',
                 context_memory: 30,
@@ -1239,7 +1239,7 @@ function getTierFeatures(characterName) {
             }
         },
         'WatchDog Max': {
-            tier: 'max',
+            tier: 'gold',
             features: {
                 response_quality: 'premium',
                 context_memory: 30,
@@ -1253,7 +1253,7 @@ function getTierFeatures(characterName) {
             }
         },
         'Royal': {
-            tier: 'max',
+            tier: 'gold',
             features: {
                 response_quality: 'premium',
                 context_memory: 30,
@@ -1267,7 +1267,7 @@ function getTierFeatures(characterName) {
             }
         },
         'Ven Blayzica': {
-            tier: 'max',
+            tier: 'gold',
             features: {
                 response_quality: 'premium',
                 context_memory: 30,
@@ -1281,7 +1281,7 @@ function getTierFeatures(characterName) {
             }
         },
         'Ven Sky': {
-            tier: 'max',
+            tier: 'gold',
             features: {
                 response_quality: 'premium',
                 context_memory: 30,
@@ -1295,7 +1295,7 @@ function getTierFeatures(characterName) {
             }
         },
         'Claude Max': {
-            tier: 'max',
+            tier: 'gold',
             features: {
                 response_quality: 'premium',
                 context_memory: 30,
@@ -1391,7 +1391,7 @@ function getTierFeatures(characterName) {
         companionTiers[name] = referralCompanions[name];
     });
     
-    // Return features for the character, default to free tier if not found
+    // Return features for the character, default to bronze tier if not found
     return companionTiers[characterName] || companionTiers['GamerJay'];
 }
 
