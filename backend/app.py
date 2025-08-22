@@ -3387,15 +3387,17 @@ def tiers_page():
             'name': c['name'],
             'image_url': c['image_url']
         }
-        # Use canonical tier names
-        if c['tier'] == 'bronze':
+        # Prioritize referral companions first (they have min_referrals > 0)
+        if c.get('min_referrals', 0) > 0:  # Referral companions are identified by min_referrals > 0
+            companion_data['min_referrals'] = c['min_referrals']  # Add referral requirement to display
+            referral_companions.append(companion_data)
+        # Then categorize by tier
+        elif c['tier'] == 'bronze':
             free_companions.append(companion_data)
         elif c['tier'] == 'silver':
             growth_companions.append(companion_data)
         elif c['tier'] == 'gold':
             max_companions.append(companion_data)
-        elif c.get('min_referrals', 0) > 0:  # Referral companions are identified by min_referrals > 0
-            referral_companions.append(companion_data)
     
     # Keep companions in their designated tiers (no redistribution needed)
     
