@@ -505,7 +505,7 @@ def create_companion_routes():
                 # Render chat template
                 return render_template("chat.html",
                     companion=comp_id,
-                    companion_display_name=f"{comp_name} ({comp_tier.title()} Tier)",
+                    companion_display_name=f"{comp_name} {comp_tier.title()}",
                     companion_avatar=comp_avatar,
                     ai_character_name=comp_name,
                     user_plan=user_plan,
@@ -18229,7 +18229,7 @@ def companion_chat_handler(tier, companion_id):
         
         return render_template("chat.html",
             companion=companion_id,
-            companion_display_name=f"{companion_info['name']} ({tier.title()} Tier)",
+            companion_display_name=f"{companion_info['name']} {tier.title()}",
             companion_avatar=companion_info['image_url'],
             ai_character_name=companion_info['name'],
             user_plan=user_plan,
