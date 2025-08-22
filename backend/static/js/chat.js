@@ -1717,7 +1717,7 @@ function loadAdSenseAd(containerId) {
                     <div class="demo-ad-content">
                         <h3>🧘‍♀️ Support SoulBridge AI</h3>
                         <p>Ad loading... Please wait or upgrade to ad-free!</p>
-                        <button class="demo-ad-button" onclick="window.open('/plan-selection', '_blank')">Go Ad-Free $5/mo</button>
+                        <button class="demo-ad-button" onclick="window.open('/subscription', '_blank')">Go Ad-Free $5/mo</button>
                     </div>
                 </div>
             `;

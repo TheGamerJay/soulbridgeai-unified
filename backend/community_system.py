@@ -1828,10 +1828,10 @@ def companion_selector_page():
                     
                     if (tier === 'silver') {
                         message = 'This companion requires Silver tier subscription. Would you like to upgrade to unlock all Silver companions?';
-                        upgradeUrl = '/plan-selection';
+                        upgradeUrl = '/subscription';
                     } else if (tier === 'gold') {
                         message = 'This companion requires Gold tier subscription. Would you like to upgrade to unlock all Gold companions?';
-                        upgradeUrl = '/plan-selection';
+                        upgradeUrl = '/subscription';
                     }
                     
                     if (confirm(message)) {
@@ -1851,7 +1851,7 @@ def companion_selector_page():
                     let message = 'Want to try Silver and Gold tier companions? Start your 5-hour trial now!';
                     
                     if (confirm(message)) {
-                        window.location.href = '/plan-selection';
+                        window.location.href = '/subscription';
                     }
                 }
             </script>
