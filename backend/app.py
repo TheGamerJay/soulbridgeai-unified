@@ -7829,18 +7829,19 @@ def is_trial_active(user_id) -> bool:
 
 # Essential usage tracking functions restored for decoder functionality
 def get_decoder_usage():
-    """Get user's decoder usage for today (companion-specific)"""
+    """Get user's decoder usage for today (shared per tier, not per companion)"""
     try:
         user_id = session.get('user_id')
         if not user_id:
             return 0
         
-        # Get current companion for isolation
-        companion_id = session.get('selected_companion', 'blayzo_free')  # Default fallback
-            
-        # Use companion-specific session tracking
+        # Get user's actual tier for shared usage tracking
+        user_plan = session.get('user_plan', 'bronze')
+        
+        # Share usage across all companions of the same tier
+        # Bronze companions share Bronze limits, Silver share Silver limits, etc.
         today = datetime.now().strftime('%Y-%m-%d')
-        usage_key = f'decoder_usage_{user_id}_{companion_id}_{today}'
+        usage_key = f'decoder_usage_{user_id}_{user_plan}_{today}'
         
         return session.get(usage_key, 0)
     except Exception as e:
@@ -7848,17 +7849,17 @@ def get_decoder_usage():
         return 0
 
 def increment_decoder_usage():
-    """Increment user's decoder usage for today (companion-specific)"""
+    """Increment user's decoder usage for today (shared per tier)"""
     try:
         user_id = session.get('user_id')
         if not user_id:
             return False
         
-        # Get current companion for isolation
-        companion_id = session.get('selected_companion', 'blayzo_free')  # Default fallback
+        # Get user's actual tier for shared usage tracking
+        user_plan = session.get('user_plan', 'bronze')
             
         today = datetime.now().strftime('%Y-%m-%d')
-        usage_key = f'decoder_usage_{user_id}_{companion_id}_{today}'
+        usage_key = f'decoder_usage_{user_id}_{user_plan}_{today}'
         
         # Update session-based tracking
         current_usage = session.get(usage_key, 0)
@@ -7916,17 +7917,17 @@ def increment_decoder_usage():
         return False
 
 def get_fortune_usage():
-    """Get user's fortune usage for today (companion-specific)"""
+    """Get user's fortune usage for today (shared per tier)"""
     try:
         user_id = session.get('user_id')
         if not user_id:
             return 0
         
-        # Get current companion for isolation
-        companion_id = session.get('selected_companion', 'blayzo_free')  # Default fallback
+        # Get user's actual tier for shared usage tracking
+        user_plan = session.get('user_plan', 'bronze')
             
         today = datetime.now().strftime('%Y-%m-%d')
-        usage_key = f'fortune_usage_{user_id}_{companion_id}_{today}'
+        usage_key = f'fortune_usage_{user_id}_{user_plan}_{today}'
         
         return session.get(usage_key, 0)
     except Exception as e:
@@ -7934,17 +7935,17 @@ def get_fortune_usage():
         return 0
 
 def increment_fortune_usage():
-    """Increment user's fortune usage for today (companion-specific)"""
+    """Increment user's fortune usage for today (shared per tier)"""
     try:
         user_id = session.get('user_id')
         if not user_id:
             return False
         
-        # Get current companion for isolation
-        companion_id = session.get('selected_companion', 'blayzo_free')  # Default fallback
+        # Get user's actual tier for shared usage tracking
+        user_plan = session.get('user_plan', 'bronze')
             
         today = datetime.now().strftime('%Y-%m-%d')
-        usage_key = f'fortune_usage_{user_id}_{companion_id}_{today}'
+        usage_key = f'fortune_usage_{user_id}_{user_plan}_{today}'
         
         # Update session-based tracking
         current_usage = session.get(usage_key, 0)
@@ -8002,17 +8003,17 @@ def increment_fortune_usage():
         return False
 
 def get_horoscope_usage():
-    """Get user's horoscope usage for today (companion-specific)"""
+    """Get user's horoscope usage for today (shared per tier)"""
     try:
         user_id = session.get('user_id')
         if not user_id:
             return 0
         
-        # Get current companion for isolation
-        companion_id = session.get('selected_companion', 'blayzo_free')  # Default fallback
+        # Get user's actual tier for shared usage tracking
+        user_plan = session.get('user_plan', 'bronze')
             
         today = datetime.now().strftime('%Y-%m-%d')
-        usage_key = f'horoscope_usage_{user_id}_{companion_id}_{today}'
+        usage_key = f'horoscope_usage_{user_id}_{user_plan}_{today}'
         
         return session.get(usage_key, 0)
     except Exception as e:
@@ -8020,17 +8021,17 @@ def get_horoscope_usage():
         return 0
 
 def increment_horoscope_usage():
-    """Increment user's horoscope usage for today (companion-specific)"""
+    """Increment user's horoscope usage for today (shared per tier)"""
     try:
         user_id = session.get('user_id')
         if not user_id:
             return False
         
-        # Get current companion for isolation
-        companion_id = session.get('selected_companion', 'blayzo_free')  # Default fallback
+        # Get user's actual tier for shared usage tracking
+        user_plan = session.get('user_plan', 'bronze')
             
         today = datetime.now().strftime('%Y-%m-%d')
-        usage_key = f'horoscope_usage_{user_id}_{companion_id}_{today}'
+        usage_key = f'horoscope_usage_{user_id}_{user_plan}_{today}'
         
         # Update session-based tracking
         current_usage = session.get(usage_key, 0)
