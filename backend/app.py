@@ -439,10 +439,10 @@ COMPANIONS_NEW = [
     {"id":"gamerjay_silver","name":"GamerJay Silver","tier":"silver","image_url":"/static/logos/GamerJay_premium_companion.png","min_referrals":0},
     {"id":"claude_silver","name":"Claude","tier":"silver","image_url":"/static/logos/Claude_Growth.png","min_referrals":0},
     {"id":"blayzo_silver","name":"Blayzo","tier":"silver","image_url":"/static/logos/Blayzo_premium_companion.png","min_referrals":0},
-    {"id":"blayzica_silver","name":"Blayzica","tier":"silver","image_url":"/static/logos/Blayzica Pro.png","min_referrals":0},
+    {"id":"blayzica_silver","name":"Blayzica","tier":"silver","image_url":"/static/logos/Blayzica_Pro.png","min_referrals":0},
     {"id":"watchdog_silver","name":"WatchDog","tier":"silver","image_url":"/static/logos/WatchDog_a_Premium_companion.png","min_referrals":0},
-    {"id":"rozia_silver","name":"Rozia","tier":"silver","image_url":"/static/logos/Rozia Silver .png","min_referrals":0},
-    {"id":"lumen_silver","name":"Lumen","tier":"silver","image_url":"/static/logos/Lumen Silver.png","min_referrals":0},
+    {"id":"rozia_silver","name":"Rozia","tier":"silver","image_url":"/static/logos/Rozia_Silver.png","min_referrals":0},
+    {"id":"lumen_silver","name":"Lumen","tier":"silver","image_url":"/static/logos/Lumen_Silver.png","min_referrals":0},
     
     # Gold tier - 8 companions
     {"id":"crimson_gold","name":"Crimson","tier":"gold","image_url":"/static/logos/Crimson_a_Max_companion.png","min_referrals":0},

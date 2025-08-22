@@ -189,12 +189,12 @@ function updateCharacterDisplay() {
             'Blayzo Pro': '/static/logos/Blayzo_premium_companion.png', // URL-safe filename
             'Blayzo Champion': '/static/logos/Blayzo_Referral.png', // URL-safe filename
             'Blayzica': '/static/logos/Blayzica.png', // Free version
-            'Blayzica Pro': '/static/logos/Blayzica Pro.png', // Using correct Pro image
+            'Blayzica Pro': '/static/logos/Blayzica_Pro.png', // Using correct Pro image
             'GamerJay Premium': '/static/logos/GamerJay_premium_companion.png', // URL-safe filename
             'gamerjay_premium': '/static/logos/GamerJay_premium_companion.png', // Backend companion ID format
             'Claude Growth': '/static/logos/Claude_Growth.png', // URL-safe filename
             'WatchDog': '/static/logos/WatchDog_a_Premium_companion.png', // URL-safe filename
-            'Rozia': '/static/logos/Rozia Silver .png',
+            'Rozia': '/static/logos/Rozia_Silver.png',
             
             // MAX TIER
             'Crimson': '/static/logos/Crimson.png',

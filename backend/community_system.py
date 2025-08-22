@@ -1435,10 +1435,10 @@ def select_companion_direct(companion_id):
             7: {'name': 'GamerJay', 'tier': 'silver', 'avatar_url': '/static/logos/GamerJay_premium_companion.png'},
             20: {'name': 'Claude', 'tier': 'silver', 'avatar_url': '/static/logos/Claude_Growth.png'},
             21: {'name': 'Blayzo', 'tier': 'silver', 'avatar_url': '/static/logos/Blayzo_premium_companion.png'},
-            22: {'name': 'Blayzica', 'tier': 'silver', 'avatar_url': '/static/logos/Blayzica Pro.png'},
+            22: {'name': 'Blayzica', 'tier': 'silver', 'avatar_url': '/static/logos/Blayzica_Pro.png'},
             23: {'name': 'WatchDog', 'tier': 'silver', 'avatar_url': '/static/logos/WatchDog a Premium companion.png'},
-            24: {'name': 'Rozia', 'tier': 'silver', 'avatar_url': '/static/logos/Rozia Silver .png'},
-            26: {'name': 'Lumen', 'tier': 'silver', 'avatar_url': '/static/logos/Lumen Silver.png'},
+            24: {'name': 'Rozia', 'tier': 'silver', 'avatar_url': '/static/logos/Rozia_Silver.png'},
+            26: {'name': 'Lumen', 'tier': 'silver', 'avatar_url': '/static/logos/Lumen_Silver.png'},
             # Gold tier companions
             3: {'name': 'Crimson', 'tier': 'gold', 'avatar_url': '/static/logos/Crimson_a_Max_companion.png'},
             4: {'name': 'Violet', 'tier': 'gold', 'avatar_url': '/static/logos/Violet.png'},
@@ -1641,10 +1641,10 @@ def companion_selector_page():
                 {'id': 7, 'name': 'GamerJay', 'avatar_url': '/static/logos/GamerJay_premium_companion.png'},
                 {'id': 20, 'name': 'Claude', 'avatar_url': '/static/logos/Claude_Growth.png'},
                 {'id': 21, 'name': 'Blayzo', 'avatar_url': '/static/logos/Blayzo_premium_companion.png'},
-                {'id': 22, 'name': 'Blayzica', 'avatar_url': '/static/logos/Blayzica Pro.png'},
+                {'id': 22, 'name': 'Blayzica', 'avatar_url': '/static/logos/Blayzica_Pro.png'},
                 {'id': 23, 'name': 'WatchDog', 'avatar_url': '/static/logos/WatchDog a Premium companion.png'},
-                {'id': 24, 'name': 'Rozia', 'avatar_url': '/static/logos/Rozia Silver .png'},
-                {'id': 26, 'name': 'Lumen', 'avatar_url': '/static/logos/Lumen Silver.png'}
+                {'id': 24, 'name': 'Rozia', 'avatar_url': '/static/logos/Rozia_Silver.png'},
+                {'id': 26, 'name': 'Lumen', 'avatar_url': '/static/logos/Lumen_Silver.png'}
             ],
             'gold': [
                 {'id': 3, 'name': 'Crimson', 'avatar_url': '/static/logos/Crimson_a_Max_companion.png'},
