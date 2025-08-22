@@ -34,7 +34,7 @@ COMMUNITY_CONFIG = {
         {"id": "all", "label": "All Content"},
         {"id": "gratitude", "label": "Gratitude"},
         {"id": "peace", "label": "Peace"},
-        {"id": "growth", "label": "Growth"},
+        {"id": "silver", "label": "Silver"},
         {"id": "healing", "label": "Healing"},
         {"id": "dreams", "label": "Dreams"},
         {"id": "mood", "label": "Mood"},
@@ -317,17 +317,17 @@ def get_user_companion_info(user_id: int) -> Dict[str, Any]:
         else:
             # Default companion based on tier
             from unified_tier_system import get_effective_plan
-            user_plan = session.get('user_plan', 'free')
+            user_plan = session.get('user_plan', 'bronze')
             trial_active = session.get('trial_active', False)
             effective_plan = get_effective_plan(user_plan, trial_active)
             
             default_companions = {
-                'free': {'id': 1, 'name': 'GamerJay', 'rarity': 'common'},
-                'growth': {'id': 2, 'name': 'Sky', 'rarity': 'rare'},
-                'max': {'id': 3, 'name': 'Crimson', 'rarity': 'epic'}
+                'bronze': {'id': 1, 'name': 'GamerJay', 'rarity': 'common'},
+                'silver': {'id': 2, 'name': 'Sky', 'rarity': 'rare'},
+                'gold': {'id': 3, 'name': 'Crimson', 'rarity': 'epic'}
             }
             
-            default = default_companions.get(effective_plan, default_companions['free'])
+            default = default_companions.get(effective_plan, default_companions['bronze'])
             return {
                 'companion_id': default['id'],
                 'skin_id': None,
@@ -499,7 +499,7 @@ def record_avatar_change(user_id: int, old_companion_data: Dict, new_companion_d
         cursor = conn.cursor()
         
         # Determine cooldown duration based on user tier and change type
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         trial_active = session.get('trial_active', False)
         
         from unified_tier_system import get_effective_plan
@@ -514,12 +514,12 @@ def record_avatar_change(user_id: int, old_companion_data: Dict, new_companion_d
             cooldown_hours = 1
         else:
             # Normal cooldown times
-            if effective_plan == 'free':
-                cooldown_hours = 24  # 24 hours for free users
-            elif effective_plan == 'growth':
-                cooldown_hours = 12  # 12 hours for Growth users
-            else:  # max
-                cooldown_hours = 6   # 6 hours for Max users
+            if effective_plan == 'bronze':
+                cooldown_hours = 24  # 24 hours for bronze users
+            elif effective_plan == 'silver':
+                cooldown_hours = 12  # 12 hours for Silver users
+            else:  # gold
+                cooldown_hours = 6   # 6 hours for Gold users
         
         cooldown_expires = datetime.now(timezone.utc) + timedelta(hours=cooldown_hours)
         
@@ -551,19 +551,19 @@ def record_avatar_change(user_id: int, old_companion_data: Dict, new_companion_d
 def get_user_tier_badge(user_id: int) -> str:
     """Get user's tier badge for display"""
     try:
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         trial_active = session.get('trial_active', False)
         
         from unified_tier_system import get_effective_plan
         effective_plan = get_effective_plan(user_plan, trial_active)
         
         tier_badges = {
-            'free': 'Free',
-            'growth': 'Growth', 
-            'max': 'Max'
+            'bronze': 'Bronze',
+            'silver': 'Silver', 
+            'gold': 'Gold'
         }
         
-        return tier_badges.get(effective_plan, 'Free')
+        return tier_badges.get(effective_plan, 'Bronze')
         
     except Exception:
         return 'Free'
@@ -1273,16 +1273,16 @@ def check_avatar_change_availability():
         cooldown_info = check_avatar_change_cooldown(user_id)
         
         # Get user tier for cooldown rules display
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         trial_active = session.get('trial_active', False)
         
         from unified_tier_system import get_effective_plan
         effective_plan = get_effective_plan(user_plan, trial_active)
         
         cooldown_rules = {
-            'free': {'normal': 24, 'ad_bypass': 6},
-            'growth': {'normal': 12, 'premium_skip': 1},
-            'max': {'normal': 6, 'premium_skip': 1}
+            'bronze': {'normal': 24, 'ad_bypass': 6},
+            'silver': {'normal': 12, 'premium_skip': 1},
+            'gold': {'normal': 6, 'premium_skip': 1}
         }
         
         return jsonify({
@@ -1291,7 +1291,7 @@ def check_avatar_change_availability():
             'cooldown_remaining': cooldown_info.get('cooldown_remaining', 0),
             'last_companion': cooldown_info.get('last_companion'),
             'user_tier': effective_plan,
-            'cooldown_rules': cooldown_rules.get(effective_plan, cooldown_rules['free'])
+            'cooldown_rules': cooldown_rules.get(effective_plan, cooldown_rules['bronze'])
         })
         
     except Exception as e:
@@ -1333,18 +1333,18 @@ def set_community_avatar():
             }), 429
         
         # Get user tier for bypass validation
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         trial_active = session.get('trial_active', False)
         
         from unified_tier_system import get_effective_plan
         effective_plan = get_effective_plan(user_plan, trial_active)
         
         # Validate bypass options
-        if change_type == 'ad_bypass' and effective_plan != 'free':
-            return jsonify({"error": "Ad bypass only available for free users"}), 403
+        if change_type == 'ad_bypass' and effective_plan != 'bronze':
+            return jsonify({"error": "Ad bypass only available for bronze users"}), 403
         
-        if change_type == 'premium_skip' and effective_plan == 'free':
-            return jsonify({"error": "Premium skip not available for free users"}), 403
+        if change_type == 'premium_skip' and effective_plan == 'bronze':
+            return jsonify({"error": "Premium skip not available for bronze users"}), 403
         
         # Validate that user has access to this companion
         from cosmetic_system import get_available_companions_for_user
@@ -1352,12 +1352,12 @@ def set_community_avatar():
         
         # Allow basic tier companions for all users
         default_companions = {
-            'free': [{'id': 1, 'name': 'GamerJay', 'rarity': 'common'}],
-            'growth': [
+            'bronze': [{'id': 1, 'name': 'GamerJay', 'rarity': 'common'}],
+            'silver': [
                 {'id': 1, 'name': 'GamerJay', 'rarity': 'common'},
                 {'id': 2, 'name': 'Sky', 'rarity': 'rare'}
             ],
-            'max': [
+            'gold': [
                 {'id': 1, 'name': 'GamerJay', 'rarity': 'common'},
                 {'id': 2, 'name': 'Sky', 'rarity': 'rare'},
                 {'id': 3, 'name': 'Crimson', 'rarity': 'epic'}
@@ -1413,7 +1413,7 @@ def select_companion_direct(companion_id):
         
         # Get user tier information
         from unified_tier_system import get_effective_plan
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         trial_active = session.get('trial_active', False)
         effective_plan = get_effective_plan(user_plan, trial_active)
         
@@ -1427,7 +1427,7 @@ def select_companion_direct(companion_id):
             9: {'name': 'Blayzia', 'tier': 'bronze', 'avatar_url': '/static/logos/Blayzia.png'},
             10: {'name': 'Blayzion', 'tier': 'bronze', 'avatar_url': '/static/logos/Blayzion.png'},
             25: {'name': 'Lumen', 'tier': 'bronze', 'avatar_url': '/static/logos/Lumen Bronze.png'},
-            27: {'name': 'Blayzo.2', 'tier': 'bronze', 'avatar_url': '/static/logos/blayzo free tier.png'},
+            27: {'name': 'Blayzo.2', 'tier': 'bronze', 'avatar_url': '/static/logos/blayzo bronze tier.png'},
             11: {'name': 'Blayzike', 'tier': 'referral', 'avatar_url': '/static/logos/Blayzike.png'},
             12: {'name': 'Blazelian', 'tier': 'referral', 'avatar_url': '/static/logos/Blazelian.png'},
             # Silver tier companions
@@ -1462,17 +1462,17 @@ def select_companion_direct(companion_id):
         companion_tier = companion['tier']
         user_has_access = False
         
-        if companion_tier == 'free':
+        if companion_tier == 'bronze':
             user_has_access = True
-        elif companion_tier == 'growth' and effective_plan in ['growth', 'max']:
+        elif companion_tier == 'silver' and effective_plan in ['silver', 'gold']:
             user_has_access = True
-        elif companion_tier == 'max' and effective_plan == 'max':
+        elif companion_tier == 'gold' and effective_plan == 'gold':
             user_has_access = True
         elif companion_tier == 'referral':
             # Check referral unlock requirements
             referral_requirements = {
-                11: 0,   # Blayzike - needs 5 referrals (moved back to free for now)
-                12: 0,   # Blazelian - needs 8 referrals (moved back to free for now)  
+                11: 0,   # Blayzike - needs 5 referrals (moved back to bronze for now)
+                12: 0,   # Blazelian - needs 8 referrals (moved back to bronze for now)  
                 40: 10,  # Claude Referral - needs 10 referrals
                 41: 0,   # Blayzo Referral - needs special unlock
                 42: 6,   # Nyxara - needs 6 referrals
@@ -1519,7 +1519,7 @@ def select_companion_direct(companion_id):
 
 @community_bp.route('/ad-break', methods=['GET'])
 def ad_break():
-    """Show ad for free users and redirect back"""
+    """Show ad for bronze users and redirect back"""
     try:
         return_to = request.args.get('return_to', '/community')
         reason = request.args.get('reason', 'general')
@@ -1561,7 +1561,7 @@ def ad_break():
             <div class="ad-container">
                 <h2>🎭 Thanks for using SoulBridge AI!</h2>
                 <div class="ad-message">
-                    Your avatar has been updated! Ads help keep SoulBridge AI free for everyone.
+                    Your avatar has been updated! Ads help keep SoulBridge AI accessible for everyone.
                     <br><br>
                     🚀 <strong>Want ad-free experience?</strong> Upgrade to Silver or Gold tier for unlimited companion switching!
                 </div>
@@ -1620,13 +1620,13 @@ def companion_selector_page():
         
         # Get user tier information
         from unified_tier_system import get_effective_plan
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         trial_active = session.get('trial_active', False)
         effective_plan = get_effective_plan(user_plan, trial_active)
         
         # Define companions organized by tier
         companions_by_tier = {
-            'free': [
+            'bronze': [
                 {'id': 1, 'name': 'GamerJay', 'avatar_url': '/static/logos/GamerJay Free companion.png'},
                 {'id': 5, 'name': 'Blayzo', 'avatar_url': '/static/logos/Blayzo.png'},
                 {'id': 6, 'name': 'Blayzica', 'avatar_url': '/static/logos/Blayzica.png'},
@@ -1634,9 +1634,9 @@ def companion_selector_page():
                 {'id': 9, 'name': 'Blayzia', 'avatar_url': '/static/logos/Blayzia.png'},
                 {'id': 10, 'name': 'Blayzion', 'avatar_url': '/static/logos/Blayzion.png'},
                 {'id': 25, 'name': 'Lumen', 'avatar_url': '/static/logos/Lumen Bronze.png'},
-                {'id': 27, 'name': 'Blayzo.2', 'avatar_url': '/static/logos/blayzo free tier.png'}
+                {'id': 27, 'name': 'Blayzo.2', 'avatar_url': '/static/logos/blayzo bronze tier.png'}
             ],
-            'growth': [
+            'silver': [
                 {'id': 2, 'name': 'Sky', 'avatar_url': '/static/logos/Sky a premium companion.png'},
                 {'id': 7, 'name': 'GamerJay', 'avatar_url': '/static/logos/GamerJay premium companion.png'},
                 {'id': 20, 'name': 'Claude', 'avatar_url': '/static/logos/Claude Growth.png'},
@@ -1646,7 +1646,7 @@ def companion_selector_page():
                 {'id': 24, 'name': 'Rozia', 'avatar_url': '/static/logos/Rozia Silver .png'},
                 {'id': 26, 'name': 'Lumen', 'avatar_url': '/static/logos/Lumen Silver.png'}
             ],
-            'max': [
+            'gold': [
                 {'id': 3, 'name': 'Crimson', 'avatar_url': '/static/logos/Crimson a Max companion.png'},
                 {'id': 4, 'name': 'Violet', 'avatar_url': '/static/logos/Violet.png'},
                 {'id': 30, 'name': 'Claude', 'avatar_url': '/static/logos/Claude Max.png'},
@@ -1703,7 +1703,7 @@ def companion_selector_page():
         '''
         
         # Add Free tier companions (always unlocked)
-        for companion in companions_by_tier['free']:
+        for companion in companions_by_tier['bronze']:
             html += f'''
                     <div class="companion">
                         <img src="{companion['avatar_url']}" alt="{companion['name']}">
@@ -1725,7 +1725,7 @@ def companion_selector_page():
                 <div class="companions">
         '''
         
-        for companion in companions_by_tier['growth']:
+        for companion in companions_by_tier['silver']:
             if is_silver_unlocked:
                 html += f'''
                         <div class="companion">
@@ -1756,7 +1756,7 @@ def companion_selector_page():
                 <div class="companions">
         '''
         
-        for companion in companions_by_tier['max']:
+        for companion in companions_by_tier['gold']:
             if is_gold_unlocked:
                 html += f'''
                         <div class="companion">
@@ -1848,7 +1848,7 @@ def companion_selector_page():
                 }
                 
                 function trialPrompt() {
-                    let message = 'Want to try Silver and Gold tier companions? Start your 5-hour free trial now!';
+                    let message = 'Want to try Silver and Gold tier companions? Start your 5-hour trial now!';
                     
                     if (confirm(message)) {
                         window.location.href = '/plan-selection';
