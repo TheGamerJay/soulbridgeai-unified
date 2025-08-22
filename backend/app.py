@@ -3701,7 +3701,7 @@ def horoscope():
         trial_active = session.get('trial_active', False)
         
         # FIXED: Use user_plan for limits, effective_plan for feature access
-        daily_limit = get_feature_limit(user_plan, 'horoscope')  # Limits based on subscription
+        daily_limit = get_feature_limit(user_plan, 'horoscope', trial_active)  # Limits based on subscription
         
         # DEBUG: Log horoscope access info
         logger.info(f"⭐ HOROSCOPE DEBUG: user_plan = {user_plan}")
@@ -3712,7 +3712,9 @@ def horoscope():
         return render_template("horoscope.html", 
                              user_plan=effective_plan,
                              daily_limit=daily_limit,
-                             current_usage=horoscope_usage)
+                             current_usage=horoscope_usage,
+                             ad_free=user_plan in ['silver', 'gold'],
+                             trial_active=trial_active)
     except Exception as e:
         logger.error(f"Horoscope template error: {e}")
         return jsonify({"error": "Horoscope temporarily unavailable"}), 500
