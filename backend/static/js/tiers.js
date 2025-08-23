@@ -37,17 +37,17 @@
       console.log('🎯 Response data:', data);
       console.log('🎯 Success check:', {
         'res.ok': res.ok,
-        'data.ok': data.ok,
-        'data.trial_active': data.trial_active,
-        'all_success': res.ok && data.ok === true && data.trial_active === true
+        'data.success': data.success,
+        'data.trial.active': data.trial?.active,
+        'all_success': res.ok && data.success === true
       });
 
-      if (res.ok && data.ok === true && data.trial_active === true) {
+      if (res.ok && data.success === true) {
         // ✅ persist state for client UI and countdown
         localStorage.setItem('trial_active', '1');
-        localStorage.setItem('trial_started_at', data.trial_started_at || new Date().toISOString());
-        localStorage.setItem('trial_expires_at', data.trial_expires_at);
-        localStorage.setItem('trial_plan_limits_from', data.plan_limits_from || 'bronze');
+        localStorage.setItem('trial_started_at', data.trial?.started_at || new Date().toISOString());
+        localStorage.setItem('trial_expires_at', data.trial?.expires_at);
+        localStorage.setItem('trial_plan_limits_from', 'bronze');
 
         // UI: hide button immediately; add trial CSS flags
         btn?.classList.add('hidden');
