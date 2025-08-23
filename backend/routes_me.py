@@ -74,7 +74,6 @@ def me():
         trial_credits = session.get('trial_credits')
         if trial_active and (trial_credits is None or trial_credits == 0) and trial_expires_at:
             # Session lost trial credits but trial is still active
-            from datetime import datetime, timezone
             now = datetime.now(timezone.utc)
             
             # Handle trial_expires_at - it might be a string or datetime object
@@ -315,7 +314,6 @@ def trial_activate():
             session.pop('trial_credits', None)
         elif trial_active and not session_trial and trial_expires_at:
             # Database shows active trial but session doesn't - restore to session
-            from datetime import datetime, timezone
             now = datetime.now(timezone.utc)
             if now < trial_expires_at:
                 logger.info(f"🔄 RESTORING: Database trial is active, updating session")
