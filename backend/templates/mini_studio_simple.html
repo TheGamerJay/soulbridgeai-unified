@@ -48,18 +48,36 @@ For development and testing of Mini Studio features
 
     <div class="row">
       <div class="card">
-        <h3>Lyrics</h3>
+        <h3>🎭 SecretWriter Premium</h3>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:15px">
+          <img src="/static/logos/GamerJay SecretWriter.png" alt="GamerJay SecretWriter" style="width:60px;height:60px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.15)">
+          <div>
+            <div style="font-weight:600;color:#007bff">AI-Powered Lyric Creation</div>
+            <div class="muted" style="font-size:12px">Generate premium lyrics with advanced AI</div>
+          </div>
+        </div>
         <div class="grid2">
-          <input id="theme" placeholder="Theme (e.g., heartbreak redemption)" />
-          <input id="mood"  value="emotional" />
-          <input id="lang"  value="en" />
-          <input id="syll"  type="number" value="10" />
+          <input id="secretTheme" placeholder="Theme (e.g., heartbreak redemption)" />
+          <select id="secretMood">
+            <option value="emotional">💔 Emotional</option>
+            <option value="upbeat">🎉 Upbeat</option>
+            <option value="romantic">❤️ Romantic</option>
+            <option value="mysterious">🔮 Mysterious</option>
+            <option value="powerful">⚡ Powerful</option>
+          </select>
         </div>
-        <div style="margin-top:8px;display:flex;gap:8px">
-          <button onclick="writeLyrics()">✍️ Write Lyrics</button>
-          <span id="lyricsStatus" class="status muted"></span>
+        <div style="margin-top:8px">
+          <label style="font-size:12px;color:#666">Complexity Level:</label>
+          <input type="range" id="complexitySlider" min="1" max="10" value="7" style="width:100%;margin:5px 0">
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:#999">
+            <span>Simple</span><span>Advanced</span>
+          </div>
         </div>
-        <textarea id="lyrics" rows="7" placeholder="Or paste your own lyrics here" style="margin-top:10px"></textarea>
+        <div style="margin-top:12px;display:flex;gap:8px">
+          <button onclick="createSecretLyrics()" style="background:linear-gradient(45deg,#007bff,#0056b3);flex:1">✨ Create Secret Lyrics</button>
+          <span id="secretLyricsStatus" class="status muted"></span>
+        </div>
+        <textarea id="secretLyrics" rows="8" placeholder="Premium AI-generated lyrics will appear here..." style="margin-top:10px;background:linear-gradient(135deg,#f8f9ff,#fff);border:2px solid #007bff20"></textarea>
       </div>
 
       <div class="card">
@@ -166,18 +184,24 @@ For development and testing of Mini Studio features
         }, 1200);
       }
 
-      // ---------- Lyrics ----------
-      async function writeLyrics(){
+      // ---------- SecretWriter Premium Lyrics ----------
+      async function createSecretLyrics(){
         try{
-          $('lyricsStatus').textContent="Generating...";
-          const r = await api("/api/lyrics", {
-            theme: $('theme').value, mood: $('mood').value,
-            lang: $('lang').value, syllables: Number($('syll').value)
+          $('secretLyricsStatus').textContent="🎭 Creating premium lyrics...";
+          const complexity = $('complexitySlider').value;
+          const theme = $('secretTheme').value || 'heartbreak redemption';
+          const mood = $('secretMood').value;
+          
+          const r = await api("/api/secret-lyrics", {
+            theme: theme, 
+            mood: mood,
+            complexity: Number(complexity),
+            premium: true
           });
-          $('lyrics').value = r.lyrics;
-          $('lyricsStatus').textContent="✅ Done";
+          $('secretLyrics').value = r.lyrics;
+          $('secretLyricsStatus').textContent="✨ Premium lyrics created!";
         }catch(e){
-          $('lyricsStatus').textContent="❌ Error: "+e.message;
+          $('secretLyricsStatus').textContent="❌ Error: "+e.message;
         }
       }
 

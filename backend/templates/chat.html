@@ -88,8 +88,8 @@
                 
                 <!-- PROPER TIER ISOLATION: Each tier sees only their tier features -->
                 
-                <!-- SILVER TIER FEATURES: Show on Silver/Gold tier pages -->
-                {% if tier == 'silver' or tier == 'gold' %}
+                <!-- SILVER TIER FEATURES: Show when user has Silver/Gold access -->
+                {% if effective_plan == 'silver' or effective_plan == 'gold' %}
                 <a href="/voice-journaling" class="action-btn" data-tier="silver">
                     <i class="fas fa-microphone"></i>
                     Voice Journal
@@ -108,8 +108,8 @@
                 </a>
                 {% endif %}
                 
-                <!-- GOLD TIER FEATURES: Show only on Gold tier page -->
-                {% if tier == 'gold' %}
+                <!-- GOLD TIER FEATURES: Show when user has Gold access -->
+                {% if effective_plan == 'gold' %}
                 <a href="/mini-studio" class="action-btn" data-tier="gold">
                     <i class="fas fa-robot"></i>
                     Mini Studio
