@@ -502,6 +502,9 @@ def create_companion_routes():
                     "creative_writer": get_feature_limit(user_plan, "creative_writer", trial_active)
                 }
                 
+                # Get effective plan for feature access
+                effective_plan = get_effective_plan(user_plan, trial_active)
+                
                 # Render chat template
                 return render_template("chat.html",
                     companion=comp_id,
@@ -511,6 +514,7 @@ def create_companion_routes():
                     user_plan=user_plan,
                     trial_active=trial_active,
                     tier=comp_tier,
+                    effective_plan=effective_plan,
                     limits=limits,
                     selected_companion=comp_id,
                     companion_info=comp_data
@@ -18225,6 +18229,9 @@ def companion_chat_handler(tier, companion_id):
             "creative_writer": get_simple_feature_limit(tier, "creative_writer", trial_active)
         }
         
+        # Get effective plan for feature access
+        effective_plan = get_effective_plan(user_plan, trial_active)
+        
         logger.info(f"🎨 RENDERING: tier={tier}, companion={companion_info['name']}, limits={limits}")
         
         return render_template("chat.html",
@@ -18235,6 +18242,7 @@ def companion_chat_handler(tier, companion_id):
             user_plan=user_plan,
             trial_active=trial_active,
             tier=tier,
+            effective_plan=effective_plan,
             limits=limits,
             selected_companion=companion_id,
             companion_info=companion_info
