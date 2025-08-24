@@ -341,7 +341,6 @@
                 <button class="tab-btn" onclick="openTab('effects')">🎚️ Effects</button>
                 <button class="tab-btn" onclick="openTab('mix')">🔊 Mix</button>
                 <button class="tab-btn" onclick="openTab('art')">🎨 Cover Art</button>
-                <button class="tab-btn" onclick="openTab('library')">📁 Library</button>
             </div>
             
             <!-- Vocals Tab -->
@@ -604,22 +603,6 @@
                 </div>
             </div>
             
-            <!-- Library Tab -->
-            <div id="library" class="tab-content">
-                <div class="panel-header">
-                    <div class="panel-icon">📁</div>
-                    <div class="panel-title">Studio Library</div>
-                </div>
-                <div class="panel-description">
-                    Manage all your created assets - vocals, MIDI, mixed tracks, and cover art
-                </div>
-                
-                <button class="studio-btn" onclick="refreshLibrary()" style="margin-bottom: 20px;">🔄 Refresh Library</button>
-                
-                <div id="libraryContent" class="library-grid">
-                    <!-- Library items will be loaded here -->
-                </div>
-            </div>
         </main>
         
         <nav class="studio-nav">
@@ -645,10 +628,6 @@
             document.getElementById(tabName).classList.add('active');
             event.target.classList.add('active');
             
-            // Load library if library tab is opened
-            if (tabName === 'library') {
-                refreshLibrary();
-            }
             
             // Populate file selectors for effects and mix tabs
             if (tabName === 'effects' || tabName === 'mix') {
@@ -981,99 +960,6 @@
             }
         }
         
-        // Refresh Library
-        async function refreshLibrary() {
-            try {
-                const response = await fetch('/api/mini-studio/library');
-                const result = await response.json();
-                
-                if (result.success) {
-                    const libraryContent = document.getElementById('libraryContent');
-                    
-                    // SECURITY: Safe DOM creation to prevent XSS
-                    libraryContent.textContent = '';
-                    
-                    if (Object.keys(result.assets).length === 0) {
-                        const emptyMsg = document.createElement('p');
-                        emptyMsg.style.textAlign = 'center';
-                        emptyMsg.style.color = 'rgba(255,255,255,0.5)';
-                        emptyMsg.textContent = 'No assets in library yet. Create some music!';
-                        libraryContent.appendChild(emptyMsg);
-                        return;
-                    }
-                    
-                    Object.entries(result.assets).forEach(([id, asset]) => {
-                        const item = document.createElement('div');
-                        item.className = 'library-item';
-                        
-                        const title = document.createElement('h4');
-                        title.textContent = asset.kind.replace('_', ' ').toUpperCase();
-                        
-                        const filename = document.createElement('p');
-                        filename.textContent = asset.filename;
-                        
-                        const dateP = document.createElement('p');
-                        const dateSmall = document.createElement('small');
-                        dateSmall.textContent = new Date(asset.created_at).toLocaleDateString();
-                        dateP.appendChild(dateSmall);
-                        
-                        const actions = document.createElement('div');
-                        actions.className = 'library-actions';
-                        
-                        const downloadBtn = document.createElement('button');
-                        downloadBtn.className = 'studio-btn';
-                        downloadBtn.textContent = '📥 Download';
-                        downloadBtn.onclick = () => downloadAsset(id);
-                        
-                        const deleteBtn = document.createElement('button');
-                        deleteBtn.className = 'studio-btn';
-                        deleteBtn.textContent = '🗑️ Delete';
-                        deleteBtn.onclick = () => deleteAsset(id);
-                        
-                        actions.appendChild(downloadBtn);
-                        actions.appendChild(deleteBtn);
-                        
-                        item.appendChild(title);
-                        item.appendChild(filename);
-                        item.appendChild(dateP);
-                        item.appendChild(actions);
-                        
-                        libraryContent.appendChild(item);
-                    });
-                } else {
-                    alert('Failed to load library: ' + result.error);
-                }
-            } catch (error) {
-                alert('Failed to load library: ' + error.message);
-            }
-        }
-        
-        // Download Asset
-        function downloadAsset(assetId) {
-            window.open(`/api/mini-studio/export/${assetId}`, '_blank');
-        }
-        
-        // Delete Asset
-        async function deleteAsset(assetId) {
-            if (!confirm('Are you sure you want to delete this asset?')) {
-                return;
-            }
-            
-            try {
-                const response = await fetch(`/api/mini-studio/library/${assetId}`, {
-                    method: 'DELETE'
-                });
-                const result = await response.json();
-                
-                if (result.success) {
-                    refreshLibrary();
-                } else {
-                    alert('Failed to delete asset: ' + result.error);
-                }
-            } catch (error) {
-                alert('Failed to delete asset: ' + error.message);
-            }
-        }
         
         // Populate File Selectors
         async function populateFileSelectors() {
@@ -1146,8 +1032,7 @@
         
         // Initialize
         window.addEventListener('load', function() {
-            // Load library on startup
-            refreshLibrary();
+            // Mini Studio initialized
         });
     </script>
 </body>
