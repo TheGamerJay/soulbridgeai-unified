@@ -1034,15 +1034,21 @@ def ensure_session_persistence():
         plan = session.get("user_plan", "bronze")
         trial = trial_active  # Use cleaned up value
         
-        # Base: bronze is always true, trial gives access but limits stay on plan
+        # FIXED: Trial should NOT modify Bronze tier features - only unlock companion access
         access_bronze = True
-        access_silver = plan.lower() in ("silver", "gold") or trial
-        access_gold = plan.lower() == "gold" or trial
+        access_silver = plan.lower() in ("silver", "gold")  # NO trial modification
+        access_gold = plan.lower() == "gold"  # NO trial modification
+        
+        # Trial only affects companion access, not feature access
+        access_companions_silver = plan.lower() in ("silver", "gold") or trial
+        access_companions_gold = plan.lower() == "gold" or trial
 
         session["access_trial"] = trial
         session["access_bronze"] = access_bronze
         session["access_silver"] = access_silver
         session["access_gold"] = access_gold
+        session["access_companions_silver"] = access_companions_silver
+        session["access_companions_gold"] = access_companions_gold
         # Mark modified to guarantee cookie write
         session.modified = True
 # Prevent caching to force fresh login checks
@@ -2146,8 +2152,8 @@ def auth_login():
             # Define isolated access flags for each tier - trial gives access, but limits stay on plan
             effective_plan = get_effective_plan(user_plan, trial_active)
             session['access_bronze'] = True  # Everyone gets bronze features
-            session['access_silver'] = user_plan in ['silver', 'gold'] or trial_active
-            session['access_gold'] = user_plan == 'gold' or trial_active  
+            session['access_silver'] = user_plan in ['silver', 'gold']  # NO trial modification
+            session['access_gold'] = user_plan == 'gold'  # NO trial modification
             session['access_trial'] = trial_active
             session.modified = True  # Ensure session changes are saved
             logger.info(f"[LOGIN] Session marked as modified. Session: {dict(session)}")
@@ -2420,9 +2426,9 @@ def user_info():
             logger.error(f"Error getting usage counts: {e}")
             usage_counts = {"decoder": 0, "fortune": 0, "horoscope": 0}
 
-        # FIXED: Proper access logic - trial gives feature access, but limits stay on plan
-        access_silver = user_plan in ['silver', 'gold'] or trial_active
-        access_gold = user_plan == 'gold' or trial_active
+        # FIXED: Trial should NOT modify Bronze tier - only unlock companion access
+        access_silver = user_plan in ['silver', 'gold']  # NO trial modification
+        access_gold = user_plan == 'gold'  # NO trial modification
         
         # Get user credits for Mini Studio
         credits = get_user_credits(user_id) if user_id else 0
@@ -3450,10 +3456,10 @@ def intro():
         trial_active = session.get('trial_active', False)
         effective_plan = get_effective_plan(user_plan, trial_active)  # FIXED: Calculate fresh
         
-        # Define isolated access flags for each tier - trial gives access, but limits stay on plan
+        # Define isolated access flags for each tier - trial does NOT modify Bronze features
         session['access_bronze'] = True  # Everyone gets bronze features
-        session['access_silver'] = user_plan in ['silver', 'gold'] or trial_active
-        session['access_gold'] = user_plan == 'gold' or trial_active  
+        session['access_silver'] = user_plan in ['silver', 'gold']  # NO trial modification
+        session['access_gold'] = user_plan == 'gold'  # NO trial modification
         session['access_trial'] = trial_active
         session.modified = True  # Ensure session changes are saved
         
@@ -3484,10 +3490,10 @@ def profile():
         trial_active = session.get('trial_active', False)
         effective_plan = get_effective_plan(user_plan, trial_active)
         
-        # Set access flags for profile page - trial gives access, but limits stay on plan
+        # Set access flags for profile page - trial does NOT modify Bronze features
         session['access_bronze'] = True
-        session['access_silver'] = user_plan in ['silver', 'gold'] or trial_active
-        session['access_gold'] = user_plan == 'gold' or trial_active  
+        session['access_silver'] = user_plan in ['silver', 'gold']  # NO trial modification
+        session['access_gold'] = user_plan == 'gold'  # NO trial modification
         session['access_trial'] = trial_active
         session.modified = True
         
@@ -3517,10 +3523,10 @@ def subscription():
         trial_active = session.get('trial_active', False)
         effective_plan = get_effective_plan(user_plan, trial_active)
         
-        # Set access flags for subscription page - trial gives access, but limits stay on plan
+        # Set access flags for subscription page - trial does NOT modify Bronze features
         session['access_bronze'] = True
-        session['access_silver'] = user_plan in ['silver', 'gold'] or trial_active
-        session['access_gold'] = user_plan == 'gold' or trial_active  
+        session['access_silver'] = user_plan in ['silver', 'gold']  # NO trial modification
+        session['access_gold'] = user_plan == 'gold'  # NO trial modification
         session['access_trial'] = trial_active
         session.modified = True
         
