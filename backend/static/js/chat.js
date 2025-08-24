@@ -115,9 +115,11 @@ function cleanCharacterName(name) {
         'violet2_gold': 'Violet Max',
         'blayzo': 'Blayzo Champion',
         'blayzike': 'Blayzike',
+        'nyxara': 'Nyxara',
         'blazelian': 'Blazelian',
         'claude_referral': 'Claude Referral',
-        'blayzo_skin': 'Blayzo Special Skin',  // Missing referral companion!
+        'blayzo_referral': 'Blayzo Referral',
+        'blayzo_skin': 'Blayzo Special Skin',  // Legacy mapping
         'sapphire': 'Sapphire'
     };
     
