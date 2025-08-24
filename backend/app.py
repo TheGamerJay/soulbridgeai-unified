@@ -3778,9 +3778,9 @@ def decoder():
         user_plan = session.get('user_plan', 'bronze')
         decoder_usage = get_decoder_usage()
         
-        # Use session values set by @app.before_request (more efficient)
-        effective_plan = session.get('effective_plan', 'bronze')
+        # Calculate fresh effective_plan (never use cached values)
         trial_active = session.get('trial_active', False)
+        effective_plan = get_effective_plan(user_plan, trial_active)
         
         # FIXED: Use user_plan for limits, effective_plan for feature access
         daily_limit = get_feature_limit(user_plan, 'decoder')  # Limits based on subscription
@@ -3811,9 +3811,9 @@ def fortune():
         user_plan = session.get('user_plan', 'bronze')
         fortune_usage = get_fortune_usage()
         
-        # Use session values set by @app.before_request (more efficient)
-        effective_plan = session.get('effective_plan', 'bronze')
+        # Calculate fresh effective_plan (never use cached values)
         trial_active = session.get('trial_active', False)
+        effective_plan = get_effective_plan(user_plan, trial_active)
         
         # FIXED: Use user_plan for limits, effective_plan for feature access
         daily_limit = get_feature_limit(user_plan, 'fortune')  # Limits based on subscription
@@ -3844,9 +3844,9 @@ def horoscope():
         user_plan = session.get('user_plan', 'bronze')
         horoscope_usage = get_horoscope_usage()
         
-        # Use session values set by @app.before_request (more efficient)
-        effective_plan = session.get('effective_plan', 'bronze')
+        # Calculate fresh effective_plan (never use cached values)
         trial_active = session.get('trial_active', False)
+        effective_plan = get_effective_plan(user_plan, trial_active)
         
         # FIXED: Use user_plan for limits, effective_plan for feature access
         daily_limit = get_feature_limit(user_plan, 'horoscope', trial_active)  # Limits based on subscription
@@ -7531,11 +7531,16 @@ def get_effective_plan(user_plan: str, trial_active: bool) -> str:
         logger.warning(f"⚠️ Unknown plan '{user_plan}' defaulting to 'bronze'")
         user_plan = 'bronze'
     
-    # TRIAL DOES NOT CHANGE ACCESS LEVEL
-    # Trial is just a time-limited experience of whatever plan the user already has
-    # Bronze users with trial active = still bronze tier (just time-limited)
-    # No feature upgrades during trial - trial is purely a time constraint
-    return user_plan  # Always return the user's actual plan tier
+    # TRIAL UNLOCKS GOLD ACCESS FOR BRONZE USERS
+    # As per CLAUDE.md: "Returns 'gold' for Bronze trial users (companion access only)"
+    # This allows Bronze users to access Silver/Gold companions and features during trial
+    # But limits are still based on their actual plan (Bronze = 3/2/3 limits)
+    if trial_active and user_plan == 'bronze':
+        logger.info(f"🎯 TRIAL ACTIVE: Bronze user getting Gold access for features/companions")
+        return 'gold'  # Bronze trial users get Gold-level feature access
+    
+    # Silver/Gold users don't need trial - they already have their tier access
+    return user_plan
 
 def get_feature_limit_v2(effective_plan: str, feature: str) -> int:
     """
@@ -8893,12 +8898,12 @@ def debug_session_state():
             "access_gold": False
         })
     
-    # Use session values set by @app.before_request with plan migration
+    # Calculate fresh values instead of using stale cache
     raw_user_plan = session.get('user_plan', 'bronze') or 'bronze'
     plan_migration = {'bronze': 'bronze', 'silver': 'silver', 'gold': 'gold'}
     user_plan = plan_migration.get(raw_user_plan, raw_user_plan)
-    effective_plan = session.get('effective_plan', 'bronze') or 'bronze'
     trial_active = session.get('trial_active', False)
+    effective_plan = get_effective_plan(user_plan, trial_active)
     
     return jsonify({
         "user_plan": user_plan,
@@ -10567,8 +10572,8 @@ def api_chat_old():
         
         # Check decoder usage limits if this is a decoder request
         if context == 'decoder_mode':
-            # Use effective_plan from session (set by @app.before_request)
-            effective_plan = session.get('effective_plan', 'bronze')
+            # Calculate fresh effective_plan
+            effective_plan = get_effective_plan(user_plan, trial_active)
             user_plan = session.get('user_plan', 'bronze')
             trial_active = session.get('trial_active', False)
             user_id = session.get('user_id')
@@ -10595,8 +10600,10 @@ def api_chat_old():
         if character not in VALID_CHARACTERS:
             character = "Blayzo"  # Default fallback
         
-        # Get user's subscription tier for enhanced features (use effective_plan)
-        user_tier = session.get('effective_plan', 'bronze')
+        # Get user's subscription tier for enhanced features (calculate fresh)
+        user_plan = session.get('user_plan', 'bronze')
+        trial_active = session.get('trial_active', False)
+        user_tier = get_effective_plan(user_plan, trial_active)
         
         # Tier-specific AI model and parameters
         if user_tier == 'gold':  # Gold Plan - Premium OpenAI
@@ -12634,9 +12641,9 @@ def ai_image_generation_generate():
         if not prompt:
             return jsonify({"success": False, "error": "Prompt required"}), 400
         
-        # Check tier-based usage limit using session values
-        effective_plan = session.get('effective_plan', 'bronze')
+        # Check tier-based usage limit using fresh calculation
         trial_active = session.get('trial_active', False)
+        effective_plan = get_effective_plan(user_plan, trial_active)
         monthly_limit = get_feature_limit(user_plan, "ai_image_monthly")
         
         current_month = datetime.now().strftime('%Y-%m')
@@ -13021,7 +13028,9 @@ def get_user_tier_status():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
         # Get user's effective tier (includes trial upgrades)
-        user_tier = session.get('effective_plan', 'bronze')  # Use effective_plan for features
+        user_plan = session.get('user_plan', 'bronze')
+        trial_active = session.get('trial_active', False)
+        user_tier = get_effective_plan(user_plan, trial_active)
         user_email = session.get('user_email', session.get('email'))
         
         # Use effective plan for tier features
@@ -13178,9 +13187,10 @@ def get_user_status():
             logger.error(f"❌ Database error loading user status: {db_error}")
             # Continue with session data if database fails
         
-        # Use session values set by @app.before_request
+        # Calculate fresh values instead of using session cache
+        user_plan = session.get('user_plan', 'bronze')
         trial_active = session.get('trial_active', False) if user_id else False
-        effective_plan = session.get('effective_plan', 'bronze')
+        effective_plan = get_effective_plan(user_plan, trial_active)
         
         return jsonify({
             "success": True,
