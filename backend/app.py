@@ -14758,7 +14758,7 @@ TIERS_TEMPLATE = r"""
       </div>
       <div class="row">
         {% for c in growth_list %}
-          {% set locked = not session.access_silver %}
+          {% set locked = not session.access_companions_silver %}
           <div class="card {{ 'locked' if locked }}" onclick="{{ 'openChat(\"' ~ c.slug ~ '\")' if not locked else 'notifyUpgrade(\"Silver\")' }}" title="{{ c.name }}" data-tier="silver">
             <span class="lock">{{ '✅ Unlocked' if not locked else '🔒 Silver' }}</span>
             <img src="{{ c.image_url or '/static/logos/IntroLogo.png' }}" alt="{{ c.name }}" onerror="this.src='/static/logos/IntroLogo.png'">
@@ -14777,7 +14777,7 @@ TIERS_TEMPLATE = r"""
       </div>
       <div class="row">
         {% for c in max_list %}
-          {% set locked = not session.access_gold %}
+          {% set locked = not session.access_companions_gold %}
           <div class="card {{ 'locked' if locked }}" onclick="{{ 'openChat(\"' ~ c.slug ~ '\")' if not locked else 'notifyUpgrade(\"Gold\")' }}" title="{{ c.name }}" data-tier="gold">
             <span class="lock">{{ '✅ Unlocked' if not locked else '🔒 Gold' }}</span>
             <img src="{{ c.image_url or '/static/logos/IntroLogo.png' }}" alt="{{ c.name }}" onerror="this.src='/static/logos/IntroLogo.png'">
