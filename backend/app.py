@@ -8757,7 +8757,7 @@ def mini_studio_bulletproof():
                              user_email=user_email,
                              user_plan=user_plan,
                              trial_active=trial_active,
-                             current_credits=current_credits)
+                             credits=current_credits)
     
     except Exception as e:
         logger.error(f"Mini Studio access error: {e}")
