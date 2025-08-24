@@ -208,7 +208,10 @@ For development and testing of Mini Studio features
             premium: true
           });
           $('secretLyrics').value = r.lyrics;
-          $('secretLyricsStatus').textContent="✨ Premium lyrics created!";
+          $('secretLyricsStatus').textContent=`✨ Lyrics created! Used ${r.credits_used} credits, ${r.credits_remaining} remaining`;
+          
+          // Update credits display
+          updateCreditsDisplay(r.credits_remaining);
         }catch(e){
           $('secretLyricsStatus').textContent="❌ Error: "+e.message;
         }
@@ -223,7 +226,10 @@ For development and testing of Mini Studio features
             bars: Number($('bars').value), style: $('style').value
           });
           $('midiPath').textContent = r.midi_path;
-          $('midiStatus').textContent="✅ Done";
+          $('midiStatus').textContent=`✅ MIDI created! Used ${r.credits_used} credits, ${r.credits_remaining} remaining`;
+          
+          // Update credits display
+          updateCreditsDisplay(r.credits_remaining);
         }catch(e){
           $('midiStatus').textContent="❌ Error: "+e.message;
         }
@@ -317,6 +323,10 @@ For development and testing of Mini Studio features
       async function artInstant(){
         const r = await api("/api/cover-art", { prompt: $('artPrompt').value, size: "1024x1024" });
         $('imgOut').innerHTML = `<a class="link" href="/api/export?path=${encodeURIComponent(r.image_path)}" target="_blank">📥 Download Art</a>`;
+        $('artStatus').textContent=`✅ Art created! Used ${r.credits_used} credits, ${r.credits_remaining} remaining`;
+        
+        // Update credits display
+        updateCreditsDisplay(r.credits_remaining);
       }
       async function artJob(){
         const j = await api("/api/jobs/cover-art", { prompt: $('artPrompt').value, size: "1024x1024" });
@@ -357,6 +367,17 @@ For development and testing of Mini Studio features
         } catch(e) {
           console.error('Failed to refresh credits:', e);
         }
+      }
+      
+      // Update credits display helper function
+      function updateCreditsDisplay(credits) {
+        $('creditsDisplay').textContent = credits;
+        const pillElements = document.querySelectorAll('.pill');
+        pillElements.forEach(pill => {
+          if(pill.textContent.includes('minutes available')) {
+            pill.textContent = `${credits} minutes available`;
+          }
+        });
       }
       
       // Auto-refresh credits on page load

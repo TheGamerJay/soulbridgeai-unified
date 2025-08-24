@@ -15260,23 +15260,39 @@ def mini_studio_simple():
 # Simple Mini Studio API Routes (for simple interface compatibility)
 @app.route("/api/secret-lyrics", methods=["POST"])
 def api_secret_lyrics():
-    """Simple SecretWriter API for Mini Studio"""
+    """Simple SecretWriter API for Mini Studio with credit deduction"""
     if not is_logged_in():
         return jsonify({"success": False, "error": "Authentication required"}), 401
     
     user_plan = session.get('user_plan', 'bronze')
     trial_active = session.get('trial_active', False)
     effective_plan = get_effective_plan(user_plan, trial_active)
+    user_id = session.get('user_id')
     
     if effective_plan != 'gold':
         return jsonify({"success": False, "error": "Gold tier required"}), 403
+    
+    # Check credits before processing
+    credits = get_user_credits(user_id) if user_id else 0
+    if user_plan == 'bronze' and trial_active:
+        from unified_tier_system import get_trial_trainer_time
+        trial_credits = get_trial_trainer_time(user_id)
+        credits = max(credits, trial_credits)
+    
+    LYRICS_COST = 8  # 8 credits for premium lyrics generation
+    if credits < LYRICS_COST:
+        return jsonify({"success": False, "error": f"Insufficient credits. Need {LYRICS_COST}, have {credits}"}), 403
+    
+    # Deduct credits BEFORE processing
+    if not deduct_credits(user_id, LYRICS_COST):
+        return jsonify({"success": False, "error": "Failed to deduct credits"}), 500
     
     data = request.get_json() or {}
     theme = data.get('theme', 'heartbreak redemption')
     mood = data.get('mood', 'emotional')
     complexity = data.get('complexity', 7)
     
-    # Simulate lyrics generation (replace with actual SecretWriter integration)
+    # Generate lyrics (replace with actual SecretWriter integration)
     lyrics = f"""[Verse 1]
 {theme} flows through my mind like a river
 {mood} feelings that make my heart shiver
@@ -15299,20 +15315,47 @@ In this musical creative flight
 Premium lyrics, crafted with care
 SecretWriter beyond compare"""
     
-    return jsonify({"success": True, "lyrics": lyrics})
+    # Get remaining credits for response
+    remaining_credits = get_user_credits(user_id)
+    if user_plan == 'bronze' and trial_active:
+        trial_credits = get_trial_trainer_time(user_id)
+        remaining_credits = max(remaining_credits, trial_credits)
+    
+    return jsonify({
+        "success": True, 
+        "lyrics": lyrics,
+        "credits_used": LYRICS_COST,
+        "credits_remaining": remaining_credits
+    })
 
 @app.route("/api/midi", methods=["POST"])  
 def api_midi():
-    """Simple MIDI generation API"""
+    """Simple MIDI generation API with credit deduction"""
     if not is_logged_in():
         return jsonify({"success": False, "error": "Authentication required"}), 401
     
     user_plan = session.get('user_plan', 'bronze')
     trial_active = session.get('trial_active', False)
     effective_plan = get_effective_plan(user_plan, trial_active)
+    user_id = session.get('user_id')
     
     if effective_plan != 'gold':
         return jsonify({"success": False, "error": "Gold tier required"}), 403
+    
+    # Check credits before processing
+    credits = get_user_credits(user_id) if user_id else 0
+    if user_plan == 'bronze' and trial_active:
+        from unified_tier_system import get_trial_trainer_time
+        trial_credits = get_trial_trainer_time(user_id)
+        credits = max(credits, trial_credits)
+    
+    MIDI_COST = 5  # 5 credits for MIDI generation
+    if credits < MIDI_COST:
+        return jsonify({"success": False, "error": f"Insufficient credits. Need {MIDI_COST}, have {credits}"}), 403
+    
+    # Deduct credits BEFORE processing
+    if not deduct_credits(user_id, MIDI_COST):
+        return jsonify({"success": False, "error": "Failed to deduct credits"}), 500
     
     data = request.get_json() or {}
     chords = data.get('chords', 'Cmaj7|Am|F|G')
@@ -15320,36 +15363,74 @@ def api_midi():
     bars = data.get('bars', 8)
     style = data.get('style', 'arp')
     
-    # Simulate MIDI generation
+    # Generate MIDI
     midi_filename = f"generated_{chords.replace('|', '_')}_{bpm}bpm_{style}.mid"
     midi_path = f"/static/generated_midi/{midi_filename}"
     
-    return jsonify({"success": True, "midi_path": midi_path})
+    # Get remaining credits for response
+    remaining_credits = get_user_credits(user_id)
+    if user_plan == 'bronze' and trial_active:
+        trial_credits = get_trial_trainer_time(user_id)
+        remaining_credits = max(remaining_credits, trial_credits)
+    
+    return jsonify({
+        "success": True, 
+        "midi_path": midi_path,
+        "credits_used": MIDI_COST,
+        "credits_remaining": remaining_credits
+    })
 
 @app.route("/api/cover-art", methods=["POST"])
 def api_cover_art():
-    """Simple cover art generation API"""
+    """Simple cover art generation API with credit deduction"""
     if not is_logged_in():
         return jsonify({"success": False, "error": "Authentication required"}), 401
     
     user_plan = session.get('user_plan', 'bronze')
     trial_active = session.get('trial_active', False)
     effective_plan = get_effective_plan(user_plan, trial_active)
+    user_id = session.get('user_id')
     
     if effective_plan != 'gold':
         return jsonify({"success": False, "error": "Gold tier required"}), 403
+    
+    # Check credits before processing
+    credits = get_user_credits(user_id) if user_id else 0
+    if user_plan == 'bronze' and trial_active:
+        from unified_tier_system import get_trial_trainer_time
+        trial_credits = get_trial_trainer_time(user_id)
+        credits = max(credits, trial_credits)
+    
+    COVER_ART_COST = 12  # 12 credits for AI cover art generation (most expensive)
+    if credits < COVER_ART_COST:
+        return jsonify({"success": False, "error": f"Insufficient credits. Need {COVER_ART_COST}, have {credits}"}), 403
+    
+    # Deduct credits BEFORE processing
+    if not deduct_credits(user_id, COVER_ART_COST):
+        return jsonify({"success": False, "error": "Failed to deduct credits"}), 500
     
     data = request.get_json() or {}
     prompt = data.get('prompt', 'abstract music album cover')
     size = data.get('size', '1024x1024')
     
-    # Simulate cover art generation
+    # Generate cover art
     import time
     timestamp = int(time.time())
     art_filename = f"cover_art_{timestamp}_{prompt[:20].replace(' ', '_')}.png"
     image_path = f"/static/generated_art/{art_filename}"
     
-    return jsonify({"success": True, "image_path": image_path})
+    # Get remaining credits for response
+    remaining_credits = get_user_credits(user_id)
+    if user_plan == 'bronze' and trial_active:
+        trial_credits = get_trial_trainer_time(user_id)
+        remaining_credits = max(remaining_credits, trial_credits)
+    
+    return jsonify({
+        "success": True, 
+        "image_path": image_path,
+        "credits_used": COVER_ART_COST,
+        "credits_remaining": remaining_credits
+    })
 
 # Mini Studio API Endpoints
 @app.route("/api/mini-studio/vocal-recording", methods=["POST"])
