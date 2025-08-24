@@ -17613,12 +17613,9 @@ def companion_chat_handler(tier, companion_id):
             }
             return limits_map.get(tier_name, limits_map["bronze"]).get(feature, 0)
         
-        # Find companion info
-        companion_info = None
-        for c in COMPANIONS_NEW:
-            if c['id'] == companion_id:
-                companion_info = c
-                break
+        # Find companion info using efficient dictionary lookup
+        companion_info = COMPANIONS_BY_ID.get(companion_id)
+        logger.info(f"🔍 COMPANION LOOKUP: ID='{companion_id}', found={'YES' if companion_info else 'NO'}")
         
         if not companion_info:
             logger.error(f"❌ COMPANION NOT FOUND: {companion_id}")
