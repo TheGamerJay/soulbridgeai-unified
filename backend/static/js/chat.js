@@ -91,7 +91,7 @@ function cleanCharacterName(name) {
         'violet_growth': 'Violet',
         'claude_growth': 'Claude Growth',
         'sky_silver': 'Sky',
-        'gamerjay_silver': 'GamerJay Premium',
+        'gamerjay_silver': 'GamerJay Silver',
         'claude_silver': 'Claude Growth', 
         'blayzo_silver': 'Blayzo Pro',
         'blayzica_silver': 'Blayzica Pro',
