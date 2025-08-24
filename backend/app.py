@@ -8409,63 +8409,39 @@ def fix_trial_timer():
 @app.route("/api/decoder/check-limit")
 def check_decoder_limit():
     user_id = session.get("user_id")
+    companion_id = session.get("selected_companion", "default")
     if not user_id:
         return jsonify({"success": False, "error": "Not logged in"})
     
-    # Debug: Log full session contents
-    logger.info(f"🔍 DECODER API SESSION DEBUG: user_id={user_id}")
-    logger.info(f"🔍 Full session contents: {dict(session)}")
+    # ARCHITECTURAL CHANGE: Use companion tier instead of user plan
+    logger.info(f"🔍 DECODER API COMPANION-TIER: user_id={user_id}, companion_id={companion_id}")
     
-    # Always calculate effective_plan fresh instead of reading cached values
-    user_plan = session.get("user_plan", "bronze") 
-    trial_active = session.get("trial_active", False)
+    # Find companion tier
+    companion_tier = 'bronze'  # default
+    for companion in COMPANIONS_NEW:
+        if companion['id'] == companion_id:
+            companion_tier = companion['tier']
+            break
     
-    # Fallback: If session values are missing, force update them
-    if user_plan is None or trial_active is None:
-        logger.warning(f"⚠️ MISSING SESSION VALUES - forcing update")
-        try:
-            trial_check = is_trial_active(user_id)
-            session['trial_active'] = trial_check
-            
-            real_plan = session.get('user_plan') or get_user_plan() or 'bronze'
-            # Use bronze/silver/gold directly (no mapping needed)
-            mapped_plan = real_plan or 'bronze'
-            
-            session['user_plan'] = mapped_plan
-            
-            # Update local variables
-            user_plan = session['user_plan']
-            trial_active = session['trial_active']
-        except Exception as e:
-            logger.error(f"❌ Failed to update session: {e}")
-            user_plan = "bronze"
-            trial_active = False
+    # Calculate companion-tier limits
+    def get_simple_feature_limit(tier_name, feature):
+        limits_map = {
+            "bronze": {"decoder": 3, "fortune": 2, "horoscope": 3, "creative_writer": 2},
+            "silver": {"decoder": 15, "fortune": 8, "horoscope": 10, "creative_writer": 20},
+            "gold": {"decoder": 999, "fortune": 999, "horoscope": 999, "creative_writer": 999}
+        }
+        return limits_map.get(tier_name, limits_map["bronze"]).get(feature, 0)
     
-    # TIER ISOLATION: Use tier-specific limits instead of old approach
-    current_tier = get_current_user_tier()
-    tier_system = get_current_tier_system()
-    
-    # Calculate effective_plan fresh each time
-    effective_plan = get_effective_plan(user_plan, trial_active)
-    
-    # Use unified tier system for consistent limits - trial doesn't change daily limits
-    daily_limit = get_feature_limit(user_plan, "decoder", trial_active)
-    
-    logger.info(f"🔒 TIER ISOLATION: user_plan={user_plan}, tier={current_tier}, effective_plan={effective_plan}, trial_active={trial_active}, limit={daily_limit}")
+    # Use companion tier for limits instead of user plan
+    daily_limit = get_simple_feature_limit(companion_tier, "decoder")
     usage_today = get_decoder_usage()
     
-    # Check if trial should be active by calling is_trial_active directly
-    direct_trial_check = is_trial_active(user_id)
-    if direct_trial_check != trial_active:
-        logger.warning(f"⚠️ TRIAL MISMATCH: session={trial_active}, direct_check={direct_trial_check}")
-    
-    logger.info(f"🎯 DECODER API: user_id={user_id}, user_plan='{user_plan}', effective_plan='{effective_plan}', trial_active={trial_active}, daily_limit={daily_limit}, usage={usage_today}")
+    logger.info(f"🎯 DECODER API COMPANION-TIER: companion_id='{companion_id}', companion_tier='{companion_tier}', daily_limit={daily_limit}, usage={usage_today}")
 
     return jsonify({
         "success": True,
-        "effective_plan": effective_plan,
-        "user_plan": user_plan,
-        "trial_active": trial_active,
+        "companion_id": companion_id,
+        "companion_tier": companion_tier,
         "daily_limit": daily_limit,
         "usage_today": usage_today
     })
@@ -8473,58 +8449,76 @@ def check_decoder_limit():
 @app.route("/api/fortune/check-limit")
 def check_fortune_limit():
     user_id = session.get("user_id")
+    companion_id = session.get("selected_companion", "default")
     if not user_id:
         return jsonify({"success": False, "error": "Not logged in"})
     
-    # TIER ISOLATION: Use tier-specific limits instead of cached session values
-    current_tier = get_current_user_tier()
-    tier_system = get_current_tier_system()
-    tier_data = tier_system.get_session_data()
+    # ARCHITECTURAL CHANGE: Use companion tier instead of user plan
+    # Find companion tier
+    companion_tier = 'bronze'  # default
+    for companion in COMPANIONS_NEW:
+        if companion['id'] == companion_id:
+            companion_tier = companion['tier']
+            break
     
-    user_plan = session.get("user_plan", "bronze")  # Original plan for display
-    trial_active = session.get("trial_active", False)
-    effective_plan = get_effective_plan(user_plan, trial_active)
+    # Calculate companion-tier limits
+    def get_simple_feature_limit(tier_name, feature):
+        limits_map = {
+            "bronze": {"decoder": 3, "fortune": 2, "horoscope": 3, "creative_writer": 2},
+            "silver": {"decoder": 15, "fortune": 8, "horoscope": 10, "creative_writer": 20},
+            "gold": {"decoder": 999, "fortune": 999, "horoscope": 999, "creative_writer": 999}
+        }
+        return limits_map.get(tier_name, limits_map["bronze"]).get(feature, 0)
     
-    # Get limits based on effective plan during trial, actual plan otherwise
-    # During trial, Bronze users get Gold tier limits (unlimited)
-    # Use unified tier system for consistent limits - trial doesn't change daily limits
-    daily_limit = get_feature_limit(user_plan, "fortune", trial_active)
+    # Use companion tier for limits instead of user plan
+    daily_limit = get_simple_feature_limit(companion_tier, "fortune")
     usage_today = get_fortune_usage()
+    
+    logger.info(f"🎯 FORTUNE API COMPANION-TIER: companion_id='{companion_id}', companion_tier='{companion_tier}', daily_limit={daily_limit}, usage={usage_today}")
 
     return jsonify({
         "success": True,
-        "effective_plan": effective_plan,
-        "user_plan": user_plan,
+        "companion_id": companion_id,
+        "companion_tier": companion_tier,
         "daily_limit": daily_limit,
-        "trial_active": trial_active,
         "usage_today": usage_today
     })
 
 @app.route("/api/horoscope/check-limit")
 def check_horoscope_limit():
     user_id = session.get("user_id")
+    companion_id = session.get("selected_companion", "default")
     if not user_id:
         return jsonify({"success": False, "error": "Not logged in"})
 
-    # TIER ISOLATION: Use tier-specific limits instead of cached session values
-    current_tier = get_current_user_tier()
-    tier_system = get_current_tier_system()
-    tier_data = tier_system.get_session_data()
+    # ARCHITECTURAL CHANGE: Use companion tier instead of user plan
+    # Find companion tier
+    companion_tier = 'bronze'  # default
+    for companion in COMPANIONS_NEW:
+        if companion['id'] == companion_id:
+            companion_tier = companion['tier']
+            break
     
-    user_plan = session.get("user_plan", "bronze")  # Original plan for display
-    trial_active = session.get("trial_active", False)
-    effective_plan = get_effective_plan(user_plan, trial_active)
+    # Calculate companion-tier limits
+    def get_simple_feature_limit(tier_name, feature):
+        limits_map = {
+            "bronze": {"decoder": 3, "fortune": 2, "horoscope": 3, "creative_writer": 2},
+            "silver": {"decoder": 15, "fortune": 8, "horoscope": 10, "creative_writer": 20},
+            "gold": {"decoder": 999, "fortune": 999, "horoscope": 999, "creative_writer": 999}
+        }
+        return limits_map.get(tier_name, limits_map["bronze"]).get(feature, 0)
     
-    # Use unified tier system for consistent limits - trial doesn't change daily limits
-    daily_limit = get_feature_limit(user_plan, "horoscope", trial_active)
+    # Use companion tier for limits instead of user plan
+    daily_limit = get_simple_feature_limit(companion_tier, "horoscope")
     usage_today = get_horoscope_usage()
+    
+    logger.info(f"🎯 HOROSCOPE API COMPANION-TIER: companion_id='{companion_id}', companion_tier='{companion_tier}', daily_limit={daily_limit}, usage={usage_today}")
 
     return jsonify({
         "success": True,
-        "effective_plan": effective_plan,
-        "user_plan": user_plan,
+        "companion_id": companion_id,
+        "companion_tier": companion_tier,
         "daily_limit": daily_limit,
-        "trial_active": trial_active,
         "usage_today": usage_today
     })
 
@@ -13072,47 +13066,71 @@ def get_user_tier_status():
 
 @app.route("/api/tier-limits", methods=["GET"])
 def get_tier_limits():
-    """Get current user's tier limits and usage for feature buttons - UNIFIED SYSTEM"""
+    """Get companion-specific tier limits and usage - COMPANION-TIER SYSTEM"""
     try:
         if not is_logged_in():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
         user_id = session.get('user_id')
+        companion_id = session.get('selected_companion', 'default')
         if not user_id:
             return jsonify({"success": False, "error": "User ID required"}), 401
             
-        # DEBUG: Log session values before calling unified system
-        session_plan = session.get('user_plan', 'unknown')
-        session_trial = session.get('trial_active', False)
-        logger.info(f"🔍 DEBUG SESSION: user_plan='{session_plan}', trial_active={session_trial}")
+        # ARCHITECTURAL CHANGE: Get companion tier instead of user tier
+        # Find the companion's tier from COMPANIONS_NEW
+        companion_tier = 'bronze'  # default
+        for companion in COMPANIONS_NEW:
+            if companion['id'] == companion_id:
+                companion_tier = companion['tier']
+                break
+                
+        logger.info(f"🔍 COMPANION-TIER API: companion_id='{companion_id}', companion_tier='{companion_tier}'")
         
-        # Use unified tier system for consistent behavior
-        tier_status = get_tier_status(user_id)
+        # Use companion tier for limits instead of user tier
+        def get_simple_feature_limit(tier_name, feature, trial_active):
+            """Simple tier limits without external dependencies"""
+            limits_map = {
+                "bronze": {"decoder": 3, "fortune": 2, "horoscope": 3, "creative_writer": 2},
+                "silver": {"decoder": 15, "fortune": 8, "horoscope": 10, "creative_writer": 20},
+                "gold": {"decoder": 999, "fortune": 999, "horoscope": 999, "creative_writer": 999}
+            }
+            return limits_map.get(tier_name, limits_map["bronze"]).get(feature, 0)
+        
+        # Calculate limits based on companion tier
+        tier_limits = {
+            "decoder": get_simple_feature_limit(companion_tier, "decoder", False),
+            "fortune": get_simple_feature_limit(companion_tier, "fortune", False), 
+            "horoscope": get_simple_feature_limit(companion_tier, "horoscope", False),
+            "creative_writer": get_simple_feature_limit(companion_tier, "creative_writer", False)
+        }
+        
+        # Get companion-specific usage
+        companion_usage = {
+            "decoder": get_decoder_usage(),
+            "fortune": get_fortune_usage(),
+            "horoscope": get_horoscope_usage()
+        }
         
         # Convert large numbers to "unlimited" for display
         limits = {}
         unlimited_features = []
-        for feature, limit in tier_status['limits'].items():
-            if limit >= 999999:
+        for feature, limit in tier_limits.items():
+            if limit >= 999:
                 limits[feature] = 'unlimited'
                 unlimited_features.append(feature)
             else:
                 limits[feature] = limit
         
-        logger.info(f"🎯 UNIFIED TIER LIMITS: {tier_status['user_plan']} plan, {tier_status['effective_plan']} features, trial: {tier_status['trial_active']}")
-        logger.info(f"🎯 LIMITS: {limits}, USAGE: {tier_status['usage']}")
-        logger.info(f"🔍 DEBUG RAW LIMITS: {tier_status['limits']}")
+        logger.info(f"🎯 COMPANION-TIER LIMITS: companion='{companion_id}', tier='{companion_tier}'")
+        logger.info(f"🎯 LIMITS: {limits}, USAGE: {companion_usage}")
         
         return jsonify({
             "success": True,
-            "tier": tier_status['effective_plan'],
-            "user_plan": tier_status['user_plan'],
-            "trial_active": tier_status['trial_active'],
+            "companion_id": companion_id,
+            "companion_tier": companion_tier,
             "limits": limits,
-            "usage": tier_status['usage'],
-            "credits": tier_status['credits'],
-            "unlimited_features": unlimited_features,
-            "feature_access": tier_status['feature_access']
+            "usage": companion_usage,
+            "unlimited_features": unlimited_features
         })
         
     except Exception as e:

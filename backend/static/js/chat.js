@@ -726,27 +726,50 @@ function startNewTrialTimer() {
 }
 
 
-// Bulletproof tier display logic
+// Companion-tier display logic
 function updateTierDisplay() {
-    fetch("/api/user-info")
+    fetch("/api/tier-limits")
         .then(res => res.json())
         .then(data => {
-            const userPlan = data.user_plan || "bronze";  // Original plan for display (updated default)
-            const effectivePlan = data.effective_plan || "bronze";  // Effective plan for access (updated default)
-            const trial = data.trial_active || false;
+            const companionId = data.companion_id || "default";
+            const companionTier = data.companion_tier || "bronze";
+            const limits = data.limits || {};
+            const usage = data.usage || {};
             
-            console.log(`🎯 TIER UPDATE: user_plan=${userPlan}, effective_plan=${effectivePlan}, trial=${trial}`);
+            console.log(`🎯 COMPANION-TIER UPDATE: companion_id=${companionId}, companion_tier=${companionTier}`, limits, usage);
             
-            // DISABLED: Premium feature visibility now controlled by HTML template based on companion tier
-            // This prevents JavaScript from overriding tier-specific companion feature restrictions
-            
-            // NOTE: Feature visibility is now handled in the template using companion_tier logic
-            // to ensure Bronze companions show Bronze features, Silver show Silver, Gold show Gold
-            // regardless of user's actual subscription tier (but still respecting access permissions)
+            // Update tier limit displays with companion-specific data
+            updateTierLimitDisplays(limits, usage);
         })
         .catch(err => {
-            console.error("Failed to update tier display:", err);
+            console.error("Failed to update companion tier display:", err);
         });
+}
+
+function updateTierLimitDisplays(limits, usage) {
+    // Update decoder limits
+    const decoderLimit = document.getElementById('decoderLimit');
+    if (decoderLimit && limits.decoder !== undefined) {
+        const decoderUsage = usage.decoder || 0;
+        const decoderMax = limits.decoder;
+        decoderLimit.textContent = `${decoderUsage}/${decoderMax === 'unlimited' ? '∞' : decoderMax}`;
+    }
+    
+    // Update fortune limits
+    const fortuneLimit = document.getElementById('fortuneLimit');
+    if (fortuneLimit && limits.fortune !== undefined) {
+        const fortuneUsage = usage.fortune || 0;
+        const fortuneMax = limits.fortune;
+        fortuneLimit.textContent = `${fortuneUsage}/${fortuneMax === 'unlimited' ? '∞' : fortuneMax}`;
+    }
+    
+    // Update horoscope limits
+    const horoscopeLimit = document.getElementById('horoscopeLimit');
+    if (horoscopeLimit && limits.horoscope !== undefined) {
+        const horoscopeUsage = usage.horoscope || 0;
+        const horoscopeMax = limits.horoscope;
+        horoscopeLimit.textContent = `${horoscopeUsage}/${horoscopeMax === 'unlimited' ? '∞' : horoscopeMax}`;
+    }
 }
 
 // DISABLED: Server-side template now handles tier display correctly
