@@ -89,6 +89,7 @@
                 </a>
                 
                 <!-- PROPER TIER ISOLATION: Each tier sees only their tier features -->
+                <!-- DEBUG: companion_tier={{ companion_tier }}, session.access_silver={{ session.access_silver }}, session.access_gold={{ session.access_gold }} -->
                 
                 <!-- SILVER TIER FEATURES: Show when companion tier is Silver/Gold AND user has access -->
                 {% if (companion_tier == 'silver' or companion_tier == 'gold') and (session.access_silver or session.access_gold) %}
