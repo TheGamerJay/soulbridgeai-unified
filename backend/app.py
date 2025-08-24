@@ -8762,7 +8762,6 @@ def mini_studio_bulletproof():
         
         # Hard gate: Only Gold users can access
         if not require_max_for_mini_studio_new():
-            flash("Mini Studio is exclusive to Gold tier subscribers", "error")
             return redirect("/tiers?upgrade=gold")
         
         # Get user data for display
