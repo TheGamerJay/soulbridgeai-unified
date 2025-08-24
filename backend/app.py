@@ -18183,6 +18183,25 @@ def companion_chat_handler(tier, companion_id):
             logger.error(f"❌ COMPANION NOT FOUND: {companion_id}")
             return redirect(f"/chat/{tier}")
         
+        # SECURITY: Check if user can access this companion tier
+        effective_plan = get_effective_plan(user_plan, trial_active)
+        companion_tier = companion_info['tier']
+        
+        # Bronze users can only access Bronze companions (unless on trial)
+        # Silver users can access Bronze + Silver companions
+        # Gold users can access all companions
+        can_access = False
+        if effective_plan == 'bronze' and companion_tier == 'bronze':
+            can_access = True
+        elif effective_plan == 'silver' and companion_tier in ['bronze', 'silver']:
+            can_access = True
+        elif effective_plan == 'gold':
+            can_access = True
+            
+        if not can_access:
+            logger.warning(f"🚫 ACCESS DENIED: user_plan={user_plan}, trial={trial_active}, effective_plan={effective_plan}, trying to access {companion_tier} companion")
+            return redirect("/tiers?upgrade=required")
+        
         logger.info(f"✅ COMPANION FOUND: {companion_info}")
         
         # Verify companion access
@@ -18221,12 +18240,12 @@ def companion_chat_handler(tier, companion_id):
         # Store selected companion in session
         session['selected_companion'] = companion_id
         
-        # Calculate tier-specific limits (use tier, not user plan)
+        # Calculate limits based on USER PLAN, not companion tier
         limits = {
-            "decoder": get_simple_feature_limit(tier, "decoder", trial_active),
-            "fortune": get_simple_feature_limit(tier, "fortune", trial_active),
-            "horoscope": get_simple_feature_limit(tier, "horoscope", trial_active),
-            "creative_writer": get_simple_feature_limit(tier, "creative_writer", trial_active)
+            "decoder": get_simple_feature_limit(user_plan, "decoder", trial_active),
+            "fortune": get_simple_feature_limit(user_plan, "fortune", trial_active),
+            "horoscope": get_simple_feature_limit(user_plan, "horoscope", trial_active),
+            "creative_writer": get_simple_feature_limit(user_plan, "creative_writer", trial_active)
         }
         
         # Get effective plan for feature access
