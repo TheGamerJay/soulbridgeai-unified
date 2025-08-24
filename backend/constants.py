@@ -137,14 +137,18 @@ MONTHLY_CREDIT_RESET_AMOUNT = 650
 
 # AI Image generation limits per plan
 AI_IMAGE_LIMITS = {
-    "free": 5,
-    "growth": 50, 
-    "max": 999999
+    "bronze": 5,
+    "silver": 50, 
+    "gold": 999999
 }
 
 # Legacy plan migration mapping (for backward compatibility only; do not use for new features)
 LEGACY_PLAN_MAPPING = {
-    'foundation': 'free',
-    'premium': 'growth', 
-    'enterprise': 'max'
+    'foundation': 'bronze',
+    'premium': 'silver', 
+    'enterprise': 'gold',
+    # Old tier names for backward compatibility
+    'free': 'bronze',
+    'growth': 'silver',
+    'max': 'gold'
 }
