@@ -17684,10 +17684,10 @@ def companion_chat_handler(tier, companion_id):
         # ARCHITECTURAL CHANGE: Calculate limits based on COMPANION TIER, not user plan
         # This makes each companion provide its tier-specific feature experience
         limits = {
-            "decoder": get_simple_feature_limit(tier, "decoder", False),  # Use companion tier, no trial boost
-            "fortune": get_simple_feature_limit(tier, "fortune", False),  # Use companion tier, no trial boost
-            "horoscope": get_simple_feature_limit(tier, "horoscope", False),  # Use companion tier, no trial boost
-            "creative_writer": get_simple_feature_limit(tier, "creative_writer", False)  # Use companion tier, no trial boost
+            "decoder": get_simple_feature_limit(companion_tier, "decoder", False),  # Use companion tier, no trial boost
+            "fortune": get_simple_feature_limit(companion_tier, "fortune", False),  # Use companion tier, no trial boost
+            "horoscope": get_simple_feature_limit(companion_tier, "horoscope", False),  # Use companion tier, no trial boost
+            "creative_writer": get_simple_feature_limit(companion_tier, "creative_writer", False)  # Use companion tier, no trial boost
         }
         
         # Get effective plan for feature access
@@ -17707,7 +17707,7 @@ def companion_chat_handler(tier, companion_id):
             limits=limits,
             selected_companion=companion_id,
             companion_info=companion_info,
-            companion_tier=tier  # Pass the companion's tier for template logic
+            companion_tier=companion_tier  # Pass the companion's actual tier for template logic
         )
     except Exception as e:
         logger.error(f"❌ COMPANION HANDLER ERROR: {e}")
