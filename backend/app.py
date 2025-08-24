@@ -8727,45 +8727,6 @@ def poll_trial_bulletproof():
             "trial_used_permanently": session.get("trial_used_permanently", False)
         })
 
-# ============================================
-# BULLETPROOF MINI STUDIO GATE
-# ============================================
-
-@app.route("/mini-studio")
-def mini_studio_bulletproof():
-    """Hard-gated Mini Studio - Gold tier only"""
-    try:
-        if not is_logged_in():
-            return redirect("/login?return_to=mini-studio")
-        
-        # Hard gate: Only Gold users can access
-        if not require_max_for_mini_studio_new():
-            return redirect("/tiers?upgrade=gold")
-        
-        # Get user data for display
-        user_email = session.get('user_email', 'Unknown')
-        user_plan = session.get('user_plan', 'bronze')
-        trial_active = session.get('trial_active', False)
-        user_id = session.get('user_id')
-        
-        # Get current credits
-        from unified_tier_system import get_user_credits
-        current_credits = get_user_credits(user_id) if user_id else 0
-        
-        # Render Mini Studio page with user data
-        return render_template("mini_studio.html", 
-                             user_email=user_email,
-                             user_plan=user_plan,
-                             trial_active=trial_active,
-                             credits=current_credits)
-    
-    except Exception as e:
-        logger.error(f"Mini Studio access error: {e}")
-        return redirect("/tiers")
-
-# ============================================
-# END BULLETPROOF API ENDPOINTS  
-# ============================================
 
 # REMOVED: api_start_trial_old function - was a duplicate/old trial function
 
