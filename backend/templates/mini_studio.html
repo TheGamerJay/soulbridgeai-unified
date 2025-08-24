@@ -307,12 +307,109 @@
             to { transform: rotate(360deg); }
         }
         
+        /* Netflix-style Cards */
+        .netflix-card {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            border-radius: 16px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            position: relative;
+            height: 400px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+        }
+        
+        .netflix-card:hover {
+            transform: scale(1.05) translateY(-10px);
+            box-shadow: 0 20px 50px rgba(139, 92, 246, 0.4);
+        }
+        
+        .card-image {
+            height: 220px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.4s ease;
+        }
+        
+        .netflix-card:hover .card-image img {
+            transform: scale(1.1);
+        }
+        
+        .card-content {
+            padding: 20px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .card-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #8b5cf6;
+            margin-bottom: 10px;
+        }
+        
+        .card-description {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+            line-height: 1.4;
+            margin-bottom: 15px;
+        }
+        
+        .card-features {
+            color: rgba(139, 92, 246, 0.8);
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .card-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.9), rgba(124, 58, 237, 0.9));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .netflix-card:hover .card-overlay {
+            opacity: 1;
+        }
+        
+        .play-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid #ffffff;
+            border-radius: 50px;
+            padding: 15px 30px;
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 1.1rem;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .play-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .studio-workspace { padding: 20px; }
             .equipment-grid { grid-template-columns: 1fr; }
             .studio-header h1 { font-size: 1.5rem; }
             .studio-tabs { flex-wrap: wrap; }
+            .netflix-card { height: 350px; }
+            .card-image { height: 180px; }
         }
     </style>
 </head>
@@ -336,7 +433,7 @@
             <!-- Tab Navigation -->
             <div class="studio-tabs">
                 <button class="tab-btn active" onclick="openTab('vocals')">🎤 Vocals</button>
-                <button class="tab-btn" onclick="openTab('lyrics')">✍️ Lyrics</button>
+                <button class="tab-btn" onclick="openTab('lyrics')">🕵️‍♂️ SecretWriter</button>
                 <button class="tab-btn" onclick="openTab('midi')">🎹 MIDI</button>
                 <button class="tab-btn" onclick="openTab('effects')">🎚️ Effects</button>
                 <button class="tab-btn" onclick="openTab('mix')">🔊 Mix</button>
@@ -390,54 +487,25 @@
                 </div>
             </div>
             
-            <!-- Lyrics Tab -->
+            <!-- SecretWriter Tab -->
             <div id="lyrics" class="tab-content">
                 <div class="equipment-grid">
-                    <div class="equipment-panel">
-                        <div class="panel-header">
-                            <div class="panel-icon">✍️</div>
-                            <div class="panel-title">InspirationWriter</div>
+                    <!-- Netflix-style SecretWriter Card -->
+                    <div class="netflix-card" onclick="openSecretWriter()">
+                        <div class="card-image">
+                            <img src="/static/logos/GamerJay SecretWriter.png" alt="SecretWriter" />
                         </div>
-                        <div class="panel-description">
-                            AI-powered lyric writing with customizable themes and moods
+                        <div class="card-content">
+                            <div class="card-title">🕵️‍♂️ SecretWriter Pro</div>
+                            <div class="card-description">
+                                Professional AI songwriter with complex rhyme schemes, bilingual support, and genre presets. Create complete songs or polish existing lyrics.
+                            </div>
+                            <div class="card-features">
+                                ✨ 4 Professional Modes • 🎵 Genre Presets • 🌍 Bilingual Support
+                            </div>
                         </div>
-                        
-                        <div class="form-group">
-                            <label for="lyricsTheme">Theme</label>
-                            <input type="text" id="lyricsTheme" class="form-control" placeholder="love, freedom, struggle, joy..." value="love">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="lyricsMood">Mood</label>
-                            <select id="lyricsMood" class="form-control">
-                                <option value="emotional">Emotional</option>
-                                <option value="uplifting">Uplifting</option>
-                                <option value="melancholic">Melancholic</option>
-                                <option value="energetic">Energetic</option>
-                                <option value="romantic">Romantic</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="lyricsLanguage">Language</label>
-                            <select id="lyricsLanguage" class="form-control">
-                                <option value="en">English</option>
-                                <option value="es">Spanish</option>
-                                <option value="fr">French</option>
-                                <option value="de">German</option>
-                            </select>
-                        </div>
-                        
-                        <button class="studio-btn" onclick="generateLyrics()">✍️ Write Lyrics</button>
-                    </div>
-                    
-                    <div class="equipment-panel">
-                        <div class="panel-header">
-                            <div class="panel-icon">📝</div>
-                            <div class="panel-title">Generated Lyrics</div>
-                        </div>
-                        <div class="form-group">
-                            <textarea id="lyricsOutput" class="form-control" rows="12" placeholder="Generated lyrics will appear here..." readonly></textarea>
+                        <div class="card-overlay">
+                            <div class="play-btn">▶ Launch</div>
                         </div>
                     </div>
                 </div>
