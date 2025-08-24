@@ -146,7 +146,7 @@ export default function CharacterSelect({ onSelect }) {
             🔒
           </div>
         )}
-        {!actuallyLocked && trialActive && companion.tier !== 'free' && (
+        {!actuallyLocked && trialActive && companion.tier !== 'bronze' && (
           <div className="absolute top-2 right-2">
             🕒
           </div>
@@ -158,7 +158,7 @@ export default function CharacterSelect({ onSelect }) {
             {!isAccessible ? `Requires ${companion.tier.charAt(0).toUpperCase() + companion.tier.slice(1)} Plan` : companion.lock_reason}
           </div>
         )}
-        {!actuallyLocked && trialActive && companion.tier !== 'free' && (
+        {!actuallyLocked && trialActive && companion.tier !== 'bronze' && (
           <div className="text-xs mt-2 text-green-300">
             ⏰ Trial Access
           </div>
@@ -204,7 +204,7 @@ export default function CharacterSelect({ onSelect }) {
               {!isAccessible && (
                 <span className="absolute -top-1 -right-1">🔒</span>
               )}
-              {isAccessible && trialActive && tier !== 'free' && (
+              {isAccessible && trialActive && tier !== 'bronze' && (
                 <span className="absolute -top-1 -right-1">🕒</span>
               )}
               {getTierTitle(tier)} ({companions[tier].length})
@@ -237,23 +237,23 @@ export default function CharacterSelect({ onSelect }) {
 
       {/* Tier Info */}
       <div className="mt-8 text-cyan-300 text-center text-sm opacity-75 max-w-lg">
-        {selectedTier === 'free' && (
-          <p>🆓 Available to all users at any time</p>
+        {selectedTier === 'bronze' && (
+          <p>🥉 Available to all users at any time</p>
         )}
-        {selectedTier === 'growth' && !accessibleTiers.includes('growth') && (
-          <p>🌱 Growth tier companions require Growth subscription or trial</p>
+        {selectedTier === 'silver' && !accessibleTiers.includes('silver') && (
+          <p>🥈 Silver tier companions require Silver subscription or trial</p>
         )}
-        {selectedTier === 'growth' && accessibleTiers.includes('growth') && (
-          <p>🌱 Enhanced companions with advanced features</p>
+        {selectedTier === 'silver' && accessibleTiers.includes('silver') && (
+          <p>🥈 Enhanced companions with advanced features</p>
         )}
-        {selectedTier === 'max' && !accessibleTiers.includes('max') && (
-          <p>⚡ Max tier companions require Max subscription or trial</p>
+        {selectedTier === 'gold' && !accessibleTiers.includes('gold') && (
+          <p>🥇 Gold tier companions require Gold subscription or trial</p>
         )}
-        {selectedTier === 'max' && accessibleTiers.includes('max') && (
-          <p>⚡ Elite companions with premium AI models and unlimited features</p>
+        {selectedTier === 'gold' && accessibleTiers.includes('gold') && (
+          <p>🥇 Elite companions with premium AI models and unlimited features</p>
         )}
         {selectedTier === 'referral' && !accessibleTiers.includes('referral') && (
-          <p>🏆 Exclusive companions require Max subscription or trial</p>
+          <p>🏆 Exclusive companions require Gold subscription or trial</p>
         )}
         {selectedTier === 'referral' && accessibleTiers.includes('referral') && (
           <p>🏆 Exclusive companions unlocked through community referrals</p>
@@ -264,16 +264,16 @@ export default function CharacterSelect({ onSelect }) {
       {!trialActive && (
         <div className="mt-4 text-center text-xs opacity-60 max-w-2xl">
           <p className="text-gray-400">
-            {userPlan === 'free' && '🔒 Upgrade to Growth for enhanced companions • Upgrade to Max for elite companions'}
-            {userPlan === 'growth' && '✅ You have access to Free + Growth companions • Upgrade to Max for elite companions'}
-            {userPlan === 'max' && '✅ You have access to all companion tiers'}
+            {userPlan === 'bronze' && '🔒 Upgrade to Silver for enhanced companions • Upgrade to Gold for elite companions'}
+            {userPlan === 'silver' && '✅ You have access to Bronze + Silver companions • Upgrade to Gold for elite companions'}
+            {userPlan === 'gold' && '✅ You have access to all companion tiers'}
           </p>
         </div>
       )}
       {trialActive && (
         <div className="mt-4 text-center text-xs max-w-2xl">
           <p className="text-green-400">
-            🕒 Trial Mode: All companions unlocked for 5 hours! Usage limits remain at your {userPlan} tier level.
+            🕒 Trial Mode: Silver/Gold companions unlocked for 5 hours! Usage limits remain at your {userPlan} tier level.
           </p>
           <p className="text-yellow-400 mt-1">
             After trial ends, access returns to your {userPlan} subscription level.

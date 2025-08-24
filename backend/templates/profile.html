@@ -1991,21 +1991,7 @@
             window.location.href = '/subscription';
         };
 
-        window.upgradeToMaxTier = async () => {
-            try {
-                const response = await fetch('/debug/set-max-tier', { method: 'POST' });
-                const result = await response.json();
-                
-                if (result.success) {
-                    alert('🎉 Successfully upgraded to Max Tier! You now have unlimited access to all features.');
-                    location.reload(); // Refresh to show new tier
-                } else {
-                    alert('Failed to upgrade to Max Tier: ' + (result.error || 'Unknown error'));
-                }
-            } catch (error) {
-                alert('Error upgrading to Max Tier: ' + error.message);
-            }
-        };
+        // Removed dead upgradeToMaxTier function - debug route no longer exists
 
         window.manageSubscription = () => {
             window.location.href = '/subscription';
