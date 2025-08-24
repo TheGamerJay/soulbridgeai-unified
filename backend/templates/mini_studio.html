@@ -7,6 +7,13 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
+        :root {
+            --ok: #10b981;
+            --gold: #f59e0b;
+            --purple: #8b5cf6;
+            --teal: #4fd1c7;
+        }
+        
         body {
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%);
@@ -307,7 +314,7 @@
             to { transform: rotate(360deg); }
         }
         
-        /* Netflix-style Cards */
+        /* Netflix-style Cards (Proper Structure) */
         .netflix-card {
             background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
             border-radius: 16px;
@@ -317,57 +324,33 @@
             position: relative;
             height: 400px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+            border: 2px solid transparent;
         }
         
         .netflix-card:hover {
             transform: scale(1.05) translateY(-10px);
             box-shadow: 0 20px 50px rgba(139, 92, 246, 0.4);
+            border-color: rgba(139, 92, 246, 0.6);
         }
         
-        .card-image {
+        .netflix-poster {
             height: 220px;
             overflow: hidden;
             position: relative;
         }
         
-        .card-image img {
+        .netflix-poster img {
             width: 100%;
             height: 100%;
             object-fit: cover;
             transition: transform 0.4s ease;
         }
         
-        .netflix-card:hover .card-image img {
+        .netflix-card:hover .netflix-poster img {
             transform: scale(1.1);
         }
         
-        .card-content {
-            padding: 20px;
-            position: relative;
-            z-index: 2;
-        }
-        
-        .card-title {
-            font-size: 1.4rem;
-            font-weight: 700;
-            color: #8b5cf6;
-            margin-bottom: 10px;
-        }
-        
-        .card-description {
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 0.9rem;
-            line-height: 1.4;
-            margin-bottom: 15px;
-        }
-        
-        .card-features {
-            color: rgba(139, 92, 246, 0.8);
-            font-size: 0.8rem;
-            font-weight: 500;
-        }
-        
-        .card-overlay {
+        .netflix-overlay {
             position: absolute;
             top: 0;
             left: 0;
@@ -375,31 +358,84 @@
             bottom: 0;
             background: linear-gradient(135deg, rgba(139, 92, 246, 0.9), rgba(124, 58, 237, 0.9));
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             opacity: 0;
             transition: opacity 0.3s ease;
+            text-align: center;
         }
         
-        .netflix-card:hover .card-overlay {
+        .netflix-card:hover .netflix-overlay {
             opacity: 1;
         }
         
-        .play-btn {
+        .unlock-status {
             background: rgba(255, 255, 255, 0.2);
             border: 2px solid #ffffff;
-            border-radius: 50px;
-            padding: 15px 30px;
+            border-radius: 25px;
+            padding: 10px 20px;
             color: #ffffff;
             font-weight: 700;
-            font-size: 1.1rem;
+            font-size: 1rem;
             backdrop-filter: blur(10px);
+            margin-bottom: 8px;
             transition: all 0.3s ease;
         }
         
-        .play-btn:hover {
+        .unlock-status:hover {
             background: rgba(255, 255, 255, 0.3);
             transform: scale(1.05);
+        }
+        
+        .unlock-requirement {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        
+        .netflix-info {
+            padding: 20px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .netflix-info h3 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #8b5cf6;
+            margin-bottom: 8px;
+        }
+        
+        .unlock-tier {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+            line-height: 1.4;
+            margin-bottom: 15px;
+        }
+        
+        .netflix-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: #ffffff;
+            background: rgba(139, 92, 246, 0.8);
+        }
+        
+        .badge.exclusive {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+        }
+        
+        .badge.referral {
+            background: rgba(79, 209, 199, 0.8);
         }
 
         /* Responsive */
@@ -491,21 +527,22 @@
             <div id="lyrics" class="tab-content">
                 <div class="equipment-grid">
                     <!-- Netflix-style SecretWriter Card -->
-                    <div class="netflix-card" onclick="openSecretWriter()">
-                        <div class="card-image">
-                            <img src="/static/logos/GamerJay SecretWriter.png" alt="SecretWriter" />
-                        </div>
-                        <div class="card-content">
-                            <div class="card-title">🕵️‍♂️ SecretWriter Pro</div>
-                            <div class="card-description">
-                                Professional AI songwriter with complex rhyme schemes, bilingual support, and genre presets. Create complete songs or polish existing lyrics.
-                            </div>
-                            <div class="card-features">
-                                ✨ 4 Professional Modes • 🎵 Genre Presets • 🌍 Bilingual Support
+                    <div class="netflix-card unlocked" onclick="openSecretWriter()">
+                        <div class="netflix-poster">
+                            <img src="/static/logos/GamerJay SecretWriter.png" alt="SecretWriter Pro" onerror="this.src='/static/logos/IntroLogo.png'" />
+                            <div class="netflix-overlay">
+                                <div class="unlock-status unlocked">🚀 LAUNCH</div>
+                                <div class="unlock-requirement">Professional AI Songwriter</div>
                             </div>
                         </div>
-                        <div class="card-overlay">
-                            <div class="play-btn">▶ Launch</div>
+                        <div class="netflix-info">
+                            <h3>🕵️‍♂️ SecretWriter Pro</h3>
+                            <p class="unlock-tier">Professional songwriting with complex rhymes</p>
+                            <div class="netflix-badges">
+                                <span class="badge exclusive" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">PREMIUM</span>
+                                <span class="badge referral">AI SONGWRITER</span>
+                                <span class="badge" style="background: var(--gold);">GOLD TIER</span>
+                            </div>
                         </div>
                     </div>
                 </div>
