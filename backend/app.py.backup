@@ -15209,6 +15209,630 @@ def mini_studio():
         credits = max(credits, trial_credits)  # Use trial credits if higher
     
     return render_template("mini_studio.html", credits=credits)
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>🎵 Mini Studio | SoulBridge AI</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        /* Studio Environment */
+        .studio-container {
+            min-height: 100vh;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(120, 0, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 0, 120, 0.1) 0%, transparent 50%),
+                linear-gradient(135deg, #0a0a0a 0%, #1e1e1e 100%);
+            position: relative;
+        }
+        
+        /* Studio Lighting Effects */
+        .studio-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 200px;
+            background: linear-gradient(180deg, rgba(66, 153, 225, 0.05) 0%, transparent 100%);
+            pointer-events: none;
+        }
+        
+        /* Header with Studio Vibe */
+        .studio-header {
+            padding: 20px 30px;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .studio-header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, #4fd1c7, #81e6d9);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
+        }
+        
+        .studio-info {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+        }
+        
+        .credits-display {
+            display: inline-block;
+            background: rgba(129, 230, 217, 0.1);
+            border: 1px solid rgba(129, 230, 217, 0.3);
+            padding: 4px 12px;
+            border-radius: 20px;
+            margin-left: 15px;
+            font-weight: 600;
+        }
+        
+        /* Main Studio Interface */
+        .studio-workspace {
+            padding: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        /* Equipment Panels */
+        .equipment-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .equipment-panel {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .equipment-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #4fd1c7, #81e6d9);
+        }
+        
+        .equipment-panel:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(129, 230, 217, 0.3);
+        }
+        
+        .equipment-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .equipment-icon {
+            font-size: 2rem;
+            margin-right: 15px;
+            filter: drop-shadow(0 0 10px currentColor);
+        }
+        
+        .equipment-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #ffffff;
+        }
+        
+        .equipment-description {
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        
+        /* Studio Controls */
+        .studio-btn {
+            background: linear-gradient(135deg, #4fd1c7 0%, #81e6d9 100%);
+            color: #0a0a0a;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            box-shadow: 0 4px 15px rgba(79, 209, 199, 0.3);
+        }
+        
+        .studio-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(79, 209, 199, 0.4);
+        }
+        
+        .studio-btn:active {
+            transform: translateY(0);
+        }
+        
+        /* Recording Session Area */
+        .recording-session {
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            margin-top: 30px;
+            text-align: center;
+        }
+        
+        .session-timer {
+            font-size: 3rem;
+            font-weight: 300;
+            color: #4fd1c7;
+            margin-bottom: 10px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .session-status {
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 20px;
+        }
+        
+        /* Navigation */
+        .studio-nav {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .nav-btn {
+            background: rgba(0, 0, 0, 0.8);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 10px 15px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .studio-workspace { padding: 20px; }
+            .equipment-grid { grid-template-columns: 1fr; }
+            .studio-header h1 { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="studio-container">
+        <header class="studio-header">
+            <h1>🎵 Mini Studio</h1>
+            <div class="studio-info">
+                Professional music creation environment
+                <span class="credits-display">{{ credits }} minutes available</span>
+            </div>
+        </header>
+        
+        <main class="studio-workspace">
+            <div class="equipment-grid">
+                <div class="equipment-panel">
+                    <div class="equipment-header">
+                        <div class="equipment-icon">🎤</div>
+                        <div class="equipment-title">Vocal Recording</div>
+                    </div>
+                    <div class="equipment-description">
+                        High-quality vocal recording with real-time effects and processing. Perfect for laying down vocals, harmonies, and voice-overs.
+                    </div>
+                    <button class="studio-btn" onclick="startVocalSession()">Start Recording</button>
+                </div>
+                
+                <div class="equipment-panel">
+                    <div class="equipment-header">
+                        <div class="equipment-icon">🎹</div>
+                        <div class="equipment-title">Instrumental Creation</div>
+                    </div>
+                    <div class="equipment-description">
+                        Create beats, melodies, and full instrumental tracks with our AI-powered composition tools and virtual instruments.
+                    </div>
+                    <button class="studio-btn" onclick="startInstrumentalSession()">Create Beat</button>
+                </div>
+                
+                <div class="equipment-panel">
+                    <div class="equipment-header">
+                        <div class="equipment-icon">✍️</div>
+                        <div class="equipment-title">Lyric Writing</div>
+                    </div>
+                    <div class="equipment-description">
+                        Craft compelling lyrics with AI assistance. Generate verses, choruses, and complete songs in any style or genre.
+                    </div>
+                    <button class="studio-btn" onclick="startLyricSession()">Write Lyrics</button>
+                </div>
+                
+                <div class="equipment-panel">
+                    <div class="equipment-header">
+                        <div class="equipment-icon">🎚️</div>
+                        <div class="equipment-title">Mixing & Mastering</div>
+                    </div>
+                    <div class="equipment-description">
+                        Professional mixing console for balancing, EQ, compression, and mastering your tracks to radio-ready quality.
+                    </div>
+                    <button class="studio-btn" onclick="startMixingSession()">Open Mixer</button>
+                </div>
+            </div>
+            
+            <div class="recording-session">
+                <div class="session-timer" id="sessionTimer">00:00:00</div>
+                <div class="session-status" id="sessionStatus">Studio ready - Select an instrument to begin</div>
+                <button class="studio-btn" id="sessionControl" onclick="toggleSession()" style="background: #ff6b6b;">● Start Session</button>
+            </div>
+        </main>
+        
+        <nav class="studio-nav">
+            <a href="/library/music" class="nav-btn">🎵 Library</a>
+            <a href="/" class="nav-btn">← Exit Studio</a>
+        </nav>
+    </div>
+    
+    <script>
+        let sessionActive = false;
+        let sessionStartTime = null;
+        let timerInterval = null;
+        let creditsRemaining = {{ credits }};
+        
+        function updateTimer() {
+            if (!sessionActive || !sessionStartTime) return;
+            
+            const now = new Date();
+            const elapsed = Math.floor((now - sessionStartTime) / 1000);
+            const minutes = Math.floor(elapsed / 60);
+            const seconds = elapsed % 60;
+            const hours = Math.floor(minutes / 60);
+            const displayMinutes = minutes % 60;
+            
+            document.getElementById('sessionTimer').textContent = 
+                `${hours.toString().padStart(2, '0')}:${displayMinutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            // Deduct credits (1 per minute)
+            if (minutes > 0 && minutes !== window.lastMinuteDeducted) {
+                window.lastMinuteDeducted = minutes;
+                creditsRemaining = Math.max(0, creditsRemaining - 1);
+                updateCreditsDisplay();
+                
+                if (creditsRemaining <= 0) {
+                    endSession("Session ended - No credits remaining");
+                }
+            }
+        }
+        
+        async function toggleSession() {
+            if (!sessionActive) {
+                await startSession();
+            } else {
+                await endSession("Session ended manually");
+            }
+        }
+        
+        async function startSession() {
+            if (creditsRemaining <= 0) {
+                alert("No studio time remaining. Please purchase more credits or upgrade your plan.");
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/mini-studio/session', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({action: 'start'})
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    sessionActive = true;
+                    sessionStartTime = new Date();
+                    window.lastMinuteDeducted = 0;
+                    
+                    document.getElementById('sessionStatus').textContent = "🔴 Recording in progress...";
+                    document.getElementById('sessionControl').innerHTML = "⏹ End Session";
+                    document.getElementById('sessionControl').style.background = "#ff6b6b";
+                    
+                    timerInterval = setInterval(updateTimer, 1000);
+                    
+                    // Add studio ambience
+                    document.body.style.filter = "brightness(1.1) saturate(1.2)";
+                    
+                    creditsRemaining = data.credits_remaining;
+                    updateCreditsDisplay();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Failed to start session: ' + error.message);
+            }
+        }
+        
+        async function endSession(reason) {
+            if (!sessionActive) return;
+            
+            const duration = sessionStartTime ? Math.floor((new Date() - sessionStartTime) / 60000) : 0;
+            
+            try {
+                const response = await fetch('/api/mini-studio/session', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({action: 'stop', duration: duration})
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    sessionActive = false;
+                    sessionStartTime = null;
+                    
+                    if (timerInterval) {
+                        clearInterval(timerInterval);
+                        timerInterval = null;
+                    }
+                    
+                    document.getElementById('sessionStatus').textContent = reason || "Studio ready - Select an instrument to begin";
+                    document.getElementById('sessionControl').innerHTML = "● Start Session";
+                    document.getElementById('sessionControl').style.background = "#4fd1c7";
+                    
+                    // Reset studio ambience
+                    document.body.style.filter = "none";
+                    
+                    if (data.credits_deducted > 0) {
+                        creditsRemaining = data.credits_remaining;
+                        updateCreditsDisplay();
+                        
+                        showStudioModal('Session Complete', `
+                            <div style="text-align: center;">
+                                <h4>Studio Session Ended</h4>
+                                <p>Session Duration: ${duration} minutes</p>
+                                <p>Credits Deducted: ${data.credits_deducted}</p>
+                                <p>Credits Remaining: ${data.credits_remaining}</p>
+                                <br>
+                                <p style="color: #4fd1c7;">Thank you for using Mini Studio!</p>
+                            </div>
+                        `);
+                    }
+                } else {
+                    alert('Error ending session: ' + data.error);
+                }
+            } catch (error) {
+                alert('Failed to end session: ' + error.message);
+                // Force end session locally if API fails
+                sessionActive = false;
+                sessionStartTime = null;
+                if (timerInterval) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                }
+                document.getElementById('sessionStatus').textContent = "Session ended (connection error)";
+                document.getElementById('sessionControl').innerHTML = "● Start Session";
+                document.getElementById('sessionControl').style.background = "#4fd1c7";
+                document.body.style.filter = "none";
+            }
+        }
+        
+        function updateCreditsDisplay() {
+            const display = document.querySelector('.credits-display');
+            if (display) {
+                display.textContent = `${creditsRemaining} minutes available`;
+            }
+        }
+        
+        async function startVocalSession() {
+            if (creditsRemaining <= 0) {
+                alert("No studio time remaining. Please purchase more credits or upgrade your plan.");
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/mini-studio/vocal-recording', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({})
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showStudioModal('🎤 Vocal Recording', `
+                        <div class="studio-config">
+                            <h4>Recording Configuration:</h4>
+                            <p><strong>Sample Rate:</strong> ${data.config.sample_rate} Hz</p>
+                            <p><strong>Bit Depth:</strong> ${data.config.bit_depth} bit</p>
+                            <p><strong>Channels:</strong> ${data.config.channels}</p>
+                            <p><strong>Effects:</strong> ${data.config.effects.join(', ')}</p>
+                            <p><strong>Monitoring:</strong> ${data.config.monitoring}</p>
+                            <br>
+                            <p style="color: #4fd1c7;">🔴 Ready to record! Press the red button to start.</p>
+                        </div>
+                    `);
+                    creditsRemaining = data.credits_remaining;
+                    updateCreditsDisplay();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Failed to initialize vocal recording: ' + error.message);
+            }
+        }
+        
+        async function startInstrumentalSession() {
+            if (creditsRemaining <= 0) {
+                alert("No studio time remaining. Please purchase more credits or upgrade your plan.");
+                return;
+            }
+            
+            const genre = prompt("Enter genre (hip-hop, pop, rock, electronic, jazz):", "hip-hop") || "hip-hop";
+            const tempo = parseInt(prompt("Enter tempo (BPM):", "120")) || 120;
+            const mood = prompt("Enter mood (energetic, chill, dark, uplifting):", "energetic") || "energetic";
+            
+            try {
+                const response = await fetch('/api/mini-studio/instrumental', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({genre, tempo, mood})
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showStudioModal('🎹 Instrumental Created', `
+                        <div class="track-info">
+                            <h4>${data.track.title}</h4>
+                            <p><strong>Genre:</strong> ${data.track.genre}</p>
+                            <p><strong>Tempo:</strong> ${data.track.tempo} BPM</p>
+                            <p><strong>Mood:</strong> ${data.track.mood}</p>
+                            <p><strong>Duration:</strong> ${data.track.duration}</p>
+                            <p><strong>Key:</strong> ${data.track.key}</p>
+                            <br>
+                            <h5>Arrangement:</h5>
+                            <pre style="white-space: pre-wrap; font-size: 0.9rem;">${data.track.arrangement}</pre>
+                        </div>
+                    `);
+                    creditsRemaining = data.credits_remaining;
+                    updateCreditsDisplay();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Failed to create instrumental: ' + error.message);
+            }
+        }
+        
+        function openSecretWriter() {
+            // Open SecretWriter in a new tab for full professional interface
+            window.open('/secretwriter', '_blank');
+        }
+        
+        async function startMixingSession() {
+            if (creditsRemaining <= 0) {
+                alert("No studio time remaining. Please purchase more credits or upgrade your plan.");
+                return;
+            }
+            
+            const genre = prompt("Enter genre for mixing preset (pop, hip-hop, rock, electronic):", "pop") || "pop";
+            
+            try {
+                const response = await fetch('/api/mini-studio/mixing', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({genre})
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    const mixer = data.mixer;
+                    showStudioModal('🎚️ Mixing Console', `
+                        <div class="mixing-console">
+                            <h4>Professional Mixing Console - ${genre.toUpperCase()}</h4>
+                            <p><strong>Channels:</strong> ${mixer.track_channels.join(', ')}</p>
+                            <br>
+                            <div class="eq-section">
+                                <h5>EQ Settings:</h5>
+                                <p>Low: ${mixer.mixing_settings.eq_settings.low.frequency} (${mixer.mixing_settings.eq_settings.low.gain})</p>
+                                <p>Mid: ${mixer.mixing_settings.eq_settings.mid.frequency} (${mixer.mixing_settings.eq_settings.mid.gain})</p>
+                                <p>High: ${mixer.mixing_settings.eq_settings.high.frequency} (${mixer.mixing_settings.eq_settings.high.gain})</p>
+                            </div>
+                            <br>
+                            <div class="effects-section">
+                                <h5>Available Effects:</h5>
+                                <p>${mixer.available_effects.join(' • ')}</p>
+                            </div>
+                            <br>
+                            <div class="mastering-section">
+                                <h5>Mastering Chain:</h5>
+                                <p>Limiter: ${mixer.mixing_settings.mastering.limiter_ceiling}</p>
+                                <p>Loudness: ${mixer.mixing_settings.mastering.loudness}</p>
+                                <p>Dynamics: ${mixer.mixing_settings.mastering.dynamics}</p>
+                            </div>
+                        </div>
+                    `);
+                    creditsRemaining = data.credits_remaining;
+                    updateCreditsDisplay();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Failed to load mixing console: ' + error.message);
+            }
+        }
+        
+        function showStudioModal(title, content) {
+            // Create modal overlay
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+                background: rgba(0,0,0,0.8); z-index: 1000;
+                display: flex; align-items: center; justify-content: center;
+                backdrop-filter: blur(5px);
+            `;
+            
+            // Create modal content
+            modal.innerHTML = `
+                <div style="
+                    background: #111827; border: 1px solid #1f2937; border-radius: 16px;
+                    padding: 30px; max-width: 600px; max-height: 80vh; overflow-y: auto;
+                    color: #ffffff; box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+                ">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3 style="margin: 0; color: #4fd1c7;">${title}</h3>
+                        <button onclick="this.closest('.modal-overlay').remove()" style="
+                            background: none; border: none; color: #ffffff; font-size: 24px;
+                            cursor: pointer; padding: 0; width: 30px; height: 30px;
+                        ">×</button>
+                    </div>
+                    ${content}
+                </div>
+            `;
+            
+            modal.className = 'modal-overlay';
+            document.body.appendChild(modal);
+            
+            // Close on click outside
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) modal.remove();
+            });
+        }
+        
+        // Auto-save session state
+        window.addEventListener('beforeunload', function() {
+            if (sessionActive) {
+                // In production, save session state to backend
+                console.log('Saving session state...');
+            }
+        });
+
 # Mini Studio API Endpoints
 @app.route("/api/mini-studio/vocal-recording", methods=["POST"])
 def mini_studio_vocal_recording():
