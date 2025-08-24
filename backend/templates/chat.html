@@ -56,7 +56,7 @@
                     <i class="fas fa-exchange-alt"></i>
                     Switch
                 </a>
-                {% if (companion_tier == 'silver' or companion_tier == 'gold') and (session.access_silver or session.access_gold) %}
+                {% if companion_tier == 'silver' or companion_tier == 'gold' %}
                 <button id="voiceChatBtn" class="action-btn voice-chat" onclick="toggleVoiceChat()" title="Full Voice Chat - Record and get AI response">
                     <i class="fas fa-phone"></i>
                     Voice Chat
@@ -88,11 +88,11 @@
                     </div>
                 </a>
                 
-                <!-- PROPER TIER ISOLATION: Each tier sees only their tier features -->
-                <!-- DEBUG: companion_tier={{ companion_tier }}, session.access_silver={{ session.access_silver }}, session.access_gold={{ session.access_gold }} -->
+                <!-- COMPANION-TIER ARCHITECTURE: Each companion shows features based on its tier -->
                 
-                <!-- SILVER TIER FEATURES: Show when companion tier is Silver/Gold AND user has access -->
-                {% if (companion_tier == 'silver' or companion_tier == 'gold') and (session.access_silver or session.access_gold) %}
+                <!-- COMPANION-TIER-BASED FEATURES: Show features based on companion's tier -->
+                <!-- Silver features: Show when companion is Silver/Gold tier -->
+                {% if companion_tier == 'silver' or companion_tier == 'gold' %}
                 <a href="/voice-journaling" class="action-btn" data-tier="silver">
                     <i class="fas fa-microphone"></i>
                     Voice Journal
@@ -111,8 +111,8 @@
                 </a>
                 {% endif %}
                 
-                <!-- GOLD TIER FEATURES: Show when companion tier is Gold AND user has Gold access -->
-                {% if companion_tier == 'gold' and session.access_gold %}
+                <!-- Gold exclusive features: Show when companion is Gold tier -->
+                {% if companion_tier == 'gold' %}
                 <a href="/mini-studio" class="action-btn" data-tier="gold">
                     <i class="fas fa-robot"></i>
                     Mini Studio

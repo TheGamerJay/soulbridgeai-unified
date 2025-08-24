@@ -7946,19 +7946,17 @@ def is_trial_active(user_id) -> bool:
 
 # Essential usage tracking functions restored for decoder functionality
 def get_decoder_usage():
-    """Get user's decoder usage for today (shared per tier, not per companion)"""
+    """Get user's decoder usage for today (per-companion, not shared)"""
     try:
         user_id = session.get('user_id')
+        companion_id = session.get('selected_companion', 'default')
         if not user_id:
             return 0
         
-        # Get user's actual tier for shared usage tracking
-        user_plan = session.get('user_plan', 'bronze')
-        
-        # Share usage across all companions of the same tier
-        # Bronze companions share Bronze limits, Silver share Silver limits, etc.
+        # ARCHITECTURAL CHANGE: Track usage per companion instead of shared per tier
+        # Each companion has its own usage limits based on its tier
         today = datetime.now().strftime('%Y-%m-%d')
-        usage_key = f'decoder_usage_{user_id}_{user_plan}_{today}'
+        usage_key = f'decoder_usage_{user_id}_{companion_id}_{today}'
         
         return session.get(usage_key, 0)
     except Exception as e:
@@ -7966,17 +7964,16 @@ def get_decoder_usage():
         return 0
 
 def increment_decoder_usage():
-    """Increment user's decoder usage for today (shared per tier)"""
+    """Increment user's decoder usage for today (per-companion)"""
     try:
         user_id = session.get('user_id')
+        companion_id = session.get('selected_companion', 'default')
         if not user_id:
             return False
         
-        # Get user's actual tier for shared usage tracking
-        user_plan = session.get('user_plan', 'bronze')
-            
+        # ARCHITECTURAL CHANGE: Track usage per companion instead of shared per tier
         today = datetime.now().strftime('%Y-%m-%d')
-        usage_key = f'decoder_usage_{user_id}_{user_plan}_{today}'
+        usage_key = f'decoder_usage_{user_id}_{companion_id}_{today}'
         
         # Update session-based tracking
         current_usage = session.get(usage_key, 0)
@@ -8034,17 +8031,16 @@ def increment_decoder_usage():
         return False
 
 def get_fortune_usage():
-    """Get user's fortune usage for today (shared per tier)"""
+    """Get user's fortune usage for today (per-companion)"""
     try:
         user_id = session.get('user_id')
+        companion_id = session.get('selected_companion', 'default')
         if not user_id:
             return 0
         
-        # Get user's actual tier for shared usage tracking
-        user_plan = session.get('user_plan', 'bronze')
-            
+        # ARCHITECTURAL CHANGE: Track usage per companion instead of shared per tier
         today = datetime.now().strftime('%Y-%m-%d')
-        usage_key = f'fortune_usage_{user_id}_{user_plan}_{today}'
+        usage_key = f'fortune_usage_{user_id}_{companion_id}_{today}'
         
         return session.get(usage_key, 0)
     except Exception as e:
@@ -8052,17 +8048,16 @@ def get_fortune_usage():
         return 0
 
 def increment_fortune_usage():
-    """Increment user's fortune usage for today (shared per tier)"""
+    """Increment user's fortune usage for today (per-companion)"""
     try:
         user_id = session.get('user_id')
+        companion_id = session.get('selected_companion', 'default')
         if not user_id:
             return False
         
-        # Get user's actual tier for shared usage tracking
-        user_plan = session.get('user_plan', 'bronze')
-            
+        # ARCHITECTURAL CHANGE: Track usage per companion instead of shared per tier
         today = datetime.now().strftime('%Y-%m-%d')
-        usage_key = f'fortune_usage_{user_id}_{user_plan}_{today}'
+        usage_key = f'fortune_usage_{user_id}_{companion_id}_{today}'
         
         # Update session-based tracking
         current_usage = session.get(usage_key, 0)
@@ -8120,17 +8115,16 @@ def increment_fortune_usage():
         return False
 
 def get_horoscope_usage():
-    """Get user's horoscope usage for today (shared per tier)"""
+    """Get user's horoscope usage for today (per-companion)"""
     try:
         user_id = session.get('user_id')
+        companion_id = session.get('selected_companion', 'default')
         if not user_id:
             return 0
         
-        # Get user's actual tier for shared usage tracking
-        user_plan = session.get('user_plan', 'bronze')
-            
+        # ARCHITECTURAL CHANGE: Track usage per companion instead of shared per tier
         today = datetime.now().strftime('%Y-%m-%d')
-        usage_key = f'horoscope_usage_{user_id}_{user_plan}_{today}'
+        usage_key = f'horoscope_usage_{user_id}_{companion_id}_{today}'
         
         return session.get(usage_key, 0)
     except Exception as e:
@@ -8138,17 +8132,16 @@ def get_horoscope_usage():
         return 0
 
 def increment_horoscope_usage():
-    """Increment user's horoscope usage for today (shared per tier)"""
+    """Increment user's horoscope usage for today (per-companion)"""
     try:
         user_id = session.get('user_id')
+        companion_id = session.get('selected_companion', 'default')
         if not user_id:
             return False
         
-        # Get user's actual tier for shared usage tracking
-        user_plan = session.get('user_plan', 'bronze')
-            
+        # ARCHITECTURAL CHANGE: Track usage per companion instead of shared per tier
         today = datetime.now().strftime('%Y-%m-%d')
-        usage_key = f'horoscope_usage_{user_id}_{user_plan}_{today}'
+        usage_key = f'horoscope_usage_{user_id}_{companion_id}_{today}'
         
         # Update session-based tracking
         current_usage = session.get(usage_key, 0)
@@ -17670,12 +17663,13 @@ def companion_chat_handler(tier, companion_id):
         # Store selected companion in session
         session['selected_companion'] = companion_id
         
-        # Calculate limits based on USER PLAN, not companion tier
+        # ARCHITECTURAL CHANGE: Calculate limits based on COMPANION TIER, not user plan
+        # This makes each companion provide its tier-specific feature experience
         limits = {
-            "decoder": get_simple_feature_limit(user_plan, "decoder", trial_active),
-            "fortune": get_simple_feature_limit(user_plan, "fortune", trial_active),
-            "horoscope": get_simple_feature_limit(user_plan, "horoscope", trial_active),
-            "creative_writer": get_simple_feature_limit(user_plan, "creative_writer", trial_active)
+            "decoder": get_simple_feature_limit(tier, "decoder", False),  # Use companion tier, no trial boost
+            "fortune": get_simple_feature_limit(tier, "fortune", False),  # Use companion tier, no trial boost
+            "horoscope": get_simple_feature_limit(tier, "horoscope", False),  # Use companion tier, no trial boost
+            "creative_writer": get_simple_feature_limit(tier, "creative_writer", False)  # Use companion tier, no trial boost
         }
         
         # Get effective plan for feature access
