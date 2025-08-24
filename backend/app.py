@@ -17657,6 +17657,8 @@ def companion_chat_handler(tier, companion_id):
         
         # Validate URL tier matches companion's minimum access tier
         companion_tier = companion_info.get('tier', 'bronze')
+        logger.info(f"🔍 DEBUG: companion_info = {companion_info}")
+        logger.info(f"🔍 DEBUG: companion_tier = '{companion_tier}'")
         if companion_tier not in ['bronze', 'silver', 'gold']:
             # Special handling for referral companions
             if companion_tier == 'referral':
