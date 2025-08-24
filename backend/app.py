@@ -15279,7 +15279,7 @@ def api_secret_lyrics():
         trial_credits = get_trial_trainer_time(user_id)
         credits = max(credits, trial_credits)
     
-    LYRICS_COST = 8  # 8 credits for premium lyrics generation
+    LYRICS_COST = 5  # 5 credits for premium lyrics generation
     if credits < LYRICS_COST:
         return jsonify({"success": False, "error": f"Insufficient credits. Need {LYRICS_COST}, have {credits}"}), 403
     
@@ -15401,7 +15401,7 @@ def api_cover_art():
         trial_credits = get_trial_trainer_time(user_id)
         credits = max(credits, trial_credits)
     
-    COVER_ART_COST = 12  # 12 credits for AI cover art generation (most expensive)
+    COVER_ART_COST = 5  # 5 credits for AI cover art generation
     if credits < COVER_ART_COST:
         return jsonify({"success": False, "error": f"Insufficient credits. Need {COVER_ART_COST}, have {credits}"}), 403
     
