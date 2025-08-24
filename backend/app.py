@@ -396,12 +396,17 @@ def analytics_page():
 # Voice chat route (Gold tier exclusive)
 @app.route("/voice-chat")
 def voice_chat_page():
-    """Render the voice chat page (Gold tier exclusive)."""
+    """Render the voice chat page (Silver/Gold tier only)."""
     try:
         from app_core import current_user
         cu = current_user()
         if not cu.get("id"):
             return render_template('login.html', error="Please log in to access voice chat"), 401
+        
+        # Check tier access - Silver/Gold only
+        if not (session.get('access_silver') or session.get('access_gold')):
+            return render_template('bronze_chat.html', error="Voice Chat requires Silver or Gold tier. Upgrade to access this feature!"), 403
+        
         return render_template('voice_chat.html')
     except Exception as e:
         logger.error(f"Error rendering voice chat page: {e}")
@@ -4327,6 +4332,10 @@ def get_library_content(user_id, content_type="all", user_plan="bronze"):
 def voice_chat_process():
     """Process voice chat audio - Whisper transcription + GPT-4 response"""
     try:
+        # Check tier access - Silver/Gold only
+        if not (session.get('access_silver') or session.get('access_gold')):
+            return jsonify({"success": False, "error": "Voice Chat requires Silver or Gold tier"}), 403
+        
         # Basic validation
         if 'audio' not in request.files:
             return jsonify({"success": False, "error": "No audio file provided"}), 400

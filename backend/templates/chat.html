@@ -56,10 +56,12 @@
                     <i class="fas fa-exchange-alt"></i>
                     Switch
                 </a>
+                {% if session.access_silver or session.access_gold %}
                 <button id="voiceChatBtn" class="action-btn voice-chat" onclick="toggleVoiceChat()" title="Full Voice Chat - Record and get AI response">
                     <i class="fas fa-phone"></i>
                     Voice Chat
                 </button>
+                {% endif %}
                 <a href="/library" class="action-btn">
                     <i class="fas fa-book"></i>
                     Library
