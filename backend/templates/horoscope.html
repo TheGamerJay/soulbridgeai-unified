@@ -54,21 +54,22 @@
         }
 
         .back-btn {
-            display: inline-block;
-            margin-bottom: 20px;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 215, 0, 0.8);
+            color: #1a202c;
             padding: 10px 20px;
-            background: rgba(255, 215, 0, 0.1);
-            border: 1px solid rgba(255, 215, 0, 0.3);
             border-radius: 8px;
-            color: #ffd700;
+            font-weight: 600;
             text-decoration: none;
-            font-weight: 500;
             transition: all 0.3s ease;
+            z-index: 100;
         }
 
         .back-btn:hover {
-            background: rgba(255, 215, 0, 0.2);
-            transform: translateY(-1px);
+            background: rgba(255, 215, 0, 1);
+            transform: translateY(-2px);
         }
 
         .header {
