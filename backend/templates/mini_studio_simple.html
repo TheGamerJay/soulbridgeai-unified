@@ -34,6 +34,15 @@ For development and testing of Mini Studio features
   <body>
     <h1>🎵 GamerJay Mini Studio - Simple Interface</h1>
 
+    <!-- CREDITS DISPLAY -->
+    <div class="toolbar" style="background: linear-gradient(135deg, #007bff, #0056b3); color: white;">
+      <div style="display: flex; align-items: center; gap: 15px;">
+        <div style="font-weight: 600;">💳 Trainer Credits: <span id="creditsDisplay">{{ credits or 0 }}</span></div>
+        <div class="pill" style="background: rgba(255,255,255,0.2);">{{ credits or 0 }} minutes available</div>
+      </div>
+      <button onclick="refreshCredits()" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white;">🔄 Refresh</button>
+    </div>
+
     <!-- GLOBAL TOOLBAR -->
     <div class="toolbar">
       <div class="toggle">
@@ -329,6 +338,29 @@ For development and testing of Mini Studio features
         }
       }
       async function enqueueArt(){ try{ await artJob(); }catch(e){ $('artStatus').textContent="❌ Error: "+e.message; } }
+      
+      // ---------- Credits Management ----------
+      async function refreshCredits(){
+        try {
+          const response = await fetch('/api/user-info');
+          const data = await response.json();
+          if(data.success) {
+            const credits = data.credits || 0;
+            $('creditsDisplay').textContent = credits;
+            const pillElements = document.querySelectorAll('.pill');
+            pillElements.forEach(pill => {
+              if(pill.textContent.includes('minutes available')) {
+                pill.textContent = `${credits} minutes available`;
+              }
+            });
+          }
+        } catch(e) {
+          console.error('Failed to refresh credits:', e);
+        }
+      }
+      
+      // Auto-refresh credits on page load
+      window.addEventListener('load', refreshCredits);
     </script>
   </body>
 </html>

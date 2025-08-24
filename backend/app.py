@@ -2395,6 +2395,15 @@ def user_info():
         access_silver = user_plan in ['silver', 'gold'] or trial_active
         access_gold = user_plan == 'gold' or trial_active
         
+        # Get user credits for Mini Studio
+        credits = get_user_credits(user_id) if user_id else 0
+        
+        # For trial users, they get 60 "trainer time" credits specifically for mini studio
+        if user_plan == 'bronze' and trial_active:
+            from unified_tier_system import get_trial_trainer_time
+            trial_credits = get_trial_trainer_time(user_id)
+            credits = max(credits, trial_credits)  # Use trial credits if higher
+        
         return jsonify({
             "success": True,
             "user_plan": user_plan,
@@ -2406,6 +2415,7 @@ def user_info():
             "access_silver": access_silver,
             "access_gold": access_gold,
             "access_trial": trial_active,
+            "credits": credits,
             "limits": {
                 "decoder": get_feature_limit(user_plan, "decoder", trial_active), 
                 "fortune": get_feature_limit(user_plan, "fortune", trial_active),
@@ -15213,6 +15223,134 @@ def mini_studio():
         credits = max(credits, trial_credits)  # Use trial credits if higher
     
     return render_template("mini_studio.html", credits=credits)
+
+@app.route("/mini-studio-simple")
+def mini_studio_simple():
+    """Mini Studio Simple Interface - Direct access to simple template"""
+    if not is_logged_in():
+        return redirect("/login?return_to=mini-studio-simple")
+    
+    # Check access permissions
+    user_plan = session.get('user_plan', 'bronze')
+    trial_active = session.get('trial_active', False)
+    effective_plan = get_effective_plan(user_plan, trial_active)
+    user_id = session.get('user_id')
+    
+    if effective_plan != 'gold':
+        return redirect("/tiers?feature=mini-studio")
+    
+    # Get user credits  
+    credits = get_user_credits(user_id) if user_id else 0
+    
+    # For trial users, they get 60 "trainer time" credits specifically for mini studio
+    if user_plan == 'bronze' and trial_active:
+        from unified_tier_system import get_trial_trainer_time
+        trial_credits = get_trial_trainer_time(user_id)
+        credits = max(credits, trial_credits)  # Use trial credits if higher
+    
+    # CRITICAL: Add no-cache headers to prevent global sharing
+    response = make_response(render_template("mini_studio_simple.html", credits=credits, user_plan=user_plan, trial_active=trial_active))
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    response.headers['Vary'] = 'Cookie'
+    
+    return response
+
+# Simple Mini Studio API Routes (for simple interface compatibility)
+@app.route("/api/secret-lyrics", methods=["POST"])
+def api_secret_lyrics():
+    """Simple SecretWriter API for Mini Studio"""
+    if not is_logged_in():
+        return jsonify({"success": False, "error": "Authentication required"}), 401
+    
+    user_plan = session.get('user_plan', 'bronze')
+    trial_active = session.get('trial_active', False)
+    effective_plan = get_effective_plan(user_plan, trial_active)
+    
+    if effective_plan != 'gold':
+        return jsonify({"success": False, "error": "Gold tier required"}), 403
+    
+    data = request.get_json() or {}
+    theme = data.get('theme', 'heartbreak redemption')
+    mood = data.get('mood', 'emotional')
+    complexity = data.get('complexity', 7)
+    
+    # Simulate lyrics generation (replace with actual SecretWriter integration)
+    lyrics = f"""[Verse 1]
+{theme} flows through my mind like a river
+{mood} feelings that make my heart shiver
+In the depths of complexity level {complexity}
+I find the words that set me free
+
+[Chorus]  
+This is where the magic happens
+SecretWriter bringing passion
+Every line and every phrase
+Born from AI's creative ways
+
+[Verse 2]
+Through the {mood} atmosphere we navigate
+Finding melodies that resonate
+{theme} becomes our guiding light
+In this musical creative flight
+
+[Outro]
+Premium lyrics, crafted with care
+SecretWriter beyond compare"""
+    
+    return jsonify({"success": True, "lyrics": lyrics})
+
+@app.route("/api/midi", methods=["POST"])  
+def api_midi():
+    """Simple MIDI generation API"""
+    if not is_logged_in():
+        return jsonify({"success": False, "error": "Authentication required"}), 401
+    
+    user_plan = session.get('user_plan', 'bronze')
+    trial_active = session.get('trial_active', False)
+    effective_plan = get_effective_plan(user_plan, trial_active)
+    
+    if effective_plan != 'gold':
+        return jsonify({"success": False, "error": "Gold tier required"}), 403
+    
+    data = request.get_json() or {}
+    chords = data.get('chords', 'Cmaj7|Am|F|G')
+    bpm = data.get('bpm', 88)
+    bars = data.get('bars', 8)
+    style = data.get('style', 'arp')
+    
+    # Simulate MIDI generation
+    midi_filename = f"generated_{chords.replace('|', '_')}_{bpm}bpm_{style}.mid"
+    midi_path = f"/static/generated_midi/{midi_filename}"
+    
+    return jsonify({"success": True, "midi_path": midi_path})
+
+@app.route("/api/cover-art", methods=["POST"])
+def api_cover_art():
+    """Simple cover art generation API"""
+    if not is_logged_in():
+        return jsonify({"success": False, "error": "Authentication required"}), 401
+    
+    user_plan = session.get('user_plan', 'bronze')
+    trial_active = session.get('trial_active', False)
+    effective_plan = get_effective_plan(user_plan, trial_active)
+    
+    if effective_plan != 'gold':
+        return jsonify({"success": False, "error": "Gold tier required"}), 403
+    
+    data = request.get_json() or {}
+    prompt = data.get('prompt', 'abstract music album cover')
+    size = data.get('size', '1024x1024')
+    
+    # Simulate cover art generation
+    import time
+    timestamp = int(time.time())
+    art_filename = f"cover_art_{timestamp}_{prompt[:20].replace(' ', '_')}.png"
+    image_path = f"/static/generated_art/{art_filename}"
+    
+    return jsonify({"success": True, "image_path": image_path})
+
 # Mini Studio API Endpoints
 @app.route("/api/mini-studio/vocal-recording", methods=["POST"])
 def mini_studio_vocal_recording():
