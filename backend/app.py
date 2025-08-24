@@ -17694,7 +17694,8 @@ def companion_chat_handler(tier, companion_id):
             effective_plan=effective_plan,
             limits=limits,
             selected_companion=companion_id,
-            companion_info=companion_info
+            companion_info=companion_info,
+            companion_tier=tier  # Pass the companion's tier for template logic
         )
     except Exception as e:
         logger.error(f"❌ COMPANION HANDLER ERROR: {e}")
