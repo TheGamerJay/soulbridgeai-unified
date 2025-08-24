@@ -737,28 +737,12 @@ function updateTierDisplay() {
             
             console.log(`🎯 TIER UPDATE: user_plan=${userPlan}, effective_plan=${effectivePlan}, trial=${trial}`);
             
-            // Update premium feature visibility using effective_plan
-            if (effectivePlan === "bronze" && !trial) {
-                document.querySelectorAll(".premium-feature").forEach(el => el.style.display = "none");
-            } else {
-                document.querySelectorAll(".premium-feature").forEach(el => el.style.display = "inline-block");
-            }
+            // DISABLED: Premium feature visibility now controlled by HTML template based on companion tier
+            // This prevents JavaScript from overriding tier-specific companion feature restrictions
             
-            // Update tier-specific elements using new tier names
-            document.querySelectorAll("[data-tier]").forEach(el => {
-                const requiredTier = el.dataset.tier;
-                let hasAccess = false;
-                
-                if (requiredTier === "bronze") {
-                    hasAccess = true;  // Bronze always accessible
-                } else if (requiredTier === "silver") {
-                    hasAccess = effectivePlan === "silver" || effectivePlan === "gold" || trial;
-                } else if (requiredTier === "gold") {
-                    hasAccess = effectivePlan === "gold" || trial;
-                }
-                
-                el.style.display = hasAccess ? "block" : "none";
-            });
+            // NOTE: Feature visibility is now handled in the template using companion_tier logic
+            // to ensure Bronze companions show Bronze features, Silver show Silver, Gold show Gold
+            // regardless of user's actual subscription tier (but still respecting access permissions)
         })
         .catch(err => {
             console.error("Failed to update tier display:", err);
@@ -839,38 +823,14 @@ function getCompanionThemeClass(characterName) {
 }
 
 function showVoiceChatButton() {
-    const voiceBtn = document.getElementById('voiceChatBtn');
-    if (!voiceBtn) {
-        console.warn('⚠️ Voice chat button element not found');
-        return;
-    }
+    // DISABLED: Voice chat button visibility now controlled by HTML template based on companion tier
+    // This prevents JavaScript from overriding tier-specific companion feature restrictions
     
-    // Define companions that have voice features by tier
-    const voiceEnabledCompanions = [
-        // GROWTH TIER - Standard Voice Chat
-        'Sky', 'Blayzo Pro', 'Blayzica Pro', 'GamerJay Premium', 'Claude Growth', 'WatchDog',
-        
-        // MAX TIER - Advanced Voice AI
-        'Crimson', 'Crimson Max', 'Violet', 'Violet Max', 'WatchDog Max',
-        'Royal', 'Ven Blayzica', 'Ven Sky', 'Claude Max',
-        
-        // REFERRAL TIER - Exclusive Voice Features (EARNED ONLY)
-        'Blayzo Champion', 'Blayzike', 'Blazelian', 'Claude Referral', 'Sapphire'
-        
-        // FREE TIER EXCLUDED (NO VOICE CHAT):
-        // 'GamerJay', 'Claude', 'Blayzo', 'Blayzica', 'Blayzia', 'Blayzion'
-    ];
+    console.log(`🔍 Voice chat visibility now handled by template for companion tier logic`);
     
-    console.log(`🔍 Checking voice chat availability for "${currentCharacter}"`);
-    
-    if (voiceEnabledCompanions.includes(currentCharacter)) {
-        voiceBtn.style.display = 'inline-flex'; // Use inline-flex to match other action buttons
-        voiceBtn.style.visibility = 'visible';
-        console.log(`🎤 Voice chat enabled for ${currentCharacter}`);
-    } else {
-        voiceBtn.style.display = 'none';
-        console.log(`🔇 Voice chat not available for ${currentCharacter}`);
-    }
+    // NOTE: Voice chat visibility is now handled in chat.html template using companion_tier logic
+    // to ensure Bronze companions don't show voice chat, but Silver/Gold companions do
+    // (while still respecting user's actual access permissions)
 }
 
 let isVoiceChatActive = false;
