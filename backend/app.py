@@ -3639,57 +3639,30 @@ def tiers_page():
 
 @app.route("/chat")
 def chat():
-    """Redirect to tier-specific chat page with server-side validation"""
+    """Redirect to tier-specific chat page for complete isolation"""
     try:
-        companion_slug = request.args.get('companion', '').strip()
-        logger.info(f"🎯 CHAT ROUTE: companion_slug='{companion_slug}'")
-        
         if not is_logged_in():
-            logger.info(f"🔐 NOT LOGGED IN: Redirecting to login")
-            if companion_slug:
-                return redirect(f"/login?return_to=chat&companion={companion_slug}")
             return redirect("/login?return_to=chat")
         
         # Get user info
         user_plan = session.get('user_plan', 'bronze')
         trial_active = session.get('trial_active', False)
-        referrals = int(session.get('referrals', 0))
-        logger.info(f"🎯 USER INFO: plan={user_plan}, trial={trial_active}, refs={referrals}")
         
-        # Use canonical tier for URL namespace
-        canonical_user_tier = normalize_plan(user_plan)
-        logger.info(f"🎯 CANONICAL TIER: {canonical_user_tier}")
+        # Calculate effective tier for routing
+        effective_plan = get_effective_plan(user_plan, trial_active)
         
-        if companion_slug:
-            # Validate companion exists
-            comp = COMPANIONS_BY_ID.get(companion_slug)
-            logger.info(f"🎯 COMPANION LOOKUP: {companion_slug} -> {comp is not None}")
-            if not comp:
-                logger.warning(f"❌ COMPANION NOT FOUND: {companion_slug}")
-                return redirect("/tiers?error=unknown_companion")
-            
-            # Check access permissions before redirecting
-            can_access, reason = user_can_access_companion(user_plan, trial_active, referrals, comp)
-            logger.info(f"🎯 ACCESS CHECK: can_access={can_access}, reason={reason}")
-            if not can_access:
-                logger.warning(f"🚫 ACCESS DENIED: {reason}")
-                return redirect(f"/tiers?locked={comp['id']}&reason={reason or 'locked'}")
-            
-            # Set session and redirect to isolated companion URL
-            session['selected_companion'] = comp['id']
-            session['active_tier_namespace'] = canonical_user_tier
-            redirect_url = f"/chat/{canonical_user_tier}/{companion_slug}"
-            logger.info(f"✅ REDIRECTING TO: {redirect_url}")
-            return redirect(redirect_url)
+        # Redirect to tier-specific URL for complete isolation
+        if effective_plan == 'bronze':
+            return redirect("/bronze/")
+        elif effective_plan == 'silver':
+            return redirect("/silver/")
+        elif effective_plan == 'gold':
+            return redirect("/gold/")
         else:
-            # No companion specified, redirect to tier page
-            redirect_url = f"/chat/{canonical_user_tier}"
-            logger.info(f"✅ NO COMPANION: Redirecting to {redirect_url}")
-            return redirect(redirect_url)
+            # Fallback to bronze
+            return redirect("/bronze/")
     except Exception as e:
         logger.error(f"❌ CHAT ROUTE ERROR: {e}")
-        import traceback
-        logger.error(f"❌ TRACEBACK: {traceback.format_exc()}")
         return redirect("/tiers?error=chat_error")
 
 # REMOVED: api_companions_old_disabled function - was a disabled/deprecated companions API endpoint
@@ -15795,43 +15768,9 @@ def mini_studio():
             }
         }
         
-        async function startLyricSession() {
-            if (creditsRemaining <= 0) {
-                alert("No studio time remaining. Please purchase more credits or upgrade your plan.");
-                return;
-            }
-            
-            const theme = prompt("Enter song theme (love, inspiration, struggle, party):", "love") || "love";
-            const genre = prompt("Enter genre (pop, hip-hop, rock, country, r&b):", "pop") || "pop";
-            const mood = prompt("Enter mood (uplifting, sad, energetic, romantic):", "uplifting") || "uplifting";
-            
-            try {
-                const response = await fetch('/api/mini-studio/lyrics', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({theme, genre, mood})
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    showStudioModal('✍️ Song Lyrics', `
-                        <div class="lyrics-display">
-                            <h4>${data.lyrics.title}</h4>
-                            <p><strong>Theme:</strong> ${data.lyrics.theme} | <strong>Genre:</strong> ${data.lyrics.genre} | <strong>Mood:</strong> ${data.lyrics.mood}</p>
-                            <p><strong>Duration:</strong> ${data.lyrics.estimated_duration}</p>
-                            <br>
-                            <div style="white-space: pre-wrap; line-height: 1.6; font-family: serif;">${data.lyrics.lyrics}</div>
-                        </div>
-                    `);
-                    creditsRemaining = data.lyrics.credits_remaining;
-                    updateCreditsDisplay();
-                } else {
-                    alert('Error: ' + data.error);
-                }
-            } catch (error) {
-                alert('Failed to create lyrics: ' + error.message);
-            }
+        function openSecretWriter() {
+            // Open SecretWriter in a new tab for full professional interface
+            window.open('/secretwriter', '_blank');
         }
         
         async function startMixingSession() {
@@ -16096,135 +16035,6 @@ def mini_studio_instrumental():
         logger.error(f"Instrumental creation error: {e}")
         return jsonify({"success": False, "error": "Failed to create instrumental"}), 500
 
-@app.route("/api/mini-studio/lyrics", methods=["POST"])
-def mini_studio_lyrics():
-    """Generate song lyrics with AI assistance"""
-    try:
-        if not is_logged_in():
-            return jsonify({"success": False, "error": "Authentication required"}), 401
-        
-        # Check access
-        user_plan = session.get('user_plan', 'bronze')
-        trial_active = session.get('trial_active', False)
-        effective_plan = get_effective_plan(user_plan, trial_active)
-        
-        if effective_plan != 'gold':
-            return jsonify({"success": False, "error": "Mini Studio requires Gold tier or trial"}), 403
-        
-        data = request.get_json()
-        user_id = session.get('user_id')
-        theme = data.get('theme', 'love')
-        genre = data.get('genre', 'pop')
-        mood = data.get('mood', 'uplifting')
-        structure = data.get('structure', 'verse-chorus-verse-chorus-bridge-chorus')
-        
-        # Check credits
-        from unified_tier_system import get_user_credits, deduct_credits
-        credits = get_user_credits(user_id) if user_id else 0
-        
-        if user_plan == 'bronze' and trial_active:
-            from unified_tier_system import get_trial_trainer_time
-            trial_credits = get_trial_trainer_time(user_id)
-            credits = max(credits, trial_credits)
-        
-        if credits <= 0:
-            return jsonify({"success": False, "error": "No studio time remaining"}), 403
-        
-        # Generate lyrics with AI
-        if services["openai"]:
-            try:
-                response = openai.ChatCompletion.create(
-                    model="gpt-3.5-turbo",
-                    messages=[
-                        {
-                            "role": "system", 
-                            "content": f"You are a talented songwriter specializing in {genre} music. Create complete song lyrics about {theme} with a {mood} mood. Follow the structure: {structure}. Include proper verse/chorus/bridge sections with rhyme schemes and emotional depth. Make it radio-ready quality."
-                        },
-                        {
-                            "role": "user", 
-                            "content": f"Write a {genre} song about {theme} that feels {mood}. Structure: {structure}. Make it catchy and meaningful."
-                        }
-                    ],
-                    max_tokens=1000,
-                    temperature=0.8
-                )
-                
-                lyrics_content = response.choices[0].message.content
-                
-                # Parse structure for better presentation
-                sections = lyrics_content.split('\n\n')
-                
-                lyrics_data = {
-                    "title": f"{theme.title()} Song",
-                    "theme": theme,
-                    "genre": genre,
-                    "mood": mood,
-                    "structure": structure,
-                    "lyrics": lyrics_content,
-                    "sections": sections,
-                    "rhyme_scheme": "ABAB",
-                    "estimated_duration": "3:30"
-                }
-                
-                return jsonify({
-                    "success": True,
-                    "message": "Song lyrics created successfully",
-                    "lyrics": lyrics_data,
-                    "credits_remaining": credits - 1
-                })
-                
-            except Exception as e:
-                logger.error(f"OpenAI lyrics error: {e}")
-                # Fallback to simple lyrics
-                pass
-        
-        # Fallback lyrics generation
-        fallback_lyrics = f"""[Verse 1]
-{theme.title()} fills my heart today
-In this {mood} {genre} way
-Every moment feels so right
-Like a beacon in the night
-
-[Chorus]
-This is our {theme} song
-{mood} and strong
-{genre} melody
-Sets our spirits free
-
-[Verse 2]
-Walking down this winding road
-Carrying {theme}'s heavy load
-But the music lifts me high
-Underneath this endless sky
-
-[Chorus]
-This is our {theme} song
-{mood} and strong
-{genre} melody
-Sets our spirits free"""
-        
-        lyrics_data = {
-            "title": f"{theme.title()} Song",
-            "theme": theme,
-            "genre": genre,
-            "mood": mood,
-            "structure": structure,
-            "lyrics": fallback_lyrics,
-            "sections": fallback_lyrics.split('\n\n'),
-            "rhyme_scheme": "ABAB",
-            "estimated_duration": "3:00"
-        }
-        
-        return jsonify({
-            "success": True,
-            "message": "Song lyrics created",
-            "lyrics": lyrics_data,
-            "credits_remaining": credits
-        })
-        
-    except Exception as e:
-        logger.error(f"Lyrics creation error: {e}")
-        return jsonify({"success": False, "error": "Failed to create lyrics"}), 500
 
 @app.route("/api/mini-studio/mixing", methods=["POST"])
 def mini_studio_mixing():

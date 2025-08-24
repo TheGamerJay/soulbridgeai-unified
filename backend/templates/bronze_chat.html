@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bronze Tier - SoulBridge AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/chat.css') }}">
+</head>
+<body class="bronze-tier">
+    <div class="container">
+        <div class="header">
+            <h1>🥉 Bronze Tier Chat</h1>
+            <p>Your essential AI companion features</p>
+        </div>
+        
+        <div class="features-grid">
+            <!-- BRONZE TIER FEATURES ONLY -->
+            <a href="/decoder" class="action-btn bronze-feature">
+                <i class="fas fa-brain"></i>
+                🧠 Decoder
+                <span class="usage-limit">{{ limits.decoder if limits.decoder != 999 else '∞' }} uses/day</span>
+            </a>
+            
+            <a href="/fortune" class="action-btn bronze-feature">
+                <i class="fas fa-crystal-ball"></i>
+                🔮 Fortune
+                <span class="usage-limit">{{ limits.fortune if limits.fortune != 999 else '∞' }} uses/day</span>
+            </a>
+            
+            <a href="/horoscope" class="action-btn bronze-feature">
+                <i class="fas fa-star"></i>
+                ⭐ Horoscope
+                <span class="usage-limit">{{ limits.horoscope if limits.horoscope != 999 else '∞' }} uses/day</span>
+            </a>
+            
+            <button onclick="openCreativeWriting();" class="action-btn bronze-feature">
+                <i class="fas fa-pen"></i>
+                ✍️ Creative Writer
+                <span class="usage-limit">{{ limits.creative_writer if limits.creative_writer != 999 else '∞' }} uses/day</span>
+            </button>
+            
+            <!-- UPGRADE PROMPT -->
+            <div class="upgrade-section">
+                <h3>🚀 Want More Features?</h3>
+                <p>Upgrade to Silver or Gold to unlock:</p>
+                <ul>
+                    <li>🎤 Voice Journal</li>
+                    <li>🎨 AI Images</li>
+                    <li>❤️ Relationships</li>
+                    <li>🧘 Meditations</li>
+                    <li>🤖 Mini Studio (Gold)</li>
+                </ul>
+                {% if not session.get('trial_used_permanently') %}
+                <button id="startTrialBtn" class="upgrade-btn trial-btn">
+                    🎯 Start 5-Hour FREE Trial
+                </button>
+                {% endif %}
+                <a href="/tiers" class="upgrade-btn">
+                    💎 View Plans
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <style>
+    .bronze-tier { background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%); }
+    .bronze-feature { border-color: #CD7F32; background: rgba(205, 127, 50, 0.1); }
+    .upgrade-section { 
+        grid-column: 1 / -1; 
+        background: rgba(255,255,255,0.05); 
+        padding: 20px; 
+        border-radius: 12px; 
+        text-align: center; 
+    }
+    .usage-limit { font-size: 12px; opacity: 0.8; }
+    .trial-btn { background: linear-gradient(45deg, #00ff7f, #00c6ff); }
+    .upgrade-btn { 
+        display: inline-block; 
+        padding: 10px 20px; 
+        margin: 10px; 
+        background: #CD7F32; 
+        color: white; 
+        text-decoration: none; 
+        border-radius: 8px; 
+    }
+    </style>
+    
+    <script src="{{ url_for('static', filename='js/tiers.js') }}"></script>
+</body>
+</html>

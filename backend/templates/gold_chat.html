@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gold Tier - SoulBridge AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/chat.css') }}">
+</head>
+<body class="gold-tier">
+    <div class="container">
+        <div class="header">
+            <h1>🥇 Gold Tier Chat</h1>
+            <p>Ultimate AI companion with unlimited access</p>
+            {% if session.get('trial_active') and user_plan == 'bronze' %}
+            <div class="trial-badge">
+                <i class="fas fa-clock"></i> 5-Hour Trial Active - Full Gold Access!
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="features-grid">
+            <!-- UNLIMITED BASIC FEATURES -->
+            <a href="/decoder" class="action-btn gold-feature unlimited">
+                <i class="fas fa-brain"></i>
+                🧠 Decoder
+                <span class="unlimited-badge">Unlimited</span>
+            </a>
+            
+            <a href="/fortune" class="action-btn gold-feature unlimited">
+                <i class="fas fa-crystal-ball"></i>
+                🔮 Fortune
+                <span class="unlimited-badge">Unlimited</span>
+            </a>
+            
+            <a href="/horoscope" class="action-btn gold-feature unlimited">
+                <i class="fas fa-star"></i>
+                ⭐ Horoscope
+                <span class="unlimited-badge">Unlimited</span>
+            </a>
+            
+            <button onclick="openCreativeWriting();" class="action-btn gold-feature unlimited">
+                <i class="fas fa-pen"></i>
+                ✍️ Creative Writer
+                <span class="unlimited-badge">Unlimited</span>
+            </button>
+            
+            <!-- PREMIUM FEATURES -->
+            <a href="/voice-journaling" class="action-btn premium-feature">
+                <i class="fas fa-microphone"></i>
+                🎤 Voice Journal
+                <span class="premium-badge">Premium</span>
+            </a>
+            
+            <a href="/ai-image-generation" class="action-btn premium-feature">
+                <i class="fas fa-palette"></i>
+                🎨 AI Images
+                <span class="premium-badge">Premium</span>
+            </a>
+            
+            <a href="/relationship-profiles" class="action-btn premium-feature">
+                <i class="fas fa-heart"></i>
+                ❤️ Relationships
+                <span class="premium-badge">Premium</span>
+            </a>
+            
+            <a href="/emotional-meditations" class="action-btn premium-feature">
+                <i class="fas fa-om"></i>
+                🧘 Meditations
+                <span class="premium-badge">Premium</span>
+            </a>
+            
+            <!-- GOLD EXCLUSIVE FEATURES -->
+            <a href="/mini-studio" class="action-btn exclusive-feature">
+                <i class="fas fa-robot"></i>
+                🤖 Mini Studio
+                <span class="exclusive-badge">Gold Exclusive</span>
+            </a>
+            
+            {% if session.get('trial_active') and user_plan == 'bronze' %}
+            <!-- TRIAL MESSAGE -->
+            <div class="trial-message">
+                <h3>🎯 Enjoying Gold Access?</h3>
+                <p>You're experiencing our full Gold tier during your trial!</p>
+                <a href="/tiers" class="upgrade-btn">
+                    💎 Subscribe to Keep Full Access
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <style>
+    .gold-tier { 
+        background: linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #FF8C00 100%); 
+        color: #333; 
+    }
+    .gold-feature { 
+        border-color: #FFD700; 
+        background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 215, 0, 0.2)); 
+    }
+    .premium-feature { 
+        border-color: #4CAF50; 
+        background: linear-gradient(135deg, rgba(76, 175, 80, 0.2), rgba(76, 175, 80, 0.3)); 
+    }
+    .exclusive-feature { 
+        border-color: #FF6B6B; 
+        background: linear-gradient(135deg, rgba(255, 107, 107, 0.2), rgba(255, 107, 107, 0.3)); 
+        box-shadow: 0 0 20px rgba(255, 107, 107, 0.4);
+    }
+    .unlimited-badge { 
+        background: linear-gradient(45deg, #32CD32, #228B22); 
+        color: white; 
+        font-size: 10px; 
+        padding: 2px 6px; 
+        border-radius: 4px; 
+        margin-left: 8px; 
+    }
+    .premium-badge { 
+        background: #4CAF50; 
+        color: white; 
+        font-size: 10px; 
+        padding: 2px 6px; 
+        border-radius: 4px; 
+        margin-left: 8px; 
+    }
+    .exclusive-badge { 
+        background: linear-gradient(45deg, #FF6B6B, #FF4444); 
+        color: white; 
+        font-size: 10px; 
+        padding: 2px 6px; 
+        border-radius: 4px; 
+        margin-left: 8px; 
+    }
+    .trial-badge {
+        background: rgba(34, 211, 238, 0.2);
+        border: 1px solid rgba(34, 211, 238, 0.5);
+        padding: 10px;
+        border-radius: 8px;
+        margin-top: 10px;
+        text-align: center;
+        font-weight: bold;
+        color: #22d3ee;
+    }
+    .trial-message { 
+        grid-column: 1 / -1; 
+        background: rgba(34, 211, 238, 0.1); 
+        padding: 20px; 
+        border-radius: 12px; 
+        text-align: center; 
+        border: 2px solid rgba(34, 211, 238, 0.3);
+    }
+    .upgrade-btn { 
+        display: inline-block; 
+        padding: 12px 24px; 
+        background: linear-gradient(45deg, #22d3ee, #0891b2); 
+        color: white; 
+        text-decoration: none; 
+        border-radius: 8px; 
+        font-weight: bold; 
+        margin-top: 10px;
+    }
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin-top: 20px;
+    }
+    .action-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 20px;
+        text-decoration: none;
+        border: 2px solid;
+        border-radius: 12px;
+        transition: transform 0.2s, box-shadow 0.2s;
+        text-align: center;
+    }
+    .action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    </style>
+</body>
+</html>
