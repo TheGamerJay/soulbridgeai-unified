@@ -2445,6 +2445,12 @@ def trial_status():
                     trial.active = False
                     from app_core import db
                     db.session.commit()
+                    # CRITICAL: Clean up expired trial session variables
+                    if session.get('trial_active'):
+                        logger.info("🧹 Cleaning up expired trial session variables")
+                        session['trial_active'] = False
+                        session['trial_started_at'] = None
+                        session['trial_expires_at'] = None
                 expires_at_iso = trial.expires_at.isoformat().replace("+00:00", "Z") if active else None
                 expires_at_ms  = int(trial.expires_at.timestamp() * 1000) if active else None
             else:
@@ -2487,6 +2493,13 @@ def trial_status():
                     if active:
                         expires_at_iso = expires_at.isoformat().replace("+00:00", "Z")
                         expires_at_ms = int(expires_at.timestamp() * 1000)
+                    else:
+                        # CRITICAL: Clean up expired trial session variables in fallback logic
+                        if session.get('trial_active'):
+                            logger.info("🧹 Cleaning up expired trial session variables (fallback)")
+                            session['trial_active'] = False
+                            session['trial_started_at'] = None
+                            session['trial_expires_at'] = None
                 except Exception as e2:
                     logger.error(f"Error calculating trial expiry: {e2}")
                     active = False
@@ -14726,7 +14739,8 @@ TIERS_TEMPLATE = r"""
         <div id="tiers-circular-timer"></div>
       </div>
     {% elif not trial_active and not trial_used_permanently %}
-      <button onclick="startTrial()" class="btn" style="background:linear-gradient(90deg,#00ff7f,#00c6ff);font-size:14px;padding:8px 16px;">🚀 Start 5-Hour Trial</button>
+      <button id="startTrialBtn" onclick="startTrial()" class="btn" style="background:linear-gradient(90deg,#00ff7f,#00c6ff);font-size:14px;padding:8px 16px;">🚀 Start 5-Hour Trial</button>
+      <div id="trialStatus" style="margin-top: 8px; font-size: 12px; color: #666;"></div>
     {% endif %}
   </div>
 

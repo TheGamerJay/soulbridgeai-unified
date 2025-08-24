@@ -124,6 +124,32 @@
               startedAtIso: data.trial_started_at || localStorage.getItem('trial_started_at')
             });
           }
+        } else {
+          // Trial is NOT active (expired or never started) - show button if eligible
+          console.log('🎯 Trial not active - checking if button should be shown');
+          document.body.classList.remove('trial-active', 'gold-access');
+          
+          // Check if user has used trial permanently
+          const trialUsedPermanently = data.trial_used_permanently || localStorage.getItem('trial_used_permanently') === '1';
+          
+          if (!trialUsedPermanently) {
+            // Show trial button since trial is not used permanently
+            btn?.classList.remove('hidden');
+            btn?.removeAttribute('disabled');
+            setStatus('');
+            console.log('🎯 Showing trial button - trial not used permanently');
+          } else {
+            // Hide button since trial was used permanently
+            btn?.classList.add('hidden');
+            setStatus('Trial already used');
+            console.log('🎯 Hiding trial button - trial used permanently');
+          }
+          
+          // Lock Silver/Gold companions again
+          document.querySelectorAll('[data-lock="silver"],[data-lock="gold"]').forEach(el => {
+            el.classList.add('locked');
+            el.setAttribute('aria-disabled', 'true');
+          });
         }
       }
     } catch (err) {
@@ -150,6 +176,32 @@
             startedAtIso: localStorage.getItem('trial_started_at')
           });
         }
+      } else {
+        // Trial not active in localStorage - show button if eligible
+        console.log('🎯 Trial not active (localStorage) - checking if button should be shown');
+        document.body.classList.remove('trial-active', 'gold-access');
+        
+        // Check if user has used trial permanently
+        const trialUsedPermanently = localStorage.getItem('trial_used_permanently') === '1';
+        
+        if (!trialUsedPermanently) {
+          // Show trial button since trial is not used permanently
+          btn?.classList.remove('hidden');
+          btn?.removeAttribute('disabled');
+          setStatus('');
+          console.log('🎯 Showing trial button (localStorage) - trial not used permanently');
+        } else {
+          // Hide button since trial was used permanently
+          btn?.classList.add('hidden');
+          setStatus('Trial already used');
+          console.log('🎯 Hiding trial button (localStorage) - trial used permanently');
+        }
+        
+        // Lock Silver/Gold companions again
+        document.querySelectorAll('[data-lock="silver"],[data-lock="gold"]').forEach(el => {
+          el.classList.add('locked');
+          el.setAttribute('aria-disabled', 'true');
+        });
       }
     }
   }
