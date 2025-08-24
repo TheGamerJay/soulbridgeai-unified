@@ -596,23 +596,20 @@ def companion_unlock_state_new(user_plan: str, trial_active: bool, referrals: in
         if c.get("min_referrals", 0) > 0 and referrals >= c["min_referrals"]
     )
 
-    return {
-        "tier_access": tier_access,
-        "referral_unlocked_ids": referral_unlocked_ids
-    }
+    return tier_access, referral_unlocked_ids
 
 def user_can_access_companion(user_plan: str, trial_active: bool, referrals: int, comp: dict):
     """
     Final server-side decision for companion access.
     Returns (can_access: bool, reason: str|None)
     """
-    state = companion_unlock_state_new(user_plan, trial_active, referrals)
-    tier_ok = comp["tier"] in state["tier_access"]
+    tier_access, referral_unlocked_ids = companion_unlock_state_new(user_plan, trial_active, referrals)
+    tier_ok = comp["tier"] in tier_access
 
     # Referral-only companions: require min_referrals and IGNORE trial unlock
     min_refs = comp.get("min_referrals", 0)
     if min_refs > 0:
-        return (comp["id"] in state["referral_unlocked_ids"],
+        return (comp["id"] in referral_unlocked_ids,
                 f"Referral companion: requires {min_refs} referrals")
 
     return (tier_ok, None if tier_ok else f"Tier locked: requires {comp['tier'].title()}")
@@ -8893,8 +8890,8 @@ def debug_session_state():
         "effective_plan": effective_plan,
         "trial_active": trial_active,
         "access_bronze": True,
-        "access_silver": user_plan in ["silver", "gold"] or trial_active,
-        "access_gold": user_plan == "gold" or trial_active
+        "access_silver": access_silver,
+        "access_gold": access_gold
     })
 
 
