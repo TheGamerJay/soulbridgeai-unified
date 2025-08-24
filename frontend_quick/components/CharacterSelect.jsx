@@ -4,9 +4,9 @@ export default function CharacterSelect({ onSelect }) {
   const [companions, setCompanions] = useState({ bronze: [], silver: [], gold: [], referral: [] });
   const [selectedTier, setSelectedTier] = useState('bronze');
   const [loading, setLoading] = useState(true);
-  const [userPlan, setUserPlan] = useState('free');
+  const [userPlan, setUserPlan] = useState('bronze');
   const [trialActive, setTrialActive] = useState(false);
-  const [effectivePlan, setEffectivePlan] = useState('free');
+  const [effectivePlan, setEffectivePlan] = useState('bronze');
 
   useEffect(() => {
     // Fetch available companions from the API
@@ -17,20 +17,20 @@ export default function CharacterSelect({ onSelect }) {
         
         if (data.success) {
           setCompanions(data.companions);
-          setUserPlan(data.user_plan || 'free');
+          setUserPlan(data.user_plan || 'bronze');
           setTrialActive(data.trial_active || false);
-          setEffectivePlan(data.effective_plan || data.user_plan || 'free');
+          setEffectivePlan(data.effective_plan || data.user_plan || 'bronze');
         }
       } catch (error) {
         console.error('Error fetching companions:', error);
         // Fallback to basic companions if API fails
         setCompanions({
-          free: [
-            { companion_id: 'blayzo_free', display_name: 'Blayzo', description: 'Your creative and fun AI companion', tier: 'free', lock_reason: null },
-            { companion_id: 'blayzica_free', display_name: 'Blayzica', description: 'Your empathetic and caring AI companion', tier: 'free', lock_reason: null }
+          bronze: [
+            { companion_id: 'blayzo_free', display_name: 'Blayzo', description: 'Your creative and fun AI companion', tier: 'bronze', lock_reason: null },
+            { companion_id: 'blayzica_free', display_name: 'Blayzica', description: 'Your empathetic and caring AI companion', tier: 'bronze', lock_reason: null }
           ],
-          growth: [],
-          max: [],
+          silver: [],
+          gold: [],
           referral: []
         });
       } finally {
@@ -58,9 +58,9 @@ export default function CharacterSelect({ onSelect }) {
 
   const getTierColor = (tier) => {
     switch (tier) {
-      case 'free': return 'from-blue-600 to-blue-800 hover:from-blue-500 hover:to-blue-700 focus:ring-blue-300';
-      case 'growth': return 'from-green-600 to-green-800 hover:from-green-500 hover:to-green-700 focus:ring-green-300';
-      case 'max': return 'from-purple-600 to-purple-800 hover:from-purple-500 hover:to-purple-700 focus:ring-purple-300';
+      case 'bronze': return 'from-blue-600 to-blue-800 hover:from-blue-500 hover:to-blue-700 focus:ring-blue-300';
+      case 'silver': return 'from-green-600 to-green-800 hover:from-green-500 hover:to-green-700 focus:ring-green-300';
+      case 'gold': return 'from-purple-600 to-purple-800 hover:from-purple-500 hover:to-purple-700 focus:ring-purple-300';
       case 'referral': return 'from-yellow-600 to-yellow-800 hover:from-yellow-500 hover:to-yellow-700 focus:ring-yellow-300';
       default: return 'from-gray-600 to-gray-800 hover:from-gray-500 hover:to-gray-700 focus:ring-gray-300';
     }
@@ -68,9 +68,9 @@ export default function CharacterSelect({ onSelect }) {
 
   const getTierTitle = (tier) => {
     switch (tier) {
-      case 'free': return '🆓 Free Companions';
-      case 'growth': return '🌱 Growth Tier';
-      case 'max': return '⚡ Max Tier';
+      case 'bronze': return '🥉 Bronze Companions';
+      case 'silver': return '🥈 Silver Tier';
+      case 'gold': return '🥇 Gold Tier';
       case 'referral': return '🏆 Referral Exclusive';
       default: return tier;
     }
@@ -83,8 +83,8 @@ export default function CharacterSelect({ onSelect }) {
   // Determine which tiers the user can access based on subscription and trial
   const getAccessibleTiers = () => {
     if (trialActive) {
-      // During trial: unlock everything regardless of subscription tier
-      return ['bronze', 'silver', 'gold', 'referral'];
+      // During trial: unlock Silver/Gold companions regardless of subscription tier (referral companions remain locked)
+      return ['bronze', 'silver', 'gold'];
     } else {
       // Normal access based on subscription tier
       switch (userPlan) {
@@ -96,7 +96,7 @@ export default function CharacterSelect({ onSelect }) {
           return ['bronze', 'silver'];
         case 'gold':
         case 'max': // Legacy compatibility
-          return ['bronze', 'silver', 'gold', 'referral'];
+          return ['bronze', 'silver', 'gold'];
         default:
           return ['bronze'];
       }
