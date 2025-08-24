@@ -28,8 +28,8 @@ def is_logged_in():
     return session.get('user_id') is not None
 
 def get_effective_plan(user_plan, trial_active):
-    if trial_active and user_plan == "free":
-        return "max"
+    if trial_active and user_plan == "bronze":
+        return "gold"
     return user_plan
 
 bp = Blueprint("api_jobs", __name__)

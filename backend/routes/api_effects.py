@@ -12,8 +12,8 @@ def is_logged_in():
     return session.get('user_id') is not None
 
 def get_effective_plan(user_plan, trial_active):
-    if trial_active and user_plan == "free":
-        return "max"
+    if trial_active and user_plan == "bronze":
+        return "gold"
     return user_plan
 
 bp = Blueprint("api_effects", __name__)
@@ -26,12 +26,12 @@ def api_effects():
             return jsonify({"success": False, "error": "Authentication required"}), 401
         
         # Check access permissions
-        user_plan = session.get('user_plan', 'free')
+        user_plan = session.get('user_plan', 'bronze')
         trial_active = session.get('trial_active', False)
         effective_plan = get_effective_plan(user_plan, trial_active)
         
-        if effective_plan != 'max':
-            return jsonify({"success": False, "error": "Mini Studio requires Max tier or trial"}), 403
+        if effective_plan != 'gold':
+            return jsonify({"success": False, "error": "Mini Studio requires Gold tier or trial"}), 403
         
         data = request.get_json(force=True)
         wav_path = data.get("wav_path", "").strip()
@@ -53,14 +53,14 @@ def api_effects():
             from unified_tier_system import get_user_credits, get_trial_trainer_time
             credits = get_user_credits(user_id) if user_id else 0
             
-            if user_plan == 'free' and trial_active:
+            if user_plan == 'bronze' and trial_active:
                 trial_credits = get_trial_trainer_time(user_id)
                 credits = max(credits, trial_credits)
             
             if credits <= 0:
                 return jsonify({"success": False, "error": "No studio time remaining"}), 403
         except ImportError:
-            credits = 60 if (user_plan == 'free' and trial_active) else 0
+            credits = 60 if (user_plan == 'bronze' and trial_active) else 0
         
         # Apply effects
         try:
