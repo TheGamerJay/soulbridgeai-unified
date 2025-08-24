@@ -999,11 +999,41 @@ def ensure_session_persistence():
         # Only make non-authenticated sessions temporary
         session.permanent = False
 
-    # CRITICAL: Apply access flags on every request (trial first, then fan out)
+    # CRITICAL: Check trial expiration and clean up session FIRST
     if session.get('user_id'):  # Only for authenticated users
+        user_id = session.get('user_id')
+        trial_active = session.get('trial_active', False)
+        trial_expires_at = session.get('trial_expires_at')
+        
+        # Check if trial has expired and clean up
+        if trial_active and trial_expires_at:
+            try:
+                if isinstance(trial_expires_at, str):
+                    expires_dt = datetime.fromisoformat(trial_expires_at.replace('Z', '+00:00'))
+                else:
+                    expires_dt = trial_expires_at
+                
+                now = datetime.now(timezone.utc)
+                if now > expires_dt:
+                    # Trial has expired - clean up session immediately
+                    logger.info(f"🧹 MIDDLEWARE: Trial expired for user {user_id}, cleaning up session")
+                    session['trial_active'] = False
+                    session['trial_started_at'] = None
+                    session['trial_expires_at'] = None
+                    session['trial_used_permanently'] = True
+                    trial_active = False  # Update local variable
+                    session.modified = True
+            except Exception as e:
+                logger.error(f"Error checking trial expiration in middleware: {e}")
+                # If there's any error with trial dates, assume expired and clean up
+                session['trial_active'] = False
+                trial_active = False
+                session.modified = True
+        
+        # CRITICAL: Apply access flags after trial cleanup
         plan = session.get("user_plan", "bronze")
-        trial = bool(session.get("trial_active"))
-
+        trial = trial_active  # Use cleaned up value
+        
         # Base: bronze is always true, trial gives access but limits stay on plan
         access_bronze = True
         access_silver = plan.lower() in ("silver", "gold") or trial
@@ -1013,7 +1043,6 @@ def ensure_session_persistence():
         session["access_bronze"] = access_bronze
         session["access_silver"] = access_silver
         session["access_gold"] = access_gold
-
         # Mark modified to guarantee cookie write
         session.modified = True
 # Prevent caching to force fresh login checks
