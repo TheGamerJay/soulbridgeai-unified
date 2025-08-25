@@ -443,12 +443,16 @@
         .modal-content {
             background: rgba(0, 0, 0, 0.95);
             border: 2px solid rgba(0, 255, 255, 0.4);
-            margin: 5% auto;
+            margin: 3% auto;
             padding: 30px;
             border-radius: 20px;
             width: 90%;
-            max-width: 500px;
+            max-width: 900px;
+            max-height: 85vh;
             box-shadow: 0 20px 60px rgba(0, 255, 255, 0.2);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
         }
 
         .modal-header {
@@ -522,43 +526,90 @@
 
         .companion-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 15px;
-            margin-top: 15px;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+            padding: 10px 0;
+            max-height: 400px;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        
+        /* Netflix-style scrollbar */
+        .companion-grid::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .companion-grid::-webkit-scrollbar-track {
+            background: rgba(0, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+        
+        .companion-grid::-webkit-scrollbar-thumb {
+            background: rgba(0, 255, 255, 0.4);
+            border-radius: 4px;
+        }
+        
+        .companion-grid::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 255, 255, 0.6);
         }
 
         .companion-card {
             background: rgba(0, 255, 255, 0.05);
             border: 2px solid rgba(0, 255, 255, 0.3);
-            border-radius: 12px;
-            padding: 15px;
+            border-radius: 15px;
+            padding: 20px 15px;
             text-align: center;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            min-height: 160px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
 
         .companion-card:hover {
-            background: rgba(0, 255, 255, 0.1);
-            border-color: rgba(0, 255, 255, 0.5);
-            transform: translateY(-2px);
+            background: rgba(0, 255, 255, 0.15);
+            border-color: rgba(0, 255, 255, 0.6);
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 8px 25px rgba(0, 255, 255, 0.2);
         }
 
         .companion-card.selected {
-            background: rgba(0, 255, 255, 0.2);
+            background: rgba(0, 255, 255, 0.25);
             border-color: #00ffff;
-            box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        .companion-card.locked {
+            background: rgba(255, 107, 107, 0.05);
+            border-color: rgba(255, 107, 107, 0.3);
+        }
+        
+        .companion-card.locked:hover {
+            background: rgba(255, 107, 107, 0.1);
+            border-color: rgba(255, 107, 107, 0.5);
+            transform: translateY(-2px) scale(1.01);
         }
 
         .companion-avatar {
-            width: 60px;
-            height: 60px;
+            width: 70px;
+            height: 70px;
             border-radius: 50%;
             background: rgba(0, 255, 255, 0.1);
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 10px;
-            font-size: 24px;
+            margin: 0 auto 12px;
+            font-size: 28px;
+            transition: transform 0.3s ease;
+        }
+        
+        .companion-card:hover .companion-avatar {
+            transform: scale(1.1);
         }
 
         .companion-avatar img {
@@ -571,19 +622,45 @@
         .companion-name {
             color: #e2e8f0;
             font-weight: 600;
-            margin-bottom: 4px;
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+            line-height: 1.2;
         }
 
         .companion-rarity {
             color: #a0aec0;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             text-transform: capitalize;
+            margin-bottom: 4px;
         }
 
         .companion-rarity.common { color: #9ca3af; }
+        .companion-rarity.bronze { color: #cd7f32; }
+        .companion-rarity.silver { color: #c0c0c0; }
+        .companion-rarity.gold { color: #ffd700; }
         .companion-rarity.rare { color: #3b82f6; }
         .companion-rarity.epic { color: #8b5cf6; }
         .companion-rarity.legendary { color: #f59e0b; }
+        .companion-rarity.referral { color: #ff6b6b; }
+        
+        /* Companion Selector Modal Specific Styles */
+        .companion-selector-modal {
+            max-width: 900px;
+        }
+        
+        .companion-selector-modal .modal-header {
+            border-bottom: 2px solid rgba(0, 255, 255, 0.2);
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .companion-selector-modal .modal-title {
+            font-size: 1.4rem;
+            background: linear-gradient(45deg, #00ffff, #22d3ee);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
 
         /* Responsive Design */
         @media (max-width: 768px) {
@@ -609,6 +686,34 @@
                 flex-direction: column;
                 align-items: stretch;
                 gap: 15px;
+            }
+            
+            .modal-content {
+                width: 95%;
+                margin: 2% auto;
+                padding: 20px;
+                max-height: 90vh;
+            }
+            
+            .companion-grid {
+                grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+                gap: 15px;
+                max-height: 350px;
+            }
+            
+            .companion-card {
+                min-height: 140px;
+                padding: 15px 10px;
+            }
+            
+            .companion-avatar {
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+            }
+            
+            .companion-name {
+                font-size: 0.8rem;
             }
         }
     </style>
@@ -694,7 +799,7 @@
 
     <!-- Companion Selector Modal -->
     <div id="companion-modal" class="modal">
-        <div class="modal-content" style="max-width: 600px;">
+        <div class="modal-content companion-selector-modal">
             <div class="modal-header">
                 <h3 class="modal-title">Choose Your Companion Avatar</h3>
                 <span class="close" onclick="closeModal('companion-modal')">&times;</span>
