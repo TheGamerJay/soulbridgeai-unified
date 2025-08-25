@@ -119,7 +119,8 @@ def me():
             "displayName": session.get("display_name", "User"),
             "plan": plan,
             "trainer_credits": trainer_credits,
-            "profileImage": session.get("profile_image", "/static/logos/IntroLogo.png")
+            "profileImage": session.get("profile_image", "/static/logos/IntroLogo.png"),
+            "companion": session.get("selected_companion", "Blayzo")  # Current companion
         }
         
         access_data = {

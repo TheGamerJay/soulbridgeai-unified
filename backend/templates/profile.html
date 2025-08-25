@@ -2826,18 +2826,25 @@
                 'Luna': { avatar: 'L', name: 'Luna', description: 'Mystical and intuitive guide' }
             };
 
+            // Handle tier-suffixed companion IDs (e.g., "claude_bronze", "blayzo_silver")
+            let cleanName = companionName;
+            if (companionName && companionName.includes('_')) {
+                cleanName = companionName.split('_')[0];
+                console.log('🤖 Extracted companion name from tier ID:', companionName, '->', cleanName);
+            }
+
             // Try exact match first, then case-insensitive
-            let info = companionData[companionName];
-            if (!info && companionName) {
-                // Try case-insensitive match
-                const lowerName = companionName.toLowerCase();
+            let info = companionData[cleanName];
+            if (!info && cleanName) {
+                // Try case-insensitive match with clean name
+                const lowerName = cleanName.toLowerCase();
                 const foundKey = Object.keys(companionData).find(key => key.toLowerCase() === lowerName);
                 info = foundKey ? companionData[foundKey] : null;
             }
             
             // Default fallback
             if (!info) {
-                console.warn('🤖 Companion not found:', companionName, 'defaulting to Blayzo');
+                console.warn('🤖 Companion not found:', companionName, '(clean name:', cleanName + ') defaulting to Blayzo');
                 info = companionData['Blayzo'];
             }
             
