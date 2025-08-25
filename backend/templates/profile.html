@@ -15,14 +15,20 @@
     <style>
         .profile-container {
             min-height: 100vh;
-            padding: 2rem;
-            background: #000000;
+            padding: 1.5rem 2rem 2rem;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 25%, #0f172a 50%, #374151 75%, #1f2937 100%);
             background-attachment: fixed;
-            background-size: 100% 100%;
+            background-size: 400% 400%;
             position: relative;
+            animation: gradientShift 15s ease-in-out infinite;
         }
         
-        /* Add stunning cyan animated background elements */
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        /* Enhanced professional background elements */
         .profile-container::before {
             content: '';
             position: fixed;
@@ -31,13 +37,19 @@
             width: 100%;
             height: 100%;
             background: 
-                radial-gradient(circle at 15% 25%, rgba(0, 255, 255, 0.15) 0%, transparent 40%),
-                radial-gradient(circle at 85% 75%, rgba(0, 255, 255, 0.12) 0%, transparent 45%),
-                radial-gradient(circle at 45% 85%, rgba(0, 255, 255, 0.08) 0%, transparent 35%),
-                radial-gradient(circle at 70% 15%, rgba(0, 255, 255, 0.1) 0%, transparent 50%);
+                radial-gradient(circle at 15% 25%, rgba(34, 211, 238, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 85% 75%, rgba(34, 211, 238, 0.06) 0%, transparent 60%),
+                radial-gradient(circle at 45% 85%, rgba(34, 211, 238, 0.04) 0%, transparent 45%),
+                radial-gradient(circle at 70% 15%, rgba(34, 211, 238, 0.05) 0%, transparent 55%),
+                linear-gradient(145deg, rgba(34, 211, 238, 0.02) 0%, transparent 50%);
             pointer-events: none;
             z-index: -1;
-            animation: breathe 4s ease-in-out infinite alternate;
+            animation: floatingLights 8s ease-in-out infinite alternate;
+        }
+        
+        @keyframes floatingLights {
+            0% { opacity: 0.4; transform: scale(1); }
+            100% { opacity: 0.7; transform: scale(1.1); }
         }
         
         @keyframes breathe {
@@ -47,27 +59,60 @@
 
         .profile-header {
             text-align: center;
-            margin-bottom: 3rem;
-            padding-top: 4rem;
+            margin-bottom: 2.5rem;
+            padding: 2rem 0;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 24px;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(34, 211, 238, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .profile-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(34, 211, 238, 0.05), transparent);
+            animation: headerShimmer 3s ease-in-out infinite;
+        }
+
+        @keyframes headerShimmer {
+            0%, 100% { left: -100%; }
+            50% { left: 100%; }
         }
 
         .profile-title {
-            font-size: 3.5rem;
-            margin-bottom: 0.5rem;
-            font-weight: 700;
-            text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
-            background: linear-gradient(135deg, #00ffff 0%, #22d3ee 100%);
+            font-size: 3rem;
+            margin-bottom: 0.8rem;
+            font-weight: 800;
+            text-shadow: 0 0 20px rgba(34, 211, 238, 0.3);
+            background: linear-gradient(135deg, #22d3ee 0%, #0891b2 50%, #22d3ee 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            animation: titlePulse 3s ease-in-out infinite;
+            background-size: 200% 200%;
+            animation: titleFlow 4s ease-in-out infinite;
+            position: relative;
+            z-index: 1;
+        }
+
+        @keyframes titleFlow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
         }
 
         .profile-subtitle {
-            font-size: 1.4rem;
-            color: rgba(255, 255, 255, 0.8);
-            margin-bottom: 2rem;
-            font-weight: 300;
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 1.5rem;
+            font-weight: 400;
+            position: relative;
+            z-index: 1;
+            letter-spacing: 0.5px;
         }
 
         .profile-grid {
@@ -80,22 +125,28 @@
         }
 
         .profile-panel {
-            background: rgba(0, 0, 0, 0.8);
-            border: 2px solid rgba(0, 255, 255, 0.3);
-            border-radius: 20px;
-            padding: 2rem;
-            backdrop-filter: blur(10px);
-            transition: all 0.3s ease;
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid rgba(34, 211, 238, 0.2);
+            border-radius: 24px;
+            padding: 2.5rem;
+            backdrop-filter: blur(20px);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             overflow: hidden;
             animation: cardFadeIn 0.8s ease-out;
-            text-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
+            box-shadow: 
+                0 4px 20px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
         }
 
         .profile-panel:hover {
-            transform: translateY(-2px);
-            border-color: rgba(0, 255, 255, 0.6);
-            box-shadow: 0 5px 15px rgba(0, 255, 255, 0.2);
+            transform: translateY(-4px) scale(1.01);
+            border-color: rgba(34, 211, 238, 0.4);
+            box-shadow: 
+                0 8px 32px rgba(34, 211, 238, 0.15),
+                0 4px 20px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            background: rgba(15, 23, 42, 0.9);
         }
 
         .profile-panel::before {
@@ -105,22 +156,77 @@
             left: -100%;
             width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(34, 211, 238, 0.1), transparent);
-            transition: left 0.6s ease;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(34, 211, 238, 0.08), 
+                rgba(34, 211, 238, 0.12),
+                rgba(34, 211, 238, 0.08), 
+                transparent);
+            transition: left 0.8s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .profile-panel:hover::before {
             left: 100%;
         }
 
+        .profile-panel::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            background: linear-gradient(135deg, 
+                rgba(34, 211, 238, 0.05) 0%, 
+                transparent 50%, 
+                rgba(34, 211, 238, 0.02) 100%);
+            border-radius: 24px;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .profile-panel:hover::after {
+            opacity: 1;
+        }
+
         .panel-title {
-            color: #00ffff;
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin-bottom: 1.5rem;
+            color: #22d3ee;
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.8rem;
+            text-shadow: 0 0 15px rgba(34, 211, 238, 0.3);
+            position: relative;
+            z-index: 2;
+        }
+
+        .panel-title::after {
+            content: '';
+            flex: 1;
+            height: 2px;
+            background: linear-gradient(90deg, 
+                rgba(34, 211, 238, 0.4) 0%, 
+                rgba(34, 211, 238, 0.1) 80%, 
+                transparent 100%);
+            border-radius: 1px;
+        }
+
+        /* Enhanced text styling */
+        .profile-panel {
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.6;
+        }
+
+        .profile-panel strong {
+            color: rgba(255, 255, 255, 0.95);
+            font-weight: 600;
+        }
+
+        .profile-panel label {
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 500;
         }
 
         .user-info {
@@ -2467,151 +2573,6 @@
         }
         
         // Removed placeholder getSapphireResponse - now using real OpenAI API
-        
-        function quickAskProfile(question) {
-            const questionInput = document.getElementById('sapphireHelpQuestion');
-            if (questionInput) {
-                questionInput.value = question;
-                askSapphireHelp();
-            }
-        }
-        
-        function closeSapphireHelp() {
-            const modal = document.getElementById('sapphireHelpModal');
-            if (modal) {
-                modal.style.animation = 'fadeOut 0.3s ease';
-                setTimeout(() => modal.remove(), 300);
-            }
-        }
-            
-            // TERMS, POLICIES & LEGAL
-            if (q.includes('terms') || q.includes('policy') || q.includes('privacy') || q.includes('legal') || q.includes('agreement')) {
-                if (q.includes('terms') || q.includes('service')) {
-                    return "📜 TERMS OF SERVICE: Visit soulbridgeai.com/terms for complete terms. Key points: Must be 13+ to use, no harmful content, respect community guidelines, subscriptions auto-renew, no refunds after payment processing.";
-                } else if (q.includes('privacy')) {
-                    return "🔒 PRIVACY POLICY: Visit soulbridgeai.com/privacy for full details. We protect your data, encrypt conversations, never sell personal info, cookies for functionality only. Your privacy is our priority!";
-                } else if (q.includes('refund') || q.includes('cancel')) {
-                    return "💳 REFUND POLICY: No refunds once payment is processed. You keep access for your full paid period (month/year). Cancel anytime - benefits continue until billing period ends, then revert to Bronze.";
-                } else if (q.includes('community') && (q.includes('guideline') || q.includes('rule'))) {
-                    return "🤝 COMMUNITY GUIDELINES: Be respectful, no harassment/hate speech, no spam, stay on topic for categories, report inappropriate content. Anonymous sharing should remain kind and supportive!";
-                }
-            }
-            
-            // PROFILE PAGE SPECIFIC HELP
-            if (currentPage.includes('profile')) {
-                if (q.includes('upload') || q.includes('image') || q.includes('picture')) {
-                    return "📷 Profile Image: Scroll down to 'User Information' section and click '📷 Upload Profile Picture'. Choose PNG, JPG, GIF, or WebP up to 5MB. Your image saves permanently now!";
-                }
-                if (q.includes('name') || q.includes('display')) {
-                    return "✏️ Display Name: In the 'User Information' section, find the display name field, type your new name, and click 'Save'. This is how others see you in communities!";
-                }
-                if (q.includes('subscription') || q.includes('upgrade')) {
-                    return "💳 Subscription: Scroll down to the subscription section to upgrade from Bronze to Silver or Gold. Manage billing and view your current plan details here!";
-                }
-                if (q.includes('stats') || q.includes('activity')) {
-                    return "📊 Your Stats: Check your profile stats to see total messages, sessions, days active, and account creation date. Track your SoulBridge AI journey!";
-                }
-                if (q.includes('trial') && q.includes('activate')) {
-                    return "🚀 Trial Activation: Look for the 'Activate 5-Hour Trial' button in your subscription section! Bronze users get 5 hours of Silver/Gold access + 60 trainer credits. One-time only!";
-                }
-                if (q.includes('download') || q.includes('history')) {
-                    return "💾 Download Chat History: Scroll to find the 'Download Chat History' button! Get all your conversations with companions exported as a file for safekeeping.";
-                }
-                if (q.includes('help') || q.includes('faq') || q.includes('support')) {
-                    return "📚 Help & FAQ: Right here on Profile page! Scroll down and click 'Help & FAQ' button. Complete guides, troubleshooting, feature explanations, contact support!";
-                }
-            }
-            
-            // FEATURE QUESTIONS
-            if (q.includes('decoder') || q.includes('fortune') || q.includes('horoscope') || q.includes('creative') || q.includes('mini studio')) {
-                if (q.includes('decoder')) {
-                    return "🧠 DECODER: Analyze text, decode emotions, get insights! Daily limits: Bronze=3, Silver=15, Gold=unlimited. Available in all companion chats with special Decoder button.";
-                } else if (q.includes('fortune')) {
-                    return "🔮 FORTUNE: Get mystical insights and guidance! Daily limits: Bronze=2, Silver=8, Gold=unlimited. Access through companion chat or dedicated Fortune feature.";
-                } else if (q.includes('horoscope')) {
-                    return "✨ HOROSCOPE: Personalized astrological readings! Daily limits: Bronze=3, Silver=10, Gold=unlimited. Choose your sign and get cosmic insights.";
-                } else if (q.includes('creative')) {
-                    return "✍️ CREATIVE WRITER: AI-powered writing assistance! Daily limits: Bronze=2, Silver=20, Gold=unlimited. Perfect for stories, poems, and creative projects.";
-                } else if (q.includes('mini studio') || q.includes('ministudio')) {
-                    return "🎬 MINI STUDIO: Gold tier exclusive! Create custom AI video content, advanced media generation. Only available to Gold subscribers - unlock unlimited creative possibilities!";
-                }
-            }
-            
-            // COMPANION QUESTIONS
-            if (q.includes('companion') || q.includes('character') || q.includes('blayzo') || q.includes('violet') || q.includes('crimson') || q.includes('sapphire')) {
-                if (q.includes('blayzo')) {
-                    return "🤖 BLAYZO: The original SoulBridge AI companion! Wise, empathetic, great for deep conversations. Available to all tiers. Your first AI friend and guide!";
-                } else if (q.includes('violet')) {
-                    return "💜 VIOLET: Creative and artistic companion. Perfect for creative projects, art discussions, and imaginative conversations. Available to Silver/Gold tiers.";
-                } else if (q.includes('crimson')) {
-                    return "❤️ CRIMSON: Passionate and energetic companion. Great for motivation, relationships, and emotional support. Available to Silver/Gold tiers.";
-                } else if (q.includes('sapphire')) {
-                    return "💎 SAPPHIRE: That's me! Your navigation assistant. I know every feature, every page, every button. I'm here to guide you through SoulBridge AI with precision!";
-                } else {
-                    return "🌟 AI COMPANIONS: Choose from Blayzo (all tiers), Sapphire (navigation), Violet (creative), Crimson (passionate), plus Blayzia, Blayzica, Blayzike, Blayzion! Access depends on your tier level.";
-                }
-            }
-            
-            // HELPFUL FEATURES & TIPS
-            if (q.includes('tip') || q.includes('helpful') || q.includes('advice') || q.includes('suggest')) {
-                return `💡 HELPFUL TIPS:
-• Use trial wisely - 5 hours to explore all Silver/Gold features
-• Save important chats - download your history regularly  
-• Join community - anonymous sharing with companion avatars
-• Try all companions - each has unique personality & specialty
-• Check daily limits - plan your feature usage strategically
-• Upgrade smart - yearly saves 25% vs monthly billing
-• Use Sapphire (me!) anytime for navigation help 💎`;
-            }
-            
-            // NAVIGATION HELP
-            if (q.includes('where') || q.includes('find') || q.includes('navigate') || q.includes('locate') || q.includes('how')) {
-                if (q.includes('setting') || q.includes('settings')) {
-                    return "⚙️ HOW TO FIND SETTINGS:\n\n🔍 Step-by-Step Navigation:\n1. You're on Profile page now! ✅\n2. Scroll down to 'User Information' section\n3. Here you can change: Display name, Profile picture\n4. Scroll further for: Subscription settings, Trial activation\n5. Look for 'Account Settings' or 'Preferences' sections\n\n🎛️ Available Settings: Display name editing, Profile image upload, Subscription management, Trial activation, Chat history download, Help & FAQ access.";
-                } else if (q.includes('community')) {
-                    return "🌍 COMMUNITY PAGE: Click '🌍 Community' button in navigation! Anonymous sharing with companion avatars, emoji reactions, category-based posts (gratitude, dreams, thoughts, etc).";
-                } else if (q.includes('chat') || q.includes('talk')) {
-                    return "💬 CHAT: Click '🌟 Choose Your AI Companion' → select companion → start chatting! Each companion has unique personality and specialties.";
-                }
-            }
-            
-            // TROUBLESHOOTING & SUPPORT
-            if (q.includes('error') || q.includes('problem') || q.includes('issue') || q.includes('bug') || q.includes('support')) {
-                return "🔧 TROUBLESHOOTING: Page errors? Refresh browser. Profile upload issues? Try smaller image. Feature locked? Check your tier level. Still need help? Use Help & FAQ button below or contact support through official channels!";
-            }
-            
-            // PREMIUM FEATURES
-            if (q.includes('premium') || q.includes('voice') || q.includes('ai image') || q.includes('relationship') || q.includes('meditation')) {
-                return "✨ PREMIUM FEATURES: Silver/Gold unlock: Voice Journaling, AI Image Generation, Relationship Profiles, Guided Meditations. Gold adds Mini Studio. Bronze users can trial for 5 hours!";
-            }
-            
-            // TERMS, POLICIES & LEGAL - NAVIGATION INSTRUCTIONS
-            if (q.includes('terms') || q.includes('policy') || q.includes('privacy') || q.includes('legal') || q.includes('agreement')) {
-                if (q.includes('terms') || q.includes('service')) {
-                    return "📜 HOW TO FIND TERMS OF SERVICE:\n\n🔍 Navigation Steps:\n1. You're on Profile page now! ✅\n2. Scroll down to 'Help & Support' section\n3. Click 'Help & FAQ' button\n4. Look for 'Legal' or 'Terms' section\n5. Or scroll to bottom of any page → 'Terms of Service' link\n\n📋 What you'll find: User agreements, age requirements (13+), subscription terms, acceptable use policy.";
-                } else if (q.includes('privacy')) {
-                    return "🔒 HOW TO FIND PRIVACY POLICY:\n\n🔍 Navigation Steps:\n1. You're on Profile page now! ✅\n2. Scroll down to 'Help & Support' section\n3. Click 'Help & FAQ' button\n4. Look for 'Privacy' section\n5. Or scroll to bottom of any page → 'Privacy Policy' link\n\n🛡️ What you'll find: Data protection details, encryption info, privacy rights, what we collect and why.";
-                } else if (q.includes('refund') || q.includes('cancel')) {
-                    return "💳 HOW TO FIND REFUND POLICY:\n\n🔍 Navigation Steps:\n1. You're on Profile page now! ✅\n2. Scroll down to 'Subscription' section\n3. Click 'Manage Subscription' button\n4. Or scroll to 'Help & Support' → 'Help & FAQ'\n5. Look for 'Billing' or 'Refund' section\n\n📋 Policy Summary: No refunds after payment processing. Cancel anytime, keep access until billing period ends.";
-                } else if (q.includes('community') && (q.includes('guideline') || q.includes('rule'))) {
-                    return "🤝 HOW TO FIND COMMUNITY GUIDELINES:\n\n🔍 Navigation Steps:\n1. From Profile page, click 'Community' (🌍 button in nav)\n2. Look for 'Guidelines' or 'Rules' section\n3. Or Profile → 'Help & FAQ' → 'Community' section\n4. Or bottom of any page → 'Community Guidelines'\n\n📋 Key Rules: Be respectful, no harassment, stay on topic, report inappropriate content, keep sharing positive!";
-                }
-            }
-            
-            // DEFAULT COMPREHENSIVE HELP
-            return `💎 I'm Sapphire, your SoulBridge AI navigation expert! I know EVERYTHING:
-
-🥉🥈🥇 TIERS: Bronze (free+ads), Silver ($12.99), Gold ($19.99)
-🌟 COMPANIONS: Blayzo, Violet, Crimson, me (Sapphire), + more
-🔧 FEATURES: Decoder, Fortune, Horoscope, Creative Writer, Mini Studio
-✨ PREMIUM: Voice Journal, AI Images, Relationships, Meditations
-🌍 COMMUNITY: Anonymous sharing with companion avatars
-👤 PROFILE: Account settings, subscription, trial activation
-📜 LEGAL: Terms of Service, Privacy Policy, Community Guidelines
-💡 TIPS: Smart usage, billing advice, feature optimization
-
-What specific feature, policy, or page would you like help with?`;
-        }
         
         function quickAskProfile(question) {
             const questionInput = document.getElementById('sapphireHelpQuestion');

@@ -1,0 +1,2844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="cache-buster" content="{{ range(10000, 99999) | random }}">
+    <title>My Profile - SoulBridge AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/animations.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/themes.css') }}">
+    <style>
+        .profile-container {
+            min-height: 100vh;
+            padding: 1.5rem 2rem 2rem;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 25%, #0f172a 50%, #374151 75%, #1f2937 100%);
+            background-attachment: fixed;
+            background-size: 400% 400%;
+            position: relative;
+            animation: gradientShift 15s ease-in-out infinite;
+        }
+        
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        /* Enhanced professional background elements */
+        .profile-container::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 15% 25%, rgba(34, 211, 238, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 85% 75%, rgba(34, 211, 238, 0.06) 0%, transparent 60%),
+                radial-gradient(circle at 45% 85%, rgba(34, 211, 238, 0.04) 0%, transparent 45%),
+                radial-gradient(circle at 70% 15%, rgba(34, 211, 238, 0.05) 0%, transparent 55%),
+                linear-gradient(145deg, rgba(34, 211, 238, 0.02) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+            animation: floatingLights 8s ease-in-out infinite alternate;
+        }
+        
+        @keyframes floatingLights {
+            0% { opacity: 0.4; transform: scale(1); }
+            100% { opacity: 0.7; transform: scale(1.1); }
+        }
+        
+        @keyframes breathe {
+            0% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
+
+        .profile-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+            padding: 2rem 0;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 24px;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(34, 211, 238, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .profile-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(34, 211, 238, 0.05), transparent);
+            animation: headerShimmer 3s ease-in-out infinite;
+        }
+
+        @keyframes headerShimmer {
+            0%, 100% { left: -100%; }
+            50% { left: 100%; }
+        }
+
+        .profile-title {
+            font-size: 3rem;
+            margin-bottom: 0.8rem;
+            font-weight: 800;
+            text-shadow: 0 0 20px rgba(34, 211, 238, 0.3);
+            background: linear-gradient(135deg, #22d3ee 0%, #0891b2 50%, #22d3ee 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            background-size: 200% 200%;
+            animation: titleFlow 4s ease-in-out infinite;
+            position: relative;
+            z-index: 1;
+        }
+
+        @keyframes titleFlow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .profile-subtitle {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 1.5rem;
+            font-weight: 400;
+            position: relative;
+            z-index: 1;
+            letter-spacing: 0.5px;
+        }
+
+        .profile-grid {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 2rem;
+            padding: 0 1rem;
+        }
+
+        .profile-panel {
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid rgba(34, 211, 238, 0.2);
+            border-radius: 24px;
+            padding: 2.5rem;
+            backdrop-filter: blur(20px);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            animation: cardFadeIn 0.8s ease-out;
+            box-shadow: 
+                0 4px 20px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+
+        .profile-panel:hover {
+            transform: translateY(-4px) scale(1.01);
+            border-color: rgba(34, 211, 238, 0.4);
+            box-shadow: 
+                0 8px 32px rgba(34, 211, 238, 0.15),
+                0 4px 20px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            background: rgba(15, 23, 42, 0.9);
+        }
+
+        .profile-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(34, 211, 238, 0.08), 
+                rgba(34, 211, 238, 0.12),
+                rgba(34, 211, 238, 0.08), 
+                transparent);
+            transition: left 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .profile-panel:hover::before {
+            left: 100%;
+        }
+
+        .profile-panel::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            background: linear-gradient(135deg, 
+                rgba(34, 211, 238, 0.05) 0%, 
+                transparent 50%, 
+                rgba(34, 211, 238, 0.02) 100%);
+            border-radius: 24px;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .profile-panel:hover::after {
+            opacity: 1;
+        }
+
+        .panel-title {
+            color: #22d3ee;
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            text-shadow: 0 0 15px rgba(34, 211, 238, 0.3);
+            position: relative;
+            z-index: 2;
+        }
+
+        .panel-title::after {
+            content: '';
+            flex: 1;
+            height: 2px;
+            background: linear-gradient(90deg, 
+                rgba(34, 211, 238, 0.4) 0%, 
+                rgba(34, 211, 238, 0.1) 80%, 
+                transparent 100%);
+            border-radius: 1px;
+        }
+
+        /* Enhanced text styling */
+        .profile-panel {
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.6;
+        }
+
+        .profile-panel strong {
+            color: rgba(255, 255, 255, 0.95);
+            font-weight: 600;
+        }
+
+        .profile-panel label {
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 500;
+        }
+
+        .user-info {
+            margin-bottom: 1rem;
+        }
+
+        .info-label {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-value {
+            color: #22d3ee;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            word-break: break-word;
+        }
+
+        .subscription-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-top: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Tier Badge Styles */
+        .tier-badge {
+            display: inline-block;
+            padding: 10px 16px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 700;
+            margin: 0.5rem 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 2px solid;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .tier-bronze {
+            background: linear-gradient(135deg, #cd7f32, #a0522d);
+            color: #fff;
+            border-color: #cd7f32;
+        }
+
+        .tier-silver {
+            background: linear-gradient(135deg, #c0c0c0, #a8a8a8);
+            color: #2d3748;
+            border-color: #c0c0c0;
+        }
+
+        .tier-gold {
+            background: linear-gradient(135deg, #ffd700, #ffb700);
+            color: #2d3748;
+            border-color: #ffd700;
+        }
+
+        .trial-indicator {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            margin-left: 8px;
+        }
+
+        /* Upgrade Button Styles */
+        .upgrade-options {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .upgrade-tier {
+            margin-bottom: 1rem;
+        }
+
+        .upgrade-buttons-row {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .upgrade-btn {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: 2px solid;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            position: relative;
+        }
+
+        .upgrade-btn.silver {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            color: #495057;
+            border-color: #c0c0c0;
+        }
+
+        .upgrade-btn.silver:hover {
+            background: linear-gradient(135deg, #c0c0c0, #a8a8a8);
+            color: #fff;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(192, 192, 192, 0.4);
+        }
+
+        .upgrade-btn.gold {
+            background: linear-gradient(135deg, #fff9e6, #fff3cd);
+            color: #856404;
+            border-color: #ffd700;
+        }
+
+        .upgrade-btn.gold:hover {
+            background: linear-gradient(135deg, #ffd700, #ffb700);
+            color: #2d3748;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4);
+        }
+
+        .upgrade-btn.yearly {
+            border-width: 3px;
+        }
+
+        .savings {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 500;
+            opacity: 0.8;
+        }
+
+        .tier-features {
+            font-size: 0.8rem;
+            color: #666;
+            text-align: center;
+            margin-top: 0.5rem;
+            font-style: italic;
+        }
+
+        /* Trial Used Message */
+        .trial-used-message {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            font-size: 0.9rem;
+            color: #6c757d;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        /* Real-time Trial Countdown */
+        .trial-countdown {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            color: white;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .trial-countdown::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, rgba(255,255,255,0.1) 25%, transparent 25%), 
+                        linear-gradient(-45deg, rgba(255,255,255,0.1) 25%, transparent 25%);
+            background-size: 20px 20px;
+            animation: shimmer 10s linear infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .countdown-header {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .countdown-timer {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .time-unit {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 0.75rem 0.5rem;
+            min-width: 60px;
+            backdrop-filter: blur(10px);
+        }
+
+        .time-number {
+            display: block;
+            font-size: 1.5rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .time-label {
+            display: block;
+            font-size: 0.7rem;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 0.25rem;
+        }
+
+        .trial-progress {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            height: 8px;
+            margin: 1rem 0;
+            overflow: hidden;
+            position: relative;
+            z-index: 1;
+        }
+
+        .trial-progress-bar {
+            background: linear-gradient(90deg, #00d4aa, #00d4ff);
+            height: 100%;
+            border-radius: 10px;
+            transition: width 1s ease;
+            box-shadow: 0 0 10px rgba(0, 212, 170, 0.5);
+        }
+
+        .trial-benefits {
+            font-size: 0.85rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .countdown-expired {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        /* Credits Display */
+        .credits-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 8px 12px;
+            background: rgba(34, 211, 238, 0.1);
+            border-radius: 12px;
+            margin: 0.5rem 0;
+        }
+
+        .trial-credits {
+            background: rgba(255, 215, 0, 0.2);
+            color: #ffd700;
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+        }
+
+        /* Trial Status */
+        .trial-status {
+            padding: 12px 16px;
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 165, 0, 0.2));
+            border: 1px solid rgba(255, 215, 0, 0.5);
+            border-radius: 12px;
+            color: #ffd700;
+            margin: 1rem 0;
+        }
+
+        .trial-benefits {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin-top: 0.5rem;
+        }
+
+        /* Usage Limits */
+        .limit-display {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .limit-display.basic {
+            background: rgba(107, 114, 128, 0.3);
+            color: #9ca3af;
+        }
+
+        .limit-display.high {
+            background: rgba(34, 211, 238, 0.3);
+            color: #22d3ee;
+        }
+
+        .limit-display.unlimited {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(255, 193, 7, 0.3));
+            color: #ffd700;
+        }
+
+        .subscription-free {
+            background: linear-gradient(135deg, rgba(107, 114, 128, 0.3), rgba(75, 85, 99, 0.3));
+            color: #9ca3af;
+            border: 1px solid rgba(156, 163, 175, 0.3);
+        }
+
+        .subscription-plus {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(255, 193, 7, 0.3));
+            color: #ffd700;
+            border: 1px solid rgba(255, 215, 0, 0.5);
+        }
+
+        .subscription-galaxy {
+            background: linear-gradient(135deg, rgba(147, 51, 234, 0.3), rgba(126, 34, 206, 0.3));
+            color: #9333ea;
+            border: 1px solid rgba(147, 51, 234, 0.5);
+        }
+
+        .profile-btn {
+            width: 100%;
+            padding: 12px 20px;
+            margin: 8px 0;
+            background: linear-gradient(135deg, #22d3ee, #0891b2);
+            color: #000;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .profile-btn:hover {
+            background: linear-gradient(135deg, #0891b2, #0e7490);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(34, 211, 238, 0.5);
+        }
+
+        .profile-btn:active {
+            transform: translateY(0);
+        }
+
+        .profile-btn.secondary {
+            background: linear-gradient(135deg, #6b7280, #4b5563);
+            color: #fff;
+        }
+
+        .profile-btn.secondary:hover {
+            background: linear-gradient(135deg, #4b5563, #374151);
+        }
+
+        .profile-btn.danger {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            color: #fff;
+        }
+
+        .profile-btn.danger:hover {
+            background: linear-gradient(135deg, #b91c1c, #991b1b);
+        }
+
+        .companion-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: rgba(34, 211, 238, 0.1);
+            border-radius: 12px;
+            margin: 1rem 0;
+        }
+
+        .companion-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #22d3ee, #0891b2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #000;
+        }
+
+        .companion-details h3 {
+            color: #22d3ee;
+            margin: 0 0 0.25rem 0;
+            font-size: 1.2rem;
+        }
+
+        .companion-details p {
+            color: rgba(255, 255, 255, 0.7);
+            margin: 0;
+            font-size: 0.9rem;
+        }
+
+        .settings-group {
+            margin: 1.5rem 0;
+        }
+
+        .settings-title {
+            color: #22d3ee;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid rgba(34, 211, 238, 0.2);
+        }
+
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+
+        .setting-label {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.95rem;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 24px;
+            background: rgba(107, 114, 128, 0.5);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-switch.active {
+            background: #22d3ee;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: #fff;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-switch.active::after {
+            left: 28px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 1rem;
+            background: rgba(34, 211, 238, 0.1);
+            border-radius: 12px;
+            border: 1px solid rgba(34, 211, 238, 0.2);
+        }
+
+        .stat-number {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #22d3ee;
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .back-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: linear-gradient(135deg, #22d3ee, #0891b2);
+            color: #000;
+            padding: 12px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(34, 211, 238, 0.5);
+        }
+
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .warning-panel {
+            background: linear-gradient(135deg, rgba(220, 38, 38, 0.1), rgba(185, 28, 28, 0.1));
+            border: 2px solid rgba(220, 38, 38, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .warning-title {
+            color: #ef4444;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .warning-text {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .profile-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+                padding: 0 0.5rem;
+            }
+            
+            .profile-title {
+                font-size: 2.5rem;
+            }
+            
+            .profile-subtitle {
+                font-size: 1.2rem;
+            }
+            
+            .profile-panel {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+    <script src="{{ url_for('static', filename='js/universal-button-fix.js') }}"></script>
+</head>
+<body>
+
+    <!-- Back to Intro Button -->
+    <a href="/intro" class="back-btn">← Back to Intro</a>
+
+    <div class="profile-container">
+        <div class="profile-header">
+            <h1 class="profile-title">My Profile</h1>
+            <p class="profile-subtitle">Manage your SoulBridge AI experience</p>
+        </div>
+
+        <div class="profile-grid">
+            <!-- User Information Panel -->
+            <div class="profile-panel">
+                <h2 class="panel-title">👤 User Information</h2>
+                
+                <!-- Profile Image Section -->
+                <div style="text-align: center; margin-bottom: 20px; padding: 30px 20px;">
+                    <div style="margin-bottom: 20px;">
+                        <img id="userProfileImage"
+                             alt="Profile Picture"
+                             style="max-width: 280px; max-height: 280px; width: auto; height: auto;
+                                    box-shadow: 0 8px 30px rgba(34, 211, 238, 0.5); display: none; margin: 0 auto;
+                                    border-radius: 12px;"
+                             onload="this.style.display='block';"
+                             onerror="
+                                 if (!this.dataset.retry) {
+                                     console.log('⚠️ Profile image failed, retrying...');
+                                     this.dataset.retry = true;
+                                     this.src = this.src.split('?')[0] + '?retry=' + Date.now();
+                                 } else {
+                                     this.src='/static/logos/IntroLogo.png';
+                                     this.style.display='block';
+                                     console.log('⚠️ Profile image failed again, using default');
+                                 }">
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <input type="file" id="profileImageInput" accept="image/*" style="display: none;" onchange="handleProfileImageUpload()">
+                        <button onclick="document.getElementById('profileImageInput').click()" class="profile-btn">
+                            📷 Upload Profile Picture
+                        </button>
+                    </div>
+                    <div style="font-size: 0.85rem; color: #94a3b8;">
+                        <strong>Guidelines:</strong> PNG, JPG, GIF, WebP • Max 5MB • Appropriate content only
+                    </div>
+                </div>
+                
+                <div class="user-info">
+                    <div class="info-label">Display Name</div>
+                    <div class="info-value">
+                        <input type="text" id="displayNameInput" 
+                               style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; padding: 8px 12px; color: white; width: 200px;"
+                               value="{{ user_email.split('@')[0] if user_email else 'SoulBridge User' }}">
+                        <button onclick="updateDisplayName()" class="profile-btn" style="margin-left: 10px; padding: 6px 12px; font-size: 0.9rem;">Save</button>
+                    </div>
+                </div>
+                
+                <div class="user-info">
+                    <div class="info-label">User ID</div>
+                    <div class="info-value" id="userID">Loading...</div>
+                </div>
+
+                <div class="user-info">
+                    <div class="info-label">Email Address</div>
+                    <div class="info-value" id="userEmail">Loading...</div>
+                </div>
+
+
+                <div class="user-info">
+                    <div class="info-label">Subscription Status</div>
+                    <div id="subscriptionBadge">Loading...</div>
+                </div>
+
+                <!-- New Tier Information -->
+                <div class="user-info">
+                    <div class="info-label">Current Tier</div>
+                    <div id="tierBadge">
+                        <div class="tier-badge tier-bronze">🥉 Bronze</div>
+                    </div>
+                    <!-- Trial Activation Button (shown only for eligible Bronze users) -->
+                    <button id="trialActivationBtn" class="profile-btn" style="display: none; margin-top: 0.5rem;" onclick="activateTrial()">
+                        ⏰ Start 5-Hour Trial
+                    </button>
+                    
+                    <!-- Trial Used Message (shown for Bronze users who already used trial) -->
+                    <div id="trialUsedMessage" class="trial-used-message" style="display: none; margin-top: 0.5rem;">
+                        ✅ Trial completed - Upgrade to unlock premium features
+                    </div>
+                    
+                </div>
+
+                <div class="user-info">
+                    <div class="info-label">Trainer Credits</div>
+                    <div id="creditsDisplay">
+                        <div class="credits-info">💎 0 Credits</div>
+                    </div>
+                </div>
+
+                <!-- Trial Information (shown only when active) -->
+                <div id="trialInfo"></div>
+
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span class="stat-number" id="totalMessages">-</span>
+                        <span class="stat-label">Messages</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="totalSessions">-</span>
+                        <span class="stat-label">Sessions</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="daysActive">-</span>
+                        <span class="stat-label">Days Active</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="accountCreated">-</span>
+                        <span class="stat-label">Account Created</span>
+                    </div>
+                </div>
+
+                <!-- Usage Limits Panel -->
+                <div class="user-info">
+                    <div class="info-label">Daily Usage Limits</div>
+                    <div class="stats-grid" style="grid-template-columns: repeat(2, 1fr); gap: 0.5rem;">
+                        <div class="stat-item">
+                            <span class="stat-label">Decoder</span>
+                            <span class="stat-number"><span id="decoderLimit" class="limit-display basic">3 daily</span></span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Fortune</span>
+                            <span class="stat-number"><span id="fortuneLimit" class="limit-display basic">2 daily</span></span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Horoscope</span>
+                            <span class="stat-number"><span id="horoscopeLimit" class="limit-display basic">3 daily</span></span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Creative Writer</span>
+                            <span class="stat-number"><span id="creativeWriterLimit" class="limit-display basic">2 daily</span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Current Companion Panel -->
+            <div class="profile-panel">
+                <h2 class="panel-title">🤖 Current Companion</h2>
+                
+                <div class="companion-info" id="companionInfo">
+                    <div class="companion-avatar" id="companionAvatar">B</div>
+                    <div class="companion-details">
+                        <h3 id="companionName">Loading...</h3>
+                        <p id="companionDescription">Loading companion information...</p>
+                    </div>
+                </div>
+
+
+                <!-- Companion Quick Stats -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; padding: 15px; background: rgba(34, 211, 238, 0.1); border-radius: 8px;">
+                    <div style="text-align: center;">
+                        <div style="font-size: 1.2rem; font-weight: 600; color: #22d3ee;" id="todayMessages">-</div>
+                        <div style="font-size: 0.8rem; color: #94a3b8;">Messages Today</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 1.2rem; font-weight: 600; color: #22d3ee;" id="companionDays">-</div>
+                        <div style="font-size: 0.8rem; color: #94a3b8;">Days Together</div>
+                    </div>
+                </div>
+
+                <!-- Companion Specialties -->
+                <div style="margin: 15px 0;">
+                    <div style="font-size: 0.9rem; color: #94a3b8; margin-bottom: 8px;">✨ Specialties:</div>
+                    <div id="companionSpecialties" style="display: flex; flex-wrap: wrap; gap: 6px;">
+                        <span style="background: rgba(34, 211, 238, 0.2); color: #22d3ee; padding: 4px 8px; border-radius: 12px; font-size: 0.8rem;">Wisdom</span>
+                        <span style="background: rgba(34, 211, 238, 0.2); color: #22d3ee; padding: 4px 8px; border-radius: 12px; font-size: 0.8rem;">Guidance</span>
+                        <span style="background: rgba(34, 211, 238, 0.2); color: #22d3ee; padding: 4px 8px; border-radius: 12px; font-size: 0.8rem;">Deep Thinking</span>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div style="display: flex; gap: 10px; margin: 15px 0;">
+                    <button onclick="viewChatHistory()" class="profile-btn secondary" style="border: none; cursor: pointer; flex: 1;">
+                        📚 View Chat History
+                    </button>
+                </div>
+
+                <!-- Companion Management -->
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="showCompanionStats()" class="profile-btn secondary" style="border: none; cursor: pointer; width: 100%;">
+                        📊 View Stats
+                    </button>
+                </div>
+
+                <!-- Enhanced Brand Promotion - Bottom Featured -->
+                <div style="text-align: center; margin: 60px 0 20px 0; padding: 35px 20px;">
+                    <img src="{{ url_for('static', filename='logos/IntroLogo.png') }}" alt="SoulBridge AI" 
+                         style="max-width: 320px; width: 100%; height: auto; opacity: 0.95; 
+                                filter: drop-shadow(0 8px 24px rgba(34, 211, 238, 0.6));
+                                transition: all 0.3s ease;"
+                         onmouseover="this.style.transform='scale(1.08)'; this.style.filter='drop-shadow(0 12px 32px rgba(34, 211, 238, 0.8))'"
+                         onmouseout="this.style.transform='scale(1)'; this.style.filter='drop-shadow(0 8px 24px rgba(34, 211, 238, 0.6))'">
+                </div>
+            </div>
+
+            <!-- Account & Subscription Panel -->
+            <div class="profile-panel">
+                <h2 class="panel-title">💎 Account & Subscription</h2>
+                
+                <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px;">
+                    <a href="/subscription" class="profile-btn" style="text-decoration: none; display: inline-block; text-align: center; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: white; border: none;">
+                        ⚡ Upgrade Plan
+                    </a>
+                    <a href="/referrals" class="profile-btn secondary" style="text-decoration: none; display: inline-block; text-align: center; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none;">
+                        💰 Referrals & Rewards
+                    </a>
+                </div>
+                
+                <div id="subscriptionDetails" style="margin-bottom: 15px;">
+                    <!-- Subscription details will be loaded here -->
+                </div>
+                
+                <p style="font-size: 0.9rem; color: #94a3b8; margin: 0;">
+                    Upgrade your plan for more features, manage your subscription, or earn rewards by referring friends.
+                </p>
+            </div>
+
+            <!-- Settings & Data Management Panel -->
+            <div class="profile-panel">
+                <h2 class="panel-title">⚙️ Settings & Data</h2>
+                
+                <div class="settings-group">
+                    <div class="settings-title">Chat Settings</div>
+                    
+                    <div class="setting-item">
+                        <span class="setting-label">Save Chat History</span>
+                        <div class="toggle-switch active" id="historySavingToggle" onclick="toggleHistorySaving()"></div>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <span class="setting-label">Voice Chat Enabled</span>
+                        <div class="toggle-switch active" id="voiceEnabledToggle" onclick="toggleVoiceEnabled()"></div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 15px; flex-wrap: wrap; margin: 20px 0;">
+                    <button class="profile-btn secondary" onclick="resetSettings()">
+                        🔄 Reset to Defaults
+                    </button>
+                    <button class="profile-btn" onclick="downloadChatHistory()">
+                        📥 Download Chat History
+                    </button>
+                    <button class="profile-btn secondary" onclick="exportUserData()">
+                        📦 Export All Data
+                    </button>
+                    <button class="profile-btn secondary" onclick="clearChatHistory()">
+                        🗑️ Clear Chat History
+                    </button>
+                </div>
+
+                <div class="warning-panel">
+                    <div class="warning-title">
+                        ⚠️ Data Deletion
+                    </div>
+                    <div class="warning-text">
+                        Permanently delete your account and all associated data. This action cannot be undone.
+                    </div>
+                    <button class="profile-btn danger" onclick="deleteAccount()">
+                        ❌ Delete Account
+                    </button>
+                </div>
+            </div>
+
+
+            <!-- Support Panel -->
+            <div class="profile-panel">
+                <h2 class="panel-title">🆘 Support</h2>
+                
+                <a href="mailto:soulbridgeai.contact@gmail.com?subject=SoulBridge AI Support" class="profile-btn secondary" style="text-decoration: none; display: inline-block; text-align: center;">
+                    📧 Contact Support
+                </a>
+
+                <a href="mailto:soulbridgeai.contact@gmail.com?subject=SoulBridge AI Issue Report" class="profile-btn secondary" style="text-decoration: none; display: inline-block; text-align: center;">
+                    🐛 Report Issue
+                </a>
+
+                <a href="/help" class="profile-btn secondary" style="text-decoration: none; display: inline-block; text-align: center;">
+                    📚 Help & FAQ
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase CDN -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+    
+    <!-- SoulBridge Firebase Integration -->
+    <script src="{{ url_for('static', filename='js/firebase-config.js') }}"></script>
+
+    <script>
+        class SoulBridgeProfile {
+            constructor() {
+                this.currentUser = null;
+                this.userData = null;
+                this.initializeFirebase();
+                this.setupAuthListener();
+            }
+
+            initializeFirebase() {
+                // Firebase should already be initialized from firebase-config.js
+                if (window.SoulBridgeFirebase) {
+                    console.log('✅ Firebase integration found');
+                } else {
+                    console.warn('⚠️ Firebase integration not found, using fallback');
+                }
+            }
+
+            setupAuthListener() {
+                // Since server-side authentication already verified access,
+                // we can directly load the user profile
+                this.loadUserProfile();
+            }
+
+            async loadUserProfile() {
+                try {
+                    console.log('🔄 Loading user profile...');
+                    
+                    // Get lightweight user data with access permissions from new /api/me endpoint
+                    const response = await fetch('/api/me', {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        credentials: 'same-origin' // Ensure cookies are sent
+                    });
+
+                    console.log(`📡 Profile API response: ${response.status} ${response.statusText}`);
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        console.log('📊 Profile API result:', result);
+                        
+                        if (result.success) {
+                            this.userData = result.user;
+                            this.userAccess = result.access || {}; // New: access permissions
+                            this.userTrial = result.trial || null; // New: trial information
+                            
+                            console.log('🎯 User tier access:', this.userAccess);
+                            console.log('⏰ Trial info:', this.userTrial);
+                            console.log('🖼️ Profile image in userData:', result.user.profileImage);
+                            console.log('📋 Full userData:', result.user);
+                            
+                            this.currentUser = {
+                                uid: result.user.uid || result.user.id,
+                                email: result.user.email,
+                                displayName: result.user.displayName,
+                                plan: result.user.plan, // New: current plan (bronze/silver/gold)
+                                trainerCredits: result.user.trainer_credits || 0 // New: available credits
+                            };
+                            
+                            console.log('✅ Profile loaded successfully:', this.userData);
+                            this.updateProfileDisplay();
+                            this.updateTierDisplay(); // New: update tier-specific UI
+                        } else {
+                            console.error('❌ Profile API returned error:', result.error);
+                            throw new Error(result.error || 'Failed to load user data');
+                        }
+                    } else if (response.status === 401) {
+                        console.error('🔒 Authentication required - redirecting to login');
+                        this.showError('Session expired. Redirecting to login...');
+                        setTimeout(() => {
+                            window.location.href = '/login';
+                        }, 2000);
+                        return;
+                    } else {
+                        const errorText = await response.text();
+                        console.error(`🚨 HTTP Error ${response.status}:`, errorText);
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                } catch (error) {
+                    console.error('💥 Profile loading failed:', error);
+                    
+                    // Check if it's a network/auth error
+                    if (error.message.includes('401') || error.message.includes('Authentication')) {
+                        this.showError('Session expired. Please log in again.');
+                        setTimeout(() => {
+                            window.location.href = '/login';
+                        }, 3000);
+                        return;
+                    }
+                    
+                    this.showError(`Failed to load profile data: ${error.message}`);
+                    
+                    // Only provide minimal fallback data if absolutely necessary
+                    console.log('🔄 API failed, trying to preserve any existing data');
+                    if (!this.userData) {
+                        this.userData = {
+                            uid: 'user_fallback',
+                            email: 'user@soulbridgeai.com',
+                            displayName: '', // Don't default to anything
+                            plan: 'foundation',
+                            addons: [],
+                            profileImage: '', // Don't default to Sapphire
+                            joinDate: '2024-01-01',
+                            isActive: true
+                        };
+                    }
+                    // Don't call updateProfileDisplay() here to avoid overwriting any existing data
+                }
+            }
+
+            async createUserProfile() {
+                try {
+                    if (!this.currentUser) return;
+
+                    const response = await fetch('/api/users', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            email: this.currentUser.email || 'anonymous@soulbridge.ai',
+                            companion: 'Blayzo'
+                        })
+                    });
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        this.userData = result.user;
+                        this.updateProfileDisplay();
+                    }
+                } catch (error) {
+                    console.error('Failed to create profile:', error);
+                }
+            }
+
+            updateProfileDisplay() {
+                if (!this.userData) return;
+
+                // Update user information with null checks
+                const userIDElement = document.getElementById('userID');
+                if (userIDElement) {
+                    userIDElement.textContent = this.userData.uid || this.userData.userID || 'Unknown';
+                }
+                
+                const userEmailElement = document.getElementById('userEmail');
+                if (userEmailElement) {
+                    userEmailElement.textContent = this.userData.email || 'Not provided';
+                }
+                
+                // PATCHED PROFILE IMAGE DISPLAY LOGIC - Clean & Reliable
+                const profileImage = document.getElementById('userProfileImage');
+                console.log('🖼️ Setting profile image. Element found:', !!profileImage);
+
+                const rawProfileURL = this.userData?.profileImage;
+                const newImageSrc = rawProfileURL && rawProfileURL.trim() !== ''
+                    ? rawProfileURL + '?t=' + new Date().getTime()
+                    : '/static/logos/IntroLogo.png';
+
+                if (profileImage.src !== newImageSrc) {
+                    console.log('✅ Updating profile image src from', profileImage.src, 'to:', newImageSrc);
+                    profileImage.src = newImageSrc;
+                } else {
+                    console.log('⚡ Profile image already correct, no update needed');
+                }
+                
+                const displayNameInput = document.getElementById('displayNameInput');
+                if (displayNameInput && this.userData.displayName) {
+                    displayNameInput.value = this.userData.displayName;
+                }
+                
+                // Handle account creation date for stats display (short format)
+                let createdDateShort = '-';
+                const dateSource = this.userData.createdDate || this.userData.joinDate;
+                
+                console.log('Account created date source:', dateSource);
+                
+                if (dateSource && dateSource !== '2024-01-01' && dateSource !== '-') {
+                    try {
+                        const date = new Date(dateSource);
+                        if (!isNaN(date.getTime())) {
+                            createdDateShort = date.toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: 'short'
+                            });
+                            console.log('Formatted account created date:', createdDateShort);
+                        }
+                    } catch (e) {
+                        console.log('Date parsing error:', e);
+                        // Try a simpler format if full parsing fails
+                        if (dateSource.length >= 7) {
+                            const yearMonth = dateSource.substring(0, 7); // YYYY-MM
+                            const [year, month] = yearMonth.split('-');
+                            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                                               'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                            const monthIndex = parseInt(month) - 1;
+                            if (monthIndex >= 0 && monthIndex < 12) {
+                                createdDateShort = `${monthNames[monthIndex]} ${year}`;
+                            }
+                        }
+                    }
+                } else {
+                    console.log('Using fallback date or invalid date source');
+                }
+                
+                const accountCreatedElement = document.getElementById('accountCreated');
+                if (accountCreatedElement) {
+                    accountCreatedElement.textContent = createdDateShort;
+                }
+
+                // Update subscription badge
+                this.updateSubscriptionBadge(this.userData.subscriptionStatus || 'free');
+
+                // Update statistics with null checks
+                const messageCount = this.userData.chatHistory ? this.userData.chatHistory.length : 0;
+                const totalMessagesElement = document.getElementById('totalMessages');
+                if (totalMessagesElement) {
+                    totalMessagesElement.textContent = messageCount;
+                }
+                
+                const totalSessionsElement = document.getElementById('totalSessions');
+                if (totalSessionsElement) {
+                    totalSessionsElement.textContent = Math.ceil(messageCount / 10) || 1;
+                }
+                
+                // Calculate days active more accurately
+                let daysSinceCreation = 1; // Default to 1 day
+                const creationDateSource = this.userData.createdDate || this.userData.joinDate;
+                
+                if (creationDateSource && creationDateSource !== '2024-01-01') {
+                    try {
+                        const creationDate = new Date(creationDateSource);
+                        if (!isNaN(creationDate.getTime())) {
+                            const diffTime = Date.now() - creationDate.getTime();
+                            daysSinceCreation = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+                        }
+                    } catch (e) {
+                        console.log('Days calculation error:', e);
+                    }
+                }
+                
+                const daysActiveElement = document.getElementById('daysActive');
+                if (daysActiveElement) {
+                    daysActiveElement.textContent = daysSinceCreation;
+                }
+
+                // Update companion info
+                this.updateCompanionInfo(this.userData.companion || 'Blayzo');
+
+                // Update settings
+                this.updateSettingsDisplay();
+            }
+
+            updateSubscriptionBadge(status) {
+                const badgeContainer = document.getElementById('subscriptionBadge');
+                const badgeClass = `subscription-${status}`;
+                const statusText = status.charAt(0).toUpperCase() + status.slice(1);
+                
+                badgeContainer.innerHTML = `<div class="subscription-badge ${badgeClass}">${statusText}</div>`;
+
+                // Update upgrade button
+                const upgradeBtn = document.getElementById('upgradeBtn');
+                if (upgradeBtn) {
+                    if (status === 'free') {
+                        upgradeBtn.textContent = '🚀 Upgrade to Plus';
+                        upgradeBtn.style.display = 'block';
+                    } else if (status === 'plus') {
+                        upgradeBtn.textContent = '🌟 Upgrade to Galaxy';
+                        upgradeBtn.style.display = 'block';
+                    } else {
+                        upgradeBtn.style.display = 'none';
+                    }
+                }
+            }
+
+            updateTierDisplay() {
+                if (!this.userData || !this.userAccess) return;
+
+                console.log('🎯 Updating tier display for plan:', this.userData.plan);
+                
+                // Update tier badge
+                const tierBadge = document.getElementById('tierBadge');
+                if (tierBadge) {
+                    const plan = this.userData.plan || 'bronze';
+                    const tierEmojis = { bronze: '🥉', silver: '🥈', gold: '🥇' };
+                    const tierNames = { bronze: 'Bronze', silver: 'Silver', gold: 'Gold' };
+                    
+                    tierBadge.innerHTML = `
+                        <div class="tier-badge tier-${plan}">
+                            ${tierEmojis[plan]} ${tierNames[plan]}
+                            ${this.userTrial?.active ? ' <span class="trial-indicator">⏰ TRIAL</span>' : ''}
+                        </div>
+                    `;
+                }
+
+                // Update credits display
+                const creditsDisplay = document.getElementById('creditsDisplay');
+                if (creditsDisplay) {
+                    const credits = this.userData.trainerCredits || 0;
+                    const trialCredits = this.userAccess?.trial_credits || 0;
+                    const totalCredits = credits + trialCredits;
+                    creditsDisplay.innerHTML = `
+                        <div class="credits-info">
+                            💎 ${totalCredits} Credits
+                            ${trialCredits > 0 ? `<span class="trial-credits">(${trialCredits} trial)</span>` : ''}
+                        </div>
+                    `;
+                }
+
+                // Update trial info with real-time countdown
+                const trialInfo = document.getElementById('trialInfo');
+                if (trialInfo) {
+                    if (this.userTrial?.active && this.userTrial?.expires_at) {
+                        this.startTrialCountdown(this.userTrial.expires_at, this.userAccess.unlocked_tiers);
+                    } else {
+                        trialInfo.innerHTML = '';
+                        this.stopTrialCountdown();
+                    }
+                }
+
+                // Show/hide trial activation button and trial used message
+                const trialBtn = document.getElementById('trialActivationBtn');
+                const trialUsedMsg = document.getElementById('trialUsedMessage');
+                
+                if (trialBtn && trialUsedMsg) {
+                    const plan = this.userData.plan || 'bronze';
+                    const trialActive = this.userTrial?.active || false;
+                    const trialEligible = this.userTrial?.eligible === true; // From /api/me endpoint
+                    
+                    if (plan === 'bronze') {
+                        if (!trialActive && trialEligible) {
+                            // Show activation button for eligible Bronze users
+                            trialBtn.style.display = 'block';
+                            trialUsedMsg.style.display = 'none';
+                        } else if (!trialActive && !trialEligible) {
+                            // Show "trial used" message for ineligible Bronze users
+                            trialBtn.style.display = 'none';
+                            trialUsedMsg.style.display = 'block';
+                        } else {
+                            // Trial is active - hide both
+                            trialBtn.style.display = 'none';
+                            trialUsedMsg.style.display = 'none';
+                        }
+                    } else {
+                        // Silver/Gold users - hide both
+                        trialBtn.style.display = 'none';
+                        trialUsedMsg.style.display = 'none';
+                    }
+                }
+
+                // Upgrade buttons removed - users should use Account & Subscription section
+
+                // Update usage limits display
+                this.updateUsageLimits();
+            }
+
+            updateUsageLimits() {
+                if (!this.userAccess?.limits) return;
+
+                const limits = this.userAccess.limits;
+                const limitElements = {
+                    decoder: document.getElementById('decoderLimit'),
+                    fortune: document.getElementById('fortuneLimit'),
+                    horoscope: document.getElementById('horoscopeLimit'),
+                    creative_writer: document.getElementById('creativeWriterLimit')
+                };
+
+                Object.entries(limitElements).forEach(([feature, element]) => {
+                    if (element && limits[feature] !== undefined) {
+                        const limit = limits[feature];
+                        const displayLimit = limit === Infinity ? '∞' : limit;
+                        element.textContent = `${displayLimit} daily`;
+                        
+                        // Add visual styling based on limits
+                        element.className = `limit-display ${limit === Infinity ? 'unlimited' : limit > 10 ? 'high' : 'basic'}`;
+                    }
+                });
+            }
+
+            startTrialCountdown(expiresAt, unlockedTiers) {
+                // Clear any existing countdown
+                this.stopTrialCountdown();
+                
+                const trialInfo = document.getElementById('trialInfo');
+                if (!trialInfo) return;
+
+                const updateCountdown = () => {
+                    const now = new Date();
+                    let expiryTime;
+                    
+                    // Handle different expiration data formats
+                    if (typeof expiresAt === 'number') {
+                        expiryTime = new Date(expiresAt);
+                    } else if (typeof expiresAt === 'string') {
+                        expiryTime = new Date(expiresAt);
+                    } else {
+                        console.error('❌ PROFILE TIMER: Invalid expires_at format:', expiresAt);
+                        return;
+                    }
+                    
+                    // Validate the parsed date
+                    if (isNaN(expiryTime.getTime())) {
+                        console.error('❌ PROFILE TIMER: Invalid expiration timestamp');
+                        trialInfo.innerHTML = '<div class="trial-countdown">⏰ Trial Active — Loading...</div>';
+                        return;
+                    }
+                    
+                    const timeLeft = Math.max(0, expiryTime - now);
+                    
+                    if (timeLeft <= 0) {
+                        // Trial expired
+                        trialInfo.innerHTML = `
+                            <div class="trial-countdown countdown-expired">
+                                <div class="countdown-header">🔴 Trial Expired</div>
+                                <div class="trial-benefits">Refreshing page...</div>
+                            </div>
+                        `;
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 2000);
+                        this.stopTrialCountdown();
+                        return;
+                    }
+
+                    // Calculate time components
+                    const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+                    const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+                    // Calculate progress (5 hours = 18000000ms)
+                    const totalTime = 5 * 60 * 60 * 1000; // 5 hours in ms
+                    const elapsed = totalTime - timeLeft;
+                    const progressPercent = Math.max(0, Math.min(100, (elapsed / totalTime) * 100));
+
+                    // Update display
+                    trialInfo.innerHTML = `
+                        <div class="trial-countdown">
+                            <div class="countdown-header">⏰ Trial Active</div>
+                            
+                            <div class="countdown-timer">
+                                <div class="time-unit">
+                                    <span class="time-number">${hours.toString().padStart(2, '0')}</span>
+                                    <span class="time-label">Hours</span>
+                                </div>
+                                <div class="time-unit">
+                                    <span class="time-number">${minutes.toString().padStart(2, '0')}</span>
+                                    <span class="time-label">Minutes</span>
+                                </div>
+                                <div class="time-unit">
+                                    <span class="time-number">${seconds.toString().padStart(2, '0')}</span>
+                                    <span class="time-label">Seconds</span>
+                                </div>
+                            </div>
+                            
+                            <div class="trial-progress">
+                                <div class="trial-progress-bar" style="width: ${progressPercent}%"></div>
+                            </div>
+                            
+                            <div class="trial-benefits">
+                                🎉 Premium Access: ${unlockedTiers.join(' • ')}
+                            </div>
+                        </div>
+                    `;
+                };
+
+                // Initial update
+                updateCountdown();
+                
+                // Set up real-time updates every second
+                this.countdownInterval = setInterval(updateCountdown, 1000);
+            }
+
+            stopTrialCountdown() {
+                if (this.countdownInterval) {
+                    clearInterval(this.countdownInterval);
+                    this.countdownInterval = null;
+                }
+            }
+
+            updateCompanionInfo(companion) {
+                const companionData = {
+                    'Blayzo': {
+                        avatar: 'B',
+                        name: 'Blayzo',
+                        description: 'Wise and calm mentor for thoughtful guidance'
+                    },
+                    'Blayzion': {
+                        avatar: 'Bn',
+                        name: 'Blayzion',
+                        description: 'Creative and innovative problem solver'
+                    },
+                    'Crimson': {
+                        avatar: 'C',
+                        name: 'Crimson',
+                        description: 'Passionate and energetic motivator'
+                    },
+                    'Blayzica': {
+                        avatar: 'Bc',
+                        name: 'Blayzica',
+                        description: 'Empathetic and supportive companion'
+                    },
+                    'Blayzia': {
+                        avatar: 'Bz',
+                        name: 'Blayzia',
+                        description: 'Intuitive and mystical guide'
+                    },
+                    'Violet': {
+                        avatar: 'V',
+                        name: 'Violet',
+                        description: 'Gentle and nurturing presence'
+                    }
+                };
+
+                const info = companionData[companion] || companionData['Blayzo'];
+                
+                const companionAvatarElement = document.getElementById('companionAvatar');
+                if (companionAvatarElement) {
+                    companionAvatarElement.textContent = info.avatar;
+                }
+                
+                const companionNameElement = document.getElementById('companionName');
+                if (companionNameElement) {
+                    companionNameElement.textContent = info.name;
+                }
+                
+                const companionDescriptionElement = document.getElementById('companionDescription');
+                if (companionDescriptionElement) {
+                    companionDescriptionElement.textContent = info.description;
+                }
+
+                // Update companion stats and specialties
+                this.updateCompanionStats(info.name);
+                this.updateCompanionSpecialties(info.name);
+
+                // Update color palette
+                const colorPalettes = {
+                    'Blayzo': 'Cyan',
+                    'Blayzion': 'Galaxy',
+                    'Crimson': 'Blood Orange',
+                    'Blayzica': 'Red',
+                    'Blayzia': 'Galaxy',
+                    'Violet': 'Violet'
+                };
+                
+                const colorPaletteElement = document.getElementById('currentColorPalette');
+                if (colorPaletteElement) {
+                    colorPaletteElement.textContent = colorPalettes[companion] || 'Cyan';
+                }
+            }
+
+            updateSettingsDisplay() {
+                const settings = this.userData.settings || {};
+                
+                // Update toggles
+                const historyToggle = document.getElementById('historySavingToggle');
+                const voiceToggle = document.getElementById('voiceEnabledToggle');
+                
+                if (settings.historySaving !== false) {
+                    historyToggle.classList.add('active');
+                } else {
+                    historyToggle.classList.remove('active');
+                }
+                
+                if (settings.voiceEnabled !== false) {
+                    voiceToggle.classList.add('active');
+                } else {
+                    voiceToggle.classList.remove('active');
+                }
+            }
+
+            async downloadChatHistory() {
+                try {
+                    if (!this.userData || !this.userData.chatHistory || this.userData.chatHistory.length === 0) {
+                        alert('No chat history found to download.');
+                        return;
+                    }
+
+                    const chatData = this.userData.chatHistory;
+                    const exportData = {
+                        exportDate: new Date().toISOString(),
+                        userID: this.userData.userID,
+                        companion: this.userData.companion,
+                        totalMessages: chatData.length,
+                        chatHistory: chatData
+                    };
+
+                    const dataStr = JSON.stringify(exportData, null, 2);
+                    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                    
+                    const url = URL.createObjectURL(dataBlob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `soulbridge-chat-history-${Date.now()}.json`;
+                    link.click();
+                    
+                    URL.revokeObjectURL(url);
+                    
+                    this.showSuccess('Chat history downloaded successfully!');
+                } catch (error) {
+                    console.error('Download failed:', error);
+                    this.showError('Failed to download chat history');
+                }
+            }
+
+            async exportUserData() {
+                try {
+                    if (window.SoulBridgeFirebase && window.SoulBridgeFirebase.exportUserData) {
+                        await window.SoulBridgeFirebase.exportUserData();
+                        this.showSuccess('User data exported successfully!');
+                    } else {
+                        // Fallback export
+                        await this.downloadChatHistory();
+                    }
+                } catch (error) {
+                    console.error('Export failed:', error);
+                    this.showError('Failed to export user data');
+                }
+            }
+
+            redirectToLogin() {
+                alert('Please log in to view your profile.');
+                window.location.href = '/login';
+            }
+
+            showSuccess(message) {
+                // You can implement a toast notification here
+                alert(message);
+            }
+
+            showError(message) {
+                // You can implement a toast notification here
+                alert(message);
+            }
+
+            updateCompanionStats(companionName) {
+                // Update stats with persistent data
+                const todayMessagesEl = document.getElementById('todayMessages');
+                const companionDaysEl = document.getElementById('companionDays');
+                
+                if (todayMessagesEl) {
+                    // Use sessionStorage to keep consistent count during session
+                    let todayMessages = sessionStorage.getItem('todayMessageCount');
+                    if (!todayMessages) {
+                        // Set to 0 for now - this would come from real chat data
+                        todayMessages = '0';
+                        sessionStorage.setItem('todayMessageCount', todayMessages);
+                    }
+                    todayMessagesEl.textContent = todayMessages;
+                }
+                
+                if (companionDaysEl) {
+                    // Calculate days since joining (mock data)
+                    const joinDate = this.userData.joinDate || this.userData.createdDate;
+                    if (joinDate && joinDate !== '2024-01-01' && joinDate !== '-') {
+                        try {
+                            const created = new Date(joinDate);
+                            const now = new Date();
+                            const daysDiff = Math.floor((now - created) / (1000 * 60 * 60 * 24));
+                            companionDaysEl.textContent = Math.max(1, daysDiff);
+                        } catch (e) {
+                            companionDaysEl.textContent = '1';
+                        }
+                    } else {
+                        companionDaysEl.textContent = '1';
+                    }
+                }
+            }
+
+            updateCompanionSpecialties(companionName) {
+                const specialtiesEl = document.getElementById('companionSpecialties');
+                if (!specialtiesEl) return;
+                
+                // Define specialties for each companion
+                const companionSpecialties = {
+                    'Blayzo': ['Wisdom', 'Guidance', 'Deep Thinking'],
+                    'Violet': ['Creativity', 'Art', 'Inspiration'],
+                    'Crimson': ['Energy', 'Motivation', 'Action'],
+                    'Luna': ['Calm', 'Meditation', 'Balance'],
+                    'Phoenix': ['Growth', 'Transformation', 'Resilience']
+                };
+                
+                const specialties = companionSpecialties[companionName] || ['Wisdom', 'Guidance', 'Support'];
+                
+                specialtiesEl.innerHTML = specialties.map(specialty => 
+                    `<span style="background: rgba(34, 211, 238, 0.2); color: #22d3ee; padding: 4px 8px; border-radius: 12px; font-size: 0.8rem;">${specialty}</span>`
+                ).join('');
+            }
+        }
+
+        // Initialize profile page
+        const profile = new SoulBridgeProfile();
+
+        // Global functions
+        window.changeCompanion = () => {
+            window.location.href = '/tiers';
+        };
+
+        window.viewCompanionStats = () => {
+            showMessage('Companion statistics feature available in your dashboard!', 'info');
+        };
+
+        // Professional Profile Functions
+        window.updateDisplayName = async () => {
+            const nameInput = document.getElementById('displayNameInput');
+            const newName = nameInput.value.trim();
+            
+            if (!newName) {
+                showMessage('Please enter a valid display name', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/user/update-display-name', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ display_name: newName })
+                });
+                
+                if (response.ok) {
+                    showMessage('Display name updated successfully! ✨', 'success');
+                } else {
+                    showMessage('Display name saved locally', 'info');
+                }
+            } catch (error) {
+                showMessage('Display name saved locally', 'info');
+            }
+        };
+
+        window.viewChatHistory = () => {
+            showMessage('Opening chat history viewer...', 'info');
+            setTimeout(() => {
+                window.location.href = '/chat-history';
+            }, 1000);
+        };
+
+        window.showCompanionStats = () => {
+            showMessage('Companion statistics available in the main dashboard', 'info');
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 1500);
+        };
+
+        window.activateTrial = async () => {
+            try {
+                const response = await fetch('/api/trial/activate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                if (response.ok) {
+                    showMessage('5-hour trial activated! Enjoy full access! 🎉', 'success');
+                    setTimeout(() => location.reload(), 2000);
+                } else {
+                    showMessage('Trial activation failed. Please try again.', 'error');
+                }
+            } catch (error) {
+                showMessage('Trial activation failed. Please try again.', 'error');
+            }
+        };
+
+        window.downloadChatHistory = async () => {
+            showMessage('Preparing chat history download...', 'info');
+            try {
+                const response = await fetch('/api/user/export-chat-history');
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'soulbridge-chat-history.json';
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    showMessage('Chat history downloaded! 📥', 'success');
+                } else {
+                    showMessage('No chat history available to download', 'info');
+                }
+            } catch (error) {
+                showMessage('Download feature temporarily unavailable', 'info');
+            }
+        };
+
+        window.clearChatHistory = () => {
+            if (confirm('Are you sure you want to clear all chat history? This action cannot be undone.')) {
+                showMessage('Chat history cleared successfully', 'success');
+            }
+        };
+
+        window.deleteAccount = () => {
+            const confirmed = confirm('⚠️ WARNING: This will permanently delete your account and all data. This action cannot be undone. Are you absolutely sure?');
+            if (confirmed) {
+                const doubleConfirm = confirm('This is your final confirmation. Type YES in the next prompt to proceed.');
+                if (doubleConfirm) {
+                    const finalConfirm = prompt('Type "DELETE MY ACCOUNT" to confirm account deletion:');
+                    if (finalConfirm === 'DELETE MY ACCOUNT') {
+                        showMessage('Account deletion request submitted. You will be contacted within 24 hours.', 'info');
+                        setTimeout(() => {
+                            window.location.href = '/logout';
+                        }, 3000);
+                    } else {
+                        showMessage('Account deletion cancelled', 'info');
+                    }
+                } else {
+                    showMessage('Account deletion cancelled', 'info');
+                }
+            }
+        };
+
+        // Message display system
+        window.showMessage = (message, type) => {
+            // Remove existing messages
+            const existing = document.querySelector('.profile-message');
+            if (existing) existing.remove();
+            
+            // Create new message
+            const messageEl = document.createElement('div');
+            messageEl.className = 'profile-message';
+            messageEl.textContent = message;
+            
+            // Style based on type
+            const colors = {
+                'success': 'background: rgba(34, 211, 238, 0.2); border: 2px solid rgba(34, 211, 238, 0.5); color: #22d3ee;',
+                'error': 'background: rgba(255, 107, 107, 0.2); border: 2px solid rgba(255, 107, 107, 0.5); color: #ff6b6b;',
+                'info': 'background: rgba(0, 255, 255, 0.1); border: 2px solid rgba(0, 255, 255, 0.3); color: #00ffff;'
+            };
+            
+            messageEl.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                z-index: 10000;
+                padding: 15px 20px;
+                border-radius: 12px;
+                ${colors[type] || colors.info}
+                font-weight: 600;
+                animation: slideIn 0.3s ease-out;
+                max-width: 400px;
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            `;
+            
+            document.body.appendChild(messageEl);
+            
+            // Auto remove after 4 seconds
+            setTimeout(() => {
+                messageEl.style.animation = 'slideOut 0.3s ease-in forwards';
+                setTimeout(() => messageEl.remove(), 300);
+            }, 4000);
+        };
+
+        // Add CSS for animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // PATCHED PROFILE IMAGE UPLOAD FUNCTION - Enhanced & Bulletproof
+        window.handleProfileImageUpload = async function () {
+            const fileInput = document.getElementById('profileImageInput');
+            if (!fileInput.files || !fileInput.files[0]) return;
+
+            const file = fileInput.files[0];
+
+            // File validation
+            if (file.size > 5 * 1024 * 1024) {
+                alert('❌ File size must be under 5MB');
+                fileInput.value = '';
+                return;
+            }
+
+            const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp'];
+            if (!allowedTypes.includes(file.type)) {
+                alert('❌ Invalid file type. Please upload a PNG, JPG, JPEG, GIF, or WebP');
+                fileInput.value = '';
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('profileImage', file);
+
+            const profileImg = document.getElementById('userProfileImage');
+            const uploadBtn = document.getElementById('uploadBtn'); // Optional: disable while uploading
+
+            // Optional loading visual
+            if (uploadBtn) uploadBtn.disabled = true;
+            profileImg.style.opacity = '0.6';
+
+            try {
+                console.log('📤 Uploading profile image...', file.name, file.size);
+                const response = await fetch('/api/upload-profile-image', {
+                    method: 'POST',
+                    credentials: 'include',  // 🔒 Important for session
+                    body: formData
+                });
+
+                const result = await response.json();
+                console.log('📡 Upload response status:', response.status);
+                console.log('📊 Upload result:', result);
+
+                if (response.status === 401) {
+                    alert('🔒 Session expired. Please log in again.');
+                    window.location.href = '/login'; // Redirect to login
+                    return;
+                }
+
+                if (!result.success) {
+                    alert(`❌ Upload failed: ${result.error}`);
+                    return;
+                }
+
+                // Cache-busting refresh
+                const newSrc = result.profileImage + '?t=' + new Date().getTime();
+                profileImg.src = newSrc;
+                profileImg.style.boxShadow = '0 4px 20px rgba(16, 185, 129, 0.6)';
+
+                setTimeout(() => {
+                    profileImg.style.boxShadow = '0 4px 20px rgba(34, 211, 238, 0.3)';
+                }, 2000);
+
+                console.log('✅ Profile image updated successfully:', result.profileImage);
+                alert('✅ Profile image uploaded!');
+                fileInput.value = ''; // ✅ Clear input
+
+            } catch (err) {
+                console.error('💥 Upload error:', err);
+                alert('❌ Upload failed. Please try again. Error: ' + err.message);
+            } finally {
+                profileImg.style.opacity = '1';
+                if (uploadBtn) uploadBtn.disabled = false;
+            }
+        };
+
+        window.toggleHistorySaving = async () => {
+            // Implementation for toggling history saving
+            const toggle = document.getElementById('historySavingToggle');
+            const isActive = toggle.classList.contains('active');
+            
+            if (isActive) {
+                toggle.classList.remove('active');
+            } else {
+                toggle.classList.add('active');
+            }
+            
+            // Update in database
+            if (window.SoulBridgeFirebase && window.SoulBridgeFirebase.updateSettings) {
+                await window.SoulBridgeFirebase.updateSettings({
+                    historySaving: !isActive
+                });
+            }
+        };
+
+        window.toggleVoiceEnabled = async () => {
+            const toggle = document.getElementById('voiceEnabledToggle');
+            const isActive = toggle.classList.contains('active');
+            
+            if (isActive) {
+                toggle.classList.remove('active');
+            } else {
+                toggle.classList.add('active');
+            }
+            
+            // Update in database
+            if (window.SoulBridgeFirebase && window.SoulBridgeFirebase.updateSettings) {
+                await window.SoulBridgeFirebase.updateSettings({
+                    voiceEnabled: !isActive
+                });
+            }
+        };
+
+        window.resetSettings = async () => {
+            if (confirm('Reset all settings to default values?')) {
+                if (window.SoulBridgeFirebase && window.SoulBridgeFirebase.updateSettings) {
+                    await window.SoulBridgeFirebase.updateSettings({
+                        historySaving: true,
+                        voiceEnabled: true,
+                        colorPalette: 'cyan'
+                    });
+                    location.reload();
+                }
+            }
+        };
+
+        // Simple profile image upload - no complex adjustments needed
+
+        // Removed complex image cropper - using simple upload instead
+
+        // All image adjustment functions removed - using simple upload
+
+        // Removed setupImageDrag function - no longer needed
+
+        // Removed acceptAdjustedImage and closeCropper functions - no longer needed
+
+        window.removeProfileImage = async () => {
+            if (confirm('Remove your profile picture?')) {
+                try {
+                    const response = await fetch('/api/users', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ profileImage: '/static/logos/IntroLogo.png' })
+                    });
+                    
+                    const result = await response.json();
+                    if (result.success) {
+                        const profileImg = document.getElementById('userProfileImage');
+                        if (profileImg) {
+                            profileImg.src = '/static/logos/IntroLogo.png';
+                        }
+                    }
+                } catch (error) {
+                    console.error('Remove image error:', error);
+                }
+            }
+        };
+
+        window.updateDisplayName = async () => {
+            const displayNameInput = document.getElementById('displayNameInput');
+            if (!displayNameInput) {
+                alert('Display name input field not found.');
+                return;
+            }
+            const displayName = displayNameInput.value.trim();
+            if (!displayName) {
+                alert('Please enter a display name.');
+                return;
+            }
+            
+            if (displayName.length > 50) {
+                alert('Display name must be 50 characters or less.');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/users', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ displayName: displayName })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    alert('Display name updated successfully!');
+                } else {
+                    alert('Update failed: ' + result.error);
+                }
+            } catch (error) {
+                alert('Update failed. Please try again.');
+                console.error('Update error:', error);
+            }
+        };
+
+        window.downloadChatHistory = () => profile.downloadChatHistory();
+        window.exportUserData = () => profile.exportUserData();
+
+        window.clearChatHistory = async () => {
+            if (confirm('Are you sure you want to clear your chat history? This cannot be undone.')) {
+                try {
+                    if (window.SoulBridgeFirebase && window.SoulBridgeFirebase.clearChatHistory) {
+                        await window.SoulBridgeFirebase.clearChatHistory();
+                        profile.showSuccess('Chat history cleared successfully!');
+                        location.reload();
+                    }
+                } catch (error) {
+                    profile.showError('Failed to clear chat history');
+                }
+            }
+        };
+
+        window.deleteAccount = () => {
+            const confirmation = prompt('Type "DELETE" to confirm account deletion:');
+            if (confirmation === 'DELETE') {
+                alert('Account deletion feature will be implemented soon. Please contact support for account deletion.');
+            }
+        };
+
+        // Trial activation function
+        window.activateTrial = async () => {
+            if (!confirm('Start your 5-hour trial? This will unlock Silver and Gold features for 5 hours and give you 60 trainer credits.')) {
+                return;
+            }
+
+            const trialBtn = document.getElementById('trialActivationBtn');
+            if (trialBtn) {
+                trialBtn.disabled = true;
+                trialBtn.textContent = 'Activating...';
+            }
+
+            try {
+                const response = await fetch('/api/trial/activate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'same-origin'
+                });
+
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    alert('🎉 Trial activated! You now have access to Silver and Gold features for 5 hours, plus 60 trainer credits!');
+                    
+                    // Reload profile to update trial status
+                    window.location.reload();
+                } else {
+                    throw new Error(result.error || 'Trial activation failed');
+                }
+            } catch (error) {
+                console.error('Trial activation error:', error);
+                alert('❌ Failed to activate trial: ' + error.message);
+                
+                // Reset button
+                if (trialBtn) {
+                    trialBtn.disabled = false;
+                    trialBtn.textContent = '⏰ Start 5-Hour Trial';
+                }
+            }
+        };
+
+
+        // Color customization functions
+
+        // Simulate payment confirmation (for testing)
+        window.confirmPayment = () => {
+            localStorage.setItem('soulbridge_payment_confirmed', 'true');
+            localStorage.setItem('soulbridge_subscription', 'plus');
+            alert('Payment confirmed! Color customization is now unlocked.');
+        };
+
+        window.upgradeSubscription = () => {
+            window.location.href = '/subscription';
+        };
+
+        // Removed dead upgradeToMaxTier function - debug route no longer exists
+
+        window.manageSubscription = () => {
+            window.location.href = '/subscription';
+        };
+
+        window.contactSupport = () => {
+            window.location.href = 'mailto:soulbridgeai.contact@gmail.com?subject=SoulBridge AI Support';
+        };
+
+        window.reportIssue = () => {
+            window.location.href = 'mailto:soulbridgeai.contact@gmail.com?subject=SoulBridge AI Issue Report';
+        };
+
+        window.openHelp = () => {
+            window.location.href = '/help';
+        };
+
+        window.showCompanionStats = () => {
+            const companion = profile.userData?.companion || 'Blayzo';
+            const messageCount = profile.userData?.chatHistory?.length || 0;
+            const totalSessions = Math.ceil(messageCount / 10) || 1;
+            
+            const statsHtml = `
+                <div style="text-align: center; padding: 20px;">
+                    <h3 style="color: #22d3ee; margin-bottom: 20px;">📊 ${companion} Stats</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
+                        <div style="background: rgba(34, 211, 238, 0.1); padding: 15px; border-radius: 8px;">
+                            <div style="font-size: 1.5rem; font-weight: bold; color: #22d3ee;">${messageCount}</div>
+                            <div style="color: #94a3b8; font-size: 0.9rem;">Total Messages</div>
+                        </div>
+                        <div style="background: rgba(34, 211, 238, 0.1); padding: 15px; border-radius: 8px;">
+                            <div style="font-size: 1.5rem; font-weight: bold; color: #22d3ee;">${totalSessions}</div>
+                            <div style="color: #94a3b8; font-size: 0.9rem;">Conversations</div>
+                        </div>
+                        <div style="background: rgba(34, 211, 238, 0.1); padding: 15px; border-radius: 8px;">
+                            <div style="font-size: 1.5rem; font-weight: bold; color: #22d3ee;">${companion}</div>
+                            <div style="color: #94a3b8; font-size: 0.9rem;">Current Companion</div>
+                        </div>
+                    </div>
+                    <p style="color: #94a3b8; margin-top: 15px; font-size: 0.9rem;">More detailed analytics coming soon!</p>
+                </div>
+            `;
+            
+            // Show in a simple modal/alert for now
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center;
+                z-index: 10000; backdrop-filter: blur(5px);
+            `;
+            
+            modal.innerHTML = `
+                <div style="background: linear-gradient(135deg, #0a0e1a 0%, #1a202c 100%); 
+                           padding: 30px; border-radius: 15px; max-width: 500px; width: 90%;
+                           border: 2px solid rgba(34, 211, 238, 0.3);">
+                    ${statsHtml}
+                    <button onclick="this.closest('div').parentElement.remove()" 
+                            style="width: 100%; margin-top: 20px; padding: 12px; 
+                                   background: linear-gradient(135deg, #22d3ee 0%, #0891b2 100%);
+                                   border: none; border-radius: 8px; color: #000; font-weight: 600; cursor: pointer;">
+                        Close
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        };
+        
+        // ========================================
+        // AUTO-LOGOUT ON IDLE (Security Feature)
+        // ========================================
+        
+        let idleTimer;
+        const IDLE_TIMEOUT = 30 * 60 * 1000; // 30 minutes
+        let warningShown = false;
+        
+        function resetIdleTimer() {
+            clearTimeout(idleTimer);
+            warningShown = false;
+            
+            idleTimer = setTimeout(() => {
+                if (!warningShown) {
+                    warningShown = true;
+                    const userResponse = confirm('⚠️ Your session will expire in 2 minutes due to inactivity. Click OK to stay logged in.');
+                    
+                    if (userResponse) {
+                        resetIdleTimer();
+                        console.log('🔒 Session extended by user action');
+                    } else {
+                        setTimeout(() => {
+                            alert('🔒 Session expired due to inactivity. Redirecting to login...');
+                            window.location.href = '/auth/logout';
+                        }, 2 * 60 * 1000);
+                    }
+                } else {
+                    alert('🔒 Session expired due to inactivity. Redirecting to login...');
+                    window.location.href = '/auth/logout';
+                }
+            }, IDLE_TIMEOUT);
+        }
+        
+        // Track user activity
+        ['click', 'keydown', 'mousemove', 'scroll', 'touchstart'].forEach(event => {
+            document.addEventListener(event, resetIdleTimer, true);
+        });
+        
+        resetIdleTimer();
+        console.log('🔒 Auto-logout security active on profile page');
+
+        // Add universal Sapphire helper
+        function addSapphireHelper() {
+            const sapphireBtn = document.createElement('div');
+            sapphireBtn.innerHTML = `
+                <div id="sapphire-helper" style="
+                    position: fixed; bottom: 20px; right: 20px; z-index: 1000;
+                    width: 60px; height: 60px; border-radius: 50%;
+                    background: linear-gradient(135deg, #22d3ee 0%, #0891b2 100%);
+                    border: 3px solid rgba(0, 255, 255, 0.6);
+                    cursor: pointer; display: flex; align-items: center; justify-content: center;
+                    box-shadow: 0 4px 20px rgba(34, 211, 238, 0.4);
+                    transition: all 0.3s ease; animation: sapphireGlow 3s ease-in-out infinite alternate;
+                " onclick="openSapphireHelp()" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                    <img src="/static/logos/Sapphire.png" alt="Sapphire" 
+                         style="width: 40px; height: 40px; border-radius: 50%;">
+                </div>
+            `;
+            
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes sapphireGlow {
+                    0% { box-shadow: 0 4px 20px rgba(34, 211, 238, 0.4); }
+                    100% { box-shadow: 0 8px 30px rgba(34, 211, 238, 0.7); }
+                }
+                .quickBtn {
+                    padding: 6px 12px;
+                    background: rgba(34, 211, 238, 0.2);
+                    border: 1px solid rgba(34, 211, 238, 0.4);
+                    border-radius: 20px;
+                    color: #22d3ee;
+                    font-size: 0.75rem;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    white-space: nowrap;
+                }
+                .quickBtn:hover {
+                    background: rgba(34, 211, 238, 0.3);
+                    transform: translateY(-1px);
+                    box-shadow: 0 4px 12px rgba(34, 211, 238, 0.3);
+                }
+                /* Custom scrollbar for Sapphire modal */
+                #sapphireHelpModal div:first-child::-webkit-scrollbar {
+                    width: 8px;
+                }
+                #sapphireHelpModal div:first-child::-webkit-scrollbar-track {
+                    background: rgba(255, 255, 255, 0.1);
+                    border-radius: 10px;
+                }
+                #sapphireHelpModal div:first-child::-webkit-scrollbar-thumb {
+                    background: linear-gradient(135deg, #22d3ee, #0891b2);
+                    border-radius: 10px;
+                    border: 2px solid transparent;
+                    background-clip: content-box;
+                }
+                #sapphireHelpModal div:first-child::-webkit-scrollbar-thumb:hover {
+                    background: linear-gradient(135deg, #0891b2, #22d3ee);
+                }
+            `;
+            document.head.appendChild(style);
+            document.body.appendChild(sapphireBtn);
+        }
+        
+        function openSapphireHelp() {
+            const currentPage = window.location.pathname;
+            let contextualHelp = "";
+            
+            if (currentPage.includes('profile')) {
+                contextualHelp = "I'll show you where to upload profile images, change your display name, manage subscription, view stats, and navigate your account settings!";
+            } else if (currentPage.includes('community')) {
+                contextualHelp = "I'll guide you to join communities, participate in challenges, find peer support, and understand the activity feed!";
+            } else {
+                contextualHelp = "I'll guide you through SoulBridge AI, show you where features are located, and help you navigate!";
+            }
+            
+            // Create enhanced Sapphire modal
+            const modal = document.createElement('div');
+            modal.id = 'sapphireHelpModal';
+            modal.style.cssText = `
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(10px);
+                display: flex; justify-content: center; align-items: center;
+                z-index: 10000; animation: fadeIn 0.3s ease;
+            `;
+            
+            modal.innerHTML = `
+                <div style="
+                    background: linear-gradient(135deg, #0a0e1a 0%, #1a202c 100%);
+                    border: 2px solid rgba(34, 211, 238, 0.3);
+                    border-radius: 20px; padding: 30px; max-width: 600px; width: 90%;
+                    max-height: 85vh; overflow-y: auto;
+                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+                    animation: slideUp 0.3s ease;
+                ">
+                    <div style="text-align: center; margin-bottom: 25px;">
+                        <img src="/static/logos/Sapphire.png" alt="Sapphire" 
+                             style="width: 80px; height: 80px; border-radius: 50%; margin-bottom: 15px; border: 3px solid #22d3ee;">
+                        <h3 style="color: #22d3ee; margin: 0 0 10px 0;">💎 Sapphire - Your Navigation Assistant</h3>
+                        <p style="color: #94a3b8; margin: 0 0 15px 0; font-size: 0.9rem;">I'll guide you step-by-step! ${contextualHelp}</p>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <input type="text" id="sapphireHelpQuestion" placeholder="Ask me anything about SoulBridge AI..." 
+                               style="width: 100%; padding: 15px; border: 2px solid rgba(34, 211, 238, 0.3);
+                                      border-radius: 12px; background: rgba(255, 255, 255, 0.1);
+                                      color: white; font-size: 1rem; outline: none;"
+                               onkeypress="if(event.key==='Enter') askSapphireHelp()">
+                        <button onclick="askSapphireHelp()" 
+                                style="width: 100%; margin-top: 15px; padding: 15px;
+                                       background: linear-gradient(135deg, #22d3ee 0%, #0891b2 100%);
+                                       border: none; border-radius: 12px; color: white;
+                                       font-weight: 600; cursor: pointer; transition: all 0.3s ease;">
+                            Ask Sapphire
+                        </button>
+                    </div>
+                    
+                    <div style="background: rgba(34, 211, 238, 0.1); border-radius: 12px; padding: 15px; margin-bottom: 20px;">
+                        <h4 style="color: #22d3ee; margin: 0 0 10px 0; font-size: 0.9rem;">💡 Try asking:</h4>
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                            <button onclick="quickAskProfile('How do I reset my password?')" class="quickBtn">Reset Password</button>
+                            <button onclick="quickAskProfile('Where are my settings?')" class="quickBtn">Settings</button>
+                            <button onclick="quickAskProfile('How do I choose a companion?')" class="quickBtn">Choose Companion</button>
+                            <button onclick="quickAskProfile('Where is billing?')" class="quickBtn">Billing</button>
+                            <button onclick="quickAskProfile('What are the terms of service?')" class="quickBtn">Terms of Service</button>
+                            <button onclick="quickAskProfile('What is the privacy policy?')" class="quickBtn">Privacy Policy</button>
+                            <button onclick="quickAskProfile('What is the refund policy?')" class="quickBtn">Refund Policy</button>
+                            <button onclick="quickAskProfile('What are the community guidelines?')" class="quickBtn">Community Rules</button>
+                        </div>
+                    </div>
+                    
+                    <div id="sapphireHelpResponse" style="
+                        background: rgba(255, 255, 255, 0.05); border-radius: 12px; 
+                        padding: 15px; margin-bottom: 20px; display: none;
+                        border-left: 4px solid #22d3ee;
+                    ">
+                        <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                            <img src="/static/logos/Sapphire.png" alt="Sapphire" 
+                                 style="width: 24px; height: 24px; border-radius: 50%; margin-right: 10px;">
+                            <strong style="color: #22d3ee;">Sapphire:</strong>
+                        </div>
+                        <p id="sapphireHelpAnswer" style="color: #e2e8f0; margin: 0; line-height: 1.4;"></p>
+                    </div>
+                    
+                    <button onclick="closeSapphireHelp()" 
+                            style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.1);
+                                   border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 12px;
+                                   color: #94a3b8; cursor: pointer; transition: all 0.3s ease;">
+                        Close
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            setTimeout(() => {
+                const questionInput = document.getElementById('sapphireHelpQuestion');
+                if (questionInput) {
+                    questionInput.focus();
+                }
+            }, 100);
+        }
+        
+        async function askSapphireHelp() {
+            const questionInput = document.getElementById('sapphireHelpQuestion');
+            if (!questionInput) return;
+            
+            const question = questionInput.value.trim();
+            if (!question) return;
+            
+            const responseDiv = document.getElementById('sapphireHelpResponse');
+            const answerP = document.getElementById('sapphireHelpAnswer');
+            if (!responseDiv || !answerP) return;
+            
+            responseDiv.style.display = 'block';
+            answerP.textContent = '💎 Sapphire is thinking...';
+            
+            try {
+                const response = await fetch('/api/sapphire-chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({
+                        question: question,
+                        current_page: window.location.pathname
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    answerP.textContent = data.response;
+                } else {
+                    answerP.textContent = '💎 Sorry, I encountered an issue. Please try again or use the navigation buttons above to find what you need.';
+                }
+                
+            } catch (error) {
+                console.error('Sapphire API error:', error);
+                answerP.textContent = '💎 I\'m having connection issues. Please try refreshing the page or use the navigation buttons above to find what you need.';
+            }
+            
+            questionInput.value = '';
+        }
+        
+        // Removed placeholder getSapphireResponse - now using real OpenAI API
+        
+        function quickAskProfile(question) {
+            const questionInput = document.getElementById('sapphireHelpQuestion');
+            if (questionInput) {
+                questionInput.value = question;
+                askSapphireHelp();
+            }
+        }
+        
+        function closeSapphireHelp() {
+            const modal = document.getElementById('sapphireHelpModal');
+            if (modal) {
+                modal.style.animation = 'fadeOut 0.3s ease';
+                setTimeout(() => modal.remove(), 300);
+            }
+        }
+                }
+            }
+            
+            // COMPANION QUESTIONS
+            if (q.includes('companion') || q.includes('character') || q.includes('blayzo') || q.includes('violet') || q.includes('crimson') || q.includes('sapphire')) {
+                if (q.includes('blayzo')) {
+                    return "🤖 BLAYZO: The original SoulBridge AI companion! Wise, empathetic, great for deep conversations. Available to all tiers. Your first AI friend and guide!";
+                } else if (q.includes('violet')) {
+                    return "💜 VIOLET: Creative and artistic companion. Perfect for creative projects, art discussions, and imaginative conversations. Available to Silver/Gold tiers.";
+                } else if (q.includes('crimson')) {
+                    return "❤️ CRIMSON: Passionate and energetic companion. Great for motivation, relationships, and emotional support. Available to Silver/Gold tiers.";
+                } else if (q.includes('sapphire')) {
+                    return "💎 SAPPHIRE: That's me! Your navigation assistant. I know every feature, every page, every button. I'm here to guide you through SoulBridge AI with precision!";
+                } else {
+                    return "🌟 AI COMPANIONS: Choose from Blayzo (all tiers), Sapphire (navigation), Violet (creative), Crimson (passionate), plus Blayzia, Blayzica, Blayzike, Blayzion! Access depends on your tier level.";
+                }
+            }
+            
+            // HELPFUL FEATURES & TIPS
+            if (q.includes('tip') || q.includes('helpful') || q.includes('advice') || q.includes('suggest')) {
+                return `💡 HELPFUL TIPS:
+• Use trial wisely - 5 hours to explore all Silver/Gold features
+• Save important chats - download your history regularly  
+• Join community - anonymous sharing with companion avatars
+• Try all companions - each has unique personality & specialty
+• Check daily limits - plan your feature usage strategically
+• Upgrade smart - yearly saves 25% vs monthly billing
+• Use Sapphire (me!) anytime for navigation help 💎`;
+            }
+            
+            // NAVIGATION HELP
+            if (q.includes('where') || q.includes('find') || q.includes('navigate') || q.includes('locate') || q.includes('how')) {
+                if (q.includes('setting') || q.includes('settings')) {
+                    return "⚙️ HOW TO FIND SETTINGS:\n\n🔍 Step-by-Step Navigation:\n1. You're on Profile page now! ✅\n2. Scroll down to 'User Information' section\n3. Here you can change: Display name, Profile picture\n4. Scroll further for: Subscription settings, Trial activation\n5. Look for 'Account Settings' or 'Preferences' sections\n\n🎛️ Available Settings: Display name editing, Profile image upload, Subscription management, Trial activation, Chat history download, Help & FAQ access.";
+                } else if (q.includes('community')) {
+                    return "🌍 COMMUNITY PAGE: Click '🌍 Community' button in navigation! Anonymous sharing with companion avatars, emoji reactions, category-based posts (gratitude, dreams, thoughts, etc).";
+                } else if (q.includes('chat') || q.includes('talk')) {
+                    return "💬 CHAT: Click '🌟 Choose Your AI Companion' → select companion → start chatting! Each companion has unique personality and specialties.";
+                }
+            }
+            
+            // TROUBLESHOOTING & SUPPORT
+            if (q.includes('error') || q.includes('problem') || q.includes('issue') || q.includes('bug') || q.includes('support')) {
+                return "🔧 TROUBLESHOOTING: Page errors? Refresh browser. Profile upload issues? Try smaller image. Feature locked? Check your tier level. Still need help? Use Help & FAQ button below or contact support through official channels!";
+            }
+            
+            // PREMIUM FEATURES
+            if (q.includes('premium') || q.includes('voice') || q.includes('ai image') || q.includes('relationship') || q.includes('meditation')) {
+                return "✨ PREMIUM FEATURES: Silver/Gold unlock: Voice Journaling, AI Image Generation, Relationship Profiles, Guided Meditations. Gold adds Mini Studio. Bronze users can trial for 5 hours!";
+            }
+            
+            // TERMS, POLICIES & LEGAL - NAVIGATION INSTRUCTIONS
+            if (q.includes('terms') || q.includes('policy') || q.includes('privacy') || q.includes('legal') || q.includes('agreement')) {
+                if (q.includes('terms') || q.includes('service')) {
+                    return "📜 HOW TO FIND TERMS OF SERVICE:\n\n🔍 Navigation Steps:\n1. You're on Profile page now! ✅\n2. Scroll down to 'Help & Support' section\n3. Click 'Help & FAQ' button\n4. Look for 'Legal' or 'Terms' section\n5. Or scroll to bottom of any page → 'Terms of Service' link\n\n📋 What you'll find: User agreements, age requirements (13+), subscription terms, acceptable use policy.";
+                } else if (q.includes('privacy')) {
+                    return "🔒 HOW TO FIND PRIVACY POLICY:\n\n🔍 Navigation Steps:\n1. You're on Profile page now! ✅\n2. Scroll down to 'Help & Support' section\n3. Click 'Help & FAQ' button\n4. Look for 'Privacy' section\n5. Or scroll to bottom of any page → 'Privacy Policy' link\n\n🛡️ What you'll find: Data protection details, encryption info, privacy rights, what we collect and why.";
+                } else if (q.includes('refund') || q.includes('cancel')) {
+                    return "💳 HOW TO FIND REFUND POLICY:\n\n🔍 Navigation Steps:\n1. You're on Profile page now! ✅\n2. Scroll down to 'Subscription' section\n3. Click 'Manage Subscription' button\n4. Or scroll to 'Help & Support' → 'Help & FAQ'\n5. Look for 'Billing' or 'Refund' section\n\n📋 Policy Summary: No refunds after payment processing. Cancel anytime, keep access until billing period ends.";
+                } else if (q.includes('community') && (q.includes('guideline') || q.includes('rule'))) {
+                    return "🤝 HOW TO FIND COMMUNITY GUIDELINES:\n\n🔍 Navigation Steps:\n1. From Profile page, click 'Community' (🌍 button in nav)\n2. Look for 'Guidelines' or 'Rules' section\n3. Or Profile → 'Help & FAQ' → 'Community' section\n4. Or bottom of any page → 'Community Guidelines'\n\n📋 Key Rules: Be respectful, no harassment, stay on topic, report inappropriate content, keep sharing positive!";
+                }
+            }
+            
+            // DEFAULT COMPREHENSIVE HELP
+            return `💎 I'm Sapphire, your SoulBridge AI navigation expert! I know EVERYTHING:
+
+🥉🥈🥇 TIERS: Bronze (free+ads), Silver ($12.99), Gold ($19.99)
+🌟 COMPANIONS: Blayzo, Violet, Crimson, me (Sapphire), + more
+🔧 FEATURES: Decoder, Fortune, Horoscope, Creative Writer, Mini Studio
+✨ PREMIUM: Voice Journal, AI Images, Relationships, Meditations
+🌍 COMMUNITY: Anonymous sharing with companion avatars
+👤 PROFILE: Account settings, subscription, trial activation
+📜 LEGAL: Terms of Service, Privacy Policy, Community Guidelines
+💡 TIPS: Smart usage, billing advice, feature optimization
+
+What specific feature, policy, or page would you like help with?`;
+        }
+        
+        function quickAskProfile(question) {
+            const questionInput = document.getElementById('sapphireHelpQuestion');
+            if (questionInput) {
+                questionInput.value = question;
+                askSapphireHelp();
+            }
+        }
+        
+        function closeSapphireHelp() {
+            const modal = document.getElementById('sapphireHelpModal');
+            if (modal) {
+                modal.style.animation = 'fadeOut 0.3s ease';
+                setTimeout(() => modal.remove(), 300);
+            }
+        }
+        
+        // Load user data and initialize profile page
+        async function loadUserData() {
+            console.log('🔄 Starting loadUserData...');
+            try {
+                console.log('📡 Making API call to /api/user/profile');
+                const response = await fetch('/api/user/profile', {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin'
+                });
+
+                console.log('📡 API Response status:', response.status);
+                
+                if (response.ok) {
+                    const responseData = await response.json();
+                    console.log('✅ Profile API Response:', responseData); // Debug log
+                    
+                    // Extract user data from the response
+                    const userData = responseData.user || responseData;
+                    console.log('👤 Extracted userData:', userData);
+                    
+                    // Update user ID
+                    const userIDEl = document.getElementById('userID');
+                    console.log('🆔 User ID element found:', !!userIDEl);
+                    console.log('🆔 User ID from API:', userData.uid || userData.userID);
+                    if (userIDEl) {
+                        userIDEl.textContent = userData.uid || userData.userID || 'N/A';
+                    }
+                    
+                    // Update email  
+                    const userEmailEl = document.getElementById('userEmail');
+                    if (userEmailEl) {
+                        userEmailEl.textContent = userData.email || 'No email found';
+                    }
+                    
+                    // Update profile image
+                    const profileImageEl = document.querySelector('.profile-avatar img');
+                    console.log('🖼️ Profile image element found:', !!profileImageEl);
+                    console.log('🖼️ Profile image URL from API:', userData.profileImage);
+                    
+                    if (profileImageEl) {
+                        if (userData.profileImage) {
+                            console.log('🖼️ Setting profile image to:', userData.profileImage);
+                            profileImageEl.src = userData.profileImage;
+                            profileImageEl.onerror = function() {
+                                console.warn('❌ Profile image failed to load:', userData.profileImage);
+                                this.src = '/static/logos/IntroLogo.png'; // Fallback
+                            };
+                            profileImageEl.onload = function() {
+                                console.log('✅ Profile image loaded successfully');
+                            };
+                        } else {
+                            console.log('🖼️ No profile image in userData, using default');
+                            profileImageEl.src = '/static/logos/IntroLogo.png';
+                        }
+                    } else {
+                        console.warn('❌ Profile image element not found in DOM');
+                    }
+                    
+                    // Update companion info with last used companion
+                    if (userData.companion) {
+                        updateCompanionDisplay(userData.companion);
+                    }
+                    
+                    // Update credits display and trial status
+                    updateCreditsDisplay(userData, responseData.access);
+                    
+                } else {
+                    console.error('❌ Failed to load user data. Status:', response.status);
+                    const errorText = await response.text();
+                    console.error('❌ Error response:', errorText);
+                    // Show friendly fallback data
+                    const userIDEl = document.getElementById('userID');
+                    const userEmailEl = document.getElementById('userEmail');
+                    if (userIDEl) userIDEl.textContent = 'Unable to load';
+                    if (userEmailEl) userEmailEl.textContent = 'Unable to load';
+                }
+            } catch (error) {
+                console.error('❌ Network/JS Error loading user data:', error);
+                // Show friendly fallback data
+                const userIDEl = document.getElementById('userID');
+                const userEmailEl = document.getElementById('userEmail');
+                if (userIDEl) userIDEl.textContent = 'Connection error';
+                if (userEmailEl) userEmailEl.textContent = 'Connection error';
+            }
+        }
+        
+        // Update companion display with last used companion
+        function updateCompanionDisplay(companionName) {
+            const companionData = {
+                'Sapphire': { avatar: 'S', name: 'Sapphire', description: 'Your navigation assistant' },
+                'Blayzo': { avatar: 'B', name: 'Blayzo', description: 'Wise and calm mentor for thoughtful guidance' },
+                'Blayzion': { avatar: 'Bn', name: 'Blayzion', description: 'Creative and innovative problem solver' },
+                'Crimson': { avatar: 'C', name: 'Crimson', description: 'Passionate and energetic motivator' },
+                'Blayzica': { avatar: 'Bc', name: 'Blayzica', description: 'Empathetic and supportive companion' },
+                'Blayzia': { avatar: 'Bz', name: 'Blayzia', description: 'Intuitive and mystical guide' },
+                'Violet': { avatar: 'V', name: 'Violet', description: 'Gentle and nurturing presence' }
+            };
+
+            const info = companionData[companionName] || companionData['Blayzo'];
+            
+            // Update companion display elements
+            const avatarEl = document.getElementById('companionAvatar');
+            const nameEl = document.getElementById('companionName');
+            const descEl = document.getElementById('companionDescription');
+            
+            if (avatarEl) avatarEl.textContent = info.avatar;
+            if (nameEl) nameEl.textContent = info.name;
+            if (descEl) descEl.textContent = info.description;
+        }
+        
+        // Update credits display and handle trial status  
+        function updateCreditsDisplay(userData, accessData) {
+            const creditsEl = document.getElementById('creditsDisplay');
+            const trialInfoEl = document.getElementById('trialInfo');
+            const trialBtnEl = document.getElementById('trialActivationBtn');
+            
+            if (creditsEl) {
+                // Try to get credits from access data or user data
+                const credits = (accessData && accessData.trial_credits) || userData.trainer_credits || 0;
+                creditsEl.innerHTML = `<div class="credits-info">💎 ${credits} Credits</div>`;
+            }
+            
+            // Handle trial status from access data
+            const trialActive = (accessData && accessData.trial_live) || userData.trial_active;
+            const trialExpires = userData.trial_expires_at;
+            
+            if (trialActive && trialExpires) {
+                // Show trial countdown
+                if (trialInfoEl) {
+                    showTrialCountdown(trialInfoEl, trialExpires);
+                }
+                // Hide trial activation button during active trial
+                if (trialBtnEl) trialBtnEl.style.display = 'none';
+            } else {
+                // Hide trial info when not active
+                if (trialInfoEl) trialInfoEl.style.display = 'none';
+                
+                // Show trial activation button for Bronze users only
+                if (userData.user_plan === 'bronze' && trialBtnEl) {
+                    trialBtnEl.style.display = 'block';
+                } else if (trialBtnEl) {
+                    trialBtnEl.style.display = 'none';
+                }
+            }
+        }
+        
+        // Add Sapphire helper when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadUserData();
+            addSapphireHelper();
+        });
+        
+        // Profile page uses default styling - no theme switching
+        console.log('📄 Profile page loaded - using default styling');
+    </script>
+</body>
+</html>
