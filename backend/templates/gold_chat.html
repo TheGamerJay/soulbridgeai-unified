@@ -180,6 +180,147 @@
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     }
+    
+    /* Creative Writing Modal - Compact Version */
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .modal-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+    
+    .modal-content {
+        background: linear-gradient(135deg, #0f172a, #1e293b);
+        border: 2px solid rgba(255, 215, 0, 0.5);
+        border-radius: 20px;
+        padding: 2rem;
+        position: relative;
+        z-index: 1;
+        max-width: 600px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+    
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        color: #FFD700;
+    }
+    
+    .close-btn {
+        background: none;
+        border: none;
+        color: #FFD700;
+        font-size: 1.5rem;
+        cursor: pointer;
+        padding: 0.5rem;
+    }
+    
+    .mode-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin: 1rem 0;
+    }
+    
+    .mode-btn {
+        background: rgba(255, 215, 0, 0.1);
+        border: 2px solid rgba(255, 215, 0, 0.3);
+        color: #e2e8f0;
+        padding: 1rem;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .mode-btn:hover, .mode-btn.active {
+        border-color: #FFD700;
+        background: rgba(255, 215, 0, 0.2);
+    }
     </style>
+
+    <!-- Creative Writing Modal -->
+    <div id="creativeWritingModal" class="modal">
+        <div class="modal-overlay" onclick="closeCreativeWriting()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-crown"></i> Gold Creative Writing Assistant</h2>
+                <button class="close-btn" onclick="closeCreativeWriting()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="text-align: center; margin-bottom: 2rem; color: #FFD700;">
+                    <i class="fas fa-infinity"></i> <strong>Unlimited Creative Writing</strong> - As a Gold tier member, you have unlimited access to all creative modes!
+                </p>
+                <div class="mode-grid">
+                    <button class="mode-btn" onclick="selectWritingMode('poetry')">
+                        <i class="fas fa-heart"></i><br>Poetry & Verses
+                    </button>
+                    <button class="mode-btn" onclick="selectWritingMode('inspiration')">
+                        <i class="fas fa-lightbulb"></i><br>Daily Inspiration
+                    </button>
+                    <button class="mode-btn" onclick="selectWritingMode('story')">
+                        <i class="fas fa-book"></i><br>Short Stories
+                    </button>
+                    <button class="mode-btn" onclick="selectWritingMode('journal')">
+                        <i class="fas fa-pen"></i><br>Personal Journal
+                    </button>
+                    <button class="mode-btn" onclick="selectWritingMode('letter')">
+                        <i class="fas fa-envelope"></i><br>Personal Letters
+                    </button>
+                    <button class="mode-btn" onclick="selectWritingMode('music')">
+                        <i class="fas fa-music"></i><br>Music & Lyrics
+                    </button>
+                </div>
+                <div style="text-align: center; margin-top: 2rem;">
+                    <button onclick="redirectToMainChat()" style="background: linear-gradient(135deg, #FFD700, #FFA500); color: #000; padding: 1rem 2rem; border: none; border-radius: 10px; font-weight: bold; cursor: pointer;">
+                        <i class="fas fa-arrow-right"></i> Go to Full Creative Writer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openCreativeWriting() {
+            const modal = document.getElementById('creativeWritingModal');
+            if (modal) {
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            }
+        }
+        
+        function closeCreativeWriting() {
+            document.getElementById('creativeWritingModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+        
+        function selectWritingMode(mode) {
+            // Show selection and redirect to main chat for full experience
+            alert(`Great choice! Redirecting to the full Creative Writer for ${mode} mode...`);
+            redirectToMainChat();
+        }
+        
+        function redirectToMainChat() {
+            // Redirect to main chat where the full Creative Writing system is available
+            window.location.href = '/chat';
+        }
+    </script>
 </body>
 </html>
