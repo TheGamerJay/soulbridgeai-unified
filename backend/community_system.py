@@ -18,7 +18,7 @@ import json
 import hashlib
 from datetime import datetime, timezone, timedelta
 from typing import Optional, Dict, Any, List
-from flask import Blueprint, jsonify, request, session
+from flask import Blueprint, jsonify, request, session, redirect
 
 logger = logging.getLogger(__name__)
 
@@ -1609,4 +1609,83 @@ def ad_break():
     except Exception as e:
         logger.error(f"Failed to show ad break: {e}")
         return redirect('/community')
+
+
+@community_bp.route('/companions', methods=['GET'])
+def get_companions():
+    """Get list of available companions for avatar selection"""
+    try:
+        if 'user_id' not in session:
+            return jsonify({'success': False, 'error': 'Not logged in'}), 401
+            
+        user_id = session['user_id']
+        user_plan = session.get('user_plan', 'bronze')
+        trial_active = session.get('trial_active', False)
+        referrals = int(session.get('referrals', 0))
+        
+        # Get effective plan for companion access
+        from unified_tier_system import get_effective_plan
+        effective_plan = get_effective_plan(user_plan, trial_active)
+        
+        # Import companion data
+        from app import COMPANIONS_NEW
+        
+        # Filter companions based on user's access
+        available_companions = []
+        
+        for companion in COMPANIONS_NEW:
+            companion_tier = companion.get('tier', 'bronze')
+            min_referrals = companion.get('min_referrals', 0)
+            
+            # Check access based on tier and referrals
+            can_access = False
+            
+            if companion_tier == 'bronze':
+                can_access = True
+            elif companion_tier == 'silver' and effective_plan in ['silver', 'gold']:
+                can_access = True
+            elif companion_tier == 'gold' and effective_plan == 'gold':
+                can_access = True
+            elif companion_tier == 'referral' and referrals >= min_referrals:
+                can_access = True
+                
+            if can_access:
+                available_companions.append({
+                    'id': companion['id'],
+                    'name': companion['name'],
+                    'display_name': companion.get('display_name', companion['name']),
+                    'rarity': companion.get('tier', 'common'),
+                    'avatar_url': companion.get('image_url', f"/static/companions/{companion['name'].lower()}.png"),
+                    'tier': companion_tier
+                })
+        
+        return jsonify({
+            'success': True,
+            'companions': available_companions
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting companions: {e}")
+        return jsonify({'success': False, 'error': 'Failed to load companions'}), 500
+
+
+# ===============================
+# FLASK INTEGRATION
+# ===============================
+
+def register_community_system(app):
+    """Register the community system with Flask app"""
+    try:
+        # Register the blueprint
+        app.register_blueprint(community_bp)
+        
+        # Initialize database on first registration
+        initialize_community_database()
+        
+        logger.info("✅ Community system registered successfully")
+        return True
+        
+    except Exception as e:
+        logger.error(f"❌ Failed to register community system: {e}")
+        return False
 
