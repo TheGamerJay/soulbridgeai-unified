@@ -861,16 +861,26 @@
                                  }">
                     </div>
                     <div style="margin-bottom: 15px;">
+                        <!-- Method 1: Explicit file types -->
                         <input type="file" id="profileImageInput" accept=".gif,.png,.jpg,.jpeg,.webp" style="display: none;" onchange="handleProfileImageUpload()">
+                        <!-- Method 2: All files -->
                         <input type="file" id="profileImageInputAny" style="display: none;" onchange="handleProfileImageUpload()">
+                        <!-- Method 3: GIF only -->
+                        <input type="file" id="profileImageInputGif" accept=".gif" style="display: none;" onchange="handleProfileImageUpload()">
                         
                         <button onclick="document.getElementById('profileImageInput').click()" class="profile-btn">
                             📷 Upload Profile Picture
                         </button>
                         <br><br>
-                        <button onclick="document.getElementById('profileImageInputAny').click()" class="profile-btn secondary" style="font-size: 0.85rem; padding: 8px 12px;">
-                            📁 Browse All Files (if GIF not showing above)
-                        </button>
+                        
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button onclick="document.getElementById('profileImageInputGif').click()" class="profile-btn secondary" style="font-size: 0.8rem; padding: 6px 12px; flex: 1;">
+                                💃 GIF Only
+                            </button>
+                            <button onclick="document.getElementById('profileImageInputAny').click()" class="profile-btn secondary" style="font-size: 0.8rem; padding: 6px 12px; flex: 1;">
+                                📁 All Files
+                            </button>
+                        </div>
                     </div>
                     <div style="font-size: 0.85rem; color: #94a3b8; line-height: 1.4;">
                         <strong>Supported:</strong> PNG, JPG, JPEG, GIF (animated OK!), WebP<br>
@@ -1997,15 +2007,18 @@
 
         // PATCHED PROFILE IMAGE UPLOAD FUNCTION - Enhanced & Bulletproof
         window.handleProfileImageUpload = async function () {
-            // Check both file inputs - regular and "browse all files" 
+            // Check all three file inputs - regular, all files, and GIF only
             const fileInput = document.getElementById('profileImageInput');
             const fileInputAny = document.getElementById('profileImageInputAny');
+            const fileInputGif = document.getElementById('profileImageInputGif');
             
             let activeInput = null;
             if (fileInput.files && fileInput.files[0]) {
                 activeInput = fileInput;
             } else if (fileInputAny.files && fileInputAny.files[0]) {
                 activeInput = fileInputAny;
+            } else if (fileInputGif.files && fileInputGif.files[0]) {
+                activeInput = fileInputGif;
             }
             
             if (!activeInput) return;
@@ -2706,8 +2719,22 @@
                     }
                     
                     // Update companion info with last used companion
+                    console.log('🤖 Companion data from API:', userData.companion);
+                    console.log('🤖 Full userData keys:', Object.keys(userData));
+                    
                     if (userData.companion) {
                         updateCompanionDisplay(userData.companion);
+                    } else {
+                        console.warn('🤖 No companion data found in API response');
+                        // Try to get companion from session or other sources
+                        const sessionCompanion = userData.last_companion || userData.current_companion || userData.selected_companion;
+                        if (sessionCompanion) {
+                            console.log('🤖 Using companion from session:', sessionCompanion);
+                            updateCompanionDisplay(sessionCompanion);
+                        } else {
+                            console.warn('🤖 No companion found anywhere, showing default');
+                            updateCompanionDisplay('Blayzo'); // Default fallback
+                        }
                     }
                     
                     // Update credits display and trial status
@@ -2735,17 +2762,35 @@
         
         // Update companion display with last used companion
         function updateCompanionDisplay(companionName) {
+            console.log('🤖 Updating companion display for:', companionName);
+            
             const companionData = {
-                'Sapphire': { avatar: 'S', name: 'Sapphire', description: 'Your navigation assistant' },
+                'Sapphire': { avatar: '💎', name: 'Sapphire', description: 'Your navigation assistant' },
                 'Blayzo': { avatar: 'B', name: 'Blayzo', description: 'Wise and calm mentor for thoughtful guidance' },
                 'Blayzion': { avatar: 'Bn', name: 'Blayzion', description: 'Creative and innovative problem solver' },
                 'Crimson': { avatar: 'C', name: 'Crimson', description: 'Passionate and energetic motivator' },
                 'Blayzica': { avatar: 'Bc', name: 'Blayzica', description: 'Empathetic and supportive companion' },
                 'Blayzia': { avatar: 'Bz', name: 'Blayzia', description: 'Intuitive and mystical guide' },
-                'Violet': { avatar: 'V', name: 'Violet', description: 'Gentle and nurturing presence' }
+                'Violet': { avatar: 'V', name: 'Violet', description: 'Gentle and nurturing presence' },
+                'Claude': { avatar: 'CL', name: 'Claude', description: 'Advanced AI assistant for complex conversations' },
+                'Max': { avatar: 'M', name: 'Max', description: 'Energetic and fun companion' },
+                'Luna': { avatar: 'L', name: 'Luna', description: 'Mystical and intuitive guide' }
             };
 
-            const info = companionData[companionName] || companionData['Blayzo'];
+            // Try exact match first, then case-insensitive
+            let info = companionData[companionName];
+            if (!info && companionName) {
+                // Try case-insensitive match
+                const lowerName = companionName.toLowerCase();
+                const foundKey = Object.keys(companionData).find(key => key.toLowerCase() === lowerName);
+                info = foundKey ? companionData[foundKey] : null;
+            }
+            
+            // Default fallback
+            if (!info) {
+                console.warn('🤖 Companion not found:', companionName, 'defaulting to Blayzo');
+                info = companionData['Blayzo'];
+            }
             
             // Update companion display elements
             const avatarEl = document.getElementById('companionAvatar');
@@ -2796,7 +2841,18 @@
         // View Chat History - redirect to library page
         function viewChatHistory() {
             console.log('📚 Redirecting to chat history in library...');
-            window.location.href = '/library';
+            console.log('📚 Current URL:', window.location.href);
+            console.log('📚 Target URL: /library');
+            
+            // Force redirect to library page
+            try {
+                window.location.href = '/library';
+                console.log('📚 Redirect initiated successfully');
+            } catch (error) {
+                console.error('❌ Redirect failed:', error);
+                // Fallback - try different redirect method
+                window.location.assign('/library');
+            }
         }
 
         // Show Companion Stats placeholder
