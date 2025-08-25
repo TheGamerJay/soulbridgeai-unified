@@ -111,6 +111,283 @@
         font-weight: bold; 
     }
     .usage-limit { font-size: 12px; opacity: 0.8; }
+    
+    /* Creative Writing Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .modal-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+    
+    .modal-content {
+        background: linear-gradient(135deg, #0f172a, #1e293b);
+        border: 2px solid rgba(34, 211, 238, 0.3);
+        border-radius: 20px;
+        padding: 2rem;
+        position: relative;
+        z-index: 1;
+        max-width: 600px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+    
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        color: #22d3ee;
+    }
+    
+    .close-btn {
+        background: none;
+        border: none;
+        color: #22d3ee;
+        font-size: 1.5rem;
+        cursor: pointer;
+        padding: 0.5rem;
+    }
+    
+    .mode-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin: 1rem 0;
+    }
+    
+    .mode-btn {
+        background: rgba(34, 211, 238, 0.1);
+        border: 2px solid rgba(34, 211, 238, 0.3);
+        color: #e2e8f0;
+        padding: 1rem;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .mode-btn:hover {
+        border-color: #22d3ee;
+        background: rgba(34, 211, 238, 0.2);
+    }
+    
+    .mode-btn.active {
+        border-color: #22d3ee;
+        background: rgba(34, 211, 238, 0.3);
+    }
+    
+    .writing-input {
+        margin-top: 1.5rem;
+    }
+    
+    .writing-input textarea {
+        width: 100%;
+        min-height: 100px;
+        background: rgba(0, 0, 0, 0.3);
+        border: 2px solid rgba(34, 211, 238, 0.3);
+        border-radius: 8px;
+        color: #e2e8f0;
+        padding: 1rem;
+        font-size: 1rem;
+        resize: vertical;
+    }
+    
+    .mood-selector {
+        margin: 1rem 0;
+    }
+    
+    .mood-selector select {
+        background: rgba(0, 0, 0, 0.3);
+        border: 2px solid rgba(34, 211, 238, 0.3);
+        border-radius: 8px;
+        color: #e2e8f0;
+        padding: 0.5rem;
+        width: 100%;
+    }
+    
+    .creative-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+    
+    .creative-actions button {
+        flex: 1;
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .generate-btn {
+        background: linear-gradient(135deg, #22d3ee, #0891b2);
+        color: #000;
+    }
+    
+    .generate-btn:hover {
+        background: linear-gradient(135deg, #0891b2, #0e7490);
+        color: #fff;
+    }
     </style>
+
+    <!-- Creative Writing Modal -->
+    <div id="creativeWritingModal" class="modal">
+        <div class="modal-overlay" onclick="closeCreativeWriting()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-feather-alt"></i> Creative Writing Assistant</h2>
+                <button class="close-btn" onclick="closeCreativeWriting()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="writing-intro">
+                    <p>Welcome to your personal Creative Writing Assistant! Choose a writing mode to get started:</p>
+                </div>
+                <div class="writing-modes">
+                    <h3>Choose Your Creative Mode:</h3>
+                    <div class="mode-grid">
+                        <button class="mode-btn" onclick="selectWritingMode('poetry')" data-mode="poetry">
+                            <i class="fas fa-heart"></i><br>Poetry & Verses
+                        </button>
+                        <button class="mode-btn" onclick="selectWritingMode('inspiration')" data-mode="inspiration">
+                            <i class="fas fa-lightbulb"></i><br>Daily Inspiration
+                        </button>
+                        <button class="mode-btn" onclick="selectWritingMode('story')" data-mode="story">
+                            <i class="fas fa-book"></i><br>Short Stories
+                        </button>
+                        <button class="mode-btn" onclick="selectWritingMode('journal')" data-mode="journal">
+                            <i class="fas fa-pen"></i><br>Personal Journal
+                        </button>
+                        <button class="mode-btn" onclick="selectWritingMode('letter')" data-mode="letter">
+                            <i class="fas fa-envelope"></i><br>Personal Letters
+                        </button>
+                        <button class="mode-btn" onclick="selectWritingMode('music')" data-mode="music">
+                            <i class="fas fa-music"></i><br>Music & Lyrics
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="writing-input" id="writingInput" style="display: none;">
+                    <h3 id="modeTitle">Creative Writing</h3>
+                    <textarea id="writingPrompt" placeholder="Describe what you'd like help with..." rows="4"></textarea>
+                    <div class="mood-selector">
+                        <label>Mood/Tone:</label>
+                        <select id="moodSelect">
+                            <option value="uplifting">Uplifting & Positive</option>
+                            <option value="calming">Calm & Peaceful</option>
+                            <option value="motivational">Motivational & Energizing</option>
+                            <option value="romantic">Romantic & Loving</option>
+                            <option value="reflective">Reflective & Thoughtful</option>
+                            <option value="playful">Playful & Fun</option>
+                        </select>
+                    </div>
+                    <div class="creative-actions">
+                        <button class="generate-btn" onclick="generateCreativeContent()">Generate Content</button>
+                        <button onclick="closeCreativeWriting()" style="background: #6b7280; color: white;">Cancel</button>
+                    </div>
+                </div>
+                
+                <div id="creativeOutput" style="display: none;">
+                    <h3>Your Creative Content:</h3>
+                    <div id="generatedContent" style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; margin: 1rem 0; white-space: pre-wrap;"></div>
+                    <div class="creative-actions">
+                        <button onclick="saveToLibrary()" style="background: #10b981; color: white;">Save to Library</button>
+                        <button onclick="resetCreativeWriting()" style="background: #6b7280; color: white;">New Writing</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openCreativeWriting() {
+            const modal = document.getElementById('creativeWritingModal');
+            if (modal) {
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            }
+        }
+        
+        function closeCreativeWriting() {
+            document.getElementById('creativeWritingModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+            resetCreativeWriting();
+        }
+        
+        function selectWritingMode(mode) {
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`[data-mode="${mode}"]`).classList.add('active');
+            
+            const modeNames = {
+                poetry: 'Poetry & Verses',
+                inspiration: 'Daily Inspiration', 
+                story: 'Short Stories',
+                journal: 'Personal Journal',
+                letter: 'Personal Letters',
+                music: 'Music & Lyrics'
+            };
+            
+            document.getElementById('modeTitle').textContent = modeNames[mode];
+            document.getElementById('writingInput').style.display = 'block';
+            document.getElementById('writingPrompt').focus();
+        }
+        
+        function generateCreativeContent() {
+            const prompt = document.getElementById('writingPrompt').value.trim();
+            const mood = document.getElementById('moodSelect').value;
+            const activeMode = document.querySelector('.mode-btn.active')?.getAttribute('data-mode');
+            
+            if (!prompt) {
+                alert('Please describe what you\'d like help with first!');
+                return;
+            }
+            
+            // Show loading state
+            const generateBtn = document.querySelector('.generate-btn');
+            generateBtn.textContent = 'Generating...';
+            generateBtn.disabled = true;
+            
+            // Simulate API call to creative writing service
+            setTimeout(() => {
+                const mockContent = `This is a sample ${activeMode} with ${mood} tone based on: "${prompt}"\\n\\nYour creative content would appear here after connecting to the actual AI service.`;
+                
+                document.getElementById('generatedContent').textContent = mockContent;
+                document.getElementById('creativeOutput').style.display = 'block';
+                document.getElementById('writingInput').style.display = 'none';
+                
+                generateBtn.textContent = 'Generate Content';
+                generateBtn.disabled = false;
+            }, 2000);
+        }
+        
+        function saveToLibrary() {
+            alert('Content saved to your library!');
+            closeCreativeWriting();
+        }
+        
+        function resetCreativeWriting() {
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('writingInput').style.display = 'none';
+            document.getElementById('creativeOutput').style.display = 'none';
+            document.getElementById('writingPrompt').value = '';
+            document.getElementById('moodSelect').value = 'uplifting';
+        }
+    </script>
 </body>
 </html>
