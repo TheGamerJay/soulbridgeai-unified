@@ -5,6 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bronze Tier - SoulBridge AI</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/chat.css') }}">
+    
+    <!-- Ad Integration for Bronze Tier -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3869471953521437" crossorigin="anonymous"></script>
+    <script>
+        window.bronzeTierAds = true;
+        console.log('📺 Bronze Tier - Ads enabled for monetization');
+    </script>
 </head>
 <body class="bronze-tier">
     <div class="container">
@@ -60,7 +67,108 @@
                 </a>
             </div>
         </div>
+
+        <!-- Ad Container for Bronze Tier -->
+        <div id="bronzeAdContainer" class="ad-container" style="display: none;">
+            <div class="ad-header">
+                <span class="ad-label">📺 Advertisement</span>
+                <span class="ad-timer">Please wait <span id="bronzeAdTimer">15</span> seconds...</span>
+            </div>
+            <div class="ad-content" id="bronzeAdContent">
+                <div class="ad-placeholder">
+                    <div class="ad-placeholder-content">
+                        <i class="fas fa-ad"></i>
+                        <p>Loading advertisement...</p>
+                        <p class="ad-placeholder-note">Support SoulBridge AI by viewing this ad</p>
+                    </div>
+                </div>
+            </div>
+            <button class="ad-skip-button" id="bronzeAdSkip" disabled>Continue (<span id="bronzeSkipTimer">15</span>s)</button>
+        </div>
     </div>
+
+    <style>
+    /* Ad Container Styles for Bronze Tier */
+    .ad-container {
+        background: rgba(205, 127, 50, 0.1);
+        border: 2px solid rgba(205, 127, 50, 0.3);
+        border-radius: 12px;
+        padding: 20px;
+        margin: 20px 0;
+        text-align: center;
+        backdrop-filter: blur(10px);
+    }
+
+    .ad-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid rgba(205, 127, 50, 0.2);
+    }
+
+    .ad-label {
+        color: #CD7F32;
+        font-size: 0.9rem;
+        font-weight: bold;
+    }
+
+    .ad-timer {
+        color: #94a3b8;
+        font-size: 0.8rem;
+    }
+
+    .ad-content {
+        min-height: 200px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .ad-placeholder {
+        text-align: center;
+        color: #94a3b8;
+    }
+
+    .ad-placeholder i {
+        font-size: 3rem;
+        margin-bottom: 15px;
+        opacity: 0.5;
+        color: #CD7F32;
+    }
+
+    .ad-placeholder p {
+        margin: 10px 0;
+    }
+
+    .ad-placeholder-note {
+        font-size: 0.85rem;
+        color: #CD7F32;
+    }
+
+    .ad-skip-button {
+        background: #CD7F32;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
+        margin-top: 15px;
+        transition: all 0.3s ease;
+    }
+
+    .ad-skip-button:hover:not(:disabled) {
+        background: #B8860B;
+        transform: translateY(-2px);
+    }
+
+    .ad-skip-button:disabled {
+        background: #6b7280;
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
 
     <style>
     .bronze-tier { background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%); }
@@ -207,7 +315,132 @@
     </div>
 
     <script>
-        function openCreativeWriting() {
+        // Bronze Tier Ad System
+        let bronzeAdShown = false;
+        
+        // Show Bronze Tier Ad
+        async function showBronzeAd() {
+            if (bronzeAdShown) {
+                console.log('📺 Ad already shown this session');
+                return Promise.resolve();
+            }
+            
+            return new Promise((resolve) => {
+                const adContainer = document.getElementById('bronzeAdContainer');
+                const adTimer = document.getElementById('bronzeAdTimer');
+                const skipButton = document.getElementById('bronzeAdSkip');
+                const skipTimer = document.getElementById('bronzeSkipTimer');
+                
+                let timeLeft = 15;
+                
+                // Show ad container
+                adContainer.style.display = 'block';
+                adContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                // Load actual AdSense ad (placeholder for now)
+                loadBronzeAdSenseAd('bronzeAdContent');
+                
+                // Start countdown
+                const timer = setInterval(() => {
+                    timeLeft--;
+                    adTimer.textContent = timeLeft;
+                    skipTimer.textContent = timeLeft;
+                    
+                    if (timeLeft <= 0) {
+                        clearInterval(timer);
+                        skipButton.disabled = false;
+                        skipButton.textContent = 'Continue to Feature';
+                        skipButton.style.background = '#CD7F32';
+                    }
+                }, 1000);
+                
+                // Skip button click
+                skipButton.onclick = function() {
+                    if (timeLeft <= 0) {
+                        adContainer.style.display = 'none';
+                        bronzeAdShown = true;
+                        clearInterval(timer);
+                        resolve();
+                    }
+                };
+                
+                console.log('📺 Bronze tier ad displayed');
+            });
+        }
+        
+        // Load AdSense Ad for Bronze Tier
+        function loadBronzeAdSenseAd(containerId) {
+            console.log('📺 Loading Bronze tier ad:', containerId);
+            
+            try {
+                const adContainer = document.getElementById(containerId);
+                if (adContainer && window.adsbygoogle) {
+                    // Try to load real AdSense ad
+                    adContainer.innerHTML = `
+                        <ins class="adsbygoogle"
+                             style="display:block"
+                             data-ad-client="ca-pub-3869471953521437"
+                             data-ad-slot="1234567890"
+                             data-ad-format="auto"
+                             data-full-width-responsive="true"></ins>
+                    `;
+                    
+                    try {
+                        (window.adsbygoogle = window.adsbygoogle || []).push({});
+                        console.log('📺 Real AdSense ad loaded');
+                    } catch (e) {
+                        console.log('📺 AdSense failed, showing placeholder');
+                        showBronzeAdPlaceholder(adContainer);
+                    }
+                } else {
+                    showBronzeAdPlaceholder(document.getElementById(containerId));
+                }
+            } catch (error) {
+                console.warn('⚠️ Failed to load Bronze ad:', error);
+                showBronzeAdPlaceholder(document.getElementById(containerId));
+            }
+        }
+        
+        // Show Ad Placeholder
+        function showBronzeAdPlaceholder(container) {
+            if (container) {
+                container.innerHTML = `
+                    <div style="background: linear-gradient(135deg, #CD7F32, #B8860B); color: white; padding: 40px; border-radius: 8px; text-align: center; font-family: Arial, sans-serif;">
+                        <h3 style="margin: 0 0 10px 0; font-size: 1.2em;">🥉 Support Bronze Tier ✨</h3>
+                        <p style="margin: 0; opacity: 0.9; font-size: 0.9em;">Thank you for viewing this ad! Your support keeps SoulBridge AI free.</p>
+                        <p style="margin: 10px 0 0 0; opacity: 0.8; font-size: 0.8em;">💎 Upgrade to Silver/Gold to remove ads</p>
+                    </div>
+                `;
+                console.log('📺 Bronze ad placeholder loaded');
+            }
+        }
+        
+        // Intercept feature clicks to show ads for Bronze users
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add click handlers to Bronze features
+            const featureButtons = document.querySelectorAll('.bronze-feature');
+            featureButtons.forEach(button => {
+                button.addEventListener('click', async function(e) {
+                    e.preventDefault();
+                    
+                    console.log('📺 Bronze tier feature clicked - showing ad first');
+                    await showBronzeAd();
+                    
+                    // After ad, redirect to the original destination
+                    const originalHref = this.getAttribute('href');
+                    if (originalHref) {
+                        window.location.href = originalHref;
+                    }
+                });
+            });
+            
+            console.log('📺 Bronze tier ad system initialized');
+        });
+        
+        async function openCreativeWriting() {
+            console.log('📺 Bronze Creative Writing clicked - showing ad first');
+            await showBronzeAd();
+            
             const modal = document.getElementById('creativeWritingModal');
             if (modal) {
                 modal.style.display = 'flex';
