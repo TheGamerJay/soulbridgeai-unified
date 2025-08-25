@@ -861,7 +861,7 @@
                                  }">
                     </div>
                     <div style="margin-bottom: 15px;">
-                        <input type="file" id="profileImageInput" accept="image/*" style="display: none;" onchange="handleProfileImageUpload()">
+                        <input type="file" id="profileImageInput" accept=".png,.jpg,.jpeg,.gif,.webp,image/png,image/jpeg,image/gif,image/webp" style="display: none;" onchange="handleProfileImageUpload()">
                         <button onclick="document.getElementById('profileImageInput').click()" class="profile-btn">
                             📷 Upload Profile Picture
                         </button>
@@ -2001,11 +2001,45 @@
                 return;
             }
 
+            // Enhanced file validation - check both MIME type and extension
             const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp'];
-            if (!allowedTypes.includes(file.type)) {
-                alert('❌ Invalid file type. Please upload a PNG, JPG, JPEG, GIF, or WebP');
+            const allowedExtensions = ['png', 'jpg', 'jpeg', 'gif', 'webp'];
+            
+            // Get file extension
+            const fileExtension = file.name.split('.').pop().toLowerCase();
+            
+            console.log('🔍 File validation:', {
+                name: file.name,
+                type: file.type,
+                extension: fileExtension,
+                size: (file.size / 1024 / 1024).toFixed(2) + 'MB'
+            });
+            
+            // Check MIME type OR extension (some systems might not set MIME type correctly)
+            const validType = allowedTypes.includes(file.type);
+            const validExtension = allowedExtensions.includes(fileExtension);
+            
+            if (!validType && !validExtension) {
+                alert(`❌ Invalid file: "${file.name}" (type: "${file.type}"). Please upload PNG, JPG, JPEG, GIF, or WebP files only!`);
                 fileInput.value = '';
                 return;
+            }
+            
+            // Special detection for GIFs
+            if (file.type === 'image/gif' || fileExtension === 'gif') {
+                console.log('💃 Dancing Blayzo GIF detected! This should work perfectly!');
+                // Verify it's actually a GIF by checking file signature
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const arr = new Uint8Array(e.target.result.slice(0, 4));
+                    const header = Array.from(arr, byte => String.fromCharCode(byte)).join('');
+                    if (!header.startsWith('GIF8')) {
+                        console.warn('⚠️ File extension is .gif but file signature is not GIF format');
+                    } else {
+                        console.log('✅ Confirmed: Valid GIF file with proper signature!');
+                    }
+                };
+                reader.readAsArrayBuffer(file.slice(0, 4));
             }
 
             const formData = new FormData();

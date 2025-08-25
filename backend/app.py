@@ -7234,11 +7234,20 @@ def upload_profile_image():
         if not file or file.filename == '':
             return jsonify({"success": False, "error": "No image file provided"}), 400
 
-        # Validate extension
+        # Enhanced validation with better logging
         allowed_exts = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
         file_ext = file.filename.rsplit('.', 1)[-1].lower() if '.' in file.filename else ''
+        
+        logger.info(f"📷 Profile image upload: filename='{file.filename}', extension='{file_ext}', content_type='{file.content_type}'")
+        
         if file_ext not in allowed_exts:
-            return jsonify({"success": False, "error": "Invalid file type"}), 400
+            error_msg = f"Invalid file type '{file_ext}'. Allowed: PNG, JPG, JPEG, GIF, WebP"
+            logger.warning(f"❌ {error_msg}")
+            return jsonify({"success": False, "error": error_msg}), 400
+            
+        # Special logging for GIFs
+        if file_ext == 'gif':
+            logger.info("💃 Dancing Blayzo GIF upload detected - this should work!")
 
         # Validate file size (max 5MB)
         file.seek(0, 2)
