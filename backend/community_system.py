@@ -67,14 +67,14 @@ def initialize_community_database():
     """Initialize community database tables"""
     try:
         import os
-        import psycopg2
+        from database_utils import get_database
         
-        database_url = os.environ.get('DATABASE_URL')
-        if not database_url:
-            logger.error("No DATABASE_URL found for community initialization")
+        try:
+            db = get_database()
+            conn = db.get_connection()
+        except Exception as e:
+            logger.error(f"Database connection failed for community initialization: {e}")
             return False
-        
-        conn = psycopg2.connect(database_url)
         cursor = conn.cursor()
         
         # Community posts table - matches spec exactly
@@ -350,13 +350,13 @@ def get_user_community_avatar(user_id: int) -> Optional[Dict[str, Any]]:
     """Get user's chosen community avatar companion"""
     try:
         import os
-        import psycopg2
+        from database_utils import get_database
         
-        database_url = os.environ.get('DATABASE_URL')
-        if not database_url:
+        try:
+            db = get_database()
+            conn = db.get_connection()
+        except Exception as e:
             return None
-            
-        conn = psycopg2.connect(database_url)
         cursor = conn.cursor()
         
         # Get user's community avatar preference
@@ -388,11 +388,11 @@ def set_user_community_avatar(user_id: int, companion_data: Dict[str, Any]) -> b
         import os
         import psycopg2
         
-        database_url = os.environ.get('DATABASE_URL')
-        if not database_url:
+        try:
+            db = get_database()
+            conn = db.get_connection()
+        except Exception as e:
             return False
-            
-        conn = psycopg2.connect(database_url)
         cursor = conn.cursor()
         
         # Create table if it doesn't exist
@@ -444,11 +444,11 @@ def check_avatar_change_cooldown(user_id: int) -> Dict[str, Any]:
         import psycopg2
         from datetime import datetime, timezone, timedelta
         
-        database_url = os.environ.get('DATABASE_URL')
-        if not database_url:
+        try:
+            db = get_database()
+            conn = db.get_connection()
+        except Exception as e:
             return {'can_change': True, 'cooldown_remaining': 0}
-        
-        conn = psycopg2.connect(database_url)
         cursor = conn.cursor()
         
         # Check last avatar change
@@ -675,15 +675,15 @@ def create_post():
         author_hash = generate_anonymous_hash(user_id)
         
         # Create post record
-        import os
-        import psycopg2
+        from database_utils import get_database
         
-        database_url = os.environ.get('DATABASE_URL')
-        if not database_url:
+        try:
+            db = get_database()
+            conn = db.get_connection()
+            cursor = conn.cursor()
+        except Exception as e:
+            logger.error(f"Database connection failed: {e}")
             return jsonify({"error": "Database not available"}), 500
-            
-        conn = psycopg2.connect(database_url)
-        cursor = conn.cursor()
         
         cursor.execute("""
             INSERT INTO community_posts (
@@ -734,15 +734,15 @@ def react_to_post(post_id: int):
                 "error": f"Invalid emoji. Allowed: {COMMUNITY_CONFIG['allowed_reactions']}"
             }), 400
         
-        import os
-        import psycopg2
+        from database_utils import get_database
         
-        database_url = os.environ.get('DATABASE_URL')
-        if not database_url:
+        try:
+            db = get_database()
+            conn = db.get_connection()
+            cursor = conn.cursor()
+        except Exception as e:
+            logger.error(f"Database connection failed: {e}")
             return jsonify({"error": "Database not available"}), 500
-            
-        conn = psycopg2.connect(database_url)
-        cursor = conn.cursor()
         
         # Check if post exists and is approved
         cursor.execute("""
@@ -835,15 +835,15 @@ def get_community_feed():
         if sort_by not in ['new', 'top_week', 'top_month', 'top_all']:
             return jsonify({"error": "Invalid sort option"}), 400
         
-        import os
-        import psycopg2
+        from database_utils import get_database
         
-        database_url = os.environ.get('DATABASE_URL')
-        if not database_url:
+        try:
+            db = get_database()
+            conn = db.get_connection()
+            cursor = conn.cursor()
+        except Exception as e:
+            logger.error(f"Database connection failed: {e}")
             return jsonify({"error": "Database not available"}), 500
-            
-        conn = psycopg2.connect(database_url)
-        cursor = conn.cursor()
         
         # Check if table exists and has required columns
         cursor.execute("""
@@ -1064,15 +1064,15 @@ def report_post(post_id: int):
                 "error": f"Invalid reason. Valid: {COMMUNITY_CONFIG['report_reasons']}"
             }), 400
         
-        import os
-        import psycopg2
+        from database_utils import get_database
         
-        database_url = os.environ.get('DATABASE_URL')
-        if not database_url:
+        try:
+            db = get_database()
+            conn = db.get_connection()
+            cursor = conn.cursor()
+        except Exception as e:
+            logger.error(f"Database connection failed: {e}")
             return jsonify({"error": "Database not available"}), 500
-            
-        conn = psycopg2.connect(database_url)
-        cursor = conn.cursor()
         
         # Check if post exists
         cursor.execute("""
@@ -1178,15 +1178,15 @@ def mute_content():
         if mute_type not in ['author', 'companion', 'category']:
             return jsonify({"error": "Invalid mute type"}), 400
         
-        import os
-        import psycopg2
+        from database_utils import get_database
         
-        database_url = os.environ.get('DATABASE_URL')
-        if not database_url:
+        try:
+            db = get_database()
+            conn = db.get_connection()
+            cursor = conn.cursor()
+        except Exception as e:
+            logger.error(f"Database connection failed: {e}")
             return jsonify({"error": "Database not available"}), 500
-            
-        conn = psycopg2.connect(database_url)
-        cursor = conn.cursor()
         
         # Calculate expiry
         expires_at = None
@@ -1630,8 +1630,12 @@ def get_companions():
         # Import companion data
         from app import COMPANIONS_NEW
         
-        # Filter companions based on user's access
-        available_companions = []
+        # Get user's current community avatar
+        current_avatar = get_user_community_avatar(user_id)
+        current_companion_id = current_avatar.get('companion_id') if current_avatar else None
+        
+        # Show ALL companions with access status
+        all_companions = []
         
         for companion in COMPANIONS_NEW:
             companion_tier = companion.get('tier', 'bronze')
@@ -1639,29 +1643,42 @@ def get_companions():
             
             # Check access based on tier and referrals
             can_access = False
+            unlock_requirement = None
             
             if companion_tier == 'bronze':
                 can_access = True
-            elif companion_tier == 'silver' and effective_plan in ['silver', 'gold']:
-                can_access = True
-            elif companion_tier == 'gold' and effective_plan == 'gold':
-                can_access = True
-            elif companion_tier == 'referral' and referrals >= min_referrals:
-                can_access = True
-                
-            if can_access:
-                available_companions.append({
-                    'id': companion['id'],
-                    'name': companion['name'],
-                    'display_name': companion.get('display_name', companion['name']),
-                    'rarity': companion.get('tier', 'common'),
-                    'avatar_url': companion.get('image_url', f"/static/companions/{companion['name'].lower()}.png"),
-                    'tier': companion_tier
-                })
+            elif companion_tier == 'silver':
+                can_access = effective_plan in ['silver', 'gold']
+                if not can_access:
+                    unlock_requirement = 'silver'
+            elif companion_tier == 'gold':
+                can_access = effective_plan == 'gold'
+                if not can_access:
+                    unlock_requirement = 'gold'
+            elif companion_tier == 'referral':
+                can_access = referrals >= min_referrals
+                if not can_access:
+                    unlock_requirement = f'{min_referrals} referrals'
+            
+            companion_data = {
+                'id': companion['id'],
+                'name': companion['name'],
+                'display_name': companion.get('display_name', companion['name']),
+                'rarity': companion.get('tier', 'common'),
+                'avatar_url': companion.get('image_url', f"/static/companions/{companion['name'].lower()}.png"),
+                'tier': companion_tier,
+                'can_access': can_access,
+                'is_current': companion['id'] == current_companion_id,
+                'unlock_requirement': unlock_requirement
+            }
+            
+            all_companions.append(companion_data)
         
         return jsonify({
             'success': True,
-            'companions': available_companions
+            'companions': all_companions,
+            'current_companion_id': current_companion_id,
+            'user_tier': effective_plan
         })
         
     except Exception as e:

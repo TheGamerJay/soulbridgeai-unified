@@ -1260,20 +1260,33 @@
             const listContainer = document.getElementById('companion-list');
             listContainer.innerHTML = '';
             
-            // Get current companion from UI
-            const currentCompanionName = document.getElementById('companion-name').textContent;
-            
             availableCompanions.forEach(companion => {
                 const companionCard = document.createElement('div');
                 companionCard.className = 'companion-card';
                 
                 // Check if this is the currently selected companion
-                if (companion.display_name === currentCompanionName || companion.name === currentCompanionName) {
+                if (companion.is_current) {
                     companionCard.classList.add('selected');
                     selectedCompanion = companion;
                 }
                 
+                // Add locked state for unavailable companions
+                if (!companion.can_access) {
+                    companionCard.classList.add('locked');
+                    companionCard.style.opacity = '0.6';
+                    companionCard.style.position = 'relative';
+                }
+                
+                let lockIcon = '';
+                let upgradeText = '';
+                
+                if (!companion.can_access) {
+                    lockIcon = '<div style="position: absolute; top: 5px; right: 5px; color: #ff6b6b; font-size: 16px;">🔒</div>';
+                    upgradeText = `<div style="color: #ff6b6b; font-size: 10px; margin-top: 4px;">Requires ${companion.unlock_requirement}</div>`;
+                }
+                
                 companionCard.innerHTML = `
+                    ${lockIcon}
                     <div class="companion-avatar">
                         ${companion.avatar_url 
                             ? `<img src="${companion.avatar_url}" alt="${companion.display_name}" onerror="this.style.display='none'; this.parentElement.textContent='${getCompanionEmoji(companion.id)}';">` 
@@ -1282,9 +1295,18 @@
                     </div>
                     <div class="companion-name">${companion.display_name || companion.name}</div>
                     <div class="companion-rarity ${companion.rarity || 'common'}">${companion.rarity || 'Common'}</div>
+                    ${upgradeText}
                 `;
                 
-                companionCard.addEventListener('click', () => selectCompanion(companion, companionCard));
+                companionCard.addEventListener('click', () => {
+                    if (companion.can_access) {
+                        selectCompanion(companion, companionCard);
+                    } else {
+                        // Show upgrade prompt for locked companions
+                        showUpgradePrompt(companion.unlock_requirement);
+                    }
+                });
+                
                 listContainer.appendChild(companionCard);
             });
         }
@@ -1489,21 +1511,32 @@
             });
         }
 
-        // Upgrade prompt for locked companions - consolidated from community_system.py
-        function upgradePrompt(tier) {
+        // Upgrade prompt for locked companions
+        function showUpgradePrompt(requirement) {
             let message, upgradeUrl;
             
-            if (tier === 'silver') {
-                message = 'This companion requires Silver tier subscription. Would you like to upgrade to unlock all Silver companions?';
-                upgradeUrl = '/subscription';
-            } else if (tier === 'gold') {
-                message = 'This companion requires Gold tier subscription. Would you like to upgrade to unlock all Gold companions?';
-                upgradeUrl = '/subscription';
+            if (requirement === 'silver') {
+                message = 'This companion requires Silver tier subscription. Would you like to upgrade to unlock all Silver companions and premium features?';
+                upgradeUrl = '/tiers';
+            } else if (requirement === 'gold') {
+                message = 'This companion requires Gold tier subscription. Would you like to upgrade to unlock all Gold companions and unlimited features?';
+                upgradeUrl = '/tiers';
+            } else if (requirement.includes('referrals')) {
+                message = `This companion requires ${requirement}. Invite friends to SoulBridge AI to unlock exclusive referral companions!`;
+                upgradeUrl = '/referral';
+            } else {
+                message = `This companion requires ${requirement}. Would you like to learn more about upgrading?`;
+                upgradeUrl = '/tiers';
             }
             
             if (confirm(message)) {
                 window.location.href = upgradeUrl;
             }
+        }
+        
+        // Legacy function for backwards compatibility
+        function upgradePrompt(tier) {
+            showUpgradePrompt(tier);
         }
     </script>
 </body>
