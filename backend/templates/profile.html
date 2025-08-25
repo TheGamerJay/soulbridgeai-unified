@@ -2423,7 +2423,7 @@
             }, 100);
         }
         
-        function askSapphireHelp() {
+        async function askSapphireHelp() {
             const questionInput = document.getElementById('sapphireHelpQuestion');
             if (!questionInput) return;
             
@@ -2435,34 +2435,54 @@
             if (!responseDiv || !answerP) return;
             
             responseDiv.style.display = 'block';
+            answerP.textContent = '💎 Sapphire is thinking...';
             
-            // Use the same enhanced response system
-            const currentPage = window.location.pathname;
-            let answer = getSapphireResponse(question, currentPage);
+            try {
+                const response = await fetch('/api/sapphire-chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({
+                        question: question,
+                        current_page: window.location.pathname
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    answerP.textContent = data.response;
+                } else {
+                    answerP.textContent = '💎 Sorry, I encountered an issue. Please try again or use the navigation buttons above to find what you need.';
+                }
+                
+            } catch (error) {
+                console.error('Sapphire API error:', error);
+                answerP.textContent = '💎 I\'m having connection issues. Please try refreshing the page or use the navigation buttons above to find what you need.';
+            }
             
-            answerP.textContent = answer;
             questionInput.value = '';
         }
         
-        function getSapphireResponse(question, currentPage) {
-            const q = question.toLowerCase();
-            
-            // COMPREHENSIVE APP KNOWLEDGE - SAPPHIRE KNOWS EVERYTHING
-            
-            // TIER SYSTEM QUESTIONS
-            if (q.includes('tier') || q.includes('plan') || q.includes('bronze') || q.includes('silver') || q.includes('gold') || q.includes('subscription')) {
-                if (q.includes('bronze') || q.includes('free')) {
-                    return "🥉 BRONZE TIER (Default): Always available with ads! Features: Decoder (3 daily), Fortune (2 daily), Horoscope (3 daily), Creative Writer (2 daily). Premium features LOCKED. Can activate 5-hour trial to taste Silver/Gold features + get 60 trainer credits!";
-                } else if (q.includes('silver')) {
-                    return "🥈 SILVER TIER ($12.99/month): Enhanced limits + premium features! Decoder (15), Fortune (8), Horoscope (10), Creative Writer (20). 100 monthly trainer credits. Unlocks: AI Images, Voice Journal, Relationships, Meditations. NO ADS. Mini Studio still locked (Gold only).";
-                } else if (q.includes('gold')) {
-                    return "🥇 GOLD TIER ($19.99/month): UNLIMITED everything! All features unlimited. 500 monthly trainer credits. Unlocks ALL premium features INCLUDING Mini Studio (Gold exclusive). Access to all Bronze/Silver/Gold companions. NO ADS.";
-                } else if (q.includes('trial')) {
-                    return "⏰ 5-HOUR TRIAL: For Bronze users only! Unlocks Silver/Gold access + 60 trainer credits for 5 hours. One-time only. Perfect to taste premium features before subscribing! Activate it right here on your Profile page!";
-                } else if (q.includes('credit')) {
-                    return "💰 TRAINER CREDITS: Bronze=0, Silver=100/month, Gold=500/month. Used for credit-based features. Silver/Gold can buy extra credits when running low. Credits reset monthly (no rollover)!";
-                }
+        // Removed placeholder getSapphireResponse - now using real OpenAI API
+        
+        function quickAskProfile(question) {
+            const questionInput = document.getElementById('sapphireHelpQuestion');
+            if (questionInput) {
+                questionInput.value = question;
+                askSapphireHelp();
             }
+        }
+        
+        function closeSapphireHelp() {
+            const modal = document.getElementById('sapphireHelpModal');
+            if (modal) {
+                modal.style.animation = 'fadeOut 0.3s ease';
+                setTimeout(() => modal.remove(), 300);
+            }
+        }
             
             // TERMS, POLICIES & LEGAL
             if (q.includes('terms') || q.includes('policy') || q.includes('privacy') || q.includes('legal') || q.includes('agreement')) {

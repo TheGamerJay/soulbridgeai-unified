@@ -6804,6 +6804,85 @@ def payment_cancel():
         return redirect("/subscription")
 
 @app.route("/api/user/profile", methods=["GET", "POST"])
+@app.route("/api/sapphire-chat", methods=["POST"])
+def sapphire_chat():
+    """Sapphire AI Navigation Assistant - Real OpenAI Integration with GPT-3.5-turbo"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+
+        data = request.get_json()
+        if not data or 'question' not in data:
+            return jsonify({"success": False, "error": "Question required"}), 400
+
+        question = data['question'].strip()
+        current_page = data.get('current_page', '/')
+        
+        if not question:
+            return jsonify({"success": False, "error": "Question cannot be empty"}), 400
+
+        # Get user context for personalized responses
+        user_plan = session.get('user_plan', 'bronze')
+        trial_active = session.get('trial_active', False)
+        user_email = session.get('user_email', 'user@soulbridgeai.com')
+
+        # Sapphire system prompt - NAVIGATION ONLY, NO CONVERSATIONS
+        system_prompt = f"""You are Sapphire 💎, the NAVIGATION ASSISTANT for SoulBridge AI. Your ONLY purpose is to guide users to specific locations within the app.
+
+STRICT RULES:
+- ONLY provide navigation directions to app features/pages
+- DO NOT engage in conversations, weather, personal advice, general questions
+- If asked non-navigation questions, politely redirect to navigation help
+- For conversations, redirect to AI companions (Blayzo, Violet, Crimson)
+
+CURRENT USER: Plan={user_plan}, Trial={trial_active}, Page={current_page}
+
+NAVIGATION DIRECTORIES:
+- Settings: Profile → User Information section
+- Terms/Privacy: Profile → Help & FAQ → Legal/Privacy section  
+- Billing: Profile → Subscription section
+- Community: Community (🌍) button → Guidelines section
+- Companions: Choose Your AI Companion button
+- Chat: Choose companion first, then start conversations
+- Help: Profile → Help & FAQ button
+
+RESPONSE FORMAT:
+💎 [Navigation steps OR redirect to companions for conversations]
+
+REDIRECT TEMPLATE for non-navigation questions:
+"💎 I'm here to help you navigate SoulBridge AI, not for conversations. For [weather/advice/chat], please use our AI companions like Blayzo, Violet, or Crimson by clicking 'Choose Your AI Companion' above. How can I help you find a specific page or feature?"
+
+ONLY answer questions about WHERE to find things in the app."""
+
+        try:
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",  # Cheapest OpenAI model
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": question}
+                ],
+                max_tokens=300,
+                temperature=0.3
+            )
+            
+            sapphire_response = response.choices[0].message.content.strip()
+            
+            return jsonify({
+                "success": True,
+                "response": sapphire_response
+            })
+            
+        except Exception as openai_error:
+            logger.error(f"OpenAI API error in Sapphire chat: {openai_error}")
+            return jsonify({
+                "success": False, 
+                "error": "Sapphire is temporarily unavailable. Please try again."
+            }), 500
+            
+    except Exception as e:
+        logger.error(f"Sapphire chat error: {e}")
+        return jsonify({"success": False, "error": "Navigation assistance unavailable"}), 500
+
 @app.route("/api/users", methods=["GET", "POST"])  
 def api_users():
     """User profile API endpoint"""
