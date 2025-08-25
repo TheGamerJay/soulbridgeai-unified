@@ -843,22 +843,30 @@
                 <!-- Profile Image Section -->
                 <div style="text-align: center; margin-bottom: 20px; padding: 30px 20px;">
                     <div style="margin-bottom: 20px;">
-                        <img id="userProfileImage"
-                             alt="Profile Picture"
-                             style="max-width: 280px; max-height: 280px; width: auto; height: auto;
-                                    box-shadow: 0 8px 30px rgba(34, 211, 238, 0.5); display: none; margin: 0 auto;
-                                    border-radius: 12px;"
-                             onload="this.style.display='block';"
-                             onerror="
-                                 if (!this.dataset.retry) {
-                                     console.log('⚠️ Profile image failed, retrying...');
-                                     this.dataset.retry = true;
-                                     this.src = this.src.split('?')[0] + '?retry=' + Date.now();
-                                 } else {
-                                     this.src='/static/logos/IntroLogo.png';
-                                     this.style.display='block';
-                                     console.log('⚠️ Profile image failed again, using default');
-                                 }">
+                        <!-- Profile Media Container - handles both images and videos -->
+                        <div id="profileMediaContainer" style="max-width: 280px; max-height: 280px; margin: 0 auto; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 30px rgba(34, 211, 238, 0.5);">
+                            <img id="userProfileImage"
+                                 alt="Profile Picture"
+                                 style="width: 100%; height: 100%; object-fit: cover; display: none;"
+                                 onload="this.style.display='block'; document.getElementById('userProfileVideo').style.display='none';"
+                                 onerror="
+                                     if (!this.dataset.retry) {
+                                         console.log('⚠️ Profile image failed, retrying...');
+                                         this.dataset.retry = true;
+                                         this.src = this.src.split('?')[0] + '?retry=' + Date.now();
+                                     } else {
+                                         this.src='/static/logos/IntroLogo.png';
+                                         this.style.display='block';
+                                         document.getElementById('userProfileVideo').style.display='none';
+                                         console.log('⚠️ Profile image failed again, using default');
+                                     }">
+                            <video id="userProfileVideo" 
+                                   style="width: 100%; height: 100%; object-fit: cover; display: none;" 
+                                   autoplay muted loop
+                                   onloadeddata="this.style.display='block'; document.getElementById('userProfileImage').style.display='none';"
+                                   onerror="console.log('⚠️ Profile video failed, falling back to image'); this.style.display='none'; document.getElementById('userProfileImage').src='/static/logos/IntroLogo.png'; document.getElementById('userProfileImage').style.display='block';">
+                            </video>
+                        </div>
                     </div>
                     <div style="margin-bottom: 15px;">
                         <!-- Method 1: Standard images (but relaxed) -->
@@ -1283,21 +1291,9 @@
                     userEmailElement.textContent = this.userData.email || 'Not provided';
                 }
                 
-                // PATCHED PROFILE IMAGE DISPLAY LOGIC - Clean & Reliable
-                const profileImage = document.getElementById('userProfileImage');
-                console.log('🖼️ Setting profile image. Element found:', !!profileImage);
-
+                // PATCHED PROFILE MEDIA DISPLAY LOGIC - Supports Images & Videos
                 const rawProfileURL = this.userData?.profileImage;
-                const newImageSrc = rawProfileURL && rawProfileURL.trim() !== ''
-                    ? rawProfileURL + '?t=' + new Date().getTime()
-                    : '/static/logos/IntroLogo.png';
-
-                if (profileImage.src !== newImageSrc) {
-                    console.log('✅ Updating profile image src from', profileImage.src, 'to:', newImageSrc);
-                    profileImage.src = newImageSrc;
-                } else {
-                    console.log('⚡ Profile image already correct, no update needed');
-                }
+                setProfileMedia(rawProfileURL);
                 
                 const displayNameInput = document.getElementById('displayNameInput');
                 if (displayNameInput && this.userData.displayName) {
@@ -2015,6 +2011,38 @@
             });
         }
 
+        // Helper function to set profile media (image or video)
+        function setProfileMedia(mediaUrl) {
+            const profileImage = document.getElementById('userProfileImage');
+            const profileVideo = document.getElementById('userProfileVideo');
+            
+            console.log('🖼️ Setting profile media:', mediaUrl);
+            
+            if (!mediaUrl || mediaUrl.trim() === '') {
+                // No media, show default image
+                profileImage.src = '/static/logos/IntroLogo.png';
+                profileImage.style.display = 'block';
+                profileVideo.style.display = 'none';
+                return;
+            }
+            
+            // Add cache buster
+            const mediaSrc = mediaUrl + '?t=' + new Date().getTime();
+            
+            // Check if it's a video by extension
+            if (mediaUrl.toLowerCase().endsWith('.mp4')) {
+                console.log('🎥 Loading as video:', mediaSrc);
+                profileVideo.src = mediaSrc;
+                profileVideo.style.display = 'block';
+                profileImage.style.display = 'none';
+            } else {
+                console.log('🖼️ Loading as image:', mediaSrc);
+                profileImage.src = mediaSrc;
+                profileImage.style.display = 'block';
+                profileVideo.style.display = 'none';
+            }
+        }
+
         // PATCHED PROFILE IMAGE UPLOAD FUNCTION - Enhanced & Bulletproof
         window.handleProfileImageUpload = async function () {
             // Check all three file inputs - regular, all files, and GIF only
@@ -2090,11 +2118,13 @@
             formData.append('profileImage', file);
 
             const profileImg = document.getElementById('userProfileImage');
+            const profileVideo = document.getElementById('userProfileVideo');
+            const mediaContainer = document.getElementById('profileMediaContainer');
             const uploadBtn = document.getElementById('uploadBtn'); // Optional: disable while uploading
 
             // Optional loading visual
             if (uploadBtn) uploadBtn.disabled = true;
-            profileImg.style.opacity = '0.6';
+            if (mediaContainer) mediaContainer.style.opacity = '0.6';
 
             try {
                 console.log('📤 Uploading profile image...', file.name, file.size);
@@ -2119,14 +2149,17 @@
                     return;
                 }
 
-                // Cache-busting refresh
-                const newSrc = result.profileImage + '?t=' + new Date().getTime();
-                profileImg.src = newSrc;
-                profileImg.style.boxShadow = '0 4px 20px rgba(16, 185, 129, 0.6)';
-
-                setTimeout(() => {
-                    profileImg.style.boxShadow = '0 4px 20px rgba(34, 211, 238, 0.3)';
-                }, 2000);
+                // Update profile media (image or video)
+                setProfileMedia(result.profileImage);
+                
+                // Add success visual feedback
+                const mediaContainer = document.getElementById('profileMediaContainer');
+                if (mediaContainer) {
+                    mediaContainer.style.boxShadow = '0 4px 20px rgba(16, 185, 129, 0.6)';
+                    setTimeout(() => {
+                        mediaContainer.style.boxShadow = '0 8px 30px rgba(34, 211, 238, 0.5)';
+                    }, 2000);
+                }
 
                 console.log('✅ Profile image updated successfully:', result.profileImage);
                 alert('✅ Profile image uploaded!');
@@ -2136,7 +2169,7 @@
                 console.error('💥 Upload error:', err);
                 alert('❌ Upload failed. Please try again. Error: ' + err.message);
             } finally {
-                profileImg.style.opacity = '1';
+                if (mediaContainer) mediaContainer.style.opacity = '1';
                 if (uploadBtn) uploadBtn.disabled = false;
             }
         };
@@ -2712,20 +2745,8 @@
                     console.log('🖼️ Profile image URL from API:', userData.profileImage);
                     
                     if (profileImageEl) {
-                        if (userData.profileImage) {
-                            console.log('🖼️ Setting profile image to:', userData.profileImage);
-                            profileImageEl.src = userData.profileImage;
-                            profileImageEl.onerror = function() {
-                                console.warn('❌ Profile image failed to load:', userData.profileImage);
-                                this.src = '/static/logos/IntroLogo.png'; // Fallback
-                            };
-                            profileImageEl.onload = function() {
-                                console.log('✅ Profile image loaded successfully');
-                            };
-                        } else {
-                            console.log('🖼️ No profile image in userData, using default');
-                            profileImageEl.src = '/static/logos/IntroLogo.png';
-                        }
+                        console.log('🖼️ Setting profile media using new function');
+                        setProfileMedia(userData.profileImage);
                     } else {
                         console.warn('❌ Profile image element not found in DOM');
                     }
