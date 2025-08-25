@@ -2016,7 +2016,7 @@
             const profileImage = document.getElementById('userProfileImage');
             const profileVideo = document.getElementById('userProfileVideo');
             
-            console.log('🖼️ Setting profile media:', mediaUrl);
+            console.log('🖼️ Setting profile media (ASYNC VERSION):', mediaUrl);
             
             if (!mediaUrl || mediaUrl.trim() === '') {
                 // No media, show default image
@@ -2031,7 +2031,9 @@
             
             try {
                 // Check MIME type by making a HEAD request to determine if it's video or image
+                console.log('🔍 Making HEAD request to:', mediaSrc);
                 const response = await fetch(mediaSrc, { method: 'HEAD' });
+                console.log('📡 HEAD response status:', response.status);
                 const contentType = response.headers.get('content-type') || '';
                 
                 console.log('📄 Content type detected:', contentType);
