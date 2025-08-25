@@ -78,6 +78,7 @@
             height: 100%;
             background: linear-gradient(90deg, transparent, rgba(34, 211, 238, 0.05), transparent);
             animation: headerShimmer 3s ease-in-out infinite;
+            pointer-events: none;  /* Allow clicks to pass through */
         }
 
         @keyframes headerShimmer {
@@ -163,6 +164,7 @@
                 rgba(34, 211, 238, 0.08), 
                 transparent);
             transition: left 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;  /* Allow clicks to pass through */
         }
 
         .profile-panel:hover::before {
@@ -183,6 +185,7 @@
             border-radius: 24px;
             opacity: 0;
             transition: opacity 0.4s ease;
+            pointer-events: none;  /* Allow clicks to pass through */
         }
 
         .profile-panel:hover::after {
