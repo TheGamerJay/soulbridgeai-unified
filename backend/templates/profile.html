@@ -883,9 +883,9 @@
                         </div>
                     </div>
                     <div style="font-size: 0.85rem; color: #94a3b8; line-height: 1.4;">
-                        <strong>Safe formats:</strong> GIF, PNG, JPG, WebP, BMP, ICO, TIFF<br>
+                        <strong>Allowed formats:</strong> PNG, JPG, JPEG, GIF, WebP only<br>
                         <strong>Size limit:</strong> Up to 10MB • Private profile (your eyes only!)<br>
-                        <em style="color: #22d3ee;">💃 Especially perfect for dancing Blayzo GIFs! 🕺</em>
+                        <em style="color: #22d3ee;">💃 Perfect for your dancing Blayzo GIF! 🕺</em>
                     </div>
                 </div>
                 
@@ -2026,9 +2026,9 @@
             const file = activeInput.files[0];
             console.log('📁 File selected from:', activeInput.id);
 
-            // Safe validation for private profile - no virus risk
+            // Only the most common image formats that all websites accept
             const fileExtension = file.name.split('.').pop().toLowerCase();
-            const safeImageExts = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'ico', 'tiff', 'tif'];
+            const commonFormats = ['png', 'jpg', 'jpeg', 'gif', 'webp'];
             
             console.log('📁 Uploading file:', {
                 name: file.name,
@@ -2037,9 +2037,9 @@
                 size: (file.size / 1024 / 1024).toFixed(2) + 'MB'
             });
             
-            // Check for safe image formats only
-            if (!safeImageExts.includes(fileExtension)) {
-                alert(`❌ For security, only safe image files are allowed:\n${safeImageExts.join(', ')}\n\nYour file: ${file.name} (${fileExtension})`);
+            // Check for common formats only
+            if (!commonFormats.includes(fileExtension)) {
+                alert(`❌ Only common image formats allowed:\n${commonFormats.join(', ')}\n\nYour file: ${file.name} (${fileExtension})`);
                 activeInput.value = '';
                 return;
             }

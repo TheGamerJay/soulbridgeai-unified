@@ -7245,10 +7245,10 @@ def upload_profile_image():
         
         logger.info(f"📷 PRIVATE Profile upload: filename='{file.filename}', extension='{file_ext}', content_type='{file.content_type}'")
         
-        # Safe image formats only - no virus risk
-        safe_image_exts = {'png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'ico', 'tiff', 'tif'}
-        if file_ext not in safe_image_exts:
-            error_msg = f"Unsupported file type '{file_ext}'. For security, only image files are allowed: {', '.join(sorted(safe_image_exts))}"
+        # Only the most common image formats that all websites accept
+        common_formats = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+        if file_ext not in common_formats:
+            error_msg = f"Only common image formats allowed: {', '.join(sorted(common_formats))}. Your file: {file_ext}"
             logger.warning(f"❌ {error_msg}")
             return jsonify({"success": False, "error": error_msg}), 400
             
