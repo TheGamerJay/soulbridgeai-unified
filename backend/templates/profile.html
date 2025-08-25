@@ -2639,12 +2639,16 @@ What specific feature, policy, or page would you like help with?`;
                 });
 
                 if (response.ok) {
-                    const userData = await response.json();
+                    const responseData = await response.json();
+                    console.log('Profile API Response:', responseData); // Debug log
+                    
+                    // Extract user data from the response
+                    const userData = responseData.user || responseData;
                     
                     // Update user ID
                     const userIDEl = document.getElementById('userID');
                     if (userIDEl) {
-                        userIDEl.textContent = userData.userID || 'N/A';
+                        userIDEl.textContent = userData.uid || userData.userID || 'N/A';
                     }
                     
                     // Update email  
@@ -2653,25 +2657,39 @@ What specific feature, policy, or page would you like help with?`;
                         userEmailEl.textContent = userData.email || 'No email found';
                     }
                     
+                    // Update profile image
+                    const profileImageEl = document.querySelector('.profile-avatar img');
+                    if (profileImageEl && userData.profileImage) {
+                        profileImageEl.src = userData.profileImage;
+                        profileImageEl.onerror = function() {
+                            console.warn('Profile image failed to load:', userData.profileImage);
+                            this.src = '/static/logos/IntroLogo.png'; // Fallback
+                        };
+                    }
+                    
                     // Update companion info with last used companion
                     if (userData.companion) {
                         updateCompanionDisplay(userData.companion);
                     }
                     
                     // Update credits display and trial status
-                    updateCreditsDisplay(userData);
+                    updateCreditsDisplay(userData, responseData.access);
                     
                 } else {
                     console.error('Failed to load user data:', response.status);
-                    // Show fallback data
-                    document.getElementById('userID').textContent = 'Unable to load';
-                    document.getElementById('userEmail').textContent = 'Unable to load';
+                    // Show friendly fallback data
+                    const userIDEl = document.getElementById('userID');
+                    const userEmailEl = document.getElementById('userEmail');
+                    if (userIDEl) userIDEl.textContent = 'Loading...';
+                    if (userEmailEl) userEmailEl.textContent = 'Loading...';
                 }
             } catch (error) {
                 console.error('Error loading user data:', error);
-                // Show fallback data
-                document.getElementById('userID').textContent = 'Error loading data';
-                document.getElementById('userEmail').textContent = 'Error loading data';
+                // Show friendly fallback data
+                const userIDEl = document.getElementById('userID');
+                const userEmailEl = document.getElementById('userEmail');
+                if (userIDEl) userIDEl.textContent = 'Loading...';
+                if (userEmailEl) userEmailEl.textContent = 'Loading...';
             }
         }
         
@@ -2700,21 +2718,25 @@ What specific feature, policy, or page would you like help with?`;
         }
         
         // Update credits display and handle trial status  
-        function updateCreditsDisplay(userData) {
+        function updateCreditsDisplay(userData, accessData) {
             const creditsEl = document.getElementById('creditsDisplay');
             const trialInfoEl = document.getElementById('trialInfo');
             const trialBtnEl = document.getElementById('trialActivationBtn');
             
             if (creditsEl) {
-                const credits = userData.trainer_credits || 0;
+                // Try to get credits from access data or user data
+                const credits = (accessData && accessData.trial_credits) || userData.trainer_credits || 0;
                 creditsEl.innerHTML = `<div class="credits-info">💎 ${credits} Credits</div>`;
             }
             
-            // Handle trial status
-            if (userData.trial_active && userData.trial_expires_at) {
+            // Handle trial status from access data
+            const trialActive = (accessData && accessData.trial_live) || userData.trial_active;
+            const trialExpires = userData.trial_expires_at;
+            
+            if (trialActive && trialExpires) {
                 // Show trial countdown
                 if (trialInfoEl) {
-                    showTrialCountdown(trialInfoEl, userData.trial_expires_at);
+                    showTrialCountdown(trialInfoEl, trialExpires);
                 }
                 // Hide trial activation button during active trial
                 if (trialBtnEl) trialBtnEl.style.display = 'none';

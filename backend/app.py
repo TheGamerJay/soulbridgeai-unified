@@ -6895,7 +6895,8 @@ GOLDEN RULE: Always end with warmth and an offer to help further. Make every use
         logger.error(f"Sapphire chat error: {e}")
         return jsonify({"success": False, "error": "Navigation assistance unavailable"}), 500
 
-@app.route("/api/users", methods=["GET", "POST"])  
+@app.route("/api/users", methods=["GET", "POST"])
+@app.route("/api/user/profile", methods=["GET", "POST"])  
 def api_users():
     """User profile API endpoint"""
     try:
