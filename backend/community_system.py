@@ -32,9 +32,9 @@ community_bp = Blueprint('community', __name__, url_prefix='/community')
 COMMUNITY_CONFIG = {
     "categories": [
         {"id": "all", "label": "All Content"},
+        {"id": "general", "label": "General"},
         {"id": "gratitude", "label": "Gratitude"},
         {"id": "peace", "label": "Peace"},
-        {"id": "silver", "label": "Silver"},
         {"id": "healing", "label": "Healing"},
         {"id": "dreams", "label": "Dreams"},
         {"id": "mood", "label": "Mood"},

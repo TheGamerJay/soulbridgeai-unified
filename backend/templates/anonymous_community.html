@@ -747,13 +747,14 @@
             <div class="composer-bottom">
                 <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
                     <select id="post-category" class="category-select">
-                        <option value="gratitude">🙏 Gratitude</option>
-                        <option value="peace">🕊️ Peace</option>
-                        <option value="growth">🌱 Growth</option>
-                        <option value="healing">💚 Healing</option>
-                        <option value="dreams">✨ Dreams</option>
-                        <option value="mood">🌙 Mood</option>
-                        <option value="stress_relief">🌿 Stress Relief</option>
+                        <option value="general">💬 General - Share anything meaningful</option>
+                        <option value="gratitude">🙏 Gratitude - Share what you're thankful for</option>
+                        <option value="peace">🕊️ Peace - Share moments of calm and serenity</option>
+                        <option value="growth">🌱 Growth - Share lessons and personal development</option>
+                        <option value="healing">💚 Healing - Share recovery and wellness journeys</option>
+                        <option value="dreams">✨ Dreams - Share aspirations and future hopes</option>
+                        <option value="mood">🌙 Mood - Share current feelings and emotions</option>
+                        <option value="stress_relief">🌿 Stress Relief - Share relaxation and coping tips</option>
                     </select>
                     <div class="char-counter">
                         <span id="char-count">0</span>/700
@@ -770,6 +771,7 @@
                 <div class="feed-controls">
                     <select id="feed-category" class="filter-select">
                         <option value="all">All Categories</option>
+                        <option value="general">💬 General</option>
                         <option value="gratitude">🙏 Gratitude</option>
                         <option value="peace">🕊️ Peace</option>
                         <option value="growth">🌱 Growth</option>
@@ -958,12 +960,44 @@
             }
         }
 
-        // Create a new post
+        // Create a new post with AI validation
         async function createPost() {
             const textContent = document.getElementById('post-text').value.trim();
             const category = document.getElementById('post-category').value;
             
             if (!textContent) return;
+
+            // Step 1: AI Content Validation (if not General category)
+            if (category !== 'general') {
+                const validationResult = await validateContentCategory(textContent, category);
+                
+                if (!validationResult.matches) {
+                    const suggestedCategory = validationResult.suggestedCategory;
+                    const categoryName = getCategoryName(category);
+                    const suggestedName = getCategoryName(suggestedCategory);
+                    
+                    const message = `This content seems more like "${suggestedName}" than "${categoryName}". Would you like to:`;
+                    const options = `
+                        • Post in "${suggestedName}" category
+                        • Post in "General" category  
+                        • Edit your post to match "${categoryName}"
+                        • Post anyway in "${categoryName}"
+                    `;
+                    
+                    const choice = confirm(message + '\n\n' + options + '\n\nClick OK to switch to suggested category, Cancel to keep current category.');
+                    
+                    if (choice && suggestedCategory) {
+                        document.getElementById('post-category').value = suggestedCategory;
+                        showMessage(`Switched to ${suggestedName} category! 🎯`, 'success');
+                        return; // Let user review and submit again
+                    } else if (choice) {
+                        document.getElementById('post-category').value = 'general';
+                        showMessage('Switched to General category! 💬', 'success');
+                        return; // Let user review and submit again
+                    }
+                    // If they click Cancel, continue with original category
+                }
+            }
 
             const submitBtn = document.getElementById('post-submit');
             const originalText = submitBtn.textContent;
@@ -979,8 +1013,9 @@
                     },
                     body: JSON.stringify({
                         text: textContent,
-                        category: category,
-                        hashtags: []
+                        category: document.getElementById('post-category').value, // Use current value (might have changed)
+                        hashtags: [],
+                        ai_validation: category !== 'general' ? await validateContentCategory(textContent, category) : null
                     })
                 });
                 
@@ -990,6 +1025,7 @@
                     showMessage('Post shared successfully! 🌸', 'success');
                     document.getElementById('post-text').value = '';
                     document.getElementById('char-count').textContent = '0';
+                    document.getElementById('post-category').selectedIndex = 0; // Reset to General
                     loadFeed(); // Refresh feed
                 } else {
                     throw new Error(data.error || 'Failed to create post');
@@ -1002,6 +1038,73 @@
                 submitBtn.disabled = false;
                 submitBtn.textContent = originalText;
             }
+        }
+
+        // AI Content Category Validation
+        async function validateContentCategory(content, category) {
+            try {
+                // Simple keyword-based validation (can be enhanced with actual AI later)
+                const categoryKeywords = {
+                    'gratitude': ['thank', 'grateful', 'appreciate', 'blessed', 'thankful', 'gratitude', 'appreciate', 'lucky', 'fortune'],
+                    'peace': ['calm', 'peaceful', 'serene', 'quiet', 'tranquil', 'meditate', 'relax', 'zen', 'stillness'],
+                    'growth': ['learn', 'grow', 'develop', 'improve', 'progress', 'change', 'better', 'skill', 'knowledge'],
+                    'healing': ['heal', 'recovery', 'wellness', 'health', 'medicine', 'therapy', 'treatment', 'cure', 'recover'],
+                    'dreams': ['dream', 'hope', 'wish', 'future', 'goal', 'aspire', 'ambition', 'vision', 'someday'],
+                    'mood': ['feel', 'emotion', 'happy', 'sad', 'angry', 'excited', 'mood', 'feeling', 'emotional'],
+                    'stress_relief': ['stress', 'anxiety', 'worry', 'tension', 'pressure', 'overwhelmed', 'relax', 'cope', 'relief']
+                };
+                
+                const contentLower = content.toLowerCase();
+                const categoryWords = categoryKeywords[category] || [];
+                
+                // Check if content matches selected category
+                const matchCount = categoryWords.filter(word => contentLower.includes(word)).length;
+                const matches = matchCount > 0;
+                
+                // Find best matching category if current doesn't match
+                let suggestedCategory = 'general';
+                let bestScore = 0;
+                
+                if (!matches) {
+                    for (const [cat, keywords] of Object.entries(categoryKeywords)) {
+                        const score = keywords.filter(word => contentLower.includes(word)).length;
+                        if (score > bestScore) {
+                            bestScore = score;
+                            suggestedCategory = cat;
+                        }
+                    }
+                    
+                    if (bestScore === 0) {
+                        suggestedCategory = 'general';
+                    }
+                }
+                
+                return {
+                    matches: matches,
+                    confidence: matchCount / categoryWords.length,
+                    suggestedCategory: matches ? category : suggestedCategory,
+                    matchedKeywords: categoryWords.filter(word => contentLower.includes(word))
+                };
+                
+            } catch (error) {
+                console.error('AI validation error:', error);
+                return { matches: true, confidence: 1.0, suggestedCategory: category };
+            }
+        }
+
+        // Helper function to get category display names
+        function getCategoryName(categoryValue) {
+            const names = {
+                'general': 'General',
+                'gratitude': 'Gratitude', 
+                'peace': 'Peace',
+                'growth': 'Growth',
+                'healing': 'Healing',
+                'dreams': 'Dreams',
+                'mood': 'Mood',
+                'stress_relief': 'Stress Relief'
+            };
+            return names[categoryValue] || categoryValue;
         }
 
         // Load community feed
@@ -1095,6 +1198,9 @@
                             <button class="action-btn" onclick="reportPost(${post.id})">
                                 Report
                             </button>
+                            <button class="action-btn" onclick="flagCategoryMismatch(${post.id}, '${post.category}', \`${escapeHtml(post.text)}\`)">
+                                Flag Category
+                            </button>
                             <button class="action-btn" onclick="muteContent(${post.id}, '${post.author_hash}', '${post.category}', ${post.companion_id})">
                                 Mute
                             </button>
@@ -1152,6 +1258,62 @@
         function reportPost(postId) {
             currentPostToReport = postId;
             document.getElementById('report-modal').style.display = 'block';
+        }
+
+        // Flag category mismatch (Layer 3: Community Review)
+        function flagCategoryMismatch(postId, currentCategory, postText) {
+            const suggestedCategory = validateContentCategorySync(postText);
+            const currentName = getCategoryName(currentCategory);
+            const suggestedName = getCategoryName(suggestedCategory);
+            
+            const message = `Flag this post for category mismatch?\n\nCurrent: ${currentName}\nSuggested: ${suggestedName}\n\nThis will help improve category accuracy for the community.`;
+            
+            if (confirm(message)) {
+                // Submit category flag report
+                fetch(`${API_BASE}/posts/${postId}/flag-category`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        current_category: currentCategory,
+                        suggested_category: suggestedCategory,
+                        reason: 'category_mismatch'
+                    })
+                }).then(response => response.json())
+                  .then(data => {
+                      if (data.success) {
+                          showMessage('Category flag submitted! Thank you for helping improve the community. 🎯', 'success');
+                      }
+                  }).catch(() => {
+                      showMessage('Thanks for flagging! This helps keep categories accurate. 👍', 'success');
+                  });
+            }
+        }
+        
+        // Synchronous version of category validation for flagging
+        function validateContentCategorySync(content) {
+            const categoryKeywords = {
+                'gratitude': ['thank', 'grateful', 'appreciate', 'blessed', 'thankful', 'gratitude', 'lucky', 'fortune'],
+                'peace': ['calm', 'peaceful', 'serene', 'quiet', 'tranquil', 'meditate', 'relax', 'zen', 'stillness'],
+                'growth': ['learn', 'grow', 'develop', 'improve', 'progress', 'change', 'better', 'skill', 'knowledge'],
+                'healing': ['heal', 'recovery', 'wellness', 'health', 'medicine', 'therapy', 'treatment', 'cure', 'recover'],
+                'dreams': ['dream', 'hope', 'wish', 'future', 'goal', 'aspire', 'ambition', 'vision', 'someday'],
+                'mood': ['feel', 'emotion', 'happy', 'sad', 'angry', 'excited', 'mood', 'feeling', 'emotional'],
+                'stress_relief': ['stress', 'anxiety', 'worry', 'tension', 'pressure', 'overwhelmed', 'relax', 'cope', 'relief']
+            };
+            
+            const contentLower = content.toLowerCase();
+            let suggestedCategory = 'general';
+            let bestScore = 0;
+            
+            for (const [cat, keywords] of Object.entries(categoryKeywords)) {
+                const score = keywords.filter(word => contentLower.includes(word)).length;
+                if (score > bestScore) {
+                    bestScore = score;
+                    suggestedCategory = cat;
+                }
+            }
+            
+            return bestScore > 0 ? suggestedCategory : 'general';
         }
 
         // Mute content
@@ -1303,6 +1465,7 @@
 
         function getCategoryLabel(category) {
             const labels = {
+                'general': '💬 General',
                 'gratitude': '🙏 Gratitude',
                 'peace': '🕊️ Peace',
                 'growth': '🌱 Growth',
