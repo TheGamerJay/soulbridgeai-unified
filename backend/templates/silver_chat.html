@@ -253,6 +253,9 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2><i class="fas fa-feather-alt"></i> Creative Writing Assistant</h2>
+                <div class="usage-counter-display" id="creativeWritingUsageCounter" style="text-align: center; color: #22d3ee; font-size: 0.9rem; margin-top: 0.5rem; font-weight: 600;">
+                    Loading usage...
+                </div>
                 <button class="close-btn" onclick="closeCreativeWriting()">&times;</button>
             </div>
             <div class="modal-body">
@@ -316,11 +319,37 @@
     </div>
 
     <script>
-        function openCreativeWriting() {
+        async function openCreativeWriting() {
             const modal = document.getElementById('creativeWritingModal');
             if (modal) {
                 modal.style.display = 'flex';
                 document.body.style.overflow = 'hidden';
+                // Update usage counter when modal opens
+                await updateCreativeWritingUsage();
+            }
+        }
+        
+        async function updateCreativeWritingUsage() {
+            try {
+                const counterEl = document.getElementById('creativeWritingUsageCounter');
+                if (!counterEl) return;
+                
+                const response = await fetch('/api/tier-limits', { credentials: 'include' });
+                if (response.ok) {
+                    const data = await response.json();
+                    const limit = data.limits?.creative_writer || 15;
+                    const usage = data.usage?.creative_writer || 0;
+                    
+                    if (limit === 'unlimited' || limit >= 999) {
+                        counterEl.textContent = '∞ Unlimited Usage';
+                        counterEl.style.color = '#FFD700';
+                    } else {
+                        counterEl.textContent = `${usage}/${limit} uses today`;
+                        counterEl.style.color = usage >= limit ? '#ff6b6b' : '#22d3ee';
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to update Creative Writing usage:', error);
             }
         }
         
