@@ -1040,10 +1040,16 @@
             }
         }
 
-        // AI Content Category Validation
+        // AI Content Category Validation + Content Moderation
         async function validateContentCategory(content, category) {
             try {
-                // Simple keyword-based validation (can be enhanced with actual AI later)
+                // Step 1: Content Moderation Check
+                const moderationResult = moderateContent(content);
+                if (!moderationResult.approved) {
+                    throw new Error(moderationResult.message);
+                }
+                
+                // Step 2: Category validation (if content is approved)
                 const categoryKeywords = {
                     'gratitude': ['thank', 'grateful', 'appreciate', 'blessed', 'thankful', 'gratitude', 'appreciate', 'lucky', 'fortune'],
                     'peace': ['calm', 'peaceful', 'serene', 'quiet', 'tranquil', 'meditate', 'relax', 'zen', 'stillness'],
@@ -1090,6 +1096,98 @@
                 console.error('AI validation error:', error);
                 return { matches: true, confidence: 1.0, suggestedCategory: category };
             }
+        }
+
+        // Content Moderation System
+        function moderateContent(content) {
+            const contentLower = content.toLowerCase();
+            
+            // Profanity filter (basic words - can be expanded)
+            const profanity = ['fuck', 'shit', 'damn', 'hell', 'ass', 'bitch', 'bastard', 'crap'];
+            const strongProfanity = ['fucking', 'motherfucker', 'cocksucker', 'asshole', 'dickhead'];
+            
+            // Hate speech and harmful content
+            const hateSpeech = ['hate', 'kill yourself', 'kys', 'die', 'stupid', 'idiot', 'loser', 'worthless'];
+            const threats = ['kill', 'hurt', 'harm', 'attack', 'violence', 'weapon', 'bomb'];
+            
+            // Self-harm indicators
+            const selfHarm = ['suicide', 'self harm', 'cut myself', 'end it all', 'want to die'];
+            
+            let flaggedWords = [];
+            let severity = 'clean';
+            
+            // Check for strong profanity (blocked)
+            for (const word of strongProfanity) {
+                if (contentLower.includes(word)) {
+                    flaggedWords.push(word);
+                    severity = 'blocked';
+                }
+            }
+            
+            // Check for hate speech (blocked)
+            for (const word of hateSpeech) {
+                if (contentLower.includes(word)) {
+                    flaggedWords.push(word);
+                    severity = 'blocked';
+                }
+            }
+            
+            // Check for threats (blocked)
+            for (const word of threats) {
+                if (contentLower.includes(word)) {
+                    flaggedWords.push(word);
+                    severity = 'blocked';
+                }
+            }
+            
+            // Check for self-harm (special handling)
+            for (const phrase of selfHarm) {
+                if (contentLower.includes(phrase)) {
+                    flaggedWords.push(phrase);
+                    severity = 'selfharm';
+                }
+            }
+            
+            // Check for mild profanity (warning)
+            if (severity === 'clean') {
+                for (const word of profanity) {
+                    if (contentLower.includes(word)) {
+                        flaggedWords.push(word);
+                        severity = 'warning';
+                    }
+                }
+            }
+            
+            // Return moderation result
+            if (severity === 'blocked') {
+                return {
+                    approved: false,
+                    message: 'This content contains inappropriate language or harmful content. Please keep our community positive and supportive. 🌸',
+                    severity: severity,
+                    flaggedWords: flaggedWords
+                };
+            } else if (severity === 'selfharm') {
+                return {
+                    approved: false,
+                    message: 'We\'re concerned about your wellbeing. Please reach out to a mental health professional or crisis hotline. You matter and help is available. 💚',
+                    severity: severity,
+                    flaggedWords: flaggedWords
+                };
+            } else if (severity === 'warning') {
+                return {
+                    approved: true,
+                    message: 'Content approved with mild language warning',
+                    severity: severity,
+                    flaggedWords: flaggedWords
+                };
+            }
+            
+            return {
+                approved: true,
+                message: 'Content approved',
+                severity: 'clean',
+                flaggedWords: []
+            };
         }
 
         // Helper function to get category display names

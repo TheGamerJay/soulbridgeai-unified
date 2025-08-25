@@ -1611,6 +1611,31 @@ def ad_break():
         return redirect('/community')
 
 
+@community_bp.route('/posts/<int:post_id>/flag-category', methods=['POST'])
+def flag_category_mismatch(post_id):
+    """Flag a post for category mismatch (Layer 3: Community Review)"""
+    try:
+        if 'user_id' not in session:
+            return jsonify({'success': False, 'error': 'Not logged in'}), 401
+            
+        data = request.get_json()
+        current_category = data.get('current_category')
+        suggested_category = data.get('suggested_category') 
+        reason = data.get('reason', 'category_mismatch')
+        
+        # For now, just log the flag (can be enhanced to store in database)
+        logger.info(f"Category flag: Post {post_id}, Current: {current_category}, Suggested: {suggested_category}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Category flag submitted successfully'
+        })
+        
+    except Exception as e:
+        logger.error(f"Error flagging category: {e}")
+        return jsonify({'success': False, 'error': 'Failed to flag category'}), 500
+
+
 @community_bp.route('/companions', methods=['GET'])
 def get_companions():
     """Get list of available companions for avatar selection"""
