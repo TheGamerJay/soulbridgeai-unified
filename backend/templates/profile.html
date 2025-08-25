@@ -861,13 +861,21 @@
                                  }">
                     </div>
                     <div style="margin-bottom: 15px;">
-                        <input type="file" id="profileImageInput" accept=".png,.jpg,.jpeg,.gif,.webp,image/png,image/jpeg,image/gif,image/webp" style="display: none;" onchange="handleProfileImageUpload()">
+                        <input type="file" id="profileImageInput" accept=".gif,.png,.jpg,.jpeg,.webp" style="display: none;" onchange="handleProfileImageUpload()">
+                        <input type="file" id="profileImageInputAny" style="display: none;" onchange="handleProfileImageUpload()">
+                        
                         <button onclick="document.getElementById('profileImageInput').click()" class="profile-btn">
                             📷 Upload Profile Picture
                         </button>
+                        <br><br>
+                        <button onclick="document.getElementById('profileImageInputAny').click()" class="profile-btn secondary" style="font-size: 0.85rem; padding: 8px 12px;">
+                            📁 Browse All Files (if GIF not showing above)
+                        </button>
                     </div>
-                    <div style="font-size: 0.85rem; color: #94a3b8;">
-                        <strong>Guidelines:</strong> PNG, JPG, GIF, WebP • Max 5MB • Appropriate content only
+                    <div style="font-size: 0.85rem; color: #94a3b8; line-height: 1.4;">
+                        <strong>Supported:</strong> PNG, JPG, JPEG, GIF (animated OK!), WebP<br>
+                        <strong>Limits:</strong> Max 5MB • Appropriate content only<br>
+                        <em style="color: #22d3ee;">💃 Perfect for dancing Blayzo GIFs!</em>
                     </div>
                 </div>
                 
@@ -1989,15 +1997,26 @@
 
         // PATCHED PROFILE IMAGE UPLOAD FUNCTION - Enhanced & Bulletproof
         window.handleProfileImageUpload = async function () {
+            // Check both file inputs - regular and "browse all files" 
             const fileInput = document.getElementById('profileImageInput');
-            if (!fileInput.files || !fileInput.files[0]) return;
+            const fileInputAny = document.getElementById('profileImageInputAny');
+            
+            let activeInput = null;
+            if (fileInput.files && fileInput.files[0]) {
+                activeInput = fileInput;
+            } else if (fileInputAny.files && fileInputAny.files[0]) {
+                activeInput = fileInputAny;
+            }
+            
+            if (!activeInput) return;
 
-            const file = fileInput.files[0];
+            const file = activeInput.files[0];
+            console.log('📁 File selected from:', activeInput.id);
 
             // File validation
             if (file.size > 5 * 1024 * 1024) {
                 alert('❌ File size must be under 5MB');
-                fileInput.value = '';
+                activeInput.value = '';
                 return;
             }
 
@@ -2021,7 +2040,7 @@
             
             if (!validType && !validExtension) {
                 alert(`❌ Invalid file: "${file.name}" (type: "${file.type}"). Please upload PNG, JPG, JPEG, GIF, or WebP files only!`);
-                fileInput.value = '';
+                activeInput.value = '';
                 return;
             }
             
