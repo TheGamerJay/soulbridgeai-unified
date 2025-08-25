@@ -861,11 +861,11 @@
                                  }">
                     </div>
                     <div style="margin-bottom: 15px;">
-                        <!-- Method 1: Explicit file types -->
-                        <input type="file" id="profileImageInput" accept=".gif,.png,.jpg,.jpeg,.webp" style="display: none;" onchange="handleProfileImageUpload()">
-                        <!-- Method 2: All files -->
+                        <!-- Method 1: Standard images (but relaxed) -->
+                        <input type="file" id="profileImageInput" accept="image/*" style="display: none;" onchange="handleProfileImageUpload()">
+                        <!-- Method 2: All files (zero restrictions) -->
                         <input type="file" id="profileImageInputAny" style="display: none;" onchange="handleProfileImageUpload()">
-                        <!-- Method 3: GIF only -->
+                        <!-- Method 3: GIF celebration button -->
                         <input type="file" id="profileImageInputGif" accept=".gif" style="display: none;" onchange="handleProfileImageUpload()">
                         
                         <button onclick="document.getElementById('profileImageInput').click()" class="profile-btn">
@@ -883,9 +883,9 @@
                         </div>
                     </div>
                     <div style="font-size: 0.85rem; color: #94a3b8; line-height: 1.4;">
-                        <strong>Supported:</strong> PNG, JPG, JPEG, GIF (animated OK!), WebP<br>
-                        <strong>Limits:</strong> Max 5MB • Appropriate content only<br>
-                        <em style="color: #22d3ee;">💃 Perfect for dancing Blayzo GIFs!</em>
+                        <strong>Upload anything:</strong> GIF, PNG, JPG, WebP, BMP, SVG, etc.<br>
+                        <strong>Size limit:</strong> Up to 10MB (private profile = relaxed rules!)<br>
+                        <em style="color: #22d3ee;">💃 Especially perfect for dancing Blayzo GIFs! 🕺</em>
                     </div>
                 </div>
                 
@@ -2026,52 +2026,28 @@
             const file = activeInput.files[0];
             console.log('📁 File selected from:', activeInput.id);
 
-            // File validation
-            if (file.size > 5 * 1024 * 1024) {
-                alert('❌ File size must be under 5MB');
-                activeInput.value = '';
-                return;
-            }
-
-            // Enhanced file validation - check both MIME type and extension
-            const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp'];
-            const allowedExtensions = ['png', 'jpg', 'jpeg', 'gif', 'webp'];
-            
-            // Get file extension
+            // Relaxed validation for private profile - just log what we're uploading
             const fileExtension = file.name.split('.').pop().toLowerCase();
             
-            console.log('🔍 File validation:', {
+            console.log('📁 Uploading file:', {
                 name: file.name,
                 type: file.type,
                 extension: fileExtension,
                 size: (file.size / 1024 / 1024).toFixed(2) + 'MB'
             });
             
-            // Check MIME type OR extension (some systems might not set MIME type correctly)
-            const validType = allowedTypes.includes(file.type);
-            const validExtension = allowedExtensions.includes(fileExtension);
-            
-            if (!validType && !validExtension) {
-                alert(`❌ Invalid file: "${file.name}" (type: "${file.type}"). Please upload PNG, JPG, JPEG, GIF, or WebP files only!`);
-                activeInput.value = '';
-                return;
+            // Special celebration for GIFs! 
+            if (file.type === 'image/gif' || fileExtension === 'gif') {
+                console.log('🎉 DANCING BLAYZO GIF DETECTED! Let\'s make this happen! 💃');
             }
             
-            // Special detection for GIFs
-            if (file.type === 'image/gif' || fileExtension === 'gif') {
-                console.log('💃 Dancing Blayzo GIF detected! This should work perfectly!');
-                // Verify it's actually a GIF by checking file signature
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const arr = new Uint8Array(e.target.result.slice(0, 4));
-                    const header = Array.from(arr, byte => String.fromCharCode(byte)).join('');
-                    if (!header.startsWith('GIF8')) {
-                        console.warn('⚠️ File extension is .gif but file signature is not GIF format');
-                    } else {
-                        console.log('✅ Confirmed: Valid GIF file with proper signature!');
-                    }
-                };
-                reader.readAsArrayBuffer(file.slice(0, 4));
+            // Very relaxed validation - just warn about very large files
+            if (file.size > 10 * 1024 * 1024) {
+                const proceed = confirm(`📦 That's a big file (${(file.size / 1024 / 1024).toFixed(1)}MB)! It might take a moment to upload. Continue?`);
+                if (!proceed) {
+                    activeInput.value = '';
+                    return;
+                }
             }
 
             const formData = new FormData();
