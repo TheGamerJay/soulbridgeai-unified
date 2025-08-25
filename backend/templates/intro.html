@@ -774,6 +774,7 @@
                     background: linear-gradient(135deg, #0a0e1a 0%, #1a202c 100%);
                     border: 2px solid rgba(34, 211, 238, 0.3);
                     border-radius: 20px; padding: 30px; max-width: 500px; width: 90%;
+                    max-height: 85vh; overflow-y: auto;
                     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
                     animation: slideUp 0.3s ease;
                 ">
@@ -847,6 +848,23 @@
                             background: rgba(34, 211, 238, 0.3);
                             transform: translateY(-1px);
                             box-shadow: 0 4px 12px rgba(34, 211, 238, 0.3);
+                        }
+                        /* Custom scrollbar for Sapphire modal */
+                        #sapphireModal div:first-child::-webkit-scrollbar {
+                            width: 8px;
+                        }
+                        #sapphireModal div:first-child::-webkit-scrollbar-track {
+                            background: rgba(255, 255, 255, 0.1);
+                            border-radius: 10px;
+                        }
+                        #sapphireModal div:first-child::-webkit-scrollbar-thumb {
+                            background: linear-gradient(135deg, #22d3ee, #0891b2);
+                            border-radius: 10px;
+                            border: 2px solid transparent;
+                            background-clip: content-box;
+                        }
+                        #sapphireModal div:first-child::-webkit-scrollbar-thumb:hover {
+                            background: linear-gradient(135deg, #0891b2, #22d3ee);
                         }
                     </style>
                     
