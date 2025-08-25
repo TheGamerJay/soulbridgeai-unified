@@ -1135,9 +1135,246 @@
             document.getElementById('bgmLevelValue').textContent = this.value;
         });
         
+        // ========================================
+        // STUDIO SESSION CONTROL & CREDIT REGISTRATION
+        // ========================================
+        
+        let studioSessionActive = false;
+        let sessionStartTime = null;
+        
+        // Start Studio Session
+        async function startStudioSession() {
+            if (studioSessionActive) {
+                alert('Studio session is already active!');
+                return;
+            }
+            
+            // Check if user has credits
+            if (creditsRemaining <= 0) {
+                showStudioModal('Insufficient Credits', `
+                    <div style="text-align: center;">
+                        <h4>⚠️ No Credits Available</h4>
+                        <p>You need trainer credits to use Mini Studio.</p>
+                        <br>
+                        <button onclick="window.location.href='/tiers'" style="background: #4fd1c7; color: #000; padding: 10px 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">
+                            Get More Credits
+                        </button>
+                    </div>
+                `);
+                return;
+            }
+            
+            try {
+                const result = await apiCall('/api/mini-studio/session', {
+                    action: 'start'
+                });
+                
+                if (result.success) {
+                    studioSessionActive = true;
+                    sessionStartTime = Date.now();
+                    
+                    // Update UI
+                    document.body.style.background = 'linear-gradient(135deg, #0a0a0a 0%, #2a1810 100%)';
+                    document.body.style.filter = 'brightness(1.1)';
+                    
+                    showStudioModal('Studio Session Started', `
+                        <div style="text-align: center;">
+                            <h4>🎵 Welcome to Mini Studio!</h4>
+                            <p>Your studio session is now active.</p>
+                            <p><strong>Credits: ${creditsRemaining} minutes available</strong></p>
+                            <br>
+                            <p style="color: #4fd1c7;">Session time is tracked automatically.</p>
+                            <p style="font-size: 0.9rem; color: #94a3b8;">Remember to end your session when finished!</p>
+                        </div>
+                    `);
+                    
+                    // Update session controls
+                    updateSessionControls();
+                    
+                } else {
+                    alert('Failed to start studio session: ' + result.error);
+                }
+            } catch (error) {
+                console.error('Session start error:', error);
+                alert('Failed to start studio session. Please try again.');
+            }
+        }
+        
+        // Stop Studio Session
+        async function stopStudioSession() {
+            if (!studioSessionActive) {
+                alert('No active studio session to stop.');
+                return;
+            }
+            
+            const sessionDurationMs = Date.now() - sessionStartTime;
+            const sessionDurationMinutes = Math.ceil(sessionDurationMs / 60000); // Round up to nearest minute
+            
+            try {
+                const result = await apiCall('/api/mini-studio/session', {
+                    action: 'stop',
+                    duration: sessionDurationMinutes
+                });
+                
+                if (result.success) {
+                    studioSessionActive = false;
+                    sessionStartTime = null;
+                    
+                    // Update credits
+                    creditsRemaining = result.credits_remaining;
+                    updateCreditsDisplay();
+                    
+                    // Reset studio ambience
+                    document.body.style.background = 'linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%)';
+                    document.body.style.filter = 'none';
+                    
+                    showStudioModal('Session Complete', `
+                        <div style="text-align: center;">
+                            <h4>Studio Session Ended</h4>
+                            <p>Session Duration: ${sessionDurationMinutes} minutes</p>
+                            <p>Credits Deducted: ${result.credits_deducted || sessionDurationMinutes}</p>
+                            <p>Credits Remaining: ${result.credits_remaining}</p>
+                            <br>
+                            <p style="color: #4fd1c7;">Thank you for using Mini Studio!</p>
+                        </div>
+                    `);
+                    
+                    // Update session controls
+                    updateSessionControls();
+                    
+                } else {
+                    alert('Failed to end studio session: ' + result.error);
+                }
+            } catch (error) {
+                console.error('Session stop error:', error);
+                alert('Failed to end studio session. Please try again.');
+            }
+        }
+        
+        // Show Studio Modal
+        function showStudioModal(title, content) {
+            // Remove existing modal if any
+            const existingModal = document.getElementById('studioModal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+            
+            // Create modal
+            const modal = document.createElement('div');
+            modal.id = 'studioModal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.8);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 10000;
+            `;
+            
+            const modalContent = document.createElement('div');
+            modalContent.style.cssText = `
+                background: linear-gradient(135deg, #0f172a, #1e293b);
+                border: 2px solid #4fd1c7;
+                border-radius: 20px;
+                padding: 2rem;
+                max-width: 500px;
+                width: 90%;
+                text-align: center;
+                position: relative;
+            `;
+            
+            modalContent.innerHTML = `
+                <h3 style="color: #4fd1c7; margin-bottom: 1rem;">${title}</h3>
+                ${content}
+                <br><br>
+                <button onclick="closeStudioModal()" style="background: #4fd1c7; color: #000; padding: 10px 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">
+                    Close
+                </button>
+            `;
+            
+            modal.appendChild(modalContent);
+            document.body.appendChild(modal);
+        }
+        
+        // Close Studio Modal
+        function closeStudioModal() {
+            const modal = document.getElementById('studioModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+        
+        // Update Session Controls UI
+        function updateSessionControls() {
+            // Add session control buttons to header if they don't exist
+            let sessionControls = document.getElementById('sessionControls');
+            if (!sessionControls) {
+                sessionControls = document.createElement('div');
+                sessionControls.id = 'sessionControls';
+                sessionControls.style.cssText = `
+                    display: flex;
+                    gap: 10px;
+                    align-items: center;
+                `;
+                
+                // Insert before credits display
+                const header = document.querySelector('.studio-header');
+                const creditsDisplay = document.querySelector('.credits-display');
+                header.insertBefore(sessionControls, creditsDisplay);
+            }
+            
+            // Update button content based on session state
+            if (studioSessionActive) {
+                sessionControls.innerHTML = `
+                    <div style="color: #10b981; font-weight: bold; margin-right: 10px;">
+                        🔴 REC ${formatSessionTime()}
+                    </div>
+                    <button onclick="stopStudioSession()" style="background: #ef4444; color: white; padding: 8px 16px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">
+                        End Session
+                    </button>
+                `;
+            } else {
+                sessionControls.innerHTML = `
+                    <button onclick="startStudioSession()" style="background: #10b981; color: white; padding: 8px 16px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">
+                        Start Session
+                    </button>
+                `;
+            }
+        }
+        
+        // Format session time display
+        function formatSessionTime() {
+            if (!sessionStartTime) return '00:00';
+            
+            const elapsed = Date.now() - sessionStartTime;
+            const minutes = Math.floor(elapsed / 60000);
+            const seconds = Math.floor((elapsed % 60000) / 1000);
+            
+            return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+        
+        // Update session timer display
+        function updateSessionTimer() {
+            if (studioSessionActive) {
+                const timerElement = document.querySelector('#sessionControls div');
+                if (timerElement) {
+                    timerElement.innerHTML = `🔴 REC ${formatSessionTime()}`;
+                }
+            }
+        }
+        
+        // Start session timer update
+        setInterval(updateSessionTimer, 1000);
+        
         // Initialize
         window.addEventListener('load', function() {
             // Mini Studio initialized
+            updateSessionControls();
+            console.log('🎵 Mini Studio initialized with session control');
         });
     </script>
 </body>
