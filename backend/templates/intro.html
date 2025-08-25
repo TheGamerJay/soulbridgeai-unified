@@ -1065,6 +1065,19 @@
                 return "💙 Wellness Support: SoulBridge AI offers communities for anxiety, depression, meditation, fitness, and more. Choose a companion that resonates with you, join supportive communities, and participate in wellness challenges!";
             }
             
+            // TERMS, POLICIES & LEGAL - NAVIGATION INSTRUCTIONS
+            if (q.includes('terms') || q.includes('policy') || q.includes('privacy') || q.includes('legal') || q.includes('agreement')) {
+                if (q.includes('terms') || q.includes('service')) {
+                    return "📜 HOW TO FIND TERMS OF SERVICE:\n\n🔍 Step-by-Step Navigation:\n1. Click 'Profile' (👤 button above)\n2. Scroll down to 'Help & Support' section\n3. Click 'Help & FAQ' button\n4. Look for 'Legal' or 'Terms' section\n5. Or scroll to bottom of any page → 'Terms of Service' link\n\n📋 What you'll find: User agreements, age requirements (13+), subscription terms, acceptable use policy.";
+                } else if (q.includes('privacy')) {
+                    return "🔒 HOW TO FIND PRIVACY POLICY:\n\n🔍 Step-by-Step Navigation:\n1. Click 'Profile' (👤 button above)\n2. Scroll down to 'Help & Support' section\n3. Click 'Help & FAQ' button\n4. Look for 'Privacy' section\n5. Or scroll to bottom of any page → 'Privacy Policy' link\n\n🛡️ What you'll find: Data protection details, encryption info, privacy rights, what we collect and why.";
+                } else if (q.includes('refund') || q.includes('cancel')) {
+                    return "💳 HOW TO FIND REFUND POLICY:\n\n🔍 Step-by-Step Navigation:\n1. Click 'Profile' (👤 button above)\n2. Scroll down to 'Subscription' section\n3. Click 'Manage Subscription' button\n4. Or go to 'Help & Support' → 'Help & FAQ'\n5. Look for 'Billing' or 'Refund' section\n\n📋 Policy Summary: No refunds after payment processing. Cancel anytime, keep access until billing period ends.";
+                } else if (q.includes('community') && (q.includes('guideline') || q.includes('rule'))) {
+                    return "🤝 HOW TO FIND COMMUNITY GUIDELINES:\n\n🔍 Step-by-Step Navigation:\n1. Click 'Community' (🌍 button above)\n2. Look for 'Guidelines' or 'Rules' section\n3. Or Profile → 'Help & FAQ' → 'Community' section\n4. Or scroll to bottom of any page → 'Community Guidelines'\n\n📋 Key Rules: Be respectful, no harassment, stay on topic, report inappropriate content, keep sharing positive!";
+                }
+            }
+            
             // DEFAULT COMPREHENSIVE HELP
             return `💎 I'm Sapphire, your SoulBridge AI navigation guide! I know every feature:
 
