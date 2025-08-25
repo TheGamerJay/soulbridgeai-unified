@@ -824,8 +824,31 @@
                             <button onclick="quickAsk('Where are my settings?')" class="quickBtn">Settings</button>
                             <button onclick="quickAsk('How do I choose a companion?')" class="quickBtn">Choose Companion</button>
                             <button onclick="quickAsk('Where is billing?')" class="quickBtn">Billing</button>
+                            <button onclick="quickAsk('What are the terms of service?')" class="quickBtn">Terms of Service</button>
+                            <button onclick="quickAsk('What is the privacy policy?')" class="quickBtn">Privacy Policy</button>
+                            <button onclick="quickAsk('What is the refund policy?')" class="quickBtn">Refund Policy</button>
+                            <button onclick="quickAsk('What are the community guidelines?')" class="quickBtn">Community Rules</button>
                         </div>
                     </div>
+                    
+                    <style>
+                        .quickBtn {
+                            padding: 6px 12px;
+                            background: rgba(34, 211, 238, 0.2);
+                            border: 1px solid rgba(34, 211, 238, 0.4);
+                            border-radius: 20px;
+                            color: #22d3ee;
+                            font-size: 0.75rem;
+                            cursor: pointer;
+                            transition: all 0.2s ease;
+                            white-space: nowrap;
+                        }
+                        .quickBtn:hover {
+                            background: rgba(34, 211, 238, 0.3);
+                            transform: translateY(-1px);
+                            box-shadow: 0 4px 12px rgba(34, 211, 238, 0.3);
+                        }
+                    </style>
                     
                     <div id="sapphireResponse" style="
                         background: rgba(255, 255, 255, 0.05); border-radius: 12px; 

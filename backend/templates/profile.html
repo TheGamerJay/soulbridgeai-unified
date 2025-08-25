@@ -2287,6 +2287,22 @@
                     0% { box-shadow: 0 4px 20px rgba(34, 211, 238, 0.4); }
                     100% { box-shadow: 0 8px 30px rgba(34, 211, 238, 0.7); }
                 }
+                .quickBtn {
+                    padding: 6px 12px;
+                    background: rgba(34, 211, 238, 0.2);
+                    border: 1px solid rgba(34, 211, 238, 0.4);
+                    border-radius: 20px;
+                    color: #22d3ee;
+                    font-size: 0.75rem;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    white-space: nowrap;
+                }
+                .quickBtn:hover {
+                    background: rgba(34, 211, 238, 0.3);
+                    transform: translateY(-1px);
+                    box-shadow: 0 4px 12px rgba(34, 211, 238, 0.3);
+                }
             `;
             document.head.appendChild(style);
             document.body.appendChild(sapphireBtn);
@@ -2342,6 +2358,20 @@
                                        font-weight: 600; cursor: pointer; transition: all 0.3s ease;">
                             Ask Sapphire
                         </button>
+                    </div>
+                    
+                    <div style="background: rgba(34, 211, 238, 0.1); border-radius: 12px; padding: 15px; margin-bottom: 20px;">
+                        <h4 style="color: #22d3ee; margin: 0 0 10px 0; font-size: 0.9rem;">💡 Try asking:</h4>
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                            <button onclick="quickAskProfile('How do I reset my password?')" class="quickBtn">Reset Password</button>
+                            <button onclick="quickAskProfile('Where are my settings?')" class="quickBtn">Settings</button>
+                            <button onclick="quickAskProfile('How do I choose a companion?')" class="quickBtn">Choose Companion</button>
+                            <button onclick="quickAskProfile('Where is billing?')" class="quickBtn">Billing</button>
+                            <button onclick="quickAskProfile('What are the terms of service?')" class="quickBtn">Terms of Service</button>
+                            <button onclick="quickAskProfile('What is the privacy policy?')" class="quickBtn">Privacy Policy</button>
+                            <button onclick="quickAskProfile('What is the refund policy?')" class="quickBtn">Refund Policy</button>
+                            <button onclick="quickAskProfile('What are the community guidelines?')" class="quickBtn">Community Rules</button>
+                        </div>
                     </div>
                     
                     <div id="sapphireHelpResponse" style="
@@ -2528,6 +2558,14 @@
 💡 TIPS: Smart usage, billing advice, feature optimization
 
 What specific feature, policy, or page would you like help with?`;
+        }
+        
+        function quickAskProfile(question) {
+            const questionInput = document.getElementById('sapphireHelpQuestion');
+            if (questionInput) {
+                questionInput.value = question;
+                askSapphireHelp();
+            }
         }
         
         function closeSapphireHelp() {
