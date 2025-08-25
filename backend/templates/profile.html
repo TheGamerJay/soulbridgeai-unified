@@ -2546,7 +2546,9 @@
             
             // NAVIGATION HELP
             if (q.includes('where') || q.includes('find') || q.includes('navigate') || q.includes('locate') || q.includes('how')) {
-                if (q.includes('community')) {
+                if (q.includes('setting') || q.includes('settings')) {
+                    return "⚙️ HOW TO FIND SETTINGS:\n\n🔍 Step-by-Step Navigation:\n1. You're on Profile page now! ✅\n2. Scroll down to 'User Information' section\n3. Here you can change: Display name, Profile picture\n4. Scroll further for: Subscription settings, Trial activation\n5. Look for 'Account Settings' or 'Preferences' sections\n\n🎛️ Available Settings: Display name editing, Profile image upload, Subscription management, Trial activation, Chat history download, Help & FAQ access.";
+                } else if (q.includes('community')) {
                     return "🌍 COMMUNITY PAGE: Click '🌍 Community' button in navigation! Anonymous sharing with companion avatars, emoji reactions, category-based posts (gratitude, dreams, thoughts, etc).";
                 } else if (q.includes('chat') || q.includes('talk')) {
                     return "💬 CHAT: Click '🌟 Choose Your AI Companion' → select companion → start chatting! Each companion has unique personality and specialties.";

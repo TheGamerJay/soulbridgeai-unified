@@ -994,7 +994,9 @@
             
             // NAVIGATION HELP
             if (q.includes('where') || q.includes('find') || q.includes('navigate') || q.includes('locate') || q.includes('how')) {
-                if (q.includes('profile') || q.includes('account')) {
+                if (q.includes('setting') || q.includes('settings')) {
+                    return "⚙️ HOW TO FIND SETTINGS:\n\n🔍 Step-by-Step Navigation:\n1. Click 'Profile' (👤 button above)\n2. Scroll down to 'User Information' section\n3. Here you can change: Display name, Profile picture\n4. Scroll further for: Subscription settings, Trial activation\n5. Or look for 'Account Settings' or 'Preferences' section\n\n🎛️ Available Settings: Display name, Profile image upload, Subscription management, Trial activation, Chat history download, Notification preferences.";
+                } else if (q.includes('profile') || q.includes('account')) {
                     return "👤 PROFILE PAGE: Click '👤 Profile' button above! Manage: display name, profile picture, subscription, trial activation, chat history download, help & FAQ access.";
                 } else if (q.includes('community')) {
                     return "🌍 COMMUNITY PAGE: Click '🌍 Community' button above! Anonymous sharing with companion avatars, emoji reactions, category-based posts (gratitude, dreams, thoughts, etc).";
