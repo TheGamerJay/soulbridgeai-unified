@@ -2737,6 +2737,18 @@
             }
         }
         
+        // View Chat History - redirect to library page
+        function viewChatHistory() {
+            console.log('📚 Redirecting to chat history in library...');
+            window.location.href = '/library';
+        }
+
+        // Show Companion Stats placeholder
+        function showCompanionStats() {
+            console.log('📊 Companion stats feature - coming soon!');
+            alert('📊 Companion stats feature coming soon! Check back for detailed analytics about your conversations.');
+        }
+
         // Add Sapphire helper when page loads
         document.addEventListener('DOMContentLoaded', function() {
             loadUserData();
