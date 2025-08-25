@@ -1858,12 +1858,7 @@
             }
         };
 
-        window.viewChatHistory = () => {
-            showMessage('Opening chat history viewer...', 'info');
-            setTimeout(() => {
-                window.location.href = '/chat-history';
-            }, 1000);
-        };
+        // viewChatHistory function removed - newer implementation below redirects to /library instead of /chat-history
 
         window.showCompanionStats = () => {
             showMessage('Companion statistics available in the main dashboard', 'info');
