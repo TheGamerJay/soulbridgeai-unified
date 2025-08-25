@@ -2631,22 +2631,29 @@ What specific feature, policy, or page would you like help with?`;
         
         // Load user data and initialize profile page
         async function loadUserData() {
+            console.log('🔄 Starting loadUserData...');
             try {
+                console.log('📡 Making API call to /api/user/profile');
                 const response = await fetch('/api/user/profile', {
                     method: 'GET',
                     headers: { 'Content-Type': 'application/json' },
                     credentials: 'same-origin'
                 });
 
+                console.log('📡 API Response status:', response.status);
+                
                 if (response.ok) {
                     const responseData = await response.json();
-                    console.log('Profile API Response:', responseData); // Debug log
+                    console.log('✅ Profile API Response:', responseData); // Debug log
                     
                     // Extract user data from the response
                     const userData = responseData.user || responseData;
+                    console.log('👤 Extracted userData:', userData);
                     
                     // Update user ID
                     const userIDEl = document.getElementById('userID');
+                    console.log('🆔 User ID element found:', !!userIDEl);
+                    console.log('🆔 User ID from API:', userData.uid || userData.userID);
                     if (userIDEl) {
                         userIDEl.textContent = userData.uid || userData.userID || 'N/A';
                     }
@@ -2659,12 +2666,26 @@ What specific feature, policy, or page would you like help with?`;
                     
                     // Update profile image
                     const profileImageEl = document.querySelector('.profile-avatar img');
-                    if (profileImageEl && userData.profileImage) {
-                        profileImageEl.src = userData.profileImage;
-                        profileImageEl.onerror = function() {
-                            console.warn('Profile image failed to load:', userData.profileImage);
-                            this.src = '/static/logos/IntroLogo.png'; // Fallback
-                        };
+                    console.log('🖼️ Profile image element found:', !!profileImageEl);
+                    console.log('🖼️ Profile image URL from API:', userData.profileImage);
+                    
+                    if (profileImageEl) {
+                        if (userData.profileImage) {
+                            console.log('🖼️ Setting profile image to:', userData.profileImage);
+                            profileImageEl.src = userData.profileImage;
+                            profileImageEl.onerror = function() {
+                                console.warn('❌ Profile image failed to load:', userData.profileImage);
+                                this.src = '/static/logos/IntroLogo.png'; // Fallback
+                            };
+                            profileImageEl.onload = function() {
+                                console.log('✅ Profile image loaded successfully');
+                            };
+                        } else {
+                            console.log('🖼️ No profile image in userData, using default');
+                            profileImageEl.src = '/static/logos/IntroLogo.png';
+                        }
+                    } else {
+                        console.warn('❌ Profile image element not found in DOM');
                     }
                     
                     // Update companion info with last used companion
@@ -2676,20 +2697,22 @@ What specific feature, policy, or page would you like help with?`;
                     updateCreditsDisplay(userData, responseData.access);
                     
                 } else {
-                    console.error('Failed to load user data:', response.status);
+                    console.error('❌ Failed to load user data. Status:', response.status);
+                    const errorText = await response.text();
+                    console.error('❌ Error response:', errorText);
                     // Show friendly fallback data
                     const userIDEl = document.getElementById('userID');
                     const userEmailEl = document.getElementById('userEmail');
-                    if (userIDEl) userIDEl.textContent = 'Loading...';
-                    if (userEmailEl) userEmailEl.textContent = 'Loading...';
+                    if (userIDEl) userIDEl.textContent = 'Unable to load';
+                    if (userEmailEl) userEmailEl.textContent = 'Unable to load';
                 }
             } catch (error) {
-                console.error('Error loading user data:', error);
+                console.error('❌ Network/JS Error loading user data:', error);
                 // Show friendly fallback data
                 const userIDEl = document.getElementById('userID');
                 const userEmailEl = document.getElementById('userEmail');
-                if (userIDEl) userIDEl.textContent = 'Loading...';
-                if (userEmailEl) userEmailEl.textContent = 'Loading...';
+                if (userIDEl) userIDEl.textContent = 'Connection error';
+                if (userEmailEl) userEmailEl.textContent = 'Connection error';
             }
         }
         
