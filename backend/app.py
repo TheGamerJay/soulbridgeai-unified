@@ -522,7 +522,8 @@ def create_companion_routes():
                     effective_plan=effective_plan,
                     limits=limits,
                     selected_companion=comp_id,
-                    companion_info=comp_data
+                    companion_info=comp_data,
+                    companion_tier=comp_tier  # Pass the companion's tier for template logic
                 )
             
             return companion_route
