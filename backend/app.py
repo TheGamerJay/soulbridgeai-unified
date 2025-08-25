@@ -7934,7 +7934,7 @@ def protected_feature_check():
         
         if not can_access_feature(effective_plan, feature):
             return jsonify({
-                "error": f"Feature '{feature}' requires Growth or Max plan",
+                "error": f"Feature '{feature}' requires Silver or Gold tier",
                 "locked": True,
                 "current_plan": user_plan,
                 "effective_plan": effective_plan,
@@ -10851,8 +10851,9 @@ def api_creative_writing():
             
             creative_content = response.choices[0].message.content.strip()
             
-            # Add a personal touch from the companion
-            companion_signature = f"\n\n— Created with {companion}'s creative guidance 💫"
+            # Add a personal touch from the companion (remove tier suffix)
+            clean_companion_name = companion.replace('_bronze', '').replace('_silver', '').replace('_gold', '').title()
+            companion_signature = f"\n\n— Created with {clean_companion_name}'s creative guidance 💫"
             final_content = creative_content + companion_signature
             
             # Track usage for daily limits
@@ -11436,8 +11437,9 @@ def api_save_canvas_art():
         user_plan = session.get('user_plan', 'bronze')
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
-        if user_plan not in ['silver', 'gold'] and not trial_active:
-            return jsonify({"success": False, "error": "Creative Canvas requires Growth or Max plan"}), 403
+        effective_plan = get_effective_plan(user_plan, trial_active)
+        if effective_plan == 'bronze' and not trial_active:
+            return jsonify({"success": False, "error": "Creative Canvas requires Silver or Gold tier"}), 403
             
         data = request.get_json()
         if not data:
@@ -11641,8 +11643,9 @@ def api_share_to_wellness_gallery():
         user_plan = session.get('user_plan', 'bronze')
         trial_active = check_trial_active_from_db(session.get('user_id'))
         
-        if user_plan not in ['silver', 'gold'] and not trial_active:
-            return jsonify({"success": False, "error": "Wellness Gallery sharing requires Growth or Max plan"}), 403
+        effective_plan = get_effective_plan(user_plan, trial_active)
+        if effective_plan == 'bronze' and not trial_active:
+            return jsonify({"success": False, "error": "Wellness Gallery sharing requires Silver or Gold tier"}), 403
             
         data = request.get_json()
         if not data:
