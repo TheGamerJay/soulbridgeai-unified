@@ -1704,11 +1704,13 @@
                 Object.entries(limitElements).forEach(([feature, element]) => {
                     if (element && limits[feature] !== undefined) {
                         const limit = limits[feature];
-                        const displayLimit = limit === Infinity ? '∞' : limit;
+                        // Check for unlimited: either Infinity or 999
+                        const isUnlimited = (limit === Infinity || limit >= 999);
+                        const displayLimit = isUnlimited ? '∞' : limit;
                         element.textContent = `${displayLimit} daily`;
                         
                         // Add visual styling based on limits
-                        element.className = `limit-display ${limit === Infinity ? 'unlimited' : limit > 10 ? 'high' : 'basic'}`;
+                        element.className = `limit-display ${isUnlimited ? 'unlimited' : limit > 10 ? 'high' : 'basic'}`;
                     }
                 });
             }

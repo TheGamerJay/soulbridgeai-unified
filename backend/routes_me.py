@@ -64,11 +64,11 @@ def me():
         # Set limits based on plan OR trial access
         # Trial users get Gold tier limits + companion access (per CLAUDE.md)
         if plan in ['gold'] or trial_active:
-            limits = {"decoder": 999999, "fortune": 999999, "horoscope": 999999, "creative_writer": 999999}
+            limits = {"decoder": 999, "fortune": 999, "horoscope": 999, "creative_writer": 999}
         elif plan in ['silver']:
-            limits = {"decoder": 15, "fortune": 8, "horoscope": 10, "creative_writer": 20}
+            limits = {"decoder": 15, "fortune": 8, "horoscope": 10, "creative_writer": 15}
         else:  # Bronze tier only (no trial)
-            limits = {"decoder": 3, "fortune": 2, "horoscope": 3, "creative_writer": 2}
+            limits = {"decoder": 3, "fortune": 2, "horoscope": 3, "creative_writer": 3}
         
         # Restore trial credits if session is missing them but trial is active
         trial_credits = session.get('trial_credits')
