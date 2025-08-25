@@ -1202,7 +1202,7 @@
                             };
                             
                             console.log('✅ Profile loaded successfully:', this.userData);
-                            this.updateProfileDisplay();
+                            await this.updateProfileDisplay();
                             this.updateTierDisplay(); // New: update tier-specific UI
                         } else {
                             console.error('❌ Profile API returned error:', result.error);
@@ -1270,14 +1270,14 @@
                     if (response.ok) {
                         const result = await response.json();
                         this.userData = result.user;
-                        this.updateProfileDisplay();
+                        await this.updateProfileDisplay();
                     }
                 } catch (error) {
                     console.error('Failed to create profile:', error);
                 }
             }
 
-            updateProfileDisplay() {
+            async updateProfileDisplay() {
                 if (!this.userData) return;
 
                 // Update user information with null checks
@@ -1293,7 +1293,7 @@
                 
                 // PATCHED PROFILE MEDIA DISPLAY LOGIC - Supports Images & Videos
                 const rawProfileURL = this.userData?.profileImage;
-                setProfileMedia(rawProfileURL);
+                await setProfileMedia(rawProfileURL);
                 
                 const displayNameInput = document.getElementById('displayNameInput');
                 if (displayNameInput && this.userData.displayName) {
@@ -2012,7 +2012,7 @@
         }
 
         // Helper function to set profile media (image or video)
-        function setProfileMedia(mediaUrl) {
+        async function setProfileMedia(mediaUrl) {
             const profileImage = document.getElementById('userProfileImage');
             const profileVideo = document.getElementById('userProfileVideo');
             
@@ -2029,14 +2029,27 @@
             // Add cache buster
             const mediaSrc = mediaUrl + '?t=' + new Date().getTime();
             
-            // Check if it's a video by extension
-            if (mediaUrl.toLowerCase().endsWith('.mp4')) {
-                console.log('🎥 Loading as video:', mediaSrc);
-                profileVideo.src = mediaSrc;
-                profileVideo.style.display = 'block';
-                profileImage.style.display = 'none';
-            } else {
-                console.log('🖼️ Loading as image:', mediaSrc);
+            try {
+                // Check MIME type by making a HEAD request to determine if it's video or image
+                const response = await fetch(mediaSrc, { method: 'HEAD' });
+                const contentType = response.headers.get('content-type') || '';
+                
+                console.log('📄 Content type detected:', contentType);
+                
+                if (contentType.startsWith('video/')) {
+                    console.log('🎥 Loading as video:', mediaSrc);
+                    profileVideo.src = mediaSrc;
+                    profileVideo.style.display = 'block';
+                    profileImage.style.display = 'none';
+                } else {
+                    console.log('🖼️ Loading as image:', mediaSrc);
+                    profileImage.src = mediaSrc;
+                    profileImage.style.display = 'block';
+                    profileVideo.style.display = 'none';
+                }
+            } catch (error) {
+                console.warn('⚠️ Failed to detect media type, trying as image:', error);
+                // Fallback to image if HEAD request fails
                 profileImage.src = mediaSrc;
                 profileImage.style.display = 'block';
                 profileVideo.style.display = 'none';
@@ -2150,7 +2163,7 @@
                 }
 
                 // Update profile media (image or video)
-                setProfileMedia(result.profileImage);
+                await setProfileMedia(result.profileImage);
                 
                 // Add success visual feedback
                 const mediaContainer = document.getElementById('profileMediaContainer');
@@ -2746,7 +2759,7 @@
                     
                     if (profileImageEl) {
                         console.log('🖼️ Setting profile media using new function');
-                        setProfileMedia(userData.profileImage);
+                        await setProfileMedia(userData.profileImage);
                     } else {
                         console.warn('❌ Profile image element not found in DOM');
                     }
