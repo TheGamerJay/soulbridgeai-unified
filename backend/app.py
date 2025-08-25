@@ -7296,6 +7296,7 @@ def upload_profile_image():
         try:
             cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_image TEXT")
             cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_image_data TEXT")
+            cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_image_filename TEXT")
         except Exception as migration_error:
             logger.warning(f"Column migration warning: {migration_error}")
 
@@ -7306,19 +7307,20 @@ def upload_profile_image():
         if user_exists:
             # Update existing user
             cursor.execute(f"""
-                UPDATE users SET profile_image = {placeholder}, profile_image_data = {placeholder}
+                UPDATE users SET profile_image = {placeholder}, profile_image_data = {placeholder}, profile_image_filename = {placeholder}
                 WHERE id = {placeholder}
-            """, (profile_url, image_base64, user_id))
+            """, (profile_url, image_base64, file.filename, user_id))
             logger.info(f"📷 PROFILE: Updated existing user {user_id}")
         else:
             # Create user with fallback
             cursor.execute(f"""
-                INSERT INTO users (email, display_name, profile_image, profile_image_data, user_plan, plan_type)
-                VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder})
+                INSERT INTO users (email, display_name, profile_image, profile_image_data, profile_image_filename, user_plan, plan_type)
+                VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder})
                 ON CONFLICT (email) DO UPDATE SET
                     profile_image = EXCLUDED.profile_image,
-                    profile_image_data = EXCLUDED.profile_image_data
-            """, (user_email, display_name, profile_url, image_base64, 'bronze', 'bronze'))
+                    profile_image_data = EXCLUDED.profile_image_data,
+                    profile_image_filename = EXCLUDED.profile_image_filename
+            """, (user_email, display_name, profile_url, image_base64, file.filename, 'bronze', 'bronze'))
             logger.info(f"📷 PROFILE: Created/updated user via email {user_email}")
 
         conn.commit()
@@ -7350,7 +7352,7 @@ def serve_profile_image(user_id):
         cursor = conn.cursor()
         placeholder = "%s" if hasattr(db, 'postgres_url') and db.postgres_url else "?"
 
-        cursor.execute(f"SELECT profile_image_data FROM users WHERE id = {placeholder}", (user_id,))
+        cursor.execute(f"SELECT profile_image_data, profile_image_filename FROM users WHERE id = {placeholder}", (user_id,))
         result = cursor.fetchone()
         conn.close()
         
@@ -7360,7 +7362,28 @@ def serve_profile_image(user_id):
             from flask import send_file, Response
             
             image_data = base64.b64decode(result[0])
-            return Response(image_data, mimetype="image/png")
+            original_filename = result[1] if len(result) > 1 else ""
+            
+            # Detect MIME type from the original filename
+            mimetype = "image/png"  # Default fallback
+            if original_filename:
+                filename_lower = original_filename.lower()
+                if filename_lower.endswith('.mp4'):
+                    mimetype = "video/mp4"
+                    logger.info(f"🎥 Serving MP4 video '{original_filename}' for user {user_id}")
+                elif filename_lower.endswith('.gif'):
+                    mimetype = "image/gif"
+                    logger.info(f"🎉 Serving GIF '{original_filename}' for user {user_id}")
+                elif filename_lower.endswith('.webp'):
+                    mimetype = "image/webp"
+                elif filename_lower.endswith(('.jpg', '.jpeg')):
+                    mimetype = "image/jpeg"
+                else:
+                    logger.info(f"🖼️ Serving image '{original_filename}' (PNG fallback) for user {user_id}")
+            else:
+                logger.info(f"🖼️ No filename stored, serving as PNG for user {user_id}")
+            
+            return Response(image_data, mimetype=mimetype)
         else:
             return redirect('/static/logos/IntroLogo.png')
             
