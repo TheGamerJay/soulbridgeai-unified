@@ -771,18 +771,30 @@
             
             modal.innerHTML = `
                 <div style="
-                    background: linear-gradient(135deg, #0a0e1a 0%, #1a202c 100%);
-                    border: 2px solid rgba(34, 211, 238, 0.3);
-                    border-radius: 20px; padding: 30px; max-width: 500px; width: 90%;
+                    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+                    border: 2px solid rgba(34, 211, 238, 0.4);
+                    border-radius: 24px; padding: 32px; max-width: 550px; width: 92%;
                     max-height: 85vh; overflow-y: auto;
-                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-                    animation: slideUp 0.3s ease;
+                    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.6), 0 0 40px rgba(34, 211, 238, 0.1);
+                    animation: slideUp 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+                    backdrop-filter: blur(20px);
                 ">
-                    <div style="text-align: center; margin-bottom: 25px;">
-                        <img src="/static/logos/Sapphire.png" alt="Sapphire" 
-                             style="width: 60px; height: 60px; border-radius: 50%; margin-bottom: 15px; border: 2px solid #22d3ee;">
-                        <h3 style="color: #22d3ee; margin: 0 0 10px 0;">💎 Ask Sapphire</h3>
-                        <p style="color: #94a3b8; margin: 0 0 15px 0; font-size: 0.9rem;">Your step-by-step navigation guide is here!</p>
+                    <div style="text-align: center; margin-bottom: 28px;">
+                        <div style="position: relative; display: inline-block; margin-bottom: 18px;">
+                            <img src="/static/logos/Sapphire.png" alt="Sapphire" 
+                                 style="width: 68px; height: 68px; border-radius: 50%; 
+                                        border: 3px solid #22d3ee; 
+                                        box-shadow: 0 8px 25px rgba(34, 211, 238, 0.3);
+                                        animation: glow 2s ease-in-out infinite alternate;">
+                            <div style="position: absolute; top: -2px; right: -2px; 
+                                        width: 18px; height: 18px; background: #10b981; 
+                                        border: 2px solid #0f172a; border-radius: 50%;
+                                        animation: pulse 2s infinite;"></div>
+                        </div>
+                        <h3 style="color: #22d3ee; margin: 0 0 8px 0; font-size: 1.4rem; 
+                                   font-weight: 700; letter-spacing: 0.5px;">💎 Ask Sapphire</h3>
+                        <p style="color: #94a3b8; margin: 0 0 18px 0; font-size: 0.95rem; 
+                                  opacity: 0.9;">Your professional AI navigation assistant</p>
                         
                         <div style="display: flex; justify-content: space-around; margin-bottom: 20px; text-align: center;">
                             <div style="flex: 1; padding: 10px;">
@@ -800,21 +812,26 @@
                         </div>
                     </div>
                     
-                    <div style="margin-bottom: 20px;">
-                        <input type="text" id="sapphireQuestion" placeholder="Ask me anything about SoulBridge AI..." 
-                               style="width: 100%; padding: 15px; border: 2px solid rgba(34, 211, 238, 0.3);
-                                      border-radius: 12px; background: rgba(255, 255, 255, 0.1);
+                    <div style="margin-bottom: 22px;">
+                        <input type="text" id="sapphireQuestion" placeholder="How can I help you navigate SoulBridge AI?" 
+                               style="width: 100%; padding: 18px; border: 2px solid rgba(34, 211, 238, 0.4);
+                                      border-radius: 14px; background: rgba(255, 255, 255, 0.08);
                                       color: white; font-size: 1rem; outline: none;
-                                      backdrop-filter: blur(10px);"
+                                      backdrop-filter: blur(15px); transition: all 0.3s ease;
+                                      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);"
+                               onfocus="this.style.borderColor='rgba(34, 211, 238, 0.6)'; this.style.boxShadow='0 4px 25px rgba(34, 211, 238, 0.2)'"
+                               onblur="this.style.borderColor='rgba(34, 211, 238, 0.4)'; this.style.boxShadow='0 4px 20px rgba(0, 0, 0, 0.2)'"
                                onkeypress="if(event.key==='Enter') askSapphire()">
                         <button onclick="askSapphire()" 
-                                style="width: 100%; margin-top: 15px; padding: 15px;
+                                style="width: 100%; margin-top: 18px; padding: 16px;
                                        background: linear-gradient(135deg, #22d3ee 0%, #0891b2 100%);
-                                       border: none; border-radius: 12px; color: white;
-                                       font-weight: 600; cursor: pointer; transition: all 0.3s ease;"
-                                onmouseover="this.style.transform='translateY(-2px)'"
-                                onmouseout="this.style.transform='translateY(0)'">
-                            Ask Sapphire
+                                       border: none; border-radius: 14px; color: white;
+                                       font-weight: 600; cursor: pointer; transition: all 0.3s ease;
+                                       font-size: 1rem; letter-spacing: 0.3px;
+                                       box-shadow: 0 6px 20px rgba(34, 211, 238, 0.3);"
+                                onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 25px rgba(34, 211, 238, 0.4)'"
+                                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 6px 20px rgba(34, 211, 238, 0.3)'">
+                            Ask Sapphire 💎
                         </button>
                     </div>
                     
@@ -892,20 +909,38 @@
                 </div>
             `;
             
-            // Add styles for quick buttons
+            // Add enhanced styles for professional look
             const style = document.createElement('style');
             style.textContent = `
                 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-                @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-                @keyframes slideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+                @keyframes slideUp { 
+                    from { transform: translateY(40px) scale(0.95); opacity: 0; } 
+                    to { transform: translateY(0) scale(1); opacity: 1; } 
+                }
+                @keyframes slideIn { 
+                    from { transform: translateY(-20px); opacity: 0; } 
+                    to { transform: translateY(0); opacity: 1; } 
+                }
+                @keyframes glow {
+                    from { box-shadow: 0 8px 25px rgba(34, 211, 238, 0.3); }
+                    to { box-shadow: 0 8px 35px rgba(34, 211, 238, 0.5); }
+                }
+                @keyframes pulse {
+                    0%, 100% { transform: scale(1); opacity: 1; }
+                    50% { transform: scale(1.1); opacity: 0.8; }
+                }
                 .quickBtn {
-                    padding: 6px 12px; background: rgba(34, 211, 238, 0.2);
-                    border: 1px solid rgba(34, 211, 238, 0.3); border-radius: 20px;
-                    color: #22d3ee; font-size: 0.8rem; cursor: pointer;
-                    transition: all 0.2s ease; white-space: nowrap;
+                    padding: 8px 16px; background: rgba(34, 211, 238, 0.15);
+                    border: 1px solid rgba(34, 211, 238, 0.4); border-radius: 22px;
+                    color: #22d3ee; font-size: 0.85rem; cursor: pointer;
+                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); white-space: nowrap;
+                    font-weight: 500; letter-spacing: 0.2px;
                 }
                 .quickBtn:hover {
-                    background: rgba(34, 211, 238, 0.3); transform: translateY(-1px);
+                    background: rgba(34, 211, 238, 0.25); 
+                    transform: translateY(-2px) scale(1.02);
+                    border-color: rgba(34, 211, 238, 0.6);
+                    box-shadow: 0 6px 20px rgba(34, 211, 238, 0.25);
                 }
             `;
             document.head.appendChild(style);

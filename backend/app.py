@@ -6803,7 +6803,6 @@ def payment_cancel():
         logger.error(f"Payment cancel handler error: {e}")
         return redirect("/subscription")
 
-@app.route("/api/user/profile", methods=["GET", "POST"])
 @app.route("/api/sapphire-chat", methods=["POST"])
 def sapphire_chat():
     """Sapphire AI Navigation Assistant - Real OpenAI Integration with GPT-3.5-turbo"""
@@ -6855,7 +6854,15 @@ REDIRECT TEMPLATE for non-navigation questions:
 ONLY answer questions about WHERE to find things in the app."""
 
         try:
-            response = openai.ChatCompletion.create(
+            # Initialize OpenAI if not already done
+            if not openai_client:
+                if not init_openai():
+                    return jsonify({
+                        "success": False, 
+                        "error": "Sapphire is temporarily unavailable. Please try again."
+                    }), 500
+            
+            response = openai_client.chat.completions.create(
                 model="gpt-3.5-turbo",  # Cheapest OpenAI model
                 messages=[
                     {"role": "system", "content": system_prompt},
