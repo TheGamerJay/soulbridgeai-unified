@@ -801,6 +801,103 @@
             margin-bottom: 1rem;
         }
 
+        /* Theme Customization Styles */
+        .theme-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .theme-card {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 12px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .theme-card:hover {
+            border-color: rgba(34, 211, 238, 0.6);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(34, 211, 238, 0.3);
+        }
+
+        .theme-card.selected {
+            border-color: #22d3ee;
+            background: rgba(34, 211, 238, 0.2);
+            box-shadow: 0 0 20px rgba(34, 211, 238, 0.4);
+        }
+
+        .theme-preview {
+            text-align: center;
+        }
+
+        .theme-colors {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 0.8rem;
+        }
+
+        .theme-color {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .theme-name {
+            color: #22d3ee;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .tier-badge {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #000;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+
+        .settings-desc {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            font-style: italic;
+        }
+
+        .gold-exclusive {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .gold-exclusive::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 215, 0, 0.1), transparent);
+            animation: shimmer 3s infinite;
+            pointer-events: none;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+
         /* Responsive design */
         @media (max-width: 768px) {
             .profile-grid {
@@ -1096,6 +1193,87 @@
                     </button>
                     <button class="profile-btn secondary" onclick="clearChatHistory()">
                         🗑️ Clear Chat History
+                    </button>
+                </div>
+
+                <!-- Theme Customization - Silver & Gold Tier Only -->
+                <div class="settings-group" id="themeCustomizationGroup" style="display: none;">
+                    <div class="settings-title">🎨 Theme Customization</div>
+                    <p class="settings-desc">Personalize your SoulBridge AI experience with custom color themes</p>
+                    
+                    <div class="theme-selection">
+                        <div class="theme-grid">
+                            <div class="theme-card" data-theme="ocean" onclick="selectTheme('ocean')">
+                                <div class="theme-preview">
+                                    <div class="theme-colors">
+                                        <div class="theme-color" style="background: #0077be;"></div>
+                                        <div class="theme-color" style="background: #00a8cc;"></div>
+                                        <div class="theme-color" style="background: #1dd1a1;"></div>
+                                    </div>
+                                    <div class="theme-name">Ocean Breeze</div>
+                                </div>
+                            </div>
+                            
+                            <div class="theme-card" data-theme="forest" onclick="selectTheme('forest')">
+                                <div class="theme-preview">
+                                    <div class="theme-colors">
+                                        <div class="theme-color" style="background: #2d5a27;"></div>
+                                        <div class="theme-color" style="background: #4a7c59;"></div>
+                                        <div class="theme-color" style="background: #55a3ff;"></div>
+                                    </div>
+                                    <div class="theme-name">Forest Zen</div>
+                                </div>
+                            </div>
+                            
+                            <div class="theme-card" data-theme="sunset" onclick="selectTheme('sunset')">
+                                <div class="theme-preview">
+                                    <div class="theme-colors">
+                                        <div class="theme-color" style="background: #ff6b35;"></div>
+                                        <div class="theme-color" style="background: #f7931e;"></div>
+                                        <div class="theme-color" style="background: #ffd93d;"></div>
+                                    </div>
+                                    <div class="theme-name">Sunset Glow</div>
+                                </div>
+                            </div>
+                            
+                            <div class="theme-card" data-theme="purple" onclick="selectTheme('purple')">
+                                <div class="theme-preview">
+                                    <div class="theme-colors">
+                                        <div class="theme-color" style="background: #6c5ce7;"></div>
+                                        <div class="theme-color" style="background: #a29bfe;"></div>
+                                        <div class="theme-color" style="background: #fd79a8;"></div>
+                                    </div>
+                                    <div class="theme-name">Mystic Purple</div>
+                                </div>
+                            </div>
+
+                            <!-- Gold Tier Exclusive Themes -->
+                            <div class="theme-card gold-exclusive" data-theme="gold" onclick="selectTheme('gold')" id="goldTheme" style="display: none;">
+                                <div class="theme-preview">
+                                    <div class="theme-colors">
+                                        <div class="theme-color" style="background: linear-gradient(45deg, #FFD700, #FFA500);"></div>
+                                        <div class="theme-color" style="background: linear-gradient(45deg, #B8860B, #DAA520);"></div>
+                                        <div class="theme-color" style="background: linear-gradient(45deg, #FFDF00, #FFE135);"></div>
+                                    </div>
+                                    <div class="theme-name">Golden Luxury <span class="tier-badge">GOLD</span></div>
+                                </div>
+                            </div>
+                            
+                            <div class="theme-card gold-exclusive" data-theme="royal" onclick="selectTheme('royal')" id="royalTheme" style="display: none;">
+                                <div class="theme-preview">
+                                    <div class="theme-colors">
+                                        <div class="theme-color" style="background: linear-gradient(45deg, #4B0082, #9370DB);"></div>
+                                        <div class="theme-color" style="background: linear-gradient(45deg, #8A2BE2, #DA70D6);"></div>
+                                        <div class="theme-color" style="background: linear-gradient(45deg, #6A0DAD, #BA55D3);"></div>
+                                    </div>
+                                    <div class="theme-name">Royal Crown <span class="tier-badge">GOLD</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button class="profile-btn primary" onclick="openAdvancedThemes()" style="margin-top: 1rem;">
+                        🎨 Advanced Theme Editor
                     </button>
                 </div>
 
@@ -1484,6 +1662,32 @@
 
                 // Update usage limits display
                 this.updateUsageLimits();
+                
+                // Show theme customization for Silver/Gold tiers
+                const themeGroup = document.getElementById('themeCustomizationGroup');
+                const goldTheme = document.getElementById('goldTheme');
+                const royalTheme = document.getElementById('royalTheme');
+                
+                if (themeGroup) {
+                    const plan = this.userData.plan || 'bronze';
+                    if (plan === 'silver' || plan === 'gold') {
+                        themeGroup.style.display = 'block';
+                        console.log('🎨 Showing theme customization for', plan, 'tier');
+                        
+                        // Show Gold-exclusive themes for Gold tier only
+                        if (plan === 'gold') {
+                            if (goldTheme) goldTheme.style.display = 'block';
+                            if (royalTheme) royalTheme.style.display = 'block';
+                            console.log('✨ Gold tier detected - showing exclusive themes');
+                        } else {
+                            if (goldTheme) goldTheme.style.display = 'none';
+                            if (royalTheme) royalTheme.style.display = 'none';
+                        }
+                    } else {
+                        themeGroup.style.display = 'none';
+                        console.log('🚫 Bronze tier - theme customization hidden');
+                    }
+                }
             }
 
             updateUsageLimits() {
@@ -2916,6 +3120,197 @@
         document.addEventListener('DOMContentLoaded', function() {
             loadUserData();
             addSapphireHelper();
+        });
+        
+        // Theme customization functions
+        function selectTheme(themeName) {
+            console.log('🎨 Selecting theme:', themeName);
+            
+            // Remove selected class from all theme cards
+            document.querySelectorAll('.theme-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Add selected class to clicked theme
+            const selectedCard = document.querySelector(`[data-theme="${themeName}"]`);
+            if (selectedCard) {
+                selectedCard.classList.add('selected');
+            }
+            
+            // Apply the theme
+            applyTheme(themeName);
+            
+            // Save theme preference
+            saveThemePreference(themeName);
+        }
+        
+        function applyTheme(themeName) {
+            console.log('🎨 Applying theme:', themeName);
+            
+            // Theme color mappings
+            const themes = {
+                ocean: {
+                    primary: '#0077be',
+                    secondary: '#00a8cc', 
+                    accent: '#1dd1a1'
+                },
+                forest: {
+                    primary: '#2d5a27',
+                    secondary: '#4a7c59',
+                    accent: '#55a3ff'
+                },
+                sunset: {
+                    primary: '#ff6b35',
+                    secondary: '#f7931e',
+                    accent: '#ffd93d'
+                },
+                purple: {
+                    primary: '#6c5ce7',
+                    secondary: '#a29bfe',
+                    accent: '#fd79a8'
+                },
+                gold: {
+                    primary: '#FFD700',
+                    secondary: '#FFA500',
+                    accent: '#FFDF00'
+                },
+                royal: {
+                    primary: '#4B0082',
+                    secondary: '#9370DB',
+                    accent: '#8A2BE2'
+                }
+            };
+            
+            const theme = themes[themeName];
+            if (theme) {
+                // Apply theme colors to CSS variables
+                document.documentElement.style.setProperty('--theme-primary', theme.primary);
+                document.documentElement.style.setProperty('--theme-secondary', theme.secondary);
+                document.documentElement.style.setProperty('--theme-accent', theme.accent);
+                
+                // Update specific elements with theme colors
+                const panels = document.querySelectorAll('.profile-panel');
+                panels.forEach(panel => {
+                    panel.style.borderColor = theme.primary + '40'; // Add transparency
+                });
+                
+                const titles = document.querySelectorAll('.panel-title');
+                titles.forEach(title => {
+                    title.style.color = theme.primary;
+                });
+                
+                const buttons = document.querySelectorAll('.profile-btn.primary');
+                buttons.forEach(btn => {
+                    btn.style.background = `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})`;
+                });
+                
+                // Show success message
+                showThemeSuccess(themeName);
+            }
+        }
+        
+        function saveThemePreference(themeName) {
+            console.log('💾 Saving theme preference:', themeName);
+            
+            // Save to localStorage for immediate persistence  
+            localStorage.setItem('soulbridge_theme', themeName);
+            
+            // Save to backend (if user is logged in)
+            if (window.profileManager && window.profileManager.userData) {
+                fetch('/api/preferences/theme', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ theme: themeName })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log('✅ Theme preference saved to backend');
+                    } else {
+                        console.log('⚠️ Failed to save theme to backend:', data.error);
+                    }
+                })
+                .catch(error => {
+                    console.log('⚠️ Error saving theme to backend:', error);
+                });
+            }
+        }
+        
+        function loadSavedTheme() {
+            console.log('🎨 Loading saved theme...');
+            
+            // Check localStorage first
+            const savedTheme = localStorage.getItem('soulbridge_theme');
+            if (savedTheme) {
+                console.log('✅ Found saved theme in localStorage:', savedTheme);
+                selectTheme(savedTheme);
+                return;
+            }
+            
+            // Fallback to backend (if implemented)
+            if (window.profileManager && window.profileManager.userData) {
+                fetch('/api/preferences/theme')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success && data.theme) {
+                            console.log('✅ Found saved theme in backend:', data.theme);
+                            selectTheme(data.theme);
+                        } else {
+                            console.log('🎨 No saved theme found, using default');
+                        }
+                    })
+                    .catch(error => {
+                        console.log('⚠️ Error loading theme from backend:', error);
+                    });
+            }
+        }
+        
+        function showThemeSuccess(themeName) {
+            // Create temporary success message
+            const message = document.createElement('div');
+            message.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: linear-gradient(135deg, #10b981, #059669);
+                color: white;
+                padding: 1rem 1.5rem;
+                border-radius: 12px;
+                z-index: 10000;
+                box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+                transform: translateX(100%);
+                transition: transform 0.3s ease;
+            `;
+            message.innerHTML = `🎨 ${themeName.charAt(0).toUpperCase() + themeName.slice(1)} theme applied!`;
+            
+            document.body.appendChild(message);
+            
+            // Animate in
+            setTimeout(() => {
+                message.style.transform = 'translateX(0)';
+            }, 100);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                message.style.transform = 'translateX(100%)';
+                setTimeout(() => message.remove(), 300);
+            }, 3000);
+        }
+        
+        function openAdvancedThemes() {
+            console.log('🎨 Opening advanced theme editor...');
+            
+            // For now, redirect to the full preferences dashboard
+            window.location.href = '/preferences';
+        }
+        
+        // Load saved theme when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                loadSavedTheme();
+            }, 1000); // Wait for user data to load
         });
         
         // Profile page uses default styling - no theme switching
