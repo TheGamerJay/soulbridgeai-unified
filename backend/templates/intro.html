@@ -971,20 +971,7 @@
                 return "✨ PREMIUM FEATURES: Silver/Gold unlock: Voice Journaling, AI Image Generation, Relationship Profiles, Guided Meditations. Gold adds Mini Studio. Bronze users can trial for 5 hours!";
             }
             
-            // DEFAULT COMPREHENSIVE HELP
-            return `💎 I'm Sapphire, your SoulBridge AI navigation guide! I know every feature:
-
-🥉🥈🥇 TIERS: Bronze (free+ads), Silver ($12.99), Gold ($19.99)
-🌟 COMPANIONS: Blayzo, Violet, Crimson, me (Sapphire), + more
-🔧 FEATURES: Decoder, Fortune, Horoscope, Creative Writer, Mini Studio
-✨ PREMIUM: Voice Journal, AI Images, Relationships, Meditations
-🌍 COMMUNITY: Anonymous sharing with companion avatars
-👤 PROFILE: Account settings, subscription, trial activation
-
-What specific feature or page would you like help with?`;
-        }
-            
-            // Feature-specific help
+            // Feature-specific help  
             if (q.includes('upload') || q.includes('image') || q.includes('picture') || q.includes('photo')) {
                 return "📷 Profile Images: Go to Profile page → scroll to 'User Information' → click '📷 Upload Profile Picture'. Supports PNG, JPG, GIF, WebP up to 5MB. Your images are saved permanently!";
             }
@@ -1002,7 +989,7 @@ What specific feature or page would you like help with?`;
             }
             
             if (q.includes('subscription') || q.includes('billing') || q.includes('payment') || q.includes('upgrade')) {
-                return "💳 Subscription: Go to Profile → Subscription section to upgrade from Free to Growth or Max plans. Manage billing, view usage, and access premium features!";
+                return "💳 Subscription: Go to Profile → Subscription section to upgrade from Bronze to Silver or Gold plans. Manage billing, view usage, and access premium features!";
             }
             
             if (q.includes('dark') || q.includes('theme') || q.includes('colors') || q.includes('appearance')) {
@@ -1037,21 +1024,17 @@ What specific feature or page would you like help with?`;
                 return "💙 Wellness Support: SoulBridge AI offers communities for anxiety, depression, meditation, fitness, and more. Choose a companion that resonates with you, join supportive communities, and participate in wellness challenges!";
             }
             
-            if (q.includes('how') && (q.includes('work') || q.includes('use'))) {
-                return "🌟 How SoulBridge Works: 1) Choose your AI companion personality 2) Join wellness communities that interest you 3) Start conversations and participate in challenges 4) Track your wellness journey in your profile. I'm here to guide you through everything!";
-            }
-            
-            // Default comprehensive response
-            return `💎 I'm Sapphire, your SoulBridge AI navigation guide! I'll show you where to find:
+            // DEFAULT COMPREHENSIVE HELP
+            return `💎 I'm Sapphire, your SoulBridge AI navigation guide! I know every feature:
 
-🌟 Choosing AI companions (Blayzo, Violet, Crimson, etc.)
-🏘️ Joining wellness communities and challenges  
-👤 Managing your profile and settings
-💬 Starting conversations and getting support
-🔒 Account security and troubleshooting
-📧 Contacting support when needed
+🥉🥈🥇 TIERS: Bronze (free+ads), Silver ($12.99), Gold ($19.99)
+🌟 COMPANIONS: Blayzo, Violet, Crimson, me (Sapphire), + more
+🔧 FEATURES: Decoder, Fortune, Horoscope, Creative Writer, Mini Studio
+✨ PREMIUM: Voice Journal, AI Images, Relationships, Meditations
+🌍 COMMUNITY: Anonymous sharing with companion avatars
+👤 PROFILE: Account settings, subscription, trial activation
 
-What specific area would you like help with? I know every feature of SoulBridge AI and I'm here to guide your wellness journey!`;
+What specific feature or page would you like help with?`;
         }
         
         function closeSapphireModal() {

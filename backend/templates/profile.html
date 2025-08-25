@@ -2538,8 +2538,111 @@ What specific feature, policy, or page would you like help with?`;
             }
         }
         
+        // Load user data and initialize profile page
+        async function loadUserData() {
+            try {
+                const response = await fetch('/api/user/profile', {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin'
+                });
+
+                if (response.ok) {
+                    const userData = await response.json();
+                    
+                    // Update user ID
+                    const userIDEl = document.getElementById('userID');
+                    if (userIDEl) {
+                        userIDEl.textContent = userData.userID || 'N/A';
+                    }
+                    
+                    // Update email  
+                    const userEmailEl = document.getElementById('userEmail');
+                    if (userEmailEl) {
+                        userEmailEl.textContent = userData.email || 'No email found';
+                    }
+                    
+                    // Update companion info with last used companion
+                    if (userData.companion) {
+                        updateCompanionDisplay(userData.companion);
+                    }
+                    
+                    // Update credits display and trial status
+                    updateCreditsDisplay(userData);
+                    
+                } else {
+                    console.error('Failed to load user data:', response.status);
+                    // Show fallback data
+                    document.getElementById('userID').textContent = 'Unable to load';
+                    document.getElementById('userEmail').textContent = 'Unable to load';
+                }
+            } catch (error) {
+                console.error('Error loading user data:', error);
+                // Show fallback data
+                document.getElementById('userID').textContent = 'Error loading data';
+                document.getElementById('userEmail').textContent = 'Error loading data';
+            }
+        }
+        
+        // Update companion display with last used companion
+        function updateCompanionDisplay(companionName) {
+            const companionData = {
+                'Sapphire': { avatar: 'S', name: 'Sapphire', description: 'Your navigation assistant' },
+                'Blayzo': { avatar: 'B', name: 'Blayzo', description: 'Wise and calm mentor for thoughtful guidance' },
+                'Blayzion': { avatar: 'Bn', name: 'Blayzion', description: 'Creative and innovative problem solver' },
+                'Crimson': { avatar: 'C', name: 'Crimson', description: 'Passionate and energetic motivator' },
+                'Blayzica': { avatar: 'Bc', name: 'Blayzica', description: 'Empathetic and supportive companion' },
+                'Blayzia': { avatar: 'Bz', name: 'Blayzia', description: 'Intuitive and mystical guide' },
+                'Violet': { avatar: 'V', name: 'Violet', description: 'Gentle and nurturing presence' }
+            };
+
+            const info = companionData[companionName] || companionData['Blayzo'];
+            
+            // Update companion display elements
+            const avatarEl = document.getElementById('companionAvatar');
+            const nameEl = document.getElementById('companionName');
+            const descEl = document.getElementById('companionDescription');
+            
+            if (avatarEl) avatarEl.textContent = info.avatar;
+            if (nameEl) nameEl.textContent = info.name;
+            if (descEl) descEl.textContent = info.description;
+        }
+        
+        // Update credits display and handle trial status  
+        function updateCreditsDisplay(userData) {
+            const creditsEl = document.getElementById('creditsDisplay');
+            const trialInfoEl = document.getElementById('trialInfo');
+            const trialBtnEl = document.getElementById('trialActivationBtn');
+            
+            if (creditsEl) {
+                const credits = userData.trainer_credits || 0;
+                creditsEl.innerHTML = `<div class="credits-info">💎 ${credits} Credits</div>`;
+            }
+            
+            // Handle trial status
+            if (userData.trial_active && userData.trial_expires_at) {
+                // Show trial countdown
+                if (trialInfoEl) {
+                    showTrialCountdown(trialInfoEl, userData.trial_expires_at);
+                }
+                // Hide trial activation button during active trial
+                if (trialBtnEl) trialBtnEl.style.display = 'none';
+            } else {
+                // Hide trial info when not active
+                if (trialInfoEl) trialInfoEl.style.display = 'none';
+                
+                // Show trial activation button for Bronze users only
+                if (userData.user_plan === 'bronze' && trialBtnEl) {
+                    trialBtnEl.style.display = 'block';
+                } else if (trialBtnEl) {
+                    trialBtnEl.style.display = 'none';
+                }
+            }
+        }
+        
         // Add Sapphire helper when page loads
         document.addEventListener('DOMContentLoaded', function() {
+            loadUserData();
             addSapphireHelper();
         });
         
