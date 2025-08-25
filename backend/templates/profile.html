@@ -883,8 +883,8 @@
                         </div>
                     </div>
                     <div style="font-size: 0.85rem; color: #94a3b8; line-height: 1.4;">
-                        <strong>Upload anything:</strong> GIF, PNG, JPG, WebP, BMP, SVG, etc.<br>
-                        <strong>Size limit:</strong> Up to 10MB (private profile = relaxed rules!)<br>
+                        <strong>Safe formats:</strong> GIF, PNG, JPG, WebP, BMP, ICO, TIFF<br>
+                        <strong>Size limit:</strong> Up to 10MB • Private profile (your eyes only!)<br>
                         <em style="color: #22d3ee;">💃 Especially perfect for dancing Blayzo GIFs! 🕺</em>
                     </div>
                 </div>
@@ -2026,8 +2026,9 @@
             const file = activeInput.files[0];
             console.log('📁 File selected from:', activeInput.id);
 
-            // Relaxed validation for private profile - just log what we're uploading
+            // Safe validation for private profile - no virus risk
             const fileExtension = file.name.split('.').pop().toLowerCase();
+            const safeImageExts = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'ico', 'tiff', 'tif'];
             
             console.log('📁 Uploading file:', {
                 name: file.name,
@@ -2036,12 +2037,19 @@
                 size: (file.size / 1024 / 1024).toFixed(2) + 'MB'
             });
             
+            // Check for safe image formats only
+            if (!safeImageExts.includes(fileExtension)) {
+                alert(`❌ For security, only safe image files are allowed:\n${safeImageExts.join(', ')}\n\nYour file: ${file.name} (${fileExtension})`);
+                activeInput.value = '';
+                return;
+            }
+            
             // Special celebration for GIFs! 
             if (file.type === 'image/gif' || fileExtension === 'gif') {
                 console.log('🎉 DANCING BLAYZO GIF DETECTED! Let\'s make this happen! 💃');
             }
             
-            // Very relaxed validation - just warn about very large files
+            // Reasonable size limit with user choice
             if (file.size > 10 * 1024 * 1024) {
                 const proceed = confirm(`📦 That's a big file (${(file.size / 1024 / 1024).toFixed(1)}MB)! It might take a moment to upload. Continue?`);
                 if (!proceed) {

@@ -7108,6 +7108,9 @@ def api_users():
                     "limits": {"decoder": 3, "fortune": 2, "horoscope": 3}
                 }
 
+            # Get current companion from session
+            current_companion = session.get('selected_companion') or session.get('current_companion') or session.get('last_companion')
+            
             user_data = {
                 "uid": user_id or ('user_' + str(hash(user_email))[:8]),
                 "email": user_email,
@@ -7117,8 +7120,11 @@ def api_users():
                 "profileImage": profile_image,
                 "joinDate": join_date,
                 "createdDate": join_date,  # Add both for compatibility
-                "isActive": True
+                "isActive": True,
+                "companion": current_companion  # Add current companion
             }
+            
+            logger.info(f"👤 Profile data for user {user_id}: companion={current_companion}")
             
             # Add access data for new Bronze/Silver/Gold system
             access_data = {
@@ -7234,15 +7240,17 @@ def upload_profile_image():
         if not file or file.filename == '':
             return jsonify({"success": False, "error": "No image file provided"}), 400
 
-        # Relaxed validation for private profile - be more permissive  
+        # Safe but flexible validation for private profile
         file_ext = file.filename.rsplit('.', 1)[-1].lower() if '.' in file.filename else ''
         
         logger.info(f"📷 PRIVATE Profile upload: filename='{file.filename}', extension='{file_ext}', content_type='{file.content_type}'")
         
-        # Very permissive - allow most image formats and even some others
-        common_image_exts = {'png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'svg', 'ico', 'tiff', 'tif'}
-        if file_ext not in common_image_exts:
-            logger.warning(f"⚠️ Uncommon file type '{file_ext}' - allowing anyway since it's private profile")
+        # Safe image formats only - no virus risk
+        safe_image_exts = {'png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'ico', 'tiff', 'tif'}
+        if file_ext not in safe_image_exts:
+            error_msg = f"Unsupported file type '{file_ext}'. For security, only image files are allowed: {', '.join(sorted(safe_image_exts))}"
+            logger.warning(f"❌ {error_msg}")
+            return jsonify({"success": False, "error": error_msg}), 400
             
         # Special celebration for GIFs
         if file_ext == 'gif':
