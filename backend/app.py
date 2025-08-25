@@ -7245,16 +7245,18 @@ def upload_profile_image():
         
         logger.info(f"📷 PRIVATE Profile upload: filename='{file.filename}', extension='{file_ext}', content_type='{file.content_type}'")
         
-        # Only the most common image formats that all websites accept
-        common_formats = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
-        if file_ext not in common_formats:
-            error_msg = f"Only common image formats allowed: {', '.join(sorted(common_formats))}. Your file: {file_ext}"
+        # Common image formats + short MP4 videos
+        allowed_formats = {'png', 'jpg', 'jpeg', 'gif', 'webp', 'mp4'}
+        if file_ext not in allowed_formats:
+            error_msg = f"Allowed formats: {', '.join(sorted(allowed_formats))}. Your file: {file_ext}"
             logger.warning(f"❌ {error_msg}")
             return jsonify({"success": False, "error": error_msg}), 400
             
-        # Special celebration for GIFs
+        # Special celebrations
         if file_ext == 'gif':
             logger.info("🎉 DANCING BLAYZO GIF UPLOAD! LET'S GOOO! 💃🕺")
+        elif file_ext == 'mp4':
+            logger.info("🎬 DANCING BLAYZO VIDEO UPLOAD! SHORT CLIPS FTW! 🎥✨")
 
         # Relaxed file size limit (10MB instead of 5MB)
         file.seek(0, 2)

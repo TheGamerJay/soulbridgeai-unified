@@ -862,7 +862,7 @@
                     </div>
                     <div style="margin-bottom: 15px;">
                         <!-- Method 1: Standard images (but relaxed) -->
-                        <input type="file" id="profileImageInput" accept="image/*" style="display: none;" onchange="handleProfileImageUpload()">
+                        <input type="file" id="profileImageInput" accept="image/*,video/mp4" style="display: none;" onchange="handleProfileImageUpload()">
                         <!-- Method 2: All files (zero restrictions) -->
                         <input type="file" id="profileImageInputAny" style="display: none;" onchange="handleProfileImageUpload()">
                         <!-- Method 3: GIF celebration button -->
@@ -883,9 +883,8 @@
                         </div>
                     </div>
                     <div style="font-size: 0.85rem; color: #94a3b8; line-height: 1.4;">
-                        <strong>Allowed formats:</strong> PNG, JPG, JPEG, GIF, WebP only<br>
-                        <strong>Size limit:</strong> Up to 10MB • Private profile (your eyes only!)<br>
-                        <em style="color: #22d3ee;">💃 Perfect for your dancing Blayzo GIF! 🕺</em>
+                        <strong>Allowed formats:</strong> PNG, JPG, JPEG, GIF, WebP, MP4 (≤10s)<br>
+                        <strong>Size limit:</strong> Up to 10MB • Private profile (your eyes only!)
                     </div>
                 </div>
                 
@@ -2005,6 +2004,26 @@
         `;
         document.head.appendChild(style);
 
+        // Helper function to get video duration
+        function getVideoDuration(file) {
+            return new Promise((resolve, reject) => {
+                const video = document.createElement('video');
+                video.preload = 'metadata';
+                
+                video.onloadedmetadata = function() {
+                    window.URL.revokeObjectURL(video.src);
+                    resolve(video.duration);
+                };
+                
+                video.onerror = function() {
+                    window.URL.revokeObjectURL(video.src);
+                    reject(new Error('Invalid video file'));
+                };
+                
+                video.src = URL.createObjectURL(file);
+            });
+        }
+
         // PATCHED PROFILE IMAGE UPLOAD FUNCTION - Enhanced & Bulletproof
         window.handleProfileImageUpload = async function () {
             // Check all three file inputs - regular, all files, and GIF only
@@ -2028,7 +2047,7 @@
 
             // Only the most common image formats that all websites accept
             const fileExtension = file.name.split('.').pop().toLowerCase();
-            const commonFormats = ['png', 'jpg', 'jpeg', 'gif', 'webp'];
+            const commonFormats = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'mp4'];
             
             console.log('📁 Uploading file:', {
                 name: file.name,
@@ -2039,9 +2058,27 @@
             
             // Check for common formats only
             if (!commonFormats.includes(fileExtension)) {
-                alert(`❌ Only common image formats allowed:\n${commonFormats.join(', ')}\n\nYour file: ${file.name} (${fileExtension})`);
+                alert(`❌ Only common formats allowed:\n${commonFormats.join(', ')}\n\nYour file: ${file.name} (${fileExtension})`);
                 activeInput.value = '';
                 return;
+            }
+
+            // Check MP4 video duration (must be ≤10 seconds)
+            if (fileExtension === 'mp4') {
+                try {
+                    const duration = await getVideoDuration(file);
+                    if (duration > 10) {
+                        alert(`🎬 Video too long! MP4 videos must be 10 seconds or less.\n\nYour video: ${duration.toFixed(1)} seconds`);
+                        activeInput.value = '';
+                        return;
+                    }
+                    console.log(`🎥 MP4 video duration: ${duration.toFixed(1)}s - Perfect! ✅`);
+                } catch (error) {
+                    console.error('Error checking video duration:', error);
+                    alert('❌ Unable to validate video duration. Please try again.');
+                    activeInput.value = '';
+                    return;
+                }
             }
             
             // Special celebration for GIFs! 
