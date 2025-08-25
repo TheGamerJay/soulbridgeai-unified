@@ -904,24 +904,85 @@
         function getSapphireResponse(question, currentPage) {
             const q = question.toLowerCase();
             
-            // Website navigation help
-            if (q.includes('where') || q.includes('find') || q.includes('navigate') || q.includes('locate')) {
-                if (q.includes('faq') || q.includes('help') || q.includes('support') || q.includes('questions')) {
-                    return "❓ FAQ & Help: From here, click '👤 Profile' button above → scroll down and click '📚 Help & FAQ' button. This will take you to the complete help section with detailed guides and answers!";
-                } else if (q.includes('profile') || q.includes('account')) {
-                    return "🏠 From here: Click '👤 Profile' button above to access your account settings, profile image, display name, subscription details, and more!";
-                } else if (q.includes('community') || q.includes('communities')) {
-                    return "🌍 From here: Click '🌍 Community' button above to join our anonymous community! Share thoughts with companion avatars, react with emojis, and connect authentically while staying completely anonymous!";
-                } else if (q.includes('companion') || q.includes('character') || q.includes('ai')) {
-                    return "🌟 From here: Click '🌟 Choose Your AI Companion' button above to select from Blayzo, Violet, Crimson, Blayzica, Blayzia, and more! Each has unique personalities and specialties.";
-                } else if (q.includes('chat') || q.includes('talk') || q.includes('conversation')) {
-                    return "💬 To start chatting: First choose your AI companion with the '🌟 Choose Your AI Companion' button, then you'll be able to start meaningful conversations!";
-                } else if (q.includes('decoder') || q.includes('decode')) {
-                    return "🧠 Decoder Mode: Available in chat - click the Decoder button to analyze text, decode emotions, get insights, and more! Great for understanding complex messages or situations.";
-                } else if (q.includes('subscription') || q.includes('upgrade') || q.includes('billing')) {
-                    return "💳 Subscription: Go to /subscription page or Profile → Subscription section to upgrade from Free to Growth/Max plans. Manage billing and access premium features!";
+            // COMPREHENSIVE APP KNOWLEDGE - SAPPHIRE KNOWS EVERYTHING
+            
+            // TIER SYSTEM QUESTIONS
+            if (q.includes('tier') || q.includes('plan') || q.includes('bronze') || q.includes('silver') || q.includes('gold') || q.includes('subscription')) {
+                if (q.includes('bronze') || q.includes('free')) {
+                    return "🥉 BRONZE TIER (Default): Always available with ads! Features: Decoder (3 daily), Fortune (2 daily), Horoscope (3 daily), Creative Writer (2 daily). Premium features LOCKED. Can activate 5-hour trial to taste Silver/Gold features + get 60 trainer credits!";
+                } else if (q.includes('silver')) {
+                    return "🥈 SILVER TIER ($12.99/month): Enhanced limits + premium features! Decoder (15), Fortune (8), Horoscope (10), Creative Writer (20). 100 monthly trainer credits. Unlocks: AI Images, Voice Journal, Relationships, Meditations. NO ADS. Mini Studio still locked (Gold only).";
+                } else if (q.includes('gold')) {
+                    return "🥇 GOLD TIER ($19.99/month): UNLIMITED everything! All features unlimited. 500 monthly trainer credits. Unlocks ALL premium features INCLUDING Mini Studio (Gold exclusive). Access to all Bronze/Silver/Gold companions. NO ADS.";
+                } else if (q.includes('trial')) {
+                    return "⏰ 5-HOUR TRIAL: For Bronze users only! Unlocks Silver/Gold access + 60 trainer credits for 5 hours. One-time only. Perfect to taste premium features before subscribing!";
+                } else if (q.includes('credit')) {
+                    return "💰 TRAINER CREDITS: Bronze=0, Silver=100/month, Gold=500/month. Used for credit-based features. Silver/Gold can buy extra credits when running low. Credits reset monthly (no rollover)!";
                 }
             }
+            
+            // FEATURE QUESTIONS
+            if (q.includes('decoder') || q.includes('fortune') || q.includes('horoscope') || q.includes('creative') || q.includes('mini studio')) {
+                if (q.includes('decoder')) {
+                    return "🧠 DECODER: Analyze text, decode emotions, get insights! Daily limits: Bronze=3, Silver=15, Gold=unlimited. Available in all companion chats with special Decoder button.";
+                } else if (q.includes('fortune')) {
+                    return "🔮 FORTUNE: Get mystical insights and guidance! Daily limits: Bronze=2, Silver=8, Gold=unlimited. Access through companion chat or dedicated Fortune feature.";
+                } else if (q.includes('horoscope')) {
+                    return "✨ HOROSCOPE: Personalized astrological readings! Daily limits: Bronze=3, Silver=10, Gold=unlimited. Choose your sign and get cosmic insights.";
+                } else if (q.includes('creative')) {
+                    return "✍️ CREATIVE WRITER: AI-powered writing assistance! Daily limits: Bronze=2, Silver=20, Gold=unlimited. Perfect for stories, poems, and creative projects.";
+                } else if (q.includes('mini studio') || q.includes('ministudio')) {
+                    return "🎬 MINI STUDIO: Gold tier exclusive! Create custom AI video content, advanced media generation. Only available to Gold subscribers - unlock unlimited creative possibilities!";
+                }
+            }
+            
+            // COMPANION QUESTIONS
+            if (q.includes('companion') || q.includes('character') || q.includes('blayzo') || q.includes('violet') || q.includes('crimson') || q.includes('sapphire')) {
+                if (q.includes('blayzo')) {
+                    return "🤖 BLAYZO: The original SoulBridge AI companion! Wise, empathetic, great for deep conversations. Available to all tiers. Your first AI friend and guide!";
+                } else if (q.includes('violet')) {
+                    return "💜 VIOLET: Creative and artistic companion. Perfect for creative projects, art discussions, and imaginative conversations. Available to Silver/Gold tiers.";
+                } else if (q.includes('crimson')) {
+                    return "❤️ CRIMSON: Passionate and energetic companion. Great for motivation, relationships, and emotional support. Available to Silver/Gold tiers.";
+                } else if (q.includes('sapphire')) {
+                    return "💎 SAPPHIRE: That's me! Your navigation assistant. I know every feature, every page, every button. I'm here to guide you through SoulBridge AI with precision!";
+                } else {
+                    return "🌟 AI COMPANIONS: Choose from Blayzo (all tiers), Sapphire (navigation), Violet (creative), Crimson (passionate), plus Blayzia, Blayzica, Blayzike, Blayzion! Access depends on your tier level.";
+                }
+            }
+            
+            // NAVIGATION HELP
+            if (q.includes('where') || q.includes('find') || q.includes('navigate') || q.includes('locate') || q.includes('how')) {
+                if (q.includes('profile') || q.includes('account')) {
+                    return "👤 PROFILE PAGE: Click '👤 Profile' button above! Manage: display name, profile picture, subscription, trial activation, chat history download, help & FAQ access.";
+                } else if (q.includes('community')) {
+                    return "🌍 COMMUNITY PAGE: Click '🌍 Community' button above! Anonymous sharing with companion avatars, emoji reactions, category-based posts (gratitude, dreams, thoughts, etc).";
+                } else if (q.includes('chat') || q.includes('talk')) {
+                    return "💬 CHAT: Click '🌟 Choose Your AI Companion' button above → select companion → start chatting! Each companion has unique personality and specialties.";
+                } else if (q.includes('subscription') || q.includes('upgrade')) {
+                    return "💳 SUBSCRIPTION: Go to Profile page → scroll to subscription section OR visit /subscription page. Upgrade Bronze→Silver→Gold. Manage billing and features.";
+                } else if (q.includes('help') || q.includes('faq') || q.includes('support')) {
+                    return "📚 HELP & FAQ: Profile page → scroll down → click 'Help & FAQ' button. Complete guides, troubleshooting, feature explanations, and support info!";
+                }
+            }
+            
+            // PREMIUM FEATURES
+            if (q.includes('premium') || q.includes('voice') || q.includes('ai image') || q.includes('relationship') || q.includes('meditation')) {
+                return "✨ PREMIUM FEATURES: Silver/Gold unlock: Voice Journaling, AI Image Generation, Relationship Profiles, Guided Meditations. Gold adds Mini Studio. Bronze users can trial for 5 hours!";
+            }
+            
+            // DEFAULT COMPREHENSIVE HELP
+            return `💎 I'm Sapphire, your SoulBridge AI navigation guide! I know every feature:
+
+🥉🥈🥇 TIERS: Bronze (free+ads), Silver ($12.99), Gold ($19.99)
+🌟 COMPANIONS: Blayzo, Violet, Crimson, me (Sapphire), + more
+🔧 FEATURES: Decoder, Fortune, Horoscope, Creative Writer, Mini Studio
+✨ PREMIUM: Voice Journal, AI Images, Relationships, Meditations
+🌍 COMMUNITY: Anonymous sharing with companion avatars
+👤 PROFILE: Account settings, subscription, trial activation
+
+What specific feature or page would you like help with?`;
+        }
             
             // Feature-specific help
             if (q.includes('upload') || q.includes('image') || q.includes('picture') || q.includes('photo')) {
