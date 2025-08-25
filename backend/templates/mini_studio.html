@@ -342,7 +342,7 @@
         .netflix-poster img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain;
             transition: transform 0.4s ease;
         }
         
@@ -738,6 +738,12 @@
             if (tabName === 'effects' || tabName === 'mix') {
                 populateFileSelectors();
             }
+        }
+        
+        // SecretWriter Launch
+        function openSecretWriter() {
+            // Open SecretWriter in a new tab for full professional interface
+            window.open('/secretwriter', '_blank');
         }
         
         // API Helper

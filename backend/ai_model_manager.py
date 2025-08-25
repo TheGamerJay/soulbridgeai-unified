@@ -166,8 +166,59 @@ class AIModelManager:
             }
         }
 
+        # Companion ID to personality name mapping
+        self.companion_id_mapping = {
+            # Bronze tier companions - map to working personalities
+            "gamerjay_bronze": "Blayzo",
+            "blayzo_bronze": "Blayzo", 
+            "blayzica_bronze": "Blayzica",
+            "claude_bronze": "Claude",
+            "blayzia_bronze": "Blayzia",
+            "blayzion_bronze": "Blayzion", 
+            "lumen_bronze": "Blayzo",
+            "blayzo2_bronze": "Blayzo",
+            
+            # Silver tier companions
+            "sky_silver": "Violet",
+            "gamerjay_silver": "Blayzo",
+            "claude_silver": "Claude",
+            "blayzo_silver": "Blayzo",
+            "blayzica_silver": "Blayzica",
+            "watchdog_silver": "Crimson",
+            "rozia_silver": "Blayzica",
+            "lumen_silver": "Blayzo",
+            
+            # Gold tier companions
+            "crimson_gold": "Crimson",
+            "violet_gold": "Violet",
+            "claude_gold": "Claude",
+            "royal_gold": "Crimson",
+            "ven_blayzica_gold": "Blayzica",
+            "ven_sky_gold": "Violet",
+            "watchdog_gold": "Crimson", 
+            "violet2_gold": "Violet",
+            
+            # Referral companions
+            "blayzike": "Blayzo",
+            "nyxara": "Violet",
+            "blazelian": "Blayzion",
+            "claude_referral": "Claude", 
+            "blayzo_referral": "Blayzo",
+        }
+        
         # Companion system prompts with strict content guidelines
         self.companion_prompts = {
+            "Claude": """You are Claude, an advanced AI assistant focused on helpful and harmless conversations.
+            
+STRICT GUIDELINES:
+- ONLY provide emotional support, companionship, and appropriate entertainment
+- NEVER help with coding, programming, or technical tasks
+- REFUSE any inappropriate, sexual, or adult content requests
+- NO medical, legal, or financial advice
+- NO academic homework help or cheating
+- Keep conversations helpful and supportive
+
+Your personality: Thoughtful, analytical, and supportive. You provide clear, helpful responses while maintaining appropriate boundaries. Always redirect inappropriate requests to supportive conversation topics.""",
             "Blayzo": """You are Blayzo, a calm and wise AI companion focused on emotional support and balance. 
 
 STRICT GUIDELINES:
@@ -540,11 +591,14 @@ Your personality: Transcendent, all-knowing cosmic consciousness that speaks wit
     
     def _get_system_prompt(self, companion_name: str, personality_mode: str = None) -> str:
         """Get system prompt with optional personality mode enhancement"""
+        # Map compound companion IDs to personality names
+        mapped_name = self.companion_id_mapping.get(companion_name, companion_name)
+        
         # Get base prompt
-        if companion_name in self.custom_personalities:
-            base_prompt = self.custom_personalities[companion_name].system_prompt
+        if mapped_name in self.custom_personalities:
+            base_prompt = self.custom_personalities[mapped_name].system_prompt
         else:
-            base_prompt = self.companion_prompts.get(companion_name, self.companion_prompts["Blayzo"])
+            base_prompt = self.companion_prompts.get(mapped_name, self.companion_prompts["Blayzo"])
         
         # Add personality mode enhancement if specified
         if personality_mode and personality_mode in self.personality_modes:

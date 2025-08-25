@@ -20,28 +20,28 @@
         
         <div class="features-grid">
             <!-- UNLIMITED BASIC FEATURES -->
-            <a href="/decoder" class="action-btn gold-feature unlimited">
+            <a href="/decoder" class="action-btn gold-feature unlimited" data-feature="decoder">
                 <i class="fas fa-brain"></i>
                 🧠 Decoder
-                <span class="unlimited-badge">Unlimited</span>
+                <span class="usage-counter unlimited-badge" id="decoderLimit">∞</span>
             </a>
             
-            <a href="/fortune" class="action-btn gold-feature unlimited">
+            <a href="/fortune" class="action-btn gold-feature unlimited" data-feature="fortune">
                 <i class="fas fa-crystal-ball"></i>
                 🔮 Fortune
-                <span class="unlimited-badge">Unlimited</span>
+                <span class="usage-counter unlimited-badge" id="fortuneLimit">∞</span>
             </a>
             
-            <a href="/horoscope" class="action-btn gold-feature unlimited">
+            <a href="/horoscope" class="action-btn gold-feature unlimited" data-feature="horoscope">
                 <i class="fas fa-star"></i>
                 ⭐ Horoscope
-                <span class="unlimited-badge">Unlimited</span>
+                <span class="usage-counter unlimited-badge" id="horoscopeLimit">∞</span>
             </a>
             
-            <button onclick="openCreativeWriting();" class="action-btn gold-feature unlimited">
+            <button onclick="openCreativeWriting();" class="action-btn gold-feature unlimited" data-feature="creative_writer">
                 <i class="fas fa-pen"></i>
                 ✍️ Creative Writer
-                <span class="unlimited-badge">Unlimited</span>
+                <span class="usage-counter unlimited-badge" id="creativeLimit">∞</span>
             </button>
             
             <!-- PREMIUM FEATURES -->
@@ -321,6 +321,56 @@
             // Redirect to main chat where the full Creative Writing system is available
             window.location.href = '/chat';
         }
+        
+        // Usage Counter System - Gold tier shows unlimited (∞) but still maintain API compatibility
+        async function updateUsageCounters() {
+            try {
+                const response = await fetch('/api/tier-limits', { credentials: 'include' });
+                const data = await response.json();
+                
+                if (!data.success) return;
+                
+                const { limits, usage, unlimited_features } = data;
+                
+                // Update decoder counter (Gold always unlimited)
+                const decoderLimit = document.getElementById('decoderLimit');
+                if (decoderLimit) {
+                    decoderLimit.textContent = '∞';
+                }
+                
+                // Update fortune counter (Gold always unlimited)
+                const fortuneLimit = document.getElementById('fortuneLimit');
+                if (fortuneLimit) {
+                    fortuneLimit.textContent = '∞';
+                }
+                
+                // Update horoscope counter (Gold always unlimited)
+                const horoscopeLimit = document.getElementById('horoscopeLimit');
+                if (horoscopeLimit) {
+                    horoscopeLimit.textContent = '∞';
+                }
+                
+                // Update creative writer counter (Gold always unlimited)
+                const creativeLimit = document.getElementById('creativeLimit');
+                if (creativeLimit) {
+                    creativeLimit.textContent = '∞';
+                }
+                
+            } catch (error) {
+                console.error('Error updating usage counters:', error);
+            }
+        }
+        
+        // Update counters on page load for consistency
+        document.addEventListener('DOMContentLoaded', function() {
+            updateUsageCounters();
+            
+            // Refresh counters when page gains focus (consistency)
+            window.addEventListener('focus', updateUsageCounters);
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden) updateUsageCounters();
+            });
+        });
     </script>
 </body>
 </html>

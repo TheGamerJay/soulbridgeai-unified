@@ -374,6 +374,14 @@ try:
 except ImportError as e:
     print(f"WARNING: Enhanced referral API not available: {e}")
 
+# Register SecretWriter blueprint
+try:
+    from routes_secretwriter import secret
+    app.register_blueprint(secret)  # /secretwriter, /api/secretwriter/...
+    print("SecretWriter system registered successfully")
+except ImportError as e:
+    print(f"WARNING: SecretWriter system not available: {e}")
+
 # Analytics dashboard route
 @app.route("/analytics")
 def analytics_page():

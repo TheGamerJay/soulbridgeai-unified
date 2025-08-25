@@ -22,28 +22,28 @@
         
         <div class="features-grid">
             <!-- BRONZE TIER FEATURES ONLY -->
-            <a href="/decoder" class="action-btn bronze-feature">
+            <a href="/decoder" class="action-btn bronze-feature" data-feature="decoder">
                 <i class="fas fa-brain"></i>
                 🧠 Decoder
-                <span class="usage-limit">{{ limits.decoder if limits.decoder != 999 else '∞' }} uses/day</span>
+                <span class="usage-counter" id="decoderLimit">{{ limits.decoder if limits.decoder != 999 else '∞' }}/day</span>
             </a>
             
-            <a href="/fortune" class="action-btn bronze-feature">
+            <a href="/fortune" class="action-btn bronze-feature" data-feature="fortune">
                 <i class="fas fa-crystal-ball"></i>
                 🔮 Fortune
-                <span class="usage-limit">{{ limits.fortune if limits.fortune != 999 else '∞' }} uses/day</span>
+                <span class="usage-counter" id="fortuneLimit">{{ limits.fortune if limits.fortune != 999 else '∞' }}/day</span>
             </a>
             
-            <a href="/horoscope" class="action-btn bronze-feature">
+            <a href="/horoscope" class="action-btn bronze-feature" data-feature="horoscope">
                 <i class="fas fa-star"></i>
                 ⭐ Horoscope
-                <span class="usage-limit">{{ limits.horoscope if limits.horoscope != 999 else '∞' }} uses/day</span>
+                <span class="usage-counter" id="horoscopeLimit">{{ limits.horoscope if limits.horoscope != 999 else '∞' }}/day</span>
             </a>
             
-            <button onclick="openCreativeWriting();" class="action-btn bronze-feature">
+            <button onclick="openCreativeWriting();" class="action-btn bronze-feature" data-feature="creative_writer">
                 <i class="fas fa-pen"></i>
                 ✍️ Creative Writer
-                <span class="usage-limit">{{ limits.creative_writer if limits.creative_writer != 999 else '∞' }} uses/day</span>
+                <span class="usage-counter" id="creativeLimit">{{ limits.creative_writer if limits.creative_writer != 999 else '∞' }}/day</span>
             </button>
             
             <!-- UPGRADE PROMPT -->
@@ -463,6 +463,83 @@
             // Redirect to main chat where the full Creative Writing system is available
             window.location.href = '/chat';
         }
+        
+        // Usage Counter System
+        async function updateUsageCounters() {
+            try {
+                const response = await fetch('/api/tier-limits', { credentials: 'include' });
+                const data = await response.json();
+                
+                if (!data.success) return;
+                
+                const { limits, usage, unlimited_features } = data;
+                
+                // Update decoder counter
+                const decoderLimit = document.getElementById('decoderLimit');
+                if (decoderLimit) {
+                    const decoderUsed = usage.decoder || 0;
+                    const decoderMax = limits.decoder;
+                    if (unlimited_features && unlimited_features.includes('decoder') || decoderMax >= 999) {
+                        decoderLimit.textContent = '∞';
+                    } else {
+                        decoderLimit.textContent = `${decoderUsed}/${decoderMax}`;
+                    }
+                }
+                
+                // Update fortune counter
+                const fortuneLimit = document.getElementById('fortuneLimit');
+                if (fortuneLimit) {
+                    const fortuneUsed = usage.fortune || 0;
+                    const fortuneMax = limits.fortune;
+                    if (unlimited_features && unlimited_features.includes('fortune') || fortuneMax >= 999) {
+                        fortuneLimit.textContent = '∞';
+                    } else {
+                        fortuneLimit.textContent = `${fortuneUsed}/${fortuneMax}`;
+                    }
+                }
+                
+                // Update horoscope counter
+                const horoscopeLimit = document.getElementById('horoscopeLimit');
+                if (horoscopeLimit) {
+                    const horoscopeUsed = usage.horoscope || 0;
+                    const horoscopeMax = limits.horoscope;
+                    if (unlimited_features && unlimited_features.includes('horoscope') || horoscopeMax >= 999) {
+                        horoscopeLimit.textContent = '∞';
+                    } else {
+                        horoscopeLimit.textContent = `${horoscopeUsed}/${horoscopeMax}`;
+                    }
+                }
+                
+                // Update creative writer counter
+                const creativeLimit = document.getElementById('creativeLimit');
+                if (creativeLimit) {
+                    const creativeUsed = usage.creative_writer || 0;
+                    const creativeMax = limits.creative_writer;
+                    if (unlimited_features && unlimited_features.includes('creative_writer') || creativeMax >= 999) {
+                        creativeLimit.textContent = '∞';
+                    } else {
+                        creativeLimit.textContent = `${creativeUsed}/${creativeMax}`;
+                    }
+                }
+                
+            } catch (error) {
+                console.error('Error updating usage counters:', error);
+            }
+        }
+        
+        // Update counters on page load and periodically
+        document.addEventListener('DOMContentLoaded', function() {
+            updateUsageCounters();
+            
+            // Refresh counters when page gains focus
+            window.addEventListener('focus', updateUsageCounters);
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden) updateUsageCounters();
+            });
+            
+            // Update counters every 30 seconds
+            setInterval(updateUsageCounters, 30000);
+        });
     </script>
     
     <script src="{{ url_for('static', filename='js/tiers.js') }}"></script>

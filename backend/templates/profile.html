@@ -2966,24 +2966,43 @@
                         console.warn('❌ Profile image element not found in DOM');
                     }
                     
-                    // Update companion info with last used companion
+                    // Update companion info with race condition prevention
                     console.log('🤖 Companion data from API:', userData.companion);
                     console.log('🤖 Full userData keys:', Object.keys(userData));
                     
-                    if (userData.companion) {
-                        updateCompanionDisplay(userData.companion);
+                    // Get companion with fallback chain and race condition prevention
+                    let companionToDisplay = null;
+                    
+                    // Try multiple sources in order of preference
+                    if (userData.companion && userData.companion !== 'Blayzo') {
+                        companionToDisplay = userData.companion;
+                        console.log('🤖 Using companion from API primary:', companionToDisplay);
+                    } else if (localStorage.getItem('lastUsedCompanion')) {
+                        // Check localStorage for most recently used companion (persists across sessions)
+                        companionToDisplay = localStorage.getItem('lastUsedCompanion');
+                        console.log('🤖 Using companion from localStorage:', companionToDisplay);
+                    } else if (sessionStorage.getItem('currentCompanion')) {
+                        // Check sessionStorage for current session companion
+                        companionToDisplay = sessionStorage.getItem('currentCompanion');
+                        console.log('🤖 Using companion from sessionStorage:', companionToDisplay);
                     } else {
-                        console.warn('🤖 No companion data found in API response');
-                        // Try to get companion from session or other sources
-                        const sessionCompanion = userData.last_companion || userData.current_companion || userData.selected_companion;
-                        if (sessionCompanion) {
-                            console.log('🤖 Using companion from session:', sessionCompanion);
-                            updateCompanionDisplay(sessionCompanion);
-                        } else {
-                            console.warn('🤖 No companion found anywhere, showing default');
-                            updateCompanionDisplay('Blayzo'); // Default fallback
-                        }
+                        // Try to get from any other userData fields
+                        companionToDisplay = userData.last_companion || userData.current_companion || userData.selected_companion || userData.companion;
+                        console.log('🤖 Using companion from fallback fields:', companionToDisplay);
                     }
+                    
+                    // Always have a fallback
+                    if (!companionToDisplay || companionToDisplay === 'undefined' || companionToDisplay === 'null') {
+                        companionToDisplay = 'Blayzo';
+                        console.warn('🤖 Using default fallback companion:', companionToDisplay);
+                    }
+                    
+                    // Add race condition delay to ensure DOM is ready and avoid flickering
+                    setTimeout(() => {
+                        updateCompanionDisplay(companionToDisplay);
+                        // Store in localStorage for future page loads
+                        localStorage.setItem('lastUsedCompanion', companionToDisplay);
+                    }, 150);
                     
                     // Update credits display and trial status
                     updateCreditsDisplay(userData, responseData.access);
