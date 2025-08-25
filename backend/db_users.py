@@ -25,7 +25,7 @@ def db_fetch_user_row(user_id):
         try:
             q = """
                 SELECT id, email, plan, stripe_customer_id, trial_active, trial_expires_at,
-                       display_name, profile_image, created_at, user_plan, plan_type
+                       display_name, profile_image, created_at, user_plan, plan_type, trial_used_permanently
                 FROM users WHERE id = %s
             """
             q = adapt_placeholders(db, q)
@@ -49,6 +49,7 @@ def db_fetch_user_row(user_id):
                 "created_at": row[8],
                 "user_plan": row[9] or "bronze",  # Legacy column
                 "plan_type": row[10] or "bronze",  # Legacy column
+                "trial_used_permanently": bool(row[11]) if row[11] is not None else False,  # Trial permanence flag
             }
         finally:
             conn.close()

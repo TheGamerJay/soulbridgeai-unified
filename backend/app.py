@@ -1026,6 +1026,25 @@ def ensure_session_persistence():
                     session['trial_used_permanently'] = True
                     trial_active = False  # Update local variable
                     session.modified = True
+                    
+                    # CRITICAL FIX: Update database to prevent trial re-activation
+                    try:
+                        from database_utils import get_database
+                        db = get_database()
+                        if db:
+                            conn = db.get_connection()
+                            cursor = conn.cursor()
+                            placeholder = "%s" if hasattr(db, 'postgres_url') and db.postgres_url else "?"
+                            cursor.execute(f"""
+                                UPDATE users 
+                                SET trial_active = {placeholder}, trial_used_permanently = {placeholder}
+                                WHERE id = {placeholder}
+                            """, (False, True, user_id))
+                            conn.commit()
+                            conn.close()
+                            logger.info(f"✅ FIXED: Set trial_used_permanently=True in database for user {user_id}")
+                    except Exception as db_error:
+                        logger.error(f"❌ Failed to update trial_used_permanently in database: {db_error}")
             except Exception as e:
                 logger.error(f"Error checking trial expiration in middleware: {e}")
                 # If there's any error with trial dates, assume expired and clean up
