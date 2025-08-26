@@ -8771,6 +8771,15 @@ def dev_model():
     model = MODEL_BY_PLAN.get(plan, "gpt-3.5-turbo")
     return {"ok": True, "plan": plan, "model": model}
 
+# DEV ONLY — remove before prod
+@app.route("/api/dev/set-plan/<plan>")
+def dev_set_plan(plan):
+    p = (plan or "bronze").lower()
+    if p not in ("bronze","silver","gold"):
+        return {"ok": False, "error": "bad plan"}, 400
+    session["user_plan"] = p
+    return {"ok": True, "plan": p}
+
 @app.route("/api/horoscope/check-limit")
 def check_horoscope_limit():
     user_id = session.get("user_id")
