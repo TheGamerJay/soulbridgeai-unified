@@ -93,39 +93,60 @@ def draw_cards(num_cards: int, rng: Optional[random.Random] = None) -> List[Dict
 
 def generate_summary(cards: List[Dict], spread: str, question: Optional[str], plan: str) -> str:
     """
-    Uses OpenAI per tier. If OpenAI fails, falls back to a deterministic text.
+    Uses OpenAI per tier. Supports BOTH the new SDK v1 (preferred) and the old SDK as fallback.
+    Falls back to a deterministic string if both calls fail.
     """
     model = get_model_for_plan(plan)
-    # Build prompt
     pos3 = ["Past","Present","Future"]
     pos5 = ["Situation","Challenge","Hidden","Advice","Outcome"]
+
     lines = []
     if question:
         lines.append(f"Question: {question}")
     lines.append(f"Spread: {spread}")
     for i, c in enumerate(cards):
         tag = "Card"
-        if spread == "three":
+        if spread == "three" and i < 3:
             tag = pos3[i]
-        elif spread == "five":
+        elif spread == "five" and i < 5:
             tag = pos5[i]
         lines.append(f"{tag} — {c['name']} ({c['orientation']}): {c['meaning']}")
     prompt = "\n".join(lines) + "\n\nWrite a concise mystical but clear summary (3–6 sentences)."
 
+    # --- Try NEW OpenAI SDK v1 first ---
     try:
-        openai = _openai_client()
+        from openai import OpenAI
+        client = OpenAI()  # uses OPENAI_API_KEY from env
+        resp = client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": "You are a mystical tarot fortune teller who speaks clearly and kindly."},
+                {"role": "user", "content": prompt},
+            ],
+            max_tokens=320,
+            temperature=0.7,
+        )
+        content = resp.choices[0].message.content
+        if content:
+            return content.strip()
+    except Exception:
+        pass  # fall through to old SDK
+
+    # --- Fallback: OLD SDK (pre-v1) ---
+    try:
+        import openai
         resp = openai.ChatCompletion.create(
             model=model,
             messages=[
-                {"role":"system","content":"You are a mystical tarot fortune teller who speaks clearly and kindly."},
-                {"role":"user","content":prompt}
+                {"role": "system", "content": "You are a mystical tarot fortune teller who speaks clearly and kindly."},
+                {"role": "user", "content": prompt},
             ],
             max_tokens=320,
             temperature=0.7,
         )
         return resp.choices[0].message["content"].strip()
     except Exception:
-        # Fallback summary to avoid 500s
+        # Final fallback to ensure no 500s
         basics = "; ".join([f"{c['name']} ({c['orientation']})" for c in cards])
         return f"Your reading shows: {basics}. Trust your timing and proceed with intention."
 
