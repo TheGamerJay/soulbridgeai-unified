@@ -677,7 +677,7 @@ async function refreshFortuneLimits() {
         userPlan = plan;
         dailyLimit = data.limit;
 
-        console.log(`🔮 Refreshed fortune limits: plan=${plan}, usage=${usage}, limit=${limitDisplay}`);
+        console.log(`🔮 Refreshed fortune limits: plan=${plan}, usage=${usage}, limit=${displayLimit}`);
 
     } catch (err) {
         console.error("❌ Failed to refresh fortune limits:", err);
