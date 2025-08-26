@@ -316,10 +316,22 @@ def trial_activate():
             # Database shows active trial but session doesn't - restore to session
             now = datetime.now(timezone.utc)
             if now < trial_expires_at:
-                logger.info(f"🔄 RESTORING: Database trial is active, updating session")
+                logger.info(f"🔄 RESTORING: Database trial is active, updating session and database credits")
                 session['trial_active'] = True
                 session['trial_expires_at'] = trial_expires_at.isoformat()
                 session['trial_credits'] = 60  # Restore full credits
+                
+                # Also restore trial credits in database if needed
+                try:
+                    if db.use_postgres:
+                        cursor.execute("UPDATE users SET trial_credits = COALESCE(trial_credits, %s) WHERE id = %s", (60, uid))
+                    else:
+                        cursor.execute("UPDATE users SET trial_credits = COALESCE(trial_credits, ?) WHERE id = ?", (60, uid))
+                    conn.commit()
+                    logger.info(f"💳 Ensured trial credits in database for user {uid}")
+                except Exception as e:
+                    logger.error(f"Failed to restore trial credits in database: {e}")
+                
                 was_restored = True
         
         if trial_active and trial_expires_at and datetime.now(timezone.utc) < trial_expires_at:
@@ -363,7 +375,25 @@ def trial_activate():
                 "error": "Failed to activate trial. Please try again."
             }), 500
         
-        # Grant 60 trial credits in session
+        # Initialize 60 trial credits in database (required for artistic_time_system)
+        db = get_database()
+        if db:
+            try:
+                conn = db.get_connection()
+                cursor = conn.cursor()
+                
+                if db.use_postgres:
+                    cursor.execute("UPDATE users SET trial_credits = %s WHERE id = %s", (60, uid))
+                else:
+                    cursor.execute("UPDATE users SET trial_credits = ? WHERE id = ?", (60, uid))
+                
+                conn.commit()
+                conn.close()
+                logger.info(f"💳 Initialized 60 trial credits in database for user {uid}")
+            except Exception as e:
+                logger.error(f"Failed to initialize trial credits in database: {e}")
+        
+        # Grant 60 trial credits in session (for backwards compatibility)
         session['trial_credits'] = 60
         session['trial_active'] = True
         session['trial_expires_at'] = expires_at.isoformat()
