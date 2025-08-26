@@ -203,7 +203,7 @@ def record_admin_login_attempt(ip_address):
 
 # Create Flask app with secure session configuration
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="static", static_url_path="/static")
 
 # Security: Use strong secret key or generate one
 secret_key = os.environ.get("SECRET_KEY")
