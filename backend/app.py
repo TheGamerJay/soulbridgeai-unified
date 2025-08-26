@@ -11443,7 +11443,7 @@ def api_save_canvas_art():
             
         # Check if user has access to creative canvas (Silver/Gold tiers or active trial)
         user_plan = session.get('user_plan', 'bronze')
-        trial_active = check_trial_active_from_db(session.get('user_id'))
+        trial_active = session.get('trial_active', False)
         
         effective_plan = get_effective_plan(user_plan, trial_active)
         if effective_plan == 'bronze' and not trial_active:
@@ -11649,7 +11649,7 @@ def api_share_to_wellness_gallery():
             
         # Check if user has access (Silver/Gold tiers or active trial)
         user_plan = session.get('user_plan', 'bronze')
-        trial_active = check_trial_active_from_db(session.get('user_id'))
+        trial_active = session.get('trial_active', False)
         
         effective_plan = get_effective_plan(user_plan, trial_active)
         if effective_plan == 'bronze' and not trial_active:
@@ -12183,7 +12183,7 @@ def voice_journaling_page():
     # Check if user has voice-journaling access (Gold tier, addon, or trial)
     user_plan = session.get('user_plan', 'bronze')
     user_addons = session.get('user_addons', [])
-    trial_active = check_trial_active_from_db(session.get('user_id'))
+    trial_active = session.get('trial_active', False)
     
     # Gold tier users get all addon features included, trial users get access
     
@@ -12202,7 +12202,7 @@ def voice_journaling_transcribe():
         # Check if user has voice-journaling access (Gold tier, addon, or trial)
         user_plan = session.get('user_plan', 'bronze')
         user_addons = session.get('user_addons', [])
-        trial_active = check_trial_active_from_db(session.get('user_id'))
+        trial_active = session.get('trial_active', False)
         
         if user_plan not in ['silver', 'gold'] and not trial_active and 'voice-journaling' not in user_addons:
             return jsonify({"success": False, "error": "Voice Journaling requires Gold tier, addon, or trial"}), 403
@@ -12334,7 +12334,7 @@ def voice_journaling_save():
         # Check if user has voice-journaling access (Gold tier, addon, or trial)
         user_plan = session.get('user_plan', 'bronze')
         user_addons = session.get('user_addons', [])
-        trial_active = check_trial_active_from_db(session.get('user_id'))
+        trial_active = session.get('trial_active', False)
         
         if user_plan not in ['silver', 'gold'] and not trial_active and 'voice-journaling' not in user_addons:
             return jsonify({"success": False, "error": "Voice Journaling requires Gold tier, addon, or trial"}), 403
@@ -12381,7 +12381,7 @@ def voice_journaling_entries():
         # Check if user has voice-journaling access (Gold tier, addon, or trial)
         user_plan = session.get('user_plan', 'bronze')
         user_addons = session.get('user_addons', [])
-        trial_active = check_trial_active_from_db(session.get('user_id'))
+        trial_active = session.get('trial_active', False)
         
         if user_plan not in ['silver', 'gold'] and not trial_active and 'voice-journaling' not in user_addons:
             return jsonify({"success": False, "error": "Voice Journaling requires Gold tier, addon, or trial"}), 403
@@ -12414,7 +12414,7 @@ def relationship_profiles_page():
     # Check if user has relationship access (Gold tier, addon, or trial)
     user_plan = session.get('user_plan', 'bronze')
     user_addons = session.get('user_addons', [])
-    trial_active = check_trial_active_from_db(session.get('user_id'))
+    trial_active = session.get('trial_active', False)
     
     if user_plan not in ['silver', 'gold'] and not trial_active and 'relationship' not in user_addons:
         return redirect("/subscription?feature=relationship")
@@ -12431,7 +12431,7 @@ def relationship_profiles_add():
         # Check if user has relationship access (Gold tier, addon, or trial)
         user_plan = session.get('user_plan', 'bronze')
         user_addons = session.get('user_addons', [])
-        trial_active = check_trial_active_from_db(session.get('user_id'))
+        trial_active = session.get('trial_active', False)
         
         if user_plan not in ['silver', 'gold'] and not trial_active and 'relationship' not in user_addons:
             return jsonify({"success": False, "error": "Relationship Profiles requires Gold tier or addon"}), 403
@@ -12507,7 +12507,7 @@ def relationship_profiles_list():
         # Check if user has relationship access (Gold tier, addon, or trial)
         user_plan = session.get('user_plan', 'bronze')
         user_addons = session.get('user_addons', [])
-        trial_active = check_trial_active_from_db(session.get('user_id'))
+        trial_active = session.get('trial_active', False)
         
         if user_plan not in ['silver', 'gold'] and not trial_active and 'relationship' not in user_addons:
             return jsonify({"success": False, "error": "Relationship Profiles requires Gold tier or addon"}), 403
@@ -12534,7 +12534,7 @@ def relationship_profiles_delete(profile_id):
         # Check if user has relationship access (Gold tier, addon, or trial)
         user_plan = session.get('user_plan', 'bronze')
         user_addons = session.get('user_addons', [])
-        trial_active = check_trial_active_from_db(session.get('user_id'))
+        trial_active = session.get('trial_active', False)
         
         if user_plan not in ['silver', 'gold'] and not trial_active and 'relationship' not in user_addons:
             return jsonify({"success": False, "error": "Relationship Profiles requires Gold tier or addon"}), 403
@@ -12575,7 +12575,7 @@ def emotional_meditations_page():
     # Check if user has emotional-meditations access (Silver/Gold tier, addon, or trial)
     user_plan = session.get('user_plan', 'bronze')
     user_addons = session.get('user_addons', [])
-    trial_active = check_trial_active_from_db(session.get('user_id'))
+    trial_active = session.get('trial_active', False)
     
     if user_plan not in ['silver', 'gold'] and not trial_active and 'emotional-meditations' not in user_addons:
         return redirect("/subscription?feature=emotional-meditations")
@@ -12592,7 +12592,7 @@ def emotional_meditations_save_session():
         # Check if user has emotional-meditations access (Silver/Gold tier, addon, or trial)
         user_plan = session.get('user_plan', 'bronze')
         user_addons = session.get('user_addons', [])
-        trial_active = check_trial_active_from_db(session.get('user_id'))
+        trial_active = session.get('trial_active', False)
         
         if user_plan not in ['silver', 'gold'] and not trial_active and 'emotional-meditations' not in user_addons:
             return jsonify({"success": False, "error": "Emotional Meditations requires Silver/Gold tier, addon, or trial"}), 403
@@ -12665,7 +12665,7 @@ def emotional_meditations_stats():
         # Check if user has emotional-meditations access (Silver/Gold tier, addon, or trial)
         user_plan = session.get('user_plan', 'bronze')
         user_addons = session.get('user_addons', [])
-        trial_active = check_trial_active_from_db(session.get('user_id'))
+        trial_active = session.get('trial_active', False)
         
         if user_plan not in ['silver', 'gold'] and not trial_active and 'emotional-meditations' not in user_addons:
             return jsonify({"success": False, "error": "Emotional Meditations requires Silver/Gold tier, addon, or trial"}), 403
@@ -12749,7 +12749,7 @@ def ai_image_generation_page():
     # Check if user has ai-image-generation access (Silver/Gold tier, addon, or trial)
     user_plan = session.get('user_plan', 'bronze')
     user_addons = session.get('user_addons', [])
-    trial_active = check_trial_active_from_db(session.get('user_id'))
+    trial_active = session.get('trial_active', False)
     
     if user_plan not in ['silver', 'gold'] and not trial_active and 'ai-image-generation' not in user_addons:
         return redirect("/subscription?feature=ai-image-generation")
@@ -12871,7 +12871,7 @@ def ai_image_generation_analyze_reference():
         # Check if user has ai-image-generation access (Silver/Gold tier, addon, or trial)
         user_plan = session.get('user_plan', 'bronze')
         user_addons = session.get('user_addons', [])
-        trial_active = check_trial_active_from_db(session.get('user_id'))
+        trial_active = session.get('trial_active', False)
         
         if user_plan not in ['silver', 'gold'] and not trial_active and 'ai-image-generation' not in user_addons:
             return jsonify({"success": False, "error": "AI Image Generation requires Silver/Gold tier, addon, or trial"}), 403
@@ -12942,7 +12942,7 @@ def ai_image_generation_save():
         # Check if user has ai-image-generation access (Silver/Gold tier, addon, or trial)
         user_plan = session.get('user_plan', 'bronze')
         user_addons = session.get('user_addons', [])
-        trial_active = check_trial_active_from_db(session.get('user_id'))
+        trial_active = session.get('trial_active', False)
         
         if user_plan not in ['silver', 'gold'] and not trial_active and 'ai-image-generation' not in user_addons:
             return jsonify({"success": False, "error": "AI Image Generation requires Silver/Gold tier, addon, or trial"}), 403
@@ -12989,7 +12989,7 @@ def ai_image_generation_gallery():
         # Check if user has ai-image-generation access (Silver/Gold tier, addon, or trial)
         user_plan = session.get('user_plan', 'bronze')
         user_addons = session.get('user_addons', [])
-        trial_active = check_trial_active_from_db(session.get('user_id'))
+        trial_active = session.get('trial_active', False)
         
         if user_plan not in ['silver', 'gold'] and not trial_active and 'ai-image-generation' not in user_addons:
             return jsonify({"success": False, "error": "AI Image Generation requires Silver/Gold tier, addon, or trial"}), 403
@@ -13019,7 +13019,7 @@ def ai_image_generation_usage():
         # Check if user has ai-image-generation access (Silver/Gold tier, addon, or trial)
         user_plan = session.get('user_plan', 'bronze')
         user_addons = session.get('user_addons', [])
-        trial_active = check_trial_active_from_db(session.get('user_id'))
+        trial_active = session.get('trial_active', False)
         
         if user_plan not in ['silver', 'gold'] and not trial_active and 'ai-image-generation' not in user_addons:
             return jsonify({"success": False, "error": "AI Image Generation requires Silver/Gold tier, addon, or trial"}), 403
@@ -16098,6 +16098,8 @@ def mini_studio_effects():
                     "message": "Audio effects applied successfully",
                     "output_path": output_filename,
                     "track_id": track_id,
+                    "asset_id": track_id,  // Frontend expects asset_id
+                    "credits_remaining": result.get("credits_remaining", 0),
                     "effects_applied": result['effects_applied'],
                     "duration_seconds": result.get('duration_seconds', 0)
                 })
@@ -16182,6 +16184,8 @@ def mini_studio_cover_art():
                     "image_url": f"/{result['file_path']}",
                     "file_path": result['file_path'],
                     "track_id": track_id,
+                    "asset_id": track_id,  // Frontend expects asset_id
+                    "credits_remaining": result.get("credits_remaining", 0),
                     "prompt_used": result['prompt_used'],
                     "original_prompt": prompt,
                     "style": style,
@@ -16563,6 +16567,8 @@ def smart_library_add_track():
             return jsonify({
                 "success": True,
                 "track_id": track_id,
+                    "asset_id": track_id,  // Frontend expects asset_id
+                    "credits_remaining": result.get("credits_remaining", 0),
                 "message": "Track added to library successfully"
             })
         else:

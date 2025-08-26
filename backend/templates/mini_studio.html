@@ -1046,26 +1046,32 @@
             setLoading(button, false);
             
             if (result.success) {
-                creditsRemaining = result.credits_remaining;
+                creditsRemaining = result.credits_remaining || creditsRemaining;
                 updateCreditsDisplay();
                 
-                // SECURITY: Safe DOM creation to prevent XSS
+                // Display the actual generated image
                 const artPreview = document.getElementById('artPreview');
-                const successDiv = document.createElement('div');
-                successDiv.style.color = '#4fd1c7';
-                successDiv.textContent = '✅ Cover art generated successfully!';
+                artPreview.innerHTML = `
+                    <div style="text-align: center;">
+                        <div style="color: #4fd1c7; margin-bottom: 10px;">
+                            ✅ Cover art generated successfully!
+                        </div>
+                        <img src="${result.image_url}" alt="Generated Cover Art" 
+                             style="max-width: 100%; max-height: 300px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.3);">
+                        <div style="margin-top: 10px;">
+                            <small style="color: rgba(255,255,255,0.7);">Asset ID: ${result.asset_id || 'N/A'}</small>
+                        </div>
+                    </div>
+                `;
                 
-                const assetIdSmall = document.createElement('small');
-                assetIdSmall.textContent = `Asset ID: ${result.asset_id}`;
-                
-                const br = document.createElement('br');
-                successDiv.appendChild(br);
-                successDiv.appendChild(assetIdSmall);
-                
-                artPreview.textContent = '';
-                artPreview.appendChild(successDiv);
-                
-                alert('Cover art generated successfully!');
+                showStudioModal('Cover Art Generated', `
+                    <div style="text-align: center;">
+                        <h4>🎨 Your cover art is ready!</h4>
+                        <img src="${result.image_url}" alt="Generated Cover Art" 
+                             style="max-width: 200px; border-radius: 8px; margin: 10px 0;">
+                        <p>Added to your library with ID: ${result.asset_id}</p>
+                    </div>
+                `);
             } else {
                 alert('Error: ' + result.error);
             }
