@@ -3186,7 +3186,8 @@
                         
                         // Populate companion grids with current user data
                         const userTier = (userData.user_plan || 'bronze').toLowerCase();
-                        const trialActive = userData.trial_active || false;
+                        // Use trial_live from access data for accurate trial status
+                        const trialActive = (responseData.access && responseData.access.trial_live) || false;
                         populateCompanionGrids(userTier, companionToDisplay, trialActive);
                     }, 150);
                     
