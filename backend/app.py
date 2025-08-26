@@ -8687,6 +8687,83 @@ def fortune_limits():
         "companion_tier": companion_tier
     })
 
+@app.route("/api/fortune/tarot", methods=["POST"])
+def fortune_tarot():
+    """Tarot reading endpoint - alias for /api/v2/fortune"""
+    try:
+        if not is_logged_in():
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+            
+        data = request.get_json(force=True) or {}
+        user_id = session.get("user_id")
+        
+        # Map parameters from your expected format to v2 format
+        focus = (data.get("question") or data.get("intent") or "general").lower()
+        spread = (data.get("spread") or "three").lower()
+        seed = data.get("seed")
+        
+        # Map spread names
+        spread_mapping = {
+            "three": "three_card",
+            "three_card": "three_card",
+            "single": "single_card",
+            "celtic": "celtic_cross"
+        }
+        spread = spread_mapping.get(spread, "three_card")
+        
+        # Check fortune usage limit before proceeding
+        usage_today = get_fortune_usage()
+        user_plan = session.get("user_plan", "bronze")
+        
+        # Get companion tier limits
+        companion_id = session.get("selected_companion", "default")
+        companion_tier = 'bronze'
+        for companion in COMPANIONS_NEW:
+            if companion['id'] == companion_id:
+                companion_tier = companion['tier']
+                break
+        
+        def get_simple_feature_limit(tier_name, feature):
+            limits_map = {
+                "bronze": {"decoder": 3, "fortune": 3, "horoscope": 3, "creative_writer": 3},
+                "silver": {"decoder": 15, "fortune": 8, "horoscope": 10, "creative_writer": 30},
+                "gold": {"decoder": 999, "fortune": 999, "horoscope": 999, "creative_writer": 999}
+            }
+            return limits_map.get(tier_name, limits_map["bronze"]).get(feature, 0)
+        
+        daily_limit = get_simple_feature_limit(companion_tier, "fortune")
+        
+        if daily_limit < 999 and usage_today >= daily_limit:
+            return jsonify({
+                "success": False, 
+                "error": f"Daily fortune limit reached ({daily_limit} for {companion_tier} tier)"
+            }), 429
+        
+        # Use the same tarot logic as v2/fortune but with simplified response
+        from tarot_engine import generate_tarot_reading
+        
+        # Generate authentic tarot reading
+        tarot_data = generate_tarot_reading(focus=focus, spread=spread, seed=seed)
+        
+        # Increment usage after successful generation
+        increment_fortune_usage()
+        
+        return jsonify({
+            "success": True,
+            "spread": spread,
+            "focus": focus,
+            "cards": tarot_data["cards"],
+            "reading": tarot_data.get("interpretation", "The cards reveal their wisdom through contemplation."),
+            "usage": {
+                "used": usage_today + 1,
+                "limit": daily_limit if daily_limit < 999 else None
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"❌ Fortune tarot error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
 @app.route("/api/horoscope/check-limit")
 def check_horoscope_limit():
     user_id = session.get("user_id")
