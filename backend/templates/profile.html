@@ -1331,6 +1331,17 @@
                                     <!-- Gold companions will be populated here -->
                                 </div>
                             </div>
+
+                            <!-- Referral Tier Section -->
+                            <div class="tier-section">
+                                <div style="padding: 15px 20px 10px 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+                                    <span style="color: #ff6b35; font-weight: 600; font-size: 0.9rem;">🎁 Referral Tier</span>
+                                    <span id="referralTierStatusDropdown" style="color: #94a3b8; font-size: 0.8rem; margin-left: 10px;">Invite Friends</span>
+                                </div>
+                                <div id="referralCompanionsDropdown" class="companions-dropdown-list">
+                                    <!-- Referral companions will be populated here -->
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -3290,14 +3301,32 @@
         // Populate companion dropdown with community-style avatars
         function populateCompanionGrids(userTier, currentCompanion, trialActive) {
             const companionData = {
-                // Bronze tier companions
+                // Bronze tier companions - 8 companions
                 'bronze': [
                     {
-                        id: 'blayzo',
-                        name: 'Blayzo',
+                        id: 'gamerjay_bronze',
+                        name: 'GamerJay Bronze',
+                        avatar: 'GJ',
+                        bio: 'Your original companion for basic features',
+                        image: '/static/logos/GamerJay_Free_companion.png',
+                        tier: 'bronze',
+                        status: 'Available'
+                    },
+                    {
+                        id: 'blayzo_bronze',
+                        name: 'Blayzo Bronze',
                         avatar: 'B',
                         bio: 'Wise and calm mentor for thoughtful guidance',
-                        image: '/static/logos/blayzo.png',
+                        image: '/static/logos/Blayzo.png',
+                        tier: 'bronze',
+                        status: 'Available'
+                    },
+                    {
+                        id: 'blayzica_bronze',
+                        name: 'Blayzica',
+                        avatar: 'Bc',
+                        bio: 'Empathetic and supportive companion',
+                        image: '/static/logos/Blayzica.png',
                         tier: 'bronze',
                         status: 'Available'
                     },
@@ -3306,51 +3335,248 @@
                         name: 'Claude',
                         avatar: 'CL',
                         bio: 'Advanced AI assistant for complex conversations',
-                        image: '/static/logos/claude.png',
+                        image: '/static/logos/Claude_Free.png',
+                        tier: 'bronze',
+                        status: 'Available'
+                    },
+                    {
+                        id: 'blayzia_bronze',
+                        name: 'Blayzia',
+                        avatar: 'Bz',
+                        bio: 'Intuitive and mystical guide',
+                        image: '/static/logos/Blayzia.png',
+                        tier: 'bronze',
+                        status: 'Available'
+                    },
+                    {
+                        id: 'blayzion_bronze',
+                        name: 'Blayzion',
+                        avatar: 'Bn',
+                        bio: 'Creative and innovative problem solver',
+                        image: '/static/logos/Blayzion.png',
+                        tier: 'bronze',
+                        status: 'Available'
+                    },
+                    {
+                        id: 'lumen_bronze',
+                        name: 'Lumen',
+                        avatar: 'L',
+                        bio: 'Bright and illuminating companion',
+                        image: '/static/logos/Lumen_Bronze.png',
+                        tier: 'bronze',
+                        status: 'Available'
+                    },
+                    {
+                        id: 'blayzo2_bronze',
+                        name: 'Blayzo.2',
+                        avatar: 'B2',
+                        bio: 'Enhanced version with deeper wisdom',
+                        image: '/static/logos/blayzo_free_tier.png',
                         tier: 'bronze',
                         status: 'Available'
                     }
                 ],
-                // Silver tier companions
+                // Silver tier companions - 8 companions
                 'silver': [
                     {
-                        id: 'violet',
-                        name: 'Violet',
-                        avatar: 'V',
-                        bio: 'Gentle and nurturing creative companion',
-                        image: '/static/logos/violet.png',
+                        id: 'sky_silver',
+                        name: 'Sky Silver',
+                        avatar: 'S',
+                        bio: 'Elevated companion for premium experiences',
+                        image: '/static/logos/Sky_a_premium_companion.png',
                         tier: 'silver',
                         status: 'Premium'
                     },
                     {
-                        id: 'crimson',
-                        name: 'Crimson',
-                        avatar: 'C',
-                        bio: 'Passionate and energetic motivator',
-                        image: '/static/logos/crimson.png',
+                        id: 'gamerjay_silver',
+                        name: 'GamerJay Silver',
+                        avatar: 'GJ+',
+                        bio: 'Premium version with enhanced capabilities',
+                        image: '/static/logos/GamerJay_premium_companion.png',
+                        tier: 'silver',
+                        status: 'Premium'
+                    },
+                    {
+                        id: 'claude_silver',
+                        name: 'Claude',
+                        avatar: 'CL+',
+                        bio: 'Growth-tier Claude with expanded knowledge',
+                        image: '/static/logos/Claude_Growth.png',
+                        tier: 'silver',
+                        status: 'Premium'
+                    },
+                    {
+                        id: 'blayzo_silver',
+                        name: 'Blayzo',
+                        avatar: 'B+',
+                        bio: 'Premium Blayzo with deeper insights',
+                        image: '/static/logos/Blayzo_premium_companion.png',
+                        tier: 'silver',
+                        status: 'Premium'
+                    },
+                    {
+                        id: 'blayzica_silver',
+                        name: 'Blayzica',
+                        avatar: 'Bc+',
+                        bio: 'Pro-level supportive companion',
+                        image: '/static/logos/Blayzica_Pro.png',
+                        tier: 'silver',
+                        status: 'Premium'
+                    },
+                    {
+                        id: 'watchdog_silver',
+                        name: 'WatchDog',
+                        avatar: 'WD',
+                        bio: 'Vigilant and protective companion',
+                        image: '/static/logos/WatchDog_a_Premium_companion.png',
+                        tier: 'silver',
+                        status: 'Premium'
+                    },
+                    {
+                        id: 'rozia_silver',
+                        name: 'Rozia',
+                        avatar: 'R',
+                        bio: 'Elegant and refined companion',
+                        image: '/static/logos/Rozia_Silver.png',
+                        tier: 'silver',
+                        status: 'Premium'
+                    },
+                    {
+                        id: 'lumen_silver',
+                        name: 'Lumen',
+                        avatar: 'L+',
+                        bio: 'Brilliant silver-tier illumination',
+                        image: '/static/logos/Lumen_Silver.png',
                         tier: 'silver',
                         status: 'Premium'
                     }
                 ],
-                // Gold tier companions
+                // Gold tier companions - 8 companions
                 'gold': [
                     {
-                        id: 'luna',
-                        name: 'Luna',
-                        avatar: 'L',
-                        bio: 'Mystical and intuitive guide for deep wisdom',
-                        image: '/static/logos/luna.png',
+                        id: 'crimson_gold',
+                        name: 'Crimson',
+                        avatar: 'C',
+                        bio: 'Passionate Max-tier motivator',
+                        image: '/static/logos/Crimson_a_Max_companion.png',
                         tier: 'gold',
                         status: 'Elite'
                     },
                     {
-                        id: 'max',
-                        name: 'Max',
-                        avatar: 'M',
-                        bio: 'Energetic companion for breakthrough moments',
-                        image: '/static/logos/max.png',
+                        id: 'violet_gold',
+                        name: 'Violet',
+                        avatar: 'V',
+                        bio: 'Gentle Max-tier nurturing presence',
+                        image: '/static/logos/Violet_a_Max_companion.png',
                         tier: 'gold',
                         status: 'Elite'
+                    },
+                    {
+                        id: 'claude_gold',
+                        name: 'Claude',
+                        avatar: 'CL★',
+                        bio: 'Ultimate Max-tier AI assistant',
+                        image: '/static/logos/Claude_Max.png',
+                        tier: 'gold',
+                        status: 'Elite'
+                    },
+                    {
+                        id: 'royal_gold',
+                        name: 'Royal',
+                        avatar: 'R★',
+                        bio: 'Majestic Max-tier royal companion',
+                        image: '/static/logos/Royal_a_Max_companion.png',
+                        tier: 'gold',
+                        status: 'Elite'
+                    },
+                    {
+                        id: 'ven_blayzica_gold',
+                        name: 'Ven Blayzica',
+                        avatar: 'VB',
+                        bio: 'Venerated Max-tier supportive companion',
+                        image: '/static/logos/Ven_Blayzica_a_Max_companion.png',
+                        tier: 'gold',
+                        status: 'Elite'
+                    },
+                    {
+                        id: 'ven_sky_gold',
+                        name: 'Ven Sky',
+                        avatar: 'VS',
+                        bio: 'Venerated Max-tier sky companion',
+                        image: '/static/logos/Ven_Sky_a_Max_companion.png',
+                        tier: 'gold',
+                        status: 'Elite'
+                    },
+                    {
+                        id: 'watchdog_gold',
+                        name: 'WatchDog',
+                        avatar: 'WD★',
+                        bio: 'Ultimate Max-tier guardian',
+                        image: '/static/logos/WatchDog_a_Max_Companion.png',
+                        tier: 'gold',
+                        status: 'Elite'
+                    },
+                    {
+                        id: 'violet2_gold',
+                        name: 'Violet 2',
+                        avatar: 'V2',
+                        bio: 'Alternative Max-tier nurturing companion',
+                        image: '/static/logos/Violet_a_Max_companion.png',
+                        tier: 'gold',
+                        status: 'Elite'
+                    }
+                ],
+                // Referral tier companions - 5 special unlock companions
+                'referral': [
+                    {
+                        id: 'blayzike',
+                        name: 'Blayzike',
+                        avatar: 'BK',
+                        bio: 'Unlock with 2 referrals - Silver tier special',
+                        image: '/static/referral/blayzike.png',
+                        tier: 'silver',
+                        status: 'Referral',
+                        minReferrals: 2
+                    },
+                    {
+                        id: 'nyxara',
+                        name: 'Nyxara',
+                        avatar: 'N',
+                        bio: 'Unlock with 3 referrals - Mysterious companion',
+                        image: '/static/logos/Nyxara.png',
+                        tier: 'silver',
+                        status: 'Referral',
+                        minReferrals: 3
+                    },
+                    {
+                        id: 'blazelian',
+                        name: 'Blazelian',
+                        avatar: 'BL',
+                        bio: 'Unlock with 5 referrals - Gold tier exclusive',
+                        image: '/static/referral/blazelian.png',
+                        tier: 'gold',
+                        status: 'Referral',
+                        minReferrals: 5
+                    },
+                    {
+                        id: 'claude_referral',
+                        name: 'Claude Referral',
+                        avatar: 'CR',
+                        bio: 'Unlock with 8 referrals - Special Claude variant',
+                        image: '/static/referral/claude_referral.png',
+                        tier: 'gold',
+                        status: 'Referral',
+                        minReferrals: 8
+                    },
+                    {
+                        id: 'blayzo_referral',
+                        name: 'Blayzo Referral',
+                        avatar: 'BR',
+                        bio: 'Unlock with 10 referrals - Ultimate Blayzo',
+                        image: '/static/logos/Blayzo_Referral.png',
+                        tier: 'gold',
+                        status: 'Referral',
+                        minReferrals: 10
                     }
                 ]
             };
@@ -3369,6 +3595,9 @@
             populateTierDropdown('bronzeCompanionsDropdown', companionData.bronze, true, currentCompanion);
             populateTierDropdown('silverCompanionsDropdown', companionData.silver, hasSilverAccess, currentCompanion);
             populateTierDropdown('goldCompanionsDropdown', companionData.gold, hasGoldAccess, currentCompanion);
+            
+            // For now, all referral companions are locked (TODO: implement referral system)
+            populateTierDropdown('referralCompanionsDropdown', companionData.referral, false, currentCompanion);
 
             // Update selected companion display
             updateSelectedCompanionDisplay(currentCompanion);
@@ -3475,15 +3704,29 @@
         function updateSelectedCompanionDisplay(companionName, companionData = null) {
             // Get companion data if not provided
             if (!companionData) {
-                const allCompanions = [
-                    ...companionData?.bronze || [],
-                    ...companionData?.silver || [],
-                    ...companionData?.gold || []
-                ];
-                companionData = allCompanions.find(c => 
-                    c.name.toLowerCase() === companionName?.toLowerCase() || 
-                    c.id === companionName
-                );
+                // Get the companion data that was defined in the function scope
+                const profileCompanionData = {
+                    'Sapphire': { avatar: '💎', name: 'Sapphire', bio: 'Your navigation assistant', image: '/static/logos/sapphire.png' },
+                    'Blayzo': { avatar: 'B', name: 'Blayzo', bio: 'Wise and calm mentor for thoughtful guidance', image: '/static/logos/Blayzo.png' },
+                    'Blayzion': { avatar: 'Bn', name: 'Blayzion', bio: 'Creative and innovative problem solver', image: '/static/logos/Blayzion.png' },
+                    'Crimson': { avatar: 'C', name: 'Crimson', bio: 'Passionate and energetic motivator', image: '/static/logos/Crimson_a_Max_companion.png' },
+                    'Blayzica': { avatar: 'Bc', name: 'Blayzica', bio: 'Empathetic and supportive companion', image: '/static/logos/Blayzica.png' },
+                    'Blayzia': { avatar: 'Bz', name: 'Blayzia', bio: 'Intuitive and mystical guide', image: '/static/logos/Blayzia.png' },
+                    'Violet': { avatar: 'V', name: 'Violet', bio: 'Gentle and nurturing presence', image: '/static/logos/Violet_a_Max_companion.png' },
+                    'Claude': { avatar: 'CL', name: 'Claude', bio: 'Advanced AI assistant for complex conversations', image: '/static/logos/Claude_Free.png' },
+                    'Max': { avatar: 'M', name: 'Max', bio: 'Energetic and fun companion', image: '/static/logos/max.png' },
+                    'Luna': { avatar: 'L', name: 'Luna', bio: 'Mystical and intuitive guide', image: '/static/logos/luna.png' },
+                    'GamerJay': { avatar: 'GJ', name: 'GamerJay', bio: 'Your original companion', image: '/static/logos/GamerJay_Free_companion.png' }
+                };
+                
+                // Try exact match first, then case-insensitive
+                let info = profileCompanionData[companionName];
+                if (!info && companionName) {
+                    const lowerName = companionName.toLowerCase();
+                    const foundKey = Object.keys(profileCompanionData).find(key => key.toLowerCase() === lowerName);
+                    info = foundKey ? profileCompanionData[foundKey] : null;
+                }
+                companionData = info;
             }
 
             // Fallback data
