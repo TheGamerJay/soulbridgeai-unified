@@ -2499,11 +2499,8 @@ def user_info():
         # Get user credits for Mini Studio
         credits = get_artistic_time(user_id) if user_id else 0
         
-        # For trial users, they get 60 "artistic time" credits specifically for mini studio
-        if user_plan == 'bronze' and trial_active:
-            from unified_tier_system import get_trial_trainer_time
-            trial_credits = session.get("trial_credits", 60)
-            credits = max(credits, trial_credits)  # Use trial credits if higher
+        # Trial users get 60 artistic time credits through the unified system
+        # No need for session-based trial_credits - get_artistic_time handles this automatically
         
         return jsonify({
             "success": True,
@@ -15756,15 +15753,12 @@ def mini_studio():
     if effective_plan != 'gold':
         return redirect("/tiers?upgrade=gold")
     
-    # Get user credits (artistic time for mini studio)
-    from unified_tier_system import get_artistic_time
+    # Get user credits (artistic time for mini studio) 
+    # Already imported at top: from artistic_time_system import get_artistic_time, deduct_artistic_time
     credits = get_artistic_time(user_id) if user_id else 0
     
-    # For trial users, they get 60 "artistic time" credits specifically for mini studio
-    if user_plan == 'bronze' and trial_active:
-        from unified_tier_system import get_trial_trainer_time
-        trial_credits = session.get("trial_credits", 60)
-        credits = max(credits, trial_credits)  # Use trial credits if higher
+    # Trial users get 60 artistic time credits through the unified system
+    # No need for session-based trial_credits - get_artistic_time handles this automatically
     
     return render_template("mini_studio.html", credits=credits)
 
@@ -15786,11 +15780,8 @@ def mini_studio_simple():
     # Get user credits  
     credits = get_artistic_time(user_id) if user_id else 0
     
-    # For trial users, they get 60 "artistic time" credits specifically for mini studio
-    if user_plan == 'bronze' and trial_active:
-        from unified_tier_system import get_trial_trainer_time
-        trial_credits = session.get("trial_credits", 60)
-        credits = max(credits, trial_credits)  # Use trial credits if higher
+    # Trial users get 60 artistic time credits through the unified system
+    # No need for session-based trial_credits - get_artistic_time handles this automatically
     
     # CRITICAL: Add no-cache headers to prevent global sharing
     response = make_response(render_template("mini_studio_simple.html", credits=credits, user_plan=user_plan, trial_active=trial_active))
