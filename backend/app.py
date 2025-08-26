@@ -13013,6 +13013,14 @@ def ai_image_generation_generate():
         from unified_tier_system import get_user_credits, deduct_credits
         current_credits = get_user_credits(user_id) if user_id else 0
         
+        # For trial users, they get 60 "trainer time" credits specifically for AI image generation
+        user_plan = session.get('user_plan', 'bronze')
+        trial_active = session.get('trial_active', False)
+        if user_plan == 'bronze' and trial_active:
+            from unified_tier_system import get_trial_trainer_time
+            trial_credits = session.get("trial_credits", 60)
+            current_credits = max(current_credits, trial_credits)  # Use trial credits if higher
+        
         if current_credits < AI_IMAGE_COST:
             return jsonify({
                 "success": False, 
@@ -17262,21 +17270,25 @@ def api_get_user_credits():
         # Get regular credits
         regular_credits = get_user_credits(user_id)
         
-        # Get trial credits separately for debugging
-        trial_credits = get_trial_trainer_time(user_id)
-        
-        # For trial users, trial credits should be the primary source
-        total_credits = max(regular_credits or 0, trial_credits or 0)
-        
-        # Debug logging
+        # For trial users, they get 60 "trainer time" credits specifically for AI image generation
+        user_plan = session.get('user_plan', 'bronze')
         trial_active = session.get('trial_active', False)
-        logger.info(f"🔍 CREDIT DEBUG - User {user_id}: regular={regular_credits}, trial={trial_credits}, total={total_credits}, trial_active={trial_active}")
+        total_credits = regular_credits or 0
+        
+        if user_plan == 'bronze' and trial_active:
+            trial_credits = session.get("trial_credits", 60)
+            total_credits = max(total_credits, trial_credits)  # Use trial credits if higher
+        
+        # Debug logging  
+        logger.info(f"🔍 CREDIT DEBUG - User {user_id}: regular={regular_credits}, total={total_credits}, plan={user_plan}, trial_active={trial_active}")
         
         return jsonify({
             "success": True,
             "credits": total_credits,
             "debug": {
                 "regular_credits": regular_credits or 0,
+                "user_plan": user_plan,
+                "trial_active": trial_active,
                 "trial_credits": trial_credits or 0,
                 "trial_active": trial_active
             }
