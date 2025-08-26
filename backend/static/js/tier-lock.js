@@ -47,7 +47,7 @@ class TierLockManager {
             trial_live: false,
             unlocked_tiers: ['bronze'],
             accessible_companion_tiers: ['bronze'],
-            limits: { decoder: 3, fortune: 2, horoscope: 3, creative_writer: 2 }
+            limits: { decoder: 3, fortune: 2, horoscope: 3, creative_writer: 3 }
         };
         this.userData = { plan: 'bronze' };
         this.initialized = true;

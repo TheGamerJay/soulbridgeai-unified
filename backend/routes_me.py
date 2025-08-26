@@ -126,7 +126,7 @@ def me():
             "trial_live": access.get("trial_live", False),
             "unlocked_tiers": access.get("unlocked_tiers", [plan]),
             "accessible_companion_tiers": access.get("accessible_companion_tiers", [plan]),
-            "limits": access.get("limits", {"decoder": 3, "fortune": 2, "horoscope": 3, "creative_writer": 2}),
+            "limits": access.get("limits", {"decoder": 3, "fortune": 2, "horoscope": 3, "creative_writer": 3}),
             "trial_credits": access.get("trial_credits", 0)
         }
         
