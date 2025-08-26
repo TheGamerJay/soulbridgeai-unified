@@ -8750,11 +8750,10 @@ def fortune_tarot():
         
         return jsonify({
             "success": True,
-            "spread": spread,
-            "focus": focus,
+            "spread": spread.replace("_card", "").replace("_", ""),  # "three_card" -> "three"
             "cards": tarot_data["cards"],
-            "reading": tarot_data.get("interpretation", "The cards reveal their wisdom through contemplation."),
-            "usage": {
+            "summary": tarot_data.get("interpretation", "The cards reveal their wisdom through contemplation."),
+            "today": {
                 "used": usage_today + 1,
                 "limit": daily_limit if daily_limit < 999 else None
             }
