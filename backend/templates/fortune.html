@@ -504,8 +504,8 @@
             <div id="output-box" class="output-box">
                 Your mystical reading will appear here...
             </div>
-            <button id="save-button" class="save-button" style="display: none;">
-                💾 Save to Journal
+            <button id="save-button" class="save-button" style="display: none;" onclick="saveToLibrary()">
+                📚 Save to Library
             </button>
         </div>
     </div>
@@ -630,7 +630,7 @@ async function refreshFortuneLimits() {
         }
 
         const usage = data.used ?? 0;
-        const hasUnlimited = data.limit === null;  // Unlimited if limit is null
+        const hasUnlimited = data.limit === null && plan === 'gold';  // Only gold has unlimited
 
         const limitDisplay = hasUnlimited ? '∞' : (data.limit ?? '?');
 
@@ -757,20 +757,20 @@ async function getFortune() {
             userUsage++;
             refreshFortuneLimits();
             
-            // Auto-save to library
-            await saveFortuneToLibrary(
-                `Fortune Reading - ${config.title}`,
-                result.response,
-                config.type,
-                { fortune_type: config.type, question: inputText }
-            );
+            // Store reading data for potential saving
+            lastFortuneData = {
+                question: inputText,
+                card: result.card || "Unknown Card",  // Assuming API returns card info
+                interpretation: result.response,
+                spread: "one"  // fortune uses single card spread
+            };
             
             // Show result with animation
             outputBox.className = 'output-box show';
             outputBox.innerHTML = result.response;
             
-            // Show save button for premium users (Growth/Max tiers) OR trial users
-            if (userPlan === 'growth' || userPlan === 'max' || result.trial_active) {
+            // Show save button for premium users (Silver/Gold tiers) OR trial users
+            if (userPlan === 'silver' || userPlan === 'gold' || result.trial_active) {
                 document.getElementById('save-button').style.display = 'block';
             }
             
@@ -806,24 +806,43 @@ async function getFortune() {
     checkUsageLimit();
 }
 
+// Global variables to store the last reading data for saving
+let lastFortuneData = null;
+
+async function saveToLibrary() {
+    if (!lastFortuneData) {
+        alert('❌ No fortune reading to save. Please get a reading first.');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/fortune/save', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify(lastFortuneData)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('✨ ' + result.message);
+            // Hide save button after successful save
+            document.getElementById('save-button').style.display = 'none';
+        } else {
+            alert('❌ Failed to save: ' + result.error);
+        }
+    } catch (error) {
+        console.error('Save error:', error);
+        alert('❌ Failed to save reading. Please try again.');
+    }
+}
+
 function saveToJournal() {
-    const type = document.getElementById('fortune-type').value;
-    const inputText = document.getElementById('input-text').value;
-    const outputText = document.getElementById('output-box').textContent;
-    
-    const journalEntry = {
-        date: new Date().toISOString(),
-        type: fortuneTypes[type].name,
-        question: inputText,
-        reading: outputText
-    };
-    
-    // Save to localStorage for now (could be enhanced with backend storage)
-    const existingEntries = JSON.parse(localStorage.getItem('fortuneJournal') || '[]');
-    existingEntries.unshift(journalEntry);
-    localStorage.setItem('fortuneJournal', JSON.stringify(existingEntries.slice(0, 50))); // Keep last 50
-    
-    alert('🌟 Fortune saved to your mystical journal!');
+    // Legacy function - redirect to new save functionality
+    saveToLibrary();
 }
 
 // Ad handling for fortune

@@ -8853,6 +8853,60 @@ def dev_reset_fortune_today():
     return {"ok": True, "cleared": bool(cleared), "user_id": uid}
 # ===== End Reset Endpoint =====
 
+# ===== Block J: Save to Library =====
+@app.route("/api/fortune/save", methods=["POST"])
+def save_fortune_to_library():
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"success": False, "error": "AUTH_REQUIRED"}), 401
+    
+    data = request.get_json()
+    if not data:
+        return jsonify({"success": False, "error": "Invalid request"}), 400
+    
+    # Validate required fields
+    required_fields = ["question", "card", "interpretation", "spread"]
+    for field in required_fields:
+        if field not in data:
+            return jsonify({"success": False, "error": f"Missing field: {field}"}), 400
+    
+    try:
+        db = get_database()
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        
+        # Insert into saved_readings table
+        cursor.execute("""
+            INSERT INTO saved_readings (
+                user_id, reading_type, question, cards, interpretation, 
+                spread_type, created_at
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """, (
+            user_id,
+            "fortune",  # reading_type
+            data["question"],
+            data["card"],  # cards (single card for fortune)
+            data["interpretation"],
+            data["spread"],  # spread_type
+            datetime.utcnow()
+        ))
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({
+            "success": True,
+            "message": "Fortune reading saved to your library!"
+        })
+        
+    except Exception as e:
+        print(f"Error saving fortune reading: {e}")
+        return jsonify({
+            "success": False, 
+            "error": "Failed to save reading"
+        }), 500
+# ===== End Block J =====
+
 # Old dev endpoints removed - using better Block I version above
 
 @app.route("/api/horoscope/check-limit")
