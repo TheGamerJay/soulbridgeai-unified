@@ -1262,8 +1262,7 @@
                                 </div>
                             </div>
 
-                            <div id="selectedCompanionGreeting" style="color: rgba(34, 211, 238, 0.9); font-size: 0.85rem; font-style: italic; margin-right: 15px; align-self: center;">
-                                ✨ Welcome to your journey...
+                            <div id="selectedCompanionGreeting" style="color: rgba(34, 211, 238, 0.9); font-size: 0.85rem; font-style: italic; margin-right: 15px; align-self: center; display: none;">
                             </div>
                             
                             <div class="selected-companion-info" style="flex: 1;">
@@ -3721,41 +3720,41 @@
                 const allCompanionData = {
                     // Bronze tier companions - 8 companions
                     'bronze': [
-                        {id: 'gamerjay_bronze', name: 'GamerJay Bronze', avatar: 'GJ', bio: 'Your original companion for basic features', image: '/static/logos/GamerJay_Free_companion.png'},
-                        {id: 'blayzo_bronze', name: 'Blayzo Bronze', avatar: 'B', bio: 'Wise and calm mentor for thoughtful guidance', image: '/static/logos/Blayzo.png'},
-                        {id: 'blayzica_bronze', name: 'Blayzica', avatar: 'Bc', bio: 'Empathetic and supportive companion', image: '/static/logos/Blayzica.png'},
-                        {id: 'claude_bronze', name: 'Claude', avatar: 'CL', bio: 'Advanced AI assistant for complex conversations', image: '/static/logos/Claude_Free.png'},
-                        {id: 'blayzia_bronze', name: 'Blayzia', avatar: 'Bz', bio: 'Intuitive and mystical guide', image: '/static/logos/Blayzia.png'},
-                        {id: 'blayzion_bronze', name: 'Blayzion', avatar: 'Bn', bio: 'Creative and innovative problem solver', image: '/static/logos/Blayzion.png'},
-                        {id: 'lumen_bronze', name: 'Lumen', avatar: 'L', bio: 'Bright and illuminating companion', image: '/static/logos/Lumen_Bronze.png'},
-                        {id: 'blayzo2_bronze', name: 'Blayzo.2', avatar: 'B2', bio: 'Enhanced version with deeper wisdom', image: '/static/logos/blayzo_free_tier.png'}
+                        {id: 'gamerjay_bronze', name: 'GamerJay Bronze', avatar: 'GJ', bio: 'Your original companion for basic features', greeting: '🎮 Ready to level up your day!', image: '/static/logos/GamerJay_Free_companion.png'},
+                        {id: 'blayzo_bronze', name: 'Blayzo Bronze', avatar: 'B', bio: 'Wise and calm mentor for thoughtful guidance', greeting: '🧘 Wisdom flows to those who seek peace', image: '/static/logos/Blayzo.png'},
+                        {id: 'blayzica_bronze', name: 'Blayzica', avatar: 'Bc', bio: 'Empathetic and supportive companion', greeting: '💕 You are stronger than you know', image: '/static/logos/Blayzica.png'},
+                        {id: 'claude_bronze', name: 'Claude', avatar: 'CL', bio: 'Advanced AI assistant for complex conversations', greeting: '🧠 Every question opens a new door', image: '/static/logos/Claude_Free.png'},
+                        {id: 'blayzia_bronze', name: 'Blayzia', avatar: 'Bz', bio: 'Intuitive and mystical guide', greeting: '🔮 Trust your inner magic today', image: '/static/logos/Blayzia.png'},
+                        {id: 'blayzion_bronze', name: 'Blayzion', avatar: 'Bn', bio: 'Creative and innovative problem solver', greeting: '🚀 Innovation starts with imagination', image: '/static/logos/Blayzion.png'},
+                        {id: 'lumen_bronze', name: 'Lumen', avatar: 'L', bio: 'Bright and illuminating companion', greeting: '✨ Let your light shine bright today', image: '/static/logos/Lumen_Bronze.png'},
+                        {id: 'blayzo2_bronze', name: 'Blayzo.2', avatar: 'B2', bio: 'Enhanced version with deeper wisdom', greeting: '🌟 Evolved wisdom for your journey', image: '/static/logos/blayzo_free_tier.png'}
                     ],
                     'silver': [
-                        {id: 'sky_silver', name: 'Sky Silver', avatar: 'S', bio: 'Elevated companion for premium experiences', image: '/static/logos/Sky_a_premium_companion.png'},
-                        {id: 'gamerjay_silver', name: 'GamerJay Silver', avatar: 'GJ+', bio: 'Premium version with enhanced capabilities', image: '/static/logos/GamerJay_premium_companion.png'},
-                        {id: 'claude_silver', name: 'Claude', avatar: 'CL+', bio: 'Growth-tier Claude with expanded knowledge', image: '/static/logos/Claude_Growth.png'},
-                        {id: 'blayzo_silver', name: 'Blayzo', avatar: 'B+', bio: 'Premium Blayzo with deeper insights', image: '/static/logos/Blayzo_premium_companion.png'},
-                        {id: 'blayzica_silver', name: 'Blayzica', avatar: 'Bc+', bio: 'Pro-level supportive companion', image: '/static/logos/Blayzica_Pro.png'},
-                        {id: 'watchdog_silver', name: 'WatchDog', avatar: 'WD', bio: 'Vigilant and protective companion', image: '/static/logos/WatchDog_a_Premium_companion.png'},
-                        {id: 'rozia_silver', name: 'Rozia', avatar: 'R', bio: 'Elegant and refined companion', image: '/static/logos/Rozia_Silver.png'},
-                        {id: 'lumen_silver', name: 'Lumen', avatar: 'L+', bio: 'Brilliant silver-tier illumination', image: '/static/logos/Lumen_Silver.png'}
+                        {id: 'sky_silver', name: 'Sky Silver', avatar: 'S', bio: 'Elevated companion for premium experiences', greeting: '☁️ Rise above the ordinary today', image: '/static/logos/Sky_a_premium_companion.png'},
+                        {id: 'gamerjay_silver', name: 'GamerJay Silver', avatar: 'GJ+', bio: 'Premium version with enhanced capabilities', greeting: '🎮✨ Premium power-up activated!', image: '/static/logos/GamerJay_premium_companion.png'},
+                        {id: 'claude_silver', name: 'Claude', avatar: 'CL+', bio: 'Growth-tier Claude with expanded knowledge', greeting: '📚 Knowledge expands with every query', image: '/static/logos/Claude_Growth.png'},
+                        {id: 'blayzo_silver', name: 'Blayzo', avatar: 'B+', bio: 'Premium Blayzo with deeper insights', greeting: '🌱 Growth comes through reflection', image: '/static/logos/Blayzo_premium_companion.png'},
+                        {id: 'blayzica_silver', name: 'Blayzica', avatar: 'Bc+', bio: 'Pro-level supportive companion', greeting: '💖 Your journey matters, keep going', image: '/static/logos/Blayzica_Pro.png'},
+                        {id: 'watchdog_silver', name: 'WatchDog', avatar: 'WD', bio: 'Vigilant and protective companion', greeting: '🔒 Your guardian stands ready', image: '/static/logos/WatchDog_a_Premium_companion.png'},
+                        {id: 'rozia_silver', name: 'Rozia', avatar: 'R', bio: 'Elegant and refined companion', greeting: '🌹 Grace and beauty in every moment', image: '/static/logos/Rozia_Silver.png'},
+                        {id: 'lumen_silver', name: 'Lumen', avatar: 'L+', bio: 'Brilliant silver-tier illumination', greeting: '✨💫 Brilliance guides your path forward', image: '/static/logos/Lumen_Silver.png'}
                     ],
                     'gold': [
-                        {id: 'crimson_gold', name: 'Crimson', avatar: 'C', bio: 'Passionate Max-tier motivator', image: '/static/logos/Crimson_a_Max_companion.png'},
-                        {id: 'violet_gold', name: 'Violet', avatar: 'V', bio: 'Gentle Max-tier nurturing presence', image: '/static/logos/Violet_a_Max_companion.png'},
-                        {id: 'claude_gold', name: 'Claude', avatar: 'CL★', bio: 'Ultimate Max-tier AI assistant', image: '/static/logos/Claude_Max.png'},
-                        {id: 'royal_gold', name: 'Royal', avatar: 'R★', bio: 'Majestic Max-tier royal companion', image: '/static/logos/Royal_a_Max_companion.png'},
-                        {id: 'ven_blayzica_gold', name: 'Ven Blayzica', avatar: 'VB', bio: 'Venerated Max-tier supportive companion', image: '/static/logos/Ven_Blayzica_a_Max_companion.png'},
-                        {id: 'ven_sky_gold', name: 'Ven Sky', avatar: 'VS', bio: 'Venerated Max-tier sky companion', image: '/static/logos/Ven_Sky_a_Max_companion.png'},
-                        {id: 'watchdog_gold', name: 'WatchDog', avatar: 'WD★', bio: 'Ultimate Max-tier guardian', image: '/static/logos/WatchDog_a_Max_Companion.png'},
-                        {id: 'violet2_gold', name: 'Violet 2', avatar: 'V2', bio: 'Alternative Max-tier nurturing companion', image: '/static/logos/Violet_a_Max_companion.png'}
+                        {id: 'crimson_gold', name: 'Crimson', avatar: 'C', bio: 'Passionate Max-tier motivator', greeting: '🔥 Ignite your passion, achieve greatness', image: '/static/logos/Crimson_a_Max_companion.png'},
+                        {id: 'violet_gold', name: 'Violet', avatar: 'V', bio: 'Gentle Max-tier nurturing presence', greeting: '💜 Gentleness is your superpower today', image: '/static/logos/Violet_a_Max_companion.png'},
+                        {id: 'claude_gold', name: 'Claude', avatar: 'CL★', bio: 'Ultimate Max-tier AI assistant', greeting: '🎆 Excellence unlocked, sky\'s the limit', image: '/static/logos/Claude_Max.png'},
+                        {id: 'royal_gold', name: 'Royal', avatar: 'R★', bio: 'Majestic Max-tier royal companion', greeting: '👑 Reign supreme over your dreams', image: '/static/logos/Royal_a_Max_companion.png'},
+                        {id: 'ven_blayzica_gold', name: 'Ven Blayzica', avatar: 'VB', bio: 'Venerated Max-tier supportive companion', greeting: '🙏 Honored to guide your soul\'s journey', image: '/static/logos/Ven_Blayzica_a_Max_companion.png'},
+                        {id: 'ven_sky_gold', name: 'Ven Sky', avatar: 'VS', bio: 'Venerated Max-tier sky companion', greeting: '☁️✨ Divine heights await your ascent', image: '/static/logos/Ven_Sky_a_Max_companion.png'},
+                        {id: 'watchdog_gold', name: 'WatchDog', avatar: 'WD★', bio: 'Ultimate Max-tier guardian', greeting: '🔒✨ Elite protection, unlimited potential', image: '/static/logos/WatchDog_a_Max_Companion.png'},
+                        {id: 'violet2_gold', name: 'Violet 2', avatar: 'V2', bio: 'Alternative Max-tier nurturing companion', greeting: '🌈 Double the care, infinite possibilities', image: '/static/logos/Violet_a_Max_companion.png'}
                     ],
                     'referral': [
-                        {id: 'blayzike', name: 'Blayzike', avatar: 'BK', bio: 'Unlock with 2 referrals - Silver tier special', image: '/static/referral/blayzike.png'},
-                        {id: 'nyxara', name: 'Nyxara', avatar: 'N', bio: 'Unlock with 3 referrals - Mysterious companion', image: '/static/logos/Nyxara.png'},
-                        {id: 'blazelian', name: 'Blazelian', avatar: 'BL', bio: 'Unlock with 5 referrals - Gold tier exclusive', image: '/static/referral/blazelian.png'},
-                        {id: 'claude_referral', name: 'Claude Referral', avatar: 'CR', bio: 'Unlock with 8 referrals - Special Claude variant', image: '/static/referral/claude_referral.png'},
-                        {id: 'blayzo_referral', name: 'Blayzo Referral', avatar: 'BR', bio: 'Unlock with 10 referrals - Ultimate Blayzo', image: '/static/logos/Blayzo_Referral.png'}
+                        {id: 'blayzike', name: 'Blayzike', avatar: 'BK', bio: 'Unlock with 2 referrals - Silver tier special', greeting: '🎆 Sharing is caring, growth is power', image: '/static/referral/blayzike.png'},
+                        {id: 'nyxara', name: 'Nyxara', avatar: 'N', bio: 'Unlock with 3 referrals - Mysterious companion', greeting: '🌙 Mysteries unfold for the worthy', image: '/static/logos/Nyxara.png'},
+                        {id: 'blazelian', name: 'Blazelian', avatar: 'BL', bio: 'Unlock with 5 referrals - Gold tier exclusive', greeting: '🔥✨ Elite unlocked, legends rise', image: '/static/referral/blazelian.png'},
+                        {id: 'claude_referral', name: 'Claude Referral', avatar: 'CR', bio: 'Unlock with 8 referrals - Special Claude variant', greeting: '🏆 Excellence earned through connection', image: '/static/referral/claude_referral.png'},
+                        {id: 'blayzo_referral', name: 'Blayzo Referral', avatar: 'BR', bio: 'Unlock with 10 referrals - Ultimate Blayzo', greeting: '🕊 Ultimate wisdom for the devoted', image: '/static/logos/Blayzo_Referral.png'}
                     ]
                 };
                 
