@@ -108,7 +108,7 @@ from constants import *
 
 # --- Tier limits ---
 FORTUNE_TIER_LIMITS = {
-    "bronze": {"fortune": 2},
+    "bronze": {"fortune": 3},
     "silver": {"fortune": 8},
     "gold":   {"fortune": None},  # None = unlimited
 }
@@ -8698,14 +8698,14 @@ def limits():
     
     # Safety clamp - prevents accidental "unification" 
     if plan == "bronze": 
-        limit = 2
+        limit = 3
     elif plan == "silver": 
         limit = 8
     elif plan == "gold":   
         limit = None  # This should be None for unlimited
     else:
         # Unknown plan - default to bronze
-        limit = 2
+        limit = 3
         
     print(f"🔍 After safety clamp: plan={plan}, final_limit={limit}, type={type(limit)}")
     print(f"🔍 Will return JSON with limit={limit} (null in JSON means unlimited)")
