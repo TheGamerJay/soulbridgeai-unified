@@ -59,8 +59,8 @@ CREDIT_COSTS = {
 MONTHLY_ALLOWANCES = {
     "bronze": 0,    # Bronze tier gets no monthly credits
     "free": 0,      # Legacy support - same as bronze
-    "silver": 100,  # Silver tier gets 100 monthly credits (was: growth)
-    "growth": 100,  # Legacy support - same as silver
+    "silver": 200,  # Silver tier gets 200 monthly credits (was: growth)
+    "growth": 200,  # Legacy support - same as silver
     "gold": 500,    # Gold tier gets 500 monthly credits (was: max)
     "max": 500      # Legacy support - same as gold
 }
@@ -137,7 +137,7 @@ def calculate_savings_analysis(user_id: int, user_plan: str, monthly_usage: dict
             max_total += max_cost
     
     # Calculate if Growth user needs to buy topups
-    growth_allowance = MONTHLY_ALLOWANCES["growth"]  # 100 credits
+    growth_allowance = MONTHLY_ALLOWANCES["growth"]  # 200 credits
     max_allowance = MONTHLY_ALLOWANCES["max"]        # 500 credits
     
     growth_overage = max(0, growth_total - growth_allowance)

@@ -198,7 +198,7 @@ class TierLockManager {
             silver: {
                 name: 'Silver',
                 icon: '🥈', 
-                description: 'Enhanced limits, 100 credits, no ads',
+                description: 'Enhanced limits, 200 credits, no ads',
                 price: '$12.99/month'
             },
             gold: {
