@@ -96,8 +96,8 @@ except ImportError:
 # trial_utils functions are now integrated directly in app.py
 from tier_isolation import tier_manager, get_current_user_tier, get_current_tier_system
 from unified_tier_system import (
-    get_effective_plan, get_feature_limit, get_user_credits, 
-    deduct_credits, can_access_feature, get_tier_status,
+    get_effective_plan, get_feature_limit, get_artistic_time, 
+    deduct_artistic_time, can_access_feature, get_tier_status,
     increment_feature_usage, get_feature_usage_today
 )
 from constants import *
@@ -1789,6 +1789,15 @@ def ensure_bsg_migrations():
         if run_bsg_migrations(get_database):
             services["bsg_migrations_done"] = True
             logger.info("✅ BSG migrations completed successfully")
+            
+            # Migrate to Artistic Time system
+            try:
+                from artistic_time_system import migrate_to_artistic_time
+                migrate_to_artistic_time()
+                logger.info("✅ Artistic Time migration completed")
+            except Exception as e:
+                logger.error(f"❌ Artistic Time migration failed: {e}")
+                
             return True
         else:
             logger.warning("⚠️ BSG migrations failed")
@@ -2485,7 +2494,7 @@ def user_info():
         access_gold = user_plan == 'gold'  # NO trial modification
         
         # Get user credits for Mini Studio
-        credits = get_user_credits(user_id) if user_id else 0
+        credits = get_artistic_time(user_id) if user_id else 0
         
         # For trial users, they get 60 "trainer time" credits specifically for mini studio
         if user_plan == 'bronze' and trial_active:
@@ -12507,12 +12516,12 @@ def voice_journaling_transcribe():
         # Check and deduct credits before processing
         user_id = session.get('user_id')
         from credit_costs import get_feature_cost
-        from unified_tier_system import get_user_credits, deduct_credits
+        from artistic_time_system import get_artistic_time, deduct_artistic_time, get_feature_cost
         
         VOICE_JOURNAL_COST = get_feature_cost("voice_journaling")
         
         # Check if user has enough credits
-        current_credits = get_user_credits(user_id) if user_id else 0
+        current_credits = get_artistic_time(user_id) if user_id else 0
         
         if current_credits < VOICE_JOURNAL_COST:
             return jsonify({
@@ -12521,7 +12530,7 @@ def voice_journaling_transcribe():
             }), 403
         
         # Deduct credits before processing
-        if not deduct_credits(user_id, VOICE_JOURNAL_COST):
+        if not deduct_artistic_time(user_id, VOICE_JOURNAL_COST):
             return jsonify({
                 "success": False, 
                 "error": "Failed to deduct credits. Please try again."
@@ -12718,12 +12727,12 @@ def relationship_profiles_add():
         # Check and deduct credits before processing
         user_id = session.get('user_id')
         from credit_costs import get_feature_cost
-        from unified_tier_system import get_user_credits, deduct_credits
+        from artistic_time_system import get_artistic_time, deduct_artistic_time, get_feature_cost
         
         RELATIONSHIP_COST = get_feature_cost("relationship_profiles")
         
         # Check if user has enough credits
-        current_credits = get_user_credits(user_id) if user_id else 0
+        current_credits = get_artistic_time(user_id) if user_id else 0
         
         if current_credits < RELATIONSHIP_COST:
             return jsonify({
@@ -12732,7 +12741,7 @@ def relationship_profiles_add():
             }), 403
         
         # Deduct credits before processing
-        if not deduct_credits(user_id, RELATIONSHIP_COST):
+        if not deduct_artistic_time(user_id, RELATIONSHIP_COST):
             return jsonify({
                 "success": False, 
                 "error": "Failed to deduct credits. Please try again."
@@ -12879,12 +12888,12 @@ def emotional_meditations_save_session():
         # Check and deduct credits before processing
         user_id = session.get('user_id')
         from credit_costs import get_feature_cost
-        from unified_tier_system import get_user_credits, deduct_credits
+        from artistic_time_system import get_artistic_time, deduct_artistic_time, get_feature_cost
         
         MEDITATION_COST = get_feature_cost("meditations")
         
         # Check if user has enough credits
-        current_credits = get_user_credits(user_id) if user_id else 0
+        current_credits = get_artistic_time(user_id) if user_id else 0
         
         if current_credits < MEDITATION_COST:
             return jsonify({
@@ -12893,7 +12902,7 @@ def emotional_meditations_save_session():
             }), 403
         
         # Deduct credits before processing
-        if not deduct_credits(user_id, MEDITATION_COST):
+        if not deduct_artistic_time(user_id, MEDITATION_COST):
             return jsonify({
                 "success": False, 
                 "error": "Failed to deduct credits. Please try again."
@@ -13080,8 +13089,8 @@ def ai_image_generation_generate():
         AI_IMAGE_COST = 5  # 5 credits per AI image
         
         # Check if user has enough credits
-        from unified_tier_system import get_user_credits, deduct_credits
-        current_credits = get_user_credits(user_id) if user_id else 0
+        from artistic_time_system import get_artistic_time, deduct_artistic_time, get_feature_cost
+        current_credits = get_artistic_time(user_id) if user_id else 0
         
         # For trial users, they get 60 "trainer time" credits specifically for AI image generation
         user_plan = session.get('user_plan', 'bronze')
@@ -13098,7 +13107,7 @@ def ai_image_generation_generate():
             }), 403
         
         # Deduct credits before generation (prevents abuse if generation fails)
-        if not deduct_credits(user_id, AI_IMAGE_COST):
+        if not deduct_artistic_time(user_id, AI_IMAGE_COST):
             return jsonify({
                 "success": False, 
                 "error": "Failed to deduct credits. Please try again."
@@ -15498,7 +15507,7 @@ try:
         
         # Add music studio fields to existing users table
         music_columns = [
-            "ALTER TABLE users ADD COLUMN IF NOT EXISTS trainer_credits INTEGER DEFAULT 0",
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS artistic_time INTEGER DEFAULT 0",
             "ALTER TABLE users ADD COLUMN IF NOT EXISTS disclaimer_accepted_at TIMESTAMP",
             "ALTER TABLE users ADD COLUMN IF NOT EXISTS last_credit_reset DATE"
         ]
@@ -15579,7 +15588,7 @@ def ensure_monthly_credits(user_id):
         
         # Check if user is Max and needs credit reset
         cursor.execute("""
-            SELECT user_plan, last_credit_reset, trainer_credits
+            SELECT user_plan, last_credit_reset, artistic_time
             FROM users WHERE id = %s
         """, (user_id,))
         
@@ -15599,7 +15608,7 @@ def ensure_monthly_credits(user_id):
             
             cursor.execute("""
                 UPDATE users 
-                SET trainer_credits = %s, last_credit_reset = %s 
+                SET artistic_time = %s, last_credit_reset = %s 
                 WHERE id = %s
             """, (650, today, user_id))
             conn.commit()
@@ -15718,8 +15727,8 @@ def mini_studio():
         return redirect("/tiers?upgrade=gold")
     
     # Get user credits (trainer time for mini studio)
-    from unified_tier_system import get_user_credits
-    credits = get_user_credits(user_id) if user_id else 0
+    from unified_tier_system import get_artistic_time
+    credits = get_artistic_time(user_id) if user_id else 0
     
     # For trial users, they get 60 "trainer time" credits specifically for mini studio
     if user_plan == 'bronze' and trial_active:
@@ -15745,7 +15754,7 @@ def mini_studio_simple():
         return redirect("/tiers?feature=mini-studio")
     
     # Get user credits  
-    credits = get_user_credits(user_id) if user_id else 0
+    credits = get_artistic_time(user_id) if user_id else 0
     
     # For trial users, they get 60 "trainer time" credits specifically for mini studio
     if user_plan == 'bronze' and trial_active:
@@ -15778,7 +15787,7 @@ def api_secret_lyrics():
         return jsonify({"success": False, "error": "Gold tier required"}), 403
     
     # Check credits before processing
-    credits = get_user_credits(user_id) if user_id else 0
+    credits = get_artistic_time(user_id) if user_id else 0
     if user_plan == 'bronze' and trial_active:
         from unified_tier_system import get_trial_trainer_time
         trial_credits = session.get("trial_credits", 60)
@@ -15789,7 +15798,7 @@ def api_secret_lyrics():
         return jsonify({"success": False, "error": f"Insufficient credits. Need {LYRICS_COST}, have {credits}"}), 403
     
     # Deduct credits BEFORE processing
-    if not deduct_credits(user_id, LYRICS_COST):
+    if not deduct_artistic_time(user_id, LYRICS_COST):
         return jsonify({"success": False, "error": "Failed to deduct credits"}), 500
     
     data = request.get_json() or {}
@@ -15821,7 +15830,7 @@ Premium lyrics, crafted with care
 SecretWriter beyond compare"""
     
     # Get remaining credits for response
-    remaining_credits = get_user_credits(user_id)
+    remaining_credits = get_artistic_time(user_id)
     if user_plan == 'bronze' and trial_active:
         trial_credits = session.get("trial_credits", 60)
         remaining_credits = max(remaining_credits, trial_credits)
@@ -15848,7 +15857,7 @@ def api_midi():
         return jsonify({"success": False, "error": "Gold tier required"}), 403
     
     # Check credits before processing
-    credits = get_user_credits(user_id) if user_id else 0
+    credits = get_artistic_time(user_id) if user_id else 0
     if user_plan == 'bronze' and trial_active:
         from unified_tier_system import get_trial_trainer_time
         trial_credits = session.get("trial_credits", 60)
@@ -15859,7 +15868,7 @@ def api_midi():
         return jsonify({"success": False, "error": f"Insufficient credits. Need {MIDI_COST}, have {credits}"}), 403
     
     # Deduct credits BEFORE processing
-    if not deduct_credits(user_id, MIDI_COST):
+    if not deduct_artistic_time(user_id, MIDI_COST):
         return jsonify({"success": False, "error": "Failed to deduct credits"}), 500
     
     data = request.get_json() or {}
@@ -15873,7 +15882,7 @@ def api_midi():
     midi_path = f"/static/generated_midi/{midi_filename}"
     
     # Get remaining credits for response
-    remaining_credits = get_user_credits(user_id)
+    remaining_credits = get_artistic_time(user_id)
     if user_plan == 'bronze' and trial_active:
         trial_credits = session.get("trial_credits", 60)
         remaining_credits = max(remaining_credits, trial_credits)
@@ -15900,7 +15909,7 @@ def api_cover_art():
         return jsonify({"success": False, "error": "Gold tier required"}), 403
     
     # Check credits before processing
-    credits = get_user_credits(user_id) if user_id else 0
+    credits = get_artistic_time(user_id) if user_id else 0
     if user_plan == 'bronze' and trial_active:
         from unified_tier_system import get_trial_trainer_time
         trial_credits = session.get("trial_credits", 60)
@@ -15911,7 +15920,7 @@ def api_cover_art():
         return jsonify({"success": False, "error": f"Insufficient credits. Need {COVER_ART_COST}, have {credits}"}), 403
     
     # Deduct credits BEFORE processing
-    if not deduct_credits(user_id, COVER_ART_COST):
+    if not deduct_artistic_time(user_id, COVER_ART_COST):
         return jsonify({"success": False, "error": "Failed to deduct credits"}), 500
     
     data = request.get_json() or {}
@@ -15925,7 +15934,7 @@ def api_cover_art():
     image_path = f"/static/generated_art/{art_filename}"
     
     # Get remaining credits for response
-    remaining_credits = get_user_credits(user_id)
+    remaining_credits = get_artistic_time(user_id)
     if user_plan == 'bronze' and trial_active:
         trial_credits = session.get("trial_credits", 60)
         remaining_credits = max(remaining_credits, trial_credits)
@@ -15957,8 +15966,8 @@ def mini_studio_vocal_recording():
         user_id = session.get('user_id')
         
         # Check if user has credits
-        from unified_tier_system import get_user_credits, deduct_credits
-        credits = get_user_credits(user_id) if user_id else 0
+        from artistic_time_system import get_artistic_time, deduct_artistic_time, get_feature_cost
+        credits = get_artistic_time(user_id) if user_id else 0
         
         if user_plan == 'bronze' and trial_active:
             from unified_tier_system import get_trial_trainer_time
@@ -16010,8 +16019,8 @@ def mini_studio_instrumental():
         mood = data.get('mood', 'energetic')
         
         # Check credits
-        from unified_tier_system import get_user_credits, deduct_credits
-        credits = get_user_credits(user_id) if user_id else 0
+        from artistic_time_system import get_artistic_time, deduct_artistic_time, get_feature_cost
+        credits = get_artistic_time(user_id) if user_id else 0
         
         if user_plan == 'bronze' and trial_active:
             from unified_tier_system import get_trial_trainer_time
@@ -16045,7 +16054,7 @@ def mini_studio_instrumental():
             
             if result['success']:
                 # Deduct credit for successful generation
-                deduct_credits(user_id, 1)
+                deduct_artistic_time(user_id, 1)
                 
                 # Add to unified library
                 from unified_library import UnifiedLibraryManager
@@ -16122,8 +16131,8 @@ def mini_studio_mixing():
         instrumental_gain_db = data.get('bgm_db', -3.0)
         
         # Check credits
-        from unified_tier_system import get_user_credits, deduct_credits
-        credits = get_user_credits(user_id) if user_id else 0
+        from artistic_time_system import get_artistic_time, deduct_artistic_time, get_feature_cost
+        credits = get_artistic_time(user_id) if user_id else 0
         
         if user_plan == 'bronze' and trial_active:
             from unified_tier_system import get_trial_trainer_time
@@ -16173,7 +16182,7 @@ def mini_studio_mixing():
             
             if result['success']:
                 # Deduct credit for successful mixing
-                deduct_credits(user_id, 1)
+                deduct_artistic_time(user_id, 1)
                 
                 # Add to unified library
                 from unified_library import UnifiedLibraryManager
@@ -16239,11 +16248,11 @@ def mini_studio_session_control():
         if effective_plan != 'gold':
             return jsonify({"success": False, "error": "Mini Studio requires Gold tier or trial"}), 403
         
-        from unified_tier_system import get_user_credits, deduct_credits
+        from artistic_time_system import get_artistic_time, deduct_artistic_time, get_feature_cost
         
         if action == 'start':
             # Check if user has credits to start session
-            credits = get_user_credits(user_id) if user_id else 0
+            credits = get_artistic_time(user_id) if user_id else 0
             
             if user_plan == 'bronze' and trial_active:
                 from unified_tier_system import get_trial_trainer_time
@@ -16269,14 +16278,14 @@ def mini_studio_session_control():
             if session_duration > 0:
                 credits_to_deduct = max(1, int(session_duration))  # Minimum 1 minute
                 
-                if deduct_credits(user_id, credits_to_deduct):
+                if deduct_artistic_time(user_id, credits_to_deduct):
                     logger.info(f"💳 Deducted {credits_to_deduct} credits from user {user_id} for {session_duration} minute studio session")
                     
                     # Clear session data
                     session.pop('studio_session_start', None)
                     session.pop('studio_session_active', None)
                     
-                    remaining_credits = get_user_credits(user_id) if user_id else 0
+                    remaining_credits = get_artistic_time(user_id) if user_id else 0
                     
                     return jsonify({
                         "success": True,
@@ -16905,7 +16914,7 @@ def buy_credits_page():
                 <a href="/" style="color: #22d3ee; text-decoration: none;">← Back to Home</a>
             </body></html>
             ''')
-    current_credits = get_user_credits(user_id) if user_id else 0
+    current_credits = get_artistic_time(user_id) if user_id else 0
     
     # Get breakdown of credits for display
     credits_breakdown = {"plan": 0, "purchased": 0}
@@ -17201,7 +17210,7 @@ def credits_purchase_success():
                         
                         # Add credits to user account
                         if session_user_id:
-                            success = add_trainer_credits(session_user_id, credits_amount)
+                            success = add_artistic_time(session_user_id, credits_amount)
                             if success:
                                 logger.info(f"✅ CREDITS ADDED: {credits_amount} credits added to user {session_user_id} via payment {session_id}")
                                 
@@ -17284,7 +17293,7 @@ def credits_purchase_success():
 </html>
     ''')
 
-def add_trainer_credits(user_id, amount=350):
+def add_artistic_time(user_id, amount=350):
     """Add purchased credits to user account (separate from plan credits)"""
     try:
         database_url = os.environ.get('DATABASE_URL')
@@ -17324,7 +17333,7 @@ def add_trainer_credits(user_id, amount=350):
 # ========================================
 
 @app.route("/api/user-credits", methods=["GET"])
-def api_get_user_credits():
+def api_get_artistic_time():
     """Get current user credit balance"""
     if not is_logged_in():
         return jsonify({"success": False, "error": "Authentication required"}), 401
@@ -17334,33 +17343,22 @@ def api_get_user_credits():
         if not user_id:
             return jsonify({"success": False, "error": "User ID not found"}), 400
         
-        # Get credits using unified tier system
-        from unified_tier_system import get_user_credits, get_trial_trainer_time
+        # Get artistic time using new system
+        total_credits = get_artistic_time(user_id)
         
-        # Get regular credits
-        regular_credits = get_user_credits(user_id)
-        
-        # For trial users, they get 60 "trainer time" credits specifically for AI image generation
         user_plan = session.get('user_plan', 'bronze')
         trial_active = session.get('trial_active', False)
-        trial_credits = 0
-        total_credits = regular_credits or 0
-        
-        if user_plan == 'bronze' and trial_active:
-            trial_credits = session.get("trial_credits", 60)
-            total_credits = max(total_credits, trial_credits)  # Use trial credits if higher
         
         # Debug logging  
-        logger.info(f"🔍 CREDIT DEBUG - User {user_id}: regular={regular_credits}, total={total_credits}, plan={user_plan}, trial_active={trial_active}, trial_credits={trial_credits}")
+        logger.info(f"🎨 ARTISTIC TIME DEBUG - User {user_id}: total={total_credits}, plan={user_plan}, trial_active={trial_active}")
         
         return jsonify({
             "success": True,
             "credits": total_credits,
             "debug": {
-                "regular_credits": regular_credits or 0,
+                "artistic_time": total_credits,
                 "user_plan": user_plan,
-                "trial_active": trial_active,
-                "trial_credits": trial_credits
+                "trial_active": trial_active
             }
         })
         
