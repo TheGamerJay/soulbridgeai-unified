@@ -17343,6 +17343,7 @@ def api_get_user_credits():
         # For trial users, they get 60 "trainer time" credits specifically for AI image generation
         user_plan = session.get('user_plan', 'bronze')
         trial_active = session.get('trial_active', False)
+        trial_credits = 0
         total_credits = regular_credits or 0
         
         if user_plan == 'bronze' and trial_active:
@@ -17350,7 +17351,7 @@ def api_get_user_credits():
             total_credits = max(total_credits, trial_credits)  # Use trial credits if higher
         
         # Debug logging  
-        logger.info(f"🔍 CREDIT DEBUG - User {user_id}: regular={regular_credits}, total={total_credits}, plan={user_plan}, trial_active={trial_active}")
+        logger.info(f"🔍 CREDIT DEBUG - User {user_id}: regular={regular_credits}, total={total_credits}, plan={user_plan}, trial_active={trial_active}, trial_credits={trial_credits}")
         
         return jsonify({
             "success": True,
@@ -17359,8 +17360,7 @@ def api_get_user_credits():
                 "regular_credits": regular_credits or 0,
                 "user_plan": user_plan,
                 "trial_active": trial_active,
-                "trial_credits": trial_credits or 0,
-                "trial_active": trial_active
+                "trial_credits": trial_credits
             }
         })
         
