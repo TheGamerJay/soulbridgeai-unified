@@ -3803,7 +3803,14 @@
 
             if (nameEl) nameEl.textContent = companionData.name;
             if (descEl) descEl.textContent = companionData.bio;
-            if (greetingEl) greetingEl.textContent = companionData.greeting || '✨ Ready to assist you today';
+            if (greetingEl) {
+                if (companionData.greeting) {
+                    greetingEl.textContent = companionData.greeting;
+                    greetingEl.style.display = 'block';
+                } else {
+                    greetingEl.style.display = 'none';
+                }
+            }
             
             if (imageEl && companionData.image) {
                 imageEl.src = companionData.image;
