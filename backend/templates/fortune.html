@@ -616,9 +616,6 @@ async function refreshFortuneLimits() {
 
         const trialActive = data.trial_active;
         const plan = data.plan;
-        const limit = data.limit === null ? '∞' : (data.limit ?? '?');
-
-        document.getElementById('usage-limit').textContent = limit;
 
         // If trial is active but plan is bronze, show unlocked UI
         if (trialActive && plan === 'bronze') {
