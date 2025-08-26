@@ -17048,12 +17048,29 @@ def api_get_user_credits():
             return jsonify({"success": False, "error": "User ID not found"}), 400
         
         # Get credits using unified tier system
-        from unified_tier_system import get_user_credits
-        credits = get_user_credits(user_id)
+        from unified_tier_system import get_user_credits, get_trial_trainer_time
+        
+        # Get regular credits
+        regular_credits = get_user_credits(user_id)
+        
+        # Get trial credits separately for debugging
+        trial_credits = get_trial_trainer_time(user_id)
+        
+        # For trial users, trial credits should be the primary source
+        total_credits = max(regular_credits or 0, trial_credits or 0)
+        
+        # Debug logging
+        trial_active = session.get('trial_active', False)
+        logger.info(f"🔍 CREDIT DEBUG - User {user_id}: regular={regular_credits}, trial={trial_credits}, total={total_credits}, trial_active={trial_active}")
         
         return jsonify({
             "success": True,
-            "credits": credits or 0
+            "credits": total_credits,
+            "debug": {
+                "regular_credits": regular_credits or 0,
+                "trial_credits": trial_credits or 0,
+                "trial_active": trial_active
+            }
         })
         
     except Exception as e:
