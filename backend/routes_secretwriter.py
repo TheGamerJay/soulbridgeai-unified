@@ -9,12 +9,31 @@ import logging
 secret = Blueprint("secret", __name__)
 logger = logging.getLogger(__name__)
 
-# LLM Call function (you'll need to import or define your actual LLM service)
+# AI Model integration
+from ai_model_manager import AIModelManager
+
 def call_llm(prompt):
     """Call your LLM service with the given prompt"""
-    # TODO: Replace with actual LLM service call
-    # For now, return a placeholder
-    return "SecretWriter response placeholder - integrate with your LLM service"
+    try:
+        # Initialize AI model manager
+        ai_manager = AIModelManager()
+        
+        # Get AI response using the SecretWriter system prompt
+        response = ai_manager.get_companion_response(
+            user_message=prompt,
+            companion_name="SecretWriter",
+            user_id="secretwriter_user",
+            personality_mode=None
+        )
+        
+        if response and response.get('success'):
+            return response.get('response', 'No response generated')
+        else:
+            return "Error generating song content. Please try again."
+            
+    except Exception as e:
+        logger.error(f"SecretWriter AI call error: {e}")
+        return "Error connecting to AI service. Please try again."
 
 # Template prompts
 FULL_SONG_TMPL = """You are SecretWriter, a professional AI songwriter specializing in {genre} music.

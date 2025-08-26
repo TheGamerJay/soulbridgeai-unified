@@ -2466,7 +2466,7 @@ def user_info():
         # For trial users, they get 60 "trainer time" credits specifically for mini studio
         if user_plan == 'bronze' and trial_active:
             from unified_tier_system import get_trial_trainer_time
-            trial_credits = get_trial_trainer_time(user_id)
+            trial_credits = session.get("trial_credits", 60)
             credits = max(credits, trial_credits)  # Use trial credits if higher
         
         return jsonify({
@@ -15436,7 +15436,7 @@ def mini_studio():
     # For trial users, they get 60 "trainer time" credits specifically for mini studio
     if user_plan == 'bronze' and trial_active:
         from unified_tier_system import get_trial_trainer_time
-        trial_credits = get_trial_trainer_time(user_id)
+        trial_credits = session.get("trial_credits", 60)
         credits = max(credits, trial_credits)  # Use trial credits if higher
     
     return render_template("mini_studio.html", credits=credits)
@@ -15462,7 +15462,7 @@ def mini_studio_simple():
     # For trial users, they get 60 "trainer time" credits specifically for mini studio
     if user_plan == 'bronze' and trial_active:
         from unified_tier_system import get_trial_trainer_time
-        trial_credits = get_trial_trainer_time(user_id)
+        trial_credits = session.get("trial_credits", 60)
         credits = max(credits, trial_credits)  # Use trial credits if higher
     
     # CRITICAL: Add no-cache headers to prevent global sharing
@@ -15493,7 +15493,7 @@ def api_secret_lyrics():
     credits = get_user_credits(user_id) if user_id else 0
     if user_plan == 'bronze' and trial_active:
         from unified_tier_system import get_trial_trainer_time
-        trial_credits = get_trial_trainer_time(user_id)
+        trial_credits = session.get("trial_credits", 60)
         credits = max(credits, trial_credits)
     
     LYRICS_COST = 5  # 5 credits for premium lyrics generation
@@ -15535,7 +15535,7 @@ SecretWriter beyond compare"""
     # Get remaining credits for response
     remaining_credits = get_user_credits(user_id)
     if user_plan == 'bronze' and trial_active:
-        trial_credits = get_trial_trainer_time(user_id)
+        trial_credits = session.get("trial_credits", 60)
         remaining_credits = max(remaining_credits, trial_credits)
     
     return jsonify({
@@ -15563,7 +15563,7 @@ def api_midi():
     credits = get_user_credits(user_id) if user_id else 0
     if user_plan == 'bronze' and trial_active:
         from unified_tier_system import get_trial_trainer_time
-        trial_credits = get_trial_trainer_time(user_id)
+        trial_credits = session.get("trial_credits", 60)
         credits = max(credits, trial_credits)
     
     MIDI_COST = 5  # 5 credits for MIDI generation
@@ -15587,7 +15587,7 @@ def api_midi():
     # Get remaining credits for response
     remaining_credits = get_user_credits(user_id)
     if user_plan == 'bronze' and trial_active:
-        trial_credits = get_trial_trainer_time(user_id)
+        trial_credits = session.get("trial_credits", 60)
         remaining_credits = max(remaining_credits, trial_credits)
     
     return jsonify({
@@ -15615,7 +15615,7 @@ def api_cover_art():
     credits = get_user_credits(user_id) if user_id else 0
     if user_plan == 'bronze' and trial_active:
         from unified_tier_system import get_trial_trainer_time
-        trial_credits = get_trial_trainer_time(user_id)
+        trial_credits = session.get("trial_credits", 60)
         credits = max(credits, trial_credits)
     
     COVER_ART_COST = 5  # 5 credits for AI cover art generation
@@ -15639,7 +15639,7 @@ def api_cover_art():
     # Get remaining credits for response
     remaining_credits = get_user_credits(user_id)
     if user_plan == 'bronze' and trial_active:
-        trial_credits = get_trial_trainer_time(user_id)
+        trial_credits = session.get("trial_credits", 60)
         remaining_credits = max(remaining_credits, trial_credits)
     
     return jsonify({
@@ -15674,7 +15674,7 @@ def mini_studio_vocal_recording():
         
         if user_plan == 'bronze' and trial_active:
             from unified_tier_system import get_trial_trainer_time
-            trial_credits = get_trial_trainer_time(user_id)
+            trial_credits = session.get("trial_credits", 60)
             credits = max(credits, trial_credits)
         
         if credits <= 0:
@@ -15727,7 +15727,7 @@ def mini_studio_instrumental():
         
         if user_plan == 'bronze' and trial_active:
             from unified_tier_system import get_trial_trainer_time
-            trial_credits = get_trial_trainer_time(user_id)
+            trial_credits = session.get("trial_credits", 60)
             credits = max(credits, trial_credits)
         
         if credits <= 0:
@@ -15839,7 +15839,7 @@ def mini_studio_mixing():
         
         if user_plan == 'bronze' and trial_active:
             from unified_tier_system import get_trial_trainer_time
-            trial_credits = get_trial_trainer_time(user_id)
+            trial_credits = session.get("trial_credits", 60)
             credits = max(credits, trial_credits)
         
         if credits <= 0:
@@ -15959,7 +15959,7 @@ def mini_studio_session_control():
             
             if user_plan == 'bronze' and trial_active:
                 from unified_tier_system import get_trial_trainer_time
-                trial_credits = get_trial_trainer_time(user_id)
+                trial_credits = session.get("trial_credits", 60)
                 credits = max(credits, trial_credits)
             
             if credits <= 0:
