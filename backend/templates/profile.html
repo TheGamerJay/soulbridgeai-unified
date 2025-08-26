@@ -1232,43 +1232,8 @@
             <div class="profile-panel">
                 <h2 class="panel-title">🤖 Your Companions</h2>
                 
-                <!-- Currently Selected Companion -->
-                <div class="current-companion-display" id="currentCompanionDisplay">
-                    <div class="companion-info" id="companionInfo">
-                        <img id="currentCompanionImage" 
-                             style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid #22d3ee; margin-right: 15px;" 
-                             alt="Companion Avatar"
-                             onerror="this.style.display='none'; document.getElementById('companionAvatar').style.display='flex';">
-                        <div class="companion-avatar" id="companionAvatar" style="width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #22d3ee, #0891b2); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; color: #000; margin-right: 15px;">B</div>
-                        <div class="companion-details">
-                            <h3 id="companionName">Loading...</h3>
-                            <p id="companionDescription">Loading companion information...</p>
-                        </div>
-                    </div>
-                    <!-- Companion Quick Stats -->
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; padding: 15px; background: rgba(34, 211, 238, 0.1); border-radius: 8px;">
-                        <div style="text-align: center;">
-                            <div style="font-size: 1.2rem; font-weight: 600; color: #22d3ee;" id="todayMessages">-</div>
-                            <div style="font-size: 0.8rem; color: #94a3b8;">Messages Today</div>
-                        </div>
-                        <div style="text-align: center;">
-                            <div style="font-size: 1.2rem; font-weight: 600; color: #22d3ee;" id="companionDays">-</div>
-                            <div style="font-size: 0.8rem; color: #94a3b8;">Days Together</div>
-                        </div>
-                    </div>
-                    <!-- Companion Specialties -->
-                    <div style="margin: 15px 0;">
-                        <div style="font-size: 0.9rem; color: #94a3b8; margin-bottom: 8px;">✨ Specialties:</div>
-                        <div id="companionSpecialties" style="display: flex; flex-wrap: wrap; gap: 6px;">
-                            <span style="background: rgba(34, 211, 238, 0.2); color: #22d3ee; padding: 4px 8px; border-radius: 12px; font-size: 0.8rem;">Wisdom</span>
-                            <span style="background: rgba(34, 211, 238, 0.2); color: #22d3ee; padding: 4px 8px; border-radius: 12px; font-size: 0.8rem;">Guidance</span>
-                            <span style="background: rgba(34, 211, 238, 0.2); color: #22d3ee; padding: 4px 8px; border-radius: 12px; font-size: 0.8rem;">Deep Thinking</span>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- All Companions Netflix-Style Grid -->
-                <div style="margin-top: 30px;">
+                <div style="margin-top: 0px;">
                     <h3 style="color: #22d3ee; font-size: 1.2rem; margin-bottom: 15px;">🌟 Choose Your Companion</h3>
                     
                     <!-- Bronze Tier Companions -->
@@ -3253,25 +3218,8 @@
                 info = companionData['Blayzo'];
             }
             
-            // Update companion display elements
-            const imageEl = document.getElementById('currentCompanionImage');
-            const avatarEl = document.getElementById('companionAvatar');
-            const nameEl = document.getElementById('companionName');
-            const descEl = document.getElementById('companionDescription');
-            
-            // Show image first, fallback to avatar if image fails
-            if (imageEl && info.image) {
-                imageEl.src = info.image;
-                imageEl.style.display = 'block';
-                if (avatarEl) avatarEl.style.display = 'none';
-            } else if (avatarEl) {
-                avatarEl.style.display = 'flex';
-                avatarEl.textContent = info.avatar;
-                if (imageEl) imageEl.style.display = 'none';
-            }
-            
-            if (nameEl) nameEl.textContent = info.name;
-            if (descEl) descEl.textContent = info.description;
+            // Current companion display elements were removed - companion selection is handled by Netflix-style grid
+            console.log(`🤖 Current companion: ${info.name} - ${info.description}`);
         }
 
         // Populate companion grids with Netflix-style cards
