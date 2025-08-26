@@ -514,10 +514,10 @@
           id="imagePrompt" 
           class="prompt-input"
           placeholder="Describe the image you want to create... Or upload a reference image above for AI analysis!"
-          maxlength="500"
+          maxlength="800"
         ></textarea>
         <div style="text-align: right; color: #94a3b8; font-size: 0.9rem; margin-top: 5px;">
-          <span id="charCount">0</span>/500 characters
+          <span id="charCount">0</span>/800 characters
         </div>
       </div>
 
@@ -709,11 +709,13 @@
           currentImageData = result;
           loadUsageCount(); // Update usage count
         } else {
-          // Error generating image (alert and console removed for production)
+          alert(`Error: ${result.error || 'Failed to generate image. Please try again.'}`);
+          console.error('AI Image Generation Error:', result);
         }
 
       } catch (error) {
-  // Error generating image (alert and console removed for production)
+        alert('Network error. Please check your connection and try again.');
+        console.error('Network Error:', error);
       } finally {
         document.getElementById('generateBtn').disabled = false;
         document.getElementById('loadingState').style.display = 'none';
@@ -736,7 +738,7 @@
 
     async function saveToGallery() {
       if (!currentImageData) {
-  // No image to save (alert removed for production)
+        alert('No image to save. Please generate an image first.');
         return;
       }
 
@@ -759,12 +761,15 @@
 
         if (result.success) {
           loadGallery();
+          alert('Image saved to gallery!');
         } else {
-          // Error saving image (alert removed for production)
+          alert(`Error saving image: ${result.error || 'Please try again.'}`);
+          console.error('Save Error:', result);
         }
 
       } catch (error) {
-  // Error saving image (alert and console removed for production)
+        alert('Network error while saving. Please try again.');
+        console.error('Save Network Error:', error);
       }
     }
 
