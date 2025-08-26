@@ -613,22 +613,17 @@ async function refreshFortuneLimits() {
     try {
         const res = await fetch('/api/fortune/limits');
         const data = await res.json();
+        
+        console.log("🔮 Fortune API response:", data);
 
-        const trialActive = data.trial_active;
-        const plan = data.plan;
+        // Updated to use companion-tier system (same as decoder/horoscope)
+        const { companion_tier, usage_today, daily_limit, companion_id } = data;
+        
+        // Show unlimited (∞) if using Gold tier companion (limit = 999)
+        const hasUnlimited = companion_tier === "gold" && daily_limit >= 999;
+        const displayLimit = hasUnlimited ? "∞" : daily_limit;
 
-        // If trial is active but plan is bronze, show unlocked UI
-        if (trialActive && plan === 'bronze') {
-            document.querySelectorAll('.companion-card.locked').forEach(card => {
-                card.classList.remove('locked');
-                card.classList.add('trial-unlocked');
-                card.querySelector('.btn-upgrade').textContent = '✅ Trial Active';
-            });
-        }
-
-        const usage = data.used ?? 0;
-        const isUnlimited = (data.limit === null) && (data.plan === 'gold'); // gold only
-        const displayLimit = isUnlimited ? '∞' : data.limit;
+        const usage = usage_today ?? 0;
 
         // Update usage display
         document.getElementById("usage-count").textContent = usage;
@@ -636,48 +631,44 @@ async function refreshFortuneLimits() {
 
         // Update usage bar
         const usageFill = document.getElementById('usage-fill');
-        if (isUnlimited) {
+        if (hasUnlimited) {
             usageFill.style.width = '100%';
             usageFill.style.background = 'linear-gradient(135deg, #fbbf24, #f59e0b)';
         } else {
-            const percentage = data.limit > 0 ? (usage / data.limit) * 100 : 0;
+            const percentage = daily_limit > 0 ? (usage / daily_limit) * 100 : 0;
             usageFill.style.width = Math.min(percentage, 100) + '%';
         }
 
-        // Update tier-specific plan message based on plan
+        // Update tier-specific plan message based on companion tier
         const planNotice = document.getElementById("max-plan-message");
         const planDesc = document.getElementById("plan-description");
 
-        if (plan === "gold") {
-            // 🔴 Gold tier - show unlimited message
+        if (companion_tier === "gold") {
+            // 🔴 Gold companion - show unlimited message
             if (planNotice) planNotice.style.display = "block";
             if (planDesc) planDesc.style.display = "none";
-        } else if (plan === "silver") {
-            // 🔵 Silver tier
+        } else if (companion_tier === "silver") {
+            // 🔵 Silver companion
             if (planNotice) planNotice.style.display = "none";
             if (planDesc) {
                 planDesc.style.display = "block";
                 planDesc.textContent = `🔮 Daily Fortunes: ${usage} / ${displayLimit} used`;
             }
         } else {
-            // 🟢 Bronze tier - even during trial, show as bronze
+            // 🟢 Bronze companion
             if (planNotice) planNotice.style.display = "none";
             if (planDesc) {
                 planDesc.style.display = "block";
-                if (trialActive) {
-                    planDesc.textContent = `You're on a 5-hour trial — enjoy premium companions & features! Daily Fortunes: ${usage} / ${displayLimit} used`;
-                } else {
-                    planDesc.textContent = `🔮 Daily Fortunes: ${usage} / ${displayLimit} used`;
-                }
+                planDesc.textContent = `🔮 Daily Fortunes: ${usage} / ${displayLimit} used`;
             }
         }
 
         // Update global variables
         userUsage = usage;
-        userPlan = plan;
-        dailyLimit = data.limit;
+        userPlan = companion_tier;
+        dailyLimit = daily_limit;
 
-        console.log(`🔮 Refreshed fortune limits: plan=${plan}, usage=${usage}, limit=${displayLimit}`);
+        console.log(`🔮 Refreshed fortune limits: companion_tier=${companion_tier}, usage=${usage}, limit=${displayLimit}`);
 
     } catch (err) {
         console.error("❌ Failed to refresh fortune limits:", err);

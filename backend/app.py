@@ -8683,43 +8683,41 @@ def check_fortune_limit():
 @app.route("/api/fortune/limits", methods=["GET"])
 def limits():
     uid = session.get("user_id")
+    companion_id = session.get("selected_companion", "default")
     if not uid:
         return jsonify({"success": False, "auth": False, "error": "AUTH_REQUIRED"}), 401
 
-    user_plan = session.get("user_plan", "bronze")
-    trial = bool(session.get("trial_active", False))
-    plan = get_fortune_effective_plan(user_plan, trial)
-
-    used = get_fortune_usage()
-    limit = get_fortune_feature_limit(plan, "fortune")  # None == unlimited
+    # ARCHITECTURAL CHANGE: Use companion tier instead of user plan (same as decoder/horoscope)
+    logger.info(f"🔍 FORTUNE API COMPANION-TIER: user_id={uid}, companion_id={companion_id}")
     
-    # Debug logging
-    print(f"🔍 Fortune Limits Debug: user_plan={user_plan}, plan={plan}, trial={trial}, raw_limit={limit}")
+    # Find companion tier
+    companion_tier = 'bronze'  # default
+    for companion in COMPANIONS_NEW:
+        if companion['id'] == companion_id:
+            companion_tier = companion['tier']
+            break
     
-    # Safety clamp - prevents accidental "unification" 
-    if plan == "bronze": 
-        limit = 3
-    elif plan == "silver": 
-        limit = 8
-    elif plan == "gold":   
-        limit = None  # This should be None for unlimited
-    else:
-        # Unknown plan - default to bronze
-        limit = 3
-        
-    print(f"🔍 After safety clamp: plan={plan}, final_limit={limit}, type={type(limit)}")
-    print(f"🔍 Will return JSON with limit={limit} (null in JSON means unlimited)")
+    # Calculate companion-tier limits (same as decoder/horoscope)
+    def get_simple_feature_limit(tier_name, feature):
+        limits_map = {
+            "bronze": {"decoder": 3, "fortune": 3, "horoscope": 3, "creative_writer": 3},
+            "silver": {"decoder": 15, "fortune": 8, "horoscope": 10, "creative_writer": 30},
+            "gold": {"decoder": 999, "fortune": 999, "horoscope": 999, "creative_writer": 999}
+        }
+        return limits_map.get(tier_name, limits_map["bronze"]).get(feature, 0)
+    
+    # Use companion tier for limits instead of user plan
+    daily_limit = get_simple_feature_limit(companion_tier, "fortune")
+    usage_today = get_fortune_usage()
+    
+    logger.info(f"🎯 FORTUNE API COMPANION-TIER: companion_id='{companion_id}', companion_tier='{companion_tier}', daily_limit={daily_limit}, usage={usage_today}")
 
     return jsonify({
         "success": True,
-        "auth": True,
-        "plan": plan,                 # <-- UI should use this
-        "limit": limit,               # <-- and this
-        "used": used,                 # <-- and this
-        # Kept for compatibility/display only; do NOT use for limits
-        "companion_id": session.get("companion_id", "default"),
-        "companion_tier": session.get("companion_tier", "bronze"),
-        "trial_active": trial,
+        "companion_id": companion_id,
+        "companion_tier": companion_tier,
+        "daily_limit": daily_limit,
+        "usage_today": usage_today
     })
 
 # ---------- /api/fortune/tarot ----------
