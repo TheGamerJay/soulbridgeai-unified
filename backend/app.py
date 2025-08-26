@@ -8702,12 +8702,13 @@ def limits():
     elif plan == "silver": 
         limit = 8
     elif plan == "gold":   
-        limit = None
+        limit = None  # This should be None for unlimited
     else:
         # Unknown plan - default to bronze
         limit = 2
         
-    print(f"🔍 After safety clamp: plan={plan}, final_limit={limit}")
+    print(f"🔍 After safety clamp: plan={plan}, final_limit={limit}, type={type(limit)}")
+    print(f"🔍 Will return JSON with limit={limit} (null in JSON means unlimited)")
 
     return jsonify({
         "success": True,
