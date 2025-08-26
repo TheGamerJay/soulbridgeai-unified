@@ -12782,16 +12782,17 @@ def ai_image_generation_generate():
         if not prompt:
             return jsonify({"success": False, "error": "Prompt required"}), 400
         
-        # Check tier-based usage limit using fresh calculation
+        # Check tier-based usage limit using AI_IMAGE_LIMITS from constants
+        from constants import AI_IMAGE_LIMITS
         trial_active = session.get('trial_active', False)
         effective_plan = get_effective_plan(user_plan, trial_active)
-        monthly_limit = get_feature_limit(user_plan, "ai_image_monthly")
+        monthly_limit = AI_IMAGE_LIMITS.get(user_plan, 0)
         
         current_month = datetime.now().strftime('%Y-%m')
         usage_key = f'ai_image_usage_{current_month}'
         monthly_usage = session.get(usage_key, 0)
         
-        if monthly_limit is not None and monthly_usage >= monthly_limit:
+        if monthly_limit < 999999 and monthly_usage >= monthly_limit:
             tier_name = {"bronze": "Bronze", "silver": "Silver", "gold": "Gold"}[effective_plan]
             return jsonify({"success": False, "error": f"Monthly AI image limit reached ({monthly_limit} images for {tier_name} tier)"}), 403
         
