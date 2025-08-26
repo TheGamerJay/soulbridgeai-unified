@@ -8646,6 +8646,47 @@ def check_fortune_limit():
         "usage_today": usage_today
     })
 
+@app.route("/api/fortune/limits", methods=["GET"])
+def fortune_limits():
+    """Get fortune limits - alternative endpoint name for compatibility"""
+    user_id = session.get("user_id")
+    companion_id = session.get("selected_companion", "default")
+    
+    # Get user plan for basic tier info (not companion-based)
+    user_plan = (session.get("user_plan") or "bronze").lower()
+    
+    # Calculate companion-tier limits (same as check-limit)
+    companion_tier = 'bronze'  # default
+    for companion in COMPANIONS_NEW:
+        if companion['id'] == companion_id:
+            companion_tier = companion['tier']
+            break
+    
+    # Get limits using the same function as check-limit
+    def get_simple_feature_limit(tier_name, feature):
+        limits_map = {
+            "bronze": {"decoder": 3, "fortune": 3, "horoscope": 3, "creative_writer": 3},
+            "silver": {"decoder": 15, "fortune": 8, "horoscope": 10, "creative_writer": 30},
+            "gold": {"decoder": 999, "fortune": 999, "horoscope": 999, "creative_writer": 999}
+        }
+        return limits_map.get(tier_name, limits_map["bronze"]).get(feature, 0)
+    
+    used = get_fortune_usage() if user_id else 0
+    limit = get_simple_feature_limit(companion_tier, "fortune")
+    
+    # Convert 999 to None for unlimited display
+    display_limit = None if limit >= 999 else limit
+    
+    return jsonify({
+        "success": True,
+        "plan": user_plan,
+        "used": used,
+        "limit": display_limit,
+        "auth": bool(user_id),
+        "companion_id": companion_id,
+        "companion_tier": companion_tier
+    })
+
 @app.route("/api/horoscope/check-limit")
 def check_horoscope_limit():
     user_id = session.get("user_id")
