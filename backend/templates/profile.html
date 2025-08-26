@@ -2503,12 +2503,12 @@
                 return;
             }
 
-            // Check MP4 video duration (must be ≤10 seconds)
+            // Check MP4 video duration (must be ≤11 seconds)
             if (fileExtension === 'mp4') {
                 try {
                     const duration = await getVideoDuration(file);
-                    if (duration > 10) {
-                        alert(`🎬 Video too long! MP4 videos must be 10 seconds or less.\n\nYour video: ${duration.toFixed(1)} seconds`);
+                    if (duration > 11) {
+                        alert(`🎬 Video too long! MP4 videos must be 11 seconds or less.\n\nYour video: ${duration.toFixed(1)} seconds`);
                         activeInput.value = '';
                         return;
                     }
