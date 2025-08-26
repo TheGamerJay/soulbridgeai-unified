@@ -46,6 +46,32 @@
       font-size: 1.1rem;
     }
 
+    .credit-display {
+      margin-top: 20px;
+      padding: 15px;
+      background: rgba(34, 211, 238, 0.1);
+      border: 1px solid rgba(34, 211, 238, 0.3);
+      border-radius: 12px;
+      display: inline-block;
+    }
+
+    .credit-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #22d3ee;
+      font-weight: 600;
+    }
+
+    .credit-info i {
+      color: #fbbf24;
+    }
+
+    .credit-cost {
+      color: #94a3b8;
+      font-weight: normal;
+    }
+
     .add-profile-section {
       background: rgba(34, 211, 238, 0.1);
       border: 2px solid rgba(34, 211, 238, 0.3);
@@ -343,6 +369,15 @@
     <div class="header">
       <h1>👤 Relationship Profiles</h1>
       <p>Track and improve your relationships with personalized insights</p>
+      
+      <!-- Credit Display -->
+      <div class="credit-display" id="creditDisplay">
+        <div class="credit-info">
+          <i class="fas fa-coins"></i>
+          <span>Credits: <span id="currentCredits">Loading...</span></span>
+          <span class="credit-cost">• Credits per analysis vary</span>
+        </div>
+      </div>
     </div>
 
     <!-- Stats Overview -->
@@ -432,6 +467,7 @@
     document.addEventListener('DOMContentLoaded', function() {
       loadProfiles();
       setupEventListeners();
+      loadCredits();
     });
 
     function setupEventListeners() {
@@ -646,6 +682,27 @@
     function editProfile(profileId) {
       // For now, just show an alert. In a full implementation, you'd open an edit form
       alert('Edit functionality coming soon! For now, you can delete and re-add the profile.');
+    }
+
+    async function loadCredits() {
+      try {
+        const response = await fetch('/api/user-credits', {
+          method: 'GET',
+          credentials: 'include'
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          document.getElementById('currentCredits').textContent = result.credits || 0;
+        } else {
+          document.getElementById('currentCredits').textContent = '0';
+        }
+
+      } catch (error) {
+        console.error('Error loading credits:', error);
+        document.getElementById('currentCredits').textContent = 'Error';
+      }
     }
   </script>
 </body>
