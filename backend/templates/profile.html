@@ -1240,7 +1240,6 @@
                     <div class="companion-selector-container" style="position: relative;">
                         <div class="selected-companion-display" 
                              id="selectedCompanionDisplay"
-                             onclick="toggleCompanionDropdown()" 
                              style="
                                  display: flex; 
                                  align-items: center; 
@@ -1248,12 +1247,9 @@
                                  background: rgba(34, 211, 238, 0.1); 
                                  border: 2px solid rgba(34, 211, 238, 0.3); 
                                  border-radius: 12px; 
-                                 cursor: pointer; 
                                  transition: all 0.3s ease;
                                  margin-bottom: 15px;
                              "
-                             onmouseover="this.style.borderColor='rgba(34, 211, 238, 0.6)'; this.style.background='rgba(34, 211, 238, 0.15)'"
-                             onmouseout="this.style.borderColor='rgba(34, 211, 238, 0.3)'; this.style.background='rgba(34, 211, 238, 0.1)'">
                             
                             <div class="selected-companion-avatar" style="position: relative; margin-right: 15px;">
                                 <img id="selectedCompanionImage" 
@@ -1275,29 +1271,12 @@
                                 </div>
                             </div>
                             
-                            <div class="dropdown-arrow" style="color: #22d3ee; font-size: 1.2rem; margin-left: 10px; transition: transform 0.3s ease;">
-                                ▼
-                            </div>
                         </div>
 
-                        <!-- Companion Dropdown Menu -->
+                        <!-- Companion Dropdown Menu - HIDDEN -->
                         <div class="companion-dropdown" 
                              id="companionDropdown"
-                             style="
-                                 position: absolute;
-                                 top: 100%;
-                                 left: 0;
-                                 right: 0;
-                                 background: rgba(15, 23, 42, 0.95);
-                                 border: 2px solid rgba(34, 211, 238, 0.3);
-                                 border-radius: 12px;
-                                 backdrop-filter: blur(10px);
-                                 box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-                                 z-index: 1000;
-                                 display: none;
-                                 max-height: 400px;
-                                 overflow-y: auto;
-                             ">
+                             style="display: none !important;">
                             
                             <!-- Bronze Tier Section -->
                             <div class="tier-section">
@@ -3666,19 +3645,19 @@
             });
         }
 
-        // Toggle dropdown visibility
-        function toggleCompanionDropdown() {
-            const dropdown = document.getElementById('companionDropdown');
-            const arrow = document.querySelector('.dropdown-arrow');
-            
-            if (dropdown.style.display === 'none' || dropdown.style.display === '') {
-                dropdown.style.display = 'block';
-                if (arrow) arrow.style.transform = 'rotate(180deg)';
-            } else {
-                dropdown.style.display = 'none';
-                if (arrow) arrow.style.transform = 'rotate(0deg)';
-            }
-        }
+        // Toggle dropdown visibility - DISABLED (auto-updates to last companion)
+        // function toggleCompanionDropdown() {
+        //     const dropdown = document.getElementById('companionDropdown');
+        //     const arrow = document.querySelector('.dropdown-arrow');
+        //     
+        //     if (dropdown.style.display === 'none' || dropdown.style.display === '') {
+        //         dropdown.style.display = 'block';
+        //         if (arrow) arrow.style.transform = 'rotate(180deg)';
+        //     } else {
+        //         dropdown.style.display = 'none';
+        //         if (arrow) arrow.style.transform = 'rotate(0deg)';
+        //     }
+        // }
 
         // Handle companion selection from dropdown
         function selectCompanionFromDropdown(companionId, companionName, companionData) {
