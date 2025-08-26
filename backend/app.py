@@ -12610,7 +12610,16 @@ def voice_journaling_transcribe():
         
     except Exception as e:
         logger.error(f"Voice transcription error: {e}")
-        return jsonify({"success": False, "error": "Failed to process audio"}), 500
+        
+        # Refund artistic time since processing failed completely
+        from artistic_time_system import refund_artistic_time, get_feature_cost
+        VOICE_JOURNAL_COST = get_feature_cost("voice_journaling")
+        if refund_artistic_time(user_id, VOICE_JOURNAL_COST, "Voice journaling processing failed"):
+            logger.info(f"💰 Refunded {VOICE_JOURNAL_COST} artistic time to user {user_id} due to processing failure")
+        else:
+            logger.error(f"❌ Failed to refund artistic time to user {user_id}")
+            
+        return jsonify({"success": False, "error": "Failed to process audio. Your artistic time has been refunded."}), 500
 
 @app.route("/api/voice-journaling/save", methods=["POST"])
 def voice_journaling_save():
@@ -12783,7 +12792,17 @@ def relationship_profiles_add():
         
     except Exception as e:
         logger.error(f"Relationship profile add error: {e}")
-        return jsonify({"success": False, "error": "Failed to add profile"}), 500
+        
+        # Refund artistic time since profile creation failed
+        user_id = session.get('user_id')
+        from artistic_time_system import refund_artistic_time, get_feature_cost
+        RELATIONSHIP_COST = get_feature_cost("relationship_profiles")
+        if refund_artistic_time(user_id, RELATIONSHIP_COST, "Relationship profile creation failed"):
+            logger.info(f"💰 Refunded {RELATIONSHIP_COST} artistic time to user {user_id} due to profile creation failure")
+        else:
+            logger.error(f"❌ Failed to refund artistic time to user {user_id}")
+            
+        return jsonify({"success": False, "error": "Failed to add profile. Your artistic time has been refunded."}), 500
 
 @app.route("/api/relationship-profiles/list", methods=["GET"])
 def relationship_profiles_list():
@@ -12941,7 +12960,17 @@ def emotional_meditations_save_session():
         
     except Exception as e:
         logger.error(f"Meditation session save error: {e}")
-        return jsonify({"success": False, "error": "Failed to save session"}), 500
+        
+        # Refund artistic time since meditation save failed
+        user_id = session.get('user_id')
+        from artistic_time_system import refund_artistic_time, get_feature_cost
+        MEDITATION_COST = get_feature_cost("meditations")
+        if refund_artistic_time(user_id, MEDITATION_COST, "Meditation session save failed"):
+            logger.info(f"💰 Refunded {MEDITATION_COST} artistic time to user {user_id} due to meditation save failure")
+        else:
+            logger.error(f"❌ Failed to refund artistic time to user {user_id}")
+            
+        return jsonify({"success": False, "error": "Failed to save session. Your artistic time has been refunded."}), 500
 
 @app.route("/api/emotional-meditations/stats", methods=["GET"])
 def emotional_meditations_stats():
@@ -13088,32 +13117,24 @@ def ai_image_generation_generate():
         user_id = session.get('user_id')
         AI_IMAGE_COST = 5  # 5 credits per AI image
         
-        # Check if user has enough credits
-        from artistic_time_system import get_artistic_time, deduct_artistic_time, get_feature_cost
+        # Check if user has enough artistic time
+        from artistic_time_system import get_artistic_time, deduct_artistic_time, get_feature_cost, refund_artistic_time
         current_credits = get_artistic_time(user_id) if user_id else 0
-        
-        # For trial users, they get 60 "trainer time" credits specifically for AI image generation
-        user_plan = session.get('user_plan', 'bronze')
-        trial_active = session.get('trial_active', False)
-        if user_plan == 'bronze' and trial_active:
-            from unified_tier_system import get_trial_trainer_time
-            trial_credits = session.get("trial_credits", 60)
-            current_credits = max(current_credits, trial_credits)  # Use trial credits if higher
         
         if current_credits < AI_IMAGE_COST:
             return jsonify({
                 "success": False, 
-                "error": f"Insufficient credits. Need {AI_IMAGE_COST} credits, you have {current_credits}."
+                "error": f"Insufficient artistic time. Need {AI_IMAGE_COST} artistic time, you have {current_credits}."
             }), 403
         
-        # Deduct credits before generation (prevents abuse if generation fails)
+        # Deduct artistic time before generation (prevents abuse)
         if not deduct_artistic_time(user_id, AI_IMAGE_COST):
             return jsonify({
                 "success": False, 
-                "error": "Failed to deduct credits. Please try again."
+                "error": "Failed to deduct artistic time. Please try again."
             }), 500
         
-        logger.info(f"💳 Deducted {AI_IMAGE_COST} credits from user {user_id} for AI image generation")
+        logger.info(f"🎨 Deducted {AI_IMAGE_COST} artistic time from user {user_id} for AI image generation")
         
         # Generate image using OpenAI DALL-E API
         try:
@@ -13135,10 +13156,16 @@ def ai_image_generation_generate():
             
         except Exception as dalle_error:
             logger.error(f"❌ DALL-E generation failed: {dalle_error}")
-            # Don't update usage count on failure
+            
+            # Refund artistic time since generation failed
+            if refund_artistic_time(user_id, AI_IMAGE_COST, "AI image generation failed"):
+                logger.info(f"💰 Refunded {AI_IMAGE_COST} artistic time to user {user_id} due to generation failure")
+            else:
+                logger.error(f"❌ Failed to refund artistic time to user {user_id}")
+                
             return jsonify({
                 "success": False, 
-                "error": f"Image generation failed: {str(dalle_error)}"
+                "error": f"Image generation failed: {str(dalle_error)}. Your artistic time has been refunded."
             }), 500
         
         # Update usage count only on success

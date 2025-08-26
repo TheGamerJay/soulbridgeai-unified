@@ -204,6 +204,58 @@ def add_artistic_time(user_id: int, amount: int) -> bool:
         logger.error(f"Error adding artistic time for user {user_id}: {e}")
         return False
 
+def refund_artistic_time(user_id: int, amount: int, reason: str = "Generation failed") -> bool:
+    """Refund artistic time to user's balance when generation fails"""
+    try:
+        db = get_database()
+        if not db:
+            return False
+            
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        
+        # Get current user info to determine where to refund
+        cursor.execute("""
+            SELECT user_plan, artistic_time, trial_active, trial_credits
+            FROM users WHERE id = %s
+        """, (user_id,))
+        
+        result = cursor.fetchone()
+        if not result:
+            conn.close()
+            return False
+            
+        user_plan, current_credits, trial_active, trial_credits = result
+        
+        # If user is on trial and has trial credits, refund to trial credits first
+        if trial_active and user_plan == 'bronze' and trial_credits is not None:
+            # Refund to trial credits
+            new_trial_credits = (trial_credits or 0) + amount
+            cursor.execute("""
+                UPDATE users 
+                SET trial_credits = %s
+                WHERE id = %s
+            """, (new_trial_credits, user_id))
+            
+            logger.info(f"Refunded {amount} artistic time to trial credits for user {user_id} - {reason}")
+        else:
+            # Refund to regular artistic time
+            cursor.execute("""
+                UPDATE users 
+                SET artistic_time = COALESCE(artistic_time, 0) + %s
+                WHERE id = %s
+            """, (amount, user_id))
+            
+            logger.info(f"Refunded {amount} artistic time to regular balance for user {user_id} - {reason}")
+        
+        conn.commit()
+        conn.close()
+        return True
+        
+    except Exception as e:
+        logger.error(f"Error refunding artistic time for user {user_id}: {e}")
+        return False
+
 # ========================================
 # MIGRATION FUNCTION
 # ========================================
