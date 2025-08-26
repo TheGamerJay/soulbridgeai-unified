@@ -301,7 +301,7 @@ DAILY_LIMITS = {
 # MONTHLY CREDITS (premium features)
 MONTHLY_CREDITS = {
     "bronze": 0,      # Bronze tier gets no monthly credits
-    "silver": 100,    # 100 credits/month for Silver
+    "silver": 200,    # 200 credits/month for Silver
     "gold":   500     # 500 credits/month for Gold
 }
 

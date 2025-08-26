@@ -17033,6 +17033,34 @@ def add_trainer_credits(user_id, amount=350):
         return False
 
 # ========================================
+# USER CREDITS API ENDPOINT
+# ========================================
+
+@app.route("/api/user-credits", methods=["GET"])
+def api_get_user_credits():
+    """Get current user credit balance"""
+    if not is_logged_in():
+        return jsonify({"success": False, "error": "Authentication required"}), 401
+    
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({"success": False, "error": "User ID not found"}), 400
+        
+        # Get credits using unified tier system
+        from unified_tier_system import get_user_credits
+        credits = get_user_credits(user_id)
+        
+        return jsonify({
+            "success": True,
+            "credits": credits or 0
+        })
+        
+    except Exception as e:
+        logger.error(f"Error fetching user credits: {e}")
+        return jsonify({"success": False, "error": "Failed to fetch credits"}), 500
+
+# ========================================
 # AD-FREE SUBSCRIPTION ENDPOINT (DIRECT)
 # ========================================
 
