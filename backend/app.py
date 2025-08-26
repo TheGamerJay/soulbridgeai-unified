@@ -8763,6 +8763,14 @@ def fortune_tarot():
         logger.error(f"❌ Fortune tarot error: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
 
+# DEV ONLY — remove before production
+@app.route("/api/dev/model")
+def dev_model():
+    from tarot_engine import MODEL_BY_PLAN
+    plan = session.get("user_plan", "bronze").lower()
+    model = MODEL_BY_PLAN.get(plan, "gpt-3.5-turbo")
+    return {"ok": True, "plan": plan, "model": model}
+
 @app.route("/api/horoscope/check-limit")
 def check_horoscope_limit():
     user_id = session.get("user_id")
