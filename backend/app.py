@@ -102,6 +102,30 @@ from unified_tier_system import (
 )
 from constants import *
 
+# ===== Block G — Fortune Teller: Limits + Tarot Route =====
+# (Keeps Bronze=3/day, Silver=8/day, Gold=∞. Uses correct GPT model per plan.)
+
+# --- Tier limits ---
+FORTUNE_TIER_LIMITS = {
+    "bronze": {"fortune": 3},
+    "silver": {"fortune": 8},
+    "gold":   {"fortune": None},  # None = unlimited
+}
+
+# --- Trial plan mapping (leave empty so trial does NOT change limits) ---
+FORTUNE_TRIAL_PLAN_UPGRADE = {}  
+# Example if you ever want bronze trial to use silver limits:
+# FORTUNE_TRIAL_PLAN_UPGRADE = { "bronze": "silver" }
+
+def get_fortune_effective_plan(user_plan: str, trial_active: bool) -> str:
+    plan = (user_plan or "bronze").lower()
+    if trial_active and plan in FORTUNE_TRIAL_PLAN_UPGRADE:
+        return FORTUNE_TRIAL_PLAN_UPGRADE[plan]
+    return plan
+
+def get_fortune_feature_limit(plan: str, feature: str):
+    return FORTUNE_TIER_LIMITS.get(plan, {}).get(feature, 0)
+
 # Configure logging first
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
@@ -8646,139 +8670,157 @@ def check_fortune_limit():
         "usage_today": usage_today
     })
 
+# ---------- /api/fortune/limits ----------
 @app.route("/api/fortune/limits", methods=["GET"])
-def fortune_limits():
-    """Get fortune limits - alternative endpoint name for compatibility"""
-    user_id = session.get("user_id")
-    companion_id = session.get("selected_companion", "default")
-    
-    # Get user plan for basic tier info (not companion-based)
-    user_plan = (session.get("user_plan") or "bronze").lower()
-    
-    # Calculate companion-tier limits (same as check-limit)
-    companion_tier = 'bronze'  # default
-    for companion in COMPANIONS_NEW:
-        if companion['id'] == companion_id:
-            companion_tier = companion['tier']
-            break
-    
-    # Get limits using the same function as check-limit
-    def get_simple_feature_limit(tier_name, feature):
-        limits_map = {
-            "bronze": {"decoder": 3, "fortune": 3, "horoscope": 3, "creative_writer": 3},
-            "silver": {"decoder": 15, "fortune": 8, "horoscope": 10, "creative_writer": 30},
-            "gold": {"decoder": 999, "fortune": 999, "horoscope": 999, "creative_writer": 999}
-        }
-        return limits_map.get(tier_name, limits_map["bronze"]).get(feature, 0)
-    
-    used = get_fortune_usage() if user_id else 0
-    limit = get_simple_feature_limit(companion_tier, "fortune")
-    
-    # Convert 999 to None for unlimited display
-    display_limit = None if limit >= 999 else limit
-    
+def limits():
+    uid = session.get("user_id")
+    if not uid:
+        return jsonify({"success": False, "auth": False, "error": "AUTH_REQUIRED"}), 401
+
+    user_plan = session.get("user_plan", "bronze")
+    trial = bool(session.get("trial_active", False))
+    plan = get_fortune_effective_plan(user_plan, trial)
+
+    used = get_fortune_usage()
+    limit = get_fortune_feature_limit(plan, "fortune")  # None == unlimited
+
     return jsonify({
         "success": True,
-        "plan": user_plan,
-        "used": used,
-        "limit": display_limit,
-        "auth": bool(user_id),
-        "companion_id": companion_id,
-        "companion_tier": companion_tier
+        "auth": True,
+        "plan": plan,                 # <-- UI should use this
+        "limit": limit,               # <-- and this
+        "used": used,                 # <-- and this
+        # Kept for compatibility/display only; do NOT use for limits
+        "companion_id": session.get("companion_id", "default"),
+        "companion_tier": session.get("companion_tier", "bronze"),
+        "trial_active": trial,
     })
 
+# ---------- /api/fortune/tarot ----------
 @app.route("/api/fortune/tarot", methods=["POST"])
-def fortune_tarot():
-    """Tarot reading endpoint - alias for /api/v2/fortune"""
-    try:
-        if not is_logged_in():
-            return jsonify({"success": False, "error": "Authentication required"}), 401
-            
-        data = request.get_json(force=True) or {}
-        user_id = session.get("user_id")
-        
-        # Map parameters from your expected format to v2 format
-        focus = (data.get("question") or data.get("intent") or "general").lower()
-        spread = (data.get("spread") or "three").lower()
-        seed = data.get("seed")
-        
-        # Map spread names
-        spread_mapping = {
-            "three": "three_card",
-            "three_card": "three_card",
-            "single": "single_card",
-            "celtic": "celtic_cross"
-        }
-        spread = spread_mapping.get(spread, "three_card")
-        
-        # Check fortune usage limit before proceeding
-        usage_today = get_fortune_usage()
-        user_plan = session.get("user_plan", "bronze")
-        
-        # Get companion tier limits
-        companion_id = session.get("selected_companion", "default")
-        companion_tier = 'bronze'
-        for companion in COMPANIONS_NEW:
-            if companion['id'] == companion_id:
-                companion_tier = companion['tier']
-                break
-        
-        def get_simple_feature_limit(tier_name, feature):
-            limits_map = {
-                "bronze": {"decoder": 3, "fortune": 3, "horoscope": 3, "creative_writer": 3},
-                "silver": {"decoder": 15, "fortune": 8, "horoscope": 10, "creative_writer": 30},
-                "gold": {"decoder": 999, "fortune": 999, "horoscope": 999, "creative_writer": 999}
-            }
-            return limits_map.get(tier_name, limits_map["bronze"]).get(feature, 0)
-        
-        daily_limit = get_simple_feature_limit(companion_tier, "fortune")
-        
-        if daily_limit < 999 and usage_today >= daily_limit:
-            return jsonify({
-                "success": False, 
-                "error": f"Daily fortune limit reached ({daily_limit} for {companion_tier} tier)"
-            }), 429
-        
-        # Use the same tarot logic as v2/fortune but with simplified response
-        from tarot_engine import generate_tarot_reading
-        
-        # Generate authentic tarot reading
-        tarot_data = generate_tarot_reading(focus=focus, spread=spread, seed=seed)
-        
-        # Increment usage after successful generation
-        increment_fortune_usage()
-        
-        return jsonify({
-            "success": True,
-            "spread": spread.replace("_card", "").replace("_", ""),  # "three_card" -> "three"
-            "cards": tarot_data["cards"],
-            "summary": tarot_data.get("interpretation", "The cards reveal their wisdom through contemplation."),
-            "today": {
-                "used": usage_today + 1,
-                "limit": daily_limit if daily_limit < 999 else None
-            }
-        })
-        
-    except Exception as e:
-        logger.error(f"❌ Fortune tarot error: {e}")
-        return jsonify({"success": False, "error": str(e)}), 500
+def tarot():
+    uid = session.get("user_id")
+    if not uid:
+        return jsonify({"success": False, "error": "AUTH_REQUIRED"}), 401
 
-# DEV ONLY — remove before production
-@app.route("/api/dev/model")
-def dev_model():
-    from tarot_engine import MODEL_BY_PLAN
-    plan = session.get("user_plan", "bronze").lower()
-    model = MODEL_BY_PLAN.get(plan, "gpt-3.5-turbo")
-    return {"ok": True, "plan": plan, "model": model}
+    user_plan = session.get("user_plan", "bronze")
+    trial = bool(session.get("trial_active", False))
+    plan = get_fortune_effective_plan(user_plan, trial)
 
-# DEV ONLY — remove before prod
-@app.route("/api/dev/set-plan/<plan>")
-def dev_set_plan(plan):
+    # enforce tier limits
+    limit = get_fortune_feature_limit(plan, "fortune")
+    used = get_fortune_usage()
+    if limit is not None and used >= limit:
+        return jsonify({"success": False, "error": f"Daily fortune limit reached ({limit} for {plan} tier)"}), 429
+
+    data = request.get_json() or {}
+    spread = (data.get("spread") or "three").lower()
+    if spread not in ("one", "three", "five"):
+        spread = "three"
+    question = data.get("question", "")
+
+    # Map spread names for tarot_engine compatibility
+    spread_mapping = {
+        "one": "single_card",
+        "three": "three_card", 
+        "five": "five_card"
+    }
+    engine_spread = spread_mapping.get(spread, "three_card")
+
+    # Use existing tarot engine
+    from tarot_engine import generate_tarot_reading
+    
+    # Generate reading with existing system
+    tarot_data = generate_tarot_reading(focus=question or "general", spread=engine_spread, seed=data.get("seed"))
+    
+    # Increment usage after successful generation
+    increment_fortune_usage()
+
+    return jsonify({
+        "success": True,
+        "spread": spread,
+        "cards": tarot_data["cards"],
+        "summary": tarot_data.get("interpretation", "The cards reveal their wisdom through contemplation."),
+        "today": {"used": used + 1, "limit": limit}
+    })
+
+# ===== Block I — Dev endpoints to inspect/adjust plan & model (safe to remove later) =====
+# - /api/dev/model         -> shows current plan, effective plan, and the GPT model that will be used
+# - /api/dev/set-plan/<p>  -> temporarily set session plan for testing (bronze|silver|gold)
+
+# Try to use your project's own model resolver first; fall back to a local map if not present.
+try:
+    # e.g., your codebase might expose one of these:
+    # - get_model_for_plan(plan: str) -> str
+    # - MODEL_BY_PLAN: dict
+    from unified_tier_system import get_model_for_plan as _get_model_for_plan  # type: ignore
+except Exception:
+    _get_model_for_plan = None  # not available
+
+try:
+    from unified_tier_system import MODEL_BY_PLAN as _MODEL_BY_PLAN  # type: ignore
+except Exception:
+    _MODEL_BY_PLAN = None
+
+# Local fallback if neither helper exists:
+_FALLBACK_MODEL_BY_PLAN = {
+    "bronze": "gpt-3.5-turbo",
+    "silver": "gpt-4.0",
+    "gold":   "gpt-5",
+}
+
+def _resolve_model_for(plan: str) -> str:
     p = (plan or "bronze").lower()
-    if p not in ("bronze","silver","gold"):
-        return {"ok": False, "error": "bad plan"}, 400
+    # Your project's function takes priority
+    if callable(_get_model_for_plan):
+        try:
+            m = _get_model_for_plan(p)
+            if isinstance(m, str) and m.strip():
+                return m
+        except Exception:
+            pass
+    # Or an exported map from your project
+    if isinstance(_MODEL_BY_PLAN, dict) and p in _MODEL_BY_PLAN:
+        m = _MODEL_BY_PLAN[p]
+        if isinstance(m, str) and m.strip():
+            return m
+    # Fallback map
+    return _FALLBACK_MODEL_BY_PLAN.get(p, "gpt-3.5-turbo")
+
+# Reuse your plan helpers (already in Block G / your codebase)
+# - get_fortune_effective_plan(plan, trial_active)
+
+@app.route("/api/dev/fortune-model")
+def dev_model_block_i():
+    plan = (session.get("user_plan") or "bronze").lower()
+    trial = bool(session.get("trial_active", False))
+    effective_plan = get_fortune_effective_plan(plan, trial)
+    model = _resolve_model_for(effective_plan)
+    return jsonify({
+        "ok": True,
+        "plan": plan,
+        "trial_active": trial,
+        "effective_plan": effective_plan,
+        "model": model,
+        "companion_id": session.get("companion_id", "default"),
+        "companion_tier": session.get("companion_tier", "bronze"),
+    })
+
+# Dev-only setter to switch plans quickly during QA. Remove before production.
+@app.route("/api/dev/set-plan/<p>")
+def dev_set_plan_block_i(p):
+    p = (p or "bronze").lower()
+    if p not in ("bronze", "silver", "gold"):
+        return jsonify({"ok": False, "error": "bad plan"}), 400
     session["user_plan"] = p
-    return {"ok": True, "plan": p}
+    # Return the effective plan & model so you can verify immediately
+    trial = bool(session.get("trial_active", False))
+    effective_plan = get_fortune_effective_plan(p, trial)
+    model = _resolve_model_for(effective_plan)
+    return jsonify({"ok": True, "plan": p, "effective_plan": effective_plan, "model": model})
+# ===== End Block I =====
+
+# Old dev endpoints removed - using better Block I version above
 
 @app.route("/api/horoscope/check-limit")
 def check_horoscope_limit():
