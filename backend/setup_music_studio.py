@@ -31,7 +31,7 @@ def setup_database_schema():
         
         # Add music studio columns to existing users table
         music_columns = [
-            "ALTER TABLE users ADD COLUMN IF NOT EXISTS trainer_credits INTEGER DEFAULT 0",
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS artistic_time INTEGER DEFAULT 0",
             "ALTER TABLE users ADD COLUMN IF NOT EXISTS disclaimer_accepted_at TIMESTAMP",
             "ALTER TABLE users ADD COLUMN IF NOT EXISTS last_credit_reset DATE"
         ]

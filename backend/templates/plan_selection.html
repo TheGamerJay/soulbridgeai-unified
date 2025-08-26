@@ -407,7 +407,7 @@
       <div style="font-size: 2rem; margin-bottom: 20px;">💳</div>
       <h3 style="color: #22d3ee; margin-bottom: 20px; font-size: 1.8rem;">Need More Trainer Time?</h3>
       <p style="color: #e2e8f0; line-height: 1.6; margin-bottom: 20px; font-size: 1.1rem;">
-        Silver & Gold subscribers get monthly trainer time. Running low? Purchase additional trainer time anytime!
+        Silver & Gold subscribers get monthly artistic time. Running low? Purchase additional artistic time anytime!
       </p>
       
       <!-- Important warning about rollover -->
@@ -424,8 +424,8 @@
           <h4 style="color: #ef4444; margin: 0; font-size: 1.2rem; font-weight: 600;">Important: No Rollover Policy</h4>
         </div>
         <p style="color: #fca5a5; margin: 0; font-size: 1rem; line-height: 1.5;">
-          <strong>Your monthly trainer time resets on your billing cycle and unused time does NOT carry over.</strong> 
-          Any trainer time not used before your next monthly reset will be lost. Purchase additional trainer time only when you're sure you'll use it within your current billing period.
+          <strong>Your monthly artistic time resets on your billing cycle and unused time does NOT carry over.</strong> 
+          Any artistic time not used before your next monthly reset will be lost. Purchase additional artistic time only when you're sure you'll use it within your current billing period.
         </p>
       </div>
       
@@ -512,7 +512,7 @@
       </div>
       
       <p style="color: #94a3b8; font-size: 0.9rem; margin-top: 20px;">
-        Purchased trainer time is added instantly. <strong>Note:</strong> All trainer time (monthly + purchased) resets at your billing cycle with no rollover. Silver and Gold Plan subscribers can purchase additional trainer time.
+        Purchased artistic time is added instantly. <strong>Note:</strong> All artistic time (monthly + purchased) resets at your billing cycle with no rollover. Silver and Gold Plan subscribers can purchase additional artistic time.
       </p>
       
       <!-- Lock overlay for non-Silver/Gold subscribers -->
@@ -533,7 +533,7 @@
         <div style="font-size: 3rem; margin-bottom: 20px;">🔒</div>
         <h3 style="color: #22d3ee; margin-bottom: 15px; font-size: 1.5rem;">Silver or Gold Plan Required</h3>
         <p style="color: #e2e8f0; text-align: center; max-width: 400px; margin-bottom: 25px; line-height: 1.5;">
-          Upgrade to Silver or Gold Plan to purchase additional trainer time when you run out of your monthly allowance. Remember: trainer time resets monthly with no rollover.
+          Upgrade to Silver or Gold Plan to purchase additional artistic time when you run out of your monthly allowance. Remember: artistic time resets monthly with no rollover.
         </p>
         <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;">
           <button onclick="selectPlan('premium')" style="
@@ -836,14 +836,14 @@ async function checkTrainerTimePurchaseAccess() {
         if (statusData.logged_in && (statusData.plan_type === 'max' || statusData.plan_type === 'growth')) {
             // Silver/Gold plan subscribers: hide lock, enable purchases
             lockOverlay.style.display = 'none';
-            console.log(`✅ ${statusData.plan_type.charAt(0).toUpperCase() + statusData.plan_type.slice(1)} Plan subscriber - trainer time purchases enabled`);
+            console.log(`✅ ${statusData.plan_type.charAt(0).toUpperCase() + statusData.plan_type.slice(1)} Plan subscriber - artistic time purchases enabled`);
         } else {
             // Non-Silver/Gold subscribers: show lock overlay
             lockOverlay.style.display = 'flex';
             console.log('🔒 Non-Silver/Gold subscriber - showing upgrade prompt');
         }
     } catch (error) {
-        console.error('Error checking trainer time purchase access:', error);
+        console.error('Error checking artistic time purchase access:', error);
         // On error, show lock overlay as fallback
         document.getElementById('trainer-time-lock').style.display = 'flex';
     }
@@ -860,7 +860,7 @@ async function purchaseTrainerTime(amount, price) {
         const statusData = await statusResponse.json();
         
         if (!statusData.logged_in) {
-            alert('Please log in to purchase trainer time');
+            alert('Please log in to purchase artistic time');
             window.location.href = '/login?return_to=plan-selection';
             return;
         }
@@ -871,13 +871,13 @@ async function purchaseTrainerTime(amount, price) {
         }
         
         // Show confirmation with rollover warning
-        const confirm = window.confirm(`Purchase ${amount} trainer time for $${price.toFixed(2)}?\n\n⚠️ IMPORTANT: Trainer time will be added instantly but resets at your monthly billing cycle with NO ROLLOVER. Only purchase if you'll use it before your next reset.\n\nContinue with purchase?`);
+        const confirm = window.confirm(`Purchase ${amount} artistic time for $${price.toFixed(2)}?\n\n⚠️ IMPORTANT: Trainer time will be added instantly but resets at your monthly billing cycle with NO ROLLOVER. Only purchase if you'll use it before your next reset.\n\nContinue with purchase?`);
         
         if (!confirm) {
             return;
         }
         
-        // Create Stripe checkout session for trainer time
+        // Create Stripe checkout session for artistic time
         const response = await fetch('/api/buy-credits', {
             method: 'POST',
             headers: {
@@ -899,24 +899,24 @@ async function purchaseTrainerTime(amount, price) {
             if (urlMatch) {
                 window.location.href = urlMatch[0];
             } else {
-                alert('Error: Could not process trainer time purchase. Please try again.');
+                alert('Error: Could not process artistic time purchase. Please try again.');
             }
         } else if (data.includes('error') || data.includes('failed')) {
-            alert('Error: Failed to create trainer time purchase session. Please try again.');
+            alert('Error: Failed to create artistic time purchase session. Please try again.');
         } else {
             // Fallback: redirect to response page
             document.write(data);
         }
     } catch (error) {
         console.error('Trainer time purchase error:', error);
-        alert('Failed to process trainer time purchase. Please try again.');
+        alert('Failed to process artistic time purchase. Please try again.');
     }
 }
 
 // Initialize page
 document.addEventListener('DOMContentLoaded', function() {
   
-  // Check if user should see trainer time purchase section
+  // Check if user should see artistic time purchase section
   checkTrainerTimePurchaseAccess();
   
   // Handle modal actions

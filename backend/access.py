@@ -78,7 +78,7 @@ def get_effective_access(plan: str, trial_active=False, trial_expires_at=None):
     1. Trial unlocks ACCESS to Silver/Gold tiers (can click/explore)
     2. Trial NEVER changes usage limits (always from real plan)
     3. Only Bronze users can activate trial
-    4. Trial gives 60 trainer credits for premium features
+    4. Trial gives 60 artistic time for premium features
     
     Args:
         plan: User's actual subscription plan (bronze/silver/gold)
@@ -101,7 +101,7 @@ def get_effective_access(plan: str, trial_active=False, trial_expires_at=None):
     if trial_live and plan == "bronze":
         # Bronze users with active trial can access all tiers
         unlocked_tiers = ["bronze", "silver", "gold"]
-        trial_credits = 60  # Trial gives 60 trainer credits
+        trial_credits = 60  # Trial gives 60 artistic time
     else:
         # Normal access based on subscription plan
         unlocked_tiers = COMPANION_TIERS.get(plan, ["bronze"])

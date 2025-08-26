@@ -63,7 +63,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(200), unique=True, nullable=False)
     plan = db.Column(db.String(20), default='bronze')   # bronze | silver | gold
-    trainer_credits = db.Column(db.Integer, default=0)
+    artistic_time = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     disclaimer_accepted_at = db.Column(db.DateTime, nullable=True)
     used_max_trial = db.Column(db.Boolean, default=False)
@@ -139,8 +139,8 @@ def has_active_max_trial(user):
 def is_max_allowed(user):
     return bool(user and (user.plan == 'gold' or has_active_max_trial(user)))
 
-def add_trainer_credits(user, amount):
-    user.trainer_credits = int(user.trainer_credits or 0) + int(amount or 0)
+def add_artistic_time(user, amount):
+    user.artistic_time = int(user.artistic_time or 0) + int(amount or 0)
     db.session.commit()
 
 def ensure_monthly_credits(user):
@@ -152,7 +152,7 @@ def ensure_monthly_credits(user):
         return
     today = today_utc_date()
     if (user.last_credit_reset is None) or (user.last_credit_reset.year != today.year) or (user.last_credit_reset.month != today.month):
-        user.trainer_credits = MONTHLY_CREDITS_MAX
+        user.artistic_time = MONTHLY_CREDITS_MAX
         user.last_credit_reset = today
         db.session.commit()
 
@@ -176,7 +176,7 @@ def music_login():
         if not email: return 'Email required', 400
         user = User.query.filter_by(email=email).first()
         if not user:
-            user = User(email=email, plan='bronze', trainer_credits=0)
+            user = User(email=email, plan='bronze', artistic_time=0)
             db.session.add(user); db.session.commit()
         session['uid'] = user.id
         session['user_id'] = user.id  # Compatibility with existing system
@@ -216,7 +216,7 @@ a.btn,button{background:#06b6d4;color:#001018;border:none;padding:10px 14px;bord
 <div class="top">
   <div>
     <div>Logged in as <b>{{u.email}}</b></div>
-    <div class="muted">Plan: <b>{{u.plan}}</b> • Trainer Time: <b>{{u.trainer_credits}}</b> credits</div>
+    <div class="muted">Plan: <b>{{u.plan}}</b> • Trainer Time: <b>{{u.artistic_time}}</b> credits</div>
   </div>
   <div>
     <a class="btn" href="{{url_for('library')}}">🎵 Library</a>
@@ -280,7 +280,7 @@ def start_max_trial():
     expires = datetime.now(timezone.utc) + timedelta(hours=5)  # exact 5h in UTC
     trial = MaxTrial(user_id=u.id, expires_at=expires, active=True, credits_granted=TRIAL_CREDITS)
     db.session.add(trial)
-    add_trainer_credits(u, TRIAL_CREDITS)    # grant credits on trial start
+    add_artistic_time(u, TRIAL_CREDITS)    # grant credits on trial start
     u.used_max_trial = True
     db.session.commit()
     return '', 204
@@ -317,7 +317,7 @@ def billing_success():
     if pr and not pr.paid:
         pr.paid = True; db.session.commit()
         user = db.session.get(User, pr.user_id)
-        add_trainer_credits(user, pr.credits)
+        add_artistic_time(user, pr.credits)
     return render_template_string('<h2>✅ Payment success</h2><a href="/music">Back</a>')
 
 # ---------- Disclaimer / Mini Studio gate ----------
@@ -389,7 +389,7 @@ body{font-family:system-ui;background:#0b0f17;color:#e6f1ff;padding:24px}
     {% if allowed %}<a href="/music/mini-studio" class="btn">Mini Studio</a>{% endif %}
     <a href="/music/community" class="btn">Community</a>
   </div>
-  <div class="muted">Credits: <b>{{u.trainer_credits}}</b></div>
+  <div class="muted">Credits: <b>{{u.artistic_time}}</b></div>
   <form method="post" action="{{url_for('create_checkout_session')}}" style="margin:0">
     <input type="hidden" name="credits" value="350"><button class="btn">Buy +350</button>
   </form>
@@ -568,7 +568,7 @@ def reset_max_credits():
                 "monthly_max": MONTHLY_CREDITS_MAX}, 200
 
     for u in to_reset:
-        u.trainer_credits = MONTHLY_CREDITS_MAX
+        u.artistic_time = MONTHLY_CREDITS_MAX
         u.last_credit_reset = today
     db.session.commit()
 

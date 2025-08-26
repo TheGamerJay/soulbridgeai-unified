@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>⚡ Credit Store - SoulBridge AI</title>
+    <title>⚡ Artistic Time Store - SoulBridge AI</title>
     <style>
         * {
             margin: 0;
@@ -154,7 +154,7 @@
             font-weight: 600;
         }
 
-        .bundle-credits {
+        .bundle-artistic time {
             font-size: 2rem;
             font-weight: bold;
             color: #667eea;
@@ -354,7 +354,7 @@
         <!-- Header Section -->
         <div class="store-header">
             <div class="current-balance" id="currentBalance">
-                ⚡ <span id="creditCount">Loading...</span> Credits
+                ⚡ <span id="creditCount">Loading...</span> Artistic Time
             </div>
             
             <div class="tier-info">
@@ -370,14 +370,14 @@
 
         <!-- Free User Upsell (Hidden by default) -->
         <div class="free-upsell" id="freeUpsell" style="display: none;">
-            <h2>Subscribe to Growth or Max to buy credits</h2>
-            <p>Credits unlock premium features like AI image generation, voice journaling, and more!</p>
+            <h2>Subscribe to Growth or Max to buy artistic time</h2>
+            <p>Artistic Time unlock premium features like AI image generation, voice journaling, and more!</p>
             
             <div class="plan-options">
                 <div class="plan-card">
                     <h3>Silver Plan</h3>
                     <div class="bundle-price">$12.99/mo</div>
-                    <p>200 credits/month included</p>
+                    <p>200 artistic time/month included</p>
                     <a href="/subscription?plan=premium" class="buy-btn">Choose Silver</a>
                 </div>
                 
@@ -385,7 +385,7 @@
                     <div class="recommended-badge">Most Popular</div>
                     <h3>Gold Plan</h3>
                     <div class="bundle-price">$19.99/mo</div>
-                    <p>500 credits/month + cheaper costs</p>
+                    <p>500 artistic time/month + cheaper costs</p>
                     <a href="/subscription?plan=enterprise" class="buy-btn">Choose Gold</a>
                 </div>
             </div>
@@ -393,7 +393,7 @@
 
         <!-- Credit Bundles Section -->
         <div class="bundles-section" id="bundlesSection">
-            <h2 class="section-title">⚡ Top-up Credits</h2>
+            <h2 class="section-title">⚡ Top-up Artistic Time</h2>
             <div class="bundles-grid" id="bundlesGrid">
                 <!-- Bundles loaded dynamically -->
             </div>
@@ -433,7 +433,7 @@
     <div id="confirmModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
         <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 24px; border-radius: 16px; max-width: 400px; width: 90%;">
             <h3 style="margin-bottom: 16px;">Confirm Purchase</h3>
-            <p id="confirmText">Buy 120 credits for $9.99?</p>
+            <p id="confirmText">Buy 120 artistic time for $9.99?</p>
             <p style="color: #666; margin: 12px 0;"><span id="balanceAfter">Balance after purchase: 85 → 205</span></p>
             
             <div style="display: flex; gap: 12px; margin-top: 20px;">
@@ -452,7 +452,7 @@
         async function loadCreditStore() {
             try {
                 // Try v1 API first
-                const response = await fetch('/v1/credits/store', { credentials: 'include' });
+                const response = await fetch('/v1/artistic time/store', { credentials: 'include' });
                 if (!response.ok) throw new Error('Store not available');
                 
                 const data = await response.json();
@@ -461,7 +461,7 @@
                     // Free user - show upsell
                     document.getElementById('freeUpsell').style.display = 'block';
                     document.getElementById('bundlesSection').style.display = 'none';
-                    document.getElementById('currentBalance').textContent = '⚡ Subscribe to unlock credits';
+                    document.getElementById('currentBalance').textContent = '⚡ Subscribe to unlock artistic time';
                     return;
                 }
 
@@ -509,11 +509,11 @@
                 grid.innerHTML += `
                     <div class="bundle-card ${isRecommended ? 'recommended' : ''}" onclick="selectBundle('${bundle.id}')">
                         ${isRecommended ? '<div class="recommended-badge">Most Popular</div>' : ''}
-                        <div class="bundle-credits">⚡ ${bundle.credits}</div>
+                        <div class="bundle-artistic time">⚡ ${bundle.artistic time}</div>
                         <div class="bundle-price">$${bundle.price}</div>
                         <div class="bundle-description">${valueText}</div>
                         <div class="bundle-value">
-                            ${(bundle.credits / bundle.price).toFixed(1)} credits per dollar
+                            ${(bundle.artistic time / bundle.price).toFixed(1)} artistic time per dollar
                         </div>
                         <button class="buy-btn">Buy Now</button>
                     </div>
@@ -556,8 +556,8 @@
             const confirmText = document.getElementById('confirmText');
             const balanceAfter = document.getElementById('balanceAfter');
 
-            confirmText.textContent = `Buy ${selectedBundle.credits} credits for $${selectedBundle.price}?`;
-            balanceAfter.textContent = `Balance after purchase: ${currentBalance} → ${currentBalance + selectedBundle.credits}`;
+            confirmText.textContent = `Buy ${selectedBundle.artistic time} artistic time for $${selectedBundle.price}?`;
+            balanceAfter.textContent = `Balance after purchase: ${currentBalance} → ${currentBalance + selectedBundle.artistic time}`;
 
             modal.style.display = 'block';
         }
@@ -575,7 +575,7 @@
             confirmBtn.disabled = true;
 
             try {
-                const response = await fetch('/v1/credits/purchase', {
+                const response = await fetch('/v1/artistic time/purchase', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     credentials: 'include',
@@ -621,11 +621,11 @@
             const container = document.getElementById('purchaseHistory');
             container.innerHTML = `
                 <div class="history-item">
-                    <span>120 Credits - $9.99</span>
+                    <span>120 Artistic Time - $9.99</span>
                     <span style="color: #666;">Dec 15, 2024</span>
                 </div>
                 <div class="history-item">
-                    <span>50 Credits - $4.99</span>
+                    <span>50 Artistic Time - $4.99</span>
                     <span style="color: #666;">Dec 10, 2024</span>
                 </div>
                 <div style="text-align: center; color: #666; margin-top: 20px;">
@@ -639,19 +639,19 @@
             container.innerHTML = `
                 <div class="history-item">
                     <span>🎨 AI Image Generation</span>
-                    <span style="color: #667eea; font-weight: 600;">45 credits</span>
+                    <span style="color: #667eea; font-weight: 600;">45 artistic time</span>
                 </div>
                 <div class="history-item">
                     <span>🎙️ Voice Journaling</span>
-                    <span style="color: #667eea; font-weight: 600;">24 credits</span>
+                    <span style="color: #667eea; font-weight: 600;">24 artistic time</span>
                 </div>
                 <div class="history-item">
                     <span>🧘 Emotional Meditations</span>
-                    <span style="color: #667eea; font-weight: 600;">18 credits</span>
+                    <span style="color: #667eea; font-weight: 600;">18 artistic time</span>
                 </div>
                 <div class="history-item">
                     <span>👥 Relationship Profiles</span>
-                    <span style="color: #667eea; font-weight: 600;">8 credits</span>
+                    <span style="color: #667eea; font-weight: 600;">8 artistic time</span>
                 </div>
             `;
         }

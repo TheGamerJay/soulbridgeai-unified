@@ -367,8 +367,8 @@
       <div class="credit-display" id="creditDisplay">
         <div class="credit-info">
           <i class="fas fa-coins"></i>
-          <span>Credits: <span id="currentCredits">Loading...</span></span>
-          <span class="credit-cost">• Credits per session vary</span>
+          <span>Artistic Time: <span id="currentCredits">Loading...</span></span>
+          <span class="credit-cost">• 8 artistic time per session</span>
         </div>
       </div>
     </div>
@@ -813,7 +813,7 @@
         }
 
       } catch (error) {
-        console.error('Error loading credits:', error);
+        console.error('Error loading artistic time:', error);
         document.getElementById('currentCredits').textContent = 'Error';
       }
     }

@@ -2498,7 +2498,7 @@ def user_info():
         # Get user credits for Mini Studio
         credits = get_artistic_time(user_id) if user_id else 0
         
-        # For trial users, they get 60 "trainer time" credits specifically for mini studio
+        # For trial users, they get 60 "artistic time" credits specifically for mini studio
         if user_plan == 'bronze' and trial_active:
             from unified_tier_system import get_trial_trainer_time
             trial_credits = session.get("trial_credits", 60)
@@ -15755,11 +15755,11 @@ def mini_studio():
     if effective_plan != 'gold':
         return redirect("/tiers?upgrade=gold")
     
-    # Get user credits (trainer time for mini studio)
+    # Get user credits (artistic time for mini studio)
     from unified_tier_system import get_artistic_time
     credits = get_artistic_time(user_id) if user_id else 0
     
-    # For trial users, they get 60 "trainer time" credits specifically for mini studio
+    # For trial users, they get 60 "artistic time" credits specifically for mini studio
     if user_plan == 'bronze' and trial_active:
         from unified_tier_system import get_trial_trainer_time
         trial_credits = session.get("trial_credits", 60)
@@ -15785,7 +15785,7 @@ def mini_studio_simple():
     # Get user credits  
     credits = get_artistic_time(user_id) if user_id else 0
     
-    # For trial users, they get 60 "trainer time" credits specifically for mini studio
+    # For trial users, they get 60 "artistic time" credits specifically for mini studio
     if user_plan == 'bronze' and trial_active:
         from unified_tier_system import get_trial_trainer_time
         trial_credits = session.get("trial_credits", 60)
@@ -17032,7 +17032,7 @@ def buy_credits_page():
     <div class="container">
         <a href="/plans" class="back-btn">← Back to Plans</a>
         
-        <h1>⚡ Buy Extra Trainer Time</h1>
+        <h1>⚡ Buy Extra Artistic Time</h1>
         
         <div class="credits-card">
             <div class="current-credits">
@@ -17108,7 +17108,7 @@ def api_buy_credits():
                 'price_data': {
                     'currency': 'usd',
                     'product_data': {
-                        'name': 'SoulBridge AI - Extra Trainer Time',
+                        'name': 'SoulBridge AI - Extra Artistic Time',
                         'description': '350 credits for AI Music Studio, Voice Journaling, and AI Images',
                         'images': ['https://soulbridgeai.com/static/logos/IntroLogo.png'],
                     },

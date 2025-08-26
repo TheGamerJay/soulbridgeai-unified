@@ -428,9 +428,9 @@ def handle_credit_purchase_completed(session_obj):
         credits_amount = int(credits)
         
         # Add credits to user's account
-        from db_users import db_add_trainer_credits
+        from db_users import db_add_artistic_time
         
-        success = db_add_trainer_credits(user_id, credits_amount)
+        success = db_add_artistic_time(user_id, credits_amount)
         
         if success:
             logger.info(f"💎 Credit purchase successful: User {user_id} received {credits_amount} credits ({package_type} package)")

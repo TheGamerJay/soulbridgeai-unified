@@ -27,8 +27,8 @@ ARTISTIC_TIME_COSTS = {
 # ========================================
 
 TIER_ARTISTIC_TIME = {
-    "bronze": 0,      # Bronze gets no monthly credits
-    "silver": 100,    # Silver gets 100 monthly
+    "bronze": 0,      # Bronze gets no monthly artistic time
+    "silver": 200,    # Silver gets 200 monthly
     "gold": 500,      # Gold gets 500 monthly
 }
 
@@ -276,13 +276,17 @@ def migrate_to_artistic_time():
         except:
             pass  # Columns already exist
         
-        # Copy trainer_credits to artistic_time
-        cursor.execute("""
-            UPDATE users 
-            SET artistic_time = COALESCE(trainer_credits, 0),
-                trial_credits = 60
-            WHERE artistic_time IS NULL OR artistic_time = 0
-        """)
+        # Copy trainer_credits to artistic_time (if trainer_credits column still exists)
+        try:
+            cursor.execute("""
+                UPDATE users 
+                SET artistic_time = COALESCE(trainer_credits, 0),
+                    trial_credits = 60
+                WHERE artistic_time IS NULL OR artistic_time = 0
+            """)
+        except:
+            # trainer_credits column might not exist anymore, that's okay
+            pass
         
         conn.commit()
         conn.close()

@@ -61,9 +61,9 @@ def register_audio_routes(app, db, Song, current_user, is_max_allowed, _save_new
         u = current_user()
         if not u: return 'Not logged in', 401
         if not is_max_allowed(u): return 'Max plan or trial required', 403
-        if (u.trainer_credits or 0) < CREDIT_COST:
+        if (u.artistic_time or 0) < CREDIT_COST:
             return 'Insufficient Trainer Time credits', 402
-        u.trainer_credits -= CREDIT_COST
+        u.artistic_time -= CREDIT_COST
         db.session.commit()
         return None
 

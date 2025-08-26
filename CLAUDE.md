@@ -9,7 +9,7 @@
 - Fortune: 2 daily uses  
 - Horoscope: 3 daily uses
 - Creative Writer: 2 daily uses
-- Credits: 0 monthly (no trainer time)
+- Artistic Time: 0 monthly
 - Premium features: LOCKED (AI images, voice journaling, etc.)
 - Mini Studio: LOCKED
 - Companion Access: Bronze tier companions only
@@ -19,7 +19,7 @@
 **Purpose**: Let Bronze users taste Silver/Gold tiers temporarily
 **Who Can Use**: Only BRONZE tier users (Silver/Gold don't need it)
 **What Changes When Activated**:
-- ✅ **Gives 60 trainer time credits** - can spend on credit-based features
+- ✅ **Gives 60 artistic time credits** - can spend on credit-based features
 - ✅ **Unlocks Silver tier access** - can use Silver companions & features for 5 hours
 - ✅ **Unlocks Gold tier access** - can use Gold companions & features for 5 hours
 - ✅ **Silver/Gold limits stay the same** - their features/limits don't change
@@ -38,12 +38,12 @@
 - Fortune: 8 daily uses
 - Horoscope: 10 daily uses  
 - Creative Writer: 20 daily uses
-- Credits: 100 monthly trainer time (resets each billing cycle, NO ROLLOVER)
+- Artistic Time: 200 monthly artistic time (resets each billing cycle, NO ROLLOVER)
 - Premium features: UNLOCKED (AI images, voice journaling, relationship profiles, meditations)
 - Mini Studio: LOCKED (Gold tier exclusive)
 - Companion Access: Bronze + Silver tier companions
 - Ads: REMOVED - no ads for subscribers
-- **Extra Credits**: Can purchase additional trainer time when monthly/yearly allocation runs out
+- **Extra Artistic Time**: Can purchase additional artistic time when monthly/yearly allocation runs out
 - **Cancellation**: Keep benefits until billing period ends, then revert to Bronze tier
 
 ### 🥇 GOLD TIER (Subscription) 
@@ -53,12 +53,12 @@
 - Fortune: UNLIMITED daily uses
 - Horoscope: UNLIMITED daily uses
 - Creative Writer: UNLIMITED daily uses
-- Credits: 500 monthly trainer time (resets each billing cycle, NO ROLLOVER)
+- Artistic Time: 500 monthly artistic time (resets each billing cycle, NO ROLLOVER)
 - Premium features: UNLOCKED (all of them)
 - Mini Studio: UNLOCKED (Gold exclusive feature)
 - Companion Access: Bronze + Silver + Gold tier companions  
 - Ads: REMOVED - no ads for subscribers
-- **Extra Credits**: Can purchase additional trainer time when monthly/yearly allocation runs out
+- **Extra Artistic Time**: Can purchase additional artistic time when monthly/yearly allocation runs out
 - **Cancellation**: Keep benefits until billing period ends, then revert to Bronze tier
 
 ### AD-FREE UPGRADE (Optional for Bronze Users)
@@ -79,7 +79,7 @@
 
 ### Credit Purchase System:
 **Who Can Buy**: Silver and Gold tier subscribers only (monthly OR yearly)
-**Purpose**: Get additional trainer time when monthly/yearly allocation runs out
+**Purpose**: Get additional artistic time when monthly/yearly allocation runs out
 **Pricing**: TBD (likely $5-10 for 50-100 additional credits)
 **Behavior**: 
 - Purchased credits add to current balance

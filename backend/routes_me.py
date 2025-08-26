@@ -107,9 +107,9 @@ def me():
         }
         
         # Get trainer credits from session (includes trial credits)
-        trainer_credits = session.get('trainer_credits', 0)
+        artistic_time = session.get('artistic_time', 0)
         if access.get('trial_credits', 0) > 0:
-            trainer_credits += access['trial_credits']
+            artistic_time += access['trial_credits']
         
         # Build response
         user_data = {
@@ -117,7 +117,7 @@ def me():
             "email": session.get("email", "unknown@soulbridgeai.com"),
             "displayName": session.get("display_name", "User"),
             "plan": plan,
-            "trainer_credits": trainer_credits,
+            "artistic_time": artistic_time,
             "profileImage": session.get("profile_image", "/static/logos/IntroLogo.png"),
             "companion": session.get("selected_companion", "Blayzo")  # Current companion
         }
