@@ -15,7 +15,7 @@ PLAN_LIMITS = {
     },
     "silver": {
         "decoder": 15,
-        "fortune": 15,
+        "fortune": 8,
         "horoscope": 10,
         "creative_writer": 15,  # 15 uses per day
         "library_chats": 50     # Save max 50 chat conversations

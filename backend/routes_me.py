@@ -65,7 +65,7 @@ def me():
         if plan == 'gold':
             limits = {"decoder": 999, "fortune": 999, "horoscope": 999, "creative_writer": 999}
         elif plan == 'silver':
-            limits = {"decoder": 15, "fortune": 15, "horoscope": 10, "creative_writer": 15}
+            limits = {"decoder": 15, "fortune": 8, "horoscope": 10, "creative_writer": 15}
         else:  # Bronze tier (trial users keep Bronze limits)
             limits = {"decoder": 3, "fortune": 3, "horoscope": 3, "creative_writer": 3}
         

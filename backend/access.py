@@ -20,7 +20,7 @@ TIER_LIMITS = {
     },
     "silver": {
         "decoder": 15,
-        "fortune": 15,
+        "fortune": 8,
         "horoscope": 10,
         "creative_writer": 15,
         "credits": 100,
