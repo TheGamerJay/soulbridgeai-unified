@@ -915,10 +915,16 @@
         });
 
         const result = await response.json();
+        
+        // Debug logging
+        console.log('🔍 Credits API Response:', result);
 
         if (result.success) {
-          document.getElementById('currentCredits').textContent = result.credits || 0;
+          const credits = result.credits || 0;
+          console.log('🔍 Setting credits to:', credits);
+          document.getElementById('currentCredits').textContent = credits;
         } else {
+          console.log('🔍 API returned error:', result.error);
           document.getElementById('currentCredits').textContent = '0';
         }
 
