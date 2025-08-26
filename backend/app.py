@@ -15809,10 +15809,7 @@ def api_secret_lyrics():
     
     # Check credits before processing
     credits = get_artistic_time(user_id) if user_id else 0
-    if user_plan == 'bronze' and trial_active:
-        from unified_tier_system import get_trial_trainer_time
-        trial_credits = session.get("trial_credits", 60)
-        credits = max(credits, trial_credits)
+    # Trial credits are automatically included in get_artistic_time()
     
     LYRICS_COST = 5  # 5 credits for premium lyrics generation
     if credits < LYRICS_COST:
@@ -15852,9 +15849,7 @@ SecretWriter beyond compare"""
     
     # Get remaining credits for response
     remaining_credits = get_artistic_time(user_id)
-    if user_plan == 'bronze' and trial_active:
-        trial_credits = session.get("trial_credits", 60)
-        remaining_credits = max(remaining_credits, trial_credits)
+    # Trial credits are automatically included in get_artistic_time()
     
     return jsonify({
         "success": True, 
@@ -15879,10 +15874,7 @@ def api_midi():
     
     # Check credits before processing
     credits = get_artistic_time(user_id) if user_id else 0
-    if user_plan == 'bronze' and trial_active:
-        from unified_tier_system import get_trial_trainer_time
-        trial_credits = session.get("trial_credits", 60)
-        credits = max(credits, trial_credits)
+    # Trial credits are automatically included in get_artistic_time()
     
     MIDI_COST = 5  # 5 credits for MIDI generation
     if credits < MIDI_COST:
@@ -15904,9 +15896,7 @@ def api_midi():
     
     # Get remaining credits for response
     remaining_credits = get_artistic_time(user_id)
-    if user_plan == 'bronze' and trial_active:
-        trial_credits = session.get("trial_credits", 60)
-        remaining_credits = max(remaining_credits, trial_credits)
+    # Trial credits are automatically included in get_artistic_time()
     
     return jsonify({
         "success": True, 
@@ -15931,10 +15921,7 @@ def api_cover_art():
     
     # Check credits before processing
     credits = get_artistic_time(user_id) if user_id else 0
-    if user_plan == 'bronze' and trial_active:
-        from unified_tier_system import get_trial_trainer_time
-        trial_credits = session.get("trial_credits", 60)
-        credits = max(credits, trial_credits)
+    # Trial credits are automatically included in get_artistic_time()
     
     COVER_ART_COST = 5  # 5 credits for AI cover art generation
     if credits < COVER_ART_COST:
@@ -15956,9 +15943,7 @@ def api_cover_art():
     
     # Get remaining credits for response
     remaining_credits = get_artistic_time(user_id)
-    if user_plan == 'bronze' and trial_active:
-        trial_credits = session.get("trial_credits", 60)
-        remaining_credits = max(remaining_credits, trial_credits)
+    # Trial credits are automatically included in get_artistic_time()
     
     return jsonify({
         "success": True, 
@@ -15990,10 +15975,7 @@ def mini_studio_vocal_recording():
         from artistic_time_system import get_artistic_time, deduct_artistic_time, get_feature_cost
         credits = get_artistic_time(user_id) if user_id else 0
         
-        if user_plan == 'bronze' and trial_active:
-            from unified_tier_system import get_trial_trainer_time
-            trial_credits = session.get("trial_credits", 60)
-            credits = max(credits, trial_credits)
+        # Trial credits are automatically included in get_artistic_time()
         
         if credits <= 0:
             return jsonify({"success": False, "error": "No studio time remaining"}), 403
@@ -16043,10 +16025,7 @@ def mini_studio_instrumental():
         from artistic_time_system import get_artistic_time, deduct_artistic_time, get_feature_cost
         credits = get_artistic_time(user_id) if user_id else 0
         
-        if user_plan == 'bronze' and trial_active:
-            from unified_tier_system import get_trial_trainer_time
-            trial_credits = session.get("trial_credits", 60)
-            credits = max(credits, trial_credits)
+        # Trial credits are automatically included in get_artistic_time()
         
         if credits <= 0:
             return jsonify({"success": False, "error": "No studio time remaining"}), 403
@@ -16155,10 +16134,7 @@ def mini_studio_mixing():
         from artistic_time_system import get_artistic_time, deduct_artistic_time, get_feature_cost
         credits = get_artistic_time(user_id) if user_id else 0
         
-        if user_plan == 'bronze' and trial_active:
-            from unified_tier_system import get_trial_trainer_time
-            trial_credits = session.get("trial_credits", 60)
-            credits = max(credits, trial_credits)
+        # Trial credits are automatically included in get_artistic_time()
         
         if credits <= 0:
             return jsonify({"success": False, "error": "No studio time remaining"}), 403
@@ -16275,10 +16251,7 @@ def mini_studio_session_control():
             # Check if user has credits to start session
             credits = get_artistic_time(user_id) if user_id else 0
             
-            if user_plan == 'bronze' and trial_active:
-                from unified_tier_system import get_trial_trainer_time
-                trial_credits = session.get("trial_credits", 60)
-                credits = max(credits, trial_credits)
+            # Trial credits are automatically included in get_artistic_time()
             
             if credits <= 0:
                 return jsonify({"success": False, "error": "No studio time remaining"}), 403
@@ -17399,11 +17372,10 @@ def debug_trial_status():
         user_plan = session.get('user_plan', 'bronze')
         trial_active = session.get('trial_active', False)
         
-        # Try to check database trial status
+        # Check database trial status using unified artistic_time_system
         database_trial = False
         try:
-            from unified_tier_system import get_trial_trainer_time
-            trial_credits = get_trial_trainer_time(user_id)
+            trial_credits = get_artistic_time(user_id) if user_id else 0
             database_trial = trial_credits > 0
         except Exception as e:
             trial_credits = f"Error: {e}"
