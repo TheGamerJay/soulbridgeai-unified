@@ -96,10 +96,11 @@ except ImportError:
 # trial_utils functions are now integrated directly in app.py
 from tier_isolation import tier_manager, get_current_user_tier, get_current_tier_system
 from unified_tier_system import (
-    get_effective_plan, get_feature_limit, get_artistic_time, 
-    deduct_artistic_time, can_access_feature, get_tier_status,
+    get_effective_plan, get_feature_limit, 
+    can_access_feature, get_tier_status,
     increment_feature_usage, get_feature_usage_today
 )
+from artistic_time_system import get_artistic_time, deduct_artistic_time
 from constants import *
 
 # ===== Block G — Fortune Teller: Limits + Tarot Route =====

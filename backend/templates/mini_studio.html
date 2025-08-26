@@ -739,7 +739,7 @@
     </div>
     
     <script>
-        let creditsRemaining = {{ credits }};
+        let creditsRemaining = {{ credits|default(0) }};
         
         // Tab Management
         function openTab(tabName) {
@@ -887,7 +887,7 @@
                                 creditsRemaining = jobResult.credits_remaining || (creditsRemaining - 1);
                                 updateCreditsDisplay();
                                 
-                                updateStatus('vocalWaveform', `✅ Vocals generated successfully! Asset ID: ${jobResult.result.asset_id || 'N/A'}`);
+                                updateStatus('vocalWaveform', `✅ Vocals generated successfully! Asset ID: ${jobResult.asset_id || jobResult.result?.asset_id || 'N/A'}`);
                                 alert('Vocals generated successfully!');
                             } else if (jobResult.status === 'failed') {
                                 updateStatus('vocalWaveform', `❌ Generation failed: ${jobResult.error}`, true);

@@ -28,7 +28,9 @@ def call_llm(prompt):
             if response and response.get('success'):
                 return response.get('response', 'No response generated')
             else:
-                return "Error generating song content. Please try again."
+                error_msg = response.get('error', 'Unknown error') if response else 'No response from AI'
+                logger.error(f"SecretWriter AI response failed: {error_msg}")
+                return f"Error generating song content: {error_msg}. Please try again."
                 
         except ImportError as import_err:
             logger.warning(f"AI model manager not available: {import_err}")
