@@ -8684,10 +8684,21 @@ def limits():
     used = get_fortune_usage()
     limit = get_fortune_feature_limit(plan, "fortune")  # None == unlimited
     
-    # Safety clamp - prevents accidental "unification"
-    if plan == "bronze" and limit is None: limit = 3
-    if plan == "silver" and limit is None: limit = 8
-    if plan == "gold"   and limit is not None: limit = None
+    # Debug logging
+    print(f"🔍 Fortune Limits Debug: user_plan={user_plan}, plan={plan}, trial={trial}, raw_limit={limit}")
+    
+    # Safety clamp - prevents accidental "unification" 
+    if plan == "bronze": 
+        limit = 3
+    elif plan == "silver": 
+        limit = 8
+    elif plan == "gold":   
+        limit = None
+    else:
+        # Unknown plan - default to bronze
+        limit = 3
+        
+    print(f"🔍 After safety clamp: plan={plan}, final_limit={limit}")
 
     return jsonify({
         "success": True,
