@@ -38,23 +38,30 @@ TRIAL_ARTISTIC_TIME = 60  # Trial users get 60 one-time credits
 # CORE FUNCTIONS
 # ========================================
 
-def get_database():
-    """Get database connection"""
+def get_database_connection():
+    """Get database connection - compatible with Railway deployment"""
     try:
-        from database_utils import get_database
-        return get_database()
-    except ImportError:
-        logger.error("database_utils not found")
+        # Use same pattern as app.py
+        database_url = os.environ.get('DATABASE_URL')
+        if database_url:
+            # Production: PostgreSQL
+            import psycopg2
+            return psycopg2.connect(database_url)
+        else:
+            # Development: SQLite
+            import sqlite3
+            db_path = os.environ.get('DATABASE_PATH', 'soulbridge.db')
+            return sqlite3.connect(db_path)
+    except Exception as e:
+        logger.error(f"Database connection failed: {e}")
         return None
 
 def get_artistic_time(user_id: int) -> int:
     """Get user's current artistic time balance"""
     try:
-        db = get_database()
-        if not db:
+        conn = get_database_connection()
+        if not conn:
             return 0
-            
-        conn = db.get_connection()
         cursor = conn.cursor()
         
         # Get user's plan and credits
@@ -107,11 +114,9 @@ def get_artistic_time(user_id: int) -> int:
 def deduct_artistic_time(user_id: int, amount: int) -> bool:
     """Deduct artistic time from user's balance"""
     try:
-        db = get_database()
-        if not db:
+        conn = get_database_connection()
+        if not conn:
             return False
-            
-        conn = db.get_connection()
         cursor = conn.cursor()
         
         # Get current balance
@@ -181,11 +186,9 @@ def get_feature_cost(feature: str) -> int:
 def add_artistic_time(user_id: int, amount: int) -> bool:
     """Add artistic time to user's balance (for purchases)"""
     try:
-        db = get_database()
-        if not db:
+        conn = get_database_connection()
+        if not conn:
             return False
-            
-        conn = db.get_connection()
         cursor = conn.cursor()
         
         cursor.execute("""
@@ -207,11 +210,9 @@ def add_artistic_time(user_id: int, amount: int) -> bool:
 def refund_artistic_time(user_id: int, amount: int, reason: str = "Generation failed") -> bool:
     """Refund artistic time to user's balance when generation fails"""
     try:
-        db = get_database()
-        if not db:
+        conn = get_database_connection()
+        if not conn:
             return False
-            
-        conn = db.get_connection()
         cursor = conn.cursor()
         
         # Get current user info to determine where to refund
@@ -263,11 +264,9 @@ def refund_artistic_time(user_id: int, amount: int, reason: str = "Generation fa
 def migrate_to_artistic_time():
     """Migrate trainer_credits to artistic_time"""
     try:
-        db = get_database()
-        if not db:
+        conn = get_database_connection()
+        if not conn:
             return False
-            
-        conn = db.get_connection()
         cursor = conn.cursor()
         
         # Check if artistic_time column exists

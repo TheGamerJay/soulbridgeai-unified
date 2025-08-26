@@ -1790,13 +1790,15 @@ def ensure_bsg_migrations():
             services["bsg_migrations_done"] = True
             logger.info("✅ BSG migrations completed successfully")
             
-            # Migrate to Artistic Time system
+            # Migrate to Artistic Time system (optional, non-blocking)
             try:
                 from artistic_time_system import migrate_to_artistic_time
-                migrate_to_artistic_time()
-                logger.info("✅ Artistic Time migration completed")
+                if migrate_to_artistic_time():
+                    logger.info("✅ Artistic Time migration completed")
+                else:
+                    logger.warning("⚠️ Artistic Time migration skipped or failed")
             except Exception as e:
-                logger.error(f"❌ Artistic Time migration failed: {e}")
+                logger.warning(f"⚠️ Artistic Time migration error (non-critical): {e}")
                 
             return True
         else:
