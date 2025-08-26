@@ -16098,7 +16098,7 @@ def mini_studio_effects():
                     "message": "Audio effects applied successfully",
                     "output_path": output_filename,
                     "track_id": track_id,
-                    "asset_id": track_id,  // Frontend expects asset_id
+                    "asset_id": track_id,  # Frontend expects asset_id
                     "credits_remaining": result.get("credits_remaining", 0),
                     "effects_applied": result['effects_applied'],
                     "duration_seconds": result.get('duration_seconds', 0)
@@ -16184,7 +16184,7 @@ def mini_studio_cover_art():
                     "image_url": f"/{result['file_path']}",
                     "file_path": result['file_path'],
                     "track_id": track_id,
-                    "asset_id": track_id,  // Frontend expects asset_id
+                    "asset_id": track_id,  # Frontend expects asset_id
                     "credits_remaining": result.get("credits_remaining", 0),
                     "prompt_used": result['prompt_used'],
                     "original_prompt": prompt,
@@ -16567,7 +16567,7 @@ def smart_library_add_track():
             return jsonify({
                 "success": True,
                 "track_id": track_id,
-                    "asset_id": track_id,  // Frontend expects asset_id
+                    "asset_id": track_id,  # Frontend expects asset_id
                     "credits_remaining": result.get("credits_remaining", 0),
                 "message": "Track added to library successfully"
             })

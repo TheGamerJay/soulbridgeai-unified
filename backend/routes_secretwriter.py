@@ -9,27 +9,30 @@ import logging
 secret = Blueprint("secret", __name__)
 logger = logging.getLogger(__name__)
 
-# AI Model integration
-from ai_model_manager import AIModelManager
-
 def call_llm(prompt):
     """Call your LLM service with the given prompt"""
     try:
-        # Initialize AI model manager
-        ai_manager = AIModelManager()
-        
-        # Get AI response using the SecretWriter system prompt
-        response = ai_manager.get_companion_response(
-            user_message=prompt,
-            companion_name="SecretWriter",
-            user_id="secretwriter_user",
-            personality_mode=None
-        )
-        
-        if response and response.get('success'):
-            return response.get('response', 'No response generated')
-        else:
-            return "Error generating song content. Please try again."
+        # Try to import AI model manager (graceful fallback if not available)
+        try:
+            from ai_model_manager import AIModelManager
+            ai_manager = AIModelManager()
+            
+            # Get AI response using the SecretWriter system prompt
+            response = ai_manager.get_companion_response(
+                user_message=prompt,
+                companion_name="SecretWriter",
+                user_id="secretwriter_user",
+                personality_mode=None
+            )
+            
+            if response and response.get('success'):
+                return response.get('response', 'No response generated')
+            else:
+                return "Error generating song content. Please try again."
+                
+        except ImportError as import_err:
+            logger.warning(f"AI model manager not available: {import_err}")
+            return "SecretWriter AI service is temporarily unavailable. Please try again later."
             
     except Exception as e:
         logger.error(f"SecretWriter AI call error: {e}")
