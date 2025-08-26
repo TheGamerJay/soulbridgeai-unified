@@ -657,7 +657,7 @@ async function refreshFortuneLimits() {
             if (planNotice) planNotice.style.display = "none";
             if (planDesc) {
                 planDesc.style.display = "block";
-                planDesc.textContent = `🔮 Daily Fortunes: ${usage} / ${limitDisplay} used`;
+                planDesc.textContent = `🔮 Daily Fortunes: ${usage} / ${displayLimit} used`;
             }
         } else {
             // 🟢 Bronze tier - even during trial, show as bronze
@@ -665,9 +665,9 @@ async function refreshFortuneLimits() {
             if (planDesc) {
                 planDesc.style.display = "block";
                 if (trialActive) {
-                    planDesc.textContent = `You're on a 5-hour trial — enjoy premium companions & features with your ${limitDisplay} fortunes.`;
+                    planDesc.textContent = `You're on a 5-hour trial — enjoy premium companions & features with your ${displayLimit} fortunes.`;
                 } else {
-                    planDesc.textContent = `🔮 Daily Fortunes: ${usage} / ${limitDisplay} used`;
+                    planDesc.textContent = `🔮 Daily Fortunes: ${usage} / ${displayLimit} used`;
                 }
             }
         }
