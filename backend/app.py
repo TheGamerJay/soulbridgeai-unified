@@ -17077,6 +17077,44 @@ def api_get_user_credits():
         logger.error(f"Error fetching user credits: {e}")
         return jsonify({"success": False, "error": "Failed to fetch credits"}), 500
 
+@app.route("/api/debug-trial-status", methods=["GET"])
+def debug_trial_status():
+    """Debug endpoint to check trial status"""
+    if not is_logged_in():
+        return jsonify({"success": False, "error": "Not logged in"}), 401
+    
+    try:
+        user_id = session.get('user_id')
+        user_email = session.get('user_email')
+        user_plan = session.get('user_plan', 'bronze')
+        trial_active = session.get('trial_active', False)
+        
+        # Try to check database trial status
+        database_trial = False
+        try:
+            from unified_tier_system import get_trial_trainer_time
+            trial_credits = get_trial_trainer_time(user_id)
+            database_trial = trial_credits > 0
+        except Exception as e:
+            trial_credits = f"Error: {e}"
+        
+        return jsonify({
+            "success": True,
+            "session": {
+                "user_id": user_id,
+                "user_email": user_email, 
+                "user_plan": user_plan,
+                "trial_active": trial_active
+            },
+            "database": {
+                "trial_credits": trial_credits,
+                "database_trial_detected": database_trial
+            }
+        })
+        
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
 # ========================================
 # AD-FREE SUBSCRIPTION ENDPOINT (DIRECT)
 # ========================================
