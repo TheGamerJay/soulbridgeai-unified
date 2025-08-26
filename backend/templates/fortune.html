@@ -631,6 +631,15 @@ async function refreshFortuneLimits() {
 
         const limitDisplay = hasUnlimited ? '∞' : (data.limit ?? '?');
 
+        // Debug logging
+        console.log('🔍 DEBUG Fortune Counter:', {
+            plan: plan,
+            dataLimit: data.limit,
+            hasUnlimited: hasUnlimited,
+            limitDisplay: limitDisplay,
+            usage: usage
+        });
+
         // Update usage display
         document.getElementById("usage-count").textContent = usage;
         document.getElementById("usage-limit").textContent = limitDisplay;
