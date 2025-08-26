@@ -627,26 +627,16 @@ async function refreshFortuneLimits() {
         }
 
         const usage = data.used ?? 0;
-        const hasUnlimited = data.limit === null && plan === 'gold';  // Only gold has unlimited
-
-        const limitDisplay = hasUnlimited ? '∞' : (data.limit ?? '?');
-
-        // Debug logging
-        console.log('🔍 DEBUG Fortune Counter:', {
-            plan: plan,
-            dataLimit: data.limit,
-            hasUnlimited: hasUnlimited,
-            limitDisplay: limitDisplay,
-            usage: usage
-        });
+        const isUnlimited = (data.limit === null) && (data.plan === 'gold'); // gold only
+        const displayLimit = isUnlimited ? '∞' : data.limit;
 
         // Update usage display
         document.getElementById("usage-count").textContent = usage;
-        document.getElementById("usage-limit").textContent = limitDisplay;
+        document.getElementById("usage-limit").textContent = displayLimit;
 
         // Update usage bar
         const usageFill = document.getElementById('usage-fill');
-        if (hasUnlimited) {
+        if (isUnlimited) {
             usageFill.style.width = '100%';
             usageFill.style.background = 'linear-gradient(135deg, #fbbf24, #f59e0b)';
         } else {
