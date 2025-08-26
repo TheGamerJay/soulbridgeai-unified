@@ -65,9 +65,9 @@ def me():
         if plan == 'gold':
             limits = {"decoder": 999, "fortune": 999, "horoscope": 999, "creative_writer": 999}
         elif plan == 'silver':
-            limits = {"decoder": 15, "fortune": 8, "horoscope": 10, "creative_writer": 15}
+            limits = {"decoder": 15, "fortune": 15, "horoscope": 10, "creative_writer": 15}
         else:  # Bronze tier (trial users keep Bronze limits)
-            limits = {"decoder": 3, "fortune": 2, "horoscope": 3, "creative_writer": 3}
+            limits = {"decoder": 3, "fortune": 3, "horoscope": 3, "creative_writer": 3}
         
         # Restore trial credits if session is missing them but trial is active
         trial_credits = session.get('trial_credits')
@@ -126,7 +126,7 @@ def me():
             "trial_live": access.get("trial_live", False),
             "unlocked_tiers": access.get("unlocked_tiers", [plan]),
             "accessible_companion_tiers": access.get("accessible_companion_tiers", [plan]),
-            "limits": access.get("limits", {"decoder": 3, "fortune": 2, "horoscope": 3, "creative_writer": 3}),
+            "limits": access.get("limits", {"decoder": 3, "fortune": 3, "horoscope": 3, "creative_writer": 3}),
             "trial_credits": access.get("trial_credits", 0)
         }
         

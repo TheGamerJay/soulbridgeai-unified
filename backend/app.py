@@ -7132,7 +7132,7 @@ def api_users():
                     "plan": current_plan,
                     "trial_live": False,
                     "unlocked_tiers": [current_plan],
-                    "limits": {"decoder": 3, "fortune": 2, "horoscope": 3}
+                    "limits": {"decoder": 3, "fortune": 3, "horoscope": 3}
                 }
 
             # Get current companion from session
@@ -8588,8 +8588,8 @@ def check_decoder_limit():
     # Calculate companion-tier limits
     def get_simple_feature_limit(tier_name, feature):
         limits_map = {
-            "bronze": {"decoder": 3, "fortune": 2, "horoscope": 3, "creative_writer": 3},
-            "silver": {"decoder": 15, "fortune": 8, "horoscope": 10, "creative_writer": 30},
+            "bronze": {"decoder": 3, "fortune": 3, "horoscope": 3, "creative_writer": 3},
+            "silver": {"decoder": 15, "fortune": 15, "horoscope": 10, "creative_writer": 30},
             "gold": {"decoder": 999, "fortune": 999, "horoscope": 999, "creative_writer": 999}
         }
         return limits_map.get(tier_name, limits_map["bronze"]).get(feature, 0)
@@ -8626,8 +8626,8 @@ def check_fortune_limit():
     # Calculate companion-tier limits
     def get_simple_feature_limit(tier_name, feature):
         limits_map = {
-            "bronze": {"decoder": 3, "fortune": 2, "horoscope": 3, "creative_writer": 3},
-            "silver": {"decoder": 15, "fortune": 8, "horoscope": 10, "creative_writer": 30},
+            "bronze": {"decoder": 3, "fortune": 3, "horoscope": 3, "creative_writer": 3},
+            "silver": {"decoder": 15, "fortune": 15, "horoscope": 10, "creative_writer": 30},
             "gold": {"decoder": 999, "fortune": 999, "horoscope": 999, "creative_writer": 999}
         }
         return limits_map.get(tier_name, limits_map["bronze"]).get(feature, 0)
@@ -8664,8 +8664,8 @@ def check_horoscope_limit():
     # Calculate companion-tier limits
     def get_simple_feature_limit(tier_name, feature):
         limits_map = {
-            "bronze": {"decoder": 3, "fortune": 2, "horoscope": 3, "creative_writer": 3},
-            "silver": {"decoder": 15, "fortune": 8, "horoscope": 10, "creative_writer": 30},
+            "bronze": {"decoder": 3, "fortune": 3, "horoscope": 3, "creative_writer": 3},
+            "silver": {"decoder": 15, "fortune": 15, "horoscope": 10, "creative_writer": 30},
             "gold": {"decoder": 999, "fortune": 999, "horoscope": 999, "creative_writer": 999}
         }
         return limits_map.get(tier_name, limits_map["bronze"]).get(feature, 0)
@@ -8730,7 +8730,7 @@ def api_plan_new():
                 "user_plan": "bronze",
                 "trial_active": False,
                 "effective_plan": "bronze",
-                "limits": {"decoder": 3, "fortune": 2, "horoscope": 3},
+                "limits": {"decoder": 3, "fortune": 3, "horoscope": 3},
                 "features": FEATURE_ACCESS["bronze"]
             })
         
@@ -8760,7 +8760,7 @@ def api_plan_new():
             "user_plan": "bronze",
             "trial_active": False,
             "effective_plan": "bronze",
-            "limits": {"decoder": 3, "fortune": 2, "horoscope": 3},
+            "limits": {"decoder": 3, "fortune": 3, "horoscope": 3},
             "features": FEATURE_ACCESS["bronze"]
         }), 500
 
@@ -13255,8 +13255,8 @@ def get_tier_limits():
         def get_simple_feature_limit(tier_name, feature, trial_active):
             """Simple tier limits without external dependencies"""
             limits_map = {
-                "bronze": {"decoder": 3, "fortune": 2, "horoscope": 3, "creative_writer": 3},
-                "silver": {"decoder": 15, "fortune": 8, "horoscope": 10, "creative_writer": 30},
+                "bronze": {"decoder": 3, "fortune": 3, "horoscope": 3, "creative_writer": 3},
+                "silver": {"decoder": 15, "fortune": 15, "horoscope": 10, "creative_writer": 30},
                 "gold": {"decoder": 999, "fortune": 999, "horoscope": 999, "creative_writer": 999}
             }
             return limits_map.get(tier_name, limits_map["bronze"]).get(feature, 0)
@@ -17772,8 +17772,8 @@ def companion_chat_handler(tier, companion_id):
         def get_simple_feature_limit(tier_name, feature, trial_active):
             """Simple tier limits without external dependencies"""
             limits_map = {
-                "bronze": {"decoder": 3, "fortune": 2, "horoscope": 3, "creative_writer": 3},
-                "silver": {"decoder": 15, "fortune": 8, "horoscope": 10, "creative_writer": 30},
+                "bronze": {"decoder": 3, "fortune": 3, "horoscope": 3, "creative_writer": 3},
+                "silver": {"decoder": 15, "fortune": 15, "horoscope": 10, "creative_writer": 30},
                 "gold": {"decoder": 999, "fortune": 999, "horoscope": 999, "creative_writer": 999}
             }
             return limits_map.get(tier_name, limits_map["bronze"]).get(feature, 0)

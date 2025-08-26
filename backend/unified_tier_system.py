@@ -293,8 +293,8 @@ def check_active_subscription(user_id, plan):
 
 # DAILY LIMITS (non-credit features)
 DAILY_LIMITS = {
-    "bronze":  {"decoder": 3,  "fortune": 2,  "horoscope": 3, "creative_writer": 3},    # Bronze tier
-    "silver":  {"decoder": 15, "fortune": 8,  "horoscope": 10, "creative_writer": 30},  # Silver tier  
+    "bronze":  {"decoder": 3,  "fortune": 3,  "horoscope": 3, "creative_writer": 3},    # Bronze tier
+    "silver":  {"decoder": 15, "fortune": 15,  "horoscope": 10, "creative_writer": 30},  # Silver tier  
     "gold":    {"decoder": 999999, "fortune": 999999, "horoscope": 999999, "creative_writer": 999999}  # Gold tier
 }
 
