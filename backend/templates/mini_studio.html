@@ -500,7 +500,29 @@
                                 <option value="female_pop">Female Pop</option>
                                 <option value="male_rock">Male Rock</option>
                                 <option value="choir">Choir</option>
+                                <option value="female_country">Female Country</option>
+                                <option value="male_rap">Male Rap</option>
+                                <option value="female_jazz">Female Jazz</option>
+                                <option value="male_soul">Male Soul</option>
+                                <option value="female_rnb">Female R&B</option>
+                                <option value="male_reggae">Male Reggae</option>
+                                <option value="female_indie">Female Indie</option>
+                                <option value="male_folk">Male Folk</option>
+                                <option value="female_electronic">Female Electronic</option>
+                                <option value="male_latin">Male Latin</option>
+                                <option value="female_opera">Female Opera</option>
+                                <option value="male_blues">Male Blues</option>
+                                <option value="custom">Custom Voice...</option>
                             </select>
+                        </div>
+                        
+                        <!-- Custom Voice Input (hidden by default) -->
+                        <div class="form-group" id="customVoiceGroup" style="display: none;">
+                            <label for="customVoiceInput">Custom Voice Description</label>
+                            <input type="text" id="customVoiceInput" class="form-control" placeholder="e.g. raspy male voice, teenage girl, deep bass voice, etc.">
+                            <small style="color: rgba(255,255,255,0.6); margin-top: 5px; display: block;">
+                                Describe the voice characteristics you want (gender, age, style, tone)
+                            </small>
                         </div>
                         
                         <div class="form-group">
@@ -826,7 +848,17 @@
         async function generateVocals() {
             const button = event.target;
             const lyrics = document.getElementById('vocalLyrics').value.trim();
-            const voice = document.getElementById('vocalVoice').value;
+            let voice = document.getElementById('vocalVoice').value;
+            
+            // Handle custom voice input
+            if (voice === 'custom') {
+                const customVoice = document.getElementById('customVoiceInput').value.trim();
+                if (!customVoice) {
+                    alert('Please enter a custom voice description');
+                    return;
+                }
+                voice = customVoice;
+            }
             const bpm = parseInt(document.getElementById('vocalBPM').value);
             
             if (!lyrics) {
@@ -1387,6 +1419,24 @@
             // Mini Studio initialized
             updateSessionControls();
             console.log('🎵 Mini Studio initialized with session control');
+        });
+        
+        // Voice Model Custom Input Handler
+        document.addEventListener('DOMContentLoaded', function() {
+            const vocalVoiceSelect = document.getElementById('vocalVoice');
+            const customVoiceGroup = document.getElementById('customVoiceGroup');
+            
+            if (vocalVoiceSelect && customVoiceGroup) {
+                vocalVoiceSelect.addEventListener('change', function() {
+                    if (this.value === 'custom') {
+                        customVoiceGroup.style.display = 'block';
+                        // Focus the custom input for better UX
+                        setTimeout(() => document.getElementById('customVoiceInput').focus(), 100);
+                    } else {
+                        customVoiceGroup.style.display = 'none';
+                    }
+                });
+            }
         });
     </script>
 </body>
