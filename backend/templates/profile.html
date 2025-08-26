@@ -1232,40 +1232,105 @@
             <div class="profile-panel">
                 <h2 class="panel-title">🤖 Your Companions</h2>
                 
-                <!-- All Companions Netflix-Style Grid -->
+                <!-- Companion Dropdown Selector -->
                 <div style="margin-top: 0px;">
                     <h3 style="color: #22d3ee; font-size: 1.2rem; margin-bottom: 15px;">🌟 Choose Your Companion</h3>
                     
-                    <!-- Bronze Tier Companions -->
-                    <div class="companion-tier-section">
-                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                            <span style="color: #cd7f32; font-weight: 600; font-size: 1rem;">🥉 Bronze Tier</span>
-                            <span style="color: #94a3b8; font-size: 0.8rem;">Always Available</span>
+                    <!-- Current Selected Companion Display -->
+                    <div class="companion-selector-container" style="position: relative;">
+                        <div class="selected-companion-display" 
+                             id="selectedCompanionDisplay"
+                             onclick="toggleCompanionDropdown()" 
+                             style="
+                                 display: flex; 
+                                 align-items: center; 
+                                 padding: 15px 20px; 
+                                 background: rgba(34, 211, 238, 0.1); 
+                                 border: 2px solid rgba(34, 211, 238, 0.3); 
+                                 border-radius: 12px; 
+                                 cursor: pointer; 
+                                 transition: all 0.3s ease;
+                                 margin-bottom: 15px;
+                             "
+                             onmouseover="this.style.borderColor='rgba(34, 211, 238, 0.6)'; this.style.background='rgba(34, 211, 238, 0.15)'"
+                             onmouseout="this.style.borderColor='rgba(34, 211, 238, 0.3)'; this.style.background='rgba(34, 211, 238, 0.1)'">
+                            
+                            <div class="selected-companion-avatar" style="position: relative; margin-right: 15px;">
+                                <img id="selectedCompanionImage" 
+                                     style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid #22d3ee;" 
+                                     alt="Selected Companion"
+                                     onerror="this.style.display='none'; document.getElementById('selectedCompanionAvatar').style.display='flex';">
+                                <div id="selectedCompanionAvatar" 
+                                     style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, #22d3ee, #0891b2); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: bold; color: #000;">
+                                     B
+                                </div>
+                            </div>
+                            
+                            <div class="selected-companion-info" style="flex: 1;">
+                                <div id="selectedCompanionName" style="color: #22d3ee; font-size: 1.1rem; font-weight: 600; margin-bottom: 4px;">
+                                    Blayzo
+                                </div>
+                                <div id="selectedCompanionDescription" style="color: rgba(255, 255, 255, 0.7); font-size: 0.9rem;">
+                                    Wise and calm mentor for thoughtful guidance
+                                </div>
+                            </div>
+                            
+                            <div class="dropdown-arrow" style="color: #22d3ee; font-size: 1.2rem; margin-left: 10px; transition: transform 0.3s ease;">
+                                ▼
+                            </div>
                         </div>
-                        <div class="companions-grid" id="bronzeCompanions" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; margin-bottom: 25px;">
-                            <!-- Bronze companions will be populated here -->
-                        </div>
-                    </div>
 
-                    <!-- Silver Tier Companions -->
-                    <div class="companion-tier-section">
-                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                            <span style="color: #c0c0c0; font-weight: 600; font-size: 1rem;">🥈 Silver Tier</span>
-                            <span style="color: #94a3b8; font-size: 0.8rem;" id="silverTierStatus">Requires Silver Plan</span>
-                        </div>
-                        <div class="companions-grid" id="silverCompanions" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; margin-bottom: 25px;">
-                            <!-- Silver companions will be populated here -->
-                        </div>
-                    </div>
+                        <!-- Companion Dropdown Menu -->
+                        <div class="companion-dropdown" 
+                             id="companionDropdown"
+                             style="
+                                 position: absolute;
+                                 top: 100%;
+                                 left: 0;
+                                 right: 0;
+                                 background: rgba(15, 23, 42, 0.95);
+                                 border: 2px solid rgba(34, 211, 238, 0.3);
+                                 border-radius: 12px;
+                                 backdrop-filter: blur(10px);
+                                 box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+                                 z-index: 1000;
+                                 display: none;
+                                 max-height: 400px;
+                                 overflow-y: auto;
+                             ">
+                            
+                            <!-- Bronze Tier Section -->
+                            <div class="tier-section">
+                                <div style="padding: 15px 20px 10px 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+                                    <span style="color: #cd7f32; font-weight: 600; font-size: 0.9rem;">🥉 Bronze Tier</span>
+                                    <span style="color: #94a3b8; font-size: 0.8rem; margin-left: 10px;">Always Available</span>
+                                </div>
+                                <div id="bronzeCompanionsDropdown" class="companions-dropdown-list">
+                                    <!-- Bronze companions will be populated here -->
+                                </div>
+                            </div>
 
-                    <!-- Gold Tier Companions -->
-                    <div class="companion-tier-section">
-                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                            <span style="color: #ffd700; font-weight: 600; font-size: 1rem;">🥇 Gold Tier</span>
-                            <span style="color: #94a3b8; font-size: 0.8rem;" id="goldTierStatus">Requires Gold Plan</span>
-                        </div>
-                        <div class="companions-grid" id="goldCompanions" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px;">
-                            <!-- Gold companions will be populated here -->
+                            <!-- Silver Tier Section -->
+                            <div class="tier-section">
+                                <div style="padding: 15px 20px 10px 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+                                    <span style="color: #c0c0c0; font-weight: 600; font-size: 0.9rem;">🥈 Silver Tier</span>
+                                    <span id="silverTierStatusDropdown" style="color: #94a3b8; font-size: 0.8rem; margin-left: 10px;">Requires Silver Plan</span>
+                                </div>
+                                <div id="silverCompanionsDropdown" class="companions-dropdown-list">
+                                    <!-- Silver companions will be populated here -->
+                                </div>
+                            </div>
+
+                            <!-- Gold Tier Section -->
+                            <div class="tier-section">
+                                <div style="padding: 15px 20px 10px 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+                                    <span style="color: #ffd700; font-weight: 600; font-size: 0.9rem;">🥇 Gold Tier</span>
+                                    <span id="goldTierStatusDropdown" style="color: #94a3b8; font-size: 0.8rem; margin-left: 10px;">Requires Gold Plan</span>
+                                </div>
+                                <div id="goldCompanionsDropdown" class="companions-dropdown-list">
+                                    <!-- Gold companions will be populated here -->
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -3222,7 +3287,7 @@
             console.log(`🤖 Current companion: ${info.name} - ${info.description}`);
         }
 
-        // Populate companion grids with Netflix-style cards
+        // Populate companion dropdown with community-style avatars
         function populateCompanionGrids(userTier, currentCompanion, trialActive) {
             const companionData = {
                 // Bronze tier companions
@@ -3295,18 +3360,21 @@
             const hasSilverAccess = hasGoldAccess || userTier === 'silver';
             
             // Update tier status displays
-            document.getElementById('silverTierStatus').textContent = 
-                hasSilverAccess ? 'Unlocked' : 'Requires Silver Plan';
-            document.getElementById('goldTierStatus').textContent = 
-                hasGoldAccess ? 'Unlocked' : 'Requires Gold Plan';
+            const silverStatusEl = document.getElementById('silverTierStatusDropdown');
+            const goldStatusEl = document.getElementById('goldTierStatusDropdown');
+            if (silverStatusEl) silverStatusEl.textContent = hasSilverAccess ? 'Unlocked' : 'Requires Silver Plan';
+            if (goldStatusEl) goldStatusEl.textContent = hasGoldAccess ? 'Unlocked' : 'Requires Gold Plan';
 
-            // Populate each tier grid
-            populateTierGrid('bronzeCompanions', companionData.bronze, true, currentCompanion);
-            populateTierGrid('silverCompanions', companionData.silver, hasSilverAccess, currentCompanion);
-            populateTierGrid('goldCompanions', companionData.gold, hasGoldAccess, currentCompanion);
+            // Populate each tier dropdown
+            populateTierDropdown('bronzeCompanionsDropdown', companionData.bronze, true, currentCompanion);
+            populateTierDropdown('silverCompanionsDropdown', companionData.silver, hasSilverAccess, currentCompanion);
+            populateTierDropdown('goldCompanionsDropdown', companionData.gold, hasGoldAccess, currentCompanion);
+
+            // Update selected companion display
+            updateSelectedCompanionDisplay(currentCompanion);
         }
 
-        function populateTierGrid(containerId, companions, hasAccess, currentCompanion) {
+        function populateTierDropdown(containerId, companions, hasAccess, currentCompanion) {
             const container = document.getElementById(containerId);
             if (!container) return;
 
@@ -3317,62 +3385,148 @@
                     (currentCompanion === companion.id || currentCompanion === companion.name.toLowerCase());
                 const isLocked = !hasAccess;
 
-                const card = document.createElement('div');
-                card.className = `companion-card ${isSelected ? 'selected' : ''} ${isLocked ? 'locked' : ''}`;
-                card.onclick = () => selectCompanion(companion.id, companion.name, isLocked);
-
-                card.innerHTML = `
-                    <div class="companion-card-status">${companion.status}</div>
-                    
-                    <img class="companion-card-image" 
-                         src="${companion.image}" 
-                         alt="${companion.name}"
-                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                    
-                    <div class="companion-card-avatar" style="display: none;">
-                        ${companion.avatar}
-                    </div>
-                    
-                    <div class="companion-card-name">${companion.name}</div>
-                    <div class="companion-card-bio">${companion.bio}</div>
-
-                    ${isLocked ? `
-                        <div class="companion-lock-overlay">
-                            <div class="companion-lock-icon">🔒</div>
-                            <div class="companion-lock-text">Upgrade to unlock</div>
-                        </div>
-                    ` : ''}
+                const item = document.createElement('div');
+                item.className = `companion-dropdown-item ${isSelected ? 'selected' : ''} ${isLocked ? 'locked' : ''}`;
+                item.style.cssText = `
+                    display: flex;
+                    align-items: center;
+                    padding: 12px 20px;
+                    cursor: ${isLocked ? 'not-allowed' : 'pointer'};
+                    transition: background 0.3s ease;
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+                    opacity: ${isLocked ? '0.6' : '1'};
                 `;
 
-                container.appendChild(card);
+                if (!isLocked) {
+                    item.onmouseover = () => item.style.background = 'rgba(34, 211, 238, 0.1)';
+                    item.onmouseout = () => item.style.background = 'transparent';
+                    item.onclick = () => selectCompanionFromDropdown(companion.id, companion.name, companion);
+                } else {
+                    item.onclick = () => {
+                        if (confirm(`${companion.name} requires a premium plan. Would you like to upgrade?`)) {
+                            window.location.href = '/subscription';
+                        }
+                    };
+                }
+
+                item.innerHTML = `
+                    <div style="position: relative; margin-right: 15px;">
+                        <img src="${companion.image}" 
+                             alt="${companion.name}"
+                             style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid ${isLocked ? 'rgba(255,255,255,0.3)' : '#22d3ee'};"
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #22d3ee, #0891b2); display: none; align-items: center; justify-content: center; font-size: 1rem; font-weight: bold; color: #000;">
+                            ${companion.avatar}
+                        </div>
+                        ${isLocked ? '<div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 1.2rem;">🔒</div>' : ''}
+                    </div>
+                    
+                    <div style="flex: 1;">
+                        <div style="color: ${isLocked ? 'rgba(255,255,255,0.5)' : '#22d3ee'}; font-size: 1rem; font-weight: 600; margin-bottom: 2px;">
+                            ${companion.name}
+                        </div>
+                        <div style="color: ${isLocked ? 'rgba(255,255,255,0.3)' : 'rgba(255, 255, 255, 0.7)'}; font-size: 0.8rem;">
+                            ${companion.bio}
+                        </div>
+                    </div>
+                    
+                    ${isSelected ? '<div style="color: #22d3ee; font-size: 1.2rem; margin-left: 10px;">✓</div>' : ''}
+                `;
+
+                container.appendChild(item);
             });
         }
 
-        // Handle companion selection
-        function selectCompanion(companionId, companionName, isLocked) {
-            if (isLocked) {
-                // Show upgrade modal or redirect to subscription page
-                if (confirm(`${companionName} requires a premium plan. Would you like to upgrade?`)) {
-                    window.location.href = '/subscription';
-                }
-                return;
+        // Toggle dropdown visibility
+        function toggleCompanionDropdown() {
+            const dropdown = document.getElementById('companionDropdown');
+            const arrow = document.querySelector('.dropdown-arrow');
+            
+            if (dropdown.style.display === 'none' || dropdown.style.display === '') {
+                dropdown.style.display = 'block';
+                if (arrow) arrow.style.transform = 'rotate(180deg)';
+            } else {
+                dropdown.style.display = 'none';
+                if (arrow) arrow.style.transform = 'rotate(0deg)';
             }
+        }
 
-            // Update current companion display
+        // Handle companion selection from dropdown
+        function selectCompanionFromDropdown(companionId, companionName, companionData) {
+            // Update selected companion display
+            updateSelectedCompanionDisplay(companionName, companionData);
+            
+            // Update current companion display (for other parts of the app)
             updateCompanionDisplay(companionName);
             
-            // Update visual selection
-            document.querySelectorAll('.companion-card').forEach(card => {
-                card.classList.remove('selected');
-            });
-            event.target.closest('.companion-card').classList.add('selected');
-
-            // Here you would normally save the selection to the backend
-            console.log('🤖 Selected companion:', companionId, companionName);
+            // Close dropdown
+            const dropdown = document.getElementById('companionDropdown');
+            const arrow = document.querySelector('.dropdown-arrow');
+            dropdown.style.display = 'none';
+            if (arrow) arrow.style.transform = 'rotate(0deg)';
             
-            // For now, just show a success message
+            // Save selection and show notification
+            localStorage.setItem('lastUsedCompanion', companionName);
+            console.log('🤖 Selected companion:', companionId, companionName);
             showNotification(`Selected ${companionName} as your companion!`, 'success');
         }
+
+        // Update the selected companion display in the dropdown header
+        function updateSelectedCompanionDisplay(companionName, companionData = null) {
+            // Get companion data if not provided
+            if (!companionData) {
+                const allCompanions = [
+                    ...companionData?.bronze || [],
+                    ...companionData?.silver || [],
+                    ...companionData?.gold || []
+                ];
+                companionData = allCompanions.find(c => 
+                    c.name.toLowerCase() === companionName?.toLowerCase() || 
+                    c.id === companionName
+                );
+            }
+
+            // Fallback data
+            if (!companionData) {
+                companionData = {
+                    name: 'Blayzo',
+                    avatar: 'B',
+                    bio: 'Wise and calm mentor for thoughtful guidance',
+                    image: '/static/logos/blayzo.png'
+                };
+            }
+
+            // Update display elements
+            const nameEl = document.getElementById('selectedCompanionName');
+            const descEl = document.getElementById('selectedCompanionDescription');
+            const imageEl = document.getElementById('selectedCompanionImage');
+            const avatarEl = document.getElementById('selectedCompanionAvatar');
+
+            if (nameEl) nameEl.textContent = companionData.name;
+            if (descEl) descEl.textContent = companionData.bio;
+            
+            if (imageEl && companionData.image) {
+                imageEl.src = companionData.image;
+                imageEl.style.display = 'block';
+                if (avatarEl) avatarEl.style.display = 'none';
+            } else if (avatarEl) {
+                avatarEl.style.display = 'flex';
+                avatarEl.textContent = companionData.avatar;
+                if (imageEl) imageEl.style.display = 'none';
+            }
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('companionDropdown');
+            const selector = document.getElementById('selectedCompanionDisplay');
+            
+            if (dropdown && selector && !selector.contains(event.target) && !dropdown.contains(event.target)) {
+                dropdown.style.display = 'none';
+                const arrow = document.querySelector('.dropdown-arrow');
+                if (arrow) arrow.style.transform = 'rotate(0deg)';
+            }
+        });
 
         // Simple notification system
         function showNotification(message, type = 'info') {
