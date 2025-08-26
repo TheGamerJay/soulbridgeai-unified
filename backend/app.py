@@ -124,7 +124,7 @@ def get_fortune_effective_plan(user_plan: str, trial_active: bool) -> str:
     return plan
 
 def get_fortune_feature_limit(plan: str, feature: str):
-    return FORTUNE_TIER_LIMITS.get(plan, {}).get(feature, 0)
+    return FORTUNE_TIER_LIMITS.get(plan, {}).get(feature)
 
 # Configure logging first
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -8819,6 +8819,39 @@ def dev_set_plan_block_i(p):
     model = _resolve_model_for(effective_plan)
     return jsonify({"ok": True, "plan": p, "effective_plan": effective_plan, "model": model})
 # ===== End Block I =====
+
+# ===== Dev: Reset fortune usage for today =====
+# ⚠️ Dev-only: do not expose in production without guard
+@app.route("/api/dev/reset-fortune-today")
+def dev_reset_fortune_today():
+    uid = session.get("user_id")
+    if not uid:
+        return {"ok": False, "error": "AUTH_REQUIRED"}, 401
+
+    try:
+        # If your unified tier system provides a helper to clear usage:
+        from unified_tier_system import clear_fortune_usage_today  # type: ignore
+        cleared = clear_fortune_usage_today(uid)
+    except Exception:
+        # Fallback: if usage is session-based, clear the key here
+        # Look for fortune usage keys in session and remove them
+        today = datetime.now().strftime('%Y-%m-%d')
+        companion_id = session.get('selected_companion', 'default')
+        usage_key = f'fortune_usage_{uid}_{companion_id}_{today}'
+        
+        # Clear session-based usage
+        if usage_key in session:
+            session.pop(usage_key, None)
+            cleared = True
+        else:
+            # Also clear any general fortune usage keys
+            fortune_keys = [k for k in session.keys() if 'fortune_usage' in k and str(uid) in k and today in k]
+            for key in fortune_keys:
+                session.pop(key, None)
+            cleared = len(fortune_keys) > 0
+
+    return {"ok": True, "cleared": bool(cleared), "user_id": uid}
+# ===== End Reset Endpoint =====
 
 # Old dev endpoints removed - using better Block I version above
 
