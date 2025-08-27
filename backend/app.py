@@ -867,8 +867,16 @@ def create_companion_routes():
                 # Get effective plan for feature access
                 effective_plan = get_effective_plan(user_plan, trial_active)
                 
-                # Render chat template
-                return render_template("chat.html",
+                # Use tier-specific templates for consistent theme systems
+                template_map = {
+                    'bronze': 'bronze_chat.html',
+                    'silver': 'silver_chat.html', 
+                    'gold': 'gold_chat.html'
+                }
+                template_name = template_map.get(comp_tier, 'bronze_chat.html')
+                
+                # Render tier-specific chat template
+                return render_template(template_name,
                     companion=comp_id,
                     companion_display_name=f"{comp_name} {comp_tier.title()}",
                     companion_avatar=comp_avatar,
@@ -18763,7 +18771,16 @@ def companion_chat_handler(tier, companion_id):
         
         logger.info(f"🎨 RENDERING: tier={tier}, companion={companion_info['name']}, limits={limits}")
         
-        return render_template("chat.html",
+        # Use tier-specific templates for consistent theme systems
+        template_map = {
+            'bronze': 'bronze_chat.html',
+            'silver': 'silver_chat.html', 
+            'gold': 'gold_chat.html'
+        }
+        template_name = template_map.get(tier, 'bronze_chat.html')
+        logger.info(f"🎯 TEMPLATE: Using {template_name} for tier {tier}")
+        
+        return render_template(template_name,
             companion=companion_id,
             companion_display_name=f"{companion_info['name']} {tier.title()}",
             companion_avatar=companion_info['image_url'],
