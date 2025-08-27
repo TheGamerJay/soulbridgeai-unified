@@ -187,8 +187,16 @@ def get_artistic_time(user_id: int) -> int:
     try:
         db = get_database()
         if not db:
-            logger.error(f"No database connection for artistic time user {user_id}")
-            return 0
+            # Fallback: Try database_utils connection
+            try:
+                from database_utils import get_database as get_db_fallback
+                db = get_db_fallback()
+                if not db:
+                    logger.error(f"No database connection for artistic time user {user_id} (fallback also failed)")
+                    return 0
+            except Exception as e:
+                logger.error(f"Database fallback failed for user {user_id}: {e}")
+                return 0
         
         # Ensure user data is properly initialized
         if not ensure_user_data_initialized(user_id, db):
