@@ -164,68 +164,131 @@
             </div>
         </div>
         
-        <!-- Theme Selector Panel (Silver/Gold/Trial users) -->
+        <!-- Enhanced Theme Customization Panel (Silver/Gold/Trial users) -->
         {% if companion_tier == 'silver' or companion_tier == 'gold' or session.get('trial_active') %}
-        <div id="themeSelector" class="theme-selector-panel" style="display: none; position: absolute; top: 80px; right: 20px; z-index: 1000;">
-            {% if companion_tier == 'gold' or session.get('trial_active') %}
-            <!-- Gold/Trial Theme Options -->
-            <h4>Choose Your Gold Theme</h4>
-            <div class="theme-options gold-themes">
-                <div class="theme-option" data-theme="default" style="background: linear-gradient(135deg, #ffd700, #ffb347);">
-                    <span>Classic Gold</span>
+        <div id="themeSelector" class="enhanced-theme-panel" style="display: none;">
+            <div class="theme-panel-header">
+                <h3>🎨 {% if companion_tier == 'gold' or session.get('trial_active') %}Premium{% else %}Silver{% endif %} Theme Customization</h3>
+                <button class="theme-close-btn" onclick="toggleThemeSelector()">×</button>
+            </div>
+            
+            <!-- Background Color Section -->
+            <div class="theme-section">
+                <div class="section-header">
+                    <i class="fas fa-image"></i>
+                    <h4>Background Colors</h4>
                 </div>
-                <div class="theme-option" data-theme="royal" style="background: linear-gradient(135deg, #4b0082, #8b00ff);">
-                    <span>Royal Purple</span>
-                </div>
-                <div class="theme-option" data-theme="emerald" style="background: linear-gradient(135deg, #50c878, #228b22);">
-                    <span>Emerald Green</span>
-                </div>
-                <div class="theme-option" data-theme="sapphire" style="background: linear-gradient(135deg, #0f52ba, #4169e1);">
-                    <span>Sapphire Blue</span>
-                </div>
-                <div class="theme-option" data-theme="ruby" style="background: linear-gradient(135deg, #e0115f, #dc143c);">
-                    <span>Ruby Red</span>
-                </div>
-                <div class="theme-option" data-theme="platinum" style="background: linear-gradient(135deg, #e5e4e2, #c0c0c0);">
-                    <span>Platinum Silver</span>
-                </div>
-                <div class="theme-option" data-theme="cosmic" style="background: linear-gradient(135deg, #483d8b, #9932cc, #ff1493);">
-                    <span>Cosmic Aurora</span>
-                </div>
-                <div class="theme-option" data-theme="sunset" style="background: linear-gradient(135deg, #ff4500, #ff8c00, #ffd700);">
-                    <span>Sunset Glow</span>
-                </div>
-                <div class="theme-option" data-theme="ocean" style="background: linear-gradient(135deg, #008b8b, #20b2aa, #40e0d0);">
-                    <span>Deep Ocean</span>
-                </div>
-                <div class="theme-option" data-theme="forest" style="background: linear-gradient(135deg, #228b22, #32cd32, #90ee90);">
-                    <span>Mystic Forest</span>
+                <div class="color-grid background-colors">
+                    {% if companion_tier == 'gold' or session.get('trial_active') %}
+                    <!-- Gold Background Options -->
+                    <div class="color-option" data-type="background" data-value="linear-gradient(135deg, #ffd700, #ffb347)" title="Classic Gold">
+                        <div class="color-preview" style="background: linear-gradient(135deg, #ffd700, #ffb347);"></div>
+                        <span>Classic Gold</span>
+                    </div>
+                    <div class="color-option" data-type="background" data-value="linear-gradient(135deg, #1a0033, #2d1b69)" title="Royal Purple">
+                        <div class="color-preview" style="background: linear-gradient(135deg, #1a0033, #2d1b69);"></div>
+                        <span>Royal Purple</span>
+                    </div>
+                    <div class="color-option" data-type="background" data-value="linear-gradient(135deg, #0d2818, #1a5a3e)" title="Emerald Green">
+                        <div class="color-preview" style="background: linear-gradient(135deg, #0d2818, #1a5a3e);"></div>
+                        <span>Emerald</span>
+                    </div>
+                    <div class="color-option" data-type="background" data-value="linear-gradient(135deg, #0a1a33, #1a3a6b)" title="Sapphire Blue">
+                        <div class="color-preview" style="background: linear-gradient(135deg, #0a1a33, #1a3a6b);"></div>
+                        <span>Sapphire</span>
+                    </div>
+                    <div class="color-option" data-type="background" data-value="linear-gradient(135deg, #330a1a, #6b1a3a)" title="Ruby Red">
+                        <div class="color-preview" style="background: linear-gradient(135deg, #330a1a, #6b1a3a);"></div>
+                        <span>Ruby</span>
+                    </div>
+                    <div class="color-option" data-type="background" data-value="linear-gradient(135deg, #0a0a0a, #1a1a2e, #16213e)" title="Cosmic Dark">
+                        <div class="color-preview" style="background: linear-gradient(135deg, #0a0a0a, #1a1a2e, #16213e);"></div>
+                        <span>Cosmic</span>
+                    </div>
+                    {% else %}
+                    <!-- Silver Background Options -->
+                    <div class="color-option" data-type="background" data-value="linear-gradient(135deg, #0a1a33, #1a3a6b)" title="Ocean Blue">
+                        <div class="color-preview" style="background: linear-gradient(135deg, #0a1a33, #1a3a6b);"></div>
+                        <span>Ocean</span>
+                    </div>
+                    <div class="color-option" data-type="background" data-value="linear-gradient(135deg, #1a0033, #2d1b69)" title="Purple Night">
+                        <div class="color-preview" style="background: linear-gradient(135deg, #1a0033, #2d1b69);"></div>
+                        <span>Purple</span>
+                    </div>
+                    <div class="color-option" data-type="background" data-value="linear-gradient(135deg, #0d2818, #1a5a3e)" title="Forest Green">
+                        <div class="color-preview" style="background: linear-gradient(135deg, #0d2818, #1a5a3e);"></div>
+                        <span>Forest</span>
+                    </div>
+                    <div class="color-option" data-type="background" data-value="linear-gradient(135deg, #330a1a, #6b1a3a)" title="Crimson">
+                        <div class="color-preview" style="background: linear-gradient(135deg, #330a1a, #6b1a3a);"></div>
+                        <span>Crimson</span>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
-            {% else %}
-            <!-- Silver Theme Options -->
-            <h4>Choose Your Theme</h4>
-            <div class="theme-options">
-                <div class="theme-option" data-theme="default" style="background: linear-gradient(135deg, #00ffff, #0099cc);">
-                    <span>Default Cyan</span>
+            
+            <!-- Text Color Section -->
+            <div class="theme-section">
+                <div class="section-header">
+                    <i class="fas fa-font"></i>
+                    <h4>Text Colors</h4>
                 </div>
-                <div class="theme-option" data-theme="purple" style="background: linear-gradient(135deg, #a855f7, #7c3aed);">
-                    <span>Royal Purple</span>
-                </div>
-                <div class="theme-option" data-theme="green" style="background: linear-gradient(135deg, #10b981, #059669);">
-                    <span>Forest Green</span>
-                </div>
-                <div class="theme-option" data-theme="orange" style="background: linear-gradient(135deg, #f97316, #ea580c);">
-                    <span>Sunset Orange</span>
-                </div>
-                <div class="theme-option" data-theme="pink" style="background: linear-gradient(135deg, #ec4899, #db2777);">
-                    <span>Rose Pink</span>
-                </div>
-                <div class="theme-option" data-theme="blue" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">
-                    <span>Ocean Blue</span>
+                <div class="color-grid text-colors">
+                    <!-- Universal Text Colors -->
+                    <div class="color-option" data-type="text" data-value="#ffffff" title="Pure White">
+                        <div class="color-preview" style="background: #ffffff;"></div>
+                        <span>White</span>
+                    </div>
+                    <div class="color-option" data-type="text" data-value="#00ffff" title="Cyan">
+                        <div class="color-preview" style="background: #00ffff;"></div>
+                        <span>Cyan</span>
+                    </div>
+                    <div class="color-option" data-type="text" data-value="#ffd700" title="Gold">
+                        <div class="color-preview" style="background: #ffd700;"></div>
+                        <span>Gold</span>
+                    </div>
+                    <div class="color-option" data-type="text" data-value="#ff69b4" title="Hot Pink">
+                        <div class="color-preview" style="background: #ff69b4;"></div>
+                        <span>Pink</span>
+                    </div>
+                    <div class="color-option" data-type="text" data-value="#98fb98" title="Pale Green">
+                        <div class="color-preview" style="background: #98fb98;"></div>
+                        <span>Green</span>
+                    </div>
+                    <div class="color-option" data-type="text" data-value="#dda0dd" title="Plum">
+                        <div class="color-preview" style="background: #dda0dd;"></div>
+                        <span>Purple</span>
+                    </div>
+                    {% if companion_tier == 'gold' or session.get('trial_active') %}
+                    <!-- Additional Gold Text Colors -->
+                    <div class="color-option" data-type="text" data-value="#ff6347" title="Tomato">
+                        <div class="color-preview" style="background: #ff6347;"></div>
+                        <span>Coral</span>
+                    </div>
+                    <div class="color-option" data-type="text" data-value="#40e0d0" title="Turquoise">
+                        <div class="color-preview" style="background: #40e0d0;"></div>
+                        <span>Turquoise</span>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
-            {% endif %}
+            
+            <!-- Quick Presets Section -->
+            <div class="theme-section">
+                <div class="section-header">
+                    <i class="fas fa-magic"></i>
+                    <h4>Quick Presets</h4>
+                </div>
+                <div class="preset-buttons">
+                    <button class="preset-btn" data-preset="default">🌊 Ocean Default</button>
+                    <button class="preset-btn" data-preset="dark">🌙 Midnight Dark</button>
+                    <button class="preset-btn" data-preset="warm">🔥 Warm Sunset</button>
+                    {% if companion_tier == 'gold' or session.get('trial_active') %}
+                    <button class="preset-btn" data-preset="gold">👑 Royal Gold</button>
+                    <button class="preset-btn" data-preset="cosmic">✨ Cosmic Aurora</button>
+                    {% endif %}
+                </div>
+            </div>
         </div>
         {% endif %}
         
@@ -2672,80 +2735,127 @@ Where emotion meets expression.
         setInterval(refreshUserStatus, 15000); // Refresh every 15 seconds (less aggressive)  
         refreshUserStatus(); // Run once on load
         
-        // Theme Selector Functions
+        // Enhanced Theme System Functions
         function toggleThemeSelector() {
             const panel = document.getElementById('themeSelector');
             if (panel) {
-                panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+                const isVisible = panel.style.display !== 'none';
+                panel.style.display = isVisible ? 'none' : 'block';
+                
+                // Add tier-specific styling to panel
+                const isGold = {% if companion_tier == 'gold' or session.get('trial_active') %}true{% else %}false{% endif %};
+                if (isGold) {
+                    panel.classList.add('gold-tier');
+                }
             }
         }
         
-        // Apply theme function for both Silver and Gold
-        function applyTheme(theme, tierType) {
-            const body = document.body;
+        // Apply background color
+        function applyBackgroundColor(gradientValue) {
+            document.body.style.background = gradientValue;
+            localStorage.setItem('customBackground', gradientValue);
+        }
+        
+        // Apply text color
+        function applyTextColor(colorValue) {
+            document.documentElement.style.setProperty('--text-color', colorValue);
+            document.body.style.color = colorValue;
             
-            if (tierType === 'gold') {
-                // Remove existing Gold theme classes
-                body.classList.remove('theme-royal', 'theme-emerald', 'theme-sapphire', 'theme-ruby', 
-                                   'theme-platinum', 'theme-cosmic', 'theme-sunset', 'theme-ocean', 'theme-forest');
-                
-                // Apply new Gold theme class
-                if (theme !== 'default') {
-                    body.classList.add(`theme-${theme}`);
+            // Update specific text elements
+            const textElements = document.querySelectorAll('h1, h2, h3, h4, p, span, .message-content, .character-details');
+            textElements.forEach(el => {
+                el.style.color = colorValue;
+            });
+            
+            localStorage.setItem('customTextColor', colorValue);
+        }
+        
+        // Quick preset themes
+        function applyPreset(preset) {
+            const presets = {
+                'default': {
+                    background: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%)',
+                    text: '#ffffff'
+                },
+                'dark': {
+                    background: 'linear-gradient(135deg, #000000, #1a1a1a)',
+                    text: '#e0e0e0'
+                },
+                'warm': {
+                    background: 'linear-gradient(135deg, #1a0f00, #3d2200, #5a3300)',
+                    text: '#ffb347'
+                },
+                'gold': {
+                    background: 'linear-gradient(135deg, #ffd700, #ffb347)',
+                    text: '#000000'
+                },
+                'cosmic': {
+                    background: 'linear-gradient(135deg, #0a0a0a, #1a1a2e, #16213e)',
+                    text: '#00ffff'
                 }
-                
-                // Save Gold theme
-                localStorage.setItem('goldTheme', theme);
-            } else {
-                // Silver theme handling
-                body.classList.remove('theme-purple', 'theme-green', 'theme-orange', 'theme-pink', 'theme-blue');
-                
-                if (theme !== 'default') {
-                    body.classList.add(`theme-${theme}`);
-                }
-                
-                // Save Silver theme
-                localStorage.setItem('silverTheme', theme);
+            };
+            
+            if (presets[preset]) {
+                applyBackgroundColor(presets[preset].background);
+                applyTextColor(presets[preset].text);
             }
         }
         
-        // Load saved theme on page load
+        // Initialize enhanced theme system
         document.addEventListener('DOMContentLoaded', function() {
-            // Load saved themes
-            const savedGoldTheme = localStorage.getItem('goldTheme');
-            const savedSilverTheme = localStorage.getItem('silverTheme');
+            // Load saved customizations
+            const savedBackground = localStorage.getItem('customBackground');
+            const savedTextColor = localStorage.getItem('customTextColor');
             
-            {% if companion_tier == 'gold' or session.get('trial_active') %}
-            if (savedGoldTheme) {
-                applyTheme(savedGoldTheme, 'gold');
+            if (savedBackground) {
+                applyBackgroundColor(savedBackground);
             }
-            {% elif companion_tier == 'silver' %}
-            if (savedSilverTheme) {
-                applyTheme(savedSilverTheme, 'silver');
+            if (savedTextColor) {
+                applyTextColor(savedTextColor);
             }
-            {% endif %}
             
-            // Add click listeners to theme options
-            document.querySelectorAll('.theme-option').forEach(option => {
+            // Background color options
+            document.querySelectorAll('.color-option[data-type="background"]').forEach(option => {
                 option.addEventListener('click', function() {
-                    const theme = this.getAttribute('data-theme');
-                    const isGold = {% if companion_tier == 'gold' or session.get('trial_active') %}true{% else %}false{% endif %};
-                    
-                    applyTheme(theme, isGold ? 'gold' : 'silver');
-                    
-                    // Close theme selector
-                    document.getElementById('themeSelector').style.display = 'none';
+                    const bgValue = this.getAttribute('data-value');
+                    applyBackgroundColor(bgValue);
                     
                     // Visual feedback
-                    document.querySelectorAll('.theme-option').forEach(opt => opt.classList.remove('selected'));
+                    document.querySelectorAll('.background-colors .color-option').forEach(opt => 
+                        opt.classList.remove('selected'));
                     this.classList.add('selected');
+                });
+            });
+            
+            // Text color options
+            document.querySelectorAll('.color-option[data-type="text"]').forEach(option => {
+                option.addEventListener('click', function() {
+                    const textValue = this.getAttribute('data-value');
+                    applyTextColor(textValue);
+                    
+                    // Visual feedback
+                    document.querySelectorAll('.text-colors .color-option').forEach(opt => 
+                        opt.classList.remove('selected'));
+                    this.classList.add('selected');
+                });
+            });
+            
+            // Preset buttons
+            document.querySelectorAll('.preset-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const preset = this.getAttribute('data-preset');
+                    applyPreset(preset);
+                    
+                    // Clear selections
+                    document.querySelectorAll('.color-option').forEach(opt => 
+                        opt.classList.remove('selected'));
                 });
             });
         });
         
-        // Close theme selector when clicking outside
+        // Close theme panel when clicking outside
         document.addEventListener('click', function(event) {
-            const container = event.target.closest('.theme-selector-panel, .theme-selector-btn');
+            const container = event.target.closest('.enhanced-theme-panel, .theme-selector-btn');
             const panel = document.getElementById('themeSelector');
             
             if (!container && panel && panel.style.display === 'block') {
