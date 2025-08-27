@@ -40,11 +40,11 @@
                 <span class="usage-counter" id="horoscopeLimit">{{ limits.horoscope if limits.horoscope != 999 else '∞' }}/day</span>
             </a>
             
-            <button onclick="openCreativeWriting();" class="action-btn bronze-feature" data-feature="creative_writer">
+            <a href="/creative-writing" class="action-btn bronze-feature" data-feature="creative_writer">
                 <i class="fas fa-pen"></i>
                 ✍️ Creative Writer
                 <span class="usage-counter" id="creativeLimit">{{ limits.creative_writer if limits.creative_writer != 999 else '∞' }}/day</span>
-            </button>
+            </a>
             
             <!-- UPGRADE PROMPT -->
             <div class="upgrade-section">

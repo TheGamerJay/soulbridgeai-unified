@@ -2822,21 +2822,22 @@ def user_info():
                 cursor = conn.cursor()
                 
                 if db_instance.use_postgres:
-                    cursor.execute("SELECT decoder_used, fortune_used, horoscope_used FROM users WHERE id = %s", (user_id,))
+                    cursor.execute("SELECT decoder_used, fortune_used, horoscope_used, creative_writer_used FROM users WHERE id = %s", (user_id,))
                 else:
-                    cursor.execute("SELECT decoder_used, fortune_used, horoscope_used FROM users WHERE id = ?", (user_id,))
+                    cursor.execute("SELECT decoder_used, fortune_used, horoscope_used, creative_writer_used FROM users WHERE id = ?", (user_id,))
                 
                 result = cursor.fetchone()
                 if result:
                     usage_counts = {
                         "decoder": result[0] or 0,
                         "fortune": result[1] or 0,
-                        "horoscope": result[2] or 0
+                        "horoscope": result[2] or 0,
+                        "creative_writer": result[3] or 0
                     }
                 conn.close()
         except Exception as e:
             logger.error(f"Error getting usage counts: {e}")
-            usage_counts = {"decoder": 0, "fortune": 0, "horoscope": 0}
+            usage_counts = {"decoder": 0, "fortune": 0, "horoscope": 0, "creative_writer": 0}
 
         # FIXED: Trial should NOT modify Bronze tier - only unlock companion access
         access_silver = user_plan in ['silver', 'gold']  # NO trial modification
@@ -8289,7 +8290,8 @@ def increment_feature_usage(user_id, feature):
     table_map = {
         "decoder": "decoder_used",
         "fortune": "fortune_used", 
-        "horoscope": "horoscope_used"
+        "horoscope": "horoscope_used",
+        "creative_writer": "creative_writer_used"
     }
     if feature in table_map:
         column = table_map[feature]
@@ -8688,6 +8690,89 @@ def increment_fortune_usage():
         return True
     except Exception as e:
         logger.error(f"Increment fortune usage error: {e}")
+        return False
+
+def get_creative_writer_usage():
+    """Get user's creative writer usage for today (per-companion)"""
+    try:
+        user_id = session.get('user_id')
+        companion_id = session.get('selected_companion', 'default')
+        if not user_id:
+            return 0
+        
+        # ARCHITECTURAL CHANGE: Track usage per companion instead of shared per tier
+        today = datetime.now().strftime('%Y-%m-%d')
+        usage_key = f'creative_writer_usage_{user_id}_{companion_id}_{today}'
+        
+        return session.get(usage_key, 0)
+    except Exception as e:
+        logger.error(f"Get creative writer usage error: {e}")
+        return 0
+
+def increment_creative_writer_usage():
+    """Increment user's creative writer usage for today (per-companion)"""
+    try:
+        user_id = session.get('user_id')
+        companion_id = session.get('selected_companion', 'default')
+        if not user_id:
+            return False
+        
+        # ARCHITECTURAL CHANGE: Track usage per companion instead of shared per tier
+        today = datetime.now().strftime('%Y-%m-%d')
+        usage_key = f'creative_writer_usage_{user_id}_{companion_id}_{today}'
+        
+        # Update session-based tracking
+        current_usage = session.get(usage_key, 0)
+        session[usage_key] = current_usage + 1
+        session.modified = True
+        
+        # Also update database for /api/tier-limits consistency
+        try:
+            db_instance = get_database()
+            if db_instance:
+                conn = db_instance.get_connection()
+                cursor = conn.cursor()
+                
+                # Check if this is a new day
+                last_reset_key = f'creative_writer_last_reset_{user_id}'
+                last_reset = session.get(last_reset_key)
+                
+                if last_reset != today:
+                    # New day - reset database counter to 0
+                    if db_instance.use_postgres:
+                        cursor.execute("UPDATE users SET creative_writer_used = 0 WHERE id = %s", (user_id,))
+                    else:
+                        cursor.execute("UPDATE users SET creative_writer_used = 0 WHERE id = ?", (user_id,))
+                    session[last_reset_key] = today
+                    new_usage = 1
+                    logger.info(f"📅 DAILY RESET: Reset creative writer usage for user {user_id}")
+                else:
+                    # Same day - increment existing count
+                    if db_instance.use_postgres:
+                        cursor.execute("SELECT creative_writer_used FROM users WHERE id = %s", (user_id,))
+                    else:
+                        cursor.execute("SELECT creative_writer_used FROM users WHERE id = ?", (user_id,))
+                    
+                    result = cursor.fetchone()
+                    current_db_usage = (result[0] if result and result[0] else 0) if result else 0
+                    new_usage = current_db_usage + 1
+                
+                # Update database count
+                if db_instance.use_postgres:
+                    cursor.execute("UPDATE users SET creative_writer_used = %s WHERE id = %s", (new_usage, user_id))
+                else:
+                    cursor.execute("UPDATE users SET creative_writer_used = ? WHERE id = ?", (new_usage, user_id))
+                
+                conn.commit()
+                conn.close()
+                logger.info(f"📊 CREATIVE WRITER USAGE: User {user_id} session={session[usage_key]}, database={new_usage}")
+        except Exception as db_error:
+            logger.error(f"Database update failed for creative writer usage: {db_error}")
+            # Continue with session-only tracking if database fails
+        
+        return True
+    except Exception as e:
+        logger.error(f"Increment creative writer usage error: {e}")
         return False
 
 def get_horoscope_usage():
@@ -13982,7 +14067,8 @@ def get_tier_limits():
         companion_usage = {
             "decoder": get_decoder_usage(),
             "fortune": get_fortune_usage(),
-            "horoscope": get_horoscope_usage()
+            "horoscope": get_horoscope_usage(),
+            "creative_writer": get_creative_writer_usage()
         }
         
         # Convert large numbers to "unlimited" for display
@@ -15924,7 +16010,8 @@ try:
             "ALTER TABLE users ADD COLUMN IF NOT EXISTS credits INTEGER DEFAULT 0",
             "ALTER TABLE users ADD COLUMN IF NOT EXISTS purchased_credits INTEGER DEFAULT 0",
             "ALTER TABLE users ADD COLUMN IF NOT EXISTS disclaimer_accepted_at TIMESTAMP",
-            "ALTER TABLE users ADD COLUMN IF NOT EXISTS last_credit_reset DATE"
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS last_credit_reset DATE",
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS creative_writer_used INTEGER DEFAULT 0"
         ]
         
         for sql in music_columns:
