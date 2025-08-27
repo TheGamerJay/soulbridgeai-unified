@@ -100,8 +100,183 @@ from unified_tier_system import (
     can_access_feature, get_tier_status,
     increment_feature_usage, get_feature_usage_today
 )
-from artistic_time_system import get_artistic_time, deduct_artistic_time
+# from artistic_time_system import get_artistic_time, deduct_artistic_time  # Replaced with inline functions
 from constants import *
+
+# ===== ARTISTIC TIME SYSTEM (Integrated) =====
+
+# Credit costs for different features
+ARTISTIC_TIME_COSTS = {
+    "ai_images": 5,
+    "voice_journaling": 10,
+    "relationship_profiles": 15, 
+    "meditations": 8,
+    "mini_studio": 20,
+}
+
+# Monthly allowances per tier
+TIER_ARTISTIC_TIME = {
+    "bronze": 0,      # Bronze gets no monthly artistic time
+    "silver": 200,    # Silver gets 200 monthly
+    "gold": 500,      # Gold gets 500 monthly
+}
+
+TRIAL_ARTISTIC_TIME = 60  # Trial users get 60 one-time credits
+
+def get_artistic_time(user_id: int) -> int:
+    """Get user's current artistic time balance using app.py database infrastructure"""
+    try:
+        db = get_db()
+        if not db:
+            logger.error(f"No database connection for artistic time user {user_id}")
+            return 0
+        
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        
+        # Get user data
+        if db.use_postgres:
+            cursor.execute("""
+                SELECT user_plan, artistic_time, trial_active, 
+                       last_credit_reset, trial_credits
+                FROM users WHERE id = %s
+            """, (user_id,))
+        else:
+            cursor.execute("""
+                SELECT user_plan, artistic_time, trial_active, 
+                       last_credit_reset, trial_credits  
+                FROM users WHERE id = ?
+            """, (user_id,))
+        
+        result = cursor.fetchone()
+        if not result:
+            logger.error(f"No user found for artistic time: {user_id}")
+            conn.close()
+            return 0
+            
+        user_plan, current_credits, trial_active, last_reset, trial_credits = result
+        logger.info(f"Artistic time user {user_id}: plan={user_plan}, credits={current_credits}, trial={trial_active}, trial_credits={trial_credits}")
+        
+        # Check if monthly reset is needed for subscribers
+        from datetime import date
+        today = date.today()
+        needs_reset = (
+            last_reset is None or 
+            last_reset.year != today.year or 
+            last_reset.month != today.month
+        )
+        
+        if needs_reset and user_plan in ['silver', 'gold']:
+            # Reset monthly credits
+            monthly_allowance = TIER_ARTISTIC_TIME.get(user_plan, 0)
+            if db.use_postgres:
+                cursor.execute("""
+                    UPDATE users 
+                    SET artistic_time = %s, last_credit_reset = %s 
+                    WHERE id = %s
+                """, (monthly_allowance, today, user_id))
+            else:
+                cursor.execute("""
+                    UPDATE users 
+                    SET artistic_time = ?, last_credit_reset = ? 
+                    WHERE id = ?
+                """, (monthly_allowance, today, user_id))
+            conn.commit()
+            current_credits = monthly_allowance
+            logger.info(f"Reset monthly artistic time for {user_plan} user {user_id}: {monthly_allowance}")
+        
+        # Calculate total credits
+        total_credits = current_credits or 0
+        if trial_active and user_plan == 'bronze':
+            trial_balance = trial_credits or TRIAL_ARTISTIC_TIME
+            total_credits += trial_balance
+            logger.info(f"Adding trial credits to user {user_id}: {trial_balance}")
+            
+        logger.info(f"Final artistic time for user {user_id}: {total_credits}")
+        conn.close()
+        return max(0, total_credits)
+        
+    except Exception as e:
+        logger.error(f"Error getting artistic time for user {user_id}: {e}")
+        import traceback
+        traceback.print_exc()
+        return 0
+
+def deduct_artistic_time(user_id: int, amount: int) -> bool:
+    """Deduct artistic time using app.py database infrastructure"""
+    try:
+        db = get_db()
+        if not db:
+            logger.error(f"No database connection for deducting artistic time user {user_id}")
+            return False
+        
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        
+        # Get current balance
+        if db.use_postgres:
+            cursor.execute("""
+                SELECT user_plan, artistic_time, trial_active, trial_credits
+                FROM users WHERE id = %s
+            """, (user_id,))
+        else:
+            cursor.execute("""
+                SELECT user_plan, artistic_time, trial_active, trial_credits
+                FROM users WHERE id = ?
+            """, (user_id,))
+        
+        result = cursor.fetchone()
+        if not result:
+            conn.close()
+            return False
+            
+        user_plan, current_credits, trial_active, trial_credits = result
+        
+        # Calculate available balance
+        monthly_balance = current_credits or 0
+        trial_balance = (trial_credits or 0) if (trial_active and user_plan == 'bronze') else 0
+        total_available = monthly_balance + trial_balance
+        
+        if total_available < amount:
+            logger.warning(f"Insufficient artistic time for user {user_id}: need {amount}, have {total_available}")
+            conn.close()
+            return False
+        
+        # Deduct from trial credits first, then monthly
+        new_trial_credits = trial_credits or 0
+        new_monthly_credits = monthly_balance
+        
+        remaining_to_deduct = amount
+        if trial_active and user_plan == 'bronze' and new_trial_credits > 0:
+            trial_deduction = min(remaining_to_deduct, new_trial_credits)
+            new_trial_credits -= trial_deduction
+            remaining_to_deduct -= trial_deduction
+        
+        if remaining_to_deduct > 0:
+            new_monthly_credits -= remaining_to_deduct
+        
+        # Update database
+        if db.use_postgres:
+            cursor.execute("""
+                UPDATE users 
+                SET artistic_time = %s, trial_credits = %s
+                WHERE id = %s
+            """, (new_monthly_credits, new_trial_credits, user_id))
+        else:
+            cursor.execute("""
+                UPDATE users 
+                SET artistic_time = ?, trial_credits = ?
+                WHERE id = ?
+            """, (new_monthly_credits, new_trial_credits, user_id))
+        
+        conn.commit()
+        conn.close()
+        logger.info(f"Deducted {amount} artistic time from user {user_id}: monthly={new_monthly_credits}, trial={new_trial_credits}")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Error deducting artistic time for user {user_id}: {e}")
+        return False
 
 # ===== Block G — Fortune Teller: Limits + Tarot Route =====
 # (Keeps Bronze=3/day, Silver=8/day, Gold=∞. Uses correct GPT model per plan.)

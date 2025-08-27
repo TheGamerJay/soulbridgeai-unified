@@ -39,36 +39,115 @@ TRIAL_ARTISTIC_TIME = 60  # Trial users get 60 one-time credits
 # ========================================
 
 def get_database_connection():
-    """Get database connection - compatible with Railway deployment"""
+    """Get database connection - robust approach with multiple fallbacks"""
+    # Method 1: Use database_utils (preferred)
     try:
-        # Import get_database from database_utils for consistency
         from database_utils import get_database
         db = get_database()
         if db:
-            return db.get_connection()
-        else:
-            logger.error("Failed to get database instance from database_utils")
-            return None
-    except ImportError:
-        logger.warning("Falling back to direct database connection")
-        # Fallback to direct connection
-        try:
-            database_url = os.environ.get('DATABASE_URL')
-            if database_url:
-                # Production: PostgreSQL
-                import psycopg2
-                return psycopg2.connect(database_url)
-            else:
-                # Development: SQLite
-                import sqlite3
-                db_path = os.environ.get('DATABASE_PATH', 'soulbridge.db')
-                return sqlite3.connect(db_path)
-        except Exception as e:
-            logger.error(f"Direct database connection failed: {e}")
-            return None
+            conn = db.get_connection()
+            if conn:
+                logger.info("Connected via database_utils")
+                return conn
     except Exception as e:
-        logger.error(f"Database connection failed: {e}")
-        return None
+        logger.warning(f"database_utils failed: {e}")
+    
+    # Method 2: Try app.py connection method
+    try:
+        from app import get_db
+        db = get_db()
+        if db:
+            conn = db.get_connection()
+            if conn:
+                logger.info("Connected via app.py get_db")
+                return conn
+    except Exception as e:
+        logger.warning(f"app.py get_db failed: {e}")
+    
+    # Method 3: Direct connection
+    try:
+        database_url = os.environ.get('DATABASE_URL')
+        if database_url:
+            # Production: PostgreSQL  
+            import psycopg2
+            conn = psycopg2.connect(database_url)
+            logger.info("Connected via direct PostgreSQL")
+            return conn
+    except Exception as e:
+        logger.warning(f"Direct PostgreSQL failed: {e}")
+    
+    # Method 4: Local SQLite fallback
+    try:
+        import sqlite3
+        db_path = os.environ.get('DATABASE_PATH', 'soulbridge.db')
+        if os.path.exists(db_path):
+            conn = sqlite3.connect(db_path)
+            logger.info("Connected via local SQLite")
+            return conn
+    except Exception as e:
+        logger.warning(f"Local SQLite failed: {e}")
+    
+    logger.error("All database connection methods failed")
+    return None
+
+def ensure_user_artistic_time_data(user_id: int, conn) -> bool:
+    """Ensure user has proper artistic time data initialized"""
+    try:
+        cursor = conn.cursor()
+        
+        # Check if user has artistic_time and trial_credits columns set
+        try:
+            cursor.execute("""
+                SELECT user_plan, artistic_time, trial_active, trial_credits
+                FROM users WHERE id = %s
+            """, (user_id,))
+        except Exception:
+            cursor.execute("""
+                SELECT user_plan, artistic_time, trial_active, trial_credits
+                FROM users WHERE id = ?
+            """, (user_id,))
+        
+        result = cursor.fetchone()
+        if not result:
+            return False
+            
+        user_plan, artistic_time, trial_active, trial_credits = result
+        logger.info(f"Raw user data for {user_id}: plan={user_plan}, artistic_time={artistic_time}, trial_active={trial_active}, trial_credits={trial_credits}")
+        
+        # Initialize missing data
+        updates_needed = []
+        params = []
+        
+        if artistic_time is None and user_plan in ['silver', 'gold']:
+            monthly_allowance = TIER_ARTISTIC_TIME.get(user_plan, 0)
+            updates_needed.append("artistic_time = %s")
+            params.append(monthly_allowance)
+            logger.info(f"Initializing artistic_time for {user_plan} user {user_id}: {monthly_allowance}")
+        
+        if trial_credits is None and trial_active and user_plan == 'bronze':
+            updates_needed.append("trial_credits = %s")
+            params.append(TRIAL_ARTISTIC_TIME)
+            logger.info(f"Initializing trial_credits for Bronze user {user_id}: {TRIAL_ARTISTIC_TIME}")
+        
+        if updates_needed:
+            query = f"UPDATE users SET {', '.join(updates_needed)} WHERE id = %s"
+            params.append(user_id)
+            
+            try:
+                cursor.execute(query, params)
+            except Exception:
+                # Fallback for SQLite
+                sqlite_query = query.replace('%s', '?')
+                cursor.execute(sqlite_query, params)
+                
+            conn.commit()
+            logger.info(f"Updated user {user_id} artistic time data")
+        
+        return True
+        
+    except Exception as e:
+        logger.error(f"Error ensuring user artistic time data for {user_id}: {e}")
+        return False
 
 def get_artistic_time(user_id: int) -> int:
     """Get user's current artistic time balance"""
@@ -77,11 +156,14 @@ def get_artistic_time(user_id: int) -> int:
         conn = get_database_connection()
         if not conn:
             logger.error(f"No database connection for user {user_id}")
-            # Emergency fallback: give some credits to prevent complete blocking
-            if user_id == 104:  # Your user ID - temporary emergency bypass
-                logger.warning(f"EMERGENCY BYPASS: Giving user {user_id} 100 credits due to DB connection error")
-                return 100
             return 0
+        
+        # Ensure user data is properly initialized
+        if not ensure_user_artistic_time_data(user_id, conn):
+            logger.error(f"Failed to ensure user data for {user_id}")
+            conn.close()
+            return 0
+            
         cursor = conn.cursor()
         
         # Get user's plan and credits - use database-agnostic approach
@@ -152,10 +234,6 @@ def get_artistic_time(user_id: int) -> int:
         
     except Exception as e:
         logger.error(f"Error getting artistic time for user {user_id}: {e}")
-        # Emergency fallback: give some credits to prevent complete blocking
-        if user_id == 104:  # Your user ID - temporary emergency bypass
-            logger.warning(f"EMERGENCY BYPASS: Giving user {user_id} 100 credits due to system error")
-            return 100
         return 0
 
 def deduct_artistic_time(user_id: int, amount: int) -> bool:
