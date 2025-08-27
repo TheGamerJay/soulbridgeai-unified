@@ -59,14 +59,41 @@
     }
     
     .plan-card.recommended {
-        border-color: #22d3ee;
-        background: rgba(0,0,0,0.9);
+        border-color: #c0c0c0;
+        background: rgba(192, 192, 192, 0.05);
         color: #ffffff;
     }
 
+    .plan-card.bronze {
+        border-color: #cd7f32;
+        background: rgba(205, 127, 50, 0.05);
+    }
+
+    .plan-card.bronze:hover {
+        box-shadow: 0 20px 40px rgba(205, 127, 50, 0.3);
+    }
+
+    .plan-card.silver {
+        border-color: #c0c0c0;
+        background: rgba(192, 192, 192, 0.05);
+    }
+
+    .plan-card.silver:hover {
+        box-shadow: 0 20px 40px rgba(192, 192, 192, 0.3);
+    }
+
+    .plan-card.gold {
+        border-color: #ffd700;
+        background: rgba(255, 215, 0, 0.05);
+    }
+
+    .plan-card.gold:hover {
+        box-shadow: 0 20px 40px rgba(255, 215, 0, 0.3);
+    }
+
     .badge {
-        background: #22d3ee;
-        color: #000;
+        background: linear-gradient(135deg, #c0c0c0, #a8a8a8);
+        color: #1a1a1a;
         padding: 5px 15px;
         border-radius: 20px;
         font-size: 0.9rem;
@@ -148,19 +175,32 @@
     }
 
     .select-btn.bronze {
-      background: rgba(34, 211, 238, 0.2);
-      color: #22d3ee;
-      border: 2px solid #22d3ee;
+      background: rgba(205, 127, 50, 0.2);
+      color: #cd7f32;
+      border: 2px solid #cd7f32;
     }
 
+    .select-btn.silver {
+      background: linear-gradient(135deg, #c0c0c0, #a8a8a8);
+      color: #1a1a1a;
+      border: 2px solid #c0c0c0;
+    }
+
+    .select-btn.gold {
+      background: linear-gradient(135deg, #ffd700, #ffb700);
+      color: #1a1a1a;
+      border: 2px solid #ffd700;
+    }
+
+    /* Legacy classes for backwards compatibility */
     .select-btn.paid {
-      background: linear-gradient(135deg, #22d3ee, #0891b2);
-      color: #000;
+      background: linear-gradient(135deg, #c0c0c0, #a8a8a8);
+      color: #1a1a1a;
     }
 
     .select-btn.premium {
-      background: linear-gradient(135deg, #fbbf24, #f59e0b);
-      color: #000;
+      background: linear-gradient(135deg, #ffd700, #ffb700);
+      color: #1a1a1a;
     }
 
     .select-btn:hover {
@@ -304,7 +344,7 @@
   <!-- Plans Grid -->
   <div class="plan-grid">
     <!-- Ad-Free Plan (For Free Users) -->
-    <div class="plan-card">
+    <div class="plan-card bronze">
       <div class="plan-icon">🚫</div>
       <div class="plan-name">Ad-Free</div>
       
@@ -330,7 +370,7 @@
     </div>
     
     <!-- Silver Plan (Recommended) -->
-    <div class="plan-card recommended">
+    <div class="plan-card recommended silver">
       <div class="badge">Most Popular</div>
       <div class="plan-icon">🥈</div>
       <div class="plan-name">Silver</div>
@@ -352,11 +392,11 @@
         <li><span class="feature-icon">✅</span> Custom companion training</li>
       </ul>
       
-      <button class="select-btn paid" onclick="selectPlan('silver')">Choose Silver</button>
+      <button class="select-btn silver" onclick="selectPlan('silver')">Choose Silver</button>
     </div>
 
     <!-- Gold Plan (Premium) -->
-    <div class="plan-card">
+    <div class="plan-card gold">
       <div class="plan-icon">🥇</div>
       <div class="plan-name">Gold</div>
       
@@ -378,7 +418,7 @@
         <li><span class="feature-icon">✅</span> 1-on-1 onboarding session</li>
       </ul>
       
-      <button class="select-btn premium" onclick="selectPlan('gold')">Choose Gold</button>
+      <button class="select-btn gold" onclick="selectPlan('gold')">Choose Gold</button>
     </div>
   </div>
 
