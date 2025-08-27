@@ -107,14 +107,13 @@
         }
 
         .avatar-container {
-            width: 65px;
-            height: 65px;
-            border-radius: 50%;
+            width: 80px;
+            height: 80px;
             background: linear-gradient(135deg, #00ffff 0%, #22d3ee 100%);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.5rem;
+            font-size: 1.8rem;
             font-weight: bold;
             color: #000000;
             box-shadow: 0 4px 15px rgba(0, 255, 255, 0.3);
@@ -274,14 +273,13 @@
         }
 
         .post-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
+            width: 50px;
+            height: 50px;
             background: linear-gradient(135deg, #00ffff 0%, #22d3ee 100%);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1rem;
+            font-size: 1.2rem;
             font-weight: bold;
             color: #000000;
         }
@@ -597,15 +595,14 @@
         }
 
         .companion-avatar {
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
+            width: 85px;
+            height: 85px;
             background: rgba(0, 255, 255, 0.1);
             display: flex;
             align-items: center;
             justify-content: center;
             margin: 0 auto 12px;
-            font-size: 28px;
+            font-size: 34px;
             transition: transform 0.3s ease;
         }
         
@@ -616,8 +613,7 @@
         .companion-avatar img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
-            border-radius: 50%;
+            object-fit: contain;
         }
 
         .companion-name {
@@ -724,9 +720,9 @@
             }
             
             .companion-avatar {
-                width: 50px;
-                height: 50px;
-                font-size: 20px;
+                width: 65px;
+                height: 65px;
+                font-size: 28px;
             }
             
             .companion-name {
@@ -957,7 +953,7 @@
                     // Use actual companion image or fallback to emoji
                     const avatarElement = document.getElementById('composer-avatar');
                     if (companion.avatar_url) {
-                        avatarElement.innerHTML = `<img src="${companion.avatar_url}" alt="${companion.name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" onerror="this.style.display='none'; this.parentElement.textContent='🌟';">`;
+                        avatarElement.innerHTML = `<img src="${companion.avatar_url}" alt="${companion.name}" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.style.display='none'; this.parentElement.textContent='🌟';">`;
                     } else {
                         avatarElement.textContent = getCompanionEmoji(companion.companion_id);
                     }
@@ -1672,7 +1668,7 @@
                     ${lockIcon}
                     <div class="companion-avatar">
                         ${companion.avatar_url 
-                            ? `<img src="${companion.avatar_url}" alt="${companion.display_name}" onerror="this.style.display='none'; this.parentElement.textContent='${getCompanionEmoji(companion.id)}';">` 
+                            ? `<img src="${companion.avatar_url}" alt="${companion.display_name}" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.style.display='none'; this.parentElement.textContent='${getCompanionEmoji(companion.id)}';">` 
                             : getCompanionEmoji(companion.id)
                         }
                     </div>
@@ -1848,7 +1844,7 @@
                     
                     const avatarElement = document.getElementById('composer-avatar');
                     if (selectedCompanion.avatar_url) {
-                        avatarElement.innerHTML = `<img src="${selectedCompanion.avatar_url}" alt="${selectedCompanion.display_name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" onerror="this.style.display='none'; this.parentElement.textContent='${getCompanionEmoji(selectedCompanion.id)}';">`;;
+                        avatarElement.innerHTML = `<img src="${selectedCompanion.avatar_url}" alt="${selectedCompanion.display_name}" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.style.display='none'; this.parentElement.textContent='${getCompanionEmoji(selectedCompanion.id)}';">`;;
                     } else {
                         avatarElement.textContent = getCompanionEmoji(selectedCompanion.id);
                     }
