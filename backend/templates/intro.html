@@ -420,9 +420,8 @@
         .companion-avatar {
             width: 60px;
             height: 60px;
-            border-radius: 50%;
             border: 2px solid var(--primary-cyan);
-            object-fit: cover;
+            object-fit: contain;
             flex-shrink: 0;
         }
 
@@ -1096,7 +1095,7 @@
                     🌟 Choose Your AI Companion
                 </button>
                 <button class="secondary-cta" onclick="toggleNavigationAssistant()">
-                    <img src="{{ url_for('static', filename='logos/Sapphire.png') }}" alt="Sapphire" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
+                    <img src="{{ url_for('static', filename='logos/Sapphire.png') }}" alt="Sapphire" style="width: 32px; height: 32px; object-fit: contain;">
                     Meet Your Guide
                 </button>
                 <button class="secondary-cta" onclick="window.location.href='/community'">
@@ -1354,13 +1353,14 @@
                     <div style="text-align: center; margin-bottom: 28px;">
                         <div style="position: relative; display: inline-block; margin-bottom: 18px;">
                             <img src="/static/logos/Sapphire.png" alt="Sapphire" 
-                                 style="width: 68px; height: 68px; border-radius: 50%; 
+                                 style="width: 68px; height: 68px; 
                                         border: 3px solid #22d3ee; 
                                         box-shadow: 0 8px 25px rgba(34, 211, 238, 0.3);
-                                        animation: glow 2s ease-in-out infinite alternate;">
+                                        animation: glow 2s ease-in-out infinite alternate;
+                                        object-fit: contain;">
                             <div style="position: absolute; top: -2px; right: -2px; 
                                         width: 18px; height: 18px; background: #10b981; 
-                                        border: 2px solid #0f172a; border-radius: 50%;
+                                        border: 2px solid #0f172a; 
                                         animation: pulse 2s infinite;"></div>
                         </div>
                         <h3 style="color: #22d3ee; margin: 0 0 8px 0; font-size: 1.4rem; 
@@ -1464,7 +1464,7 @@
                     ">
                         <div style="display: flex; align-items: center; margin-bottom: 10px;">
                             <img src="/static/logos/Sapphire.png" alt="Sapphire" 
-                                 style="width: 24px; height: 24px; border-radius: 50%; margin-right: 10px;">
+                                 style="width: 24px; height: 24px; margin-right: 10px; object-fit: contain;">
                             <strong style="color: #22d3ee;">Sapphire:</strong>
                         </div>
                         <p id="sapphireAnswer" style="color: #e2e8f0; margin: 0; line-height: 1.4;"></p>
