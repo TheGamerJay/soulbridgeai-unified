@@ -18626,3 +18626,140 @@ def reset_trial_admin(user_id):
 
 logger.info("✅ Trial reset endpoint added")
 
+# ========================================
+# THEME PERSISTENCE API ENDPOINTS
+# ========================================
+
+@app.route('/api/save-theme', methods=['POST'])
+def save_user_theme():
+    """Save user's theme preferences to database for persistence across logins"""
+    if 'user_id' not in session:
+        return jsonify({"success": False, "error": "Not logged in"}), 401
+    
+    try:
+        data = request.get_json()
+        user_id = session['user_id']
+        theme_type = data.get('type')  # 'background' or 'text'
+        theme_value = data.get('value')
+        
+        if not theme_type or not theme_value:
+            return jsonify({"success": False, "error": "Missing theme data"}), 400
+        
+        db = get_database()
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        
+        # Create user_themes table if it doesn't exist
+        try:
+            if db.use_postgres:
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS user_themes (
+                        user_id INTEGER PRIMARY KEY REFERENCES users(id),
+                        background_theme TEXT,
+                        text_theme TEXT,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                """)
+            else:
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS user_themes (
+                        user_id INTEGER PRIMARY KEY,
+                        background_theme TEXT,
+                        text_theme TEXT,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        FOREIGN KEY(user_id) REFERENCES users(id)
+                    )
+                """)
+            conn.commit()
+        except Exception as e:
+            logger.warning(f"Theme table creation: {e}")
+        
+        # Check if user has theme preferences row
+        if db.use_postgres:
+            cursor.execute("SELECT user_id FROM user_themes WHERE user_id = %s", (user_id,))
+        else:
+            cursor.execute("SELECT user_id FROM user_themes WHERE user_id = ?", (user_id,))
+            
+        exists = cursor.fetchone()
+        
+        if theme_type == 'background':
+            if exists:
+                if db.use_postgres:
+                    cursor.execute("UPDATE user_themes SET background_theme = %s, updated_at = CURRENT_TIMESTAMP WHERE user_id = %s", 
+                                 (theme_value, user_id))
+                else:
+                    cursor.execute("UPDATE user_themes SET background_theme = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?", 
+                                 (theme_value, user_id))
+            else:
+                if db.use_postgres:
+                    cursor.execute("INSERT INTO user_themes (user_id, background_theme) VALUES (%s, %s)", 
+                                 (user_id, theme_value))
+                else:
+                    cursor.execute("INSERT INTO user_themes (user_id, background_theme) VALUES (?, ?)", 
+                                 (user_id, theme_value))
+        elif theme_type == 'text':
+            if exists:
+                if db.use_postgres:
+                    cursor.execute("UPDATE user_themes SET text_theme = %s, updated_at = CURRENT_TIMESTAMP WHERE user_id = %s", 
+                                 (theme_value, user_id))
+                else:
+                    cursor.execute("UPDATE user_themes SET text_theme = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?", 
+                                 (theme_value, user_id))
+            else:
+                if db.use_postgres:
+                    cursor.execute("INSERT INTO user_themes (user_id, text_theme) VALUES (%s, %s)", 
+                                 (user_id, theme_value))
+                else:
+                    cursor.execute("INSERT INTO user_themes (user_id, text_theme) VALUES (?, ?)", 
+                                 (user_id, theme_value))
+        
+        conn.commit()
+        conn.close()
+        
+        logger.info(f"Saved {theme_type} theme for user {user_id}")
+        return jsonify({"success": True})
+    
+    except Exception as e:
+        logger.error(f"Error saving theme for user {user_id}: {e}")
+        return jsonify({"success": False, "error": "Database error"}), 500
+
+@app.route('/api/get-theme', methods=['GET'])
+def get_user_theme():
+    """Get user's saved theme preferences"""
+    if 'user_id' not in session:
+        return jsonify({"success": False, "error": "Not logged in"}), 401
+    
+    try:
+        user_id = session['user_id']
+        
+        db = get_database()
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        
+        if db.use_postgres:
+            cursor.execute("SELECT background_theme, text_theme FROM user_themes WHERE user_id = %s", (user_id,))
+        else:
+            cursor.execute("SELECT background_theme, text_theme FROM user_themes WHERE user_id = ?", (user_id,))
+            
+        result = cursor.fetchone()
+        conn.close()
+        
+        if result:
+            background_theme, text_theme = result
+            logger.info(f"Loaded themes for user {user_id}")
+            return jsonify({
+                "success": True,
+                "background": background_theme,
+                "text": text_theme
+            })
+        else:
+            return jsonify({"success": True, "background": None, "text": None})
+    
+    except Exception as e:
+        logger.error(f"Error getting theme for user {user_id}: {e}")
+        return jsonify({"success": False, "error": "Database error"}), 500
+
+logger.info("✅ Theme persistence API endpoints added")
+

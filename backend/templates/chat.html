@@ -2754,6 +2754,9 @@ Where emotion meets expression.
         function applyBackgroundColor(gradientValue) {
             document.body.style.background = gradientValue;
             localStorage.setItem('customBackground', gradientValue);
+            
+            // Save to server for persistent login sessions
+            saveThemeToServer('background', gradientValue);
         }
         
         // Apply text color
@@ -2768,6 +2771,49 @@ Where emotion meets expression.
             });
             
             localStorage.setItem('customTextColor', colorValue);
+            
+            // Save to server for persistent login sessions
+            saveThemeToServer('text', colorValue);
+        }
+        
+        // Save theme settings to server
+        async function saveThemeToServer(type, value) {
+            try {
+                await fetch('/api/save-theme', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        type: type,
+                        value: value
+                    })
+                });
+            } catch (error) {
+                console.log('Theme save failed:', error);
+            }
+        }
+        
+        // Load theme from server
+        async function loadThemeFromServer() {
+            try {
+                const response = await fetch('/api/get-theme', {
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    if (data.background) {
+                        document.body.style.background = data.background;
+                    }
+                    if (data.text) {
+                        applyTextColor(data.text);
+                    }
+                }
+            } catch (error) {
+                console.log('Theme load failed:', error);
+            }
         }
         
         // Quick preset themes
@@ -2803,16 +2849,19 @@ Where emotion meets expression.
         
         // Initialize enhanced theme system
         document.addEventListener('DOMContentLoaded', function() {
-            // Load saved customizations
-            const savedBackground = localStorage.getItem('customBackground');
-            const savedTextColor = localStorage.getItem('customTextColor');
-            
-            if (savedBackground) {
-                applyBackgroundColor(savedBackground);
-            }
-            if (savedTextColor) {
-                applyTextColor(savedTextColor);
-            }
+            // Load from server first (persistent across logins), fallback to localStorage
+            loadThemeFromServer().then(() => {
+                // If server load failed, use localStorage as fallback
+                const savedBackground = localStorage.getItem('customBackground');
+                const savedTextColor = localStorage.getItem('customTextColor');
+                
+                if (savedBackground && !document.body.style.background) {
+                    document.body.style.background = savedBackground;
+                }
+                if (savedTextColor && !document.body.style.color) {
+                    applyTextColor(savedTextColor);
+                }
+            });
             
             // Background color options
             document.querySelectorAll('.color-option[data-type="background"]').forEach(option => {
