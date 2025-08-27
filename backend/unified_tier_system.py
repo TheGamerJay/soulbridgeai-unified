@@ -117,8 +117,9 @@ def ensure_database_schema():
             
             for tier, feature, limit in default_limits:
                 cur.execute("""
-                    INSERT OR IGNORE INTO tier_limits (tier, feature, daily_limit)
-                    VALUES (?, ?, ?)
+                    INSERT INTO tier_limits (tier, feature, daily_limit)
+                    VALUES (%s, %s, %s)
+                    ON CONFLICT (tier, feature) DO NOTHING
                 """, (tier, feature, limit))
             conn.commit()
             logger.info("📊 SCHEMA: Default tier limits seeded")

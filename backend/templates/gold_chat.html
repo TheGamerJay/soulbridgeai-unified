@@ -16,6 +16,48 @@
                 <i class="fas fa-clock"></i> 5-Hour Trial Active - Full Gold Access!
             </div>
             {% endif %}
+            
+            <!-- Theme Selector Button (Gold Exclusive) -->
+            <div class="theme-selector-container">
+                <button onclick="toggleThemeSelector()" class="theme-selector-btn gold-theme-btn">
+                    🌟 Premium Color Palette
+                </button>
+                <div id="themeSelector" class="theme-selector-panel" style="display: none;">
+                    <h4>Choose Your Gold Theme</h4>
+                    <div class="theme-options gold-themes">
+                        <div class="theme-option" data-theme="default" style="background: linear-gradient(135deg, #ffd700, #ffb347);">
+                            <span>Classic Gold</span>
+                        </div>
+                        <div class="theme-option" data-theme="royal" style="background: linear-gradient(135deg, #4b0082, #8b00ff);">
+                            <span>Royal Purple</span>
+                        </div>
+                        <div class="theme-option" data-theme="emerald" style="background: linear-gradient(135deg, #50c878, #228b22);">
+                            <span>Emerald Green</span>
+                        </div>
+                        <div class="theme-option" data-theme="sapphire" style="background: linear-gradient(135deg, #0f52ba, #4169e1);">
+                            <span>Sapphire Blue</span>
+                        </div>
+                        <div class="theme-option" data-theme="ruby" style="background: linear-gradient(135deg, #e0115f, #dc143c);">
+                            <span>Ruby Red</span>
+                        </div>
+                        <div class="theme-option" data-theme="platinum" style="background: linear-gradient(135deg, #e5e4e2, #c0c0c0);">
+                            <span>Platinum Silver</span>
+                        </div>
+                        <div class="theme-option" data-theme="cosmic" style="background: linear-gradient(135deg, #483d8b, #9932cc, #ff1493);">
+                            <span>Cosmic Aurora</span>
+                        </div>
+                        <div class="theme-option" data-theme="sunset" style="background: linear-gradient(135deg, #ff4500, #ff8c00, #ffd700);">
+                            <span>Sunset Glow</span>
+                        </div>
+                        <div class="theme-option" data-theme="ocean" style="background: linear-gradient(135deg, #008b8b, #20b2aa, #40e0d0);">
+                            <span>Deep Ocean</span>
+                        </div>
+                        <div class="theme-option" data-theme="forest" style="background: linear-gradient(135deg, #228b22, #32cd32, #90ee90);">
+                            <span>Mystic Forest</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
         
         <div class="features-grid">
@@ -374,6 +416,58 @@
                 if (!document.hidden) updateUsageCounters();
             });
         });
+        
+        // Theme Selector Functions (Gold Exclusive)
+        function toggleThemeSelector() {
+            const panel = document.getElementById('themeSelector');
+            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+        }
+        
+        // Apply theme when option is clicked
+        document.addEventListener('DOMContentLoaded', function() {
+            updateUsageCounters();
+            
+            // Load saved theme
+            const savedTheme = localStorage.getItem('goldTheme');
+            if (savedTheme) {
+                applyGoldTheme(savedTheme);
+            }
+            
+            // Add click listeners to theme options
+            document.querySelectorAll('.theme-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    const theme = this.getAttribute('data-theme');
+                    applyGoldTheme(theme);
+                    localStorage.setItem('goldTheme', theme);
+                    
+                    // Close theme selector
+                    document.getElementById('themeSelector').style.display = 'none';
+                    
+                    // Visual feedback
+                    document.querySelectorAll('.theme-option').forEach(opt => opt.classList.remove('selected'));
+                    this.classList.add('selected');
+                });
+            });
+            
+            // Refresh counters when page gains focus (consistency)
+            window.addEventListener('focus', updateUsageCounters);
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden) updateUsageCounters();
+            });
+        });
+        
+        function applyGoldTheme(theme) {
+            const body = document.body;
+            
+            // Remove existing theme classes
+            body.classList.remove('theme-royal', 'theme-emerald', 'theme-sapphire', 'theme-ruby', 
+                               'theme-platinum', 'theme-cosmic', 'theme-sunset', 'theme-ocean', 'theme-forest');
+            
+            // Apply new theme class
+            if (theme !== 'default') {
+                body.classList.add(`theme-${theme}`);
+            }
+        }
     </script>
 </body>
 </html>

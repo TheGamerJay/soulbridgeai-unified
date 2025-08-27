@@ -3655,3 +3655,360 @@ div.character-greeting {
     line-height: 1.2 !important;
     margin-bottom: 0.5rem !important;
 }
+
+/* ===============================
+   GOLD TIER THEME SYSTEM
+   =============================== */
+
+/* Gold Theme Selector Styles */
+.gold-theme-btn {
+    background: linear-gradient(135deg, #ffd700, #ffb347) !important;
+    color: #000 !important;
+    font-weight: bold !important;
+    border: 2px solid #ffd700 !important;
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3) !important;
+}
+
+.gold-theme-btn:hover {
+    background: linear-gradient(135deg, #ffb347, #ffd700) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4) !important;
+}
+
+.gold-themes .theme-option {
+    width: 120px !important;
+    height: 80px !important;
+    border-radius: 15px !important;
+    position: relative !important;
+    cursor: pointer !important;
+    border: 3px solid transparent !important;
+    transition: all 0.3s ease !important;
+}
+
+.gold-themes .theme-option:hover {
+    transform: scale(1.05) !important;
+    border-color: #ffd700 !important;
+    box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4) !important;
+}
+
+.gold-themes .theme-option.selected {
+    border-color: #ffd700 !important;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.6) !important;
+}
+
+/* Royal Purple Theme */
+.theme-royal {
+    --primary-color: #4b0082 !important;
+    --secondary-color: #8b00ff !important;
+    --accent-color: #9932cc !important;
+    --background-gradient: linear-gradient(135deg, #1a0033, #2d1b69) !important;
+}
+
+.theme-royal .gold-tier {
+    background: var(--background-gradient) !important;
+}
+
+.theme-royal .action-btn {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)) !important;
+    border-color: var(--accent-color) !important;
+}
+
+/* Emerald Green Theme */
+.theme-emerald {
+    --primary-color: #50c878 !important;
+    --secondary-color: #228b22 !important;
+    --accent-color: #32cd32 !important;
+    --background-gradient: linear-gradient(135deg, #0d2818, #1a5a3e) !important;
+}
+
+.theme-emerald .gold-tier {
+    background: var(--background-gradient) !important;
+}
+
+.theme-emerald .action-btn {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)) !important;
+    border-color: var(--accent-color) !important;
+}
+
+/* Sapphire Blue Theme */
+.theme-sapphire {
+    --primary-color: #0f52ba !important;
+    --secondary-color: #4169e1 !important;
+    --accent-color: #1e90ff !important;
+    --background-gradient: linear-gradient(135deg, #0a1a33, #1a3a6b) !important;
+}
+
+.theme-sapphire .gold-tier {
+    background: var(--background-gradient) !important;
+}
+
+.theme-sapphire .action-btn {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)) !important;
+    border-color: var(--accent-color) !important;
+}
+
+/* Ruby Red Theme */
+.theme-ruby {
+    --primary-color: #e0115f !important;
+    --secondary-color: #dc143c !important;
+    --accent-color: #ff1493 !important;
+    --background-gradient: linear-gradient(135deg, #330a1a, #6b1a3a) !important;
+}
+
+.theme-ruby .gold-tier {
+    background: var(--background-gradient) !important;
+}
+
+.theme-ruby .action-btn {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)) !important;
+    border-color: var(--accent-color) !important;
+}
+
+/* Platinum Silver Theme */
+.theme-platinum {
+    --primary-color: #e5e4e2 !important;
+    --secondary-color: #c0c0c0 !important;
+    --accent-color: #d3d3d3 !important;
+    --background-gradient: linear-gradient(135deg, #2a2a2a, #4a4a4a) !important;
+}
+
+.theme-platinum .gold-tier {
+    background: var(--background-gradient) !important;
+    color: #ffffff !important;
+}
+
+.theme-platinum .action-btn {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)) !important;
+    border-color: var(--accent-color) !important;
+    color: #000000 !important;
+}
+
+/* Cosmic Aurora Theme */
+.theme-cosmic {
+    --primary-color: #483d8b !important;
+    --secondary-color: #9932cc !important;
+    --accent-color: #ff1493 !important;
+    --background-gradient: linear-gradient(135deg, #0a0a0a, #1a1a2e, #16213e) !important;
+}
+
+.theme-cosmic .gold-tier {
+    background: var(--background-gradient) !important;
+}
+
+.theme-cosmic .action-btn {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color), var(--accent-color)) !important;
+    border-color: var(--accent-color) !important;
+}
+
+/* Sunset Glow Theme */
+.theme-sunset {
+    --primary-color: #ff4500 !important;
+    --secondary-color: #ff8c00 !important;
+    --accent-color: #ffd700 !important;
+    --background-gradient: linear-gradient(135deg, #1a0f00, #3d2200, #5a3300) !important;
+}
+
+.theme-sunset .gold-tier {
+    background: var(--background-gradient) !important;
+}
+
+.theme-sunset .action-btn {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)) !important;
+    border-color: var(--accent-color) !important;
+}
+
+/* Deep Ocean Theme */
+.theme-ocean {
+    --primary-color: #008b8b !important;
+    --secondary-color: #20b2aa !important;
+    --accent-color: #40e0d0 !important;
+    --background-gradient: linear-gradient(135deg, #001a1a, #003333, #004d4d) !important;
+}
+
+.theme-ocean .gold-tier {
+    background: var(--background-gradient) !important;
+}
+
+.theme-ocean .action-btn {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)) !important;
+    border-color: var(--accent-color) !important;
+}
+
+/* Mystic Forest Theme */
+.theme-forest {
+    --primary-color: #228b22 !important;
+    --secondary-color: #32cd32 !important;
+    --accent-color: #90ee90 !important;
+    --background-gradient: linear-gradient(135deg, #0a1a0a, #1a3a1a, #2d5a2d) !important;
+}
+
+.theme-forest .gold-tier {
+    background: var(--background-gradient) !important;
+}
+
+.theme-forest .action-btn {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)) !important;
+    border-color: var(--accent-color) !important;
+}
+
+/* Universal theme button styling for all Gold themes */
+.gold-tier .action-btn:hover {
+    transform: translateY(-3px) scale(1.02) !important;
+    box-shadow: 0 8px 25px rgba(255, 215, 0, 0.3) !important;
+}
+
+.gold-tier .unlimited-badge {
+    background: linear-gradient(135deg, #ffd700, #ffb347) !important;
+    color: #000 !important;
+    font-weight: bold !important;
+}
+
+/* ===============================
+   SILVER TIER THEME SYSTEM  
+   =============================== */
+
+/* Silver Theme Selector Styles */
+.theme-selector-btn {
+    background: linear-gradient(135deg, #c0c0c0, #a9a9a9) !important;
+    color: #000 !important;
+    font-weight: bold !important;
+    border: 2px solid #c0c0c0 !important;
+    border-radius: 10px !important;
+    padding: 10px 15px !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 4px 15px rgba(192, 192, 192, 0.3) !important;
+}
+
+.theme-selector-btn:hover {
+    background: linear-gradient(135deg, #a9a9a9, #c0c0c0) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(192, 192, 192, 0.4) !important;
+}
+
+.theme-selector-panel {
+    background: rgba(0, 0, 0, 0.95) !important;
+    border: 2px solid #c0c0c0 !important;
+    border-radius: 15px !important;
+    padding: 20px !important;
+    position: absolute !important;
+    top: 50px !important;
+    left: 0 !important;
+    z-index: 1000 !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7) !important;
+    min-width: 400px !important;
+}
+
+.theme-selector-panel h4 {
+    color: #ffffff !important;
+    text-align: center !important;
+    margin-bottom: 15px !important;
+}
+
+.theme-options {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 15px !important;
+    justify-items: center !important;
+}
+
+.theme-option {
+    width: 100px !important;
+    height: 70px !important;
+    border-radius: 12px !important;
+    position: relative !important;
+    cursor: pointer !important;
+    border: 2px solid transparent !important;
+    transition: all 0.3s ease !important;
+    display: flex !important;
+    align-items: flex-end !important;
+    justify-content: center !important;
+    overflow: hidden !important;
+}
+
+.theme-option:hover {
+    transform: scale(1.05) !important;
+    border-color: #c0c0c0 !important;
+    box-shadow: 0 5px 15px rgba(192, 192, 192, 0.3) !important;
+}
+
+.theme-option.selected {
+    border-color: #c0c0c0 !important;
+    box-shadow: 0 0 15px rgba(192, 192, 192, 0.6) !important;
+}
+
+.theme-option span {
+    background: rgba(0, 0, 0, 0.8) !important;
+    color: #ffffff !important;
+    font-size: 0.7rem !important;
+    padding: 4px 8px !important;
+    border-radius: 8px !important;
+    text-align: center !important;
+    width: 90% !important;
+    margin-bottom: 5px !important;
+}
+
+/* Silver Theme Implementations (limited selection) */
+
+/* Default Silver Theme */
+.silver-tier {
+    --primary-color: #00ffff !important;
+    --secondary-color: #0099cc !important;
+    --accent-color: #66ccff !important;
+}
+
+/* Purple Silver Theme */
+.theme-purple .silver-tier {
+    background: linear-gradient(135deg, #1a0033, #2d1b69) !important;
+}
+
+.theme-purple .action-btn {
+    background: linear-gradient(135deg, #a855f7, #7c3aed) !important;
+    border-color: #8b5cf6 !important;
+}
+
+/* Green Silver Theme */
+.theme-green .silver-tier {
+    background: linear-gradient(135deg, #0d2818, #1a5a3e) !important;
+}
+
+.theme-green .action-btn {
+    background: linear-gradient(135deg, #10b981, #059669) !important;
+    border-color: #32cd32 !important;
+}
+
+/* Orange Silver Theme */
+.theme-orange .silver-tier {
+    background: linear-gradient(135deg, #1a0f00, #3d2200) !important;
+}
+
+.theme-orange .action-btn {
+    background: linear-gradient(135deg, #f97316, #ea580c) !important;
+    border-color: #ff8c00 !important;
+}
+
+/* Pink Silver Theme */
+.theme-pink .silver-tier {
+    background: linear-gradient(135deg, #330a1a, #6b1a3a) !important;
+}
+
+.theme-pink .action-btn {
+    background: linear-gradient(135deg, #ec4899, #db2777) !important;
+    border-color: #ff1493 !important;
+}
+
+/* Blue Silver Theme */
+.theme-blue .silver-tier {
+    background: linear-gradient(135deg, #0a1a33, #1a3a6b) !important;
+}
+
+.theme-blue .action-btn {
+    background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
+    border-color: #1e90ff !important;
+}
+
+/* Universal Silver tier enhancements */
+.silver-tier .action-btn:hover {
+    transform: translateY(-2px) scale(1.01) !important;
+    box-shadow: 0 6px 20px rgba(192, 192, 192, 0.2) !important;
+}
