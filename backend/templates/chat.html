@@ -57,11 +57,11 @@
                     Switch
                 </a>
                 
-                <!-- Color Palette Button (Silver/Gold/Trial users) -->
-                {% if companion_tier == 'silver' or companion_tier == 'gold' or session.get('trial_active') %}
-                <button onclick="toggleThemeSelector()" class="action-btn theme-selector-btn {% if companion_tier == 'gold' or session.get('trial_active') %}gold-theme-btn{% endif %}">
+                <!-- Color Palette Button (Silver/Gold users only) -->
+                {% if companion_tier == 'silver' or companion_tier == 'gold' %}
+                <button onclick="toggleThemeSelector()" class="action-btn theme-selector-btn {% if companion_tier == 'gold' %}gold-theme-btn{% endif %}">
                     <i class="fas fa-palette"></i>
-                    {% if companion_tier == 'gold' or session.get('trial_active') %}🌟 Themes{% else %}🎨 Colors{% endif %}
+                    {% if companion_tier == 'gold' %}🌟 Themes{% else %}🎨 Colors{% endif %}
                 </button>
                 {% endif %}
                 
@@ -167,11 +167,11 @@
         <!-- Netflix-Style Theme Modal Backdrop -->
         <div id="themeModalBackdrop" class="theme-modal-backdrop" style="display: none;" onclick="toggleThemeSelector()"></div>
         
-        <!-- Enhanced Theme Customization Panel (Silver/Gold/Trial users) -->
-        {% if companion_tier == 'silver' or companion_tier == 'gold' or session.get('trial_active') %}
+        <!-- Enhanced Theme Customization Panel (Silver/Gold users only) -->
+        {% if companion_tier == 'silver' or companion_tier == 'gold' %}
         <div id="themeSelector" class="enhanced-theme-panel" style="display: none;">
             <div class="theme-panel-header">
-                <h3>🎨 {% if companion_tier == 'gold' or session.get('trial_active') %}Premium{% else %}Silver{% endif %} Theme Customization</h3>
+                <h3>🎨 {% if companion_tier == 'gold' %}Premium{% else %}Silver{% endif %} Theme Customization</h3>
                 <button class="theme-close-btn" onclick="toggleThemeSelector()">×</button>
             </div>
             
@@ -182,7 +182,7 @@
                     <h4>Background Colors</h4>
                 </div>
                 <div class="color-grid background-colors">
-                    {% if companion_tier == 'gold' or session.get('trial_active') %}
+                    {% if companion_tier == 'gold' %}
                     <!-- Gold Background Options -->
                     <div class="color-option" data-type="background" data-value="linear-gradient(135deg, #ffd700, #ffb347)" title="Classic Gold">
                         <div class="color-preview" style="background: linear-gradient(135deg, #ffd700, #ffb347);"></div>
@@ -262,7 +262,7 @@
                         <div class="color-preview" style="background: #dda0dd;"></div>
                         <span>Purple</span>
                     </div>
-                    {% if companion_tier == 'gold' or session.get('trial_active') %}
+                    {% if companion_tier == 'gold' %}
                     <!-- Additional Gold Text Colors -->
                     <div class="color-option" data-type="text" data-value="#ff6347" title="Tomato">
                         <div class="color-preview" style="background: #ff6347;"></div>
@@ -286,7 +286,7 @@
                     <button class="preset-btn" data-preset="default">🌊 Ocean Default</button>
                     <button class="preset-btn" data-preset="dark">🌙 Midnight Dark</button>
                     <button class="preset-btn" data-preset="warm">🔥 Warm Sunset</button>
-                    {% if companion_tier == 'gold' or session.get('trial_active') %}
+                    {% if companion_tier == 'gold' %}
                     <button class="preset-btn" data-preset="gold">👑 Royal Gold</button>
                     <button class="preset-btn" data-preset="cosmic">✨ Cosmic Aurora</button>
                     {% endif %}
@@ -2760,7 +2760,7 @@ Where emotion meets expression.
                     document.body.style.overflow = 'hidden';
                     
                     // Add tier-specific styling to panel
-                    const isGold = {% if companion_tier == 'gold' or session.get('trial_active') %}true{% else %}false{% endif %};
+                    const isGold = {% if companion_tier == 'gold' %}true{% else %}false{% endif %};
                     if (isGold) {
                         panel.classList.add('gold-tier');
                     }
