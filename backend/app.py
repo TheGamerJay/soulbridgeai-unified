@@ -15856,6 +15856,22 @@ try:
             except Exception as e:
                 logger.debug(f"Column may already exist: {e}")
         
+        # Update old plan names to new tier system
+        try:
+            plan_updates = [
+                ("UPDATE users SET user_plan = 'bronze' WHERE user_plan = 'free'", "free → bronze"),
+                ("UPDATE users SET user_plan = 'silver' WHERE user_plan = 'growth'", "growth → silver"),
+                ("UPDATE users SET user_plan = 'gold' WHERE user_plan = 'max'", "max → gold")
+            ]
+            
+            for update_sql, description in plan_updates:
+                cursor.execute(update_sql)
+                if cursor.rowcount > 0:
+                    logger.info(f"🔄 Updated {cursor.rowcount} users: {description}")
+                    
+        except Exception as e:
+            logger.debug(f"Plan name update: {e}")
+
         # Initialize artistic_time for existing users based on their tier
         try:
             cursor.execute("""
