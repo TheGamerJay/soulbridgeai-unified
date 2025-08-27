@@ -13419,11 +13419,12 @@ def ai_image_generation_generate():
         from constants import AI_IMAGE_LIMITS
         trial_active = session.get('trial_active', False)
         effective_plan = get_effective_plan(user_plan, trial_active)
-        # For AI images: Trial users get Silver tier limits (10), not unlimited Gold
+        # Determine AI image tier: Bronze trial users get Silver access, others keep their tier  
         if trial_active and user_plan == 'bronze':
-            ai_image_tier = 'silver'  # Trial users get Silver-level AI image access
+            ai_image_tier = 'silver'  # Bronze trial users get Silver-level AI image access (10 images)
         else:
             ai_image_tier = user_plan  # Use actual subscription plan
+            # Bronze=0, Silver=10, Gold=unlimited
             
         monthly_limit = AI_IMAGE_LIMITS.get(ai_image_tier, 0)
         
@@ -13671,11 +13672,12 @@ def ai_image_generation_usage():
             return jsonify({"success": False, "error": "AI Image Generation requires Silver/Gold tier, addon, or trial"}), 403
         
         # Get current month usage and tier-based limits
-        # For AI images: Trial users get Silver tier limits (10), not unlimited Gold
+        # Determine AI image tier: Bronze trial users get Silver access, others keep their tier
         if trial_active and user_plan == 'bronze':
-            ai_image_tier = 'silver'  # Trial users get Silver-level AI image access
+            ai_image_tier = 'silver'  # Bronze trial users get Silver-level AI image access (10 images)
         else:
             ai_image_tier = user_plan  # Use actual subscription plan
+            # Bronze=0, Silver=10, Gold=unlimited
             
         from constants import AI_IMAGE_LIMITS
         monthly_limit = AI_IMAGE_LIMITS.get(ai_image_tier, 0)
