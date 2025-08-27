@@ -15843,6 +15843,9 @@ try:
         # Add music studio fields to existing users table
         music_columns = [
             "ALTER TABLE users ADD COLUMN IF NOT EXISTS artistic_time INTEGER DEFAULT 0",
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS trial_credits INTEGER DEFAULT 60",
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS credits INTEGER DEFAULT 0",
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS purchased_credits INTEGER DEFAULT 0",
             "ALTER TABLE users ADD COLUMN IF NOT EXISTS disclaimer_accepted_at TIMESTAMP",
             "ALTER TABLE users ADD COLUMN IF NOT EXISTS last_credit_reset DATE"
         ]
@@ -15852,6 +15855,21 @@ try:
                 cursor.execute(sql)
             except Exception as e:
                 logger.debug(f"Column may already exist: {e}")
+        
+        # Initialize artistic_time for existing users based on their tier
+        try:
+            cursor.execute("""
+                UPDATE users 
+                SET artistic_time = CASE 
+                    WHEN user_plan = 'silver' OR user_plan = 'growth' THEN 200
+                    WHEN user_plan = 'gold' OR user_plan = 'max' THEN 500
+                    ELSE 0
+                END
+                WHERE artistic_time = 0 OR artistic_time IS NULL
+            """)
+            logger.info(f"🎨 Initialized artistic_time for existing users based on tier")
+        except Exception as e:
+            logger.debug(f"Artistic time initialization: {e}")
         
         conn.commit()
         cursor.close()
