@@ -488,6 +488,7 @@
         <div class="credit-info">
           <i class="fas fa-coins"></i>
           <span>Artistic Time: <span id="currentCredits">Loading...</span></span>
+          <button id="refreshCreditsBtn" onclick="refreshCredits()" style="background: none; border: none; color: #22d3ee; cursor: pointer; margin-left: 10px; font-size: 0.8rem;" title="Refresh credits">🔄</button>
           <span class="credit-cost">• 5 artistic time per image</span>
         </div>
       </div>
@@ -931,6 +932,43 @@
       } catch (error) {
         console.error('Error loading credits:', error);
         document.getElementById('currentCredits').textContent = 'Error';
+      }
+    }
+
+    async function refreshCredits() {
+      try {
+        const refreshBtn = document.getElementById('refreshCreditsBtn');
+        refreshBtn.textContent = '⏳'; // Hourglass while loading
+        
+        const response = await fetch('/api/refresh-user-credits', {
+          method: 'POST',
+          credentials: 'include'
+        });
+
+        const result = await response.json();
+        console.log('🔄 Credits refresh response:', result);
+        
+        if (result.success) {
+          document.getElementById('currentCredits').textContent = result.credits || 0;
+          refreshBtn.textContent = '✓'; // Checkmark for success
+          setTimeout(() => {
+            refreshBtn.textContent = '🔄'; // Back to refresh icon
+          }, 2000);
+        } else {
+          console.error('Failed to refresh credits:', result.error);
+          refreshBtn.textContent = '❌'; // X for error
+          setTimeout(() => {
+            refreshBtn.textContent = '🔄';
+          }, 2000);
+        }
+
+      } catch (error) {
+        console.error('Error refreshing credits:', error);
+        const refreshBtn = document.getElementById('refreshCreditsBtn');
+        refreshBtn.textContent = '❌';
+        setTimeout(() => {
+          refreshBtn.textContent = '🔄';
+        }, 2000);
       }
     }
 

@@ -17668,6 +17668,37 @@ def api_get_artistic_time():
         logger.error(f"Error fetching user credits: {e}")
         return jsonify({"success": False, "error": "Failed to fetch credits"}), 500
 
+@app.route("/api/refresh-user-credits", methods=["POST"])
+def refresh_user_credits():
+    """Force refresh user's artistic time data from database"""
+    if not is_logged_in():
+        return jsonify({"success": False, "error": "Authentication required"}), 401
+    
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({"success": False, "error": "User ID not found"}), 400
+        
+        # Force initialize/refresh user data
+        db = get_database()
+        if db:
+            ensure_user_data_initialized(user_id, db)
+        
+        # Get fresh artistic time
+        total_credits = get_artistic_time(user_id)
+        
+        logger.info(f"🔄 CREDITS REFRESHED - User {user_id}: {total_credits} artistic time")
+        
+        return jsonify({
+            "success": True,
+            "credits": total_credits,
+            "message": "Credits refreshed successfully"
+        })
+        
+    except Exception as e:
+        logger.error(f"Error refreshing user credits: {e}")
+        return jsonify({"success": False, "error": "Failed to refresh credits"}), 500
+
 @app.route("/api/debug-trial-status", methods=["GET"])
 def debug_trial_status():
     """Debug endpoint to check trial status"""
