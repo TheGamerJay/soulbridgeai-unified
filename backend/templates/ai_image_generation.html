@@ -649,6 +649,10 @@
       const charCount = document.getElementById('charCount');
       
       promptInput.addEventListener('input', function() {
+        // Enforce 800 character limit
+        if (this.value.length > 800) {
+          this.value = this.value.substring(0, 800);
+        }
         charCount.textContent = this.value.length;
       });
 
@@ -694,7 +698,15 @@
               // Use only reference analysis
               prompt = analysisResult.description;
             }
+            // Enforce 800 character limit for AI-generated prompts
+            if (prompt.length > 800) {
+              prompt = prompt.substring(0, 800);
+              console.log('🔄 AI prompt truncated to 800 characters');
+            }
             document.getElementById('imagePrompt').value = prompt;
+            
+            // Update character counter
+            document.getElementById('charCount').textContent = prompt.length;
           } else {
             // Error analyzing reference image (alert removed for production)
             document.getElementById('loadingState').style.display = 'none';
