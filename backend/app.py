@@ -185,7 +185,7 @@ def ensure_user_data_initialized(user_id: int, db) -> bool:
 def get_artistic_time(user_id: int) -> int:
     """Get user's current artistic time balance using app.py database infrastructure"""
     try:
-        db = get_db()
+        db = get_database()
         if not db:
             logger.error(f"No database connection for artistic time user {user_id}")
             return 0
@@ -269,7 +269,7 @@ def get_artistic_time(user_id: int) -> int:
 def deduct_artistic_time(user_id: int, amount: int) -> bool:
     """Deduct artistic time using app.py database infrastructure"""
     try:
-        db = get_db()
+        db = get_database()
         if not db:
             logger.error(f"No database connection for deducting artistic time user {user_id}")
             return False
@@ -349,7 +349,7 @@ def get_feature_cost(feature_name: str) -> int:
 def refund_artistic_time(user_id: int, amount: int) -> bool:
     """Refund artistic time to user's balance"""
     try:
-        db = get_db()
+        db = get_database()
         if not db:
             logger.error(f"No database connection for refunding artistic time user {user_id}")
             return False

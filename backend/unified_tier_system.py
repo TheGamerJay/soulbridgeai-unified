@@ -98,7 +98,7 @@ def ensure_database_schema():
         try:
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS tier_limits (
-                    id INTEGER PRIMARY KEY,
+                    id SERIAL PRIMARY KEY,
                     tier TEXT NOT NULL CHECK (tier IN ('bronze','silver','gold')),
                     feature TEXT NOT NULL CHECK (feature IN ('decoder','fortune','horoscope')),
                     daily_limit INTEGER,
