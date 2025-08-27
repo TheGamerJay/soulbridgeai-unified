@@ -164,6 +164,9 @@
             </div>
         </div>
         
+        <!-- Netflix-Style Theme Modal Backdrop -->
+        <div id="themeModalBackdrop" class="theme-modal-backdrop" style="display: none;" onclick="toggleThemeSelector()"></div>
+        
         <!-- Enhanced Theme Customization Panel (Silver/Gold/Trial users) -->
         {% if companion_tier == 'silver' or companion_tier == 'gold' or session.get('trial_active') %}
         <div id="themeSelector" class="enhanced-theme-panel" style="display: none;">
@@ -2738,14 +2741,29 @@ Where emotion meets expression.
         // Enhanced Theme System Functions
         function toggleThemeSelector() {
             const panel = document.getElementById('themeSelector');
-            if (panel) {
+            const backdrop = document.getElementById('themeModalBackdrop');
+            
+            if (panel && backdrop) {
                 const isVisible = panel.style.display !== 'none';
-                panel.style.display = isVisible ? 'none' : 'block';
                 
-                // Add tier-specific styling to panel
-                const isGold = {% if companion_tier == 'gold' or session.get('trial_active') %}true{% else %}false{% endif %};
-                if (isGold) {
-                    panel.classList.add('gold-tier');
+                if (isVisible) {
+                    // Hide modal
+                    panel.style.display = 'none';
+                    backdrop.style.display = 'none';
+                    backdrop.classList.remove('show');
+                    document.body.style.overflow = 'auto';
+                } else {
+                    // Show modal
+                    backdrop.style.display = 'block';
+                    panel.style.display = 'block';
+                    setTimeout(() => backdrop.classList.add('show'), 10);
+                    document.body.style.overflow = 'hidden';
+                    
+                    // Add tier-specific styling to panel
+                    const isGold = {% if companion_tier == 'gold' or session.get('trial_active') %}true{% else %}false{% endif %};
+                    if (isGold) {
+                        panel.classList.add('gold-tier');
+                    }
                 }
             }
         }
@@ -2902,15 +2920,8 @@ Where emotion meets expression.
             });
         });
         
-        // Close theme panel when clicking outside
-        document.addEventListener('click', function(event) {
-            const container = event.target.closest('.enhanced-theme-panel, .theme-selector-btn');
-            const panel = document.getElementById('themeSelector');
-            
-            if (!container && panel && panel.style.display === 'block') {
-                panel.style.display = 'none';
-            }
-        });
+        // Close theme panel when clicking outside (handled by backdrop onclick)
+        // Removed click outside handler as backdrop handles this now
     </script>
     
     <script src="{{ url_for('static', filename='js/chat.js') }}?v={{ range(1000000) | random }}"></script>
