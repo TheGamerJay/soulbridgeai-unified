@@ -640,6 +640,105 @@
             text-align: center;
         }
         
+        /* Security Section Styles */
+        .security-section {
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(0, 255, 255, 0.2);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-xl);
+            margin: var(--spacing-xxl) auto;
+            max-width: 800px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .security-section::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, transparent 0%, rgba(0, 255, 255, 0.03) 100%);
+            pointer-events: none;
+        }
+        
+        .security-header {
+            text-align: center;
+            margin-bottom: var(--spacing-xl);
+        }
+        
+        .security-icon {
+            font-size: 3rem;
+            margin-bottom: var(--spacing-md);
+            filter: drop-shadow(0 0 10px rgba(0, 255, 255, 0.3));
+        }
+        
+        .security-title {
+            font-size: clamp(1.5rem, 3vw, 2rem);
+            font-weight: 600;
+            color: var(--primary-cyan);
+            margin-bottom: var(--spacing-xs);
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+        }
+        
+        .security-subtitle {
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin: 0;
+        }
+        
+        .security-features {
+            display: grid;
+            gap: var(--spacing-lg);
+        }
+        
+        .security-feature {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--spacing-md);
+            padding: var(--spacing-md);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(0, 255, 255, 0.1);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .security-feature:hover {
+            background: rgba(0, 255, 255, 0.08);
+            border-color: rgba(0, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .feature-icon {
+            font-size: 1.5rem;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 10px;
+            flex-shrink: 0;
+        }
+        
+        .feature-content {
+            flex: 1;
+        }
+        
+        .feature-content h4 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #fff;
+            margin: 0 0 var(--spacing-xs) 0;
+        }
+        
+        .feature-content p {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin: 0;
+            line-height: 1.5;
+        }
+        
         /* Responsive adjustments */
         @media (max-width: 768px) {
             .container {
@@ -652,6 +751,29 @@
             
             p {
                 font-size: 1rem !important;
+            }
+            
+            .security-section {
+                padding: var(--spacing-lg);
+                margin: var(--spacing-xl) auto;
+            }
+            
+            .security-icon {
+                font-size: 2.5rem;
+            }
+            
+            .security-features {
+                gap: var(--spacing-md);
+            }
+            
+            .security-feature {
+                padding: var(--spacing-sm);
+            }
+            
+            .feature-icon {
+                width: 35px;
+                height: 35px;
+                font-size: 1.3rem;
             }
         }
         
@@ -1088,12 +1210,39 @@
         </div>
 
 
-        <!-- Security notice using your card styling -->
-        <div class="card" style="max-width: 500px; text-align: left; padding: 20px;">
-            <h4 style="text-align: center; margin-bottom: 15px;">🔒 Your Security Matters</h4>
-            <p style="margin-bottom: 8px; font-size: 0.9rem;">• You'll be logged out when you close your browser</p>
-            <p style="margin-bottom: 8px; font-size: 0.9rem;">• Always use "Logout" button on shared computers</p>
-            <p style="margin-bottom: 0; font-size: 0.9rem;">• Your conversations are private and secure</p>
+        <!-- Security Section -->
+        <div class="security-section">
+            <div class="security-header">
+                <div class="security-icon">🔒</div>
+                <h3 class="security-title">Your Security Matters</h3>
+                <p class="security-subtitle">Your privacy and security are our top priorities</p>
+            </div>
+            
+            <div class="security-features">
+                <div class="security-feature">
+                    <div class="feature-icon">🚪</div>
+                    <div class="feature-content">
+                        <h4>Auto-Logout Protection</h4>
+                        <p>Automatically logged out when browser closes</p>
+                    </div>
+                </div>
+                
+                <div class="security-feature">
+                    <div class="feature-icon">💻</div>
+                    <div class="feature-content">
+                        <h4>Shared Computer Safety</h4>
+                        <p>Always use "Logout" button on shared devices</p>
+                    </div>
+                </div>
+                
+                <div class="security-feature">
+                    <div class="feature-icon">💬</div>
+                    <div class="feature-content">
+                        <h4>Private Conversations</h4>
+                        <p>Your conversations are encrypted and secure</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     
