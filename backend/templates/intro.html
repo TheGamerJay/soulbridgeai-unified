@@ -387,7 +387,6 @@
             border-radius: var(--radius-lg);
             padding: var(--spacing-lg);
             transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            cursor: pointer;
             position: relative;
             overflow: hidden;
         }
@@ -992,12 +991,18 @@
             </p>
             
             <div class="hero-cta">
-                <button class="primary-cta" onclick="scrollToCompanions()">
-                    🚀 Start Your Journey
+                <button class="primary-cta" onclick="window.location.href='/tiers'">
+                    🌟 Choose Your AI Companion
                 </button>
                 <button class="secondary-cta" onclick="toggleNavigationAssistant()">
-                    <img src="{{ url_for('static', filename='logos/Sapphire.png') }}" alt="Sapphire" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;">
+                    <img src="{{ url_for('static', filename='logos/Sapphire.png') }}" alt="Sapphire" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
                     Meet Your Guide
+                </button>
+                <button class="secondary-cta" onclick="window.location.href='/community'">
+                    🌍 Community
+                </button>
+                <button class="secondary-cta" onclick="window.location.href='/profile'" id="hero-profile-button">
+                    👤 Profile
                 </button>
             </div>
         </div>
@@ -1015,7 +1020,7 @@
             
             <div class="companion-grid">
                 <!-- Bronze Tier Companion -->
-                <div class="companion-card" onclick="window.location.href='/tiers'">
+                <div class="companion-card">
                     <div class="card-header">
                         <img src="{{ url_for('static', filename='logos/Blayzo.png') }}" alt="Blayzo" class="companion-avatar">
                         <div class="companion-info">
@@ -1037,7 +1042,7 @@
                 </div>
 
                 <!-- Silver Tier Companion -->
-                <div class="companion-card" onclick="window.location.href='/tiers'">
+                <div class="companion-card">
                     <div class="card-header">
                         <img src="{{ url_for('static', filename='logos/Sky_a_premium_companion.png') }}" alt="Sky" class="companion-avatar">
                         <div class="companion-info">
@@ -1059,7 +1064,7 @@
                 </div>
 
                 <!-- Gold Tier Companion -->
-                <div class="companion-card" onclick="window.location.href='/tiers'">
+                <div class="companion-card">
                     <div class="card-header">
                         <img src="{{ url_for('static', filename='logos/Violet_a_Max_companion.png') }}" alt="Violet" class="companion-avatar">
                         <div class="companion-info">
@@ -1082,18 +1087,6 @@
             </div>
         </div>
 
-        <!-- Action Buttons -->
-        <div class="action-buttons">
-            <a href="/tiers" class="action-btn primary">
-                🌟 Choose Your AI Companion
-            </a>
-            <a href="/community" class="action-btn">
-                🌍 Community
-            </a>
-            <a href="/profile" class="action-btn" id="main-profile-button">
-                👤 Profile
-            </a>
-        </div>
 
         <!-- Security notice using your card styling -->
         <div class="card" style="max-width: 500px; text-align: left; padding: 20px;">

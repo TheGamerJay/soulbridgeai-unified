@@ -7,6 +7,7 @@ from datetime import datetime, timezone, timedelta
 # from app_core import current_user  # Avoid SQLAlchemy issues
 from db_users import db_get_trial_state, db_get_user_plan, db_set_trial, db_fetch_user_row
 from access import get_effective_access
+from database_utils import get_database
 
 logger = logging.getLogger(__name__)
 
