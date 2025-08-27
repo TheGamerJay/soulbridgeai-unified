@@ -13411,14 +13411,20 @@ def ai_image_generation_generate():
         from constants import AI_IMAGE_LIMITS
         trial_active = session.get('trial_active', False)
         effective_plan = get_effective_plan(user_plan, trial_active)
-        monthly_limit = AI_IMAGE_LIMITS.get(effective_plan, 0)
+        # For AI images: Trial users get Silver tier limits (10), not unlimited Gold
+        if trial_active and user_plan == 'bronze':
+            ai_image_tier = 'silver'  # Trial users get Silver-level AI image access
+        else:
+            ai_image_tier = user_plan  # Use actual subscription plan
+            
+        monthly_limit = AI_IMAGE_LIMITS.get(ai_image_tier, 0)
         
         current_month = datetime.now().strftime('%Y-%m')
         usage_key = f'ai_image_usage_{current_month}'
         monthly_usage = session.get(usage_key, 0)
         
         if monthly_limit < 999999 and monthly_usage >= monthly_limit:
-            tier_name = {"bronze": "Bronze", "silver": "Silver", "gold": "Gold"}[effective_plan]
+            tier_name = {"bronze": "Bronze", "silver": "Silver", "gold": "Gold"}[ai_image_tier]
             return jsonify({"success": False, "error": f"Monthly AI image limit reached ({monthly_limit} images for {tier_name} tier)"}), 403
         
         # Check and deduct credits before generating
@@ -13657,9 +13663,14 @@ def ai_image_generation_usage():
             return jsonify({"success": False, "error": "AI Image Generation requires Silver/Gold tier, addon, or trial"}), 403
         
         # Get current month usage and tier-based limits
-        effective_plan = get_effective_plan(user_plan, trial_active)
+        # For AI images: Trial users get Silver tier limits (10), not unlimited Gold
+        if trial_active and user_plan == 'bronze':
+            ai_image_tier = 'silver'  # Trial users get Silver-level AI image access
+        else:
+            ai_image_tier = user_plan  # Use actual subscription plan
+            
         from constants import AI_IMAGE_LIMITS
-        monthly_limit = AI_IMAGE_LIMITS.get(effective_plan, 0)
+        monthly_limit = AI_IMAGE_LIMITS.get(ai_image_tier, 0)
         
         current_month = datetime.now().strftime('%Y-%m')
         usage_key = f'ai_image_usage_{current_month}'
