@@ -322,7 +322,7 @@
         .companion-avatar {
             width: 40px;
             height: 40px;
-            border-radius: 50%;
+            border-radius: 8px;
             object-fit: cover;
             margin-right: 12px;
             border: 2px solid #22d3ee;
@@ -756,13 +756,13 @@
             const preview = extractPreview(conv.content);
             let characterIcon;
             if (conv.character === 'Blayzo') {
-                characterIcon = '<img src="/static/logos/Blayzo.png" alt="Blayzo" style="width: 16px; height: 16px; border-radius: 50%; object-fit: contain; margin-right: 4px;">';
+                characterIcon = '<img src="/static/logos/Blayzo.png" alt="Blayzo" style="width: 16px; height: 16px; border-radius: 4px; object-fit: contain; margin-right: 4px;">';
             } else if (conv.character === 'Sky') {
-                characterIcon = '<img src="/static/logos/horoscope sky.png" alt="Sky" style="width: 16px; height: 16px; border-radius: 50%; object-fit: contain; margin-right: 4px;">';
+                characterIcon = '<img src="/static/logos/horoscope sky.png" alt="Sky" style="width: 16px; height: 16px; border-radius: 4px; object-fit: contain; margin-right: 4px;">';
             } else if (conv.character === 'Fortune Teller') {
-                characterIcon = '<img src="/static/logos/Fortune Teller Sky.png" alt="Fortune Teller" style="width: 16px; height: 16px; border-radius: 50%; object-fit: contain; margin-right: 4px;">';
+                characterIcon = '<img src="/static/logos/Fortune Teller Sky.png" alt="Fortune Teller" style="width: 16px; height: 16px; border-radius: 4px; object-fit: contain; margin-right: 4px;">';
             } else if (conv.character === 'Agent') {
-                characterIcon = '<img src="/static/logos/Agent The decoder.png" alt="Agent" style="width: 16px; height: 16px; border-radius: 50%; object-fit: contain; margin-right: 4px;">';
+                characterIcon = '<img src="/static/logos/Agent The decoder.png" alt="Agent" style="width: 16px; height: 16px; border-radius: 4px; object-fit: contain; margin-right: 4px;">';
             } else if (conv.contentType === 'horoscope') {
                 characterIcon = '⭐'; // Fallback for horoscope readings
             } else if (conv.contentType === 'fortune') {
@@ -770,7 +770,7 @@
             } else if (conv.contentType === 'decoder') {
                 characterIcon = '🔍'; // Fallback for decoder readings
             } else {
-                characterIcon = '<img src="/static/logos/Blayzica.png" alt="Blayzica" style="width: 16px; height: 16px; border-radius: 50%; object-fit: contain; margin-right: 4px;">';
+                characterIcon = '<img src="/static/logos/Blayzica.png" alt="Blayzica" style="width: 16px; height: 16px; border-radius: 4px; object-fit: contain; margin-right: 4px;">';
             }
             
             return `

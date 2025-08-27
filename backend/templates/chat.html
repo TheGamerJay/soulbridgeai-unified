@@ -56,6 +56,15 @@
                     <i class="fas fa-exchange-alt"></i>
                     Switch
                 </a>
+                
+                <!-- Color Palette Button (Silver/Gold/Trial users) -->
+                {% if companion_tier == 'silver' or companion_tier == 'gold' or session.get('trial_active') %}
+                <button onclick="toggleThemeSelector()" class="action-btn theme-selector-btn {% if companion_tier == 'gold' or session.get('trial_active') %}gold-theme-btn{% endif %}">
+                    <i class="fas fa-palette"></i>
+                    {% if companion_tier == 'gold' or session.get('trial_active') %}🌟 Themes{% else %}🎨 Colors{% endif %}
+                </button>
+                {% endif %}
+                
                 {% if companion_tier == 'silver' or companion_tier == 'gold' %}
                 <button id="voiceChatBtn" class="action-btn voice-chat" onclick="toggleVoiceChat()" title="Full Voice Chat - Record and get AI response">
                     <i class="fas fa-phone"></i>
@@ -154,6 +163,71 @@
                 </div>
             </div>
         </div>
+        
+        <!-- Theme Selector Panel (Silver/Gold/Trial users) -->
+        {% if companion_tier == 'silver' or companion_tier == 'gold' or session.get('trial_active') %}
+        <div id="themeSelector" class="theme-selector-panel" style="display: none; position: absolute; top: 80px; right: 20px; z-index: 1000;">
+            {% if companion_tier == 'gold' or session.get('trial_active') %}
+            <!-- Gold/Trial Theme Options -->
+            <h4>Choose Your Gold Theme</h4>
+            <div class="theme-options gold-themes">
+                <div class="theme-option" data-theme="default" style="background: linear-gradient(135deg, #ffd700, #ffb347);">
+                    <span>Classic Gold</span>
+                </div>
+                <div class="theme-option" data-theme="royal" style="background: linear-gradient(135deg, #4b0082, #8b00ff);">
+                    <span>Royal Purple</span>
+                </div>
+                <div class="theme-option" data-theme="emerald" style="background: linear-gradient(135deg, #50c878, #228b22);">
+                    <span>Emerald Green</span>
+                </div>
+                <div class="theme-option" data-theme="sapphire" style="background: linear-gradient(135deg, #0f52ba, #4169e1);">
+                    <span>Sapphire Blue</span>
+                </div>
+                <div class="theme-option" data-theme="ruby" style="background: linear-gradient(135deg, #e0115f, #dc143c);">
+                    <span>Ruby Red</span>
+                </div>
+                <div class="theme-option" data-theme="platinum" style="background: linear-gradient(135deg, #e5e4e2, #c0c0c0);">
+                    <span>Platinum Silver</span>
+                </div>
+                <div class="theme-option" data-theme="cosmic" style="background: linear-gradient(135deg, #483d8b, #9932cc, #ff1493);">
+                    <span>Cosmic Aurora</span>
+                </div>
+                <div class="theme-option" data-theme="sunset" style="background: linear-gradient(135deg, #ff4500, #ff8c00, #ffd700);">
+                    <span>Sunset Glow</span>
+                </div>
+                <div class="theme-option" data-theme="ocean" style="background: linear-gradient(135deg, #008b8b, #20b2aa, #40e0d0);">
+                    <span>Deep Ocean</span>
+                </div>
+                <div class="theme-option" data-theme="forest" style="background: linear-gradient(135deg, #228b22, #32cd32, #90ee90);">
+                    <span>Mystic Forest</span>
+                </div>
+            </div>
+            {% else %}
+            <!-- Silver Theme Options -->
+            <h4>Choose Your Theme</h4>
+            <div class="theme-options">
+                <div class="theme-option" data-theme="default" style="background: linear-gradient(135deg, #00ffff, #0099cc);">
+                    <span>Default Cyan</span>
+                </div>
+                <div class="theme-option" data-theme="purple" style="background: linear-gradient(135deg, #a855f7, #7c3aed);">
+                    <span>Royal Purple</span>
+                </div>
+                <div class="theme-option" data-theme="green" style="background: linear-gradient(135deg, #10b981, #059669);">
+                    <span>Forest Green</span>
+                </div>
+                <div class="theme-option" data-theme="orange" style="background: linear-gradient(135deg, #f97316, #ea580c);">
+                    <span>Sunset Orange</span>
+                </div>
+                <div class="theme-option" data-theme="pink" style="background: linear-gradient(135deg, #ec4899, #db2777);">
+                    <span>Rose Pink</span>
+                </div>
+                <div class="theme-option" data-theme="blue" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">
+                    <span>Ocean Blue</span>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
         
         <!-- Messages Area -->
         <div class="chat-messages" id="chatMessages">
@@ -2597,6 +2671,87 @@ Where emotion meets expression.
         // Refresh user status less frequently 
         setInterval(refreshUserStatus, 15000); // Refresh every 15 seconds (less aggressive)  
         refreshUserStatus(); // Run once on load
+        
+        // Theme Selector Functions
+        function toggleThemeSelector() {
+            const panel = document.getElementById('themeSelector');
+            if (panel) {
+                panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+            }
+        }
+        
+        // Apply theme function for both Silver and Gold
+        function applyTheme(theme, tierType) {
+            const body = document.body;
+            
+            if (tierType === 'gold') {
+                // Remove existing Gold theme classes
+                body.classList.remove('theme-royal', 'theme-emerald', 'theme-sapphire', 'theme-ruby', 
+                                   'theme-platinum', 'theme-cosmic', 'theme-sunset', 'theme-ocean', 'theme-forest');
+                
+                // Apply new Gold theme class
+                if (theme !== 'default') {
+                    body.classList.add(`theme-${theme}`);
+                }
+                
+                // Save Gold theme
+                localStorage.setItem('goldTheme', theme);
+            } else {
+                // Silver theme handling
+                body.classList.remove('theme-purple', 'theme-green', 'theme-orange', 'theme-pink', 'theme-blue');
+                
+                if (theme !== 'default') {
+                    body.classList.add(`theme-${theme}`);
+                }
+                
+                // Save Silver theme
+                localStorage.setItem('silverTheme', theme);
+            }
+        }
+        
+        // Load saved theme on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load saved themes
+            const savedGoldTheme = localStorage.getItem('goldTheme');
+            const savedSilverTheme = localStorage.getItem('silverTheme');
+            
+            {% if companion_tier == 'gold' or session.get('trial_active') %}
+            if (savedGoldTheme) {
+                applyTheme(savedGoldTheme, 'gold');
+            }
+            {% elif companion_tier == 'silver' %}
+            if (savedSilverTheme) {
+                applyTheme(savedSilverTheme, 'silver');
+            }
+            {% endif %}
+            
+            // Add click listeners to theme options
+            document.querySelectorAll('.theme-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    const theme = this.getAttribute('data-theme');
+                    const isGold = {% if companion_tier == 'gold' or session.get('trial_active') %}true{% else %}false{% endif %};
+                    
+                    applyTheme(theme, isGold ? 'gold' : 'silver');
+                    
+                    // Close theme selector
+                    document.getElementById('themeSelector').style.display = 'none';
+                    
+                    // Visual feedback
+                    document.querySelectorAll('.theme-option').forEach(opt => opt.classList.remove('selected'));
+                    this.classList.add('selected');
+                });
+            });
+        });
+        
+        // Close theme selector when clicking outside
+        document.addEventListener('click', function(event) {
+            const container = event.target.closest('.theme-selector-panel, .theme-selector-btn');
+            const panel = document.getElementById('themeSelector');
+            
+            if (!container && panel && panel.style.display === 'block') {
+                panel.style.display = 'none';
+            }
+        });
     </script>
     
     <script src="{{ url_for('static', filename='js/chat.js') }}?v={{ range(1000000) | random }}"></script>
