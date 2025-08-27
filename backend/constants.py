@@ -137,9 +137,9 @@ MONTHLY_CREDIT_RESET_AMOUNT = 650
 
 # AI Image generation limits per plan
 AI_IMAGE_LIMITS = {
-    "bronze": 5,
-    "silver": 50, 
-    "gold": 999999
+    "bronze": 3,      # Bronze: 3 AI images per day (basic tier)
+    "silver": 15,     # Silver: 15 AI images per day (enhanced tier)  
+    "gold": 999999    # Gold: Unlimited AI images per day
 }
 
 # Legacy plan migration mapping (for backward compatibility only; do not use for new features)
