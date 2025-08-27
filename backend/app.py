@@ -2529,6 +2529,35 @@ def auth_login():
                         logger.info(f"ℹ️ No trial data found for user {email}")
             except Exception as trial_error:
                 logger.warning(f"Failed to restore trial status on login: {trial_error}")
+            
+            # RESTORE ARTISTIC TIME AND TRIAL CREDITS FROM DATABASE
+            # This fixes the issue where users lose their credits on logout/login
+            try:
+                from artistic_time_system import get_artistic_time
+                
+                # Get fresh artistic time from database (includes both regular and trial credits)
+                user_id = result.get("user_id")
+                if user_id:
+                    total_artistic_time = get_artistic_time(user_id)
+                    logger.info(f"🎨 RESTORED artistic time for user {user_id}: {total_artistic_time} credits")
+                    
+                    # Also restore trial credits specifically to session for backwards compatibility
+                    if session.get('trial_active', False):
+                        database_url = os.environ.get('DATABASE_URL')
+                        if database_url:
+                            import psycopg2
+                            conn = psycopg2.connect(database_url)
+                            cursor = conn.cursor()
+                            cursor.execute("SELECT trial_credits FROM users WHERE id = %s", (user_id,))
+                            trial_credits_result = cursor.fetchone()
+                            if trial_credits_result and trial_credits_result[0] is not None:
+                                session['trial_credits'] = trial_credits_result[0]
+                                logger.info(f"🔄 RESTORED trial credits to session: {trial_credits_result[0]}")
+                            conn.close()
+                        
+            except Exception as artistic_error:
+                logger.warning(f"Failed to restore artistic time on login: {artistic_error}")
+            
             # ISOLATED TIER ACCESS FLAGS - Prevents cross-contamination
             user_plan = session.get('user_plan', 'bronze')
             trial_active = session.get('trial_active', False)
@@ -4268,6 +4297,41 @@ def horoscope():
     except Exception as e:
         logger.error(f"Horoscope template error: {e}")
         return jsonify({"error": "Horoscope temporarily unavailable"}), 500
+
+@app.route("/creative-writing")
+def creative_writing():
+    """Creative Writing page with tier-based limits"""
+    try:
+        if not is_logged_in():
+            return redirect("/login")
+            
+        # Get user's plan and creative writer usage
+        user_id = session.get('user_id')
+        user_plan = session.get('user_plan', 'bronze')
+        creative_usage = get_creative_writer_usage()
+        
+        # Calculate fresh effective_plan (never use cached values)
+        trial_active = session.get('trial_active', False)
+        effective_plan = get_effective_plan(user_plan, trial_active)
+        
+        # FIXED: Use user_plan for limits, effective_plan for feature access
+        daily_limit = get_feature_limit(user_plan, 'creative_writer', trial_active)  # Limits based on subscription
+        
+        # DEBUG: Log creative writing access info
+        logger.info(f"✍️ CREATIVE WRITING DEBUG: user_plan = {user_plan}")
+        logger.info(f"✍️ CREATIVE WRITING DEBUG: effective_plan = {effective_plan}")
+        logger.info(f"✍️ CREATIVE WRITING DEBUG: daily_limit = {daily_limit}")
+        logger.info(f"✍️ CREATIVE WRITING DEBUG: creative_usage = {creative_usage}")
+        
+        return render_template("creative_writing.html", 
+                             user_plan=effective_plan,
+                             daily_limit=daily_limit,
+                             current_usage=creative_usage,
+                             ad_free=user_plan in ['silver', 'gold'],
+                             trial_active=trial_active)
+    except Exception as e:
+        logger.error(f"Creative writing template error: {e}")
+        return jsonify({"error": "Creative writing temporarily unavailable"}), 500
 
 # ========================================
 # TIER-SPECIFIC FEATURE ROUTES
