@@ -4112,14 +4112,14 @@ def chat():
         
         # Redirect to tier-specific URL for complete isolation
         if effective_plan == 'bronze':
-            return redirect("/bronze/")
+            return redirect("/chat/bronze")
         elif effective_plan == 'silver':
-            return redirect("/silver/")
+            return redirect("/chat/silver")
         elif effective_plan == 'gold':
-            return redirect("/gold/")
+            return redirect("/chat/gold")
         else:
             # Fallback to bronze
-            return redirect("/bronze/")
+            return redirect("/chat/bronze")
     except Exception as e:
         logger.error(f"❌ CHAT ROUTE ERROR: {e}")
         return redirect("/tiers?error=chat_error")
