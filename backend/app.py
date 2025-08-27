@@ -13411,7 +13411,7 @@ def ai_image_generation_generate():
         from constants import AI_IMAGE_LIMITS
         trial_active = session.get('trial_active', False)
         effective_plan = get_effective_plan(user_plan, trial_active)
-        monthly_limit = AI_IMAGE_LIMITS.get(user_plan, 0)
+        monthly_limit = AI_IMAGE_LIMITS.get(effective_plan, 0)
         
         current_month = datetime.now().strftime('%Y-%m')
         usage_key = f'ai_image_usage_{current_month}'
