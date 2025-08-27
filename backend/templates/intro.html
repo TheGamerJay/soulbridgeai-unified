@@ -328,8 +328,244 @@
             .hero-subtitle {
                 font-size: 0.9rem;
             }
+
+            .companion-grid {
+                grid-template-columns: 1fr;
+                gap: var(--spacing-md);
+            }
+
+            .action-buttons {
+                flex-direction: column;
+                max-width: 280px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            .action-btn {
+                width: 100%;
+                justify-content: center;
+            }
         }
         
+        /* Modern Companion Cards */
+        .companions-section {
+            margin: var(--spacing-xxl) 0;
+        }
+
+        .section-title {
+            font-size: clamp(2rem, 4vw, 2.5rem);
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: var(--spacing-md);
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: var(--spacing-xl);
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .companion-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--spacing-lg);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .companion-card {
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(0, 255, 255, 0.2);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .companion-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, transparent 0%, rgba(0, 255, 255, 0.05) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .companion-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--primary-cyan);
+            box-shadow: var(--shadow-glow-hover);
+        }
+
+        .companion-card:hover::before {
+            opacity: 1;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .companion-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 2px solid var(--primary-cyan);
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .companion-info h3 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .tier-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .tier-badge.bronze {
+            background: linear-gradient(135deg, #cd7f32, #b8860b);
+            color: #fff;
+        }
+
+        .tier-badge.silver {
+            background: linear-gradient(135deg, #c0c0c0, #a8a8a8);
+            color: #000;
+        }
+
+        .tier-badge.gold {
+            background: linear-gradient(135deg, #ffd700, #ffb700);
+            color: #000;
+        }
+
+        .card-body p {
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.6;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .features-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-xs);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .feature {
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 0.85rem;
+            color: var(--primary-cyan);
+        }
+
+        .card-footer {
+            display: flex;
+            gap: var(--spacing-md);
+        }
+
+        .select-companion {
+            flex: 1;
+            background: var(--gradient-primary);
+            color: #000;
+            border: none;
+            border-radius: var(--radius-md);
+            padding: var(--spacing-sm) var(--spacing-md);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .select-companion:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 255, 255, 0.3);
+        }
+
+        .learn-more {
+            background: transparent;
+            color: var(--primary-cyan);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-sm) var(--spacing-md);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            text-align: center;
+        }
+
+        .learn-more:hover {
+            background: rgba(0, 255, 255, 0.1);
+            border-color: var(--primary-cyan);
+        }
+
+        /* Action Buttons Section */
+        .action-buttons {
+            display: flex;
+            gap: var(--spacing-md);
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: var(--spacing-xl) 0;
+        }
+
+        .action-btn {
+            background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-md) var(--spacing-lg);
+            color: var(--primary-cyan);
+            font-weight: 600;
+            font-size: 1.1rem;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            text-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
+            box-shadow: 0 4px 20px rgba(255, 0, 0, 0.3);
+        }
+
+        .action-btn:hover {
+            transform: translateY(-3px);
+            border-color: rgba(0, 255, 255, 0.6);
+            box-shadow: 0 8px 30px rgba(255, 0, 0, 0.5);
+            color: var(--primary-cyan);
+        }
+
+        .action-btn.primary {
+            background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
+            border: none;
+            box-shadow: 0 8px 30px rgba(255, 0, 0, 0.5);
+            text-shadow: 0 0 8px rgba(0, 255, 255, 0.6);
+        }
+
+        .action-btn.primary:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 15px 40px rgba(255, 0, 0, 0.7);
+        }
+
         /* Enhanced cards with beautiful cyan glow */
         .card {
             background: rgba(0, 0, 0, 0.9) !important;
@@ -760,7 +996,8 @@
                     🚀 Start Your Journey
                 </button>
                 <button class="secondary-cta" onclick="toggleNavigationAssistant()">
-                    💎 Meet Your Guide
+                    <img src="{{ url_for('static', filename='logos/Sapphire.png') }}" alt="Sapphire" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;">
+                    Meet Your Guide
                 </button>
             </div>
         </div>
@@ -769,42 +1006,91 @@
     <!-- Content Container -->
     <div class="content-container">
         
-        
-        <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; margin-bottom: 40px;">
-            <a href="/tiers" 
-               style="background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
-                      border: none; border-radius: 15px; padding: 16px 32px; 
-                      color: #00ffff; font-weight: 700; font-size: 1.2rem;
-                      text-decoration: none; cursor: pointer; transition: all 0.3s ease;
-                      box-shadow: 0 8px 30px rgba(255, 0, 0, 0.5);
-                      transform: translateY(0); display: inline-block;
-                      text-shadow: 0 0 8px rgba(0, 255, 255, 0.6);"
-               onmouseover="this.style.transform='translateY(-4px) scale(1.05)'; this.style.boxShadow='0 15px 40px rgba(255, 0, 0, 0.7)'"
-               onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 8px 30px rgba(255, 0, 0, 0.5)'">
+        <!-- Featured Companions Section -->
+        <div class="companions-section">
+            <h2 class="section-title">Meet Your AI Companions</h2>
+            <p class="section-subtitle">
+                Choose from our diverse range of AI companions, each specialized in different aspects of personal growth and healing.
+            </p>
+            
+            <div class="companion-grid">
+                <!-- Bronze Tier Companion -->
+                <div class="companion-card" onclick="window.location.href='/tiers'">
+                    <div class="card-header">
+                        <img src="{{ url_for('static', filename='logos/Blayzo.png') }}" alt="Blayzo" class="companion-avatar">
+                        <div class="companion-info">
+                            <h3>Blayzo</h3>
+                            <div class="tier-badge bronze">Bronze</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <p>A wise and calm mentor specializing in mindfulness, meditation, and thoughtful guidance through life's challenges.</p>
+                        <div class="features-list">
+                            <span class="feature">🧘 Meditation</span>
+                            <span class="feature">💭 Mindfulness</span>
+                            <span class="feature">🌱 Growth</span>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <button class="select-companion" onclick="event.stopPropagation(); window.location.href='/tiers'">Start Chatting</button>
+                    </div>
+                </div>
+
+                <!-- Silver Tier Companion -->
+                <div class="companion-card" onclick="window.location.href='/tiers'">
+                    <div class="card-header">
+                        <img src="{{ url_for('static', filename='logos/Sky_a_premium_companion.png') }}" alt="Sky" class="companion-avatar">
+                        <div class="companion-info">
+                            <h3>Sky</h3>
+                            <div class="tier-badge silver">Silver</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <p>An empathetic guide for emotional healing, relationship advice, and advanced therapeutic techniques.</p>
+                        <div class="features-list">
+                            <span class="feature">💖 Relationships</span>
+                            <span class="feature">🎭 Emotions</span>
+                            <span class="feature">🔮 Intuition</span>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <button class="select-companion" onclick="event.stopPropagation(); window.location.href='/tiers'">Unlock Silver</button>
+                    </div>
+                </div>
+
+                <!-- Gold Tier Companion -->
+                <div class="companion-card" onclick="window.location.href='/tiers'">
+                    <div class="card-header">
+                        <img src="{{ url_for('static', filename='logos/Violet_a_Max_companion.png') }}" alt="Violet" class="companion-avatar">
+                        <div class="companion-info">
+                            <h3>Violet</h3>
+                            <div class="tier-badge gold">Gold</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <p>A premium spiritual guide offering advanced healing modalities, energy work, and transformational coaching.</p>
+                        <div class="features-list">
+                            <span class="feature">✨ Energy Work</span>
+                            <span class="feature">🌟 Transformation</span>
+                            <span class="feature">🎨 Creative Tools</span>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <button class="select-companion" onclick="event.stopPropagation(); window.location.href='/tiers'">Unlock Gold</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <a href="/tiers" class="action-btn primary">
                 🌟 Choose Your AI Companion
             </a>
-            <a href="/community" 
-               style="background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%); 
-                      border: 2px solid rgba(0, 255, 255, 0.3); border-radius: 15px; padding: 18px 35px; 
-                      color: #00ffff; font-weight: 600; font-size: 1.1rem;
-                      text-decoration: none; cursor: pointer; transition: all 0.3s ease;
-                      transform: translateY(0); display: inline-block;
-                      text-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
-                      box-shadow: 0 4px 20px rgba(255, 0, 0, 0.3);"
-               onmouseover="this.style.transform='translateY(-3px)'; this.style.borderColor='rgba(0, 255, 255, 0.6)'; this.style.boxShadow='0 8px 30px rgba(255, 0, 0, 0.5)'"
-               onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='rgba(0, 255, 255, 0.3)'; this.style.boxShadow='0 4px 20px rgba(255, 0, 0, 0.3)'">
+            <a href="/community" class="action-btn">
                 🌍 Community
             </a>
-            <a href="/profile" id="main-profile-button"
-               style="background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%); 
-                      border: 2px solid rgba(0, 255, 255, 0.3); border-radius: 15px; padding: 18px 35px; 
-                      color: #00ffff; font-weight: 600; font-size: 1.1rem;
-                      text-decoration: none; cursor: pointer; transition: all 0.3s ease;
-                      transform: translateY(0); display: inline-block;
-                      text-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
-                      box-shadow: 0 4px 20px rgba(255, 0, 0, 0.3);"
-               onmouseover="this.style.transform='translateY(-3px)'; this.style.borderColor='rgba(0, 255, 255, 0.6)'; this.style.boxShadow='0 8px 30px rgba(255, 0, 0, 0.5)'"
-               onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='rgba(0, 255, 255, 0.3)'; this.style.boxShadow='0 4px 20px rgba(255, 0, 0, 0.3)'">
+            <a href="/profile" class="action-btn" id="main-profile-button">
                 👤 Profile
             </a>
         </div>
