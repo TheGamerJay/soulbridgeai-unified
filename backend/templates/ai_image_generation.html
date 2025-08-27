@@ -516,7 +516,7 @@
 
     <!-- Usage Info -->
     <div class="usage-info">
-      <div class="usage-count" id="usageCount">0 / 50</div>
+      <div class="usage-count" id="usageCount">0 / ∞</div>
       <div class="usage-limit">Images generated this month</div>
     </div>
 
@@ -912,7 +912,7 @@
         const result = await response.json();
 
         if (result.success) {
-          document.getElementById('usageCount').textContent = `${result.used || 0} / ${result.limit || 50}`;
+          document.getElementById('usageCount').textContent = `${result.used || 0} / ${result.limit || '?'}`;
         }
 
       } catch (error) {
