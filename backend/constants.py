@@ -22,7 +22,7 @@ PLAN_LIMITS = {
     },
     "gold": {
         "decoder": 999999,  # Large number that displays as "unlimited"
-        "fortune": 999999,  # Large number that displays as "unlimited"
+        "fortune": 999,     # Gold tier gets 999 fortune readings per day (shows as "999")
         "horoscope": 999999,  # Large number that displays as "unlimited"
         "creative_writer": 999999,  # Large number that displays as "unlimited"
         "library_chats": 999999     # Large number that displays as "unlimited"

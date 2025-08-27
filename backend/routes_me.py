@@ -8,6 +8,7 @@ from datetime import datetime, timezone, timedelta
 from db_users import db_get_trial_state, db_get_user_plan, db_set_trial, db_fetch_user_row
 from access import get_effective_access
 from database_utils import get_database
+from constants import PLAN_LIMITS
 
 logger = logging.getLogger(__name__)
 
@@ -63,12 +64,7 @@ def me():
             accessible_companion_tiers.append("gold")
         
         # Set limits based on ACTUAL PLAN only (trial only unlocks access, not limits)
-        if plan == 'gold':
-            limits = {"decoder": 999, "fortune": 999, "horoscope": 999, "creative_writer": 999}
-        elif plan == 'silver':
-            limits = {"decoder": 15, "fortune": 8, "horoscope": 10, "creative_writer": 15}
-        else:  # Bronze tier (trial users keep Bronze limits)
-            limits = {"decoder": 3, "fortune": 3, "horoscope": 3, "creative_writer": 3}
+        limits = PLAN_LIMITS.get(plan, PLAN_LIMITS["bronze"])
         
         # Restore trial credits if session is missing them but trial is active
         trial_credits = session.get('trial_credits')

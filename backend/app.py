@@ -8937,12 +8937,7 @@ def check_decoder_limit():
     
     # Calculate companion-tier limits
     def get_simple_feature_limit(tier_name, feature):
-        limits_map = {
-            "bronze": {"decoder": 3, "fortune": 3, "horoscope": 3, "creative_writer": 3},
-            "silver": {"decoder": 15, "fortune": 8, "horoscope": 10, "creative_writer": 30},
-            "gold": {"decoder": 999, "fortune": 999, "horoscope": 999, "creative_writer": 999}
-        }
-        return limits_map.get(tier_name, limits_map["bronze"]).get(feature, 0)
+        return PLAN_LIMITS.get(tier_name, PLAN_LIMITS["bronze"]).get(feature, 0)
     
     # Use companion tier for limits instead of user plan
     daily_limit = get_simple_feature_limit(companion_tier, "decoder")
@@ -8975,12 +8970,7 @@ def check_fortune_limit():
     
     # Calculate companion-tier limits
     def get_simple_feature_limit(tier_name, feature):
-        limits_map = {
-            "bronze": {"decoder": 3, "fortune": 3, "horoscope": 3, "creative_writer": 3},
-            "silver": {"decoder": 15, "fortune": 8, "horoscope": 10, "creative_writer": 30},
-            "gold": {"decoder": 999, "fortune": 999, "horoscope": 999, "creative_writer": 999}
-        }
-        return limits_map.get(tier_name, limits_map["bronze"]).get(feature, 0)
+        return PLAN_LIMITS.get(tier_name, PLAN_LIMITS["bronze"]).get(feature, 0)
     
     # Use companion tier for limits instead of user plan
     daily_limit = get_simple_feature_limit(companion_tier, "fortune")
@@ -9267,12 +9257,7 @@ def check_horoscope_limit():
     
     # Calculate companion-tier limits
     def get_simple_feature_limit(tier_name, feature):
-        limits_map = {
-            "bronze": {"decoder": 3, "fortune": 3, "horoscope": 3, "creative_writer": 3},
-            "silver": {"decoder": 15, "fortune": 8, "horoscope": 10, "creative_writer": 30},
-            "gold": {"decoder": 999, "fortune": 999, "horoscope": 999, "creative_writer": 999}
-        }
-        return limits_map.get(tier_name, limits_map["bronze"]).get(feature, 0)
+        return PLAN_LIMITS.get(tier_name, PLAN_LIMITS["bronze"]).get(feature, 0)
     
     # Use companion tier for limits instead of user plan
     daily_limit = get_simple_feature_limit(companion_tier, "horoscope")
@@ -13919,12 +13904,7 @@ def get_tier_limits():
         # Use companion tier for limits instead of user tier
         def get_simple_feature_limit(tier_name, feature, trial_active):
             """Simple tier limits without external dependencies"""
-            limits_map = {
-                "bronze": {"decoder": 3, "fortune": 3, "horoscope": 3, "creative_writer": 3},
-                "silver": {"decoder": 15, "fortune": 8, "horoscope": 10, "creative_writer": 30},
-                "gold": {"decoder": 999, "fortune": 999, "horoscope": 999, "creative_writer": 999}
-            }
-            return limits_map.get(tier_name, limits_map["bronze"]).get(feature, 0)
+            return PLAN_LIMITS.get(tier_name, PLAN_LIMITS["bronze"]).get(feature, 0)
         
         # Calculate limits based on companion tier
         tier_limits = {
@@ -18549,12 +18529,7 @@ def companion_chat_handler(tier, companion_id):
         # Simple feature limits without complex imports
         def get_simple_feature_limit(tier_name, feature, trial_active):
             """Simple tier limits without external dependencies"""
-            limits_map = {
-                "bronze": {"decoder": 3, "fortune": 3, "horoscope": 3, "creative_writer": 3},
-                "silver": {"decoder": 15, "fortune": 8, "horoscope": 10, "creative_writer": 30},
-                "gold": {"decoder": 999, "fortune": 999, "horoscope": 999, "creative_writer": 999}
-            }
-            return limits_map.get(tier_name, limits_map["bronze"]).get(feature, 0)
+            return PLAN_LIMITS.get(tier_name, PLAN_LIMITS["bronze"]).get(feature, 0)
         
         # Find companion info using efficient dictionary lookup
         companion_info = COMPANIONS_BY_ID.get(companion_id)
