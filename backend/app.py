@@ -123,12 +123,76 @@ TIER_ARTISTIC_TIME = {
 
 TRIAL_ARTISTIC_TIME = 60  # Trial users get 60 one-time credits
 
+def ensure_user_data_initialized(user_id: int, db) -> bool:
+    """Ensure user has all required artistic time columns with proper default values"""
+    try:
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        
+        # Get current user data
+        if db.use_postgres:
+            cursor.execute("""
+                SELECT user_plan, artistic_time, trial_active, trial_credits, last_credit_reset
+                FROM users WHERE id = %s
+            """, (user_id,))
+        else:
+            cursor.execute("""
+                SELECT user_plan, artistic_time, trial_active, trial_credits, last_credit_reset
+                FROM users WHERE id = ?
+            """, (user_id,))
+        
+        result = cursor.fetchone()
+        if not result:
+            logger.error(f"User {user_id} not found for initialization")
+            return False
+            
+        user_plan, artistic_time, trial_active, trial_credits, last_reset = result
+        logger.info(f"🔍 Raw user data for {user_id}: plan={user_plan}, artistic_time={artistic_time}, trial_active={trial_active}, trial_credits={trial_credits}, last_reset={last_reset}")
+        
+        # Initialize missing data
+        updates = []
+        params = []
+        
+        # Initialize artistic_time if NULL and user is subscriber
+        if artistic_time is None and user_plan in ['silver', 'gold']:
+            monthly_allowance = TIER_ARTISTIC_TIME.get(user_plan, 0)
+            updates.append("artistic_time = %s" if db.use_postgres else "artistic_time = ?")
+            params.append(monthly_allowance)
+            logger.info(f"🔧 Initializing artistic_time for {user_plan} user {user_id} with {monthly_allowance}")
+        
+        # Initialize trial_credits if NULL and user has active trial
+        if trial_credits is None and trial_active and user_plan == 'bronze':
+            updates.append("trial_credits = %s" if db.use_postgres else "trial_credits = ?")
+            params.append(TRIAL_ARTISTIC_TIME)
+            logger.info(f"🔧 Initializing trial_credits for Bronze trial user {user_id} with {TRIAL_ARTISTIC_TIME}")
+        
+        # Apply updates if needed
+        if updates:
+            param_placeholder = "%s" if db.use_postgres else "?"
+            query = f"UPDATE users SET {', '.join(updates)} WHERE id = {param_placeholder}"
+            params.append(user_id)
+            
+            cursor.execute(query, params)
+            conn.commit()
+            logger.info(f"✅ Updated user {user_id} with missing artistic time data")
+        
+        return True
+        
+    except Exception as e:
+        logger.error(f"Error initializing user data for {user_id}: {e}")
+        return False
+
 def get_artistic_time(user_id: int) -> int:
     """Get user's current artistic time balance using app.py database infrastructure"""
     try:
         db = get_db()
         if not db:
             logger.error(f"No database connection for artistic time user {user_id}")
+            return 0
+        
+        # Ensure user data is properly initialized
+        if not ensure_user_data_initialized(user_id, db):
+            logger.error(f"Failed to initialize user data for {user_id}")
             return 0
         
         conn = db.get_connection()
@@ -276,6 +340,83 @@ def deduct_artistic_time(user_id: int, amount: int) -> bool:
         
     except Exception as e:
         logger.error(f"Error deducting artistic time for user {user_id}: {e}")
+        return False
+
+def get_feature_cost(feature_name: str) -> int:
+    """Get the cost of a specific feature"""
+    return ARTISTIC_TIME_COSTS.get(feature_name, 0)
+
+def refund_artistic_time(user_id: int, amount: int) -> bool:
+    """Refund artistic time to user's balance"""
+    try:
+        db = get_db()
+        if not db:
+            logger.error(f"No database connection for refunding artistic time user {user_id}")
+            return False
+        
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        
+        # Get current balance to determine where to refund
+        if db.use_postgres:
+            cursor.execute("""
+                SELECT user_plan, artistic_time, trial_active, trial_credits
+                FROM users WHERE id = %s
+            """, (user_id,))
+        else:
+            cursor.execute("""
+                SELECT user_plan, artistic_time, trial_active, trial_credits
+                FROM users WHERE id = ?
+            """, (user_id,))
+        
+        result = cursor.fetchone()
+        if not result:
+            conn.close()
+            return False
+            
+        user_plan, current_credits, trial_active, trial_credits = result
+        
+        # Refund to trial credits first if trial is active, then to monthly credits
+        if trial_active and user_plan == 'bronze':
+            # Refund to trial credits
+            new_trial_credits = (trial_credits or 0) + amount
+            
+            if db.use_postgres:
+                cursor.execute("""
+                    UPDATE users 
+                    SET trial_credits = %s
+                    WHERE id = %s
+                """, (new_trial_credits, user_id))
+            else:
+                cursor.execute("""
+                    UPDATE users 
+                    SET trial_credits = ?
+                    WHERE id = ?
+                """, (new_trial_credits, user_id))
+        else:
+            # Refund to monthly credits
+            new_monthly_credits = (current_credits or 0) + amount
+            
+            if db.use_postgres:
+                cursor.execute("""
+                    UPDATE users 
+                    SET artistic_time = %s
+                    WHERE id = %s
+                """, (new_monthly_credits, user_id))
+            else:
+                cursor.execute("""
+                    UPDATE users 
+                    SET artistic_time = ?
+                    WHERE id = ?
+                """, (new_monthly_credits, user_id))
+        
+        conn.commit()
+        conn.close()
+        logger.info(f"Refunded {amount} artistic time to user {user_id}")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Error refunding artistic time for user {user_id}: {e}")
         return False
 
 # ===== Block G — Fortune Teller: Limits + Tarot Route =====
@@ -1966,15 +2107,8 @@ def ensure_bsg_migrations():
             services["bsg_migrations_done"] = True
             logger.info("✅ BSG migrations completed successfully")
             
-            # Migrate to Artistic Time system (optional, non-blocking)
-            try:
-                from artistic_time_system import migrate_to_artistic_time
-                if migrate_to_artistic_time():
-                    logger.info("✅ Artistic Time migration completed")
-                else:
-                    logger.warning("⚠️ Artistic Time migration skipped or failed")
-            except Exception as e:
-                logger.warning(f"⚠️ Artistic Time migration error (non-critical): {e}")
+            # Artistic Time migration now handled by integrated system
+            logger.info("✅ Artistic Time system integrated into app.py")
                 
             return True
         else:
@@ -12690,7 +12824,7 @@ def voice_journaling_transcribe():
         # Check and deduct credits before processing
         user_id = session.get('user_id')
         from credit_costs import get_feature_cost
-        from artistic_time_system import get_artistic_time, deduct_artistic_time, get_feature_cost
+        # Functions now defined inline in app.py
         
         VOICE_JOURNAL_COST = get_feature_cost("voice_journaling")
         
@@ -12786,7 +12920,7 @@ def voice_journaling_transcribe():
         logger.error(f"Voice transcription error: {e}")
         
         # Refund artistic time since processing failed completely
-        from artistic_time_system import refund_artistic_time, get_feature_cost
+        # Functions now defined inline in app.py
         VOICE_JOURNAL_COST = get_feature_cost("voice_journaling")
         if refund_artistic_time(user_id, VOICE_JOURNAL_COST, "Voice journaling processing failed"):
             logger.info(f"💰 Refunded {VOICE_JOURNAL_COST} artistic time to user {user_id} due to processing failure")
@@ -12910,7 +13044,7 @@ def relationship_profiles_add():
         # Check and deduct credits before processing
         user_id = session.get('user_id')
         from credit_costs import get_feature_cost
-        from artistic_time_system import get_artistic_time, deduct_artistic_time, get_feature_cost
+        # Functions now defined inline in app.py
         
         RELATIONSHIP_COST = get_feature_cost("relationship_profiles")
         
@@ -12969,7 +13103,7 @@ def relationship_profiles_add():
         
         # Refund artistic time since profile creation failed
         user_id = session.get('user_id')
-        from artistic_time_system import refund_artistic_time, get_feature_cost
+        # Functions now defined inline in app.py
         RELATIONSHIP_COST = get_feature_cost("relationship_profiles")
         if refund_artistic_time(user_id, RELATIONSHIP_COST, "Relationship profile creation failed"):
             logger.info(f"💰 Refunded {RELATIONSHIP_COST} artistic time to user {user_id} due to profile creation failure")
@@ -13081,7 +13215,7 @@ def emotional_meditations_save_session():
         # Check and deduct credits before processing
         user_id = session.get('user_id')
         from credit_costs import get_feature_cost
-        from artistic_time_system import get_artistic_time, deduct_artistic_time, get_feature_cost
+        # Functions now defined inline in app.py
         
         MEDITATION_COST = get_feature_cost("meditations")
         
@@ -13137,7 +13271,7 @@ def emotional_meditations_save_session():
         
         # Refund artistic time since meditation save failed
         user_id = session.get('user_id')
-        from artistic_time_system import refund_artistic_time, get_feature_cost
+        # Functions now defined inline in app.py
         MEDITATION_COST = get_feature_cost("meditations")
         if refund_artistic_time(user_id, MEDITATION_COST, "Meditation session save failed"):
             logger.info(f"💰 Refunded {MEDITATION_COST} artistic time to user {user_id} due to meditation save failure")
@@ -13292,7 +13426,7 @@ def ai_image_generation_generate():
         AI_IMAGE_COST = 5  # 5 credits per AI image
         
         # Check if user has enough artistic time
-        from artistic_time_system import get_artistic_time, deduct_artistic_time, get_feature_cost, refund_artistic_time
+        # Functions now defined inline in app.py, refund_artistic_time
         current_credits = get_artistic_time(user_id) if user_id else 0
         
         if current_credits < AI_IMAGE_COST:
@@ -16146,7 +16280,7 @@ def mini_studio_vocal_recording():
         user_id = session.get('user_id')
         
         # Check if user has credits
-        from artistic_time_system import get_artistic_time, deduct_artistic_time, get_feature_cost
+        # Functions now defined inline in app.py
         credits = get_artistic_time(user_id) if user_id else 0
         
         # Trial credits are automatically included in get_artistic_time()
@@ -16196,7 +16330,7 @@ def mini_studio_instrumental():
         mood = data.get('mood', 'energetic')
         
         # Check credits
-        from artistic_time_system import get_artistic_time, deduct_artistic_time, get_feature_cost
+        # Functions now defined inline in app.py
         credits = get_artistic_time(user_id) if user_id else 0
         
         # Trial credits are automatically included in get_artistic_time()
@@ -16305,7 +16439,7 @@ def mini_studio_mixing():
         instrumental_gain_db = data.get('bgm_db', -3.0)
         
         # Check credits
-        from artistic_time_system import get_artistic_time, deduct_artistic_time, get_feature_cost
+        # Functions now defined inline in app.py
         credits = get_artistic_time(user_id) if user_id else 0
         
         # Trial credits are automatically included in get_artistic_time()
@@ -16419,7 +16553,7 @@ def mini_studio_session_control():
         if effective_plan != 'gold':
             return jsonify({"success": False, "error": "Mini Studio requires Gold tier or trial"}), 403
         
-        from artistic_time_system import get_artistic_time, deduct_artistic_time, get_feature_cost
+        # Functions now defined inline in app.py
         
         if action == 'start':
             # Check if user has credits to start session
