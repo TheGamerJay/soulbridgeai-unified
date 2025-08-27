@@ -272,7 +272,7 @@ function updateCharacterDisplay() {
         };
         
         // Try both the display name and the original character ID for lookup
-        const avatarSrc = avatarMap[currentCharacter] || avatarMap[currentCharacter.toLowerCase()] || '/static/logos/IntroLogo.png';
+        const avatarSrc = avatarMap[currentCharacter] || avatarMap[currentCharacter.toLowerCase()] || '/static/logos/New IntroLogo.png';
         characterAvatar.src = avatarSrc;
         characterAvatar.alt = currentCharacter;
         console.log('🖼️ Updated character avatar to:', avatarSrc);

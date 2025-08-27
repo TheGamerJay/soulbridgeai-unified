@@ -1497,7 +1497,7 @@ def parse_request_data():
 def preserve_profile_image_in_session():
     """Preserve custom profile image from session, excluding default images"""
     profile_image = session.get('profile_image')
-    if profile_image and profile_image not in ['/static/logos/Sapphire.png', '/static/logos/IntroLogo.png']:
+    if profile_image and profile_image not in ['/static/logos/Sapphire.png', '/static/logos/New IntroLogo.png']:
         return profile_image
     return None
 
@@ -7085,7 +7085,7 @@ def api_users():
                     # If no profile image found in database, check session but don't default to Sapphire
                     if not profile_image:
                         session_image = session.get('profile_image')
-                        if session_image and session_image not in ['/static/logos/Sapphire.png', '/static/logos/IntroLogo.png']:
+                        if session_image and session_image not in ['/static/logos/Sapphire.png', '/static/logos/New IntroLogo.png']:
                             profile_image = session_image
                             logger.info(f"Using profile image from session: {profile_image}")
                     
@@ -7093,7 +7093,7 @@ def api_users():
                 else:
                     # No database or user_id, check session but don't default to Sapphire
                     session_image = session.get('profile_image')
-                    if session_image and session_image not in ['/static/logos/Sapphire.png', '/static/logos/IntroLogo.png']:
+                    if session_image and session_image not in ['/static/logos/Sapphire.png', '/static/logos/New IntroLogo.png']:
                         profile_image = session_image
                         logger.info(f"Using profile image from session (no DB): {profile_image}")
                     
@@ -7101,12 +7101,12 @@ def api_users():
                 logger.warning(f"Failed to load profile image from database: {e}")
                 # Check session but don't default to Sapphire
                 session_image = session.get('profile_image')
-                if session_image and session_image not in ['/static/logos/Sapphire.png', '/static/logos/IntroLogo.png']:
+                if session_image and session_image not in ['/static/logos/Sapphire.png', '/static/logos/New IntroLogo.png']:
                     profile_image = session_image
             
             # Only use IntroLogo as absolute last resort if no profile image was ever set
             if not profile_image:
-                profile_image = '/static/logos/IntroLogo.png'
+                profile_image = '/static/logos/New IntroLogo.png'
                 logger.info("No custom profile image found, using default IntroLogo")
             
             # Get display name from database if available, fallback to session, then default
@@ -7406,7 +7406,7 @@ def serve_profile_image(user_id):
     try:
         db = get_database()
         if not db:
-            return redirect('/static/logos/IntroLogo.png')
+            return redirect('/static/logos/New IntroLogo.png')
             
         conn = db.get_connection()
         cursor = conn.cursor()
@@ -7445,11 +7445,11 @@ def serve_profile_image(user_id):
             
             return Response(image_data, mimetype=mimetype)
         else:
-            return redirect('/static/logos/IntroLogo.png')
+            return redirect('/static/logos/New IntroLogo.png')
             
     except Exception as e:
         logger.error(f"Error serving profile image for user {user_id}: {e}")
-        return redirect('/static/logos/IntroLogo.png')
+        return redirect('/static/logos/New IntroLogo.png')
 
 
 @app.route("/api/fix-session-thegamer")
@@ -15250,7 +15250,7 @@ TIERS_TEMPLATE = r"""
         {% for c in free_list %}
           <div class="card" onclick="openChat('{{ c.slug }}')" title="{{ c.name }}">
             <span class="lock">✅ Unlocked</span>
-            <img src="{{ c.image_url or '/static/logos/IntroLogo.png' }}" alt="{{ c.name }}" onerror="this.src='/static/logos/IntroLogo.png'">
+            <img src="{{ c.image_url or '/static/logos/New IntroLogo.png' }}" alt="{{ c.name }}" onerror="this.src='/static/logos/New IntroLogo.png'">
             <div class="name">{{ c.name }}</div>
           </div>
         {% endfor %}
@@ -15269,7 +15269,7 @@ TIERS_TEMPLATE = r"""
           {% set locked = not session.access_companions_silver %}
           <div class="card {{ 'locked' if locked }}" onclick="{{ 'openChat(\"' ~ c.slug ~ '\")' if not locked else 'notifyUpgrade(\"Silver\")' }}" title="{{ c.name }}" data-tier="silver">
             <span class="lock">{{ '✅ Unlocked' if not locked else '🔒 Silver' }}</span>
-            <img src="{{ c.image_url or '/static/logos/IntroLogo.png' }}" alt="{{ c.name }}" onerror="this.src='/static/logos/IntroLogo.png'">
+            <img src="{{ c.image_url or '/static/logos/New IntroLogo.png' }}" alt="{{ c.name }}" onerror="this.src='/static/logos/New IntroLogo.png'">
             <div class="name">{{ c.name }}</div>
           </div>
         {% endfor %}
@@ -15288,7 +15288,7 @@ TIERS_TEMPLATE = r"""
           {% set locked = not session.access_companions_gold %}
           <div class="card {{ 'locked' if locked }}" onclick="{{ 'openChat(\"' ~ c.slug ~ '\")' if not locked else 'notifyUpgrade(\"Gold\")' }}" title="{{ c.name }}" data-tier="gold">
             <span class="lock">{{ '✅ Unlocked' if not locked else '🔒 Gold' }}</span>
-            <img src="{{ c.image_url or '/static/logos/IntroLogo.png' }}" alt="{{ c.name }}" onerror="this.src='/static/logos/IntroLogo.png'">
+            <img src="{{ c.image_url or '/static/logos/New IntroLogo.png' }}" alt="{{ c.name }}" onerror="this.src='/static/logos/New IntroLogo.png'">
             <div class="name">{{ c.name }}</div>
           </div>
         {% endfor %}
@@ -15311,7 +15311,7 @@ TIERS_TEMPLATE = r"""
             {% set unlocked = referral_count >= 2 %}
             <div class="card {{ 'locked' if not unlocked }}" onclick="{{ 'openChat(\"' ~ c.slug ~ '\")' if unlocked else 'goToReferral()' }}" title="{{ c.name }}" data-tier="referral">
               <span class="lock">{{ '✅ Unlocked' if unlocked else '🔒 Referral Only' }}</span>
-              <img src="{{ c.image_url or '/static/logos/IntroLogo.png' }}" alt="{{ c.name }}" onerror="this.src='/static/logos/IntroLogo.png'">
+              <img src="{{ c.image_url or '/static/logos/New IntroLogo.png' }}" alt="{{ c.name }}" onerror="this.src='/static/logos/New IntroLogo.png'">
               <div class="name">{{ c.name }}</div>
             </div>
           {% endfor %}
@@ -17074,7 +17074,7 @@ def api_buy_credits():
                     'product_data': {
                         'name': 'SoulBridge AI - Extra Artistic Time',
                         'description': '350 credits for AI Music Studio, Voice Journaling, and AI Images',
-                        'images': ['https://soulbridgeai.com/static/logos/IntroLogo.png'],
+                        'images': ['https://soulbridgeai.com/static/logos/New IntroLogo.png'],
                     },
                     'unit_amount': 350,  # $3.50 in cents
                 },

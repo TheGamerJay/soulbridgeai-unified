@@ -41,7 +41,7 @@ class CacheBuster {
             '/static/css/themes.css', 
             '/static/css/components.css',
             '/static/js/mini-assistant-modal.js',
-            '/static/logos/IntroLogo.png'
+            '/static/logos/New IntroLogo.png'
         ];
         
         console.log('Refreshing critical resources...');

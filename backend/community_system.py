@@ -343,7 +343,7 @@ def get_user_companion_info(user_id: int) -> Dict[str, Any]:
             'skin_id': None,
             'name': 'Soul',
             'rarity': 'common',
-            'avatar_url': '/static/logos/IntroLogo.png'
+            'avatar_url': '/static/logos/New IntroLogo.png'
         }
 
 def get_user_community_avatar(user_id: int) -> Optional[Dict[str, Any]]:

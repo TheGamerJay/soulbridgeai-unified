@@ -1096,7 +1096,7 @@
                                          this.dataset.retry = true;
                                          this.src = this.src.split('?')[0] + '?retry=' + Date.now();
                                      } else {
-                                         this.src='/static/logos/IntroLogo.png';
+                                         this.src='/static/logos/New IntroLogo.png';
                                          this.style.display='block';
                                          document.getElementById('userProfileVideo').style.display='none';
                                          console.log('⚠️ Profile image failed again, using default');
@@ -1105,7 +1105,7 @@
                                    style="max-width: 200px; max-height: 200px; width: auto; height: auto; object-fit: contain; display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);" 
                                    autoplay muted loop playsinline
                                    onloadeddata="this.style.display='block'; document.getElementById('userProfileImage').style.display='none';"
-                                   onerror="console.log('⚠️ Profile video failed, falling back to image'); this.style.display='none'; document.getElementById('userProfileImage').src='/static/logos/IntroLogo.png'; document.getElementById('userProfileImage').style.display='block';">
+                                   onerror="console.log('⚠️ Profile video failed, falling back to image'); this.style.display='none'; document.getElementById('userProfileImage').src='/static/logos/New IntroLogo.png'; document.getElementById('userProfileImage').style.display='block';">
                             </video>
                         </div>
                     </div>
@@ -2426,7 +2426,7 @@
             
             if (!mediaUrl || mediaUrl.trim() === '') {
                 // No media, show default image
-                profileImage.src = '/static/logos/IntroLogo.png';
+                profileImage.src = '/static/logos/New IntroLogo.png';
                 profileImage.style.display = 'block';
                 profileVideo.style.display = 'none';
                 return;
@@ -2661,14 +2661,14 @@
                     const response = await fetch('/api/users', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ profileImage: '/static/logos/IntroLogo.png' })
+                        body: JSON.stringify({ profileImage: '/static/logos/New IntroLogo.png' })
                     });
                     
                     const result = await response.json();
                     if (result.success) {
                         const profileImg = document.getElementById('userProfileImage');
                         if (profileImg) {
-                            profileImg.src = '/static/logos/IntroLogo.png';
+                            profileImg.src = '/static/logos/New IntroLogo.png';
                         }
                     }
                 } catch (error) {

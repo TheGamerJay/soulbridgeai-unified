@@ -778,7 +778,7 @@
                         <div class="reward-info">
                             <img src="/static/logos/${['Claude', 'Blayzo'].includes(reward.cosmetic) ? reward.cosmetic + '_Referral.png' : reward.cosmetic + '.png'}" 
                                  alt="${reward.cosmetic}" class="reward-icon"
-                                 onerror="this.src='/static/logos/IntroLogo.png';"
+                                 onerror="this.src='/static/logos/New IntroLogo.png';"
                             <div class="reward-details">
                                 <h3>${reward.cosmetic}</h3>
                                 <p class="reward-description">${reward.threshold} verified referrals</p>
@@ -833,7 +833,7 @@
                 card.innerHTML = `
                     <img src="/static/logos/${['Claude', 'Blayzo'].includes(cosmetic.name) ? cosmetic.name + '_Referral.png' : cosmetic.name + '.png'}" 
                          alt="${cosmetic.name}" class="cosmetic-image"
-                         onerror="this.src='/static/logos/IntroLogo.png';"
+                         onerror="this.src='/static/logos/New IntroLogo.png';"
                     <div class="cosmetic-name">${cosmetic.name}</div>
                     <div class="cosmetic-threshold">
                         ${isUnlocked ? '✓ Unlocked' : `${cosmetic.threshold} referrals`}

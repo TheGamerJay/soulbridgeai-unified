@@ -852,7 +852,7 @@
                                      this.dataset.retry = true;
                                      this.src = this.src.split('?')[0] + '?retry=' + Date.now();
                                  } else {
-                                     this.src='/static/logos/IntroLogo.png';
+                                     this.src='/static/logos/New IntroLogo.png';
                                      this.style.display='block';
                                      console.log('⚠️ Profile image failed again, using default');
                                  }">
@@ -1279,7 +1279,7 @@
                 const rawProfileURL = this.userData?.profileImage;
                 const newImageSrc = rawProfileURL && rawProfileURL.trim() !== ''
                     ? rawProfileURL + '?t=' + new Date().getTime()
-                    : '/static/logos/IntroLogo.png';
+                    : '/static/logos/New IntroLogo.png';
 
                 if (profileImage.src !== newImageSrc) {
                     console.log('✅ Updating profile image src from', profileImage.src, 'to:', newImageSrc);
@@ -2121,14 +2121,14 @@
                     const response = await fetch('/api/users', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ profileImage: '/static/logos/IntroLogo.png' })
+                        body: JSON.stringify({ profileImage: '/static/logos/New IntroLogo.png' })
                     });
                     
                     const result = await response.json();
                     if (result.success) {
                         const profileImg = document.getElementById('userProfileImage');
                         if (profileImg) {
-                            profileImg.src = '/static/logos/IntroLogo.png';
+                            profileImg.src = '/static/logos/New IntroLogo.png';
                         }
                     }
                 } catch (error) {
@@ -2725,14 +2725,14 @@ What specific feature, policy, or page would you like help with?`;
                             profileImageEl.src = userData.profileImage;
                             profileImageEl.onerror = function() {
                                 console.warn('❌ Profile image failed to load:', userData.profileImage);
-                                this.src = '/static/logos/IntroLogo.png'; // Fallback
+                                this.src = '/static/logos/New IntroLogo.png'; // Fallback
                             };
                             profileImageEl.onload = function() {
                                 console.log('✅ Profile image loaded successfully');
                             };
                         } else {
                             console.log('🖼️ No profile image in userData, using default');
-                            profileImageEl.src = '/static/logos/IntroLogo.png';
+                            profileImageEl.src = '/static/logos/New IntroLogo.png';
                         }
                     } else {
                         console.warn('❌ Profile image element not found in DOM');

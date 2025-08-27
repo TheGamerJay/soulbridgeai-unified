@@ -118,7 +118,7 @@ def me():
             "displayName": session.get("display_name", "User"),
             "plan": plan,
             "artistic_time": artistic_time,
-            "profileImage": session.get("profile_image", "/static/logos/IntroLogo.png"),
+            "profileImage": session.get("profile_image", "/static/logos/New IntroLogo.png"),
             "companion": session.get("selected_companion", "Blayzo")  # Current companion
         }
         
