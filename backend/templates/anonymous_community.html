@@ -44,9 +44,9 @@
         }
 
         .container {
-            max-width: 800px;
+            max-width: 1200px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 40px 30px;
         }
 
         .back-button {
@@ -79,22 +79,22 @@
 
         .header h1 {
             color: #00ffff;
-            font-size: 2.5rem;
-            margin-bottom: 10px;
+            font-size: 3.5rem;
+            margin-bottom: 15px;
             text-shadow: 0 4px 20px rgba(0, 255, 255, 0.6);
         }
 
         .header p {
             color: rgba(0, 255, 255, 0.8);
-            font-size: 1.1rem;
+            font-size: 1.3rem;
         }
 
         .post-composer {
             background: rgba(0, 0, 0, 0.8);
             border: 2px solid rgba(0, 255, 255, 0.3);
             border-radius: 20px;
-            padding: 25px;
-            margin-bottom: 30px;
+            padding: 35px;
+            margin-bottom: 40px;
             backdrop-filter: blur(10px);
             box-shadow: 0 8px 30px rgba(0, 255, 255, 0.1);
         }
@@ -107,14 +107,14 @@
         }
 
         .avatar-container {
-            width: 50px;
-            height: 50px;
+            width: 65px;
+            height: 65px;
             border-radius: 50%;
             background: linear-gradient(135deg, #00ffff 0%, #22d3ee 100%);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.2rem;
+            font-size: 1.5rem;
             font-weight: bold;
             color: #000000;
             box-shadow: 0 4px 15px rgba(0, 255, 255, 0.3);
@@ -123,28 +123,29 @@
         .composer-info h3 {
             color: #00ffff;
             margin: 0;
-            font-size: 1.1rem;
+            font-size: 1.3rem;
         }
 
         .composer-info p {
             color: rgba(0, 255, 255, 0.7);
             margin: 5px 0 0 0;
-            font-size: 0.9rem;
+            font-size: 1.1rem;
         }
 
         .post-textarea {
             width: 100%;
-            min-height: 120px;
+            min-height: 150px;
             background: rgba(0, 255, 255, 0.05);
             border: 2px solid rgba(0, 255, 255, 0.2);
             border-radius: 12px;
-            padding: 15px;
+            padding: 20px;
             color: #e2e8f0;
             font-family: inherit;
-            font-size: 1rem;
+            font-size: 1.1rem;
             resize: vertical;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             box-sizing: border-box;
+            line-height: 1.6;
         }
 
         .post-textarea:focus {
@@ -184,13 +185,13 @@
         }
 
         .btn {
-            padding: 12px 24px;
+            padding: 15px 30px;
             border: none;
             border-radius: 25px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            font-size: 0.95rem;
+            font-size: 1.1rem;
         }
 
         .btn-primary {
@@ -214,7 +215,7 @@
             background: rgba(0, 0, 0, 0.8);
             border: 2px solid rgba(0, 255, 255, 0.3);
             border-radius: 20px;
-            padding: 25px;
+            padding: 35px;
             backdrop-filter: blur(10px);
             box-shadow: 0 8px 30px rgba(0, 255, 255, 0.1);
         }
@@ -230,7 +231,7 @@
 
         .feed-title {
             color: #00ffff;
-            font-size: 1.5rem;
+            font-size: 2rem;
             font-weight: bold;
             margin: 0;
         }
@@ -255,8 +256,8 @@
             background: rgba(0, 255, 255, 0.05);
             border: 1px solid rgba(0, 255, 255, 0.2);
             border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
             transition: all 0.3s ease;
         }
 
@@ -313,9 +314,9 @@
 
         .post-content {
             color: #e2e8f0;
-            line-height: 1.6;
-            margin-bottom: 15px;
-            font-size: 1rem;
+            line-height: 1.7;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
         }
 
         .post-reactions {
@@ -665,11 +666,27 @@
         /* Responsive Design */
         @media (max-width: 768px) {
             .container {
-                padding: 15px;
+                padding: 25px 15px;
             }
             
             .header h1 {
-                font-size: 2rem;
+                font-size: 2.5rem;
+            }
+            
+            .header p {
+                font-size: 1.2rem;
+            }
+            
+            .post-composer {
+                padding: 25px;
+            }
+            
+            .feed-container {
+                padding: 25px;
+            }
+            
+            .feed-title {
+                font-size: 1.8rem;
             }
             
             .composer-bottom {
@@ -691,7 +708,7 @@
             .modal-content {
                 width: 95%;
                 margin: 2% auto;
-                padding: 20px;
+                padding: 25px;
                 max-height: 90vh;
             }
             
