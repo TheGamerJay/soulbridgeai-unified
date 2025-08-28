@@ -3899,7 +3899,7 @@ def profile():
         
         logger.info(f"✅ PROFILE: user_plan={user_plan}, trial_active={trial_active}, effective_plan={effective_plan}")
         
-        return render_template("profile_broken.html")
+        return render_template("profile.html")
     except Exception as e:
         logger.error(f"❌ PROFILE ERROR: {e}")
         import traceback
