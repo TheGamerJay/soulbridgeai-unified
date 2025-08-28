@@ -102,8 +102,8 @@ class OpenAIClient:
             # Select model based on user tier (Bronze/Silver/Gold)
             tier_models = {
                 "bronze": "gpt-3.5-turbo",    # Bronze: GPT-3.5-turbo
-                "silver": "gpt-4o-mini",      # Silver: GPT-4o-mini (efficient premium)  
-                "gold": "gpt-4o"              # Gold: GPT-4o (best available for chat)
+                "silver": "gpt-4o",           # Silver: GPT-4o (solid premium experience)
+                "gold": "gpt-5"               # Gold: GPT-5 (flagship model, most advanced)
             }
             
             # Normalize user_plan and select appropriate model
