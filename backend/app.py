@@ -2394,8 +2394,9 @@ def debug_test_user():
 
 @app.route("/auth/login", methods=["GET", "POST"])
 def auth_login():
-    """Login route - redirect to main login page"""
-    return redirect("/login")
+    """Login route - redirect GET to main login page, process POST"""
+    if request.method == "GET":
+        return redirect("/login")
     
     # Handle POST requests - process login
     try:
