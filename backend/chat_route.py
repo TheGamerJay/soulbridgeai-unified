@@ -8,6 +8,36 @@ client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 bp = Blueprint("chat", __name__)
 
+@bp.route("/api/chat/debug/model", methods=["GET"])
+def debug_model_selection():
+    """Debug endpoint to check which model a user would get based on their tier"""
+    try:
+        from flask import session
+        # You can also pass tier as query param: ?tier=gold
+        user_tier = request.args.get('tier', 'bronze').lower()
+        
+        model_by_tier = {
+            "bronze": "gpt-3.5-turbo",
+            "silver": "gpt-4o", 
+            "gold": "gpt-5"
+        }
+        
+        selected_model = model_by_tier.get(user_tier, "gpt-3.5-turbo")
+        
+        return jsonify({
+            "success": True,
+            "user_tier": user_tier,
+            "selected_model": selected_model,
+            "all_tier_models": model_by_tier,
+            "openai_api_key_present": bool(os.environ.get("OPENAI_API_KEY"))
+        })
+        
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
 def build_system_prompt(character: str, tier_features: dict) -> str:
     """Build system prompt based on character and tier features"""
     character_prompts = {
@@ -52,7 +82,7 @@ def api_chat():
                 "character": character
             }), 400
 
-        logging.info(f"🎭 CHAT API: character='{character}', message='{user_message[:50]}...'")
+        logging.info(f"🎭 CHAT API: character='{character}', tier='{user_tier}', message='{user_message[:50]}...'")
 
         # Check if OpenAI API key is available
         if not os.environ.get("OPENAI_API_KEY"):
@@ -151,7 +181,11 @@ def api_chat():
             else:
                 content = f"Hi! I'm {character}. I couldn't generate a proper response right now, but I'm here to help!"
 
-        logging.info(f"✅ CHAT API: Successfully responded as {character}")
+        logging.info(f"✅ CHAT API: Successfully responded as {character} using {selected_model}")
+
+        # Add model info to response if user asks about it
+        if "what model" in user_message.lower() or "which ai" in user_message.lower():
+            content += f"\n\n(Debug: I'm running on {selected_model} for your {user_tier.title()} tier)"
 
         # Increment feature usage based on context
         from flask import session
@@ -180,7 +214,9 @@ def api_chat():
         return jsonify({
             "success": True,
             "response": content,
-            "character": character
+            "character": character,
+            "model_used": selected_model,  # Show which model was actually used
+            "user_tier": user_tier
         })
 
     except Exception as e:
