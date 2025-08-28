@@ -762,7 +762,7 @@ def voice_chat_page():
         
         # Check tier access - Silver/Gold only
         if not (session.get('access_silver') or session.get('access_gold')):
-            return render_template('chat_unified.html', user_plan='bronze', trial_active=False, error="Voice Chat requires Silver or Gold tier. Upgrade to access this feature!"), 403
+            return render_template('bronze_chat.html', error="Voice Chat requires Silver or Gold tier. Upgrade to access this feature!"), 403
         
         return render_template('voice_chat.html')
     except Exception as e:
@@ -867,8 +867,13 @@ def create_companion_routes():
                 # Get effective plan for feature access
                 effective_plan = get_effective_plan(user_plan, trial_active)
                 
-                # Use unified template for all tiers
-                template_name = 'chat_unified.html'
+                # Use tier-specific templates for consistent theme systems
+                template_map = {
+                    'bronze': 'bronze_chat.html',
+                    'silver': 'silver_chat.html', 
+                    'gold': 'gold_chat.html'
+                }
+                template_name = template_map.get(comp_tier, 'bronze_chat.html')
                 
                 # Render tier-specific chat template
                 return render_template(template_name,
@@ -18589,7 +18594,7 @@ if __name__ == "__main__":
 # ========================================
 
 # FEATURE FLAG - Set to False to instantly revert to old system
-UNIFIED_CHAT_ENABLED = False
+UNIFIED_CHAT_ENABLED = True
 
 @app.route("/chat")
 @app.route("/bronze") 
@@ -18735,8 +18740,13 @@ def companion_chat_handler(tier, companion_id):
         
         logger.info(f"🎨 RENDERING: tier={tier}, companion={companion_info['name']}, limits={limits}")
         
-        # Use unified template for all tiers
-        template_name = 'chat_unified.html'
+        # Use tier-specific templates for consistent theme systems
+        template_map = {
+            'bronze': 'bronze_chat.html',
+            'silver': 'silver_chat.html', 
+            'gold': 'gold_chat.html'
+        }
+        template_name = template_map.get(tier, 'bronze_chat.html')
         logger.info(f"🎯 TEMPLATE: Using {template_name} for tier {tier}")
         
         return render_template(template_name,
