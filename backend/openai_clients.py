@@ -99,9 +99,22 @@ class OpenAIClient:
             elif user_plan in ["vip", "max"]:
                 max_tokens = int(max_tokens * 1.5)  # Longer responses for premium users
             
+            # Select model based on user tier (Bronze/Silver/Gold)
+            tier_models = {
+                "bronze": "gpt-3.5-turbo",    # Bronze: GPT-3.5-turbo
+                "silver": "gpt-4o-mini",      # Silver: GPT-4o-mini (efficient premium)  
+                "gold": "gpt-4o"              # Gold: GPT-4o (best available for chat)
+            }
+            
+            # Normalize user_plan and select appropriate model
+            normalized_plan = user_plan.lower().strip()
+            selected_model = tier_models.get(normalized_plan, "gpt-3.5-turbo")  # Default to Bronze
+            
+            logger.info(f"🎯 COMPANION API: Using {selected_model} for {normalized_plan} tier")
+            
             # Make OpenAI API call
             response = self.client.chat.completions.create(
-                model=self.default_model,
+                model=selected_model,
                 messages=messages,
                 max_tokens=max_tokens,
                 temperature=self.temperature,
@@ -111,11 +124,17 @@ class OpenAIClient:
             
             content = response.choices[0].message.content.strip()
             
-            logger.info(f"OpenAI response generated for {character}")
+            # REAL MODEL VERIFICATION - Log what OpenAI actually used
+            actual_model_used = getattr(response, 'model', 'unknown')
+            logger.info(f"🔍 REAL MODEL VERIFICATION: Requested={selected_model}, OpenAI Returned={actual_model_used}")
+            logger.info(f"✅ OpenAI response generated for {character} using {actual_model_used}")
             
             return {
                 "success": True,
                 "response": content,
+                "model_requested": selected_model,      # What we asked for
+                "model_actually_used": actual_model_used,  # What OpenAI returned
+                "user_tier": normalized_plan,
                 "model": response.model,
                 "character": character,
                 "tokens_used": response.usage.total_tokens,

@@ -34,20 +34,26 @@ def _filter_debug_fields(response):
         "quota_info", "auto_quota", "budget_window", "spend_stats",
         "enhancement_level", "fallback_recommended", "error_recovery",
         
-        # Technical model details
-        "model", "tokens_used", "prompt_tokens", "completion_tokens",
+        # Technical model details (KEEP model verification fields)
+        "tokens_used", "prompt_tokens", "completion_tokens",
         "finish_reason", "response_time",
         
         # Internal routing notes
         "note", "limit", "used", "source_details", "provider_fallback"
     }
     
+    # ALWAYS preserve model verification fields for debugging
+    model_verification_fields = {
+        "model_requested", "model_actually_used", "user_tier", "model"
+    }
+    
     # Create filtered response
     filtered = response.copy()
     
-    # Remove debug fields
+    # Remove debug fields (but preserve model verification)
     for field in debug_fields:
-        filtered.pop(field, None)
+        if field not in model_verification_fields:
+            filtered.pop(field, None)
     
     # Keep essential user-facing info but simplify
     if "quota_after" in filtered:
