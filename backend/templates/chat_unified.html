@@ -37,9 +37,21 @@
         const Send = window.lucide?.Send || (() => React.createElement('span', {}, '→'));
 
         function UnifiedChatPage({ userPlan = "bronze", trialActive = false }) {
+          // Get companion info based on tier
+          const getCompanionInfo = (plan) => {
+            const companions = {
+              bronze: { name: "GamerJay", image: "/static/logos/GamerJay_Free_companion.png", greeting: "Hey there! I'm GamerJay, your Bronze tier companion. Ready to explore some awesome features together?" },
+              silver: { name: "Sky", image: "/static/logos/Sky_a_premium_companion.png", greeting: "Hello! I'm Sky, your Silver tier companion. I'm here to help you with enhanced features and premium tools!" },
+              gold: { name: "Crimson", image: "/static/logos/Crimson_a_Max_companion.png", greeting: "Welcome! I'm Crimson, your Gold tier companion. You have access to all our premium features and unlimited usage!" }
+            };
+            return companions[plan] || companions.bronze;
+          };
+
+          const companion = getCompanionInfo(userPlan);
+          
           const [messages, setMessages] = useState([
-            { id: 1, sender: "bot", text: `Welcome to SoulBridge AI! You're on the ${userPlan.charAt(0).toUpperCase() + userPlan.slice(1)} tier.` },
-            { id: 2, sender: "bot", text: "How can I help you today?" }
+            { id: 1, sender: "bot", text: companion.greeting, companion: companion },
+            { id: 2, sender: "bot", text: "How can I help you today?", companion: companion }
           ]);
           const [input, setInput] = useState("");
           const [loading, setLoading] = useState(false);
@@ -226,7 +238,8 @@
                 setMessages(prev => [...prev, {
                   id: Date.now() + 1,
                   sender: "bot",
-                  text: data.response
+                  text: data.response,
+                  companion: companion
                 }]);
               } else {
                 throw new Error(data.error || 'Failed to get response');
@@ -235,7 +248,8 @@
               setMessages(prev => [...prev, {
                 id: Date.now() + 1,
                 sender: "bot",
-                text: "I'm having trouble connecting right now. Please try again in a moment."
+                text: "I'm having trouble connecting right now. Please try again in a moment.",
+                companion: companion
               }]);
             } finally {
               setLoading(false);
@@ -295,7 +309,7 @@
               ),
               
               // Feature chips
-              React.createElement('div', { className: "max-w-6xl mx-auto px-3 py-2 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2" },
+              React.createElement('div', { className: "max-w-6xl mx-auto px-3 py-2 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3" },
                 features.map((f, i) => {
                   const isPremium = f.tag?.includes('🔒');
                   const isInfinity = f.tag === "999";
@@ -304,7 +318,7 @@
                   return React.createElement('button', {
                     key: i,
                     onClick: () => handleFeatureClick(f),
-                    className: `group flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm font-medium ring-1 ring-white/10 transition-all
+                    className: `group flex flex-col items-center gap-1 rounded-lg px-2 py-3 text-sm font-medium ring-1 ring-white/10 transition-all min-h-[80px]
                       ${isAvailable 
                         ? "bg-gray-900 hover:bg-gray-800 cursor-pointer" 
                         : "bg-gray-800 hover:bg-gray-700 cursor-pointer opacity-75"
@@ -313,21 +327,19 @@
                       borderColor: isAvailable ? colors.primary : '#666'
                     }
                   },
-                    React.createElement('span', { className: "flex items-center gap-1.5" },
-                      React.createElement('span', { className: "text-base" }, f.icon),
-                      React.createElement('span', { className: "truncate" }, f.label)
-                    ),
+                    React.createElement('span', { className: "text-xl mb-1" }, f.icon),
+                    React.createElement('span', { className: "text-xs font-medium text-center leading-tight px-1" }, f.label),
 
                     isInfinity && isAvailable && React.createElement('span', { 
-                      className: "ml-2 rounded-md px-1.5 py-0.5 text-xs font-semibold bg-emerald-400/15 text-emerald-300 ring-1 ring-emerald-400/30" 
+                      className: "mt-1 rounded-md px-1.5 py-0.5 text-[10px] font-semibold bg-emerald-400/15 text-emerald-300 ring-1 ring-emerald-400/30" 
                     }, f.tag),
 
                     isPremium && React.createElement('span', { 
-                      className: "ml-2 rounded-md px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide bg-amber-400/15 text-amber-300 ring-1 ring-amber-400/30" 
+                      className: "mt-1 rounded-md px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide bg-amber-400/15 text-amber-300 ring-1 ring-amber-400/30" 
                     }, "Locked"),
 
                     !isPremium && !isInfinity && f.tag && React.createElement('span', {
-                      className: "ml-2 rounded-md px-1.5 py-0.5 text-xs font-semibold ring-1",
+                      className: "mt-1 rounded-md px-1.5 py-0.5 text-[10px] font-semibold ring-1",
                       style: {
                         backgroundColor: `${colors.primary}15`,
                         color: colors.primary,
@@ -348,11 +360,19 @@
                     className: `flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`
                   },
                     msg.sender !== "user" && React.createElement('div', {
-                      className: "w-8 h-8 shrink-0 mr-2 rounded-full text-white grid place-items-center",
+                      className: "w-8 h-8 shrink-0 mr-2 rounded-full overflow-hidden bg-gray-800 border-2",
                       style: {
-                        background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`
+                        borderColor: colors.primary
                       }
-                    }, "🤖"),
+                    }, 
+                      msg.companion && msg.companion.image 
+                        ? React.createElement('img', {
+                            src: msg.companion.image,
+                            alt: msg.companion.name,
+                            className: "w-full h-full object-cover"
+                          })
+                        : React.createElement('span', { className: "text-white grid place-items-center w-full h-full text-sm" }, "🤖")
+                    ),
                     
                     React.createElement('div', {
                       className: `px-4 py-2 rounded-2xl max-w-[80%] shadow-sm ${
@@ -369,11 +389,19 @@
                 ),
                 loading && React.createElement('div', { className: "flex justify-start" },
                   React.createElement('div', {
-                    className: "w-8 h-8 shrink-0 mr-2 rounded-full text-white grid place-items-center",
+                    className: "w-8 h-8 shrink-0 mr-2 rounded-full overflow-hidden bg-gray-800 border-2",
                     style: {
-                      background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`
+                      borderColor: colors.primary
                     }
-                  }, "🤖"),
+                  }, 
+                    companion && companion.image 
+                      ? React.createElement('img', {
+                          src: companion.image,
+                          alt: companion.name,
+                          className: "w-full h-full object-cover"
+                        })
+                      : React.createElement('span', { className: "text-white grid place-items-center w-full h-full text-sm" }, "🤖")
+                  ),
                   React.createElement('div', { className: "px-4 py-2 rounded-2xl bg-white text-gray-800 ring-1 ring-gray-200" },
                     React.createElement('div', { className: "flex space-x-1" },
                       React.createElement('div', { className: "w-2 h-2 bg-gray-400 rounded-full animate-bounce" }),
